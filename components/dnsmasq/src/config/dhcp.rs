@@ -587,7 +587,8 @@ impl DhcpConfig {
             }
             b"script-on-renewal" => self.script_on_renewal = true,
             b"dhcp-reply-delay" | b"bridge-interface" | b"shared-network" | b"dhcp-proxy" => {
-                self.network.apply(directive, super::dhcp_network::interface_index)?;
+                self.network
+                    .apply(directive, super::dhcp_network::interface_index)?;
             }
             _ => return Ok(false),
         }
@@ -787,11 +788,18 @@ mod tests {
         assert_eq!(config.lease_path(), b"/private/example.leases");
         assert!(config.lease_read_only);
         assert_eq!(config.lease_max, 0);
-        for input in [b"dhcp-leasefile=".as_slice(), b"dhcp-leasefile", b"dhcp-lease="] {
+        for input in [
+            b"dhcp-leasefile=".as_slice(),
+            b"dhcp-leasefile",
+            b"dhcp-lease=",
+        ] {
             config.apply(&lex_line(input).unwrap().unwrap()).unwrap();
             assert_eq!(config.lease_path(), b"/var/lib/misc/dnsmasq.leases");
         }
-        assert_eq!(config.apply(&lex_line(b"dhcp-lease").unwrap().unwrap()), Err(Error("missing parameter")));
+        assert_eq!(
+            config.apply(&lex_line(b"dhcp-lease").unwrap().unwrap()),
+            Err(Error("missing parameter"))
+        );
     }
 
     #[test]

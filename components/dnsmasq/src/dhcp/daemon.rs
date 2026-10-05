@@ -3,7 +3,9 @@
 //! snapshots are refreshed for each admitted packet.
 
 use super::allocation::ProbeResult;
-use super::context::{select_contexts, select_remote_contexts, ContextState, SelectedContext};
+use super::context::{
+    select_contexts_with_shared, select_remote_contexts_with_shared, ContextState, SelectedContext,
+};
 use super::interface_admission::{interface_matches, InterfacePolicy, Selection};
 use super::lease::{
     ClientIdentity, Lease, LeaseCounters, LeaseError, LeaseStore, NameLost, RestoreError,
@@ -1523,8 +1525,14 @@ impl LocalProvider {
         };
         let subnet = packet.subnet_selector().unwrap_or(Ipv4Addr::UNSPECIFIED);
         let override_server = agent_address(11);
-        let ingress = select_contexts(&self.config.ranges, &mut self.states, &addresses, interface);
-        self.selected = select_remote_contexts(
+        let ingress = select_contexts_with_shared(
+            &self.config.ranges,
+            &mut self.states,
+            &addresses,
+            interface,
+            &self.config.network.shared,
+        );
+        self.selected = select_remote_contexts_with_shared(
             &self.config.ranges,
             &mut self.states,
             ingress,
@@ -1533,8 +1541,12 @@ impl LocalProvider {
             packet.effective_ciaddr(),
             local,
             override_server,
+            &self.config.network.shared,
         );
-        let override_server = self.config.network.server_override(packet.giaddr(), override_server);
+        let override_server = self
+            .config
+            .network
+            .server_override(packet.giaddr(), override_server);
         let mut ranges: Vec<_> = self
             .selected
             .iter()
@@ -2101,8 +2113,13 @@ impl OutcomeProvider for LocalProvider {
         let packet = dispatch.packet;
         // Complete masks from real interface addresses before putting ALL
         // contexts in configuration order on the leasequery chain.
-        let ingress_contexts =
-            select_contexts(&self.config.ranges, &mut self.states, &addresses, interface);
+        let ingress_contexts = select_contexts_with_shared(
+            &self.config.ranges,
+            &mut self.states,
+            &addresses,
+            interface,
+            &self.config.network.shared,
+        );
         let relay = packet.giaddr();
         let selector = packet
             .option(118, 4)
