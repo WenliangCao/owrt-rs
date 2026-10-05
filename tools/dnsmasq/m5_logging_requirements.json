@@ -217,7 +217,12 @@
           "id": "FAC10",
           "source": "log.c:135-160,301-319,log_write,flush_log",
           "boundary": "Real FIFO file open/write and blocked inherited stderr/debug echo preserve record semantics with explicit nonblocking single-owner startup/runtime/shutdown policy; demonstrate DNS/TFTP health while sink blocks and recovery after drain or reader arrival. C blocking differences retained separately.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "blocked-sink-fifo-no-reader",
+            "blocked-sink-fifo-full",
+            "blocked-sink-stderr-full",
+            "blocked-sink-debug-echo-full"
+          ]
         },
         {
           "id": "FAC11",
@@ -230,7 +235,18 @@
           ]
         }
       ],
-      "qualification_ready": false
+      "qualification_ready": false,
+      "scheduler_policy": {
+        "authority": "Project M5 single poll owner must not sleep or block for logging.",
+        "source": "log.c:135-160,301-319,407-471",
+        "difference": "C blocks at FIFO open, file/stderr write or debug fprintf. Rust waits for FIFO readers with bounded 100ms nonblocking open retries, a single file record buffer and overflow accounting; debug echo has a separate bounded queue. Blocked startup must not prevent service. Shutdown draining remains bounded at 100ms.",
+        "runtime_witnesses": [
+          "blocked-sink-fifo-no-reader",
+          "blocked-sink-fifo-full",
+          "blocked-sink-stderr-full",
+          "blocked-sink-debug-echo-full"
+        ]
+      }
     },
     "no-daemon": {
       "required": [
