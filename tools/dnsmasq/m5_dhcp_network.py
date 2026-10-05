@@ -58,7 +58,7 @@ def shared_specs():
         dict(case='shared-explicit-router', config=['shared-network=lo,198.18.0.1', 'dhcp-option=3,198.18.0.254'], router='198.18.0.254'),
         dict(case='shared-broadcast', config=['shared-network=lo,198.18.0.1'], broadcast='198.18.0.255'),
         dict(case='shared-duplicate-link', config=['shared-network=lo,198.18.0.1', 'shared-network=127.0.0.1,198.18.0.1']),
-        dict(case='shared-context-order', config=['shared-network=lo,198.18.0.1', 'shared-network=lo,198.18.1.1', 'dhcp-sequential-ip'], second_range=True, address='198.18.1.10', requested=False),
+        dict(case='shared-context-order', config=['shared-network=lo,198.18.0.1', 'shared-network=lo,198.18.1.1', 'dhcp-sequential-ip'], second_range=True, address='198.18.0.10', requested=False),
         dict(case='shared-secondary-enumeration', config=['shared-network=127.0.0.3,198.18.0.1'], secondary=True, expected='127.0.0.3'),
         dict(case='shared-interface-index-fixed', config=['shared-network=nwshare,198.18.0.1'], index_fixed=True, expected='198.19.0.1'),
         dict(case='shared-relay-address', config=['shared-network=127.0.0.2,198.18.0.1'], relay=True),
@@ -117,6 +117,10 @@ def shared_case(root, side, out, spec):
     runner.config.write_text(config)
     if spec.get('secondary'):
         subprocess.run(['ip', 'addr', 'add', '127.0.0.3/8', 'dev', 'lo'], check=True)
+    if spec.get('renew'):
+        subprocess.run(['ip', 'link', 'add', 'nwclient', 'type', 'dummy'], check=True)
+        subprocess.run(['ip', 'link', 'set', 'nwclient', 'up'], check=True)
+        subprocess.run(['ip', 'addr', 'add', '198.18.0.10/24', 'dev', 'nwclient'], check=True)
     if spec.get('index_fixed'):
         subprocess.run(['ip', 'link', 'add', 'nwshare', 'type', 'dummy'], check=True)
         subprocess.run(['ip', 'link', 'set', 'nwshare', 'up'], check=True)
@@ -148,6 +152,8 @@ def shared_case(root, side, out, spec):
             subprocess.run(['ip', 'addr', 'del', '127.0.0.3/8', 'dev', 'lo'], check=True)
         if spec.get('index_fixed'):
             subprocess.run(['ip', 'link', 'del', 'nwshare'], check=True)
+        if spec.get('renew'):
+            subprocess.run(['ip', 'link', 'del', 'nwclient'], check=True)
         assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'shared service cleanup'
 
 
