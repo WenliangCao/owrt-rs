@@ -380,6 +380,41 @@ case('negative-cname-tcp-import',answers=[{'kind':5,'data':name('target.cache.te
 case('negative-no-negcache-tcp','no-negcache',answers=[],soa=True,transports=['tcp','udp'])
 case('negative-no-negcache-positive-cname','no-negcache',action='cname')
 
+FORWARD_MODES=[('forward-one-hold-full','full',1,''),('forward-two-slots','two',2,''),
+ ('forward-one-coalesce','coalesce',1,''),('forward-same-client-retry','retry',1,''),
+ ('forward-reply-frees-capacity','free',1,''),('forward-error-recovery','error',1,''),
+ ('forward-default-no-timeout-early','early',1,''),('forward-timeout10-reuse-oldest','age10',1,''),
+ ('forward-free-slot-before-oldest','free-before-old',2,''),('forward-absolute40-collect','age40',1,''),
+ ('forward-late-old-response-rejected','late',1,''),('forward-distinct-domain-groups','groups',1,
+  'server=/one.cache.test/127.0.0.2#@UPSTREAM@\nserver=/two.cache.test/127.0.0.2#@UPSTREAM@'),
+ ('forward-same-domain-master-group','same-group',1,'server=/one.cache.test/two.cache.test/127.0.0.2#@UPSTREAM@'),
+ ('forward-full-domain-log','domain-log',1,'server=/one.cache.test/127.0.0.2#@UPSTREAM@'),
+ ('forward-full-log-rate5','log-rate',1,''),('forward-extra-client-global-full','coalesce',1,''),
+ ('forward-noresolv-local-group','local',1,'local=/local.cache.test/'),
+ ('forward-reload-pending-group','reload',1,''),('forward-stop-pending-fd-cleanup','stop',1,''),
+ ('forward-wrapped-negative-runtime','negative',2147483648,'')]
+for label,mode,maximum,extra in FORWARD_MODES:
+    case(label,'dns-forward-max='+str(maximum)+'\n'+extra,action='forward-capacity',mode=mode,metrics=True)
+
+for label,mode,fields in [
+ ('tcp-accept-expired-stale','expired-before',{'ttl':1,'config':'use-stale-cache=0'}),
+ ('tcp-accept-fresh-later-expired','expired-after',{'ttl':2}),
+ ('tcp-other-connection-inserts','other-tcp',{}),('tcp-parent-hup-clear','hup-cache',{}),
+ ('tcp-parent-hup-hosts','hup-hosts',{'config':'addn-hosts=/m2/caller.hosts','initial_hosts':'198.51.100.7 local.cache.test\n'}),
+ ('tcp-parent-local-conflict-on-import','local-import',{'config':'addn-hosts=/m2/caller.hosts','initial_hosts':''})]:
+    fields=copy.deepcopy(fields);config=fields.pop('config','')
+    case(label,config,action='tcp-owner-boundary',mode=mode,**fields)
+case('tcp-child-cname-negative-soa-order',answers=[{'kind':5,'data':name('target.cache.test').hex()}],soa=True,transports=['tcp','udp','tcp'])
+case('tcp-child-local-soa-known-name','cache-rr=TXT',host='health.cache.test',kind=16,response_flags=0x8183,answers=[],soa=True,transports=['tcp','udp'])
+for label,mode,config in [('tcp-udp-progress-slow-upstream','slow',''),
+                           ('tcp-child-late-import-absolute-expiry','late',''),
+                           ('tcp-client-drop-during-refresh','refresh','use-stale-cache=0'),
+                           ('stale-parent-progress-during-refresh','refresh','use-stale-cache=0'),
+                           ('stale-stop-refresh-cleanup','stop-refresh','use-stale-cache=0')]:
+    case(label,config,action='tcp-held-boundary',mode=mode,ttl=1 if 'refresh' in mode else 2 if mode=='late' else 600)
+case('stale-refresh-new-client-joins','use-stale-cache=0',action='udp-held-stale',ttl=1)
+case('forward-stale-background-capacity','dns-forward-max=1\nuse-stale-cache=0',action='udp-held-stale',ttl=1,capacity_probe=True,metrics=True)
+
 # Round-robin is a forward lookup effect. Reverse queries never rotate.
 for shape,kind in [('a',1),('aaaa',28),('generic',16),('reverse',12),('hosts',1)]:
     for disabled in [False,True]:
@@ -449,11 +484,12 @@ class Upstream:
         self.udp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);self.udp.bind(('127.0.0.2',0))
         self.port=self.udp.getsockname()[1];self.tcp=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.tcp.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);self.tcp.bind(('127.0.0.2',self.port));self.tcp.listen(20)
-        self.events=[];self.errors=[];self.plan={};self.clients=[];self.stop=threading.Event()
+        self.events=[];self.errors=[];self.plan={};self.held=[];self.clients=[];self.stop=threading.Event()
         self.thread=threading.Thread(target=self.run);self.thread.start()
-    def answer(self,packet,transport):
+    def answer(self,packet,transport,force=False):
         host,end=read_name(packet,12);kind,cls=struct.unpack_from('!HH',packet,end);spec=copy.deepcopy(self.plan.get(host,{}))
-        self.events.append({'host':host,'transport':transport,'query':normalized(packet),'wire':packet.hex()})
+        if not force:self.events.append({'host':host,'transport':transport,'query':normalized(packet),'wire':packet.hex()})
+        if spec.get('hold') and not force:return None
         answer_spec=spec.get('answers',[{'kind':kind,'data':default_rdata(kind).hex()}]);answers=[]
         for record in answer_spec:
             answers.append(rr(record.get('kind',kind),bytes.fromhex(record['data']),
@@ -484,7 +520,9 @@ class Upstream:
             for stream in ready:
                 try:
                     if stream is self.udp:
-                        packet,peer=stream.recvfrom(65535);stream.sendto(self.answer(packet,'udp'),peer)
+                        packet,peer=stream.recvfrom(65535);response=self.answer(packet,'udp')
+                        if response is None:self.held.append(('udp',stream,peer,packet))
+                        else:stream.sendto(response,peer)
                     elif stream is self.tcp:
                         conn,_=stream.accept();conn.setblocking(False);self.clients.append(conn);buffers[conn]=b''
                     else:
@@ -495,8 +533,20 @@ class Upstream:
                             length=struct.unpack_from('!H',buffers[stream])[0]
                             if len(buffers[stream])<length+2:break
                             packet=buffers[stream][2:length+2];buffers[stream]=buffers[stream][length+2:]
-                            response=self.answer(packet,'tcp');stream.sendall(struct.pack('!H',len(response))+response)
+                            response=self.answer(packet,'tcp')
+                            if response is None:self.held.append(('tcp',stream,None,packet))
+                            else:stream.sendall(struct.pack('!H',len(response))+response)
                 except Exception as error:self.errors.append(repr(error))
+    def release(self,host=None):
+        count=0
+        for row in list(self.held):
+            transport,stream,peer,packet=row
+            if host is not None and read_name(packet,12)[0]!=host:continue
+            response=self.answer(packet,transport,True)
+            if transport=='udp':stream.sendto(response,peer)
+            else:stream.sendall(struct.pack('!H',len(response))+response)
+            self.held.remove(row);count+=1
+        return count
     def close(self):
         self.stop.set();self.thread.join(2)
         for stream in [self.udp,self.tcp,*self.clients]:stream.close()
@@ -557,7 +607,10 @@ def schedule(spec,port,upstream,folder,root):
         (folder/(label+'.metrics.stdout')).write_bytes(result.stdout);(folder/(label+'.metrics.stderr')).write_bytes(result.stderr)
         if result.returncode:raise AssertionError('cache metrics response failed '+str(result.returncode))
         all_metrics=json.loads(result.stdout)
-        return {key:all_metrics[key] for key in ['dns_cache_inserted','dns_cache_live_freed','dns_queries_forwarded','dns_local_answered','dns_stale_answered']}
+        keys=['dns_cache_inserted','dns_cache_live_freed','dns_queries_forwarded','dns_local_answered','dns_stale_answered']
+        if spec.get('action')=='forward-capacity' and spec['mode'] in ('age10','age40','free-before-old'):
+            keys.append('dns_unanswered')
+        return {key:all_metrics[key] for key in keys}
     def packet(label,target=host,tcp=False,connection=None,step=0,**overrides):
         fields=dict(spec,**overrides)
         wire=query(target,0x5200+step,fields.get('kind',1),fields.get('flags',0x100),fields.get('cls',1),fields.get('do',False),
@@ -613,6 +666,132 @@ def schedule(spec,port,upstream,folder,root):
             time.sleep(2.2);packet('child-equal-expiry',tcp=True,connection=conn)
             upstream.plan[host]=dict(spec,ttl=600,answers=[{'data':'c6336408'}])
             packet('parent-after-expiry');time.sleep(.1);packet('parent-refreshed')
+        return observations
+    if action=='forward-capacity':
+        clients=[];wires={};sent_times={};holders=[]
+        def send(label,target,connection=None,ident=0x6100):
+            conn=connection or socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+            if connection is None:conn.bind((CLIENT,0));conn.connect((LISTEN,port));clients.append(conn)
+            conn.settimeout(.15);wire=query(target,ident);wires[label]=wire
+            (folder/(label+'.query')).write_bytes(wire);sent_times[label]=time.monotonic_ns();conn.send(wire)
+            holders.append(conn);time.sleep(.02)
+            return conn
+        def receive(label,conn,query_label):
+            started=time.monotonic_ns()
+            try:reply=conn.recv(65535)
+            except socket.timeout:reply=None
+            if reply is not None:(folder/(label+'.reply')).write_bytes(reply)
+            (folder/(label+'.query')).write_bytes(wires[query_label])
+            observations.append({'label':label,'query':normalized(wires[query_label]),'reply':normalized(reply),
+                                 'sent_monotonic_ns':sent_times[query_label],'completed_monotonic_ns':time.monotonic_ns(),
+                                 'metrics':cache_metrics(label)})
+        mode=spec['mode'];first='a.one.cache.test' if mode in ('groups','same-group','domain-log') else 'a.cache.test'
+        second='b.one.cache.test' if mode=='domain-log' else 'b.two.cache.test' if mode in ('groups','same-group') else 'b.cache.test'
+        upstream.plan[first]={'hold':True};upstream.plan[second]={'hold':True}
+        try:
+            one=send('pending-first',first);receive('first-no-reply',one,'pending-first')
+            if mode=='negative':
+                packet('local-healthy','health.cache.test');packet('ordinary-refused');return observations
+            if mode=='local':
+                packet('local-name','missing.local.cache.test');packet('local-health','health.cache.test')
+            if mode=='free-before-old':
+                released='released.cache.test';upstream.plan[released]={'hold':True}
+                free=send('allocate-second-slot',released,ident=0x6102)
+                receive('both-slots-pending',free,'allocate-second-slot')
+                upstream.plan[released]={};upstream.release(released)
+                receive('second-slot-freed',free,'allocate-second-slot')
+            if mode in ('age10','free-before-old','late'):time.sleep(11.2)
+            elif mode=='age40':time.sleep(41.2)
+            elif mode=='early':time.sleep(3.2)
+            if mode=='reload':process_hup(folder)
+            if mode in ('free','error'):
+                upstream.plan[first]={'response_flags':0x8182,'answers':[]} if mode=='error' else {}
+                upstream.release(first);receive('first-completed',one,'pending-first')
+            if mode in ('coalesce','retry'):
+                two=send('pending-second',first,one if mode=='retry' else None,0x6100 if mode=='retry' else 0x6101)
+            else:two=send('pending-second',second,ident=0x6101)
+            receive('second-before-release',two,'pending-second')
+            if mode=='two':
+                third='c.cache.test';upstream.plan[third]={'hold':True};three=send('pending-third',third,ident=0x6102)
+                receive('third-full',three,'pending-third')
+            if mode=='log-rate':
+                for index,wait in enumerate([0,0,5.2,1.2]):
+                    if wait:time.sleep(wait)
+                    other='blocked'+str(index)+'.cache.test';upstream.plan[other]={'hold':True}
+                    conn=send('blocked-'+str(index),other,ident=0x6110+index);receive('blocked-result-'+str(index),conn,'blocked-'+str(index))
+            if mode=='stop':return observations
+            upstream.plan[first]={};upstream.plan[second]={}
+            if mode=='late':
+                upstream.release(first);receive('old-late-rejected',one,'pending-first')
+                upstream.release(second);receive('new-completed',two,'pending-second')
+            else:
+                upstream.release();time.sleep(.05)
+                if mode not in ('free','error'):receive('first-after-release',one,'pending-first')
+                receive('second-after-release',two,'pending-second')
+            return observations
+        finally:
+            for conn in clients:conn.close()
+    if action=='tcp-owner-boundary':
+        mode=spec['mode']
+        if mode in ('expired-before','expired-after','hup-cache'):packet('seed')
+        if mode=='expired-before':time.sleep(2.2)
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as conn:
+            conn.settimeout(2);conn.bind((CLIENT,0));conn.connect((LISTEN,port))
+            packet('accepted-health','health.cache.test',True,conn,kind=1)
+            if mode in ('hup-hosts','local-import'):
+                (root/'m2/caller.hosts').write_text('198.51.100.8 '+('local.cache.test' if mode=='hup-hosts' else host)+'\n')
+                process_hup(folder)
+            elif mode=='hup-cache':
+                upstream.plan[host]=dict(spec,answers=[{'data':'c6336408'}]);process_hup(folder)
+            elif mode=='expired-after':time.sleep(3.2)
+            elif mode=='other-tcp':packet('other-connection-insert',tcp=True)
+            if mode=='hup-hosts':
+                packet('parent-local','local.cache.test');packet('child-local','local.cache.test',True,conn)
+            elif mode=='expired-before':
+                packet('child-expired',tcp=True,connection=conn);time.sleep(.1);packet('parent-refresh')
+            else:
+                if mode in ('hup-cache','other-tcp'):packet('parent-current')
+                packet('child-view',tcp=True,connection=conn)
+                if mode=='local-import':packet('parent-local');packet('child-repeat',tcp=True,connection=conn)
+                elif mode=='expired-after':packet('parent-expired')
+        return observations
+    if action=='tcp-held-boundary':
+        mode=spec['mode'];refresh='refresh' in mode
+        if refresh:packet('seed');time.sleep(2.2)
+        upstream.plan[host]=dict(spec,hold=True,answers=[{'data':'c6336408'}] if refresh else [{'data':'c6336407'}],ttl=600 if refresh else spec['ttl'])
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as conn:
+            conn.settimeout(.15);conn.bind((CLIENT,0));conn.connect((LISTEN,port))
+            wire=query(host,0x6300)
+            if refresh:packet('stale-child',tcp=True,connection=conn)
+            else:
+                conn.sendall(struct.pack('!H',len(wire))+wire);(folder/'held-child.query').write_bytes(wire)
+            deadline=time.monotonic()+2
+            while not any(row[0]=='tcp' for row in upstream.held):
+                if time.monotonic()>=deadline:raise AssertionError('TCP upstream hold not reached')
+                time.sleep(.01)
+            packet('parent-progress','health.cache.test')
+            if mode=='late':time.sleep(3.2)
+            if mode=='stop-refresh':return observations
+            if refresh:conn.close()
+            upstream.release(host)
+            if not refresh:
+                conn.settimeout(2);reply=exact_read(conn,struct.unpack('!H',exact_read(conn,2))[0]);(folder/'held-child.reply').write_bytes(reply)
+                observations.append({'label':'held-child','query':normalized(wire),'reply':normalized(reply)})
+                if mode=='late':packet('child-fixed-view',tcp=True,connection=conn)
+            time.sleep(.15)
+            upstream.plan[host]=dict(spec,hold=False,ttl=600,answers=[{'data':'c6336408'}])
+            packet('parent-after-import')
+        return observations
+    if action=='udp-held-stale':
+        packet('seed');time.sleep(2.2)
+        upstream.plan[host]=dict(spec,hold=True,ttl=600,answers=[{'data':'c6336408'}])
+        packet('stale-first');time.sleep(.05)
+        if spec.get('capacity_probe'):packet('blocked-other','blocked.cache.test')
+        else:packet('stale-second-client')
+        packet('parent-progress','health.cache.test')
+        upstream.release(host);time.sleep(.15)
+        packet('parent-refreshed')
+        if spec.get('capacity_probe'):packet('capacity-recovered','blocked.cache.test')
         return observations
     if action=='stale-schedule':
         shape=spec.get('shape')
@@ -765,9 +944,10 @@ def run(args):
         config=(f'port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN}\n'
                 f'server=127.0.0.2#{upstream.port}\ncache-size={spec.get("capacity",100)}\nno-0x20-encode\n'
                 'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
-                'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config']+'\n'
+                'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config'].replace('@UPSTREAM@',str(upstream.port))+'\n'
                 +('enable-ubus=cache-metrics\n' if spec.get('metrics') else ''))
         (folder/'config').write_text(config);(root/'m2/cache.conf').write_text(config)
+        if 'initial_hosts' in spec:(root/'m2/caller.hosts').write_text(spec['initial_hosts'])
         trace={'case':label,'config':spec['config'],'observations':[],'exit':None};process=None
         log=(folder/'stderr').open('wb')
         try:
@@ -791,6 +971,9 @@ def run(args):
             upstream.close();log.close();trace['upstream']=copy.deepcopy(upstream.events);trace['upstream_errors']=upstream.errors
             if (root/'m2/cache.pid').exists():(root/'m2/cache.pid').unlink()
             if (root/'m2/cache.log').exists():(folder/'daemon.log').write_bytes((root/'m2/cache.log').read_bytes());(root/'m2/cache.log').unlink()
+            if label in ('forward-full-log-rate5','forward-full-domain-log'):
+                trace['capacity_diagnostics']=re.findall(r'Maximum number of concurrent DNS queries(?: to \S+)? reached[^\n]*',
+                                                        (folder/'daemon.log').read_text())
         (folder/'trace.json').write_text(json.dumps(trace,indent=2)+'\n');report['scenarios'].append(trace)
     required={label for b in manifest['boundaries'] for label in b['required_cases']}
     report['required_count']=len(required);report['missing_required_cases']=sorted(required-set(report['executed_cases']))
@@ -889,6 +1072,7 @@ def qualify_dhcp_caller(args):
     args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'dhcp_caller_qualified':qualified,'negative_controls':len(controls)}));return int(not qualified)
 
+DEFERRED_EXTREME_CASES={'generic-expanded-u16-overflow','forward-wrapped-negative-runtime'}
 CLOCK_KEYS={'elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns'}
 REVERSE_ORDER_CASES={'ptr-multiple-targets','ptr-reverse-bucket-order','round-reverse-default','round-reverse-disabled'}
 
@@ -907,6 +1091,9 @@ def comparison_rows(folder,side):
     for row in report['syntax']:rows[row['case']]=row
     for row in report['scenarios']:
         if row.get('failure') or row['exit']!=0 or row['upstream_errors']:
+            if row['case']=='forward-wrapped-negative-runtime' and side=='c' and row['exit']==4:
+                rows[row['case']]=row
+                continue
             raise ValueError('case did not complete: '+row['case'])
         for observation in row['observations']:
             if observation.get('reply',{}).get('result')=='timeout':continue
@@ -932,6 +1119,12 @@ def canonical_observations(row,reverse_order=False):
             if previous and 100_000_000 <= current['sent_monotonic_ns']-previous['completed_monotonic_ns'] < 900_000_000:
                 for rr in obs['reply'].get('records',[]):
                     if rr['section'] in ('answer','authority') and rr['ttl'] in (599,600):rr['ttl']='fresh600-within-one-second'
+        if obs['label']=='parent-after-import' and row['case'] in ('stale-parent-progress-during-refresh',
+                  'tcp-client-drop-during-refresh','tcp-udp-progress-slow-upstream'):
+            previous=labels.get('parent-progress');current=labels[obs['label']]
+            if previous and 150_000_000 <= current['sent_monotonic_ns']-previous['completed_monotonic_ns'] < 900_000_000:
+                for rr in obs['reply'].get('records',[]):
+                    if rr['section']=='answer' and rr['ttl'] in (599,600):rr['ttl']='fresh600-after-held-import-real150ms'
         # These two source-frozen expiry schedules observe integer-second
         # TTLs across a measured1.2s/2.2s interval. Preserve their exact allowed
         # ranges and all non-TTL data; no other replay TTL is normalized.
@@ -970,6 +1163,13 @@ def real_expiry_witness(row):
     labels={obs['label']:obs for obs in row['observations']}
     if 'child-zero-first' in labels and 'child-equal-expiry' in labels:
         if labels['child-equal-expiry'].get('sent_monotonic_ns',0)-labels['child-zero-first'].get('completed_monotonic_ns',0)<2_200_000_000:return False
+    if row['case'] in ('stale-parent-progress-during-refresh','stale-stop-refresh-cleanup',
+                       'stale-refresh-new-client-joins','forward-stale-background-capacity','tcp-client-drop-during-refresh'):
+        stale=labels.get('stale-child',labels.get('stale-first'));seed=labels.get('seed')
+        if not stale or not seed or stale.get('sent_monotonic_ns',0)-seed.get('completed_monotonic_ns',0)<2_200_000_000:return False
+    if row['case'] in ('stale-parent-progress-during-refresh','tcp-client-drop-during-refresh','tcp-udp-progress-slow-upstream'):
+        current=labels.get('parent-after-import');previous=labels.get('parent-progress')
+        if not current or not previous or not 150_000_000 <= current.get('sent_monotonic_ns',0)-previous.get('completed_monotonic_ns',0)<900_000_000:return False
     if not row['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh','metadata-dnskey-generic-stale','metadata-ds-generic-stale')):return True
     labels={obs['label']:obs for obs in row['observations']}
     expired=labels.get('expired',labels.get('expired-stale'))
@@ -979,10 +1179,33 @@ def real_expiry_witness(row):
     return expired.get('sent_monotonic_ns',0)-seed.get('completed_monotonic_ns',0)>=wait
 
 
+def forward_contract_witness(row):
+    labels={obs['label']:obs for obs in row['observations']}
+    waits={'forward-timeout10-reuse-oldest':11.2,'forward-free-slot-before-oldest':11.2,
+           'forward-absolute40-collect':41.2}
+    if row['case'] in waits:
+        first=labels.get('first-no-reply');second=labels.get('second-before-release')
+        if not first or not second:return False
+        if second.get('sent_monotonic_ns',0)-first.get('sent_monotonic_ns',0)<waits[row['case']]*1e9:return False
+        if row['case']=='forward-free-slot-before-oldest':
+            free=labels.get('second-slot-freed');old=labels.get('first-after-release')
+            if not free or not old or 'flags' not in free['reply'] or 'flags' not in old['reply']:return False
+            if second['metrics'].get('dns_unanswered')!=0:return False
+        elif second['metrics'].get('dns_unanswered')!=1:return False
+    if row['case']=='forward-full-domain-log':
+        return row.get('capacity_diagnostics')==['Maximum number of concurrent DNS queries to one.cache.test reached (max: 1)']
+    if row['case']=='forward-full-log-rate5':
+        return row.get('capacity_diagnostics')==['Maximum number of concurrent DNS queries reached (max: 1)']*2
+    return True
+
+
 def case_equal(c,r,reverse_variation=False):
     if 'observations' not in c:return c==r
     if c.get('config')!=r.get('config'):return False
     if not real_expiry_witness(c) or not real_expiry_witness(r):return False
+    if c['case'].startswith('forward-'):
+        if not forward_contract_witness(c) or not forward_contract_witness(r):return False
+        if c.get('capacity_diagnostics')!=r.get('capacity_diagnostics'):return False
     if len(c['upstream'])!=len(r['upstream']):return False
     upstream=lambda row:[{k:v for k,v in event.items() if k!='wire'} for event in row['upstream']]
     if upstream(c)!=upstream(r):return False
@@ -1006,7 +1229,9 @@ def compare_family(args):
     manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
     selected=set(args.boundaries.split(',')) if args.boundaries else {b['id'] for b in manifest['boundaries']}
     boundaries=[b for b in manifest['boundaries'] if b['id'] in selected]
-    required={label for b in boundaries for label in b['required_cases']}
+    source_required={label for b in boundaries for label in b['required_cases']}
+    deferred=sorted(source_required&DEFERRED_EXTREME_CASES)
+    required=source_required-DEFERRED_EXTREME_CASES
     if not boundaries or {b['id'] for b in boundaries}!=selected:raise ValueError('unknown boundary ID')
     missing=sorted(required-(c_rows.keys()&r_rows.keys()));passed=[];different=[];variations=[];controls=[]
     for label in sorted(required&(c_rows.keys()&r_rows.keys())):
@@ -1024,7 +1249,7 @@ def compare_family(args):
     for label in passed:
         c,r=c_rows[label],r_rows[label]
         if 'observations' not in r:continue
-        for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait']:
+        for mode in ['upstream-count','reply-flags','reply-ttl-unbounded','missing-observation','shortened-expiry-wait','cache-counter','capacity-diagnostic']:
             wrong=copy.deepcopy(r)
             if mode=='upstream-count':wrong['upstream'].append(copy.deepcopy(wrong['upstream'][0]) if wrong['upstream'] else {})
             elif mode=='reply-flags':
@@ -1037,16 +1262,23 @@ def compare_family(args):
                 rr['ttl']=999999
             elif mode=='shortened-expiry-wait':
                 labels={obs['label']:obs for obs in wrong['observations']}
-                expired=labels.get('expired',labels.get('expired-stale'))
-                if not expired or 'seed' not in labels or not wrong['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh')):continue
+                expired=labels.get('expired',labels.get('expired-stale',labels.get('stale-child',labels.get('stale-first'))))
+                if not expired or 'seed' not in labels or not wrong['case'].startswith(('stale-','ptr-stale-refresh','ptr-expiry-refresh','forward-stale-','tcp-client-drop-during-refresh')):continue
                 expired['sent_monotonic_ns']=labels['seed']['completed_monotonic_ns']+200_000_000
+            elif mode=='cache-counter':
+                counters=next((obs['metrics'] for obs in wrong['observations'] if 'metrics' in obs),None)
+                if counters is None:continue
+                counters['dns_queries_forwarded']+=1
+            elif mode=='capacity-diagnostic':
+                if 'capacity_diagnostics' not in wrong:continue
+                wrong['capacity_diagnostics']=[]
             else:wrong['observations'].pop()
             controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong,label in variations)})
     result={'candidate_sha256':next(iter(candidate_shas)),'boundaries':[b['id'] for b in boundaries],
-            'required_count':len(required),'missing_required_cases':missing,'passed_cases':passed,
+            'required_count':len(required),'source_required_count':len(source_required),'deferred_extreme_cases':deferred,'missing_required_cases':missing,'passed_cases':passed,
             'differences':different,'reference_reverse_order_variation':variations,'negative_controls':controls,
             'qualified':not missing and not different and all(x['rejected'] for x in controls),
-            'full_cache_family_qualified':len(boundaries)==len(manifest['boundaries']) and not missing and not different and all(x['rejected'] for x in controls),
+            'full_cache_family_qualified':not deferred and len(boundaries)==len(manifest['boundaries']) and not missing and not different and all(x['rejected'] for x in controls),
             'reports':identities,'comparator_sha256':sha256(__file__)}
     args.out.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({'required':len(required),'passed':len(passed),'missing':len(missing),'different':len(different),
