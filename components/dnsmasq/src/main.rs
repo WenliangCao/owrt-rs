@@ -1298,17 +1298,12 @@ fn run_inner(
             }
         }
         if let Some(error) = log_ownership_warning {
-            logger.emit(LogEvent::new(
-                Service::Dns,
-                Priority::Warning,
-                format!(
-                    "warning: failed to change owner of {}: {}",
-                    runtime.logging.file.as_deref().unwrap().display(),
-                    dnsmasq_rs::logging::error_text(&error)
-                )
-                .into_bytes(),
+            logger.emit(dnsmasq_rs::logging::ownership_warning(
+                runtime.logging.file.as_deref().unwrap(),
+                &error,
             ));
         }
+
         for warning in dnsmasq_rs::logging::startup::missing_interfaces(
             &daemon_config,
             &interface_snapshot.lock().unwrap(),
