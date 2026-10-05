@@ -946,7 +946,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             .dns_files
             .as_mut()
             .is_none_or(DnsFiles::lookups_drained);
-        let drained = lookups_drained && poll.step_helper_shutdown();
+        let helper_drained = poll.step_helper_shutdown();
+        let drained = lookups_drained && helper_drained;
         if let Some(error) = poll.helper_init_error.take() {
             pid_file.cleanup();
             return Err(Box::new(error));
@@ -957,8 +958,10 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         // EVENT_TERM drains sources and command bytes, not script execution.
         // Keep IPC and init processing nonblocking in the same poll owner.
         let mut fds = Vec::new();
-        for (fd, events) in poll.helper.as_ref().unwrap().poll_fds() {
-            if fd >= 0 { fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 }); }
+        if let Some(helper) = &poll.helper {
+            for (fd, events) in helper.poll_fds() {
+                if fd >= 0 { fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 }); }
+            }
         }
         if let Some(files) = &poll.dns_files { files.append_poll_fds(&mut fds); }
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
