@@ -682,7 +682,8 @@
       "boundary": "NAME-02",
       "required_case": "scoped hostname v4+v6 source interaction",
       "case_ids": [
-        "file-partial-success-before-scope-error"
+        "file-partial-success-before-scope-error",
+        "file-partial-success-before-scope-error-hup"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -2490,7 +2491,9 @@
       "required_case": "error hostname row followed valid numeric row",
       "case_ids": [
         "file-unresolved-name-followed-valid",
-        "file-errors-continue"
+        "file-errors-continue",
+        "file-unresolved-name-followed-valid-hup",
+        "file-errors-continue-hup"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -2505,7 +2508,9 @@
       "required_case": "strict scope valid/error rows",
       "case_ids": [
         "file-errors-continue",
-        "file-partial-success-before-scope-error"
+        "file-partial-success-before-scope-error",
+        "file-errors-continue-hup",
+        "file-partial-success-before-scope-error-hup"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
@@ -2547,7 +2552,8 @@
       "boundary": "FILE-01",
       "required_case": "invalid numeric family row followed valid row",
       "case_ids": [
-        "file-errors-continue"
+        "file-errors-continue",
+        "file-errors-continue-hup"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [

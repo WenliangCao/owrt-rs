@@ -353,6 +353,12 @@ def service_cases():
     add('global-query-server-file-precedence','query-port=34003\nservers-file=/m2/files/servers\n',
         files={'servers':'server=/one.endpoint.test/127.0.0.2\nrev-server=192.0.2.0/24,127.0.0.3\n'},
         names=('one.endpoint.test','7.2.0.192.in-addr.arpa'),expected_source_port=34003)
+    for original in list(cases):
+        if original.get('diagnostics'):
+            changed=copy.deepcopy(original);changed['id']+='-hup'
+            text=changed['files']['servers'];changed['files']['servers']='server=127.0.0.3\n'
+            changed['actions']=[write('servers',text),signal_reload(),*changed['actions']]
+            cases.append(changed)
     return cases
 
 
@@ -727,6 +733,12 @@ def controls():
     assert not source_guard_errors(diagnostic,{'diagnostics':True})
     diagnostic['file_diagnostics']=[]
     tests['missing-file-diagnostic']=bool(source_guard_errors(diagnostic,{'diagnostics':True}))
+    from m5_dns_files import compare
+    ordered={'syntax':{'exit':0,'stdout':'','stderr':''},'startup':{'ready':True},'rows':[],
+        'exit':0,'cleanup':{'live_pids':[],'pid_file':False},'file_diagnostics':['scope error at line 1','family error at line 3']}
+    case={'actions':[],'diagnostics':True};assert not compare(ordered,ordered,case)
+    wrong=copy.deepcopy(ordered);wrong['file_diagnostics'].reverse()
+    tests['file-diagnostic-line-order']=any(row['phase']=='file-diagnostics' for row in compare(ordered,wrong,case))
     assert all(tests.values()),tests
     return tests
 
