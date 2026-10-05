@@ -8,6 +8,8 @@ use crate::config::{Directive, Error};
 use std::ffi::OsString;
 #[cfg(target_os = "linux")]
 use std::io::{self, Write};
+#[cfg(target_os = "linux")]
+use std::os::unix::ffi::OsStrExt;
 use std::os::unix::ffi::OsStringExt;
 use std::path::PathBuf;
 
@@ -64,6 +66,58 @@ impl ProcessConfig {
 pub struct StartupError {
     pub code: i32,
     pub message: String,
+}
+
+/// EVENT_PIDFILE retains the original Unix argument and errno separately.
+#[cfg(target_os = "linux")]
+#[derive(Debug)]
+pub struct PidStartError {
+    pub code: i32,
+    pub message: String,
+    argument: Vec<u8>,
+    error: io::Error,
+}
+
+#[cfg(target_os = "linux")]
+impl PidStartError {
+    fn new(path: &std::path::Path, error: io::Error) -> Self {
+        let argument = path.as_os_str().as_bytes().to_vec();
+        Self {
+            code: 3,
+            message: format!(
+                "failed to open pidfile {}: {}",
+                path.display(),
+                crate::logging::error_text(&error)
+            ),
+            argument,
+            error,
+        }
+    }
+    pub fn argument(&self) -> &[u8] {
+        &self.argument
+    }
+    pub fn errno(&self) -> i32 {
+        self.error.raw_os_error().unwrap_or(5)
+    }
+    pub fn message_bytes(&self) -> Vec<u8> {
+        let mut message = b"failed to open pidfile ".to_vec();
+        message.extend_from_slice(&self.argument);
+        message.extend_from_slice(b": ");
+        message.extend_from_slice(crate::logging::error_text(&self.error).as_bytes());
+        message
+    }
+}
+#[cfg(target_os = "linux")]
+impl std::fmt::Display for PidStartError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.message)
+    }
+}
+#[cfg(target_os = "linux")]
+impl std::error::Error for PidStartError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.error)
+    }
 }
 
 /// option.c finalizes MX/SRV defaults before returning from syntax-check mode.
@@ -299,7 +353,7 @@ mod linux {
                 root: unsafe { getuid() } == 0,
             })
         }
-        pub fn write_pid(&self, config: &ProcessConfig) -> Result<PidFile, StartupError> {
+        pub fn write_pid(&self, config: &ProcessConfig) -> Result<PidFile, PidStartError> {
             let Some(path) = config.pid_file.as_ref() else {
                 return Ok(PidFile::new(None));
             };
@@ -318,16 +372,7 @@ mod linux {
             let mut file = match file {
                 Ok(file) => file,
                 Err(_) if !self.root => return Ok(PidFile::new(Some(path.clone()))),
-                Err(error) => {
-                    return Err(StartupError {
-                        code: 3,
-                        message: format!(
-                            "failed to open pidfile {}: {}",
-                            path.display(),
-                            crate::logging::error_text(&error)
-                        ),
-                    })
-                }
+                Err(error) => return Err(PidStartError::new(path, error)),
             };
             let mut pid = PidFile::new(Some(path.clone()));
             if self.root && self.uid.is_some_and(|uid| uid != 0) {
@@ -338,25 +383,12 @@ mod linux {
                     pid.ownership_warning = Some(io::Error::last_os_error());
                 }
             }
-            writeln!(file, "{}", std::process::id()).map_err(|error| StartupError {
-                code: 3,
-                message: format!(
-                    "failed to open pidfile {}: {}",
-                    path.display(),
-                    crate::logging::error_text(&error)
-                ),
-            })?;
+            writeln!(file, "{}", std::process::id())
+                .map_err(|error| PidStartError::new(path, error))?;
             // Taking the raw descriptor prevents a second close. C treats a
             // failed close exactly like open/write failure and keeps the path.
             if unsafe { close(file.into_raw_fd()) } != 0 {
-                return Err(StartupError {
-                    code: 3,
-                    message: format!(
-                        "failed to open pidfile {}: {}",
-                        path.display(),
-                        crate::logging::error_text(&io::Error::last_os_error())
-                    ),
-                });
+                return Err(PidStartError::new(path, io::Error::last_os_error()));
             }
             Ok(pid)
         }
