@@ -693,7 +693,12 @@ impl DnsConfig {
             b"proxy-dnssec" => self.proxy_dnssec = true,
             b"no-0x20-encode" => self.no_0x20_encode = true,
             b"do-0x20-encode" => self.do_0x20_encode = true,
-            _ => return self.records.apply(directive),
+            _ => {
+                if self.edns.apply(directive)? {
+                    return Ok(true);
+                }
+                return self.records.apply(directive);
+            }
         }
         Ok(true)
     }

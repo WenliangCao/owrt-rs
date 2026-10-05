@@ -54,7 +54,10 @@ pub(super) enum OrdinaryCacheMode {
 }
 
 impl CacheContext<'_> {
-    pub fn answer_udp(
+    /// The caller has evaluated add_edns0_config's cacheable flag. EDNS
+    /// request options then need no per-record cache representation.
+    #[allow(clippy::too_many_arguments)]
+    pub fn answer_udp_with_edns(
         &mut self,
         query: &[u8],
         question: &super::forward::Question,
@@ -62,6 +65,7 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         max_udp: usize,
         edns_packet_max: u16,
+        allow_options: bool,
     ) -> Result<CachedAnswer, CacheError> {
         let header = Header::parse(query)?;
         // Ordinary A/AAAA AD requests can consume unsigned cached records,
@@ -79,10 +83,9 @@ impl CacheContext<'_> {
             || header.flags & 0x8000 != 0
             || (header.flags & 0x0020 != 0 && !matches!(question.rrtype, 1 | 28))
             || (dnssec_requested && !matches!(question.rrtype, 1 | 28))
-            || edns
-                .opt
-                .as_ref()
-                .is_some_and(|opt| opt.record.ttl & !0x8000 != 0 || !opt.record.rdata.is_empty())
+            || edns.opt.as_ref().is_some_and(|opt| {
+                opt.record.ttl & !0x8000 != 0 || (!allow_options && !opt.record.rdata.is_empty())
+            })
             || edns.signed
         {
             return Ok(CachedAnswer {

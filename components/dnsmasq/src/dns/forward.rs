@@ -72,6 +72,9 @@ pub struct QueryId(u64);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Scope {
     Shared,
+    /// Effective option bytes: source-dependent identities must not leak
+    /// through C's question-only matching, but identical identities can merge.
+    Edns(Vec<u8>),
     Client(SocketAddr),
 }
 
