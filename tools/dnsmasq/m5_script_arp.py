@@ -99,6 +99,8 @@ def profiles():
         dict(case='idle-91-no-wake', no_dns=True, clock=True),
         dict(case='wake-tftp-timer', no_dns=True, tftp_clock=True,
              extra='enable-tftp\ntftp-root=/m2/arp-tftp\n'),
+        dict(case='tftp-lookup-refresh', tftp_lookup=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -304,6 +306,29 @@ def tftp_clock_contract(root, pid, folder):
         endpoint.sendto(b'\0\5\0\0fixture complete\0', peer)
     assert observed[len(initial):] == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'existing TFTP poll timer did not refresh ARP'
     return dict(case='wake-tftp-timer', callbacks=observed[len(initial):], real_wait_seconds=time.monotonic() - start)
+
+
+def tftp_refresh_contract(root, folder):
+    initial = callbacks(root)
+    neighbor('192.0.2.18', '02:00:00:91:00:18')
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(3)
+        endpoint.bind(('127.0.0.4', 0))
+        request = b'\0\1public\0octet\0'
+        endpoint.sendto(request, ('127.0.0.1', 69))
+        reply, peer = endpoint.recvfrom(4096)
+        (folder / 'tftp.request').write_bytes(request)
+        (folder / 'tftp.reply').write_bytes(reply)
+        assert reply == b'\0\3\0\1public' and peer[1] != 69, 'TFTP MAC-miss fallback and data'
+        endpoint.sendto(b'\0\4\0\1', peer)
+    deadline = time.monotonic() + 2
+    while len(callbacks(root)) < len(initial) + 2 and time.monotonic() < deadline:
+        time.sleep(.02)
+    observed = callbacks(root)
+    save(folder / 'lookup-callbacks.json', observed)
+    arp = [call for call in observed[len(initial):] if call[1].startswith('arp-')]
+    assert arp == [['3', 'arp-add', '02:00:00:91:00:18', '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']], 'TFTP refresh did not share the ARP producer'
+    return dict(case='tftp-lookup-refresh', callbacks=arp, packet=reply.hex())
 
 
 def callbacks(root):
@@ -525,6 +550,8 @@ def run_side(args):
                     rows.extend(clock_contract(root, pid, folder))
                 elif spec.get('tftp_clock'):
                     rows.append(tftp_clock_contract(root, pid, folder))
+                elif spec.get('tftp_lookup'):
+                    rows.append(tftp_refresh_contract(root, folder))
                 elif spec.get('zero_positive'):
                     rows.extend(zero_positive_contract(root, pid, folder, upstream))
                 else:
