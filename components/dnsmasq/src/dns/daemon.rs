@@ -698,6 +698,10 @@ impl<R: Random> DnsDaemon<R> {
 
     /// Replace the reloaded hosts snapshot and discard dynamic DNS answers.
     /// Resolver routing and in-flight upstream requests retain their owners.
+    pub fn publish_hosts_source(&mut self, hosts: Hosts) {
+        self.local.hosts = hosts;
+    }
+
     pub fn reload_hosts(&mut self, hosts: Hosts) {
         self.local.hosts = hosts;
         if let Some(cache) = &mut self.cache {
@@ -1212,9 +1216,16 @@ impl<R: Random> DnsDaemon<R> {
                     Ok(Some(packet)) => {
                         // return_reply logs an extra recipient after its full
                         // answer send; an upstream TC packet still fits here.
-                        if self.query_logging.extra && index != 0
-                            && (reply.truncated || Header::parse(&packet).is_ok_and(|header| header.flags & 0x0200 == 0)) {
-                            self.query_notice(recipient.client.query_context(), QueryEvent::label(qlog::REPLY, b"query", Some(b"duplicate"), 0));
+                        if self.query_logging.extra
+                            && index != 0
+                            && (reply.truncated
+                                || Header::parse(&packet)
+                                    .is_ok_and(|header| header.flags & 0x0200 == 0))
+                        {
+                            self.query_notice(
+                                recipient.client.query_context(),
+                                QueryEvent::label(qlog::REPLY, b"query", Some(b"duplicate"), 0),
+                            );
                         }
                         responses.push(ClientResponse {
                             destination: recipient.client.source,
@@ -1224,7 +1235,7 @@ impl<R: Random> DnsDaemon<R> {
                             packet,
                             query_context: recipient.client.query_context(),
                         });
-                    },
+                    }
                     Ok(None) => {}
                     Err(_) => {
                         self.poll_failures.recipient_errors =

@@ -113,6 +113,7 @@ pub struct FileStep {
     /// Local parse work remains. Poll the owner without a long sleep; special
     /// stream inputs waiting for readiness do not set this bit.
     pub runnable: bool,
+    pub hosts_changes: Vec<crate::dns::hostsdir::HostChange>,
 }
 
 struct ReadRequest {
@@ -208,6 +209,8 @@ impl ReadJob {
 
 pub struct DnsFiles {
     watch: Option<FileWatch>,
+    hosts_dirs: crate::dns::hostsdir::HostsDirectories,
+    hosts_enabled: bool,
     resolvers: ResolverSelection,
     servers_file: Option<PathBuf>,
     no_poll: bool,
@@ -252,15 +255,18 @@ impl DnsFiles {
         clear_on_reload: bool,
     ) -> Result<Self, WatchError> {
         let resolver_enabled = dns_enabled && !config.no_resolv;
+        let hosts_enabled = dns_enabled && !config.hosts_dirs.is_empty();
         let paths = if resolver_enabled {
             &config.resolv_files[..]
         } else {
             &[]
         };
         Ok(Self {
-            watch: resolver_enabled
+            watch: (resolver_enabled || hosts_enabled)
                 .then(|| FileWatch::new(paths))
                 .transpose()?,
+            hosts_dirs: crate::dns::hostsdir::HostsDirectories::new(&config.hosts_dirs, 0x80000000),
+            hosts_enabled,
             resolvers: ResolverSelection::new(paths),
             servers_file: dns_enabled.then(|| config.servers_file.clone()).flatten(),
             no_poll: config.no_poll,
@@ -279,6 +285,18 @@ impl DnsFiles {
             endpoint_errors: VecDeque::new(),
             endpoint_current: Vec::new(),
         })
+    }
+
+    pub fn scan_hosts_dirs(
+        &mut self,
+    ) -> (
+        Vec<crate::dns::hostsdir::HostSource>,
+        Vec<crate::dns::hostsdir::DirectoryDiagnostic>,
+    ) {
+        if !self.hosts_enabled {
+            return (Vec::new(), Vec::new());
+        }
+        self.hosts_dirs.scan(self.watch.as_mut().unwrap())
     }
 
     /// Initial owner calls Init once; SIGHUP calls Signal after its existing
@@ -492,6 +510,14 @@ impl DnsFiles {
                 Err(error) => result.diagnostics.push(FileDiagnostic::Watch(error)),
             }
             watch_more = watch.pending().unwrap_or(false);
+            let events = watch.take_hosts_events();
+            result.hosts_changes = self.hosts_dirs.changes(events);
+        }
+        // Dynamic hosts complete before the resolver/full-reload hit from
+        // this same inotify batch. The parent resumes file work afterwards.
+        if !result.hosts_changes.is_empty() {
+            result.runnable = true;
+            return result;
         }
         // C drains inotify_check and emits one hit for the entire ready burst.
         // Yield between batches while retaining that coalescing boundary.

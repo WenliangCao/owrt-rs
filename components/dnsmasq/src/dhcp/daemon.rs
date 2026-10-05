@@ -1344,6 +1344,25 @@ impl LocalProvider {
         self.queue_script_from_maintenance();
     }
 
+    /// inotify.c hostsdir updates re-evaluate already loaded DHCP rules and
+    /// lease names, without rereading unrelated configuration inputs.
+    pub fn hosts_changed(&mut self, now: i64) -> MaintenanceReport {
+        if !self.initialized {
+            return self.initialize(now);
+        }
+        let address_error = self.update_configured_addresses();
+        let name_error = self
+            .host_files_ready
+            .then(|| self.update_configured_names())
+            .flatten();
+        let mut report = self.maintain(now, Vec::new(), true);
+        report.address_error = address_error;
+        report.name_error = name_error;
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        self.queue_script_from_maintenance();
+        report
+    }
+
     pub fn reload_data_files(&mut self, now: i64) -> MaintenanceReport {
         if self.file_owner.is_some() {
             self.file_reload_pending = true;

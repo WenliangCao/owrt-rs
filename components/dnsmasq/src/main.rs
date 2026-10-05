@@ -1484,6 +1484,8 @@ fn run_inner(
         poll.step_dhcp_files();
         #[cfg(target_os = "linux")]
         poll.step_dns_files();
+        #[cfg(target_os = "linux")]
+        poll.step_hosts_files();
         if std::mem::take(&mut poll.full_reload_pending) {
             poll.reload_data(runtime.scalar.local_ttl)?;
         }
@@ -1934,6 +1936,14 @@ struct SinglePoll {
     route_watch: Option<RouteWatch>,
     #[cfg(target_os = "linux")]
     files_runnable: bool,
+    #[cfg(target_os = "linux")]
+    hosts_requests: std::collections::VecDeque<dnsmasq_rs::dns::hostsdir::HostChange>,
+    #[cfg(target_os = "linux")]
+    hosts_read: Option<dnsmasq_rs::dns::hostsdir::HostsRead>,
+    #[cfg(target_os = "linux")]
+    hosts_bulk: bool,
+    #[cfg(target_os = "linux")]
+    hosts_full_reload: bool,
     #[cfg(target_os = "linux")]
     dns_port: u16,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -2486,6 +2496,14 @@ impl SinglePoll {
             #[cfg(target_os = "linux")]
             files_runnable: false,
             #[cfg(target_os = "linux")]
+            hosts_requests: Default::default(),
+            #[cfg(target_os = "linux")]
+            hosts_read: None,
+            #[cfg(target_os = "linux")]
+            hosts_bulk: false,
+            #[cfg(target_os = "linux")]
+            hosts_full_reload: false,
+            #[cfg(target_os = "linux")]
             dns_port: 0,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             dhcp,
@@ -2539,16 +2557,20 @@ impl SinglePoll {
         }
         drop(parent);
         #[cfg(target_os = "linux")]
+        self.scan_hosts_dirs(true);
+        #[cfg(target_os = "linux")]
         emit_hosts_read_notices(&self.service, &mut self.logger);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-            let mut provider = provider
-                .lock()
-                .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
-            report_dhcp_maintenance(
-                &provider.reload_data_files(now_seconds()),
-                self.logger.as_mut(),
-            );
+        if !self.hosts_work_pending() {
+            if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+                let mut provider = provider
+                    .lock()
+                    .map_err(|_| io::Error::other("DHCP state lock poisoned"))?;
+                report_dhcp_maintenance(
+                    &provider.reload_data_files(now_seconds()),
+                    self.logger.as_mut(),
+                );
+            }
         }
         #[cfg(target_os = "linux")]
         if self.log_cleared_cache {
@@ -2564,7 +2586,21 @@ impl SinglePoll {
         Ok(())
     }
 
+    fn hosts_work_pending(&self) -> bool {
+        #[cfg(target_os = "linux")]
+        {
+            return self.hosts_read.is_some() || !self.hosts_requests.is_empty();
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            false
+        }
+    }
+
     fn reload_in_progress(&self) -> bool {
+        if self.hosts_work_pending() {
+            return true;
+        }
         if self.interface_work_pending() {
             return true;
         }
@@ -2616,6 +2652,10 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn step_dns_files(&mut self) {
+        if self.hosts_work_pending() {
+            self.files_runnable = false;
+            return;
+        }
         if self.interface_work_pending() {
             return;
         }
@@ -2669,6 +2709,10 @@ impl SinglePoll {
         step: dnsmasq_rs::dns::files::FileStep,
         initial_finished: bool,
     ) {
+        self.hosts_requests.extend(step.hosts_changes);
+        if step.initial_cache_reload {
+            self.scan_hosts_dirs(false);
+        }
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for diagnostic in step.diagnostics {
@@ -2753,6 +2797,203 @@ impl SinglePoll {
         }
     }
 
+    #[cfg(target_os = "linux")]
+    fn hosts_notice(&mut self, priority: dnsmasq_rs::logging::Priority, message: String) {
+        if let Some(logger) = &mut self.logger {
+            logger.emit(dnsmasq_rs::logging::LogEvent::new(
+                dnsmasq_rs::logging::Service::Dns,
+                priority,
+                message.into_bytes(),
+            ));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn scan_hosts_dirs(&mut self, full_reload: bool) {
+        let Some(files) = &mut self.dns_files else {
+            return;
+        };
+        let (sources, diagnostics) = files.scan_hosts_dirs();
+        for diagnostic in diagnostics {
+            self.hosts_notice(dnsmasq_rs::logging::Priority::Error, diagnostic.to_string());
+        }
+        self.hosts_bulk = !sources.is_empty();
+        self.hosts_full_reload = full_reload;
+        self.hosts_requests
+            .extend(
+                sources
+                    .into_iter()
+                    .map(|source| dnsmasq_rs::dns::hostsdir::HostChange {
+                        source,
+                        deleted: false,
+                    }),
+            );
+    }
+
+    #[cfg(target_os = "linux")]
+    fn publish_hosts_source(
+        &mut self,
+        source: &dnsmasq_rs::dns::hostsdir::HostSource,
+        records: Vec<(Vec<u8>, IpAddr)>,
+        ttl: u32,
+    ) -> usize {
+        let removed;
+        {
+            let mut parent = self.service.lock().unwrap();
+            let ParentDns { local, daemon, .. } = &mut *parent;
+            removed = local.hosts.remove_uid(source.uid);
+            local.hosts.set_source_name(
+                source.uid,
+                source.path.as_os_str().as_encoded_bytes().to_vec(),
+            );
+            for (name, address) in records {
+                local.hosts.insert(name, address, ttl, source.uid);
+            }
+            if let Some(daemon) = daemon {
+                daemon.publish_hosts_source(local.hosts.clone());
+                local.leases = Arc::new(daemon.rebuild_lease_names(
+                    &local.leases,
+                    &mut local.hosts,
+                    &local.config.records.cnames,
+                ));
+            }
+        }
+        if !self.hosts_bulk {
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(provider) = self
+                .dhcp
+                .as_ref()
+                .and_then(|service| service.provider.as_ref())
+            {
+                report_dhcp_maintenance(
+                    &provider.lock().unwrap().hosts_changed(now_seconds()),
+                    self.logger.as_mut(),
+                );
+            }
+        }
+        removed
+    }
+
+    #[cfg(target_os = "linux")]
+    fn step_hosts_files(&mut self) {
+        use dnsmasq_rs::logging::Priority;
+        if let Some(reader) = &mut self.hosts_read {
+            if !reader.step().unwrap_or(true) {
+                return;
+            }
+            let loaded = self.hosts_read.take().unwrap().finish();
+            let removed = self.publish_hosts_source(&loaded.source, loaded.records, loaded.ttl);
+            if !self.hosts_bulk && removed != 0 {
+                self.hosts_notice(
+                    Priority::Info,
+                    format!(
+                        "inotify: flushed {removed} names read from {}",
+                        loaded.source.path.display()
+                    ),
+                );
+            }
+            for (line, addresses, names) in loaded.bad_lines {
+                for _ in 0..addresses {
+                    self.hosts_notice(
+                        Priority::Error,
+                        format!(
+                            "bad address at {} line {line}",
+                            loaded.source.path.display()
+                        ),
+                    );
+                }
+                for _ in 0..names {
+                    self.hosts_notice(
+                        Priority::Error,
+                        format!("bad name at {} line {line}", loaded.source.path.display()),
+                    );
+                }
+            }
+            self.hosts_notice(
+                Priority::Info,
+                format!(
+                    "read {} - {} names",
+                    loaded.source.path.display(),
+                    loaded.stats.accepted
+                ),
+            );
+        } else if let Some(change) = self.hosts_requests.pop_front() {
+            let ttl = self.service.lock().unwrap().local.local_ttl;
+            if !self.hosts_bulk {
+                self.hosts_notice(
+                    Priority::Info,
+                    format!(
+                        "inotify: {} {}",
+                        change.source.path.display(),
+                        if change.deleted {
+                            "removed"
+                        } else {
+                            "new or modified"
+                        }
+                    ),
+                );
+            }
+            if change.deleted {
+                let removed = self.publish_hosts_source(&change.source, Vec::new(), ttl);
+                if removed != 0 {
+                    self.hosts_notice(
+                        Priority::Info,
+                        format!(
+                            "inotify: flushed {removed} names read from {}",
+                            change.source.path.display()
+                        ),
+                    );
+                }
+            } else {
+                match dnsmasq_rs::dns::hostsdir::HostsRead::open(
+                    change.source.clone(),
+                    &self.config,
+                    ttl,
+                ) {
+                    Ok(reader) => self.hosts_read = Some(reader),
+                    Err(error) => {
+                        let removed = self.publish_hosts_source(&change.source, Vec::new(), ttl);
+                        if !self.hosts_bulk && removed != 0 {
+                            self.hosts_notice(
+                                Priority::Info,
+                                format!(
+                                    "inotify: flushed {removed} names read from {}",
+                                    change.source.path.display()
+                                ),
+                            );
+                        }
+                        let message = error.to_string();
+                        let message = message.split(" (os error ").next().unwrap_or(&message);
+                        self.hosts_notice(
+                            Priority::Error,
+                            format!(
+                                "failed to load names from {}: {message}",
+                                change.source.path.display()
+                            ),
+                        );
+                    }
+                }
+            }
+        }
+        if self.hosts_bulk && !self.hosts_work_pending() {
+            self.hosts_bulk = false;
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(provider) = self
+                .dhcp
+                .as_ref()
+                .and_then(|service| service.provider.as_ref())
+            {
+                let mut provider = provider.lock().unwrap();
+                let report = if self.hosts_full_reload {
+                    provider.reload_data_files(now_seconds())
+                } else {
+                    provider.hosts_changed(now_seconds())
+                };
+                report_dhcp_maintenance(&report, self.logger.as_mut());
+            }
+        }
+    }
+
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp_files(&mut self) {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
@@ -2814,6 +3055,9 @@ impl SinglePoll {
         if let Some(files) = &self.dns_files {
             files.append_poll_fds(fds);
         }
+        if let Some(reader) = &self.hosts_read {
+            reader.append_poll_fds(fds);
+        }
         if let Some(watch) = &self.route_watch {
             watch.append_poll_fds(fds);
         }
@@ -2824,7 +3068,12 @@ impl SinglePoll {
         {
             let mut fds = Vec::new();
             self.append_file_fds(&mut fds, true);
-            let mut runnable = self.files_runnable;
+            let mut runnable = self.files_runnable
+                || self
+                    .hosts_read
+                    .as_ref()
+                    .is_some_and(|reader| reader.runnable())
+                || (self.hosts_read.is_none() && !self.hosts_requests.is_empty());
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 runnable |= provider.lock().unwrap().files_runnable();
