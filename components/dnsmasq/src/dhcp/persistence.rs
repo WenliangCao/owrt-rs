@@ -97,6 +97,12 @@ pub struct LeaseFileFailure {
     source: io::Error,
 }
 
+impl LeaseFileFailure {
+    pub fn warnings(&self) -> &[String] {
+        super::lease_file::warnings(&self.source)
+    }
+}
+
 impl std::fmt::Display for LeaseFileFailure {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut description = self.source.to_string();
@@ -182,10 +188,7 @@ impl LeasePersistence {
         let _ = file.rewind();
         let restored = parse_reader(BufReader::with_capacity(1024, &mut file), maximum_records)
             .map_err(|error| {
-                if error
-                    .get_ref()
-                    .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>())
-                {
+                if super::lease_file::capacity_exceeded(&error) {
                     error
                 } else {
                     file_failure("failed to read lease file", path, error)
