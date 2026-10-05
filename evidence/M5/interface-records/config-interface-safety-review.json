@@ -1,0 +1,303 @@
+{
+  "schema": "m5-interface-config-safety-review-v1",
+  "reviewed_root_commit": "dbcbf722c3203ed2fab8b0e667246de2541a35c8",
+  "config_files": 29,
+  "total_files": 37,
+  "files": [
+    {
+      "path": "components/dnsmasq/src/config/dhcp.rs",
+      "sha256": "6db2c6fbe0e6e3d9b3b3ee9fac93364dc44e84da3c84f4765555983c89a7fa8a",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 1
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_device.rs",
+      "sha256": "573d0dd2d5c23b487329c715c110fee7d5203d56bdf58cffc3ae8378158230fe",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_host.rs",
+      "sha256": "e5ba5431a13affbb48e682e3440b1035437982b4883560b674a0252194a79536",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_host_files.rs",
+      "sha256": "0f7aaa398acb3aa98c44c220358a1596d6364a7dac4832fd03f7e04cab631ab4",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_network.rs",
+      "sha256": "a933f486063a2e6dd66205192a031724233313fd50ce310f2a3e2cc262e0c7bb",
+      "production_unsafe_blocks": 1,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_options.rs",
+      "sha256": "62290adff3d62fb8fa5d3e21e4432f80bc94c35b549a0f071ef3dae03ca6328b",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_pxe.rs",
+      "sha256": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_relay.rs",
+      "sha256": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dhcp_tags.rs",
+      "sha256": "dbb4769be8688cbde13bf6c27cc74b1170af10bcc581a414ac8066fc29a0ead9",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns.rs",
+      "sha256": "b1a5fbb9ee819a7ce7092251a021dd5782b4977dcc118bf9b0dc9a40cc1d5f16",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 13,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_endpoints.rs",
+      "sha256": "a4d061184a441f35512a8afe1a036dae311fb1a7c612fd67650335cdae7c5806",
+      "production_unsafe_blocks": 7,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dns_lookup.rs",
+      "sha256": "afe00f3d0efdc57a3710d6f4644cdc3ff0db072d2cf1e92efaed4d78c928d450",
+      "production_unsafe_blocks": 10,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/domains.rs",
+      "sha256": "77523df5c239ffd43d3b85403c842ffe04633805c6ae2f3cd0e573bb3e0d864f",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/dump.rs",
+      "sha256": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/edns.rs",
+      "sha256": "4f35260bf48cf361da35dfb197b68d611560106a39c0acd8988cd52f94e3cf14",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/ethers.rs",
+      "sha256": "a58cbed430228b1a0abd98ab120e5867aba8387f475463f03d56d9e99adeaaee",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/interface_records.rs",
+      "sha256": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/loader.rs",
+      "sha256": "bc88f9aa003432e2972f7cb492431161bfb0dd89c799d0dfedfb905716e86395",
+      "production_unsafe_blocks": 1,
+      "production_unwraps": 3,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/logging.rs",
+      "sha256": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/mod.rs",
+      "sha256": "9d1047d126c8cc517589d5eb895153839060a036592c3bcff356f4e2c5bf170c",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/options.rs",
+      "sha256": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/records.rs",
+      "sha256": "7ff7ffe05b7ab59797403f3e9e2ef7235d5616b0b2300ca8ff69595868226831",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/rrtypes.rs",
+      "sha256": "7bb3070d1100a1f42b3933837ef099d7476f7ad548fdf15d744561e273cb3c1d",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/scalar.rs",
+      "sha256": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/script_arp.rs",
+      "sha256": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/state_probe.rs",
+      "sha256": "5baa73a99e5ad10879ac71f83c1b0f693f030f9e75f8ab63b0f49f96270149d7",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/synth_domain.rs",
+      "sha256": "0ff946968726813fb20b5f4b8280294bf2929ba765dba7bf3ef57d2110dd6220",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/tftp.rs",
+      "sha256": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/config/ubus.rs",
+      "sha256": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/dns/filewatch.rs",
+      "sha256": "d78f987ae5e181a5febe77eee94fd532bb2d006e778ae1408ef0000acc8c84ae",
+      "production_unsafe_blocks": 10,
+      "production_unwraps": 6,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/dns/hostsdir.rs",
+      "sha256": "a1e41c5ac7228a97af35a924e34f2b12e1ea9763bc4c18dea85f8728eaa419b6",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/dns/hostsdir_runtime.rs",
+      "sha256": "8bede0761d8e861b6833286e5640f9ff1529763218d3c3d8d228a67c00d541ac",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/dns/interface_collect.rs",
+      "sha256": "a633968f5dc3cec82ff977ad73ec5d3ef3b10fce34c1253ae1ea8c5eafe1286f",
+      "production_unsafe_blocks": 11,
+      "production_unwraps": 14,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/dns/interface_records.rs",
+      "sha256": "13cca077db502a5aa2f1e8c6f438037dd1f292c6dcf15be022334ff3a4b64f72",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/hosts.rs",
+      "sha256": "b8a915e39de9b8ee4c313e4ba282a56202cca78100fc47edda050980e8f1c335",
+      "production_unsafe_blocks": 0,
+      "production_unwraps": 1,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/interfaces.rs",
+      "sha256": "ed93e4131958d42eec9a684ad1651a85387d1ee791e8c9b71541d6aa3c4cd2e3",
+      "production_unsafe_blocks": 18,
+      "production_unwraps": 0,
+      "production_expects": 0
+    },
+    {
+      "path": "components/dnsmasq/src/interfaces_ipv4.rs",
+      "sha256": "679e33cb1aa02c612ea4b5b450b1b5c041413103ad2e4864653670b0204bddd9",
+      "production_unsafe_blocks": 9,
+      "production_unwraps": 11,
+      "production_expects": 0
+    }
+  ],
+  "comments_commit": "f6ae6212",
+  "public_comment_patches": {
+    "dns-safety-01.patch": "fbd120672f95245dd152327f46a944ba8741d959768be18b8e47a4711b66723d",
+    "dhcp-safety-01.patch": "46d70b98c6bfca2ddb5cb09fe2fed8530972b95985ba3daf6cc79de7e63adf4b",
+    "loader-safety-01.patch": "d741ab6798ae3ab11d6595e5ab4260a1b6a8fac3bd22a5d935ee836c834f8415"
+  },
+  "retained_invariants": [
+    "config required-argument unwrap follows validate_directive option metadata; optional arguments retain Option branches.",
+    "hex digit unwraps follow whole-group ASCII-hex checks; chunks are at most two bytes, also bounding u8 accumulation. EDNS UTF8 unwrap follows that same ASCII proof.",
+    "parse_rules pop follows slice.split, which yields at least one field even for an empty tail. Relay repeated address parse uses identical immutable bytes after Some guard.",
+    "NameDomains stores only validated typed selectors and the immutable interface snapshot. Address lookup does not perform I/O or introduce a runtime configuration failure.",
+    "loader line starts Some(0) and is never cleared; successful Stdio::piped spawn owns exactly one ChildStdout before take.",
+    "netlink fixed-width unwraps follow complete-header/attribute bounds checks or exact family payload lengths. No test-only unwrap was mechanically removed.",
+    "InterfaceCollector control fd exists throughout active states: only successful begin enters them; finish drops control and returns Idle.",
+    "getifaddrs pointers remain inside an exclusively owned libc list; nullable addresses/names are checked, family determines sockaddr layout, and copied results outlive the single freeifaddrs guard.",
+    "resolver getaddrinfo list is exclusively owned and address slices are bounded by family and ai_addrlen. Supported deployment musl/Darwin gai_strerror strings are static and non-null for their error codes.",
+    "resolver fork is restricted to the documented single-thread owner; child owns copied fd table, keeps writer and calls _exit. Cancel/reap target only the positive unreaped owned child.",
+    "Linux64 sockaddr_nl/ifreq/msghdr/iovec storage is initialized, aligned, live throughout syscall; successful fresh descriptors transfer into one OwnedFd/File.",
+    "hosts forward/reverse indices are private and relocated on UID removal. Rotation last unwrap is inside positions.len()>1 and indices refer to current entries.",
+    "host directory source IDs remain attached to literal per-directory paths including deletion/recreation. Initial scan follows regular symlinks but ignores nonregular files; runtime jobs own open fds across rename and never borrow path-derived memory."
+  ],
+  "findings": [
+    {
+      "kind": "input safety",
+      "source": "option.c760/2646; util.c524-535",
+      "disposition": "safe image low32 fold d944af30; domain canonical patch rejects negative IPv6 width, synth a0e242d6 rejects it before C out-of-bounds memcmp. Fresh paired intentional witness pending new Root candidate."
+    },
+    {
+      "kind": "protocol output bounds",
+      "source": "option.c6250-6300; domain.c is_rev_synth; rfc1035.c do_rfc1035_name",
+      "disposition": "SRV/SYN generated-name extreme comparison pending fresh C/R capture; no unsafe malformed-wire compatibility added."
+    }
+  ],
+  "runtime_input_panic_findings": 0,
+  "interior_mutability": "config records mail-order RefCell borrows are method-local and return copied record indices; no borrow escapes into a callback. Broader main/net/daemon Rc migration remains Root-owned.",
+  "verification": "Comment-only changes rustfmt/diff-check passed. Prefix helper4 and synth2 targeted host units passed. No claim that this static receipt substitutes for the final same-ELF family runs."
+}
