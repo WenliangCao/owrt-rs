@@ -4,6 +4,12 @@
 
 use super::Error;
 
+pub(crate) fn name(kind: u16) -> Option<&'static [u8]> {
+    TYPES
+        .iter()
+        .find_map(|(name, value)| (*value == kind).then_some(*name))
+}
+
 pub(super) fn parse(bytes: &[u8]) -> Result<u16, Error> {
     if bytes.is_empty() {
         return Err(Error("bad RR type"));

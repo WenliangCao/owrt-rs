@@ -15,7 +15,7 @@ pub mod logging;
 pub mod loader;
 mod options;
 pub mod records;
-mod rrtypes;
+pub(crate) mod rrtypes;
 mod scalar;
 pub mod script_arp;
 pub mod tftp;
