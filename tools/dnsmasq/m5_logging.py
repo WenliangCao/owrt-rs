@@ -265,6 +265,16 @@ def cases():
                               *(['--fast-dns-retry=50,1000'] if kind == 'fastretry' else [])],
                      'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
                      'query_upstream': True, 'query_transaction_probe': kind, 'options': ['log-queries']})
+    for label, quiet, detail in [('ordinary', False, False), ('quiet', True, False),
+                                  ('detail', False, True), ('quiet-detail', True, True)]:
+        rows.append({'id': 'dhcp-packets-' + label, 'scope': 'dhcp-packets', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m',
+                              '--dhcp-host=02:00:00:00:00:aa,127.0.0.10,m5-client',
+                              '--dhcp-host=02:00:00:00:00:bb,ignore', '--dhcp-authoritative',
+                              '--dhcp-leasefile=/m2/logging/leases', '--dhcp-broadcast', '--no-ping',
+                              *(['--quiet-dhcp'] if quiet else []), *(['--log-dhcp'] if detail else [])],
+                     'dhcp_probes': True, 'quiet_dhcp': quiet, 'detail_dhcp': detail,
+                     'options': ['log-dhcp', 'quiet-dhcp']})
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
          'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
@@ -1074,6 +1084,63 @@ def query_transaction_probe(kind):
     return rows, trace
 
 
+def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0', server=None):
+    data = bytearray(240)
+    data[:3] = bytes([1, 1, 6]); data[4:8] = struct.pack('!I', xid)
+    data[10:12] = b'\x80\0'; data[12:16] = socket.inet_aton(ciaddr)
+    data[28:34] = bytes.fromhex(mac); data[236:240] = bytes.fromhex('63825363')
+    def option(code, value): data.extend(bytes([code, len(value)]) + value)
+    option(53, bytes([kind]))
+    if address is not None: option(50, socket.inet_aton(address))
+    if server is not None: option(54, socket.inet_aton(server))
+    option(12, b'm5-client'); option(60, b'm5-fixture'); option(77, b'\x04test')
+    option(55, bytes([1, 3, 6, 12, 15, 51, 58, 59]))
+    data.append(255)
+    return bytes(data)
+
+
+def dhcp_sequence():
+    rows, trace = [], []
+    steps = [
+        ('discover', 1, {}, 2),
+        ('request', 3, {'address': '127.0.0.10', 'server': '127.0.0.1'}, 5),
+        ('inform', 8, {'ciaddr': '127.0.0.10'}, 5),
+        ('nak', 3, {'address': '127.0.0.99', 'server': '127.0.0.1'}, 6),
+        ('request-again', 3, {'address': '127.0.0.10', 'server': '127.0.0.1'}, 5),
+        ('release', 7, {'ciaddr': '127.0.0.10', 'server': '127.0.0.1'}, None),
+        ('release-unknown', 7, {'ciaddr': '127.0.0.10', 'server': '127.0.0.1'}, None),
+        ('discover-ignored', 1, {'mac': '0200000000bb'}, None),
+        ('inform-ignored', 8, {'mac': '0200000000bb', 'ciaddr': '127.0.0.10'}, None)]
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        client.setsockopt(socket.SOL_SOCKET, 25, b'lo\0'); client.bind(('0.0.0.0', 68))
+        for index, (label, kind, fields, expected) in enumerate(steps):
+            xid = 0x1200 + index
+            request = dhcp_packet(kind, xid, **fields)
+            client.settimeout(.15 if expected is None else 1)
+            client.sendto(request, ('255.255.255.255', 67))
+            response = None
+            while True:
+                try: received = client.recv(65535)
+                except socket.timeout: break
+                if len(received) >= 240 and received[4:8] == request[4:8]: response = received; break
+            if expected is None and response is not None: raise AssertionError(('ignored DHCP replied', label))
+            if expected is not None:
+                if response is None: raise AssertionError(('missing DHCP reply', label))
+                at, actual = 240, None
+                while at < len(response):
+                    code = response[at]; at += 1
+                    if code == 255: break
+                    if code == 0: continue
+                    length = response[at]; at += 1
+                    if code == 53: actual = response[at]
+                    at += length
+                if actual != expected: raise AssertionError(('DHCP response type', label, actual, expected))
+            rows.append({'label': label, 'reply': response.hex() if response is not None else None})
+            trace.append({'label': label, 'request': request.hex(), 'reply': response.hex() if response is not None else None})
+    return rows, trace
+
+
 def run(root, side, case, out):
     if case.get('blocked_kind'):
         return run_blocked_sink(root, side, case, out)
@@ -1277,6 +1344,9 @@ def run(root, side, case, out):
                     while time.monotonic() < deadline:
                         receiver.drain()
                         time.sleep(.005)
+                if case.get('dhcp_probes'):
+                    rows, raw = dhcp_sequence()
+                    observed['dhcp'] = rows; trace['dhcp'] = raw
                 if case.get('tftp_probes'):
                     rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
                     observed['tftp'] = rows
@@ -2136,6 +2206,23 @@ def compare(reference, candidate, case, reference_only=False):
                                 for answer in reference['dns'] if answer['name'] != 'kept.logging'
                                 for record in answer['response']['records']):
         failures.append({'kind': 'C-no-ID-generated-answer', 'actual': reference['dns']})
+    if case.get('dhcp_probes'):
+        messages = [line.split(': ', 1)[-1] for line in reference['stderr'].splitlines() if 'DHCP' in line and 'range' not in line]
+        quiet, detail = case['quiet_dhcp'], case['detail_dhcp']
+        required = ['DHCPREQUEST(lo) 127.0.0.99 02:00:00:00:00:aa ',
+                    'DHCPRELEASE(lo) 127.0.0.10 02:00:00:00:00:aa unknown lease'] if quiet and not detail else [
+                    'DHCPDISCOVER(lo) 02:00:00:00:00:aa ',
+                    'DHCPOFFER(lo) 127.0.0.10 02:00:00:00:00:aa ',
+                    'DHCPACK(lo) 127.0.0.10 02:00:00:00:00:aa m5-client',
+                    'DHCPINFORM(lo) 127.0.0.10 02:00:00:00:00:aa ',
+                    'DHCPRELEASE(lo) 127.0.0.10 02:00:00:00:00:aa unknown lease']
+        if quiet and not detail: required = required[1:]  # only error-pointer notices survive.
+        for item in required:
+            if not any(item in message for message in messages): failures.append({'kind': 'C-DHCP-packet-producer', 'missing': item, 'actual': messages})
+        ignored = 'DHCPDISCOVER(lo) 02:00:00:00:00:bb ignored'
+        if quiet and any(ignored in message for message in messages): failures.append({'kind': 'C-DHCP-quiet-ignored-discover', 'actual': messages})
+        if detail and not all(re.match(r'^[0-9]+ DHCP', message) for message in messages if re.match(r'^([0-9]+ )?DHCP(?:DISCOVER|OFFER|REQUEST|ACK|NAK|INFORM|RELEASE)\(', message)):
+            failures.append({'kind': 'C-DHCP-detail-xid', 'actual': messages})
     if case.get('query_probes'):
         mode, text = case['query_mode'], reference['stderr']
         if mode in ['auth', 'only_failed']:
