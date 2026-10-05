@@ -1429,6 +1429,15 @@ def compare(reference, candidate, case, reference_only=False):
             long = [record for record in records if b': xxxxxxxxxxxxxxxx' in record]
             if len(long) != 1 or len(long[0]) != (1023 if reference['syslog'] else 1024):
                 failures.append({'kind': 'C-script-max-message', 'lengths': [len(value) for value in long]})
+            if not reference_only:
+                actual = [bytes.fromhex(value) for value in candidate['syslog']]
+                actual += [line + b'\n' for value in candidate['files'].values()
+                           for line in bytes.fromhex(value).splitlines()]
+                if not actual:
+                    actual = [line + b'\n' for line in candidate['stderr'].encode().splitlines()]
+                long = [record for record in actual if b': xxxxxxxxxxxxxxxx' in record]
+                if len(long) != 1 or len(long[0]) != (1023 if candidate['syslog'] else 1024):
+                    failures.append({'kind': 'Rust-script-max-message', 'lengths': [len(value) for value in long]})
     if case.get('scope') == 'root-access':
         prefix = bytes.fromhex(case['root_prefix']).decode(errors='backslashreplace')
         text = reference['stderr']
@@ -1513,6 +1522,16 @@ def compare(reference, candidate, case, reference_only=False):
                          for value in row['syslog']]
         row['files'] = {name: normalized(bytes.fromhex(value).decode(errors='backslashreplace'))
                         for name, value in row['files'].items()}
+        if case.get('script_probes') == 'output':
+            # Both raw record caps were checked above. Actual namespace PIDs
+            # can have different decimal widths, leaving different counts of
+            # this known 4096-byte x prefix after C's 1024-byte serialization.
+            # Normalize only that uniform body; all other bytes stay compared.
+            def clipped_identity(value):
+                return re.sub(r'(dnsmasq-script\[<PID>\]: )x{900,}(?=\n|$)', r'\1<4096-x-prefix-truncated-at-record-cap>', value)
+            row['stderr'] = clipped_identity(row['stderr'])
+            row['syslog'] = [clipped_identity(value) for value in row['syslog']]
+            row['files'] = {name: clipped_identity(value) for name, value in row['files'].items()}
     if case.get('argv') == ['--version']:
         first, separator, rest = left['stdout'].partition('\n')
         expected = first + RUST_VERSION_IDENTITY + separator + rest
