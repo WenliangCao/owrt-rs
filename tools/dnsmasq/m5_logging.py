@@ -297,7 +297,7 @@ def identity_probes():
     return probes
 
 
-def identity_sequence(transport):
+def identity_sequence(transport, calibrate):
     observed, raw = [], []
     endpoint = socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM)
     endpoint.settimeout(.5)
@@ -320,14 +320,14 @@ def identity_sequence(transport):
             answer = semantics(reply)
             if reply[:2] != wire[:2]:
                 raise AssertionError('identity query transaction changed')
-            if probe['rcode'] is not None and answer['flags'] & 15 != probe['rcode']:
+            if calibrate and probe['rcode'] is not None and answer['flags'] & 15 != probe['rcode']:
                 raise AssertionError(('identity RCODE calibration', probe, answer))
             answers = [record for record in answer['records'] if record['section'] == 'answer']
-            if probe['txt'] is not None:
+            if calibrate and probe['txt'] is not None:
                 expected = (bytes([len(probe['txt'])]) + probe['txt'].encode()).hex()
                 if [record['data'] for record in answers] != [expected] or any(record['class'] != 1 for record in answers):
                     raise AssertionError(('explicit IN TXT control', probe, answer))
-            elif answers:
+            elif calibrate and probe['txt'] is None and answers:
                 raise AssertionError(('unexpected identity/class255 record', probe, answer))
             row = {'probe': dict(probe, labels=[label.hex() for label in probe['labels']]),
                    'transport': transport, 'response': answer, 'reply_wire': reply.hex()}
@@ -396,7 +396,7 @@ def run(root, side, case, out):
             if observed['ready']:
                 if case.get('identity_matrix'):
                     for transport in ['udp', 'tcp']:
-                        rows, raw = identity_sequence(transport)
+                        rows, raw = identity_sequence(transport, side == 'c')
                         observed['dns'].extend(rows)
                         trace['dns'].extend(raw)
                 if case.get('query_probes'):
