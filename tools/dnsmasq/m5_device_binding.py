@@ -314,6 +314,11 @@ def load(folder, side):
         notices=[line.decode('ascii') for line in re.findall(
             rb'(?:DHCP, sockets bound exclusively to interface |error binding DHCP socket to device )[^\r\n]+', log)]
         if row['notices']!=notices:raise ValueError('actual binding log receipt mismatch')
+        sources=re.findall(rb'\b(dnsmasq(?:-dhcp)?)\[\d+\]: ((?:DHCP, sockets bound exclusively to interface |error binding DHCP socket to device )[^\r\n]+)', log)
+        if (len(sources)!=len(notices)
+                or any(program!=(b'dnsmasq-dhcp' if message.startswith(NOTICE) else b'dnsmasq')
+                       for program,message in sources)):
+            raise ValueError('binding notice service prefix mismatch')
         for phase in row['phases']:
             if phase!=json.loads((case/(phase['label']+'.json')).read_text()):raise ValueError('phase receipt mismatch')
             reply=case/(phase['label']+'.reply');request=case/(phase['label']+'.query')
@@ -336,7 +341,8 @@ def compare(args):
             if spec['case'] not in rows:continue
             errors.extend(side+'/'+spec['case']+': '+error for error in row_errors(spec, rows[spec['case']], STOCK_SHA256 if side=='c' else r['candidate_sha256']))
             if side=='c':continue
-            for mutation in ['identity', 'missing-socket', 'device', 'health', 'missing-phase', 'notice', 'cleanup']:
+            for mutation in ['identity', 'missing-socket', 'device', 'health', 'missing-phase', 'notice', 'cleanup',
+                             'fd-continuity', 'generation', 'deleted-errno', 'late-interface']:
                 wrong=copy.deepcopy(rows[spec['case']])
                 if mutation=='identity':wrong['identity']['sha256']=''
                 elif mutation=='missing-socket':
@@ -348,7 +354,19 @@ def compare(args):
                 elif mutation=='health':wrong['phases'][0]['health']['semantic']['flags']|=3
                 elif mutation=='missing-phase':wrong['phases'].pop()
                 elif mutation=='notice':wrong['notices'].append(WARNING.decode()+'unrelated')
-                else:wrong['forced']=True
+                elif mutation=='cleanup':wrong['forced']=True
+                elif mutation=='fd-continuity':
+                    if len(wrong['phases'])<2:continue
+                    wrong['phases'][1]['sockets'][0]['target_fd']+=1
+                elif mutation=='generation':
+                    if spec['action']!='recreate':continue
+                    wrong['generation']['new']=wrong['generation']['old']
+                elif mutation=='deleted-errno':
+                    if spec['action']!='recreate':continue
+                    wrong['phases'][1]['sockets'][0]['device_errno']=1
+                else:
+                    if spec['action']!='late':continue
+                    wrong['phases'][1]['network']['links']=[link for link in wrong['phases'][1]['network']['links'] if link['ifname']!='m5b']
                 controls.append(dict(case=spec['case'], control=mutation, rejected=bool(row_errors(spec, wrong, r['candidate_sha256']))))
     cm={row['case']:row for row in c['cases']};rm={row['case']:row for row in r['cases']}
     for spec in specs:
