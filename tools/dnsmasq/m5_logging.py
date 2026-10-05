@@ -279,6 +279,12 @@ def cases():
                               *(['--fast-dns-retry=50,1000'] if kind == 'fastretry' else [])],
                      'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
                      'query_upstream': True, 'query_transaction_probe': kind, 'options': ['log-queries']})
+    rows.append({'id': 'query-dhcp-origin', 'scope': 'query-dhcp', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries', '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m',
+                          '--dhcp-host=02:00:00:00:00:aa,127.0.0.10,m5-client', '--dhcp-host=02:00:00:00:00:bb,ignore',
+                          '--dhcp-authoritative', '--dhcp-leasefile=/m2/logging/leases', '--dhcp-broadcast', '--no-ping'],
+                 'dhcp_probes': True, 'quiet_dhcp': False, 'detail_dhcp': False, 'dhcp_query_origin': True,
+                 'options': ['log-queries']})
     for label, quiet, detail in [('ordinary', False, False), ('quiet', True, False),
                                   ('detail', False, True), ('quiet-detail', True, True)]:
         rows.append({'id': 'dhcp-packets-' + label, 'scope': 'dhcp-packets', 'kind': 'run',
@@ -1120,7 +1126,7 @@ def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0'
     return bytes(data)
 
 
-def dhcp_sequence():
+def dhcp_sequence(query_origin=False):
     rows, trace = [], []
     steps = [
         ('bootp', 0, {}, 0),
@@ -1160,6 +1166,11 @@ def dhcp_sequence():
                     if code == 53: actual = response[at]
                     at += length
                 if actual != (None if expected == 0 else expected): raise AssertionError(('DHCP response type', label, actual, expected))
+            if query_origin and label == 'request':
+                for name, kind in [('m5-client', 1), ('10.0.0.127.in-addr.arpa', 12)]:
+                    answer, raw = exchange(name, kind, port=16509)
+                    rows.append({'label': 'dns-' + name, 'response': answer})
+                    trace.append(dict(raw, label='dns-' + name))
             rows.append({'label': label, 'reply': response.hex() if response is not None else None})
             trace.append({'label': label, 'request': request.hex(), 'reply': response.hex() if response is not None else None})
     return rows, trace
@@ -1369,7 +1380,7 @@ def run(root, side, case, out):
                         receiver.drain()
                         time.sleep(.005)
                 if case.get('dhcp_probes'):
-                    rows, raw = dhcp_sequence()
+                    rows, raw = dhcp_sequence(case.get('dhcp_query_origin', False))
                     observed['dhcp'] = rows; trace['dhcp'] = raw
                 if case.get('tftp_probes'):
                     rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
@@ -2249,6 +2260,9 @@ def compare(reference, candidate, case, reference_only=False):
         if quiet and any(ignored in message for message in messages): failures.append({'kind': 'C-DHCP-quiet-ignored-discover', 'actual': messages})
         if detail and not all(re.match(r'^[0-9]+ DHCP', message) for message in messages if re.match(r'^([0-9]+ )?DHCP(?:DISCOVER|OFFER|REQUEST|ACK|NAK|INFORM|RELEASE)\(', message)):
             failures.append({'kind': 'C-DHCP-detail-xid', 'actual': messages})
+    if case.get('dhcp_query_origin'):
+        for message in ['DHCP m5-client is 127.0.0.10', 'DHCP 127.0.0.10 is m5-client']:
+            if message not in reference['stderr']: failures.append({'kind': 'C-query-DHCP-origin', 'missing': message})
     if case.get('query_probes'):
         mode, text = case['query_mode'], reference['stderr']
         if mode in ['auth', 'only_failed']:
