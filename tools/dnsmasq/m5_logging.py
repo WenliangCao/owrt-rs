@@ -298,6 +298,16 @@ def cases():
                  'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1), ('formerr.forward.test', 1), ('servfail.forward.test', 1), ('numeric.forward.test', 1)],
                  'query_upstream': True, 'query_required_messages': ['reply error is FORMERR', 'reply error is SERVFAIL', 'reply error is 10'],
                  'options': ['log-queries']})
+    rows.append({'id': 'query-extreme-name-bytes', 'scope': 'query-extreme', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto'], 'query_probes': True,
+                 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)], 'query_extreme_probe': True,
+                 'query_required_messages': ['query[A] <name unprintable> from 127.0.0.1'], 'options': ['log-queries']})
+    rows.append({'id': 'query-extreme-counted-TXT', 'scope': 'query-extreme', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957', '--cache-rr=TXT'],
+                 'query_probes': True, 'query_mode': 'proto',
+                 'query_sequence': [('ready.logging', 1), ('max-txt.forward.test', 16), ('max-txt.forward.test', 16)],
+                 'query_upstream': True, 'query_required_messages': ['reply max-txt.forward.test is ' + 'X' * 255,
+                    'cached max-txt.forward.test is ' + 'X' * 255, 'reply max-txt.forward.test is Leading'], 'options': ['log-queries']})
     for kind in ['coalesce', 'clientretry', 'fastretry']:
         rows.append({'id': 'query-transaction-' + kind, 'scope': 'query-transactions', 'kind': 'run',
                      'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957',
@@ -624,6 +634,12 @@ def cases():
         rows.append({'id': 'startup-output-' + name, 'scope': 'startup-output', 'kind': 'run',
                      'argv': ['--log-facility=-', *arguments], **extra,
                      'options': ['log-facility', 'no-daemon']})
+    for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        path = b'/m2/logging/missing-\xff/daemon.pid'
+        rows.append({'id': 'pid-path-opaque-failure-' + label, 'scope': 'error-frame', 'kind': 'run',
+                     'mode': mode, 'daemonized': not mode, 'exit': 0 if label == 'debug' else 3,
+                     'pidfile': os.fsdecode(path), 'receiver': 'dgram', 'argv': [],
+                     'config_bytes': (b'pid-file=' + path + b'\n').hex(), 'options': ['no-daemon']})
     rows.append({'id': 'daemon-runtime-servers-file-failure', 'scope': 'daemon', 'kind': 'run',
                  'mode': [], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
                  'argv': ['--log-facility=-', '--servers-file=/m2/logging/missing-servers'],
@@ -1067,6 +1083,9 @@ class QueryUpstream:
         if name == 'alias.forward.test':
             body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
+        if name == 'max-txt.forward.test':
+            text = b''.join(b'\xff' + bytes([ord('X') + index]) * 255 for index in range(4)) + b'\0\x0fLeading\x01ignored'
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + rr(16, text)
         if kind == 16:
             body = rr(16, b'\x05hello\x06Second\x00')
             return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
@@ -1148,6 +1167,28 @@ def query_transaction_probe(kind):
         rows.append({'transport': 'udp-cached', 'response': answer});trace.append(dict(raw, transport='udp-cached'))
     finally:
         for client in clients: client.close()
+    return rows, trace
+
+
+def query_extreme_probe():
+    labels = [[b'x\x01y', b'logging'], [b'bin\x7f\xff', b'logging'],
+              [b'a' * 63, b'b' * 63, b'c' * 63, b'd' * 61]]
+    rows, trace = [], []
+    for transport in ['udp', 'tcp']:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM) as client:
+            client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            client.bind(('127.0.0.1', 16511));client.settimeout(1)
+            if transport == 'tcp':client.connect(('127.0.0.1', 15353))
+            for index, parts in enumerate(labels):
+                wire = struct.pack('!6H', 0x7800 + index, 0x0100, 1, 0, 0, 0)
+                wire += b''.join(bytes([len(label)]) + label for label in parts) + b'\0\0\x01\0\x01'
+                if transport == 'tcp':
+                    client.sendall(len(wire).to_bytes(2, 'big') + wire)
+                    reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+                else:client.sendto(wire, ('127.0.0.1', 15353));reply = client.recv(65535)
+                if reply[:2] != wire[:2]:raise AssertionError('extreme query transaction changed')
+                rows.append({'labels': [label.hex() for label in parts], 'transport': transport, 'reply_wire': reply.hex()})
+                trace.append({'request': wire.hex(), 'reply': reply.hex(), 'transport': transport})
     return rows, trace
 
 
@@ -1491,6 +1532,8 @@ def run(root, side, case, out):
                     answer, raw = exchange('ready.logging', port=16503)
                     observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
+                    if case.get('query_extreme_probe'):
+                        rows, raw = query_extreme_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                     if case.get('query_stale_probe'):
                         rows, raw = query_stale_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                         if case.get('query_refresh_reply'): time.sleep(.1)
