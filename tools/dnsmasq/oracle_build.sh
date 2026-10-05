@@ -21,6 +21,14 @@ toolchain=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.
 export STAGING_DIR="$toolchain"
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$toolchain/bin/aarch64-openwrt-linux-musl-gcc"
 export RUSTFLAGS="--remap-path-prefix=$source_dir=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no"
+# Optional fault/attribution evidence. Only this fresh output can receive the
+# map; it stays outside shipped artifacts and under the same build lock.
+case ${ORACLE_BUILD_LINK_MAP:-0} in
+    0) ;;
+    1) case "$output_dir" in *' '*|*','*) echo 'map output path contains whitespace or comma' >&2; exit 2;; esac
+       export RUSTFLAGS="$RUSTFLAGS -Clink-arg=-Wl,-Map=$output_dir/link.map" ;;
+    *) echo 'ORACLE_BUILD_LINK_MAP must be 0 or 1' >&2; exit 2;;
+esac
 unset CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER
 export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
 cargo=/home/ubuntu/.cargo/bin/cargo
@@ -55,6 +63,9 @@ report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['C
           'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [
               {'path': path.name, 'bytes': path.stat().st_size,
                'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in artifacts]}
+if (out / 'link.map').exists():
+    report['link_map'] = {'path': 'link.map',
+                         'sha256': hashlib.sha256((out / 'link.map').read_bytes()).hexdigest()}
 (out / 'build.json').write_text(json.dumps(report, indent=2) + '\n')
 print(json.dumps(report))
 PY
