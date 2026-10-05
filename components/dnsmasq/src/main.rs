@@ -5,6 +5,8 @@
 //! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
+mod allocation_trace;
+
 use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
@@ -240,6 +242,7 @@ struct Runtime {
     ubus: UbusConfig,
     script_arp: dnsmasq_rs::config::script_arp::ScriptArpConfig,
     dump: dnsmasq_rs::config::dump::DumpConfig,
+    log_malloc: bool,
 }
 
 // C's UDP listeners mutate one parent hosts generation. Each accepted TCP
@@ -524,8 +527,13 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         ubus: UbusConfig::default(),
         script_arp: Default::default(),
         dump: Default::default(),
+        log_malloc: false,
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
+        if directive.name == b"log-malloc" {
+            runtime.log_malloc = true;
+            return Ok(());
+        }
         if runtime.logging.apply(directive)?
             || runtime.process.apply(directive)?
             || runtime.scalar.apply(directive)?
@@ -1138,6 +1146,8 @@ fn run_inner(
     dnsmasq_rs::startup::redirect_standard_streams(&runtime.process);
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_helper = helper_config.map(Helper::start).transpose()?;
+    #[cfg(target_os = "linux")]
+    allocation_trace::enable(runtime.log_malloc);
     #[cfg(target_os = "linux")]
     identity
         .drop_privileges(&runtime.process, capabilities)
@@ -3175,6 +3185,27 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn log_dns_diagnostics(&mut self) {
         use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        if let Some(logger) = &mut self.logger {
+            allocation_trace::suspended(|| {
+                let mut events = [allocation_trace::Event::EMPTY; 256];
+                let (count, lost) = allocation_trace::drain(&mut events);
+                for event in &events[..count] {
+                    logger.emit(LogEvent::new(
+                        Service::Dns,
+                        Priority::Info,
+                        event.message().into_bytes(),
+                    ));
+                }
+                if lost != 0 {
+                    logger.emit(LogEvent::new(
+                        Service::Dns,
+                        Priority::Warning,
+                        format!("allocation trace lost {lost} events").into_bytes(),
+                    ));
+                }
+                logger.flush_ready();
+            });
+        }
         self.dump.step();
         let Some(logger) = &mut self.logger else {
             return;
