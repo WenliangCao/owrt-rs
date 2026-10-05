@@ -298,9 +298,46 @@ pub(super) fn frame(payload: &[u8]) -> Vec<u8> {
     out
 }
 
+/// ARP commands have a fixed bounded layout. Construct their complete frame
+/// with one checked allocation so the owner can retain the record on ENOMEM.
+pub(super) fn arp_frame(added: bool, hardware: &[u8], address: IpAddr) -> io::Result<Vec<u8>> {
+    if hardware.len() > 16 {
+        return Err(invalid());
+    }
+    let payload_len = 1 + 2 + 4 + hardware.len() + if address.is_ipv4() { 5 } else { 17 };
+    let mut out = Vec::new();
+    out.try_reserve_exact(payload_len + 4)
+        .map_err(|_| io::Error::from_raw_os_error(12))?;
+    out.extend((payload_len as u32).to_le_bytes());
+    out.extend([1, 1, u8::from(added)]);
+    bytes(&mut out, hardware)?;
+    ip(&mut out, address);
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::Ipv6Addr;
+    #[test]
+    fn checked_arp_frame_keeps_the_existing_command_protocol() {
+        for address in [
+            IpAddr::V4(Ipv4Addr::LOCALHOST),
+            IpAddr::V6(Ipv6Addr::LOCALHOST),
+        ] {
+            for length in [0, 1, 6, 16] {
+                let event = Event::Arp {
+                    added: true,
+                    hardware_address: vec![2; length],
+                    address,
+                };
+                let framed = arp_frame(true, &vec![2; length], address).unwrap();
+                assert_eq!(framed, frame(&encode(&event).unwrap()));
+                assert_eq!(decode(&framed[4..]).unwrap(), event);
+            }
+        }
+        assert!(arp_frame(true, &[0; 17], Ipv4Addr::LOCALHOST.into()).is_err());
+    }
     #[test]
     fn init_record_roundtrip_rejects_truncation_and_oversized_fields() {
         let mut record = crate::dhcp::lease_file::parse(
