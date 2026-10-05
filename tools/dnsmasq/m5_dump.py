@@ -16,13 +16,15 @@ import socket
 import struct
 import subprocess
 import sys
+import threading
 import time
 
-from dns_service_probe import query, exact_read
+from dns_service_probe import query, exact_read, answer
 from m2_rootfs import command, prepare, process_identity, sha256
 
 HERE = Path(__file__).resolve().parent
 SERVER, CLIENT = 10553, 10554
+UPSTREAM, QUERY_PORT = 10561, 10560
 
 
 def save(path, value):
@@ -65,6 +67,55 @@ def pcap(data, start, end):
     return dict(header=dict(magic=magic,version=[major,minor],zone=zone,sigfigs=sigfigs,snaplen=snaplen,network=network),records=records)
 
 
+class Upstream:
+    def __init__(self, ipv6):
+        family=socket.AF_INET6 if ipv6 else socket.AF_INET
+        self.address='::1' if ipv6 else '127.0.0.2'
+        self.udp=socket.socket(family,socket.SOCK_DGRAM)
+        self.tcp=socket.socket(family,socket.SOCK_STREAM)
+        self.udp.bind((self.address,UPSTREAM));self.udp.settimeout(.05)
+        self.tcp.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        self.tcp.bind((self.address,UPSTREAM));self.tcp.listen();self.tcp.settimeout(.05)
+        self.stopped=False;self.events=[];self.errors=[]
+        self.threads=[threading.Thread(target=self.run,args=(tcp,),daemon=True) for tcp in [False,True]]
+        for thread in self.threads:thread.start()
+    def run(self,tcp):
+        endpoint=self.tcp if tcp else self.udp
+        while not self.stopped:
+            try:
+                if tcp:
+                    connection,peer=endpoint.accept()
+                    with connection:
+                        connection.settimeout(2)
+                        request=exact_read(connection,struct.unpack('!H',exact_read(connection,2))[0])
+                        response=answer(request)
+                        self.events.append(dict(request=request.hex(),reply=response.hex(),tcp=True,peer=list(peer)))
+                        connection.sendall(struct.pack('!H',len(response))+response)
+                else:
+                    request,peer=endpoint.recvfrom(65535);response=answer(request)
+                    self.events.append(dict(request=request.hex(),reply=response.hex(),tcp=False,peer=list(peer)))
+                    endpoint.sendto(response,peer)
+            except socket.timeout:continue
+            except OSError:
+                if not self.stopped:self.errors.append('upstream socket failure')
+            except Exception as error:self.errors.append(repr(error))
+    def close(self):
+        self.stopped=True;self.udp.close();self.tcp.close()
+        for thread in self.threads:thread.join(2)
+        assert not self.errors,self.errors
+
+
+def canonical_record(row,identifier):
+    packet=bytearray.fromhex(row['wire']);offset=20 if packet[0]>>4==4 else 40
+    packet[offset+8:offset+10]=identifier
+    packet[offset+6:offset+8]=b'\0\0'
+    if offset==20:pseudo=packet[12:20]+b'\0\x11'+struct.pack('!H',len(packet)-20)
+    else:pseudo=packet[8:40]+struct.pack('!I',len(packet)-40)+b'\0\0\0\x11'
+    total=checksum(pseudo+packet[offset:]);value=0xffff if total==0xffff else (~total)&0xffff
+    packet[offset+6:offset+8]=struct.pack('!H',value)
+    row['wire']=packet.hex();row['payload']=packet[offset+8:].hex()
+
+
 def stop(process):
     if process.poll() is None:
         process.terminate()
@@ -76,6 +127,14 @@ def stop(process):
 
 def profiles():
     rows=[
+        dict(case='upstream-v4-all',exchange=True,upstream=True),
+        dict(case='upstream-v6-all',exchange=True,upstream=True,ipv6=True),
+        dict(case='mask-up-query',exchange=True,upstream=True,mask='4'),
+        dict(case='mask-up-reply',exchange=True,upstream=True,mask='8'),
+        dict(case='cached-second-query',exchange=True,upstream=True,copies=2),
+        dict(case='tcp-forward-no-capture',exchange=True,upstream=True,tcp=True),
+        dict(case='extra-local-display-id',exchange=True,extra=['log-queries=extra'],display=True),
+        dict(case='extra-forward-display-id',exchange=True,upstream=True,extra=['log-queries=extra'],display=True),
         dict(case='header-create'), dict(case='header-user-nobody',extra=['user=nobody','group=nogroup']),
         dict(case='header-edns-max',extra=['edns-packet-max=1500']), dict(case='fifo-header',fifo=True),
         dict(case='dns-v4-local',exchange=True),dict(case='dns-v6-local',exchange=True,ipv6=True),
@@ -117,7 +176,7 @@ def exchange(spec, folder, serial):
         endpoint.settimeout(2)
         if kind==socket.SOCK_STREAM: endpoint.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
         endpoint.bind((address,CLIENT));endpoint.connect((address,SERVER))
-        request=query(spec.get('name','dump.test'),1,0x7800+serial)
+        request=query(spec.get('name','forward.dump.test' if spec.get('upstream') else 'dump.test'),1,0x7800+serial)
         endpoint.sendall(struct.pack('!H',len(request))+request if kind==socket.SOCK_STREAM else request)
         response=exact_read(endpoint,struct.unpack('!H',exact_read(endpoint,2))[0]) if kind==socket.SOCK_STREAM else endpoint.recv(4096)
     assert response[:2] == request[:2], 'actual network reply identity'
@@ -145,8 +204,10 @@ def case(args,root,spec):
     for key in ['user=', 'group=']:
         if any(value.startswith(key) for value in extras):config=[value for value in config if not value.startswith(key)]
     config += extras
+    upstream=Upstream(spec.get('ipv6',False)) if spec.get('upstream') else None
+    if upstream:config += ['server='+upstream.address+'#'+str(UPSTREAM),'query-port='+str(QUERY_PORT)]
     (root/'m2/dump.conf').write_text('\n'.join(config)+'\n');(folder/'config').write_text('\n'.join(config)+'\n')
-    process=None;captured=b'';witness=[];start=time.time();events=[]
+    process=None;captured=b'';witness=[];start=time.time();events=[];display_events=[]
     try:
         for phase in range(2 if spec.get('restart') else 1):
             (root/'m2/dump.pid').unlink(missing_ok=True)
@@ -168,6 +229,7 @@ def case(args,root,spec):
                 stop(process)
                 logged=(folder/f'{phase}.log').read_text()
                 events += re.findall(r'dumping packet (\d+) mask 0x([0-9a-f]+)',logged)
+                display_events += re.findall(r'(?:^|\n)[^\n]*?: (\d+) dumping packet (\d+) mask 0x([0-9a-f]+)',logged)
                 assert not Path('/proc/'+str(process.pid)).exists(),'dump descriptor/process cleanup'
         if reader is None:captured=collect(root,file,reader)
         (folder/'dump.raw').write_bytes(captured)
@@ -183,16 +245,33 @@ def case(args,root,spec):
             value=spec.get('mask','-1') or '0'
             unsigned=value.lstrip('+-')
             mask=int(value,16 if unsigned.lower().startswith('0x') else 8 if len(unsigned)>1 and unsigned.startswith('0') else 10)
-            for index,payload in enumerate(witness):
-                if not spec.get('tcp') and mask & (1 if index%2==0 else 2):expected.append(payload)
-            assert [row['payload'] for row in observed['records']]==expected,'PCAP payload/order independent network witnesses'
+            forwards=[event for event in upstream.events if not event['tcp']] if upstream else []
+            save(folder/'upstream-witnesses.json',upstream.events if upstream else [])
+            if upstream:assert len(upstream.events)==1,'actual forwarding/cache caller count'
+            cursor=0
+            for index in range(0,len(witness),2):
+                identifier=bytes.fromhex(witness[index])[:2]
+                streams=[(1,witness[index])]
+                if forwards and index==0:
+                    streams += [(4,forwards[0]['request']),(8,forwards[0]['reply'])]
+                streams += [(2,witness[index+1])]
+                for flag,payload in streams:
+                    if not spec.get('tcp') and mask&flag:
+                        row=observed['records'][cursor]
+                        assert row['payload']==payload,'PCAP payload must match actual client/upstream witness before ID normalization'
+                        if flag in [4,8]:canonical_record(row,identifier)
+                        expected.append(row['payload']);cursor+=1
+            assert cursor==len(observed['records']),'PCAP exact caller record count'
             assert [int(row[0]) for row in events]==list(range(1,len(expected)+1)),'record count/order/logging'
             if label in ['header-create','header-user-nobody']:
                 info=file.stat();assert info.st_mode&0o777==0o600 and info.st_uid==0,'startup create permission/owner before daemon privilege drop'
-        return dict(case=label,pcap=observed,events=events)
+        result=dict(case=label,pcap=observed,events=events)
+        if spec.get('display'):result['display_events']=display_events
+        return result
     finally:
         if process is not None and process.poll() is None:stop(process)
         if reader is not None:os.close(reader)
+        if upstream:upstream.close()
         if file.exists() and file.is_dir():file.rmdir()
 
 
