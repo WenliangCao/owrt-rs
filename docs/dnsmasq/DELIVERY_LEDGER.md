@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5；169 项中 **108 项已关闭、34 项部分实现、27 项未实现，剩余 61 项**。
-- 刚关闭：tag-if；1614c0fd／272e5b2b…7c67e93的39配置场景／49观察零失败，覆盖有序predicate、negation/wildcard、second-pass context、range/host/ignore、BOOTP/PXE normal/proxy、leasequery、helper tag order，15负控；tagif-39归档SHA 8e8f0f…01ed9已核验。
+- 当前里程碑：M5；169 项中 **110 项已关闭、32 项部分实现、27 项未实现，剩余 59 项**。
+- 刚关闭：help、version；dd9f565d／6457808a…e4a55f完成8个CLI场景、3条冻结边界及13负控。完整193项help、64条DHCP选项表、argc分派、坏默认配置不影响terminal action、GPL/保修信息均配对；版本仅显式追加Rust实现身份。archive c7776b…58d1d的1015路径/813文件完整SHA+metadata核验清远端。日志sink/no-ident同批7差异仍开放，不混算。
 - 当前代码：最新统一候选 `dd9f565d` / ELF `6457808a00378c1cbaf47325fcc9d682e394e767a92d49f008c32b19c7e4a55f`，**1,626,152字节**（M4 +466,872；相对b235 +45,072，日志sink/完整CLI及租约warning流式修复；纯族归因待补）。Linux库614/main10通过，19 ignored不计通过；日志55配置配对中。b235（6265c1f0…e13795，1,581,080）端点100/租约66/监听149配置对照已执行或运行中，真实差异逐条修、失败归档，不提前关项。固定路径归因：planner +4,096，SIGPIPE相对planner再增+4,096、相对固定矩阵累计+8,192。
 - 下一步：DHCP files、dhcp-range、tag-if、no-dhcpv4-interface、DNS files非endpoint及配置输入已闭合并记账。servers-file endpoint分组、source socket/query-port pool、监听DAD和EDNS/日志族继续按冻结C调用链推进；端点syntax129已在e664候选修正17个端口诊断差异后全绿，service/共享source pool尚未关闭。malformed inotify已AArch64 ptrace真实注入并两侧忽略；其旧失败证据仍保留。
 - 阻塞点：无须用户决定。Oracle可用28,773,445,632字节（26.80GiB），87%；每批归档逐SHA和metadata核验后清理。旧 f4c892a8 驱动的 `paired-275-01` 在scoped IPv6夹具 OSError(22)后残留线程，已保留112项完整失败归档并回收孤儿；53863d71修ifindex绑定后同275候选 `paired-275-02` 1配置／6行通过并归档。绝不以半截或C-only计通过。物理路由器未触碰。
@@ -56,7 +56,7 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 
 ## M5 盘点与工作顺序
 
-盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**108 项已实现并有 C 差分，34 项部分实现，27 项未实现；剩余 61 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
+盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**110 项已实现并有 C 差分，32 项部分实现，27 项未实现；剩余 59 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
 对镜像 init 的静态调用路径核对得到 **A 组 99 项、B 组 70 项**。A 表示原生 UCI/init 生成或调用，行号链接到保留原文的 init；B 表示通常需额外配置。`extraconftext`/conf-dir 可以透传任意指令，不据此把全部选项都算原生生成。`pxe-service`、`pxe-prompt`、`interface-name` 实际有 init 生成路径，归 A。26 个 excluded-capability 选项不混入169项计数；其与C一致的禁用/拒绝边界仍保留。
 
@@ -172,7 +172,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `pid-file` | A / 1267 | 启动/日志/监听 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；写入、失败保留和正常删除有差分；M4 镜像生命周期及压力退出均自行删 PID。 |
 | `quiet-dhcp` | A / 1013 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；部分计数/UBus 抑制已实现；尚无完整日志输出实现与差分。 |
 | `user` | A / 1178 | 启动/日志/监听 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；已消费 UID、组和能力边界；M1 精确源码 C 权限差分，M4 镜像 UID 453 服务验证。 |
-| `version` | A / 31,946 | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；仅 Compile time options 与镜像逐字一致；版本首行和后续 banner 不同。 |
+| `version` | A / 31,946 | 启动/日志/监听 | 已实现，有C差分 | [M5 CLI闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/sink-paired-dd9f565d/cli-close-summary.json)；8场景／3边界、13负控通过；193项help/64条DHCP表、argc分派/无效default跳过、完整GPL和compile options。仅version首行追加Rust实现身份；dd9f565d／6457808a…e4a55f，1,626,152字节（日志sink+CLI混合增量45,072，独立归因待补）。全归档SHA+metadata核验清远端。 |
 | `dhcp-alternate-port` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 relay闭合](../../private/dnsmasq-rewrite/evidence/M5/relay/close-summary.json)；43条C清单、37配置／174报文场景、40语法、4绑定模式、15负控和6实际Linux隔离守卫通过；relay-only、本地服务共存、端口、接口重建、split/opaque/容量/清理均覆盖，C既有quirks单列。候选f1668e28／ELF9c73a0d9…d2ebd5，1,396,848字节（族段增量+20,480）。 |
 | `dhcp-client-update` | B / — | DHCP tags/options | 已实现，有C差分 | [M5 dhcp-tags-options final3](../../private/dnsmasq-rewrite/evidence/M5/four/dhcp-tags/run-final4/summary.json)；client-update FQDN flags 在精确镜像配对中通过。|
 | `dhcp-generate-names` | B / — | DHCP tags/options | 已实现，有C差分 | [identity完整族](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/close-summary.json)及[GEN-08真实续租补证](../../private/dnsmasq-rewrite/evidence/M5/dhcp-identity/paired-07-renewal/supplemental-verification.json)通过；保留3个SELECTING，并新增3个非零ciaddr/无50及54的单播续租，ACK/lease/A/PTR一致，仅经关系校验的58/59随机fuzz归一化。独立审计无其他清单缺口，候选2711e9b2，族增量0。 |
@@ -236,7 +236,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `bind-interfaces` | B / — | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；静态绑定及不存在接口处理已实现；完整 IPv4/IPv6/别名和失败组合缺镜像族级证据。；新增实测缺陷见batch6-v4/paired-02：接口IPv6 DAD未完成时Rust bind失败/报错，C等待成熟后绑定；监听族必须补修验证。 |
 | `dumpfile` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `dumpmask` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
-| `help` | B / — | 启动/日志/监听 | 部分实现 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；只有简短提示；缺完整 help 与 help dhcp 选项说明。 |
+| `help` | B / — | 启动/日志/监听 | 已实现，有C差分 | [M5 CLI闭合](../../private/dnsmasq-rewrite/evidence/M5/logging/sink-paired-dd9f565d/cli-close-summary.json)；8场景／3边界、13负控通过；193项help/64条DHCP表、argc分派/无效default跳过、完整GPL和compile options。仅version首行追加Rust实现身份；dd9f565d／6457808a…e4a55f，1,626,152字节（日志sink+CLI混合增量45,072，独立归因待补）。全归档SHA+metadata核验清远端。 |
 | `log-async` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `log-debug` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
 | `log-malloc` | B / — | 启动/日志/监听 | 未实现 | [source-native](../../docs/dnsmasq/M1_REVIEW_REPORT.md)；元数据列为可用，但无配置消费者；主入口通用 not implemented 拒绝。 |
