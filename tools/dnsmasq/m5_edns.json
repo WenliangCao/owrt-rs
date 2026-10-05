@@ -330,7 +330,10 @@
         "coalesce-same-source-uncacheable",
         "coalesce-ecs-distinct-ip",
         "coalesce-mac-distinct-ip",
-        "coalesce-umbrella-distinct-ip"
+        "coalesce-umbrella-distinct-ip",
+        "coalesce-ecs-distinct-ip-independent",
+        "coalesce-mac-distinct-ip-independent",
+        "coalesce-umbrella-distinct-ip-independent"
       ],
       "actual_c_contract": "Do not trust forward.c:187 comment: receive_query passes fwd_flags including NO_CACHE to lookup_frec. Actual image calibration-c-02 coalesces source-dependent requests with matching flags; same-source/same-id retries reuse upstream ID. Distinct-IP hold repro required before choosing any Rust isolation difference."
     },
@@ -393,5 +396,19 @@
     "inventory_entries": 337,
     "verified_regular_files": 300,
     "scope": "SHA and complete archive metadata verified before remote prune"
-  }
+  },
+  "reference_defects": [
+    {
+      "id": "source-sensitive-coalescing",
+      "cases": [
+        "coalesce-ecs-distinct-ip",
+        "coalesce-mac-distinct-ip",
+        "coalesce-umbrella-distinct-ip"
+      ],
+      "decision": "Root source/runtime review: keep C matching for identical effective option bytes, isolate distinct effective option bytes with Scope::Edns. NO_CACHE is a cache gate and still participates in flags matching; it never forces all requests independent.",
+      "proof_run": "coalescing-c-repro-01",
+      "proof_archive_sha256": "6207262ac05bfaa73500d6e472b912b73993fa79248037f8eb38acfa554adc09",
+      "required_negative_controls": "C independent sequential requests from each actual client must give distinct source-keyed payloads; Rust hold test must match each independent C payload and option bytes."
+    }
+  ]
 }

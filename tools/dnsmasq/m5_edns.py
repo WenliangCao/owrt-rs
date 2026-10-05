@@ -245,6 +245,32 @@ for profile,directive,label in [
  ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella-distinct-ip'),
 ]: case(profile,directive,label,opts=b'',coalesce=True,sources=[CLIENT4,'192.0.2.19'],response='client-keyed')
 
+for profile,directive,label in [
+ ('ecs32','add-subnet=32,128','coalesce-ecs-distinct-ip-independent'),
+ ('raw','add-mac','coalesce-mac-distinct-ip-independent'),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella-distinct-ip-independent'),
+]: case(profile,directive,label,opts=b'',repeat=2,sources=[CLIENT4,'192.0.2.19'],response='client-keyed')
+for label,kw in [
+ ('max-udp-receive-drop',{'target_size':513}),
+ ('max-client-below-512',{'opts':b'','size':1}),
+ ('max-client-above-config',{'opts':b'','size':65535}),
+ ('max-tcp-receive-capacity',{'target_size':778,'tcp':True}),
+ ('max-tcp-response-large',{'tcp':True,'response':'large'}),
+ ('max-udp-upstream-truncate',{'opts':b'','response':'large'}),
+ ('max-udp-tc-fallback',{'opts':b'','response':'tc-large','transports':['udp','tcp']}),
+]: case('max512','edns-packet-max=512',label,**kw)
+case('max512-local','edns-packet-max=512\n'+'\n'.join('host-record=large.local.edns.test,198.51.100.'+str(v) for v in range(1,65)),'max-udp-local-truncate',host='large.local.edns.test',opts=b'')
+for label,action in [
+ ('tcp-connection-mac-snapshot','connection-change'),
+ ('tcp-new-connection-refresh','negative-new-connection'),
+ ('tcp-neighbor-nonlazy','negative-new-connection'),
+ ('udp-neighbor-negative-lazy','negative-udp'),
+ ('udp-neighbor-90-refresh','negative-90'),
+ ('neighbor-negative-lazy-before-90','negative-udp'),
+ ('neighbor-negative-nonlazy-accept','negative-new-connection'),
+ ('neighbor-positive-retained-before-90','positive-change'),
+]: case('neighbor-'+label,'add-mac',label,opts=b'',action=action)
+
 class Upstream:
     """Test-only selector thread, bounded shutdown; product stays single poll."""
     def __init__(self):
@@ -293,7 +319,11 @@ class Upstream:
                 elif code==20292 and b'\0\x10' in value:
                     where=value.index(b'\0\x10');tag=value[where+5]
             body=rr(kind,ipaddress.ip_address('198.51.100.'+str(tag)).packed,b'\xc0\x0c',1,600)
-        answer=packet[:2]+struct.pack('!5H',0x8180,1,1,0,int(bool(opts))+int(bool(extra)))+question+body+opts+extra
+        flags=0x8380 if behavior=='tc-large' and transport=='udp' else 0x8180
+        count=1
+        if behavior in ('large','tc-large'):
+            body=rr(16,b'\xff'+b'X'*255+b'\xff'+b'Y'*255+b'\x7f'+b'Z'*127,b'\xc0\x0c',1,600)
+        answer=packet[:2]+struct.pack('!5H',flags,1,count,0,int(bool(opts))+int(bool(extra)))+question+body+opts+extra
         return answer
     def run(self):
         buffers={}
@@ -350,7 +380,7 @@ def exchange(port,packet,tcp=False,ipv6=False,source=None):
         except (socket.timeout,ConnectionError,ConnectionResetError):return None
 
 def packet_for(row,index):
-    excluded={'sources','case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','transports','target_size','nonfinal'}
+    excluded={'action','inject','mac_length','sources','case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','transports','target_size','nonfinal'}
     params={k:v for k,v in row.items() if k not in excluded}
     host=row.get('host',row['case']+'.edns.test')
     packet=query(host,0x6200+index,**params)
@@ -382,6 +412,48 @@ def coalesce_exchange(port,packet,row):
     finally:
         for conn in sockets:conn.close()
     return serial(results),witness
+
+def set_neighbor(address,mac=None):
+    if mac is None:
+        subprocess.run(['ip','neigh','del',address,'dev','edns0'],capture_output=True)
+    else:
+        subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in mac),'nud','permanent','dev','edns0'],check=True)
+
+def neighbor_schedule(port,packet,row):
+    action=row['action'];results=[];witness=[]
+    if action=='connection-change':
+        with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as conn:
+            conn.settimeout(2);conn.bind((CLIENT4,0));conn.connect((LISTEN4,port))
+            for index in range(2):
+                wire=struct.pack('!H',0x6400+index)+packet[2:]
+                conn.sendall(struct.pack('!H',len(wire))+wire)
+                reply=exact_read(conn,struct.unpack('!H',exact_read(conn,2))[0]);results.append(serial(norm(reply)))
+                if index==0:set_neighbor(CLIENT4,bytes.fromhex('025566aabbdd'))
+        set_neighbor(CLIENT4,MAC)
+    elif action=='positive-change':
+        results.append(serial(norm(exchange(port,packet))))
+        set_neighbor(CLIENT4,bytes.fromhex('025566aabbdd'))
+        results.append(serial(norm(exchange(port,struct.pack('!H',0x6401)+packet[2:]))))
+        set_neighbor(CLIENT4,MAC)
+    else:
+        address='192.0.2.18';set_neighbor(address)
+        first_tcp=action=='negative-new-connection'
+        results.append(serial(norm(exchange(port,packet,first_tcp,source=address))))
+        set_neighbor(address,bytes.fromhex('025566aabbdd'))
+        if action=='negative-90':
+            start=time.monotonic();next_health=start;health=[]
+            while time.monotonic()-start<91:
+                if time.monotonic()>=next_health:
+                    wire=query('local.edns.test',0x6500+len(health))
+                    answer=exchange(port,wire,source=CLIENT4)
+                    if answer is None:raise AssertionError('DNS progress lost during 90s neighbor refresh window')
+                    health.append(serial(norm(answer)));next_health+=5
+                    print(json.dumps({'case':row['case'],'elapsed':round(time.monotonic()-start,1),'health':len(health)}),flush=True)
+                time.sleep(.05)
+            witness.append({'real_wait_seconds':time.monotonic()-start,'health_packets':health})
+        results.append(serial(norm(exchange(port,struct.pack('!H',0x6401)+packet[2:],first_tcp,source=address))))
+        set_neighbor(address)
+    return results,witness
 
 def diagnostics(data):
     text=data.decode('utf-8','surrogateescape')
@@ -422,14 +494,17 @@ def run(args):
                 label=row['case'];packet=packet_for(row,index);upstream.behaviors[label]=row
                 (folder/f'{label}.query').write_bytes(packet)
                 before=len(upstream.events);replies=[]
-                if row.get('coalesce'):
+                if row.get('action'):
+                    replies,witness=neighbor_schedule(port,packet,row)
+                    trace.setdefault('action_witness',[]).append({'case':label,'witness':witness})
+                elif row.get('coalesce'):
                     replies,witness=coalesce_exchange(port,packet,row)
                     trace.setdefault('client_witness',[]).append({'case':label,'clients':witness})
                 else:
                     transports=row.get('transports',[('tcp' if row.get('tcp') else 'udp')]*row.get('repeat',1))
                     for step,transport in enumerate(transports):
                         wire=struct.pack('!H',0x6200+index+step)+packet[2:]
-                        reply=exchange(port,wire,transport=='tcp',row.get('ipv6',False),row.get('source'))
+                        reply=exchange(port,wire,transport=='tcp',row.get('ipv6',False),row.get('sources',[row.get('source')]*len(transports))[step])
                         if reply is not None:(folder/f'{label}-{step}.reply').write_bytes(reply)
                         replies.append(serial(norm(reply)))
                 trace['rows'].append({'case':label,'query':serial(norm(packet)),'replies':replies,'upstream_delta':len(upstream.events)-before})
