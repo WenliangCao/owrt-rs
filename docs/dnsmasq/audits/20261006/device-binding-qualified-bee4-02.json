@@ -1,0 +1,1065 @@
+{
+  "actual_socket_witness": "pidfd_getfd duplicates owned daemon UDP67/4011 descriptors; getsockopt reads actual SO_BINDTODEVICE values without modifying target sockets",
+  "archives": [
+    {
+      "archive_sha256": "2965adee58c83b3d916e493f4c9811d35bc40caa76966daeb5b572557d8f0392",
+      "disposition": "failed listen-only health fixture preserved",
+      "inventory_sha256": "4670d4bade96780b0144610359f545b77c80fd57546956d27c312d66157fffbf",
+      "local_full_sha_and_metadata_verified": true,
+      "paths": 260,
+      "regular_files": 217,
+      "remote_raw_run_pruned": true,
+      "run": "c-bee4-01"
+    },
+    {
+      "archive_sha256": "de7252efe6838d908ccf64fc5d645cbebfe74c89336788361a6ca3909c6b8f78",
+      "disposition": "failed listen-only health fixture preserved",
+      "inventory_sha256": "4bbda1c49dd5af89ffe873e9697aed456ec239e5e8d3e878ee63ac75600808ea",
+      "local_full_sha_and_metadata_verified": true,
+      "paths": 260,
+      "regular_files": 217,
+      "remote_raw_run_pruned": true,
+      "run": "rust-bee4-01"
+    },
+    {
+      "archive_sha256": "83f9dba7ef27d7192974e60f64e90ebdef0b8b2f3f1c7a23a07b3ffde926a9e2",
+      "disposition": "fresh complete27-case paired qualification",
+      "inventory_sha256": "bd8b608bdd09917f6eaf5ee198e3f17c75a9cf00cc0adea6382632df334aa6a9",
+      "local_full_sha_and_metadata_verified": true,
+      "paths": 266,
+      "regular_files": 223,
+      "remote_raw_run_pruned": true,
+      "run": "c-bee4-02"
+    },
+    {
+      "archive_sha256": "2027f85e138a2c3cf2200fc330031f2163eeae1bd5fa45cfb9f8af74dc80fc56",
+      "disposition": "fresh complete27-case paired qualification",
+      "inventory_sha256": "3fe925d5854061dc897ccd6d4d5e4ea9a11e84cc787420219a3346fad8cbedeb",
+      "local_full_sha_and_metadata_verified": true,
+      "paths": 266,
+      "regular_files": 223,
+      "remote_raw_run_pruned": true,
+      "run": "rust-bee4-02"
+    }
+  ],
+  "c_report_sha256": "b2ecae4cd927e57406d7c1f842671701777ac4284906ca9b625859e67f93beb0",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "candidate_bytes": 1925160,
+  "candidate_commit": "bee4cb50",
+  "candidate_report_sha256": "5e6f7ce844ea39d1c0d67e0d71514a9e55100ecf867d82b15463f0b6917f4cea",
+  "candidate_sha256": "4b69be1e56ad650e7758df8c7e8f7078b8bf16260d01b73e905256528c78c2ed",
+  "case_boundaries": [
+    "static/dynamic unique interface",
+    "wildcard name and ordinary wildcard listener do not bind",
+    "two eligible devices do not bind",
+    "listen-address without interface declarations does not bind",
+    "no-DHCPv4 keeps ghost DHCP6 eligibility",
+    "all-family exclusion clears candidacy",
+    "alias labels bind the actual device name",
+    "relay skips main socket while PXE remains bound",
+    "no active DHCP service emits no exclusive notice",
+    "initially missing dynamic declaration stays unselected after arrival",
+    "except-interface is bypassed by explicit listen address",
+    "runtime deletion returns actual kernel ENODEV, one generic error under quiet-dhcp and rebinds the same descriptors after device recreation"
+  ],
+  "closed_options": [
+    "bind-interfaces",
+    "bind-dynamic"
+  ],
+  "comparator_sha256": "051bf6a4a61dae571ba992060575b3b4b1b7272b7b83c6507951f47744e1bf88",
+  "covered_options": [
+    "bind-interfaces",
+    "bind-dynamic"
+  ],
+  "failures": [],
+  "final_requirement": "run the complete27-case family fresh on the final frozen ELF; this ordinary caller closure does not replace final replay",
+  "formal_M6_run": false,
+  "manifest_sha256": "a75e04208e9f47dd7ab5eccbd533257ab4c67e5d891438934a86d375e3a049fe",
+  "negative_controls": [
+    {
+      "case": "static-unique",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-unique",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-unique",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-unique",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-unique",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-unique",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-unique",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-wildcard-name",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-two",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-listen-only",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcpv4-ghost6",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-two-with-ghost6",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-both",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-alias",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-pxe",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-relay-only",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "fd-continuity",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "generation",
+      "rejected": true
+    },
+    {
+      "case": "static-runtime-recreate",
+      "control": "deleted-errno",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-except-listen-override",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-unique",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-wildcard-name",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-listen-only",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcpv4-ghost6",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-two-with-ghost6",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-no-dhcp-both",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-alias",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-pxe",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-relay-only",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "fd-continuity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "generation",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-runtime-recreate",
+      "control": "deleted-errno",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-except-listen-override",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "wildcard-listener-unique",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "missing-socket",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "device",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "cleanup",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "fd-continuity",
+      "rejected": true
+    },
+    {
+      "case": "dynamic-missing-late",
+      "control": "late-interface",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-service",
+      "control": "identity",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-service",
+      "control": "health",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-service",
+      "control": "missing-phase",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-service",
+      "control": "notice",
+      "rejected": true
+    },
+    {
+      "case": "static-no-dhcp-service",
+      "control": "cleanup",
+      "rejected": true
+    }
+  ],
+  "physical_router_modified": false,
+  "qualified": true,
+  "required_count": 27,
+  "scope": "ordinary DHCP device-binding callers for bind-interfaces and bind-dynamic",
+  "source_reference": [
+    "dhcp-common.c:558-641",
+    "dnsmasq.c:380-397,1027-1028,1136-1143",
+    "network.c:113-149,243-274,491-585",
+    "option.c:2894-2921"
+  ]
+}
