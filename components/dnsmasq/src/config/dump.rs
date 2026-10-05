@@ -34,8 +34,10 @@ impl DumpConfig {
                     .argument
                     .as_ref()
                     .ok_or(Error("missing parameter"))?
-                    .decoded();
-                self.mask = mask(&bytes);
+                    .encoded();
+                // option.c passes the encoded argument directly to strtol;
+                // unlike dumpfile, this consumer does not unhide metacharacters.
+                self.mask = mask(bytes);
             }
             _ => return Ok(false),
         }
@@ -93,7 +95,22 @@ fn mask(bytes: &[u8]) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use super::mask;
+    use super::{mask, DumpConfig};
+    use crate::config::{lex_line, Directive, EncodedArg};
+    #[test]
+    fn directive_mask_keeps_the_c_strtol_input_encoding() {
+        let mut config = DumpConfig::default();
+        config
+            .apply(&Directive {
+                name: b"dumpmask".to_vec(),
+                argument: Some(EncodedArg::command_line(b"\x0b1")),
+            })
+            .unwrap();
+        assert_eq!(config.mask, 1);
+        let directive = lex_line(b"dumpmask=\"7\"").unwrap().unwrap();
+        config.apply(&directive).unwrap();
+        assert_eq!(config.mask, 0);
+    }
     #[test]
     fn unchecked_base_zero_mask_uses_sign_and_stops_at_first_non_digit() {
         for (bytes, value) in [
