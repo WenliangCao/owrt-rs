@@ -94,6 +94,7 @@ def service_cases():
     from m5_dns_files import probe, write, signal_reload
     cases=[]
     def add(ident, config, names=('one.endpoint.test',), **extra):
+        if 'all-servers' in config: extra.setdefault('udp_winner',0)
         actions=extra.pop('actions', [probe('query-'+str(i), name, transports=['udp','tcp']) for i,name in enumerate(names)])
         cases.append(dict(id=ident,config='no-resolv\n'+config,files=extra.pop('files',{}),actions=actions,default_resolv=False,strict_order='all-servers' not in config,**extra))
     for directive in ('server','local'):
@@ -110,7 +111,7 @@ def service_cases():
         text='query-port=34003\nserver=127.0.0.2\n' if order=='before' else 'server=127.0.0.2\nquery-port=34003\n'
         add('global-port-'+order,text,expected_source_port=34003)
     add('osport-explicit-zero','query-port=0\nserver=127.0.0.2\n',names=('one.endpoint.test','two.endpoint.test'),same_udp_port=True)
-    add('osport-zero-then-fixed','server=127.0.0.2\n',argv=['--query-port=0','--query-port=34003'],expected_source_port=34003)
+    add('osport-zero-then-fixed','query-port=0\nserver=127.0.0.2\n',argv=['--query-port=34003'],expected_source_port=34003)
     for source in ('127.0.0.9','lo','lo@127.0.0.9'):
         add('explicit-source-over-global-'+source.replace('@','-'),'query-port=34003\nserver=127.0.0.2@'+source+'\n',forbidden_udp_port=34003)
     add('fixed-source-over-global','query-port=34003\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
@@ -123,13 +124,27 @@ def service_cases():
     add('range-fixed-override','min-port=34100\nmax-port=34100\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
     add('range-two-families','min-port=34100\nmax-port=34100\nserver=127.0.0.2\nserver=::1\nall-servers\n',source_range=[34100,34100])
     for limit in (0,1,2,3):
-        add('allservers-port-limit-'+str(limit),'port-limit='+str(limit)+'\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\nall-servers\n',udp_unique_ports= max(1,min(3,limit)),expected_start=limit!=0,expected_test=1 if limit==0 else 0)
+        add('allservers-port-limit-'+str(limit),'port-limit='+str(limit)+'\nserver=127.0.0.2\nserver=127.0.0.3\nserver=127.0.0.4\nall-servers\n',udp_unique_ports= max(1,min(3,limit)),udp_winner=1,expected_start=limit!=0,expected_test=1 if limit==0 else 0)
     add('pool-single-port-concurrent','min-port=34100\nmax-port=34100\nserver=127.0.0.2\n',actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
     add('file-mixed-directives','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/v4.endpoint.test\nrev-server=192.0.2.0/24,multi.endpoint.test\nserver=/two.endpoint.test/127.0.0.3\nserver=/local.endpoint.test/\n'},names=('one.endpoint.test','7.2.0.192.in-addr.arpa','two.endpoint.test','local.endpoint.test'),sys_files={'/etc/hosts':HOSTS})
     add('file-errors-continue','servers-file=/m2/files/servers\n',files={'servers':'server=/bad.endpoint.test/::1%missing\nserver=/one.endpoint.test/v4.endpoint.test\nserver=/badsource.endpoint.test/127.0.0.2@::1\nserver=/two.endpoint.test/127.0.0.3\n'},names=('one.endpoint.test','two.endpoint.test','bad.endpoint.test','badsource.endpoint.test'),sys_files={'/etc/hosts':HOSTS},diagnostics=True)
     add('file-partial-hostname-scope','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/mixed.endpoint.test%missing\nserver=/two.endpoint.test/127.0.0.3\n'},names=('one.endpoint.test','two.endpoint.test'),sys_files={'/etc/hosts':HOSTS},diagnostics=True)
     add('file-hosts-hup-no-auto','servers-file=/m2/files/servers\n',files={'servers':'server=/one.endpoint.test/v4.endpoint.test\n'},sys_files={'/etc/hosts':HOSTS},actions=[probe('initial','one.endpoint.test'),dict(op='write-system',path='/etc/hosts',text='127.0.0.3 v4.endpoint.test\n'),probe('no-auto','one.endpoint.test'),signal_reload(),probe('changed','one.endpoint.test')])
     add('file-source-snapshot','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@127.0.0.9#34004\n'},actions=[dict(op='connect',id='held'),probe('old','old.endpoint.test',transports=['held']),write('servers','server=127.0.0.3@127.0.0.8#34005\n'),signal_reload(),probe('parent','parent.endpoint.test'),probe('child','child.endpoint.test',transports=['held']),dict(op='disconnect',id='held'),probe('fresh','fresh.endpoint.test')])
+    add('endpoint-port-zero','server=127.0.0.2#0\n',no_upstream=True)
+    add('endpoint-port-65535','server=127.0.0.2#65535\n',upstream_port=65535)
+    add('osport-explicit-source-zero','query-port=0\nserver=127.0.0.2@127.0.0.9#0\n',names=('one.endpoint.test','two.endpoint.test'),same_udp_port=True)
+    add('low-source-port-nonroot','server=127.0.0.2@127.0.0.9#79\n',user='dnsmasq',group='dnsmasq',expected_source_port=79)
+    add('low-global-port-nonroot-file','query-port=77\nservers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2\n'},user='dnsmasq',group='dnsmasq',expected_source_port=77)
+    for mode in ('wildcard','bind-interfaces','bind-dynamic'):
+        add('occupied-fixed-'+mode,'server=127.0.0.2@127.0.0.1#34004\n'+('' if mode=='wildcard' else mode+'\n'),occupied_ports=[34004],expected_start=mode!='bind-interfaces',no_upstream=True)
+    add('bad-source-address-failover','server=127.0.0.2@192.0.2.99\nserver=127.0.0.3\n')
+    add('bad-source-interface-failover','server=127.0.0.2@missing_endpoint_if\nserver=127.0.0.3\n')
+    add('bad-fixed-source-only-one-removed','server=127.0.0.2@192.0.2.99#34004\nserver=127.0.0.3\n')
+    add('same-fixed-port-distinct-addresses','server=127.0.0.2@127.0.0.9#34004\nserver=127.0.0.3@127.0.0.8#34004\nall-servers\n',expected_source_port=34004)
+    add('pool-overflow-incompatible','dns-forward-max=4\nserver=/one.endpoint.test/127.0.0.2@127.0.0.9\nserver=/two.endpoint.test/127.0.0.3@127.0.0.8\nserver=/three.endpoint.test/127.0.0.4@127.0.0.7\n',actions=[dict(op='start-udp',id='one',name='one.endpoint.test'),dict(op='start-udp',id='two',name='two.endpoint.test'),dict(op='start-udp',id='three',name='three.endpoint.test'),dict(op='inject',id='three',server=2,capture_server=2),dict(op='receive-udp',id='three',pending='three'),dict(op='inject',id='two',server=1,capture_server=1),dict(op='receive-udp',id='two',pending='two'),dict(op='inject',id='one',server=0,capture_server=0),dict(op='receive-udp',id='one',pending='one')])
+    add('pool-capacity-compatible','dns-forward-max=4\nserver=127.0.0.2\n',actions=[dict(op='start-udp',id=name,name=name+'.endpoint.test') for name in ('one','two','three')]+[action for name in ('three','two','one') for action in (dict(op='inject',id=name,server=0),dict(op='receive-udp',id=name,pending=name))],udp_unique_ports=2)
+    add('source-fixed-repeated-hup','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@127.0.0.9#34004\n'},actions=[action for i in range(4) for action in (probe('before'+str(i),str(i)+'.endpoint.test',transports=['udp']),signal_reload())],same_udp_port=True,expected_source_port=34004)
     return cases
 
 
@@ -144,6 +159,7 @@ def run_service_side(root, side, case, folder):
     class Captured(original_upstream):
         def __init__(self,*args):
             self.source_events=[]
+            args=(*args[:-1],case.get("upstream_port",args[-1]))
             super().__init__(*args)
             SourceCapture.instances.append(self)
         def udp_loop(self):
@@ -154,6 +170,7 @@ def run_service_side(root, side, case, folder):
                     self.source_events.append(dict(transport='udp',peer=list(peer),destination=list(self.udp.getsockname()),name=read_name(packet,12)[0],wire=packet.hex()))
                     self.captured.append((packet,peer,response))
                     if self.probes.get((read_name(packet,12)[0],struct.unpack_from('!H',packet,read_name(packet,12)[1])[0]),{}).get('drop_all'): continue
+                    if 'udp_winner' in case and self.host!=['127.0.0.2','127.0.0.3','127.0.0.4'][case['udp_winner']]: time.sleep(.05)
                     self.udp.sendto(response,peer)
                 except socket.timeout: continue
                 except OSError:
@@ -216,7 +233,9 @@ def source_projection(observed,case):
         row=copy.deepcopy(original);row.pop('wire',None)
         port=row['peer'][1]
         key=(row['transport'],port)
-        if port not in exact:
+        sequential_range=row['transport']=='udp' and case.get('source_range') and not case.get('same_udp_port') and 'udp_unique_ports' not in case
+        if sequential_range: row['peer'][1]='in-range'
+        elif port not in exact:
             if key not in ports: ports[key]='port'+str(len(ports))
             row['peer'][1]=ports[key]
         if len(row['peer'])>3: row['peer'][3]=bool(row['peer'][3])
