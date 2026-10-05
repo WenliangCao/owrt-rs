@@ -1809,6 +1809,9 @@ fn lookup_edns_mac(
 }
 
 struct PollTcpClient {
+    #[cfg(target_os = "linux")]
+    log_context: Option<dnsmasq_rs::logging::TcpLogContext>,
+    network_done: bool,
     stream: Option<TcpStream>,
     service: LocalDnsService,
     forward: TcpDnsService,
@@ -2470,6 +2473,19 @@ impl SinglePoll {
             }
         }
         if let Some(logger) = &self.logger {
+            for context in self
+                .clients
+                .iter()
+                .filter_map(|client| client.log_context.as_ref())
+            {
+                if let Some(fd) = logger.tcp_poll_fd(context) {
+                    fds.push(owrt_ubus::sys::PollFd {
+                        fd,
+                        events: owrt_ubus::sys::POLLOUT,
+                        revents: 0,
+                    });
+                }
+            }
             for fd in logger.poll_fds() {
                 fds.push(owrt_ubus::sys::PollFd {
                     fd,
@@ -3078,6 +3094,15 @@ impl SinglePoll {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
         self.clients.push(PollTcpClient {
+            #[cfg(target_os = "linux")]
+            log_context: (!cache_debug)
+                .then(|| {
+                    self.logger
+                        .as_ref()
+                        .map(dnsmasq_rs::logging::Logger::tcp_context)
+                })
+                .flatten(),
+            network_done: false,
             stream: Some(stream),
             cache_view,
             cache_negative,
@@ -3127,15 +3152,20 @@ impl SinglePoll {
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let result = {
+            let result = if self.clients[index].network_done {
+                Ok(false)
+            } else {
                 let neighbors = &mut self.neighbors;
                 self.clients[index].step(&self.service, &mut |source, lazy| {
                     lookup_edns_mac(neighbors, source, lazy)
                 })
             };
             #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-            let result =
-                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None));
+            let result = if self.clients[index].network_done {
+                Ok(false)
+            } else {
+                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None))
+            };
             #[cfg(target_os = "linux")]
             if let Some(logger) = &mut self.logger {
                 use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
@@ -3143,14 +3173,35 @@ impl SinglePoll {
                     let mut message = b"TCP connection failed to ".to_vec();
                     message.extend_from_slice(&address_text(address));
                     message.extend_from_slice(format!("#{}", address.port()).as_bytes());
-                    logger.emit(LogEvent::new(Service::Debug, Priority::Debug, message));
+                    let event = LogEvent::new(Service::Debug, Priority::Debug, message);
+                    if let Some(context) = &mut self.clients[index].log_context {
+                        logger.emit_tcp(context, event);
+                    } else {
+                        logger.emit(event);
+                    }
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             {
                 self.arp_awake |= std::mem::take(&mut self.clients[index].parent_cache_activity);
             }
-            if result.unwrap_or(false) {
+            let network_alive = result.unwrap_or(false);
+            if !network_alive && !self.clients[index].network_done {
+                self.clients[index].network_done = true;
+                self.clients[index].stream.take();
+            }
+            #[cfg(target_os = "linux")]
+            let logs_done = if let (Some(logger), Some(context)) =
+                (&mut self.logger, &mut self.clients[index].log_context)
+            {
+                logger.flush_tcp_ready(context);
+                network_alive || logger.finish_tcp(context)
+            } else {
+                true
+            };
+            #[cfg(not(target_os = "linux"))]
+            let logs_done = true;
+            if network_alive || !logs_done {
                 index += 1;
             } else {
                 self.clients.swap_remove(index);
@@ -3188,6 +3239,19 @@ impl SinglePoll {
             revents: 0,
         }];
         if let Some(logger) = &self.logger {
+            for context in self
+                .clients
+                .iter()
+                .filter_map(|client| client.log_context.as_ref())
+            {
+                if let Some(fd) = logger.tcp_poll_fd(context) {
+                    fds.push(PollFd {
+                        fd,
+                        events: POLLOUT,
+                        revents: 0,
+                    });
+                }
+            }
             for fd in logger.poll_fds() {
                 fds.push(PollFd {
                     fd,
@@ -3218,6 +3282,9 @@ impl SinglePoll {
             deadline = daemon.append_poll_fds(&mut fds, deadline);
         }
         for client in &self.clients {
+            if client.network_done {
+                continue;
+            }
             deadline = deadline.min(client.deadline);
             let (fd, events) = match &client.phase {
                 TcpClientPhase::Reading => {
