@@ -44,6 +44,17 @@ NUMBERS=[
 def save(path,value):Path(path).write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')
 
 
+def frozen_plan():
+    plan=json.loads((HERE/'m5_tftp_errors.json').read_text())
+    required={name for row in plan['boundaries'] for name in row['required_cases']}
+    names={item['name'] for item in cases()}
+    assert required==names,dict(missing=sorted(required-names),unmapped=sorted(names-required))
+    plan['cases']=[{k:v.hex() if isinstance(v,bytes) else v for k,v in item.items()} for item in cases()]
+    plan['driver_sha256']=sha256(Path(__file__))
+    plan['manifest_sha256']=sha256(HERE/'m5_tftp_errors.json')
+    return plan
+
+
 def cases():
     values=[
         dict(name='missing-v4',filename=b'missing'),
@@ -228,6 +239,7 @@ def trace_file_error(pid,operation,filename,error,after,output):
 
 def side(args):
     args.out.mkdir(parents=True,exist_ok=False)
+    save(args.out/'plan.json',frozen_plan())
     root=prepare(args.image_root,None,args.out/args.side,args.rust_binary)
     net=Network()
     folder=root/ROOT.lstrip('/');folder.mkdir()
@@ -291,6 +303,8 @@ def side(args):
                     save(out/'descriptor-health.json',dict(before=baseline_fds,after=remaining_fds))
                     assert remaining_fds==baseline_fds,'file/transfer descriptor leak'
                 row=dict(case=item['name'],packet=result['packet'],source=result['peer'][0] if result['peer'] else None,dedicated=result['dedicated'])
+                row['health']=not item.get('exhausted')
+                if item.get('fault'):row['fault']=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0))
                 if item.get('window') or item.get('retry'):row['packets']=result['packets']
                 rows.append(row)
         except Exception as error:
@@ -319,6 +333,8 @@ def compare(c,r):
         for row,item in zip(result['rows'],cases()):
             packet=expected(item)
             if row['packet']!=(packet.hex() if packet else None):failures.append(dict(side=name,error='wire guard '+item['name']))
+            if row.get('health')!=(not item.get('exhausted')):failures.append(dict(side=name,error='health guard '+item['name']))
+            if item.get('fault') and row.get('fault')!=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0)):failures.append(dict(side=name,error='fault guard '+item['name']))
     if c['rows']!=r['rows']:failures.append(dict(c=c['rows'],rust=r['rows']))
     return failures
 
@@ -340,7 +356,7 @@ def main():
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1','use run_isolated.sh'
     if args.side:return side(args)
     args.out.mkdir(parents=True,exist_ok=False)
-    plan=json.loads((HERE/'m5_tftp_errors.json').read_text());plan['cases']=[{k:v.hex() if isinstance(v,bytes) else v for k,v in item.items()} for item in cases()]
+    plan=frozen_plan()
     save(args.out/'plan.json',plan)
     exits={}
     for name in ['c','rust']:
@@ -349,17 +365,25 @@ def main():
         exits[name]=result.returncode
     c,r=[json.loads((args.out/name/'observed.json').read_text()) for name in ['c','rust']]
     failures=compare(c,r);controls=[]
+    if any(exits.values()):failures.append(dict(error='nonzero side exit',exits=exits))
     if not failures:
-        for name in ['missing-case','short-text','wrong-code','missing-zero']:
+        for name in ['missing-case','short-text','wrong-code','missing-zero','wrong-socket-role','missing-health','missing-fault','numeric-overflow-error']:
             mutant=copy.deepcopy(r)
             if name=='missing-case':mutant['rows'].pop()
             elif name=='short-text':mutant['rows'][0]['packet']=b'\0\5\0\1file not found\0'.hex()
             elif name=='wrong-code':mutant['rows'][0]['packet']='00050002'+mutant['rows'][0]['packet'][8:]
-            else:mutant['rows'][0]['packet']=mutant['rows'][0]['packet'][:-2]
+            elif name=='missing-zero':mutant['rows'][0]['packet']=mutant['rows'][0]['packet'][:-2]
+            elif name=='wrong-socket-role':mutant['rows'][0]['dedicated']=False
+            elif name=='missing-health':mutant['rows'][0]['health']=False
+            elif name=='missing-fault':next(row for row in mutant['rows'] if row['case']=='fstat-5').pop('fault')
+            else:next(row for row in mutant['rows'] if row['case']=='numeric-blksize-signed-overflow')['packet']=b'\0\5\0\4unsupported request from 127.0.0.1\0'.hex()
             controls.append(dict(name=name,rejected=bool(compare(c,mutant))))
     report=dict(cases=len(cases()),failures=failures,exits=exits,negative_controls=controls,
         binary_sha256=sha256(args.rust_binary),bytes=args.rust_binary.stat().st_size,
-        qualified=not failures and all(row['rejected'] for row in controls))
+        boundaries=[dict(id=row['id'],cases=row['required_cases'],passed=not failures) for row in plan['boundaries']],
+        unclosed_callers=plan.get('unclosed_callers',[]),
+        paired_cases_passed=not failures and len(controls)==8 and all(row['rejected'] for row in controls),
+        qualified=not failures and len(controls)==8 and all(row['rejected'] for row in controls) and not plan.get('unclosed_callers'))
     save(args.out/'result.json',report);print(json.dumps(dict(cases=len(cases()),failures=len(failures),qualified=report['qualified'])))
     return bool(failures)
 
