@@ -192,6 +192,12 @@ impl NeighborCache {
     /// returned, park the request and resume with lazy=true after owner.step;
     /// capture Ready once for the whole TCP connection. Never query per frame.
     pub fn query_edns(&mut self, address: IpAddr, lazy: bool, now: u64) -> EdnsMacLookup {
+        // A nonlazy accept may have started a refresh of a fresh negative.
+        // Its lazy owner resume must wait for that snapshot, rather than
+        // capturing the old absence for the entire TCP connection.
+        if self.edns_waiting.contains(&address) {
+            return EdnsMacLookup::Pending;
+        }
         if self
             .refreshed
             .is_some_and(|last| now.saturating_sub(last) < 90)
@@ -643,6 +649,24 @@ mod tests {
         );
         assert!(cache.negative.contains_key(&(address, 0)));
         assert_eq!(cache.refreshed, Some(1));
+    }
+    #[test]
+    fn lazy_resume_waits_for_the_accepts_negative_refresh() {
+        let mut cache = cache_without_network();
+        let address = "192.0.2.18".parse().unwrap();
+        cache.edns_waiting.insert(address);
+        cache.publish_edns(Vec::new());
+        cache.refreshed = Some(1);
+        cache.edns_waiting.insert(address);
+        assert_eq!(cache.query_edns(address, true, 2), EdnsMacLookup::Pending);
+        cache.publish_edns(vec![EdnsRecord {
+            address,
+            hardware_address: vec![2, 0, 0, 0, 0, 1],
+        }]);
+        assert_eq!(
+            cache.query_edns(address, true, 2),
+            EdnsMacLookup::Ready(Some(vec![2, 0, 0, 0, 0, 1]))
+        );
     }
     #[test]
     fn lazy_negative_and_waiter_tables_are_bounded() {
