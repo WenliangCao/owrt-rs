@@ -684,7 +684,7 @@ def witness_errors(observed,side,case):
     if observed.get('startup',{}).get('ready')!=wanted:errors.append('source-calibrated startup outcome missing')
     if wanted:
         identity=observed.get('identity',{})
-        if identity.get('threads')!=1 or identity.get('uid')!=identity.get('expected_uid'):
+        if identity.get('threads')!=1 or not isinstance(identity.get('uid'),int) or identity.get('uid')!=identity.get('expected_uid'):
             errors.append('single owner or runtime identity witness missing')
         if not any(state['label']=='initial-kernel' for state in observed.get('interface_states',[])):
             errors.append('initial actual kernel address/flag witness missing')
@@ -697,6 +697,27 @@ def witness_errors(observed,side,case):
                 not any(call.get('size')==size and call.get('returned')==0 and call.get('pc')==report['address'] for call in report.get('calls',[])):
                 errors.append('actual pinned allocator call/NULL-return witness missing')
     return errors
+
+
+def controls():
+    found=files.controls()
+    base={'startup':{'ready':True},'identity':{'threads':1,'uid':0,'expected_uid':0},
+          'interface_states':[{'label':'initial-kernel'}]}
+    case={'id':'ordinary','actions':[]}
+    assert not witness_errors(base,'c',case)
+    for label,change in [('missing-kernel',lambda x:x.update(interface_states=[])),
+                         ('extra-owner-thread',lambda x:x['identity'].update(threads=2)),
+                         ('wrong-runtime-uid',lambda x:x['identity'].update(uid=1))]:
+        bad=copy.deepcopy(base);change(bad);assert witness_errors(bad,'c',case);found.append(label)
+    allocation=dict(base,interface_states=[*base['interface_states'],{'label':'enumeration-fault','evidence':
+        {'symbol':'calloc','required_size':40,'injected':True,'address':100,'calls':[{'size':40,'returned':0,'pc':100}]}}])
+    case={'id':'allocation','actions':[{'allocation_fault':True}]}
+    assert not witness_errors(allocation,'c',case)
+    for label,change in [('wrong-allocation-size',lambda x:x['calls'][0].update(size=41)),
+                         ('allocation-did-not-fail',lambda x:x['calls'][0].update(returned=1)),
+                         ('wrong-allocator-pc',lambda x:x['calls'][0].update(pc=101))]:
+        bad=copy.deepcopy(allocation);change(bad['interface_states'][-1]['evidence']);assert witness_errors(bad,'c',case);found.append(label)
+    return found
 
 
 def compare_service(left,right,case):
@@ -764,7 +785,7 @@ def main():
     report={'mode':args.mode,'comparison_executed':args.side=='both','source_commit':args.source_commit,
         'rust_sha256':sha256(args.rust),'c_sha256':STOCK_SHA256,'tool_sha256':sha256(__file__),
         'requirements_sha256':sha256(Path(__file__).with_suffix('.json')),'cases':[],'failures':[],
-        'closed_options':[],'negative_controls':files.controls(),'reference_differences':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
+        'closed_options':[],'negative_controls':controls(),'reference_differences':[],'qualification':'Calibration and partial runs never close a frozen required row.'}
     for case in selected:
         folder=args.out/case['id'];folder.mkdir();row={'id':case['id'],'failures':[]}
         try:
