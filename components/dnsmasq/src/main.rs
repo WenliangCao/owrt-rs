@@ -2779,6 +2779,9 @@ impl SinglePoll {
         }
         self.interfaces_enumerated = true;
         if self.config.interface_records.rules.is_empty() {
+            if let Some(daemon) = &mut self.service.lock().unwrap().daemon {
+                daemon.refresh_source_interface_indices();
+            }
             return;
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -3355,11 +3358,6 @@ impl SinglePoll {
             .as_ref()
             .map_or((true, 0), |daemon| daemon.tcp_cache_parameters());
         let forward = if let Some(daemon) = &mut parent.daemon {
-            if self.config.interface_records.rules.is_empty() {
-                // This TCP accept is still C's source-index enumeration
-                // boundary when no interface-name records need collecting.
-                daemon.refresh_source_interface_indices();
-            }
             daemon.tcp_snapshot()
         } else {
             TcpDnsService::new(&self.config, &self.resolvers, self.edns_max)
