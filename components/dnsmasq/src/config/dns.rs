@@ -998,7 +998,10 @@ mod tests {
         apply(&mut config, b"filter-rr=MX,257,ANY").unwrap();
         assert_eq!(config.filter_rr, vec![255, 257, 15, 28, 1]);
         assert!(apply(&mut config, b"filter-rr=not-a-type").is_err());
-        assert!(apply(&mut config, b"filter-rr=").is_err());
+        apply(&mut config, b"filter-rr=").unwrap();
+        assert_eq!(config.filter_rr[0], 0);
+        apply(&mut config, b"cache-rr=TXT,").unwrap();
+        assert_eq!(config.cache_rr, vec![0, 16]);
     }
 
     #[test]
@@ -1212,7 +1215,14 @@ mod tests {
         assert_eq!(config.interface_records.rules.len(), 1);
         assert_eq!(config.interface_records.rules[0].interface, b"eth0");
         apply(&mut config, b"domain=interface,eth0").unwrap();
-        assert!(config.validate_ready().is_err());
+        assert!(config.validate_ready().is_ok());
+        assert!(config.needs_domain_interfaces());
+        assert_eq!(
+            config
+                .domain_for_address("192.0.2.9".parse().unwrap())
+                .unwrap(),
+            Some(b"lab".as_slice())
+        );
     }
 
     #[test]
