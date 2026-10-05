@@ -103,13 +103,13 @@ def cases():
     for limit in [512,4096]:
         values.append(dict(name='numeric-edns-'+str(limit),raw=b'\0\1public\0octet\0blksize\0-1\0',edns=limit,response=b'\0\6blksize\0'+str(limit+261).encode()+b'\0'))
     values.append(dict(name='numeric-no-blocksize',raw=b'\0\1public\0octet\0blksize\0'+NUMBERS[5][1]+b'\0',no_blocksize=True,response=b'\0\3\0\1public'))
-    for error,number in [('Input/output error',errno.EIO),('Permission denied',errno.EACCES),('No such file or directory',errno.ENOENT)]:
+    for error,number in [('I/O error',errno.EIO),('Permission denied',errno.EACCES),('No such file or directory',errno.ENOENT)]:
         values.append(dict(name='fstat-'+str(number),filename=b'public',code=0,error=error,fault='stat',fault_errno=number))
     values.extend([
-        dict(name='initial-read-eio',filename=b'public',code=0,error='Input/output error',fault='read',fault_errno=errno.EIO),
+        dict(name='initial-read-eio',filename=b'public',code=0,error='I/O error',fault='read',fault_errno=errno.EIO),
         dict(name='oack-read-eio',filename=b'directory',code=0,error='Is a directory',after_oack=True),
-        dict(name='window-read-eio',filename=b'large',code=0,error='Input/output error',fault='read',fault_errno=errno.EIO,fault_after=1,window=True),
-        dict(name='retry-read-eio',filename=b'public',code=0,error='Input/output error',fault='read',fault_errno=errno.EIO,fault_after=1,retry=True),
+        dict(name='window-read-eio',filename=b'large',code=0,error='I/O error',fault='read',fault_errno=errno.EIO,fault_after=1,window=True),
+        dict(name='retry-read-eio',filename=b'public',code=0,error='I/O error',fault='read',fault_errno=errno.EIO,fault_after=1,retry=True),
     ])
     return values
 
@@ -245,6 +245,8 @@ def side(args):
     folder=root/ROOT.lstrip('/');folder.mkdir()
     (folder/'iface').mkdir()
     (folder/'public').write_bytes(b'public');(folder/'public').chmod(0o644)
+    for path in [folder/'healthy',folder/'iface/healthy']:
+        path.write_bytes(b'public');path.chmod(0o644);os.chown(path,65534,65534)
     (folder/'large').write_bytes(b'abcdefghijklmnop');(folder/'large').chmod(0o644)
     (folder/'root-only').write_bytes(b'private');(folder/'root-only').chmod(0o600)
     (folder/'private').mkdir(mode=0o700)
@@ -295,7 +297,7 @@ def side(args):
                 if wanted:assert result['dedicated']==(not item.get('single')),'source transfer socket role'
                 if not item.get('exhausted'):
                     time.sleep(.05)
-                    recovery=query(dict(filename=b'public',v6=item.get('v6'),response=b'\0\3\0\1public'))
+                    recovery=query(dict(filename=(ROOT.encode()+b'/healthy' if item.get('no_root') else b'healthy'),v6=item.get('v6'),response=b'\0\3\0\1public'))
                     save(out/'recovery.json',recovery)
                     assert recovery['packet']==b'\0\3\0\1public'.hex(),'post-error transfer health'
                     time.sleep(.05)
