@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "elf_max_bytes": 1000000,
+  "apk_max_bytes": 700000,
+  "basis": "Original ELF goal and existing fixed APK ceiling; no user_accepted_elf exception. Retain reviewable artifacts when exceeded; acceptance belongs to user after M5 report."
+}

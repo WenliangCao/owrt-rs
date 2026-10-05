@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "observed_at": "2026-10-05 UTC; preparation only",
+  "physical_router": false,
+  "available_space_gib": 30,
+  "shared_cargo_target": "/home/ubuntu/dnsmasq-cargo-target",
+  "cargo_fuzz_version": "0.13.2",
+  "native_fuzz_target": "aarch64-unknown-linux-gnu",
+  "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+  "image_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "runtime_root": "/home/ubuntu/dnsmasq-real-startup-20261001/source/rootfs",
+  "observed_files": {
+    "/home/ubuntu/dnsmasq-real-startup-20261001/source/rootfs/var/etc/dnsmasq.conf.cfg01411c": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+    "/home/ubuntu/dnsmasq-real-startup-20261001/source/rootfs/tmp/resolv.conf.d/resolv.conf.auto": "943c974ec0d967de574ffb19fe33e8acfe65d4ab912b0db62baaa91c9038f9fd",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M2/dhcp/plan-v1.json": "1c52c4f77ee43ffb1308909ba78729d2313dacf78db61e59560775bdf31a952d",
+    "/home/ubuntu/ib/openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64/dl/dnsmasq-2.93-r1.779c7728.apk": "752fa57e5a986425f03c9f6579097c7f23750fc80b3af317e4ee0e2d1b7a0d89",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/kmod-nf-conntrack-netlink-6.12.94-r1.apk": "3895b4b98f80dc32977af9a6aabe41fe7bdd84ab470381aa8725b1e6f77ae750",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnfnetlink0-1.0.2-r1.apk": "a62753f7bc906d0d56db1e7bddfc082f86e8e5f5e5445a7a7b5c7a33d43a27e6",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnettle8-3.10.2-r1.apk": "8700e048dc4e4d07854e79d2f6e98e1672134b41c11e07c472a8f864ede391e1",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/dnsmasq-dhcpv6-2.93-r1.apk": "f57c004fbb5bf9cd14db26a2385f1241b8844995602c8584012debebc2096269",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/dnsmasq-full-2.93-r1.apk": "3a62ad523e90e4d3a76b2ff752a23a30979557f484d42a490bcd75da0322bf40",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libgmp10-6.3.0-r2.apk": "47e0bdd7041cfc23918fb395028ff06786ac4b36bff2f001c67323e1c33a068e",
+    "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnetfilter-conntrack3-1.1.0-r1.apk": "9003e84ff2d673f53c16747fc06b27d4d8a01751d42ee51f0123be3f3ac08200"
+  },
+  "scope": "Paths and hashes checked read-only on Oracle; final source/ELF and exclusive resource window are not chosen, and no final qualification was executed."
+}

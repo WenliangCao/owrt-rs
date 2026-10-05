@@ -1,0 +1,1211 @@
+{
+  "schema": 1,
+  "complete": false,
+  "scope": "Fresh full original driver schedules on one final ELF; no old result reuse. Draft awaits final remaining-family tools and review of completion fields/scopes.",
+  "pending": [
+    "Refresh scopes, full case inventories and exact completion predicates from the final tools after the remaining five owners finish; then record complete=true.",
+    "Bind link_map to the final oracle_build.sh ORACLE_BUILD_LINK_MAP=1 artifact (never an older product map).",
+    "Attach source-bound deferred and SAFETY/network/timer unwrap/expect/Mutex reviews."
+  ],
+  "families": [
+    {
+      "id": "m5_option_matrix",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.domain-needed.closed": true,
+            "options.bogus-priv.closed": true,
+            "options.localise-queries.closed": true,
+            "options.expand-hosts.closed": true,
+            "options.alias.closed": true,
+            "options.stop-dns-rebind.closed": true,
+            "options.rebind-localhost-ok.closed": true,
+            "options.rebind-domain-ok.closed": true,
+            "options.ignore-address.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_option_matrix_next",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix_next.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.do-0x20-encode.closed": true,
+            "options.no-0x20-encode.closed": true,
+            "options.max-tcp-connections.closed": true,
+            "options.local-service.closed": true,
+            "options.fast-dns-retry.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_option_matrix_third",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix_third.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.address.closed": true,
+            "options.bogus-nxdomain.closed": true,
+            "options.local.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_option_matrix_tag_if",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix_tag_if.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.tag-if.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_option_matrix_dhcp",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix_dhcp.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.dhcp-authoritative.closed": true,
+            "options.dhcp-broadcast.closed": true,
+            "options.dhcp-lease-max.closed": true,
+            "options.dhcp-sequential-ip.closed": true,
+            "options.no-dhcp-interface.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_option_matrix_dhcp_v4",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix_dhcp_v4.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.no-dhcpv4-interface.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_option_matrix_lease_names",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_option_matrix_lease_names.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.dhcp-fqdn.closed": true,
+            "options.dhcp-ignore-clid.closed": true,
+            "options.dhcp-ttl.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_local_records",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_local_records.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_boot",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_boot.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_helper",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_helper.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_rr_filter",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_rr_filter.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_config_inputs",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_config_inputs.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--output",
+            "{out}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "options.conf-file.closed": true,
+            "options.conf-script.closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_lease_recovery",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_lease_recovery.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--output",
+            "{out}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_listeners",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_listeners.py",
+            "--image-root",
+            "{image}",
+            "--rust-binary",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_tftp",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_tftp.py",
+            "--image-root",
+            "{image}",
+            "--rust-binary",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--source-commit",
+            "{commit}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_dump",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dump.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_script_arp",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_script_arp.py",
+            "--image-root",
+            "{image}",
+            "--rust-binary",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "dhcp-proxy",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_network.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--family",
+            "dhcp-proxy"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "binary_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bridge-interface",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_network.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--family",
+            "bridge-interface"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "binary_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared-network",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_network.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--family",
+            "shared-network"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "binary_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dhcp-reply-delay",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_network.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--family",
+            "dhcp-reply-delay"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "binary_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_relay",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_relay.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_pxe",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_pxe.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_leasequery",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_leasequery.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/summary.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "dhcp-tags-options",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_tags_options.py",
+            "--image-root",
+            "{image}",
+            "--rust-binary",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--source-commit",
+            "{commit}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "dhcp-identities",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_tags_options.py",
+            "--image-root",
+            "{image}",
+            "--rust-binary",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--source-commit",
+            "{commit}",
+            "--identity"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "dhcp-range",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_range.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--source-commit",
+            "{commit}",
+            "--syntax"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true,
+            "failures": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "dhcp-files",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dhcp_files.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--source-commit",
+            "{commit}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "selected_comparison_passed": true,
+            "comparison_executed": true,
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "loop-detect",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_loop_detect.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "ordinary_schedule_passed": true,
+            "missing_required_cases": [],
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logging-all-scopes",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_logging.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--output",
+            "{out}",
+            "--scopes",
+            "async,async-overflow,async-recovery,async-tcp-queue,async-transport,blocked-sink,cli,credential-fault,daemon,debug,error-frame,helper-inheritance,identity,identity-full,ownership-warning,query-forward,query-local,query-reference,query-transactions,root-access,script-logs,scriptuser-boundary,server-logs,sink,sink-fault,startup-fault,startup-output,tftp-logs"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "cli-test",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_cli_final.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--family",
+            "test"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "failures": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "cli-log-malloc",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_cli_final.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--family",
+            "log-malloc"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "failures": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_edns",
+      "steps": [
+        {
+          "id": "c",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_edns.py",
+            "run",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--side",
+            "c",
+            "--out",
+            "{out}/c"
+          ],
+          "result": "{out}/c/result.json",
+          "checks": {
+            "failures": []
+          }
+        },
+        {
+          "id": "rust",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_edns.py",
+            "run",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--side",
+            "rust",
+            "--out",
+            "{out}/rust"
+          ],
+          "result": "{out}/rust/result.json",
+          "checks": {
+            "failures": []
+          }
+        },
+        {
+          "id": "compare",
+          "argv": [
+            "{python}",
+            "{tools}/m5_edns.py",
+            "compare",
+            "--c",
+            "{out}/c",
+            "--candidate",
+            "{out}/rust",
+            "--out",
+            "{out}/comparison.json"
+          ],
+          "result": "{out}/comparison.json",
+          "checks": {
+            "qualified": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_dns_cache",
+      "steps": [
+        {
+          "id": "c",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dns_cache.py",
+            "run",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--side",
+            "c",
+            "--out",
+            "{out}/c"
+          ],
+          "result": "{out}/c/result.json",
+          "checks": {
+            "failures": []
+          }
+        },
+        {
+          "id": "rust",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dns_cache.py",
+            "run",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--side",
+            "rust",
+            "--out",
+            "{out}/rust"
+          ],
+          "result": "{out}/rust/result.json",
+          "checks": {
+            "failures": []
+          }
+        },
+        {
+          "id": "compare",
+          "argv": [
+            "{python}",
+            "{tools}/m5_dns_cache.py",
+            "compare",
+            "--c",
+            "{out}/c",
+            "--candidate",
+            "{out}/rust",
+            "--out",
+            "{out}/comparison.json"
+          ],
+          "result": "{out}/comparison.json",
+          "checks": {
+            "qualified": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_dns_endpoints",
+      "steps": [
+        {
+          "id": "syntax",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dns_endpoints.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--side",
+            "both",
+            "--mode",
+            "syntax",
+            "--out",
+            "{out}/syntax"
+          ],
+          "result": "{out}/syntax/result.json",
+          "checks": {
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        },
+        {
+          "id": "service",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dns_endpoints.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--side",
+            "both",
+            "--mode",
+            "service",
+            "--out",
+            "{out}/service"
+          ],
+          "result": "{out}/service/result.json",
+          "checks": {
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "m5_interface_records",
+      "steps": [
+        {
+          "id": "syntax",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_interface_records.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--side",
+            "both",
+            "--mode",
+            "syntax",
+            "--out",
+            "{out}/syntax"
+          ],
+          "result": "{out}/syntax/result.json",
+          "checks": {
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        },
+        {
+          "id": "service",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_interface_records.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--side",
+            "both",
+            "--mode",
+            "service",
+            "--out",
+            "{out}/service"
+          ],
+          "result": "{out}/service/result.json",
+          "checks": {
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dns-files",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_dns_files.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": [],
+            "rust_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tftp-errors",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_tftp_errors.py",
+            "--image-root",
+            "{image}",
+            "--rust-binary",
+            "{elf}",
+            "--link-map",
+            "{link_map}",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "qualified": true,
+            "failures": [],
+            "binary_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    }
+  ]
+}
