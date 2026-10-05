@@ -46,9 +46,7 @@ pub enum StartupError {
 impl StartupError {
     pub fn is_lease_capacity(&self) -> bool {
         match self {
-            Self::LeaseFile(error) => error
-                .get_ref()
-                .is_some_and(|cause| cause.is::<super::lease_file::CapacityExceeded>()),
+            Self::LeaseFile(error) => super::lease_file::capacity_exceeded(error),
             Self::Restore(RestoreError::Lease(LeaseError::Full)) => true,
             _ => false,
         }
@@ -260,7 +258,19 @@ impl LocalProvider {
             config.lease_read_only,
             config.lease_max,
         )
-        .map_err(StartupError::LeaseFile)?;
+        .map_err(|error| {
+            let warnings = error
+                .get_ref()
+                .and_then(|cause| cause.downcast_ref::<super::persistence::LeaseFileFailure>())
+                .map_or_else(
+                    || super::lease_file::warnings(&error),
+                    |failure| failure.warnings(),
+                );
+            for warning in warnings {
+                eprintln!("dnsmasq-rs: {warning}");
+            }
+            StartupError::LeaseFile(error)
+        })?;
         let mut leases = LeaseStore::new(config.lease_max);
         let (startup_removed, restore_stats) = if let Some(restored) = restored {
             let stats = RestoreStats {
@@ -414,7 +424,7 @@ impl LocalProvider {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn queue_script_from_maintenance(&mut self) {
-        if self.pending_delivery.is_some() || self.config.script.is_none() {
+        if !self.initialized || self.pending_delivery.is_some() || self.config.script.is_none() {
             return;
         }
         if let Some(event) = self.scripts.next(
@@ -920,9 +930,6 @@ impl LocalProvider {
             if self.host_files_ready {
                 address_error = self.update_configured_addresses();
             }
-            if self.host_files_ready {
-                name_error = self.update_configured_names();
-            }
         }
         if first && self.config.script.is_some() {
             // lease_find_interfaces uses the most specific directly connected
@@ -968,7 +975,20 @@ impl LocalProvider {
                 }
             }
         }
+        // lease_find_interfaces precedes the first helper queue turn. The
+        // owner may have polled while file initialization was pending, so no
+        // delivery was allowed to consume these records before this point.
         self.initialized = true;
+        if first {
+            // C freezes one event before processing queued EVENT_INIT. Deleted
+            // startup leases take priority during the subsequent maintenance.
+            if self.startup_removed.is_empty() {
+                self.queue_script_from_maintenance();
+            }
+            if self.host_files_ready {
+                name_error = self.update_configured_names();
+            }
+        }
         let mut removed = std::mem::take(&mut self.startup_removed);
         removed.extend(self.leases.prune(None, now));
         let mut report = self.maintain(now, removed, true);

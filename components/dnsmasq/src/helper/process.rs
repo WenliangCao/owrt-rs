@@ -393,6 +393,10 @@ fn notice_payload(notice: Notice) -> io::Result<Vec<u8>> {
             bytes.insert(0, 1);
             bytes
         }
+        Notice::InitWarning(mut bytes) => {
+            bytes.insert(0, 11);
+            bytes
+        }
         Notice::InitRecord(record) => {
             let mut bytes = vec![7];
             bytes.extend(wire::encode_init(&record)?);
@@ -436,6 +440,9 @@ fn decode_notice(bytes: &[u8]) -> io::Result<Notice> {
     }
     if kind == 1 {
         return Ok(Notice::Output(data.to_vec()));
+    }
+    if kind == 11 {
+        return Ok(Notice::InitWarning(data.to_vec()));
     }
     if kind == 7 {
         return wire::decode_init(data).map(Notice::InitRecord);
@@ -607,10 +614,10 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
     let parsed = match parsed {
         Ok(parsed) => parsed,
         Err(error) => {
-            let code = if error
-                .get_ref()
-                .is_some_and(|cause| cause.is::<crate::dhcp::lease_file::CapacityExceeded>())
-            {
+            for warning in crate::dhcp::lease_file::warnings(&error) {
+                send(events, Notice::InitWarning(warning.as_bytes().to_vec()))?;
+            }
+            let code = if crate::dhcp::lease_file::capacity_exceeded(&error) {
                 5
             } else {
                 3
@@ -623,9 +630,18 @@ fn run_init(config: &Config, maximum: usize, events: &mut File) -> io::Result<i3
             return Ok(code);
         }
     };
+    for warning in &parsed.warnings {
+        send(events, Notice::InitWarning(warning.as_bytes().to_vec()))?;
+    }
     let status = process.wait()?;
     // C uses WEXITSTATUS without checking WIFEXITED, yielding zero on signal.
     let status = (status.into_raw() >> 8) & 255;
+    if status != 0 && !parsed.clean_end {
+        send(
+            events,
+            Notice::InitWarning(b"failed to parse lease database cleanly".to_vec()),
+        )?;
+    }
     if status == 0 {
         for record in parsed.records {
             send(events, Notice::InitRecord(record))?;

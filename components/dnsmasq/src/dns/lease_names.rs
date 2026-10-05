@@ -39,9 +39,9 @@ impl LeasePolicy {
         match self.stale {
             StalePolicy::Forever => true,
             StalePolicy::Seconds(seconds) if seconds != 0 => {
-                i128::from(now) - i128::from(expires) < i128::from(seconds)
+                now.wrapping_sub(expires) < i64::from(seconds)
             }
-            _ => now < expires,
+            _ => now.wrapping_sub(expires) < 0,
         }
     }
 
@@ -53,7 +53,7 @@ impl LeasePolicy {
             // a wire u32; lease pruning normally removes them first.
             // C first narrows its configured unsigned long into signed int.
             // Values above INT_MAX therefore bypass a positive lease cap.
-            (i128::from(expires) - i128::from(now)).min(i128::from(configured as i32)) as u32
+            expires.wrapping_sub(now).min(i64::from(configured as i32)) as u32
         })
     }
 }

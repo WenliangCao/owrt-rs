@@ -441,7 +441,7 @@ pub fn query(
             }
             let remaining = lease
                 .expires
-                .map(|expires| expires.saturating_sub(query.now) as u32);
+                .map(|expires| super::lease::remaining_seconds(expires, query.now));
             if packet.requests(51) {
                 reply.lease_time = Some(remaining.unwrap_or(u32::MAX));
             }
