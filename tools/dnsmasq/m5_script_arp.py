@@ -108,6 +108,10 @@ def profiles():
         dict(case='negative-record-enomem', allocation='negative', extra='add-mac\n'),
         dict(case='stop-buffered-script-finishes', delay=True, stop_buffered=True),
         dict(case='stop-helper-failure-cleanup', helper_failure=True, extra='add-mac\n'),
+        dict(case='edns-negative-refresh', cache_caller='negative-refresh', upstream=True, extra='add-mac\n'),
+        dict(case='negative-upgrade-position', cache_caller='negative-position', upstream=True, extra='add-mac\n'),
+        dict(case='edns-connection-snapshot', cache_caller='connection', upstream=True, extra='add-mac\n',
+             neighbors=[(V4, MAC, 'arps0'), ('192.0.2.18', '02:00:00:91:00:18', 'arps0')]),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -509,6 +513,75 @@ def helper_failure_contract(root, pid, folder, owned):
     return dict(case='stop-helper-failure-cleanup', callbacks=observed, dns_health=True)
 
 
+def mac_options(packet):
+    found = edns_options(packet)
+    data = found[4] if found else b''
+    result = []
+    while data:
+        code, size = struct.unpack_from('!HH', data)
+        value, data = data[4:4 + size], data[4 + size:]
+        if code == 65001:
+            result.append(value.hex())
+    return result
+
+
+def forward_identity(upstream, source, target, tcp, label, folder, connection=None):
+    before = len(upstream.events)
+    endpoint = connection or socket.socket(socket.AF_INET, socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM)
+    try:
+        if connection is None:
+            endpoint.settimeout(3)
+            endpoint.bind((source, 0))
+            endpoint.connect((target, PORT))
+        request = edns_query(label + '.arp.test', 0x7160 + before, opts=b'')
+        endpoint.sendall(struct.pack('!H', len(request)) + request if tcp else request)
+        reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0]) if tcp else endpoint.recv(4096)
+        assert len(upstream.events) == before + 1, 'actual forwarded MAC caller'
+        wire = bytes.fromhex(upstream.events[-1]['wire'])
+        (folder / (label + '.forwarded')).write_bytes(wire)
+        (folder / (label + '.reply')).write_bytes(reply)
+        return mac_options(wire)
+    finally:
+        if connection is None:
+            endpoint.close()
+
+
+def cache_caller_contract(root, pid, folder, upstream, kind):
+    (root / 'm2/arp-events').write_bytes(b'')
+    first_mac, second_mac = '02:00:00:91:00:18', '02:00:00:91:00:28'
+    if kind == 'connection':
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.settimeout(3)
+            endpoint.bind(('192.0.2.18', 0))
+            endpoint.connect(('192.0.2.18', PORT))
+            first = forward_identity(upstream, None, None, True, 'connection-first', folder, endpoint)
+            neighbor('192.0.2.18', second_mac)
+            second = forward_identity(upstream, None, None, True, 'connection-second', folder, endpoint)
+        assert first == second == [first_mac.replace(':', '')], 'connection MAC snapshot changed per frame'
+        assert callbacks(root) == [], 'ordinary child IO refreshed the parent neighbor cache'
+        return dict(case='edns-connection-snapshot', mac_options=[first, second], callbacks=[])
+    for address in ['192.0.2.18', *(['192.0.2.19'] if kind == 'negative-position' else [])]:
+        values = forward_identity(upstream, address, '127.0.0.1', False, 'negative-' + address.rsplit('.', 1)[1], folder)
+        assert values == [] and callbacks(root) == [], 'negative UDP lookup invented a MAC or event'
+    if kind == 'negative-refresh':
+        neighbor('192.0.2.18', first_mac)
+        values = forward_identity(upstream, '192.0.2.18', '192.0.2.18', True, 'negative-accept', folder)
+        expected = [['3', 'arp-add', first_mac, '192.0.2.18', '0', '0', 'inherited-iface', 'inherited-id']]
+        assert values == [first_mac.replace(':', '')], 'nonlazy negative accept did not refresh'
+    else:
+        refresh_with_fixture(pid, [dict(address=V4, mac=MAC), dict(address='192.0.2.19', mac='02:00:00:91:00:19'),
+                                  dict(address='192.0.2.20', mac='02:00:00:91:00:20'), dict(address='192.0.2.18', mac=first_mac)], folder)
+        values = []
+        expected = [['3', 'arp-add', '02:00:00:91:00:' + last, '192.0.2.' + last, '0', '0', 'inherited-iface', 'inherited-id'] for last in ['20', '19', '18']]
+    deadline = time.monotonic() + 2
+    while len(callbacks(root)) < len(expected) and time.monotonic() < deadline:
+        time.sleep(.02)
+    observed = callbacks(root)
+    save(folder / 'caller-callbacks.json', observed)
+    assert observed == expected, 'negative upgrade did not retain source cache position'
+    return dict(case='edns-negative-refresh' if kind == 'negative-refresh' else 'negative-upgrade-position', mac_options=values, callbacks=observed)
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -620,6 +693,9 @@ def run_side(args):
             # controlled multi-record fixture without inventing a capacity.
             for index in range(max(1, len(spec.get('warmup', spec['raw'])) - 1)):
                 neighbor('192.0.2.' + str(250 - index), MAC, 'noarp')
+        if spec.get('cache_caller') == 'negative-position':
+            for index in range(3):
+                neighbor('192.0.2.' + str(250 - index), MAC, 'noarp')
         current = subprocess.run(['ip', '-j', 'neigh', 'show'], capture_output=True, check=True)
         (folder / 'kernel-neighbors.json').write_bytes(current.stdout)
         (root / 'm2/arp-events').write_bytes(b'')
@@ -648,11 +724,13 @@ def run_side(args):
         env['M5_ARP_FDS'] = '1' if spec.get('descriptors') else '0'
         process = None
         pid = None
-        upstream = Upstream() if spec.get('zero_positive') or spec.get('allocation') else None
+        upstream = Upstream() if spec.get('zero_positive') or spec.get('allocation') or spec.get('upstream') else None
         held = (root / 'm2/arp-held-fd').open('wb') if spec.get('descriptors') else None
         if upstream:
             config += 'cache-size=0\nserver=127.0.0.2#' + str(upstream.port) + '\n'
             config = config.replace('listen-address=127.0.0.1\n', 'listen-address=127.0.0.1,127.0.0.2\n')
+            if spec.get('cache_caller'):
+                config = config.replace('listen-address=127.0.0.1,127.0.0.2\n', 'listen-address=127.0.0.1,127.0.0.2,192.0.2.18\n')
             (root / 'm2/arp.conf').write_text(config)
             (folder / 'config').write_text(config)
         try:
@@ -784,6 +862,8 @@ def run_side(args):
                     rows.append(buffered_stop_contract(root, process, pid, folder, owned))
                 elif spec.get('helper_failure'):
                     rows.append(helper_failure_contract(root, pid, folder, owned))
+                elif spec.get('cache_caller'):
+                    rows.append(cache_caller_contract(root, pid, folder, upstream, spec['cache_caller']))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
