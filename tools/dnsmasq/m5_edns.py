@@ -239,6 +239,12 @@ case('ecs-mask129','add-subnet=0,129','ecs-mask-overread-v6-wire',opts=b'',ipv6=
 case('ecs-wrap','add-subnet=256,256','ecs-u8-wrap-wire',opts=b'')
 case('cpe','add-cpe-id=router','opt-malformed-rr',additional=[opt(),b'\0\0\x10\0\x01\0\0\0\0\0\xffbad'])
 
+for profile,directive,label in [
+ ('ecs32','add-subnet=32,128','coalesce-ecs-distinct-ip'),
+ ('raw','add-mac','coalesce-mac-distinct-ip'),
+ ('umbrella','umbrella=orgid:123,deviceid:001122aabbccddff,assetid:456','coalesce-umbrella-distinct-ip'),
+]: case(profile,directive,label,opts=b'',coalesce=True,sources=[CLIENT4,'192.0.2.19'],response='client-keyed')
+
 class Upstream:
     """Test-only selector thread, bounded shutdown; product stays single poll."""
     def __init__(self):
@@ -278,6 +284,15 @@ class Upstream:
             if behavior=='malformed':data=b'\0\x08\0\xffbad'
             if behavior=='signed-address':extra=rr(250,b'opaque',cls=255)
         opts=opt(data,1232,found[3]) if found else b''
+        if behavior=='client-keyed':
+            at=0;tag=0
+            while at+4<=len(data):
+                code,size=struct.unpack_from('!HH',data,at);value=data[at+4:at+4+size];at+=4+size
+                if code==8 and size>=8:tag=value[-1]
+                elif code==65001 and value:tag=value[-1]
+                elif code==20292 and b'\0\x10' in value:
+                    where=value.index(b'\0\x10');tag=value[where+5]
+            body=rr(kind,ipaddress.ip_address('198.51.100.'+str(tag)).packed,b'\xc0\x0c',1,600)
         answer=packet[:2]+struct.pack('!5H',0x8180,1,1,0,int(bool(opts))+int(bool(extra)))+question+body+opts+extra
         return answer
     def run(self):
@@ -319,10 +334,10 @@ def network():
     if sorted(n for _,n in socket.if_nameindex())!=['lo']:raise ValueError('fresh loopback-only namespace required')
     subprocess.run(['ip','link','add','edns0','type','dummy'],check=True)
     subprocess.run(['ip','link','set','edns0','up'],check=True)
-    for address in [LISTEN4+'/24',CLIENT4+'/24','192.0.2.18/24',LISTEN6+'/64',CLIENT6+'/64']:
+    for address in [LISTEN4+'/24',CLIENT4+'/24','192.0.2.18/24','192.0.2.19/24',LISTEN6+'/64',CLIENT6+'/64']:
         subprocess.run(['ip','addr','add',address,'dev','edns0',*(['nodad'] if ':' in address else [])],check=True)
-    for address in [CLIENT4,CLIENT6]:
-        subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in MAC),'nud','permanent','dev','edns0'],check=True)
+    for address in [CLIENT4,CLIENT6,'192.0.2.19']:
+        subprocess.run(['ip','neigh','replace',address,'lladdr',':'.join(f'{v:02x}' for v in (bytes.fromhex('025566aabbdd') if address=='192.0.2.19' else MAC)),'nud','permanent','dev','edns0'],check=True)
 
 def exchange(port,packet,tcp=False,ipv6=False,source=None):
     family=socket.AF_INET6 if ipv6 else socket.AF_INET
@@ -335,7 +350,7 @@ def exchange(port,packet,tcp=False,ipv6=False,source=None):
         except (socket.timeout,ConnectionError,ConnectionResetError):return None
 
 def packet_for(row,index):
-    excluded={'case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','transports','target_size','nonfinal'}
+    excluded={'sources','case','tcp','ipv6','source','repeat','host','coalesce','same_socket','response','transports','target_size','nonfinal'}
     params={k:v for k,v in row.items() if k not in excluded}
     host=row.get('host',row['case']+'.edns.test')
     packet=query(host,0x6200+index,**params)
@@ -352,21 +367,21 @@ def packet_for(row,index):
     return query(host,0x6200+index,additional=[rr(16,b'p'*size)])
 
 def coalesce_exchange(port,packet,row):
-    sockets=[];results=[]
+    sockets=[];results=[];witness=[]
     try:
         for index in range(2):
             if index and row.get('same_socket'):conn=sockets[0]
             else:
                 conn=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);conn.settimeout(.7)
-                conn.bind((CLIENT4,0));conn.connect((LISTEN4,port));sockets.append(conn)
+                conn.bind((row.get('sources',[CLIENT4,CLIENT4])[index],0));conn.connect((LISTEN4,port));sockets.append(conn)
             wire=packet if row.get('same_socket') else struct.pack('!H',0x6300+index)+packet[2:]
-            conn.send(wire)
+            conn.send(wire);witness.append({'source':conn.getsockname(),'wire':wire.hex()})
         for index in range(2):
             try:results.append(norm(sockets[0 if row.get('same_socket') else index].recv(65535)))
             except socket.timeout:results.append(norm(None))
     finally:
         for conn in sockets:conn.close()
-    return serial(results)
+    return serial(results),witness
 
 def diagnostics(data):
     text=data.decode('utf-8','surrogateescape')
@@ -408,7 +423,8 @@ def run(args):
                 (folder/f'{label}.query').write_bytes(packet)
                 before=len(upstream.events);replies=[]
                 if row.get('coalesce'):
-                    replies=coalesce_exchange(port,packet,row)
+                    replies,witness=coalesce_exchange(port,packet,row)
+                    trace.setdefault('client_witness',[]).append({'case':label,'clients':witness})
                 else:
                     transports=row.get('transports',[('tcp' if row.get('tcp') else 'udp')]*row.get('repeat',1))
                     for step,transport in enumerate(transports):

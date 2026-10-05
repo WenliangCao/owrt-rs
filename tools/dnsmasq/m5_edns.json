@@ -67,7 +67,7 @@
     "UDP receive_query captures original OPT/DO/limit, decorates before local/cache, saves decorated query, forwards and retries saved bytes",
     "TCP accept nondebug preloads MAC nonlazy in parent; child connection snapshot; each frame decorated before extraction/local/cache; maximum input and decoration limit packet_buff_sz",
     "process_reply checks ECS using peer before signed check/OPT stripping; UDP keeps transaction alive on mismatch; TCP takes m=0 local REFUSED fallback",
-    "cacheable=false suppresses only dynamic cache reads and insertion; configured local records remain available; UDP no-cache never matches lookup_frec",
+    "cacheable=false suppresses dynamic cache reads/insertion but configured local records remain available; actual image DOES match FREC_NO_CACHE peers despite forward.c187 comment; preserve explicit defect witness for source-sensitive coalescing",
     "arp find_mac lazily caches misses90s; nonlazy TCP accept refreshes negatives; only complete kernel snapshots authoritative"
   ],
   "failure_boundaries": [
@@ -327,8 +327,12 @@
         "coalesce-fixed-ecs",
         "coalesce-mac",
         "coalesce-umbrella",
-        "coalesce-same-source-uncacheable"
-      ]
+        "coalesce-same-source-uncacheable",
+        "coalesce-ecs-distinct-ip",
+        "coalesce-mac-distinct-ip",
+        "coalesce-umbrella-distinct-ip"
+      ],
+      "actual_c_contract": "Do not trust forward.c:187 comment: receive_query passes fwd_flags including NO_CACHE to lookup_frec. Actual image calibration-c-02 coalesces source-dependent requests with matching flags; same-source/same-id retries reuse upstream ID. Distinct-IP hold repro required before choosing any Rust isolation difference."
     },
     {
       "id": "TRANSPORT",
