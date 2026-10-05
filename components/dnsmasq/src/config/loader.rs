@@ -203,7 +203,9 @@ where
                     Some(pos) => (&long[..pos], Some(&long[pos + 1..])),
                     None => (long, None),
                 };
-                let spec = long_option(name).map_err(|e| LoadError::new(&location, 1, e.0))?;
+                let spec = long_option(name).map_err(|_| {
+                    LoadError::new(&location, 1, "bad command line options: try --help")
+                })?;
                 let value = match (spec.argument, value) {
                     (Argument::None, Some(_)) => {
                         return Err(LoadError::new(
@@ -241,8 +243,9 @@ where
             } else {
                 let mut cursor = 1;
                 while cursor < bytes.len() {
-                    let (spec, required) = short_option(bytes[cursor])
-                        .map_err(|e| LoadError::new(&location, 1, e.0))?;
+                    let (spec, required) = short_option(bytes[cursor]).map_err(|_| {
+                        LoadError::new(&location, 1, "bad command line options: try --help")
+                    })?;
                     cursor += 1;
                     let value = if required {
                         let value = if cursor < bytes.len() {
@@ -778,6 +781,11 @@ mod tests {
             123
         );
         assert!(run(&["--".into(), "--test".into()], &absent).is_err());
+        for option in ["--unknown-cli-final", "-?", "--log"] {
+            let error = run(&[option.into()], &absent).unwrap_err();
+            assert_eq!(error.exit_code, 1);
+            assert_eq!(error.message, "bad command line options: try --help");
+        }
     }
 
     #[test]
