@@ -215,12 +215,11 @@
     {
       "id": "record-resource",
       "source": "arp.c:88-94,183-205;helper.c:buff_alloc,queue_arp",
-      "boundary": "Fresh positive or negative cache record allocation failure skips that record; helper buffer allocation failure is the separately guarded C failure boundary. No fake resource success or partial qualification.",
+      "boundary": "Fresh positive or negative cache record allocation failure skips that record; both allocator cases must prove the next lookup recovers. Helper buffer allocation failure is a separately guarded C failure boundary. Actual faults and complete case inventory are mandatory.",
       "required_cases": [
         "positive-record-enomem",
         "negative-record-enomem",
-        "helper-buffer-enomem-reference",
-        "record-fault-recovery"
+        "helper-buffer-enomem-reference"
       ]
     },
     {
