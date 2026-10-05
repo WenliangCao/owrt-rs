@@ -156,6 +156,7 @@ pub struct DnsConfig {
     pub domain_from_resolv: bool,
     /// Newest declaration first, matching C's cond_domain linked list.
     pub conditional_domains: Vec<ConditionalDomain>,
+    pub domain_interfaces: std::sync::Arc<super::domains::DomainInterfaces>,
     pub no_hosts: bool,
     pub no_resolv: bool,
     pub no_poll: bool,
@@ -207,6 +208,7 @@ impl Default for DnsConfig {
             domain_suffix: None,
             domain_from_resolv: false,
             conditional_domains: Vec::new(),
+            domain_interfaces: Default::default(),
             no_hosts: false,
             no_resolv: false,
             no_poll: false,
@@ -800,7 +802,7 @@ impl DnsConfig {
                     if prefix > 32 {
                         return Err(Error("bad prefix length"));
                     }
-                    let mask = u32::MAX.checked_shl(32 - prefix).unwrap_or(0);
+                    let mask = u32::MAX.wrapping_shl(32 - prefix);
                     let start = u32::from(address) & mask;
                     DomainSelector::Range4 {
                         start: start.into(),
@@ -860,7 +862,7 @@ impl DnsConfig {
         }
         if self.domain_from_resolv && (self.no_resolv || self.resolv_files.len() != 1) {
             return Err(Error(
-                "must have exactly one resolv.conf to read domain from",
+                "must have exactly one resolv.conf to read domain from.",
             ));
         }
         if !self.interfaces.is_empty()
@@ -887,8 +889,15 @@ impl DnsConfig {
         Ok(())
     }
 
-    /// Address-specific suffix selection from domain.c:218-302. Unknown
-    /// interface state and the unverified C IPv6 range case fail explicitly.
+    pub fn needs_domain_interfaces(&self) -> bool {
+        self.conditional_domains
+            .iter()
+            .any(|entry| matches!(entry.selector, DomainSelector::Interface(Some(_))))
+    }
+
+    /// Address-specific suffix selection from domain.c:218-302. Interface
+    /// subnets use the owner-published enumeration; explicit IPv6 ranges
+    /// retain the image prefixlen=0 comparison.
     pub fn domain_for_address(&self, address: IpAddr) -> Result<Option<&[u8]>, Error> {
         for entry in &self.conditional_domains {
             let matches = match (&entry.selector, address) {
@@ -905,14 +914,11 @@ impl DnsConfig {
                     let mask = u128::MAX.checked_shl(u32::from(128 - prefix)).unwrap_or(0);
                     u128::from(address) & mask == u128::from(*prefix_address) & mask
                 }
-                (DomainSelector::Interface(_), _) => {
-                    return Err(Error("interface domain resolution not implemented"))
+                (DomainSelector::Interface(Some(interface)), _) => {
+                    self.domain_interfaces.matches(interface, address)
                 }
-                (DomainSelector::Range6 { .. }, IpAddr::V6(_)) => {
-                    return Err(Error(
-                        "IPv6 explicit domain range awaiting C behavior review",
-                    ))
-                }
+                (DomainSelector::Interface(None), IpAddr::V4(address)) => address.is_unspecified(),
+                (DomainSelector::Range6 { .. }, IpAddr::V6(_)) => true,
                 _ => false,
             };
             if matches {
@@ -938,19 +944,6 @@ impl DnsConfig {
                     return Err(Error("upstream scope validation not implemented"));
                 }
             }
-        }
-        if self.domain_from_resolv {
-            return Err(Error("resolver search-domain loading not implemented"));
-        }
-        if self.conditional_domains.iter().any(|domain| {
-            matches!(
-                domain.selector,
-                DomainSelector::Interface(_) | DomainSelector::Range6 { .. }
-            )
-        }) {
-            return Err(Error(
-                "conditional domain requires platform resolution or C range review",
-            ));
         }
         Ok(())
     }

@@ -31,6 +31,7 @@ impl NameDomains {
     pub fn new(config: &super::dns::DnsConfig) -> Result<Self, Error> {
         let mut domains = super::dns::DnsConfig::default();
         domains.domain_suffix.clone_from(&config.domain_suffix);
+        domains.domain_interfaces = std::sync::Arc::clone(&config.domain_interfaces);
         domains
             .conditional_domains
             .clone_from(&config.conditional_domains);

@@ -557,6 +557,39 @@ fn config_diagnostic(error: Error) -> loader::LoadError {
 }
 
 fn finalize_dns_config(config: &mut DnsConfig) -> Result<(), loader::LoadError> {
+    // option.c reads domain=# once during read_opts, before --test success
+    // and before suffix-dependent SRV, hosts and lease publication.
+    if config.domain_from_resolv {
+        if !config.no_resolv && config.no_poll && config.resolv_files.len() > 1 {
+            return Err(config_diagnostic(Error(
+                "only one resolv.conf file allowed in no-poll mode.",
+            )));
+        }
+        if config.no_resolv || config.resolv_files.len() != 1 {
+            return Err(config_diagnostic(Error(
+                "must have exactly one resolv.conf to read domain from.",
+            )));
+        }
+        let path = &config.resolv_files[0];
+        let file = std::fs::File::open(path).map_err(|error| {
+            let mut diagnostic = config_diagnostic(Error("resolver domain read failed"));
+            diagnostic.exit_code = 3;
+            let message = error.to_string();
+            let message = message.split(" (os error ").next().unwrap_or(&message);
+            diagnostic.message = format!("failed to read {}: {}", path.display(), message);
+            diagnostic
+        })?;
+        config.domain_suffix = dnsmasq_rs::config::domains::resolver_search_domain_reader(
+            std::io::BufReader::new(file),
+            config.domain_suffix.take(),
+        );
+        if config.domain_suffix.is_none() {
+            let mut diagnostic = config_diagnostic(Error("resolver search directive missing"));
+            diagnostic.exit_code = 5;
+            diagnostic.message = format!("no search directive found in {}", path.display());
+            return Err(diagnostic);
+        }
+    }
     config.finalize().map_err(|error| {
         let mut diagnostic = config_diagnostic(error.clone());
         if error == Error("CNAME loop") {
@@ -654,7 +687,8 @@ fn run_inner(
     let dns_enabled = runtime.scalar.dns_port != 0;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let (initial_interface_records, initial_interface_collector) = {
-        if runtime.dns.interface_records.rules.is_empty() {
+        if runtime.dns.interface_records.rules.is_empty() && !runtime.dns.needs_domain_interfaces()
+        {
             (
                 Arc::new(dnsmasq_rs::dns::interface_records::InterfaceRecords::default()),
                 None,
@@ -683,6 +717,7 @@ fn run_inner(
             if let Some(error) = result.error {
                 return Err(Box::new(error));
             }
+            runtime.dns.domain_interfaces = domain_interface_snapshot(&result.addresses);
             (
                 Arc::new(
                     dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
@@ -1842,6 +1877,23 @@ struct DhcpService {
     pxe_next: bool,
 }
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn domain_interface_snapshot(
+    addresses: &[dnsmasq_rs::dns::interface_records::InterfaceAddress],
+) -> Arc<dnsmasq_rs::config::domains::DomainInterfaces> {
+    use dnsmasq_rs::config::domains::{DomainAddress, DomainInterfaces};
+    Arc::new(DomainInterfaces {
+        addresses: addresses
+            .iter()
+            .map(|entry| DomainAddress {
+                label: entry.label.clone(),
+                address: entry.address,
+                prefix: entry.prefix,
+            })
+            .collect(),
+    })
+}
+
 /// The production event owner. All daemon sockets are advanced from the
 /// caller's loop; no listener or TCP connection gets a worker thread.
 struct SinglePoll {
@@ -2915,7 +2967,8 @@ impl SinglePoll {
             return;
         }
         self.interfaces_enumerated = true;
-        if self.config.interface_records.rules.is_empty() {
+        if self.config.interface_records.rules.is_empty() && !self.config.needs_domain_interfaces()
+        {
             if let Some(daemon) = &mut self.service.lock().unwrap().daemon {
                 daemon.refresh_source_interface_indices();
             }
@@ -2975,6 +3028,17 @@ impl SinglePoll {
         if result.error.is_none() {
             *self.interfaces.lock().unwrap() = result.interfaces;
         }
+        let domains = domain_interface_snapshot(&result.addresses);
+        self.config.domain_interfaces = Arc::clone(&domains);
+        if let Some(provider) = self
+            .dhcp
+            .as_ref()
+            .and_then(|service| service.provider.as_ref())
+        {
+            if let Err(error) = provider.lock().unwrap().set_dns_config(&self.config) {
+                eprintln!("dnsmasq-rs: {error}");
+            }
+        }
         let records = Arc::new(
             dnsmasq_rs::dns::interface_records::InterfaceRecords::from_addresses(
                 &self.config.interface_records.rules,
@@ -2984,7 +3048,9 @@ impl SinglePoll {
         {
             let mut parent = self.service.lock().unwrap();
             parent.local.interfaces = Arc::clone(&records);
+            parent.local.config.domain_interfaces = Arc::clone(&domains);
             if let Some(daemon) = &mut parent.daemon {
+                daemon.publish_domain_interfaces(domains);
                 daemon.refresh_source_interface_indices();
                 daemon.publish_interface_records(records);
             }

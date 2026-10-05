@@ -743,6 +743,13 @@ impl<R: Random> DnsDaemon<R> {
     ) {
         self.local.interfaces = records;
     }
+    pub fn publish_domain_interfaces(
+        &mut self,
+        domains: std::sync::Arc<crate::config::domains::DomainInterfaces>,
+    ) {
+        self.local.config.domain_interfaces = domains;
+    }
+
     #[cfg(target_os = "linux")]
     pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
         self.upstream.set_dump(dump);
