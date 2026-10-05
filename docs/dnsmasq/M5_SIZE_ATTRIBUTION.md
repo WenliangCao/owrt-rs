@@ -68,3 +68,5 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 
 
 分配跟踪的内联膨胀已完成独立控制：固定源码路径和a5c337b7基线，只把allocation_trace.rs替换为约束内联前版本，2,093,096→1,949,736，**省143,360字节**；两次优化后控制ELF逐字节相同d45ef3ec…5ff92ae，所有源码before/after SHA和完整产物归档metadata已核验，远端产物已prune。hook仍委托同一System allocator、记录实际op/size/ptr/hash，没有变更分配或诊断语义；普通allocator trace完整C/R资格仍在进行。实际原增量.text为177,680字节，BSS另增131,104字节；因此不能把BSS当ELF增量解释。静态trace缓冲的RSS须按开关实际测量，默认关闭已跳过drain/stack初始化。最新a5候选实际691 Linux库＋10main通过（19ignored不计），ELF1,949,736／6cd6201a…efda228，M4增量790,456字节。[独立控制证据](../../private/dnsmasq-rewrite/evidence/M5/size-malloc-compact-20261005/matrix.json)。
+
+用户更正log-malloc合同后，生产globalallocator已撤：f54b65e0 ELF1,912,872，相对a5 1,949,736减少36,864字节，并撤除trace静态缓冲及所有普通分配包装/开关检查；f54同时含loop普通修复，因此该差额仍注明阶段混合。后继DHCPdetail/querycaller 39ff为1,929,256，BOOTPs/DECLINE补正701为1,925,160，最终loop active-reply/helper snapshot/警告producer候选daace344为1,929,256（M4+769,976）；这些均为冻结实际build.json字节，不把尚未统一资格当验收。分配跟踪实验及内联控制结果保留，不能作为当前产品体积或当前功能要求。
