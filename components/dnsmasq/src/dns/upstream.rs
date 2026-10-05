@@ -379,6 +379,7 @@ impl<R: Random> UpstreamResolver<R> {
         probes: Vec<super::loop_detect::LoopProbe>,
         startup: bool,
     ) {
+        let mut batch_tokens = Vec::new();
         for probe in probes {
             let super::loop_detect::LoopProbe {
                 server,
@@ -396,8 +397,24 @@ impl<R: Random> UpstreamResolver<R> {
             if startup && source.address.port() != 0 && self.server_sockets.contains_key(&server) {
                 continue;
             }
+            let compatible: Vec<_> = batch_tokens
+                .iter()
+                .copied()
+                .filter(|token| {
+                    self.sockets
+                        .get(token)
+                        .is_some_and(|owned| self.random_source_matches(owned, &source))
+                })
+                .collect();
             let token = if let Some(token) = self.server_sockets.get(&server).filter(|_| !startup) {
                 Ok(*token)
+            } else if !compatible.is_empty()
+                && compatible.len() as u32 >= self.socket_settings.port_limit
+            {
+                let token = *compatible.last().unwrap();
+                batch_tokens.retain(|old| *old != token);
+                batch_tokens.insert(0, token);
+                Ok(token)
             } else {
                 let pooled = self.sockets.values().filter(|owned| owned.pooled).count();
                 let range = u32::from(self.socket_settings.max_port)
@@ -424,9 +441,10 @@ impl<R: Random> UpstreamResolver<R> {
                     let reusable = self
                         .sockets
                         .iter()
-                        .filter(|(_, owned)| {
+                        .filter(|(token, owned)| {
                             self.random_source_matches(owned, &source)
                                 && owned.owners.len() + owned.probe_refs < 0xfffe
+                                && !batch_tokens.contains(token)
                         })
                         .min_by_key(|(_, owned)| {
                             (owned.pool_slot.unwrap() + slots - self.pool_finger % slots) % slots
@@ -441,6 +459,9 @@ impl<R: Random> UpstreamResolver<R> {
                 }
             };
             if let Ok(token) = token {
+                if !batch_tokens.contains(&token) {
+                    batch_tokens.insert(0, token);
+                }
                 self.sockets.get_mut(&token).unwrap().probe_refs += 1;
                 self.loop_sends.push_back(LoopSend {
                     token,

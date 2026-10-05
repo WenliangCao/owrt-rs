@@ -357,6 +357,18 @@ impl<R: Random> DnsDaemon<R> {
         std::mem::take(&mut self.server_notices)
     }
 
+    /// EVENT_INIT/RELOAD checks after its file calls even when a source open
+    /// failed. Loop probes clear prior loop flags at this actual caller only.
+    #[cfg(target_os = "linux")]
+    pub fn recheck_server_notices(&mut self) -> Result<(), DaemonError> {
+        if self.local.config.loop_detect {
+            self.send_loop_probes()?;
+            self.rebuild_server_routes(&[])?;
+        }
+        self.queue_server_notices();
+        Ok(())
+    }
+
     pub fn take_source_warnings(&mut self) -> Vec<String> {
         std::mem::take(&mut self.source_warnings)
     }

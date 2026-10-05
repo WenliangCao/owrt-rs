@@ -2613,7 +2613,7 @@ impl SinglePoll {
             {
                 let mut parent = self.service.lock().unwrap();
                 if let Some(daemon) = &mut parent.daemon {
-                    daemon.queue_server_notices();
+                    let _ = daemon.recheck_server_notices();
                 }
             }
             self.log_dns_diagnostics();
