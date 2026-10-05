@@ -2005,6 +2005,21 @@ def controls():
         dict(blocked_c, stderr=''.join(prefix + x + '\n' for x in reversed(c_messages))),
         blocked_rust, blocked_case))
     assert all(result[key] for key in result if key.startswith('blocked-sink-'))
+    long_prefix = '/m2/logging/' + 'x' * 5000
+    echo_case = dict(case, id='debug-echo-overlong-tftp-root', scope='root-access',
+                     root_prefix=long_prefix.encode().hex(), root_variant='global-no-fail', root_no_fail=True)
+    echo_text = 'dnsmasq-tftp: TFTP root is ' + long_prefix + '  \n'
+    echo_text += 'dnsmasq-tftp: warning: ' + long_prefix + ' inaccessible\n'
+    primary_lines = []
+    for text in ['dnsmasq-tftp[1]: TFTP root is ' + long_prefix,
+                 'dnsmasq-tftp[1]: warning: ' + long_prefix]:
+        primary_lines.append(text[:1023] + '\n')
+    echo_row = dict(row, stderr=echo_text, files={'daemon.log': ''.join(primary_lines).encode().hex()})
+    assert not compare(echo_row, echo_row, echo_case)
+    result['full-debug-echo-required'] = bool(compare(echo_row, dict(echo_row, stderr=echo_text[:1024]), echo_case))
+    result['separate-primary-cap-required'] = bool(compare(echo_row,
+        dict(echo_row, files={'daemon.log': echo_text.encode().hex()}), echo_case))
+    assert result['full-debug-echo-required'] and result['separate-primary-cap-required']
     return result
 
 

@@ -847,6 +847,14 @@
             "tftp-root-utf8-fatal-debug",
             "tftp-root-opaque-fatal-debug"
           ]
+        },
+        {
+          "id": "TRS04",
+          "source": "dnsmasq.c:1044-1055,log.c:301-319,361-393",
+          "boundary": "Debug with a separate file sink echoes both complete overlong TFTP root sign-on and tolerated inaccessible-root warning; primary records still cap1024. Exact bytes and ordering, no truncation normalization.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
+          ]
         }
       ]
     },
@@ -901,6 +909,14 @@
             "tftp-root-opaque-no-fail-debug",
             "tftp-root-empty-interface-no-fail-debug",
             "tftp-root-permission-fatal-debug"
+          ]
+        },
+        {
+          "id": "TNF03",
+          "source": "dnsmasq.c:1044-1055,log.c:301-319,361-393",
+          "boundary": "Debug with a separate file sink echoes both complete overlong TFTP root sign-on and tolerated inaccessible-root warning; primary records still cap1024. Exact bytes and ordering, no truncation normalization.",
+          "required_scenarios": [
+            "debug-echo-overlong-tftp-root"
           ]
         }
       ]
