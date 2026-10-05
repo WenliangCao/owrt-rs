@@ -571,6 +571,10 @@ def run_lifecycle(f, side):
         proxy = FrameProxy()
         try:
             f.start_product(side)
+            # Registration precedes the image startup/file barrier. Use a real
+            # completed service request before measuring retained descriptors.
+            f.exchange("local.invalid")
+            seeded_local = f.metrics()["dns_local_answered"]
             before_fds = len(list(Path(f"/proc/{f.daemon.pid}/fd").iterdir()))
             proxy.split = split
             payload = field("ignored", 3, b"x" * 5000 + b"\0") if split == 4096 else b""
@@ -606,7 +610,7 @@ def run_lifecycle(f, side):
             # The method still reads actual live counters. Rust answers two
             # local queries while the frame is incomplete; C answers them
             # only after the method completes. Preserve the original wire.
-            f.check(side + f"-partial-{split}-actual-snapshot-local-count", count["value"], 0 if side == "C" else 2)
+            f.check(side + f"-partial-{split}-actual-snapshot-local-count", count["value"], seeded_local + (0 if side == "C" else 2))
             count["value"] = "validated-owner-order"
             record(f"partial-{split}-method", normalized_method)
             record(f"partial-{split}-after", f.metrics())
