@@ -668,8 +668,11 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-ordinary",
+        "dynamic-host-proto4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/02",
@@ -679,8 +682,16 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-empty",
+        "interface-name-only-name",
+        "interface-name-empty-name",
+        "interface-name-empty-interface",
+        "dynamic-host-empty",
+        "dynamic-host-only-name",
+        "dynamic-host-empty-interface"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/03",
@@ -690,8 +701,11 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-canonical-case",
+        "dynamic-host-canonical-case"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/04",
@@ -701,8 +715,21 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-name-binary",
+        "interface-name-name-nonascii",
+        "interface-name-name-label63",
+        "interface-name-name-label64",
+        "interface-name-name-name253",
+        "interface-name-name-name254",
+        "dynamic-host-name-binary",
+        "dynamic-host-name-nonascii",
+        "dynamic-host-name-label63",
+        "dynamic-host-name-label64",
+        "dynamic-host-name-name253",
+        "dynamic-host-name-name254"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/05",
@@ -712,8 +739,15 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-quoted-full",
+        "interface-name-quoted-interface",
+        "interface-name-quoted-comma",
+        "dynamic-host-quoted-full",
+        "dynamic-host-quoted-interface",
+        "dynamic-host-quoted-comma"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/06",
@@ -723,8 +757,12 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-family4",
+        "interface-name-family6",
+        "interface-name-ordinary"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/07",
@@ -734,8 +772,15 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-family0",
+        "interface-name-family-empty",
+        "interface-name-double-family",
+        "dynamic-host-family0",
+        "dynamic-host-family-empty",
+        "dynamic-host-double-family"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/08",
@@ -745,8 +790,15 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-interface15",
+        "interface-name-interface16",
+        "interface-name-long-target",
+        "interface-exact-target-15",
+        "interface-exact-target-16",
+        "interface-exact-target-23"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/09",
@@ -756,8 +808,12 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-proto4",
+        "interface-name-proto6",
+        "interface-name-proto-both"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/10",
@@ -767,8 +823,12 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-host-ordinary",
+        "dynamic-host-proto-no-interface",
+        "dynamic-host-proto-empty-interface"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/11",
@@ -778,8 +838,12 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-host-proto-family4",
+        "dynamic-host-family4",
+        "dynamic-host-family6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/12",
@@ -789,8 +853,11 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-host-proto-repeat",
+        "dynamic-last-prototype"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/13",
@@ -800,8 +867,11 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-host-proto-both",
+        "dynamic-multi-subnets"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/14",
@@ -811,8 +881,11 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-extra",
+        "dynamic-host-extra"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-GRAM/15",
@@ -822,8 +895,13 @@
         "option.c:4906-4970",
         "util.c:canonicalise"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-name-repeated",
+        "dynamic-host-repeated",
+        "interface-two-declarations",
+        "dynamic-two-declarations"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/01",
@@ -834,8 +912,11 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-enum-bound"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/02",
@@ -846,8 +927,11 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-excluded",
+        "interface-enum-unselected"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/03",
@@ -858,8 +942,10 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-down"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/04",
@@ -870,8 +956,11 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-label-real",
+        "interface-label-alias"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/05",
@@ -882,8 +971,11 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-label-real",
+        "interface-label-alias"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/06",
@@ -894,8 +986,10 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-wildcard"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/07",
@@ -906,8 +1000,10 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-two-declarations"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/08",
@@ -918,8 +1014,10 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/09",
@@ -930,8 +1028,10 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-many"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/10",
@@ -942,8 +1042,11 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-privacy-duplicate",
+        "dynamic-privacy-order"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/11",
@@ -954,8 +1057,11 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-missing",
+        "interface-without-address"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-ENUM/12",
@@ -966,8 +1072,10 @@
         "network.c:736-847",
         "netlink.c:221-302"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-recreate"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/01",
@@ -977,8 +1085,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/02",
@@ -988,8 +1098,12 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-loopback",
+        "interface-localisation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/03",
@@ -999,8 +1113,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/04",
@@ -1010,8 +1126,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/05",
@@ -1021,8 +1139,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-temporary"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/06",
@@ -1032,8 +1152,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-dad-completion"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/07",
@@ -1043,8 +1165,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-deprecated"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/08",
@@ -1054,8 +1178,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-combined"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/09",
@@ -1065,8 +1191,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-dad-completion"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/10",
@@ -1076,8 +1204,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-dad-failure"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/11",
@@ -1087,8 +1217,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-expiry"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/12",
@@ -1098,8 +1230,10 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-optimistic"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FLAGS/13",
@@ -1109,8 +1243,11 @@
         "network.c:352-458",
         "netlink.c:288-300"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-privacy-duplicate",
+        "dynamic-privacy-order"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/01",
@@ -1120,8 +1257,12 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-family4",
+        "interface-family6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/02",
@@ -1131,8 +1272,12 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-family4",
+        "interface-family6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/03",
@@ -1142,8 +1287,11 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-enum-many"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/04",
@@ -1153,8 +1301,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-two-declarations"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/05",
@@ -1164,8 +1314,11 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ttl-0",
+        "interface-ttl-77"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/06",
@@ -1175,8 +1328,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-truncation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/07",
@@ -1186,8 +1341,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-wire-bits"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/08",
@@ -1197,8 +1354,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-wire-bits"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/09",
@@ -1208,8 +1367,13 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-cname",
+        "interface-cname-chain",
+        "interface-cached-cname-present",
+        "interface-cached-cname-empty"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/10",
@@ -1219,8 +1383,11 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-cname-chain",
+        "interface-cname-loop"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/11",
@@ -1230,8 +1397,12 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-host-precedence",
+        "interface-empty-host-interception",
+        "interface-cache-positive-empty"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/12",
@@ -1241,8 +1412,12 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-missing",
+        "interface-cache-bypass-empty",
+        "interface-cache-positive-empty"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/13",
@@ -1252,8 +1427,12 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-family4",
+        "interface-family6",
+        "dynamic-wrong-family"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/14",
@@ -1263,8 +1442,11 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-wire-bits"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/15",
@@ -1274,8 +1456,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-localisation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/16",
@@ -1285,8 +1469,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-localisation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-FWD/17",
@@ -1296,8 +1482,10 @@
         "rfc1035.c:2016-2088",
         "rfc1035.c:answer_request"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-localisation"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/01",
@@ -1306,8 +1494,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/02",
@@ -1316,8 +1506,11 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-ptr-any"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/03",
@@ -1326,8 +1519,12 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-flag-temporary",
+        "interface-flag-deprecated",
+        "interface-flag-dad-completion"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/04",
@@ -1336,8 +1533,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/05",
@@ -1346,8 +1545,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/06",
@@ -1356,8 +1557,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-lease-priority"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/07",
@@ -1366,8 +1569,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-cache-priority"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/08",
@@ -1376,8 +1581,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-ptr-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/09",
@@ -1386,8 +1593,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-family-adjacent"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/10",
@@ -1396,8 +1605,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-family-separated"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/11",
@@ -1406,8 +1617,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-ptr-prototype-skip"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/12",
@@ -1416,8 +1629,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-ptr-overlap"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-PTR/13",
@@ -1426,8 +1641,10 @@
       "source_anchors": [
         "rfc1035.c:1875-1941"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-ptr-any"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/01",
@@ -1439,8 +1656,11 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-missing",
+        "interface-without-address"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/02",
@@ -1452,8 +1672,11 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-existence",
+        "interface-root-name"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/03",
@@ -1465,8 +1688,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-existence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/04",
@@ -1478,8 +1703,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-existence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/05",
@@ -1491,8 +1718,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-existence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/06",
@@ -1504,8 +1733,12 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-address",
+        "interface-missing",
+        "interface-existence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/07",
@@ -1517,8 +1750,12 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-missing",
+        "interface-flag-temporary",
+        "interface-flag-deprecated"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/08",
@@ -1530,8 +1767,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-dotless"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/09",
@@ -1543,8 +1782,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-family4"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/10",
@@ -1556,8 +1797,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-family6"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-EXIST/11",
@@ -1569,8 +1812,10 @@
         "forward.c:795-803",
         "cache.c:1685-1716"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-synth-name-exists"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/01",
@@ -1584,8 +1829,11 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-lease-priority",
+        "interface-host-precedence"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/02",
@@ -1599,8 +1847,12 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-udp-ptr-refresh",
+        "interface-cached-cname-present",
+        "interface-enum-many"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/03",
@@ -1614,8 +1866,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-udp-ptr-refresh"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/04",
@@ -1629,8 +1883,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-caller-ordinary"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/05",
@@ -1644,8 +1900,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-caller-ordinary"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/06",
@@ -1659,8 +1917,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-caller-bind-dynamic"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/07",
@@ -1674,8 +1934,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-caller-local-service-net"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/08",
@@ -1689,8 +1951,11 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-caller-local-service-host",
+        "interface-caller-acl-disables"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/09",
@@ -1704,8 +1969,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-tcp-inherited"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/10",
@@ -1719,8 +1986,11 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-tcp-inherited",
+        "interface-flag-dad-completion"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/11",
@@ -1734,8 +2004,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-tcp-inherited"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/12",
@@ -1749,8 +2021,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-tcp-removed-cname"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/13",
@@ -1764,8 +2038,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-tcp-removed-cname"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/14",
@@ -1809,8 +2085,10 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-fault-before-clear"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/17",
@@ -1824,8 +2102,11 @@
         "network.c:1786-1788",
         "rfc1035.c:2016-2088"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "interface-enum-fault-empty",
+        "interface-enum-fault-partial"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "IF-CALLER/18",
@@ -1850,8 +2131,15 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-v4-prefix-0",
+        "dynamic-v4-prefix-1",
+        "dynamic-v4-prefix-16",
+        "dynamic-v4-prefix-24",
+        "dynamic-v4-prefix-31",
+        "dynamic-v4-prefix-32"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/02",
@@ -1861,8 +2149,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-multi-subnets",
+        "dynamic-alias"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/03",
@@ -1872,8 +2163,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-multi-subnets",
+        "dynamic-last-prototype"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/04",
@@ -1883,8 +2177,16 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-v6-prefix-0",
+        "dynamic-v6-prefix-1",
+        "dynamic-v6-prefix-63",
+        "dynamic-v6-prefix-64",
+        "dynamic-v6-prefix-65",
+        "dynamic-v6-prefix-127",
+        "dynamic-v6-prefix-128"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/05",
@@ -1894,8 +2196,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-v6-prefix-63",
+        "dynamic-v6-prefix-65"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/06",
@@ -1905,8 +2210,12 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-v4-prefix-24",
+        "dynamic-v6-prefix-64",
+        "dynamic-multi-subnets"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/07",
@@ -1916,8 +2225,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-privacy-duplicate",
+        "dynamic-multi-subnets"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/08",
@@ -1927,8 +2239,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-privacy-duplicate",
+        "dynamic-privacy-order"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/09",
@@ -1938,8 +2253,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-missing",
+        "dynamic-wrong-family"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/10",
@@ -1949,8 +2267,10 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-down"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/11",
@@ -1960,8 +2280,11 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-multi-subnets",
+        "dynamic-missing"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DH-COMPOSE/12",
@@ -1971,8 +2294,10 @@
         "network.c:364-427",
         "option.c:4906-4970"
       ],
-      "case_ids": [],
-      "status": "awaiting-C-calibration-and-paired-evidence"
+      "case_ids": [
+        "dynamic-two-declarations"
+      ],
+      "status": "mapped-awaiting-required-observation-guards-and-final-candidate-pairing"
     },
     {
       "id": "DOM-GRAM/01",
@@ -3962,5 +4287,14 @@
     "hostname_issubdomain(a,b) tests whether b is equal to or below a: local existence is exact/ancestor, not arbitrary descendant.",
     "IPv6 explicit single/range condition leaves prefixlen0; compare image C before choosing match policy.",
     "UDP PTR does not itself enumerate; matched interface forward query, actual newaddress conditions, file check_servers and parent TCP accept are distinct publication callers."
+  ],
+  "mapping_note": "Explicit row maps select candidate profiles only. No row is qualified by map presence, C-only calibration, or earlier partial paired runs.",
+  "calibration_corrections": [
+    {
+      "row": "SYN-FWD/09",
+      "original_description_preserved": true,
+      "observation": "Exact musl image atoll numeric overflow wraps low 64 bits, rather than the pre-calibration saturation hypothesis. 2^64 => 0, 2^63 => 0x8000000000000000, 2^64-1 => u64::MAX.",
+      "evidence": "calibration-synth-service-c-01/synth-service-index6/c/observed.json"
+    }
   ]
 }
