@@ -56,6 +56,16 @@ impl LogStartError {
     pub fn errno(&self) -> i32 {
         self.error.raw_os_error().unwrap_or(5)
     }
+
+    /// Preserve opaque Unix path bytes in standalone foreground/debug errors,
+    /// just as the typed startup frame preserves them for the original parent.
+    pub fn message_bytes(&self) -> Vec<u8> {
+        let mut message = b"cannot open log ".to_vec();
+        message.extend_from_slice(&self.argument);
+        message.extend_from_slice(b": ");
+        message.extend_from_slice(error_text(&self.error).as_bytes());
+        message
+    }
 }
 
 impl std::fmt::Display for LogStartError {

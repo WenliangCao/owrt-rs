@@ -252,6 +252,16 @@
           "required_scenarios": [
             "debug-stderr-no-extra-fd"
           ]
+        },
+        {
+          "id": "FAC15",
+          "source": "option.c:2279-2297,dnsmasq.c:1499-1545,log.c:479-499",
+          "boundary": "An opaque Unix logfile path preserves raw bytes in open-failure class3 stderr and both critical syslog records, default original-parent and direct foreground/debug callers. Diagnostic String is only a view.",
+          "required_scenarios": [
+            "log-path-opaque-failure-default",
+            "log-path-opaque-failure-foreground",
+            "log-path-opaque-failure-debug"
+          ]
         }
       ],
       "qualification_ready": false

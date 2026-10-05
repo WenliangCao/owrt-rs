@@ -201,6 +201,11 @@ def cases():
          'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
     ])
     for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        rows.append({'id': 'log-path-opaque-failure-' + label, 'scope': 'daemon', 'kind': 'run',
+                     'mode': mode, 'daemonized': not mode, 'exit': 3,
+                     'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': [],
+                     'config_bytes': b'log-facility=/m2/logging/missing-\xff/daemon.log\n'.hex(),
+                     'options': ['log-facility', 'no-daemon']})
         for identity in ['user', 'group']:
             rows.append({'id': 'startup-unknown-' + identity + '-' + label, 'scope': 'daemon',
                          'kind': 'run', 'mode': mode, 'daemonized': not mode, 'exit': 1,
