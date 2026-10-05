@@ -365,6 +365,40 @@ impl Cache {
         self.has_forward_candidate(&name, 12, now)
     }
 
+    /// Follow a live dynamic CNAME chain without promoting or removing any
+    /// cache entry. The returned name is the terminal owner that the local
+    /// interface-record resolver may override before ordinary cached RDATA is
+    /// emitted. A broken, expired, or cyclic chain is not a terminal.
+    pub fn cname_terminal_name(&self, name: &Name, now: i64) -> Option<Name> {
+        let mut ids = self.names.get(&name.canonical_wire())?.iter().copied();
+        let mut id = ids.find(|id| {
+            self.get(*id).is_some_and(|entry| {
+                entry.record.kind == Kind::Cname && !self.invalid(id.slot, now)
+            })
+        })?;
+        for _ in 0..10 {
+            let entry = self.get(id)?;
+            if self.invalid(id.slot, now) {
+                return None;
+            }
+            match entry.cname_target()? {
+                CnameTarget::Local(target) => return Some(target.name.clone()),
+                CnameTarget::Dynamic(target) => {
+                    let target_entry = self.get(target)?;
+                    if self.invalid(target.slot, now) {
+                        return None;
+                    }
+                    if target_entry.record.kind == Kind::Cname {
+                        id = target;
+                    } else {
+                        return Some(target_entry.record.name.clone());
+                    }
+                }
+            }
+        }
+        None
+    }
+
     /// Check that a handle still refers to a live cache entry at `now`.
     ///
     /// Handles are intentionally read-only; callers that need the normal
