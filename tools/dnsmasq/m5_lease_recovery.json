@@ -26,6 +26,7 @@
     "alias-empty",
     "alias-required",
     "bad-address",
+    "bad-address-octet",
     "bad-client-id",
     "bad-hardware",
     "capacity-duplicate",
@@ -76,6 +77,9 @@
     "ro-capacity",
     "ro-capacity-warning",
     "ro-init",
+    "ro-init-credentials",
+    "ro-init-gate",
+    "ro-init-gate-expiry",
     "ro-malformed",
     "ro-no-script",
     "ro-partial-record",
@@ -192,7 +196,10 @@
       "required_scenarios": [
         "ro-init",
         "ro-malformed",
-        "ro-partial-record"
+        "ro-partial-record",
+        "ro-init-gate",
+        "ro-init-gate-expiry",
+        "ro-init-credentials"
       ]
     },
     {
@@ -249,7 +256,8 @@
       "source": "lease.c:103-136",
       "contract": "Invalid/IPv6 addresses (NO_DHCP6 image) warn and skip without taking capacity.",
       "required_scenarios": [
-        "bad-address"
+        "bad-address",
+        "bad-address-octet"
       ]
     },
     {
@@ -508,5 +516,5 @@
       ]
     }
   ],
-  "qualification_ready": false
+  "qualification_ready": true
 }

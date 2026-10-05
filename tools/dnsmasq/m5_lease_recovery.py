@@ -64,6 +64,11 @@ def scenarios():
     add('held-inode', row(), actions=[dict(op='replace', text=row(9, name='foreign')),
                                      dhcp(3, name='renewed')])
     add('ro-no-script', row(), ro=True, helper=False, probes=[dict(name='first')])
+    add('ro-init-gate', row(), ro=True, init_gate=.35, config=['--enable-tftp','--tftp-root=/m2'], probes=[dict(name='first')])
+    add('ro-init-gate-expiry', row(expiry='SOON'), ro=True, init_gate=2.3, expiry_environment=True,
+        config=['--enable-tftp','--tftp-root=/m2'], probes=[dict(name='first')])
+    add('ro-init-credentials', row(), ro=True, init_gate=.35, credential_environment=True,
+        config=['--dhcp-scriptuser=nobody','--enable-tftp','--tftp-root=/m2'], probes=[dict(name='first')])
     add('ro-init', duplicate, ro=True, probes=probes,
         actions=[dhcp(3), dict(op='hup'), dhcp(7, client=2)])
     add('ro-capacity', duplicate, ro=True, maximum=1, expected_exit=5)
@@ -76,6 +81,7 @@ def scenarios():
     add('scanf-nul', '0 02:00:00:00:00:01\0ignored 127.0.0.10 first\0ignored *\n', probes=[dict(name='first')])
     add('partial-first', row() + 'tail', probes=[dict(name='first')])
     add('partial-record', row() + '0 02 127.0.0.11 unfinished', probes=[dict(name='first')])
+    add('bad-address-octet', lease_hex=(b'0 01 \xff bad *\n'+row().encode()).hex(), probes=[dict(name='first')])
     add('bad-address', '0 02 invalid bad *\n0 02 ::1 badv6 *\n' + row(), probes=[dict(name='first')])
     add('bad-hardware', '0 gg 127.0.0.10 nohw *\n0 01- 127.0.0.11 typed *\n',
         probes=[dict(name='nohw'), dict(name='typed')], actions=[dict(op='hup')])
@@ -118,8 +124,10 @@ def scenarios():
         actions=[dict(op='replace',text=row(9,name='foreign')),dict(op='hup'),dict(op='probes')])
     add('restart', duplicate, probes=probes,
         actions=[dhcp(3,name='renewed'),dict(op='restart'),dict(op='probes'),dhcp(7,client=2)])
-    add('write-failure', row(), limited_write=True, helper=False,
-        actions=[dhcp(3),dict(op='lift-write-limit'),dict(op='wait-file',seconds=65)])
+    add('write-failure', full_storage=True, helper=False, path='/m2/storage/leases',
+        probes=[dict(name='committed')],
+        actions=[dict(dhcp(3,name='committed'),selecting=True),dict(op='probes'),
+                 dict(op='free-storage'),dict(op='wait-file',seconds=65)])
     add('partial-eio', row(), fifo=True, expected_exit=3)
     add('partial-eio-warning', '0 01 invalid bad *\n'+row(), fifo=True, expected_exit=3)
     add('optional-long', row(), spelling=['--dhcp-leasefile'], path=DEFAULT)
@@ -154,12 +162,12 @@ def packet(action, xid):
     value=bytearray(240);value[:3]=bytes([1,action['htype'],6]);value[4:8]=struct.pack('!I',xid)
     kind=action['kind'];address=action.get('address');value[28:34]=bytes([2,0,0,0,0,action['client']])
     value[236:240]=bytes([99,130,83,99]);opts=bytearray([53,1,kind,55,7,1,3,6,12,51,58,59])
-    if kind==1:value[10:12]=b'\x80\0'
+    if kind==1 or action.get('selecting'):value[10:12]=b'\x80\0'
     if address is not None:
         raw=socket.inet_aton(f'127.0.0.{address}')
-        if kind in (1,4):opts+=bytes([50,4])+raw
+        if kind in (1,4) or action.get('selecting'):opts+=bytes([50,4])+raw
         else:value[12:16]=raw
-    if kind in (4,7):opts+=bytes([54,4])+socket.inet_aton('127.0.0.1')
+    if kind in (4,7) or action.get('selecting'):opts+=bytes([54,4])+socket.inet_aton('127.0.0.1')
     if action.get('clid'):
         raw=bytes.fromhex(action['clid']);opts+=bytes([61,len(raw)])+raw
     if action.get('name'):
@@ -209,7 +217,7 @@ def diagnostics(raw):
     rows=[]
     for line in raw.decode(errors='backslashreplace').splitlines():
         match=re.search(r'(ignoring invalid line in lease database.*|failed to parse lease database.*|'
-                        r'cannot open or create lease file.*|failed to read lease file.*|too many stored leases.*)',line)
+                        r'cannot open or create lease file.*|failed to read lease file.*|too many stored leases.*|failed to write /m2/storage/leases.*|failed to update lease file.*)',line)
         if match:rows.append(match.group())
     return rows
 
@@ -263,29 +271,40 @@ def trace_read_error(pid, descriptor, output):
 
 
 def run(root, side, case, out):
-    out.mkdir();folder=root/'m2';shutil.rmtree(folder);folder.mkdir(mode=0o777)
-    (folder/'directory').mkdir();now=int(time.time())
+    out.mkdir();folder=root/'m2';shutil.rmtree(folder);folder.mkdir(mode=0o777);folder.chmod(0o777)
+    (folder/'directory').mkdir();(folder/'probe').write_bytes(b'OK\n');now=int(time.time())
     epochs={now-1:'PAST',now:'NOW',now+2:'SOON',now+300:'FUTURE'}
     text=case['leases']
     for epoch,label in epochs.items():text=text.replace(label,str(epoch))
+    raw=bytes.fromhex(case['lease_hex']) if 'lease_hex' in case else text.encode()
     path=case.get('path','/m2/leases');target=case.get('link');mounted=False
     if case.get('readonly_fs'):
         (folder/'rofs').mkdir();subprocess.run(['mount','-t','tmpfs','tmpfs',str(folder/'rofs')],check=True);mounted=True
+    if case.get('full_storage'):
+        (folder/'storage').mkdir();subprocess.run(['mount','-t','tmpfs','-o','size=4096','tmpfs',str(folder/'storage')],check=True)
     real=image_path(root,'/m2/target' if target and target!='leases' else path,follow_leaf=False)
     if path==DEFAULT:real.parent.mkdir(parents=True,exist_ok=True)
     if not case.get('missing') and not case.get('directory') and case['id']!='missing-parent' and not case.get('fifo') and target!='leases':
-        real.write_bytes(text.encode());real.chmod(case.get('mode',0o644))
+        real.write_bytes(raw);real.chmod(case.get('mode',0o644))
     if target:(folder/'leases').symlink_to(target)
     if case.get('fifo'):os.mkfifo(real)
     if mounted:subprocess.run(['mount','-o','remount,ro',str(folder/'rofs')],check=True)
     for name,contents in case.get('files',{}).items():(folder/name).write_text(contents)
     helper=folder/'helper';helper.write_text('#!/bin/sh\nif [ "$1" = init ]; then cat /m2/init; exit; fi\n'
         'printf "%s|%s|%s|%s|%s|%s|%s\\n" "$1" "$2" "$3" "$4" "${DNSMASQ_CLIENT_ID-}" "${DNSMASQ_INTERFACE-}" "${DNSMASQ_OLD_HOSTNAME-}" >> /m2/events\n')
+    if case.get('init_gate'):
+        os.mkfifo(folder/'init-gate')
+        helper.write_text(helper.read_text().replace('then cat /m2/init; exit; fi',
+            'then printf "%s|%s|%s\\n" "$(id -u)" "$(id -g)" "$([ -e /m2/daemon.pid ] && printf 1 || printf 0)" > /m2/init-meta; read gate < /m2/init-gate; cat /m2/init; exit; fi'))
+    if case.get('credential_environment'):
+        helper.write_text(helper.read_text().replace('printf "%s|%s|%s|%s|%s|%s|%s',
+            'printf "%s|%s|%s|%s|%s|%s|%s|%s|%s').replace(' >> /m2/events',
+            ' "$(id -u)" "$(id -g)" >> /m2/events'))
     if case.get('expiry_environment'):
         helper.write_text(helper.read_text().replace('printf "%s|%s|%s|%s|%s|%s|%s',
             'printf "%s|%s|%s|%s|%s|%s|%s|%s|%s').replace(' >> /m2/events',
             ' "${DNSMASQ_LEASE_EXPIRES-}" "${DNSMASQ_TIME_REMAINING-}" >> /m2/events'))
-    helper.chmod(0o755);(folder/'init').write_bytes(text.encode())
+    helper.chmod(0o755);(folder/'init').write_bytes(raw)
     argv=BASE+([] if case.get('inactive') else [RANGE,'--dhcp-authoritative'])
     argv+=case.get('config',[])
     if case.get('maximum') is not None:argv+=['--dhcp-lease-max='+str(case['maximum'])]
@@ -294,7 +313,7 @@ def run(root, side, case, out):
     argv+=case.get('spelling',['--dhcp-leasefile='+path])
     binary='/usr/sbin/dnsmasq'+('-rs' if side=='rust' else '')
     syslog=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM);syslog.setblocking(False)
-    (root/'dev/log').unlink(missing_ok=True);syslog.bind(str(root/'dev/log'))
+    (root/'dev/log').unlink(missing_ok=True);syslog.bind(str(root/'dev/log'));(root/'dev/log').chmod(0o666)
     syntax=subprocess.run(command(root,binary,'--test',*argv),capture_output=True,timeout=3)
     observed={'syntax':dict(exit=syntax.returncode,stdout=syntax.stdout.decode(errors='backslashreplace').replace('dnsmasq-rs:','dnsmasq:'),
                            stderr=syntax.stderr.decode(errors='backslashreplace').replace('dnsmasq-rs:','dnsmasq:')),
@@ -308,9 +327,6 @@ def run(root, side, case, out):
         while True:
             try:syslog_packets.append(syslog.recv(65535))
             except BlockingIOError:break
-    def limits():
-        if case.get('limited_write'):
-            signal.signal(signal.SIGXFSZ,signal.SIG_IGN);resource.setrlimit(resource.RLIMIT_FSIZE,(0,resource.RLIM_INFINITY))
     def snapshot(label):
         drain_syslog();time.sleep(.12);drain_syslog()
         record={'id':label,'files':{},'objects':{},'lease_fd_targets':[], 'events':(folder/'events').read_text().splitlines() if (folder/'events').exists() else []}
@@ -332,17 +348,52 @@ def run(root, side, case, out):
                     record['lease_fd_targets'].append(target)
             except FileNotFoundError:pass
         record['lease_fd_targets'].sort()
+        if case.get('init_gate') and case.get('expiry_environment'):
+            events=[]
+            for line in record['events']:
+                fields=line.split('|')
+                if len(fields)==9:
+                    try:
+                        expiry=int(fields[-2]);fields[-2]=epochs.get(expiry,str(expiry))
+                        if fields[-1] in ('1','2'):fields[-1]='INIT_SOON'
+                    except ValueError:pass
+                events.append('|'.join(fields))
+            record['events']=events
         observed['snapshots'].append(record)
     def probes(label):
         for index,probe in enumerate(case['probes']):
             for transport in ['udp','tcp']:
                 answer,raw=dns(probe,0x4100+index,transport);trace['queries'].append(raw)
                 observed['dns'].append(dict(stage=label,name=probe['name'],transport=transport,response=answer))
+    def tftp(known=False):
+        request=b'\0\1'+(b'probe' if known else b'missing')+b'\0octet\0'
+        with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+            client.settimeout(.05);client.sendto(request,('127.0.0.1',69))
+            try:
+                answer,peer=client.recvfrom(4096)
+                if known and answer[:4]==b'\0\3\0\1':client.sendto(b'\0\4\0\1',peer)
+                return dict(request=request.hex(),response=answer.hex())
+            except socket.timeout:return dict(request=request.hex(),response=None)
+    def init_gate():
+        meta=wait(lambda:(folder/'init-meta').exists(),3,'init producer never entered')
+        observed['init_meta']=(folder/'init-meta').read_text().strip()
+        observed['init_pending']={'dns_udp':False,'dns_tcp':False,'dhcp':False,'tftp':False,'pid_file':(folder/'daemon.pid').exists()}
+        for transport in ['udp','tcp']:
+            try:dns(dict(name='ready.lease.test'),0x4001,transport);observed['init_pending']['dns_'+transport]=True
+            except OSError:pass
+        wire=packet(dhcp(1),0x4002);endpoint.sendto(wire,('127.0.0.1',67))
+        try:endpoint.recv(65535);observed['init_pending']['dhcp']=True
+        except socket.timeout:pass
+        observed['init_pending']['tftp']=tftp()['response'] is not None
+        time.sleep(case['init_gate']);drain_syslog()
+        with (folder/'init-gate').open('w') as release:release.write('release\n')
     def start():
         nonlocal process
         launch=command(root,binary,'-k',*argv)
         if case.get('userspec'):launch.insert(1,'--userspec='+case['userspec'])
-        process=subprocess.Popen(launch,stdout=stdout,stderr=log,preexec_fn=limits,start_new_session=True)
+        process=subprocess.Popen(launch,stdout=stdout,stderr=log,start_new_session=True)
+        trace.setdefault('daemon_pids',[]).append(process.pid)
+        if case.get('init_gate'):init_gate()
         def ready():
             drain_syslog()
             if process.poll() is not None:return 'exited'
@@ -366,6 +417,7 @@ def run(root, side, case, out):
     try:
         if case.get('fifo'):
             process=subprocess.Popen(command(root,binary,'-k',*argv),stdout=stdout,stderr=log,start_new_session=True)
+            trace.setdefault('daemon_pids',[]).append(process.pid)
             def descriptor():
                 for candidate in Path(f'/proc/{process.pid}/fd').glob('*'):
                     try:
@@ -386,10 +438,12 @@ def run(root, side, case, out):
             status=start()
             if status=='ready':
                 snapshot('startup');probes('startup')
+                if case.get('init_gate'):observed['tftp_after_init']=tftp(True)
+                if case.get('full_storage'):(folder/'storage/full').write_bytes(bytes(4096))
                 for index,action in enumerate(case['actions']):
                     label=str(index)+'-'+action['op']
                     if action['op']=='dhcp':
-                        wire=packet(action,0x5100+index);endpoint.sendto(wire,('255.255.255.255' if action['kind']==1 else '127.0.0.1',67))
+                        sent=int(time.time());wire=packet(action,0x5100+index);endpoint.sendto(wire,('255.255.255.255' if action['kind']==1 else '127.0.0.1',67))
                         reply=None
                         try:reply,peer=endpoint.recvfrom(65535)
                         except socket.timeout:pass
@@ -408,14 +462,19 @@ def run(root, side, case, out):
                                 duration=struct.unpack('!I',options[51])[0]
                                 if 295<=duration<=300:options[51]=b'FUTURE'
                             result['reply']={'header':reply[:240].hex(),'options':{str(k):v.hex() for k,v in options.items()},'peer':list(peer),'length':len(reply)}
+                        if reply and action['kind']==3 and result['reply']['options'].get('53')=='05':
+                            for expiry in range(sent+599,sent+602):epochs[expiry]='RENEWED600'
                         observed['dhcp'].append(result)
                     elif action['op']=='replace':
                         held=folder/'held';image_path(root,path).rename(held);image_path(root,path).write_text(action['text'])
                     elif action['op']=='hup':process.send_signal(signal.SIGHUP)
                     elif action['op']=='probes':probes(label)
                     elif action['op']=='wait':time.sleep(action['seconds'])
-                    elif action['op']=='lift-write-limit':resource.prlimit(process.pid,resource.RLIMIT_FSIZE,(resource.RLIM_INFINITY,resource.RLIM_INFINITY))
-                    elif action['op']=='wait-file':wait(lambda:image_path(root,path).stat().st_size>0,action['seconds'],'idle write retry absent')
+                    elif action['op']=='free-storage':
+                        (folder/'storage/full').unlink();trace['storage_freed_at']=time.monotonic()
+                    elif action['op']=='wait-file':
+                        wait(lambda:image_path(root,path).stat().st_size>0,action['seconds'],'idle write retry absent')
+                        observed['retry_delay']=time.monotonic()-trace['storage_freed_at']
                     elif action['op']=='restart':stop();start()
                     else:raise ValueError(action)
                     snapshot(label)
@@ -427,6 +486,16 @@ def run(root, side, case, out):
         drain_syslog()
         syslog.close();trace['syslog']=[value.hex() for value in syslog_packets]
         syslog_diagnostics=diagnostics(b'\n'.join(syslog_packets))
+        observed['diagnostic_headers']=[]
+        for raw in syslog_packets:
+            messages=diagnostics(raw)
+            if not messages:continue
+            match=re.match(rb'<(\d+)>.*? ([A-Za-z0-9_-]+)\[(\d+)\]: ',raw)
+            if not match:raise AssertionError('lease diagnostic syslog header malformed')
+            priority=int(match[1]);pid=int(match[3]);owner=pid in trace.get('daemon_pids',[])
+            observed['diagnostic_headers'].append(dict(message=messages[0],facility=priority&~7,severity=priority&7,
+                tag=match[2].decode().replace('dnsmasq-rs','dnsmasq'),daemon_pid=owner))
+            trace.setdefault('diagnostic_pid_witness',[]).append(dict(raw=raw.hex(),pid=pid,daemon_pids=trace.get('daemon_pids',[])))
         observed['diagnostics']=syslog_diagnostics or diagnostics((out/'stderr').read_bytes())
         observed['pid_file']=(folder/'daemon.pid').exists()
         def image_children():
@@ -445,6 +514,7 @@ def run(root, side, case, out):
             try:os.kill(pid,signal.SIGKILL)
             except ProcessLookupError:pass
         save(out/'observed.json',observed);save(out/'trace.json',trace)
+        if case.get('full_storage'):subprocess.run(['umount',str(folder/'storage')],check=True)
         if mounted:
             subprocess.run(['mount','-o','remount,rw',str(folder/'rofs')],check=True)
             subprocess.run(['umount',str(folder/'rofs')],check=True)
@@ -458,6 +528,11 @@ def compare(c,rust,case):
         if value['exit']!=case.get('expected_exit',0):failures.append(dict(side=side,kind='startup-exit',actual=value['exit']))
         if value['ready']!=(case.get('expected_exit',0)==0):failures.append(dict(side=side,kind='ready'))
         if value['forced'] or value['pid_file'] or value['process_live'] or value.get('live_children'):failures.append(dict(side=side,kind='lifecycle'))
+        if any(not row['daemon_pid'] for row in value.get('diagnostic_headers',[])):failures.append(dict(side=side,kind='diagnostic-PID-owner'))
+        if case.get('full_storage') and not 55<=value.get('retry_delay',0)<=62:failures.append(dict(side=side,kind='60-second-retry-witness',actual=value.get('retry_delay')))
+        if case.get('init_gate'):
+            if value.get('init_meta')!='0|0|0' or any(value.get('init_pending',{}).values()):failures.append(dict(side=side,kind='prefork-init-gate',actual=value.get('init_pending'),meta=value.get('init_meta')))
+            if value.get('tftp_after_init',{}).get('response') != '000300014f4b0a':failures.append(dict(side=side,kind='TFTP-not-restored-after-init'))
         if value.get('invalid_timers'):failures.append(dict(side=side,kind='timer-bounds',actual=value['invalid_timers']))
         if value['ready']:
             if len(value['snapshots'])!=1+len(case.get('actions',[])):failures.append(dict(side=side,kind='missing-snapshot'))
@@ -473,8 +548,8 @@ def compare(c,rust,case):
             proof=value.get('read_error',{})
             if not proof.get('injected') or not any(r['result']>0 for r in proof.get('reads',[])) or not any(r['result']==-errno.EIO and r['injected'] for r in proof.get('reads',[])):
                 failures.append(dict(side=side,kind='partial-read-error-witness'))
-    for field in ['syntax','ready','snapshots','dns','dhcp','exit','diagnostics']:
-        if c[field]!=rust[field]:failures.append(dict(kind='paired-'+field,c=c[field],rust=rust[field]))
+    for field in ['syntax','ready','snapshots','dns','dhcp','exit','diagnostics','diagnostic_headers','init_meta','init_pending','tftp_after_init']:
+        if c.get(field)!=rust.get(field):failures.append(dict(kind='paired-'+field,c=c.get(field),rust=rust.get(field)))
     return failures
 
 
@@ -484,7 +559,7 @@ def controls():
         dns=[{'name':'first'},{'name':'first'}],dhcp=[{'reply':{'options':{'53':'05'}}}],exit=0,diagnostics=[],forced=False,pid_file=False,process_live=False)
     rows=[]
     for field,value in [('syntax',dict(exit=1)),('ready',False),('snapshots',[]),('dns',[]),('dhcp',[]),('exit',3),
-                        ('diagnostics',['unexpected']),('forced',True),('pid_file',True),('process_live',True)]:
+                        ('diagnostics',['unexpected']),('forced',True),('pid_file',True),('process_live',True),('diagnostic_headers',[dict(message='wrong',facility=24,severity=4,tag='dnsmasq',daemon_pid=False)]),('invalid_timers',[dict(t1=0,t2=0)])]:
         altered=copy.deepcopy(success);altered[field]=value
         rows.append(dict(id=field,rejected=bool(compare(success,altered,case))))
     if not all(r['rejected'] for r in rows):raise AssertionError('negative comparison control missed corruption')
@@ -504,6 +579,7 @@ def main():
     if not all([args.image_root,args.rust,args.rust_sha256,args.source_commit,args.output]):parser.error('image/candidate/source/output required')
     if os.geteuid()!=0 or os.environ.get('DNSMASQ_TEST_ISOLATED')!='1':parser.error('root isolated namespace required')
     if sha256(args.rust)!=args.rust_sha256:parser.error('candidate identity mismatch')
+    if args.rust_sha256==STOCK_SHA256:parser.error('reference ELF cannot qualify as Rust candidate')
     out=args.output.resolve()
     if out.exists() or 'private' not in out.parts:parser.error('fresh private output required')
     out.mkdir(parents=True);resource.setrlimit(resource.RLIMIT_CORE,(0,0))
