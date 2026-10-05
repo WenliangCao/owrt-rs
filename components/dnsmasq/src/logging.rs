@@ -9,7 +9,9 @@ use std::collections::VecDeque;
 use std::ffi::{c_char, c_int, c_void, CStr};
 use std::fs::{File, OpenOptions};
 use std::io;
+use std::net::SocketAddr;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::Path;
 
@@ -18,6 +20,110 @@ const MAX_MESSAGE: usize = 1024;
 const O_NONBLOCK: i32 = 0x800;
 const SOCK_CLOEXEC: i32 = 0x80000;
 const SOCK_NONBLOCK: i32 = 0x800;
+
+/// Keep the original log argument and errno for the startup parent's C event.
+/// Formatting it before transport loses read_event's missing-argument fallback.
+#[derive(Debug)]
+pub struct LogStartError {
+    pub code: i32,
+    pub message: String,
+    argument: Vec<u8>,
+    error: io::Error,
+}
+
+impl LogStartError {
+    fn new(config: &LoggingConfig, error: io::Error) -> Self {
+        let argument = config
+            .file
+            .as_ref()
+            .map_or_else(Vec::new, |path| path.as_os_str().as_bytes().to_vec());
+        Self {
+            code: 3,
+            message: format!(
+                "cannot open log {}: {}",
+                String::from_utf8_lossy(&argument),
+                error_text(&error)
+            ),
+            argument,
+            error,
+        }
+    }
+
+    pub fn argument(&self) -> &[u8] {
+        &self.argument
+    }
+    pub fn errno(&self) -> i32 {
+        self.error.raw_os_error().unwrap_or(5)
+    }
+}
+
+impl std::fmt::Display for LogStartError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.message)
+    }
+}
+impl std::error::Error for LogStartError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.error)
+    }
+}
+impl From<LogStartError> for StartupError {
+    fn from(error: LogStartError) -> Self {
+        Self {
+            code: error.code,
+            message: error.message,
+        }
+    }
+}
+
+/// util.c::prettyprint_addr, excluding the separately formatted port.
+pub fn address_text(address: SocketAddr) -> Vec<u8> {
+    // ADDRSTRLEN is INET6_ADDRSTRLEN (46). Use the image libc's rendering,
+    // including its IPv4-compatible IPv6 spelling.
+    let mut output = [0u8; 46];
+    match address {
+        SocketAddr::V4(address) => unsafe {
+            inet_ntop(
+                2,
+                address.ip().octets().as_ptr().cast(),
+                output.as_mut_ptr().cast(),
+                46,
+            );
+        },
+        SocketAddr::V6(address) => {
+            let family = if cfg!(target_os = "macos") { 30 } else { 10 };
+            unsafe {
+                inet_ntop(
+                    family,
+                    address.ip().octets().as_ptr().cast(),
+                    output.as_mut_ptr().cast(),
+                    46,
+                );
+            }
+        }
+    }
+    let mut value = output[..output
+        .iter()
+        .position(|byte| *byte == 0)
+        .unwrap_or(output.len())]
+        .to_vec();
+    if let SocketAddr::V6(address) = address {
+        if address.scope_id() != 0 {
+            let mut name = [0u8; 16];
+            if !unsafe { if_indextoname(address.scope_id(), name.as_mut_ptr().cast()) }.is_null() {
+                let name = &name[..name
+                    .iter()
+                    .position(|byte| *byte == 0)
+                    .unwrap_or(name.len())];
+                if value.len() + name.len() + 2 <= 46 {
+                    value.push(b'%');
+                    value.extend_from_slice(name);
+                }
+            }
+        }
+    }
+    value
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Service {
@@ -121,7 +227,8 @@ impl Logger {
             file: None,
             ..Default::default()
         };
-        let (mut logger, _) = Self::start(&config, &ProcessConfig::default(), None)?;
+        let (mut logger, _) =
+            Self::start(&config, &ProcessConfig::default(), None).map_err(StartupError::from)?;
         logger.fallback = true;
         Ok(logger)
     }
@@ -131,25 +238,12 @@ impl Logger {
         config: &LoggingConfig,
         process: &ProcessConfig,
         owner_uid: Option<u32>,
-    ) -> Result<(Self, Option<io::Error>), StartupError> {
-        let destination = open_destination(config).map_err(|error| StartupError {
-            code: 3,
-            message: format!(
-                "cannot open log {}: {}",
-                config
-                    .file
-                    .as_deref()
-                    .map(|path| path.display().to_string())
-                    .unwrap_or_default(),
-                error_text(&error)
-            ),
-        })?;
+    ) -> Result<(Self, Option<io::Error>), LogStartError> {
+        let destination =
+            open_destination(config).map_err(|error| LogStartError::new(config, error))?;
         let stderr = matches!(destination, Destination::Stderr(_));
         let echo = if process.debug && !stderr {
-            Some(duplicate_stderr().map_err(|error| StartupError {
-                code: 3,
-                message: format!("cannot duplicate stderr: {}", error_text(&error)),
-            })?)
+            Some(duplicate_stderr().map_err(|error| LogStartError::new(config, error))?)
         } else {
             None
         };
@@ -611,6 +705,13 @@ unsafe extern "C" {
     fn socket(domain: c_int, kind: c_int, protocol: c_int) -> c_int;
     fn connect(fd: c_int, address: *const c_void, length: u32) -> c_int;
     fn write(fd: c_int, bytes: *const c_void, length: usize) -> isize;
+    fn if_indextoname(index: u32, name: *mut c_char) -> *mut c_char;
+    fn inet_ntop(
+        family: i32,
+        address: *const c_void,
+        output: *mut c_char,
+        length: u32,
+    ) -> *const c_char;
 }
 
 /// log_start failure reaches fatal_event/die before a logging destination is
