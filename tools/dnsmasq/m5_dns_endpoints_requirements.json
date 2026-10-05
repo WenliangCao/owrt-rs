@@ -1214,7 +1214,9 @@
         "source-interface-recreated",
         "source-interface-recreated-hup",
         "source-interface-recreated-dynamic",
-        "source-interface-recreated-wait"
+        "source-interface-recreated-wait",
+        "source-interface-recreated-local-net",
+        "source-interface-recreated-local-host"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
