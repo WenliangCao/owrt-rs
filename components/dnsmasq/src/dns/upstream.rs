@@ -247,6 +247,7 @@ struct OwnedSocket {
     persistent: bool,
     pooled: bool,
     pool_slot: Option<usize>,
+    origin: Option<ServerId>,
     pinned: bool,
     socket: UdpSocket,
     // First empty POLLERR records `now` without delay. A repeated readiness
@@ -523,6 +524,11 @@ impl<R: Random> UpstreamResolver<R> {
     /// references remain owned until their pending exchange is released.
     pub fn replace_server_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
         self.dispatcher.replace_groups(groups, removed);
+        for owned in self.sockets.values_mut() {
+            if owned.origin.is_some_and(|origin| removed.contains(&origin)) {
+                owned.origin = None;
+            }
+        }
         self.consume_releases();
         // server_gone silently frees frecs; it is not an upstream error or a
         // timeout and must not create a client reply or failure metric.
@@ -768,6 +774,7 @@ impl<R: Random> UpstreamResolver<R> {
                 persistent,
                 pooled,
                 pool_slot,
+                origin: None,
                 socket,
                 empty_error_retry: None,
             },
@@ -792,9 +799,9 @@ impl<R: Random> UpstreamResolver<R> {
             .iter()
             .copied()
             .filter(|token| {
-                self.sockets.get(token).is_some_and(|owned| {
-                    (owned.persistent || owned.pooled) && owned.source == source
-                })
+                self.sockets
+                    .get(token)
+                    .is_some_and(|owned| self.random_source_matches(owned, &source))
             })
             .collect();
         let token = if let Some(token) = self.server_sockets.get(&server) {
@@ -846,8 +853,7 @@ impl<R: Random> UpstreamResolver<R> {
                     .sockets
                     .iter()
                     .filter(|(token, owned)| {
-                        owned.pooled
-                            && owned.source == source
+                        self.random_source_matches(owned, &source)
                             && !owned.owners.contains(&id)
                             && owned.owners.len() < 0xfffe
                             && !compatible.contains(token)
@@ -870,13 +876,24 @@ impl<R: Random> UpstreamResolver<R> {
                 }
             }
         };
-        self.sockets.get_mut(&token).unwrap().owners.insert(id);
+        let owned = self.sockets.get_mut(&token).unwrap();
+        if owned.pooled && owned.owners.is_empty() {
+            owned.origin = Some(server);
+        }
+        owned.owners.insert(id);
         let transaction = self.transactions.get_mut(&id).unwrap();
         if !transaction.tokens.contains(&token) {
             transaction.tokens.insert(0, token);
         }
         transaction.sockets.insert(server, token);
         Ok(token)
+    }
+
+    fn random_source_matches(&self, owned: &OwnedSocket, source: &SourceSpec) -> bool {
+        owned.pooled
+            && owned.origin.is_some_and(|origin| {
+                self.source_bindings.get(&origin).unwrap_or(&owned.source) == source
+            })
     }
 
     fn release_owner(&mut self, id: QueryId) {
@@ -1498,6 +1515,62 @@ mod tests {
             HashMap::from([(ServerId(1), source)]),
         );
         assert_eq!(resolver.source_bindings[&ServerId(1)].ifindex, 17);
+    }
+
+    #[test]
+    fn retired_pool_origin_is_not_shared_while_another_server_keeps_its_owner() {
+        let first = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let second = UdpSocket::bind("127.0.0.1:0").unwrap();
+        first
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        second
+            .set_read_timeout(Some(Duration::from_secs(1)))
+            .unwrap();
+        let addresses = [first.local_addr().unwrap(), second.local_addr().unwrap()];
+        let mut resolver = transport(
+            group(&addresses, true),
+            Options::default(),
+            Duration::from_secs(2),
+        );
+        let settings = SocketSettings {
+            pool_slots: 1,
+            ..SocketSettings::default()
+        };
+        let source = SourceSpec::wildcard(addresses[0], 0);
+        resolver.configure_source_sockets(
+            settings,
+            HashMap::from([(ServerId(1), source.clone()), (ServerId(2), source.clone())]),
+        );
+        let original = resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:1".parse().unwrap()),
+            )
+            .unwrap();
+        let mut buffer = [0; 2048];
+        let (_, old_peer) = first.recv_from(&mut buffer).unwrap();
+        second.recv_from(&mut buffer).unwrap();
+        let mut remaining = group(&addresses[1..], false);
+        remaining.servers[0].id = ServerId(2);
+        resolver.configure_source_sockets(settings, HashMap::from([(ServerId(2), source)]));
+        resolver.replace_server_groups(vec![remaining], &[ServerId(1)]);
+        assert_eq!(resolver.pending_count(), 1);
+        resolver
+            .start_udp(
+                &query(),
+                client(),
+                GroupId(1),
+                Scope::Client("127.0.0.1:2".parse().unwrap()),
+            )
+            .unwrap();
+        let (_, new_peer) = second.recv_from(&mut buffer).unwrap();
+        assert_ne!(old_peer, new_peer);
+        assert_eq!(resolver.socket_count(), 2);
+        assert!(resolver.dispatcher.table().get(original.id).is_some());
+        resolver.clear();
     }
 
     #[test]
