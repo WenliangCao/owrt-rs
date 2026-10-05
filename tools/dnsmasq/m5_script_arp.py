@@ -681,7 +681,8 @@ def run_side(args):
             save(folder / 'cleanup.json', cleanup)
             if spec.get('pending_dump'):
                 expected = args.side == 'c'
-                assert cleanup.get('forced', False) == expected, 'pending stop reference guard'
+                if cleanup.get('forced', False) != expected:
+                    failures.append(dict(case=label, error='pending stop reference guard', cleanup=cleanup))
                 next((row for row in rows if row['case'] == label), {})['stop_forced'] = cleanup.get('forced', False)
             (folder / 'arp-events.raw').write_bytes((root / 'm2/arp-events').read_bytes())
             if (root / 'm2/arp.log').exists():
@@ -741,6 +742,13 @@ def main():
             result.append(dict(side='rust', failures=candidate['failures']))
         left, right = observations(reports[0]), observations(candidate)
         reference_specs = {spec['case']: spec for spec in profiles() if spec.get('reference_difference')}
+        for row in right:
+            if row['case'] in reference_specs and row.get('callbacks') != []:
+                result.append(dict(case=row['case'], error='candidate published an incomplete snapshot'))
+            if row['case'] in ['netlink-missing-done', 'stop-pending-dump']:
+                if (row.get('health_while_pending') is not True or row.get('stop_forced') is not False
+                        or (row['case'] == 'netlink-missing-done' and row.get('timeout_reply') is not True)):
+                    result.append(dict(case=row['case'], error='candidate pending owner contract'))
         if [row['case'] for row in left] != [row['case'] for row in right]:
             result.append(dict(error='case inventory mismatch'))
         else:
@@ -795,8 +803,25 @@ def main():
             else:
                 mutant['failures'].append(dict(injected=True))
             controls.append(dict(case=label, rejected=bool(differences(mutant))))
+        for label in ['missing-fault', 'wrong-fault-stream', 'candidate-owner-stall']:
+            mutant = copy.deepcopy(reports[1])
+            targets = [row for row in mutant['rows'] if row.get('fault')]
+            if not targets:
+                continue
+            if label == 'missing-fault':
+                targets[0].pop('fault')
+            elif label == 'wrong-fault-stream':
+                targets[0]['fault']['wire'] = '00'
+            else:
+                held = next((row for row in targets if row['case'] == 'netlink-missing-done'), None)
+                if held is None:
+                    continue
+                held['health_while_pending'] = False
+                held['stop_forced'] = True
+                held['timeout_reply'] = False
+            controls.append(dict(case=label, rejected=bool(differences(mutant))))
     missing = {side: report['missing_required_cases'] for side, report in zip(['c', 'rust'], reports)}
-    qualified = not mismatches and not args.select and not any(missing.values()) and len(controls) == 6 and all(row['rejected'] for row in controls)
+    qualified = not mismatches and not args.select and not any(missing.values()) and len(controls) == 9 and all(row['rejected'] for row in controls)
     result = dict(exits=exits, failures=mismatches, missing_required_cases=missing, negative_controls=controls,
                   paired_observations_passed=not mismatches, qualified=qualified,
                   binary_sha256=sha256(args.rust_binary), bytes=args.rust_binary.stat().st_size)
