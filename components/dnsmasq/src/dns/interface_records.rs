@@ -237,6 +237,19 @@ mod tests {
     fn rule(value: &str, dynamic: bool) -> InterfaceRule {
         parse_rule(&EncodedArg::command_line(value.as_bytes()), dynamic).unwrap()
     }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn proc_address_state_keeps_reverse_only_and_extended_flags_separate() {
+        assert_eq!(
+            ipv6_flags("20010db8009100000000000000000009 07 40 00 21 m5ir0"),
+            Some(("2001:db8:91::9".parse().unwrap(), 7, 0x21))
+        );
+        assert_eq!(
+            ipv6_flags("20010db8009100000000000000000009 07 40 00 202 m5ir0"),
+            Some(("2001:db8:91::9".parse().unwrap(), 7, 2))
+        );
+        assert!(ipv6_flags("not-an-address 07 40 00 c0 m5ir0").is_none());
+    }
     #[test]
     fn adjacent_family_skip_and_ancestor_existence_match_image() {
         let source = InterfaceAddress {
