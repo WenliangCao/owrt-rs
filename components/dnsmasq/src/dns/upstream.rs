@@ -2,8 +2,9 @@
 //!
 //! Standalone calls can use fixed monotonic deadlines. The daemon uses C's
 //! forwarding-table lifetime: wall-clock reply validity and lazy reclamation
-//! on new admission. Every socket belongs to one transaction and is dropped
-//! on completion, cancellation, reclamation or an unusable descriptor. Receive
+//! on new admission. Fixed source sockets belong to the daemon; random pool
+//! sockets hold one reference per transaction and close after their final
+//! owner releases them. Temporary overflow sockets remain unshared. Receive
 //! errors alone retain the transaction. Packets are **unchecked
 //! by process_reply policy**: callers must apply address/rebind/cache/EDNS and
 //! OpenWrt policies before replying to clients. Integrated TCP fallback is not
@@ -727,9 +728,9 @@ impl<R: Random> UpstreamResolver<R> {
             .iter()
             .copied()
             .filter(|token| {
-                self.sockets
-                    .get(token)
-                    .is_some_and(|owned| owned.source == source)
+                self.sockets.get(token).is_some_and(|owned| {
+                    (owned.persistent || owned.pooled) && owned.source == source
+                })
             })
             .collect();
         let token = if persistent {
