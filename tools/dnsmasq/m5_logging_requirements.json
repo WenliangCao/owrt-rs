@@ -333,15 +333,26 @@
           "id": "QTF01",
           "source": "tftp.c:882-898",
           "boundary": "Suppress only ERR_FNF logs; retain TFTP error response and filename printable sanitise/truncation; bad permissions/mode/opcode/read failure always log.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "tftp-logs-requests-ordinary",
+            "tftp-logs-requests-quiet"
+          ]
         },
         {
           "id": "QTF02",
           "source": "tftp.c:735-739,821-822",
           "boundary": "Completed transfer sent log, timeout/failed sending, remote client error and no-free-port messages unaffected by quiet.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "tftp-logs-requests-ordinary",
+            "tftp-logs-requests-quiet",
+            "tftp-logs-port-exhausted-ordinary",
+            "tftp-logs-port-exhausted-quiet",
+            "tftp-logs-timeout-ordinary",
+            "tftp-logs-timeout-quiet"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "log-debug": {
       "required": [
