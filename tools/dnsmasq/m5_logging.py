@@ -295,6 +295,12 @@ def cases():
                               *(['--quiet-dhcp'] if quiet else []), *(['--log-dhcp'] if detail else [])],
                      'dhcp_probes': True, 'quiet_dhcp': quiet, 'detail_dhcp': detail,
                      'options': ['log-dhcp', 'quiet-dhcp']})
+    delay_quiet = copy.deepcopy(next(row for row in rows if row['id'] == 'dhcp-packets-quiet-detail'))
+    delay_quiet['id'] = 'dhcp-packets-quiet-detail-delay'
+    delay_quiet['scope'] = 'dhcp-quiet-delay'
+    delay_quiet['argv'].append('--dhcp-reply-delay=0')
+    delay_quiet['quiet_delay_probe'] = True
+    rows.append(delay_quiet)
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
          'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
@@ -2260,6 +2266,8 @@ def compare(reference, candidate, case, reference_only=False):
         if quiet and any(ignored in message for message in messages): failures.append({'kind': 'C-DHCP-quiet-ignored-discover', 'actual': messages})
         if detail and not all(re.match(r'^[0-9]+ DHCP', message) for message in messages if re.match(r'^([0-9]+ )?DHCP(?:DISCOVER|OFFER|REQUEST|ACK|NAK|INFORM|RELEASE)\(', message)):
             failures.append({'kind': 'C-DHCP-detail-xid', 'actual': messages})
+    if case.get('quiet_delay_probe') and 'reply delay:' in reference['stderr']:
+        failures.append({'kind': 'C-quiet-DHCP-detail-independent-delay', 'actual': reference['stderr']})
     if case.get('dhcp_query_origin'):
         for message in ['DHCP m5-client is 127.0.0.10', 'DHCP 127.0.0.10 is m5-client']:
             if message not in reference['stderr']: failures.append({'kind': 'C-query-DHCP-origin', 'missing': message})
