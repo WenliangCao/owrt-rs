@@ -515,10 +515,10 @@ def trace_enumeration(pid,side,stage,output):
                         active.update(dump_family=family,dump_type=kind)
                         report['events'].append(dict(active,phase='request'))
                 if stage=='before-clear':
-                    fault=number==198 and int(registers[0])==(2 if side=='c' else 16) and (int(registers[1])&15)==(2 if side=='c' else 3)
+                    fault=number==198 and int(registers[0])==2 and (int(registers[1])&15)==2
                 elif armed is not None and number in (207,212) and int(registers[0])==armed and not active['receive_flags']&2:
                     family=next(row['dump_family'] for row in reversed(report['events']) if 'dump_family' in row)
-                    fault=stage=='empty' or (stage=='partial' and (family==2 if side=='c' else received))
+                    fault=stage=='empty' or (stage=='partial' and family==2)
                 if fault:
                     call=ctypes.c_int(-1);iov=Iovec(ctypes.addressof(call),ctypes.sizeof(call));ptrace(0x4205,0x404,ctypes.addressof(iov))
             elif info[0]==2 and active:
