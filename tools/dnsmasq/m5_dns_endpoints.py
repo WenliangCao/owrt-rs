@@ -140,7 +140,8 @@ class SourceCapture:
 def run_service_side(root, side, case, folder):
     import m5_dns_files as files
     from dns_service_probe import exact_read, read_name
-    class Captured(files.FileUpstream):
+    original_upstream=files.FileUpstream
+    class Captured(original_upstream):
         def __init__(self,*args):
             self.source_events=[]
             super().__init__(*args)
@@ -181,6 +182,7 @@ def run_service_side(root, side, case, folder):
     finally:
         for bound in occupied: bound.close()
         files.command=original_command
+        files.FileUpstream=original_upstream
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
     result['source_guard_errors']=source_guard_errors(result,case)
