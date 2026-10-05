@@ -15,14 +15,22 @@ use std::sync::Arc;
 pub enum Kind {
     Ipv4,
     Ipv6,
+    ReverseIpv4,
+    ReverseIpv6,
     Generic(u16),
     Cname,
     NxDomain,
 }
 
 impl Kind {
+    fn is_reverse(self) -> bool {
+        matches!(self, Self::ReverseIpv4 | Self::ReverseIpv6)
+    }
+
     fn conflicts(self, other: Self) -> bool {
-        self == other || self == Self::Cname || other == Self::Cname
+        !self.is_reverse()
+            && !other.is_reverse()
+            && (self == other || self == Self::Cname || other == Self::Cname)
     }
 
     fn matches(self, requested: Self) -> bool {
@@ -231,6 +239,7 @@ pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,
     names: HashMap<Vec<u8>, Vec<usize>>,
+    reverse_chain: Vec<usize>,
     head: Option<usize>,
     tail: Option<usize>,
     pending: Vec<usize>,
@@ -266,6 +275,7 @@ impl Cache {
                 })
                 .collect(),
             names: HashMap::new(),
+            reverse_chain: Vec::new(),
             head: (capacity > 0).then_some(0),
             tail: capacity.checked_sub(1),
             pending: Vec::new(),
@@ -291,6 +301,7 @@ impl Cache {
             slot.next = (index + 1 < capacity).then_some(index + 1);
         }
         self.names.clear();
+        self.reverse_chain.clear();
         self.pending.clear();
         self.failed = false;
         self.long_names = 0;
@@ -319,11 +330,9 @@ impl Cache {
     pub fn contains_forward_name(&self, name: &Name, now: i64) -> bool {
         self.names.get(&name.canonical_wire()).is_some_and(|slots| {
             slots.iter().any(|&slot| {
-                self.slots[slot]
-                    .entry
-                    .as_ref()
-                    .is_some_and(|entry| entry.record.kind != Kind::NxDomain)
-                    && !self.invalid(slot, now)
+                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.record.kind != Kind::NxDomain && !entry.record.kind.is_reverse()
+                }) && !self.invalid(slot, now)
             })
         })
     }
@@ -340,7 +349,7 @@ impl Cache {
             let Some(entry) = self.slots[slot].entry.as_ref() else {
                 return false;
             };
-            if self.invalid(slot, now) {
+            if self.invalid(slot, now) || entry.record.kind.is_reverse() {
                 return false;
             }
             match (rrtype, entry.record.kind) {
@@ -361,8 +370,14 @@ impl Cache {
     /// records remain a separate capability. Keep this predicate side-effect
     /// free so a local synthesizer can defer to normal cache lookup.
     pub fn has_reverse_candidate(&self, address: IpAddr, now: i64) -> bool {
-        let name = reverse_name(address);
-        self.has_forward_candidate(&name, 12, now)
+        let (kind, bytes) = reverse_key(address);
+        self.reverse_chain.iter().any(|&slot| {
+            !self.invalid(slot, now)
+                && self.slots[slot]
+                    .entry
+                    .as_ref()
+                    .is_some_and(|entry| entry.record.kind == kind && entry.record.data == bytes)
+        }) || self.has_forward_candidate(&reverse_name(address), 12, now)
     }
 
     /// Follow a live dynamic CNAME chain without promoting or removing any
@@ -516,7 +531,20 @@ impl Cache {
         }
         let key = record.name.canonical_wire();
         let mut preserved = None;
-        if let Some(indices) = self.names.get(&key).cloned() {
+        if record.kind.is_reverse() {
+            // Reverse insertion scans all dynamic hash buckets and removes
+            // this IP's old RRset. Forward names and other IPs are independent.
+            for slot in 0..self.slots.len() {
+                if self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    entry.committed
+                        && (self.policy.expired(entry.expires, now)
+                            || (entry.record.kind == record.kind
+                                && entry.record.data == record.data))
+                }) {
+                    self.remove(slot);
+                }
+            }
+        } else if let Some(indices) = self.names.get(&key).cloned() {
             for slot in indices {
                 let entry = self.slots[slot].entry.as_ref().unwrap();
                 if record.kind.conflicts(entry.record.kind) {
@@ -555,9 +583,20 @@ impl Cache {
                 }
                 let victim_key = entry.record.name.canonical_wire();
                 let victim_kind = entry.record.kind;
-                // C spills the conflicting RRset, not only its oldest member.
-                for victim in self.names.get(&victim_key).cloned().unwrap_or_default() {
-                    if victim_kind.conflicts(self.slots[victim].entry.as_ref().unwrap().record.kind)
+                let victim_address = entry.record.data.clone();
+                // C spills the conflicting name/type or reverse-IP RRset,
+                // not only its oldest member.
+                let victims = if victim_kind.is_reverse() {
+                    self.reverse_chain.clone()
+                } else {
+                    self.names.get(&victim_key).cloned().unwrap_or_default()
+                };
+                for victim in victims {
+                    let entry = self.slots[victim].entry.as_ref().unwrap();
+                    if (victim_kind.is_reverse()
+                        && entry.record.kind == victim_kind
+                        && entry.record.data == victim_address)
+                        || victim_kind.conflicts(entry.record.kind)
                         || self.invalid(victim, now)
                     {
                         self.remove(victim);
@@ -734,12 +773,33 @@ impl Cache {
                 self.free(slot);
                 continue;
             }
+            let capacity = self.slots.len();
             let entry = self.slots[slot].entry.as_mut().unwrap();
             entry.committed = true;
             self.names
                 .entry(entry.record.name.canonical_wire())
                 .or_default()
                 .push(slot);
+            if entry.record.kind.is_reverse() {
+                let bucket = reverse_bucket(&entry.record.name, capacity);
+                let name = entry.record.name.clone();
+                let mut at = self.reverse_chain.partition_point(|&old| {
+                    reverse_bucket(
+                        &self.slots[old].entry.as_ref().unwrap().record.name,
+                        self.slots.len(),
+                    ) < bucket
+                });
+                while at < self.reverse_chain.len() {
+                    let old = self.slots[self.reverse_chain[at]].entry.as_ref().unwrap();
+                    if reverse_bucket(&old.record.name, self.slots.len()) != bucket
+                        || !old.record.name.eq_ignore_ascii_case(&name)
+                    {
+                        break;
+                    }
+                    at += 1;
+                }
+                self.reverse_chain.insert(at, slot);
+            }
             self.link_head(slot);
             counters.inserted = counters.inserted.wrapping_add(1);
             if let Some(records) = &mut capture {
@@ -897,6 +957,31 @@ impl Cache {
         }
     }
 
+    /// cache_find_by_addr scans every reverse hash prefix, removes expired
+    /// reverse records, and promotes matches. It never applies round-robin.
+    pub fn lookup_reverse(&mut self, address: IpAddr, now: i64) -> Vec<EntryId> {
+        let (kind, data) = reverse_key(address);
+        let mut found = Vec::new();
+        for slot in self.reverse_chain.clone() {
+            if self
+                .policy
+                .expired(self.slots[slot].entry.as_ref().unwrap().expires, now)
+            {
+                self.remove(slot);
+            } else if self.slots[slot]
+                .entry
+                .as_ref()
+                .is_some_and(|entry| entry.record.kind == kind && entry.record.data == data)
+            {
+                self.unlink(slot);
+                self.link_head(slot);
+                found.push(self.id(slot));
+            }
+        }
+        found.reverse();
+        found
+    }
+
     fn id(&self, slot: usize) -> EntryId {
         EntryId {
             slot,
@@ -923,6 +1008,7 @@ impl Cache {
     }
 
     fn remove(&mut self, slot: usize) {
+        self.reverse_chain.retain(|&entry| entry != slot);
         let key = self.slots[slot]
             .entry
             .as_ref()
@@ -1146,11 +1232,47 @@ impl PublicationCache for Cache {
         }
     }
 
-    fn reverse_owned(&mut self, _: std::net::Ipv4Addr) -> bool {
-        // This forward-only cache does not admit upstream PTR/reverse entries.
-        // Reverse-cache ownership must be implemented with that capability.
-        false
+    fn reverse_owned(&mut self, address: std::net::Ipv4Addr) -> bool {
+        // cache_add_dhcp_entry does not apply expiry at this ownership probe.
+        self.reverse_chain.iter().any(|&slot| {
+            let entry = self.slots[slot].entry.as_ref().unwrap();
+            entry.record.kind == Kind::ReverseIpv4 && entry.record.data == address.octets()
+        })
     }
+}
+
+fn reverse_key(address: IpAddr) -> (Kind, Vec<u8>) {
+    match address {
+        IpAddr::V4(address) => (Kind::ReverseIpv4, address.octets().to_vec()),
+        IpAddr::V6(address) => (Kind::ReverseIpv6, address.octets().to_vec()),
+    }
+}
+
+/// cache.c hashes names through the first four type/name pointer rows of
+/// typestr. Pointer bytes vary with the executable and ASLR; preserve its
+/// mixing algorithm and bucket/chain invariant using this executable's rows.
+fn reverse_bucket(name: &Name, capacity: usize) -> usize {
+    let mut size = 64usize;
+    while size < capacity / 10 {
+        size *= 2;
+    }
+    let mut mixer = [0u8; 64];
+    for (index, label) in [b"A\0".as_slice(), b"NS\0", b"MD\0", b"MF\0"]
+        .iter()
+        .enumerate()
+    {
+        mixer[index * 16..index * 16 + 4].copy_from_slice(&((index + 1) as u32).to_le_bytes());
+        mixer[index * 16 + 8..index * 16 + 16]
+            .copy_from_slice(&(label.as_ptr() as u64).to_le_bytes());
+    }
+    let mut value = 0o17465u32;
+    for byte in name.dnsmasq_bytes() {
+        let byte = byte.to_ascii_lowercase();
+        value = value.rotate_left(7).wrapping_add(u32::from(
+            mixer[(value.wrapping_add(u32::from(byte)) & 63) as usize] ^ byte,
+        ));
+    }
+    ((value ^ (value >> 16)) as usize) & (size - 1)
 }
 
 fn reverse_name(address: IpAddr) -> Name {

@@ -144,6 +144,13 @@ impl CacheContext<'_> {
                 let entry = first.first().and_then(|id| self.cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
                 if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
+                    if question.rrtype == 12 {
+                        if let Some(address) =
+                            super::local::arpa_address(&question.name.dnsmasq_bytes())
+                        {
+                            self.cache.lookup_reverse(address, now);
+                        }
+                    }
                     let kind = match question.rrtype {
                         1 => Some(Kind::Ipv4),
                         28 => Some(Kind::Ipv6),
@@ -241,6 +248,46 @@ impl CacheContext<'_> {
             &ordinary_kinds
         };
         let ids = cache.lookup(&question.name, kinds, now, round_robin);
+        if question.rrtype == 12
+            && !ids.iter().any(|id| {
+                cache
+                    .get(*id)
+                    .is_some_and(|entry| entry.record.kind == Kind::Cname)
+            })
+        {
+            if let Some(address) = super::local::arpa_address(&question.name.dnsmasq_bytes()) {
+                let reverse = cache.lookup_reverse(address, now);
+                if !reverse.is_empty() {
+                    if header.flags & 0x0100 == 0 || dnssec_requested {
+                        return Ok(CachedAnswer {
+                            packet: None,
+                            stale,
+                            filtered: false,
+                        });
+                    }
+                    let mut writer =
+                        PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
+                    writer.question(&question.name, question.rrtype, question.class)?;
+                    for id in reverse {
+                        let entry = cache.get(id).expect("reverse lookup yields live entries");
+                        stale |= entry.is_stale(now);
+                        match writer.record_at(
+                            Section::Answer,
+                            12,
+                            12,
+                            1,
+                            entry.reply_ttl(now, cache.policy()),
+                            entry.record.name.as_wire(),
+                        ) {
+                            Ok(()) => {}
+                            Err(WireError::Full) => break,
+                            Err(error) => return Err(error.into()),
+                        }
+                    }
+                    return Ok(finish_cached_answer(writer, stale)?);
+                }
+            }
+        }
         if ids.is_empty() {
             // rfc1035.c uses an existing cached RR of any family/type to
             // answer filtered requests as NODATA, avoiding an upstream round
@@ -760,14 +807,56 @@ impl CacheContext<'_> {
         if question.class != 1 {
             return Ok(None);
         }
-        // Address-form PTR replies need C's separate reverse-cache index.
-        // Keep that unimplemented boundary explicit instead of storing a
-        // forward Generic(12) entry with different lookup/conflict semantics.
-        if question.qtype == 12
-            && header.rcode() != 3
-            && super::local::arpa_address(&question.name.dnsmasq_bytes()).is_some()
-        {
-            return Ok(None);
+        if question.qtype == 12 && header.rcode() != 3 {
+            if let Some(address) = super::local::arpa_address(&question.name.dnsmasq_bytes()) {
+                let (kind, data) = match address {
+                    IpAddr::V4(value) => (Kind::ReverseIpv4, value.octets().to_vec()),
+                    IpAddr::V6(value) => (Kind::ReverseIpv6, value.octets().to_vec()),
+                };
+                let mut found = false;
+                let mut position = question.end;
+                for _ in 0..header.answers {
+                    let rr = super::wire::RecordRef::parse(packet, position)?;
+                    position = rr.end;
+                    if rr.class != 1
+                        || rr.rrtype != 12
+                        || !rr.name()?.eq_ignore_ascii_case(&question.name)
+                    {
+                        continue;
+                    }
+                    found = true;
+                    // Reverse PTR extraction checks the packet boundary, not
+                    // RDLEN, when decoding the target name.
+                    let (target, _) = super::wire::decode_name(packet, rr.fixed + 10, 0)?;
+                    let ttl = if cache.policy().max_reply_ttl == 0 {
+                        u64::from(rr.ttl)
+                    } else {
+                        u64::from(rr.ttl).min(cache.policy().max_reply_ttl)
+                    };
+                    let _ = cache.insert_ttl_counted(
+                        Record {
+                            name: target,
+                            kind,
+                            negative: false,
+                            data: data.clone(),
+                        },
+                        now,
+                        ttl,
+                        counters,
+                    );
+                }
+                if found {
+                    if ordinary == OrdinaryCacheMode::Commit && header.flags & 0x0090 == 0x0080 {
+                        if capture {
+                            return Ok(cache.capture_commit_counted(counters));
+                        }
+                        cache.commit_counted(counters);
+                    }
+                    return Ok(None);
+                }
+                // CNAME and missing-PTR replies fall through to the ordinary
+                // Generic(12)/negative path; that path may link CNAME targets.
+            }
         }
         let Ok(edns) = find_pseudoheader(packet, false) else {
             return Ok(None);
@@ -1302,6 +1391,78 @@ mod tests {
     use crate::config::interface_records::InterfaceRule;
     use std::net::{IpAddr, Ipv4Addr};
     use std::sync::Arc;
+
+    #[test]
+    fn positive_reverse_ptr_extracts_by_ip_and_imports_independently_of_target_name() {
+        let owner = Name::from_ascii("17.2.0.192.in-addr.arpa").unwrap();
+        let target = Name::from_ascii("target.reverse.test").unwrap();
+        let mut writer = PacketWriter::new(1, 0x8180, 1232).unwrap();
+        writer.question(&owner, 12, 1).unwrap();
+        writer
+            .record_at(Section::Answer, 12, 12, 1, 600, target.as_wire())
+            .unwrap();
+        let reply = writer.finish();
+        let local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+        let mut child = Cache::new(8, Default::default());
+        let mut counters = CacheCounters::default();
+        let transaction = CacheContext {
+            cache: &mut child,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[],
+        }
+        .insert_reply_for_transfer(
+            &reply,
+            100,
+            &local,
+            &Default::default(),
+            0,
+            OrdinaryCacheMode::Commit,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(counters.inserted, 1);
+        assert!(!child.contains_forward_name(&target, 100));
+        let mut parent = Cache::new(8, Default::default());
+        let mut counters = CacheCounters::default();
+        let mut local = local;
+        let mut context = CacheContext {
+            cache: &mut parent,
+            counters: &mut counters,
+            negative_cache: true,
+            negative_ttl: 0,
+            filter_rr: &[12],
+        };
+        assert!(context.import_transfer(transaction, 103, &local));
+        let mut query = PacketWriter::new(2, 0x0100, 512).unwrap();
+        query.question(&owner, 12, 1).unwrap();
+        let question = super::super::forward::Question {
+            name: owner,
+            rrtype: 12,
+            class: 1,
+        };
+        let answer = context
+            .answer_udp_with_edns(
+                &query.finish(),
+                &question,
+                103,
+                &mut local,
+                1232,
+                1232,
+                true,
+            )
+            .unwrap()
+            .packet
+            .unwrap();
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(message.header.answers, 1);
+        let record = message.records(Section::Answer).next().unwrap();
+        assert_eq!(record.rrtype, 12);
+        assert_eq!(record.ttl, 597);
+        assert_eq!(record.canonical_rdata().unwrap(), target.as_wire());
+        assert_eq!(counters.inserted, 1);
+    }
 
     #[test]
     fn cached_reply_replaces_request_metadata_with_empty_opt() {

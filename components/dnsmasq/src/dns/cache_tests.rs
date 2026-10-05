@@ -871,3 +871,113 @@ fn cname_terminal_preview_does_not_expire_terminal_or_mutate_lookup_order() {
         None
     );
 }
+
+#[test]
+fn reverse_ip_rrsets_coexist_with_forward_names_and_replace_by_address() {
+    let target = Name::from_ascii("target.reverse.test").unwrap();
+    let changed = Name::from_ascii("changed.reverse.test").unwrap();
+    let address: IpAddr = "192.0.2.17".parse().unwrap();
+    let other: IpAddr = "192.0.2.18".parse().unwrap();
+    let mut cache = Cache::new(8, Policy::default());
+    cache.start_insert();
+    cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 17],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 18],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    assert!(!cache.contains_forward_name(&target, 100));
+    assert!(!cache.has_forward_candidate(&target, 1, 100));
+    assert!(cache.has_reverse_candidate(address, 100));
+    cache.start_insert();
+    cache
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::Ipv4,
+                negative: false,
+                data: vec![198, 51, 100, 7],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    assert_eq!(cache.lookup_reverse(address, 100).len(), 1);
+    assert_eq!(cache.lookup(&target, &[Kind::Ipv4], 100, false).len(), 1);
+    cache.start_insert();
+    cache
+        .insert(
+            Record {
+                name: changed.clone(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 17],
+            },
+            101,
+            30,
+        )
+        .unwrap();
+    assert!(cache.commit());
+    let id = cache.lookup_reverse(address, 101)[0];
+    assert_eq!(cache.get(id).unwrap().record.name, changed);
+    let id = cache.lookup_reverse(other, 101)[0];
+    assert_eq!(cache.get(id).unwrap().record.name, target);
+    assert_eq!(cache.lookup(&target, &[Kind::Ipv4], 101, false).len(), 1);
+}
+
+#[test]
+fn reverse_snapshot_transfer_preserves_child_and_absolute_expiry() {
+    let address: IpAddr = "2001:db8::17".parse().unwrap();
+    let target = Name::from_ascii("target.transfer.test").unwrap();
+    let mut parent = Cache::new(4, Policy::default());
+    let mut child = parent.snapshot();
+    child.start_insert();
+    child
+        .insert(
+            Record {
+                name: target.clone(),
+                kind: Kind::ReverseIpv6,
+                negative: false,
+                data: address
+                    .to_string()
+                    .parse::<std::net::Ipv6Addr>()
+                    .unwrap()
+                    .octets()
+                    .to_vec(),
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    let transfer = child
+        .capture_commit_counted(&mut CacheCounters::default())
+        .unwrap();
+    assert!(parent.lookup_reverse(address, 103).is_empty());
+    assert!(parent.import_counted(transfer, 103, &mut CacheCounters::default(), |_| None));
+    let id = parent.lookup_reverse(address, 103)[0];
+    assert_eq!(parent.get(id).unwrap().expires, 160);
+    assert_eq!(parent.get(id).unwrap().record.name, target);
+    assert_eq!(child.lookup_reverse(address, 100).len(), 1);
+    assert!(parent.lookup_reverse(address, 160).is_empty());
+    assert_eq!(child.lookup_reverse(address, 100).len(), 1);
+}
