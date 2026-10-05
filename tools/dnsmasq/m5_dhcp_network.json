@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "image": "ax3000t-stock-openwrt-25.12.5",
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "reference": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "helper.c": "70feae3213bc32bd047c20b79b3f021a6135ea66fbff21e2ba272f8d965af719",
+    "dnsmasq.h": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228"
+  },
+  "boundaries": [
+    {
+      "option": "dhcp-reply-delay",
+      "id": "syntax",
+      "source": "option.c:4398-4423",
+      "required_cases": [
+        "delay-syntax-file",
+        "delay-syntax-cli",
+        "delay-syntax-repeat"
+      ]
+    },
+    {
+      "option": "dhcp-reply-delay",
+      "id": "tag-selection",
+      "source": "rfc2131.c:3037-3057",
+      "required_cases": [
+        "delay-zero",
+        "delay-global",
+        "delay-tag-match",
+        "delay-tag-miss",
+        "delay-negated-tag",
+        "delay-tag-before-fallback",
+        "delay-range-tag",
+        "delay-tag-if"
+      ]
+    },
+    {
+      "option": "dhcp-reply-delay",
+      "id": "actual-callers",
+      "source": "rfc2131.c:1045-1047,1361;dnsmasq.c:2424-2505",
+      "required_cases": [
+        "delay-request-ack-bypass",
+        "delay-inform-bypass",
+        "delay-bootp-bypass",
+        "delay-rapid-commit",
+        "delay-proxy-offer",
+        "delay-proxy-ack",
+        "delay-dns-tftp-progress",
+        "delay-queued-dhcp-term"
+      ]
+    },
+    {
+      "option": "bridge-interface",
+      "id": "syntax-and-order",
+      "source": "option.c:3673-3706",
+      "required_cases": [
+        "bridge-syntax-file",
+        "bridge-syntax-cli",
+        "bridge-repeated-master",
+        "bridge-later-master"
+      ]
+    },
+    {
+      "option": "bridge-interface",
+      "id": "actual-ingress",
+      "source": "dhcp.c:258-365",
+      "required_cases": [
+        "bridge-exact-alias",
+        "bridge-wildcard-alias",
+        "bridge-multiple-aliases",
+        "bridge-unmatched",
+        "bridge-master-missing",
+        "bridge-master-added",
+        "bridge-interface-policy",
+        "bridge-original-reply-interface",
+        "bridge-helper-effective-interface"
+      ]
+    },
+    {
+      "option": "dhcp-proxy",
+      "id": "syntax-and-selection",
+      "source": "option.c:4705-4716;rfc2131.c:855-875",
+      "required_cases": [
+        "proxy-syntax-file",
+        "proxy-syntax-cli",
+        "proxy-all-relays",
+        "proxy-address-match",
+        "proxy-address-miss",
+        "proxy-multiple-addresses",
+        "proxy-repeat-then-bare"
+      ]
+    },
+    {
+      "option": "dhcp-proxy",
+      "id": "actual-server-id",
+      "source": "rfc2131.c:1238-1280,1383,1403,1575,1743,1798",
+      "required_cases": [
+        "proxy-direct-no-override",
+        "proxy-agent-override-wins",
+        "proxy-agent-zero",
+        "proxy-offer-ack",
+        "proxy-inform",
+        "proxy-relay-source-extension"
+      ]
+    },
+    {
+      "option": "shared-network",
+      "id": "syntax-and-index",
+      "source": "option.c:3709-3753",
+      "required_cases": [
+        "shared-syntax-address",
+        "shared-syntax-interface",
+        "shared-syntax-cli",
+        "shared-interface-index-fixed"
+      ]
+    },
+    {
+      "option": "shared-network",
+      "id": "local-completion",
+      "source": "dhcp.c:593-663",
+      "required_cases": [
+        "shared-local-address",
+        "shared-local-interface",
+        "shared-unmatched",
+        "shared-no-default-router",
+        "shared-explicit-router",
+        "shared-broadcast",
+        "shared-duplicate-link",
+        "shared-context-order",
+        "shared-secondary-enumeration"
+      ]
+    },
+    {
+      "option": "shared-network",
+      "id": "remote-reselection",
+      "source": "rfc2131.c:280-397",
+      "required_cases": [
+        "shared-relay-address",
+        "shared-relay-subnet-selector",
+        "shared-interface-not-relay",
+        "shared-direct-renewal"
+      ]
+    }
+  ],
+  "deferred": [
+    "integer-overflow delay arithmetic",
+    "malformed relay/header combinations",
+    "allocator fault combinations"
+  ],
+  "normalization": "DHCP XID is fixture-fixed; epoch expiry and randomized timers are validated and excluded. All remaining DHCP header/options, context order, helper argv, routing interface and required log lines are compared. Delay intervals use actual receive time and C whole-second/quarter-poll bounds; counters never qualify a missing service caller."
+}
