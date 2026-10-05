@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "option": "dns-loop-detect",
+  "scope": "ordinary complete source callers; extreme input combinations tracked separately and excluded from this closure gate",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source_reference": "exact image matching dnsmasq2.93",
+  "source_files": {
+    "loop.c": "6068fc081ef4f46fad23bdbe3337697bdc873e5d0a7ee8b7fd2ba1862af7a7a1",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "domain-match.c": "66356136ffe0920fca4fa7dcad579727c7d8d1ec6e799597bfda2e1a63fe9606",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed"
+  },
+  "boundaries": [
+    {
+      "id": "PARSE",
+      "source": "option.c:387,598",
+      "contract": "plain/repeated no-argument boolean and rejected argument",
+      "required_cases": [
+        "flag-plain",
+        "flag-repeat",
+        "flag-argument"
+      ]
+    },
+    {
+      "id": "GATE",
+      "source": "loop.c:29-30;dnsmasq.c:1091",
+      "contract": "disabled detection and DNS-disabled owner",
+      "required_cases": [
+        "disabled",
+        "disabled-hup",
+        "dns-off-concurrent"
+      ]
+    },
+    {
+      "id": "WIRE",
+      "source": "loop.c:54-80",
+      "contract": "exact31-byte TXT/IN/RD probe on both address families; no query state or metrics",
+      "required_cases": [
+        "healthy",
+        "healthy-v6",
+        "healthy-mixed",
+        "healthy-hup"
+      ]
+    },
+    {
+      "id": "ELIGIBILITY",
+      "source": "loop.c:35-39;network.c:1564-1615",
+      "contract": "only empty-domain non-dotless probes; sending precedes zero/local/bind rejection",
+      "required_cases": [
+        "domain-only",
+        "domain-v6",
+        "dotless-only",
+        "wildcard-domain",
+        "wildcard-any",
+        "explicit-default",
+        "mixed-global-domain",
+        "duplicate-global",
+        "zero-server",
+        "local-server"
+      ]
+    },
+    {
+      "id": "DETECT",
+      "source": "loop.c:84-111;forward.c:1800-1877;rfc1035.c:1302-1346",
+      "contract": "extract_request caller gates; type/name/hex/uid/current-state matching independent of client class/RD/DO; duplicate disabled probe is ordinary",
+      "required_cases": [
+        "returned",
+        "returned-hup",
+        "wrong-type",
+        "wrong-uid",
+        "wrong-suffix",
+        "wrong-length",
+        "wrong-hex",
+        "upper-uid",
+        "upper-suffix",
+        "no-rd",
+        "cd",
+        "ad",
+        "do",
+        "class-any",
+        "class-ch",
+        "opcode-other",
+        "nonzero-answer",
+        "qr-response",
+        "truncated",
+        "multi-question",
+        "duplicate-return",
+        "non-dot-separator"
+      ]
+    },
+    {
+      "id": "TCP",
+      "source": "forward.c:2418-2560",
+      "contract": "TCP never invokes detect_loop; accepted child routing snapshot and new parent routing differ",
+      "required_cases": [
+        "returned-tcp",
+        "tcp-before-disable",
+        "tcp-after-disable"
+      ]
+    },
+    {
+      "id": "SERVER-FILE",
+      "source": "option.c:5848-5862;dnsmasq.c:1579-1593;domain-match.c:716-762",
+      "contract": "successful source read checks internally plus init/reload outer check; failed open only outer; successful row reuse regenerates uid",
+      "required_cases": [
+        "file-init-success",
+        "file-init-missing",
+        "file-init-empty",
+        "file-init-partial",
+        "file-hup-success",
+        "file-hup-missing",
+        "file-hup-delete",
+        "file-hup-same-uid",
+        "file-hup-changed",
+        "file-stale-probe",
+        "file-repeated-hup"
+      ]
+    },
+    {
+      "id": "RESOLVER",
+      "source": "dnsmasq.c:1579-1593,1758-1825;network.c:1700",
+      "contract": "poll success checks once; empty/delete retry rules; no-poll reads on init/HUP plus one check; no-resolv excludes resolver caller",
+      "required_cases": [
+        "resolv-poll-init",
+        "resolv-poll-change",
+        "resolv-poll-empty-recovery",
+        "resolv-poll-delete",
+        "resolv-poll-hup",
+        "resolv-no-poll-init",
+        "resolv-no-poll-change",
+        "resolv-no-poll-empty",
+        "resolv-no-poll-missing",
+        "no-resolv-hup"
+      ]
+    },
+    {
+      "id": "ALLOCATOR",
+      "source": "forward.c:2861-3040;loop.c:31-48",
+      "contract": "batch borrows ordinary source allocator, port-limit rotation and one-port pool; fixed-port initial preallocated bind versus later sfd use",
+      "required_cases": [
+        "fixed-port",
+        "returned-fixed-port",
+        "fixed-port-recheck",
+        "source-port",
+        "source-port-recheck",
+        "port-limit1",
+        "port-limit2",
+        "port-limit3",
+        "one-port",
+        "mixed-source-parameters",
+        "active-forward-recheck",
+        "active-forward-detect"
+      ]
+    },
+    {
+      "id": "FAILURE",
+      "source": "loop.c:40-46;network.c:1570-1614;forward.c:2925-3026",
+      "contract": "send/allocation/bind errors leave owner live, clear old loop flag on recheck and release refs",
+      "required_cases": [
+        "blocked-port-initial",
+        "blocked-port-recheck",
+        "source-bind-busy",
+        "source-interface-missing"
+      ]
+    },
+    {
+      "id": "LIFETIME",
+      "source": "forward.c:3030-3068;loop.c:48",
+      "contract": "references released after full batch; active request refs preserved, unused/random ports reusable and stop clears owners",
+      "required_cases": [
+        "repeated-check-fds",
+        "probe-port-released",
+        "stop-active"
+      ]
+    },
+    {
+      "id": "OBSERVATION",
+      "source": "forward.c:1791-1877",
+      "contract": "incoming loop query dumped before detection but valid return has no ordinary request/forward logging; probes are not outgoing query dumps",
+      "required_cases": [
+        "query-log-return",
+        "dump-return"
+      ]
+    },
+    {
+      "id": "CONCURRENT",
+      "source": "dnsmasq.c:1101-owner-loop;loop.c:31-48",
+      "contract": "DNS progress, DHCP ACK and TFTP transfer remain live during source checks/probe allocation; one product owner",
+      "required_cases": [
+        "dns-dhcp-tftp",
+        "active-recheck-dhcp-tftp",
+        "disabled-dns-dhcp-tftp"
+      ]
+    }
+  ],
+  "deferred_extreme_cases": [],
+  "required_count": 90
+}
