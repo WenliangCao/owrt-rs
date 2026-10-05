@@ -412,6 +412,7 @@ pub(crate) fn ordinary_cache_query(packet: &[u8]) -> bool {
             && header.answers == 0
             && header.authorities == 0
             && header.opcode() == 0
+            && header.flags & 0x8000 == 0
     }) && find_pseudoheader(packet, true).is_ok()
 }
 
