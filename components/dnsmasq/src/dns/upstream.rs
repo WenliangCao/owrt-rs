@@ -1247,7 +1247,13 @@ impl<R: Random> UpstreamResolver<R> {
                         .get(id)
                         .expect("sent query remains pending");
                     let mut context = pending.query_context();
-                    if !include_client {
+                    // forward.c:472,556: a stale-cache refresh has udpfd=-1
+                    // and no client prefix, while retaining its display ID.
+                    if !include_client
+                        || pending.recipients.first().is_some_and(|recipient| {
+                            !recipient.client.reply_requested
+                        })
+                    {
                         context.client = None;
                     }
 
@@ -2882,6 +2888,18 @@ mod tests {
         }
         assert!(transport.take_query_events().is_empty());
         assert_eq!(transport.pending_count(), 0);
+
+        let mut background = client();
+        background.reply_requested = false;
+        background.log_id = 93;
+        let submission = transport
+            .start_udp(&query(), background, GroupId(1), Scope::Shared)
+            .unwrap();
+        let notices = transport.take_query_events();
+        assert_eq!(notices.len(), 1);
+        assert_eq!(notices[0].0.display_id, 93);
+        assert_eq!(notices[0].0.client, None);
+        assert!(transport.cancel(submission.id));
     }
 
     #[test]
