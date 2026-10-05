@@ -464,9 +464,10 @@ impl Logger {
             bytes.extend_from_slice(&timestamp[4..19]);
             bytes.push(b' ');
         }
-        bytes.extend_from_slice(
-            format!("{PROGRAM}{}[{}]: ", service.suffix(), std::process::id()).as_bytes(),
-        );
+        // libc openlog keeps one program identifier after log.c falls back;
+        // subsystem suffixes still apply to its separate debug echo only.
+        let suffix = if self.fallback { "" } else { service.suffix() };
+        bytes.extend_from_slice(format!("{PROGRAM}{suffix}[{}]: ", std::process::id()).as_bytes());
         let terminators = 1 + usize::from(self.fallback);
         bytes.extend_from_slice(
             &message[..message
