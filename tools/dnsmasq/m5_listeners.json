@@ -212,6 +212,15 @@
     },
     {
       "actions": [],
+      "config": "interface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "wildcard",
+      "name": "tftp-only-wildcard",
+      "port": 0,
+      "profile": "tftp-only",
+      "tftp": true
+    },
+    {
+      "actions": [],
       "config": "bind-interfaces\n",
       "mode": "static",
       "name": "ordinary-static",
@@ -418,6 +427,15 @@
       "mode": "static",
       "name": "tftp-single-scope-static",
       "profile": "tftp-single-scope",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "static",
+      "name": "tftp-only-static",
+      "port": 0,
+      "profile": "tftp-only",
       "tftp": true
     },
     {
@@ -631,6 +649,15 @@
       "tftp": true
     },
     {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "tftp-only-dynamic",
+      "port": 0,
+      "profile": "tftp-only",
+      "tftp": true
+    },
+    {
       "actions": [
         "dad"
       ],
@@ -683,6 +710,18 @@
       "mode": "static",
       "name": "tftp-dad-static",
       "profile": "tftp-dad",
+      "tftp": true
+    },
+    {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-interfaces\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\nuser=nobody\ngroup=nogroup\n",
+      "dad": true,
+      "mode": "static",
+      "name": "tftp-dad-low-port-static",
+      "port": 0,
+      "profile": "tftp-dad-low-port",
       "tftp": true
     },
     {
@@ -772,6 +811,18 @@
       "tftp": true
     },
     {
+      "actions": [
+        "dad"
+      ],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\nuser=nobody\ngroup=nogroup\n",
+      "dad": true,
+      "mode": "dynamic",
+      "name": "tftp-dad-low-port-dynamic",
+      "port": 0,
+      "profile": "tftp-dad-low-port",
+      "tftp": true
+    },
+    {
       "actions": [],
       "config": "bind-dynamic\nlisten-address=192.0.2.111\n",
       "mode": "dynamic",
@@ -853,6 +904,30 @@
       "mode": "static",
       "name": "conflicting-modes-static",
       "profile": "conflicting-modes"
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "runtime-shared-tftp-dynamic",
+      "profile": "runtime-shared-tftp",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "runtime-shared-dns-both-dynamic",
+      "profile": "runtime-shared-dns-both",
+      "tftp": true
+    },
+    {
+      "actions": [],
+      "config": "bind-dynamic\ninterface=lan\nenable-tftp\ntftp-root=/m2/tftp\n",
+      "mode": "dynamic",
+      "name": "runtime-shared-all-dynamic",
+      "profile": "runtime-shared-all",
+      "tftp": true
     },
     {
       "actions": [],
@@ -1052,6 +1127,7 @@
     "tftp-alias-wildcard",
     "tftp-change-wildcard",
     "tftp-single-scope-wildcard",
+    "tftp-only-wildcard",
     "ordinary-static",
     "interface-static",
     "union-static",
@@ -1080,6 +1156,7 @@
     "tftp-alias-static",
     "tftp-change-static",
     "tftp-single-scope-static",
+    "tftp-only-static",
     "ordinary-dynamic",
     "interface-dynamic",
     "union-dynamic",
@@ -1108,11 +1185,13 @@
     "tftp-alias-dynamic",
     "tftp-change-dynamic",
     "tftp-single-scope-dynamic",
+    "tftp-only-dynamic",
     "dad-static",
     "dad-explicit-static",
     "dad-failed-static",
     "dad-low-port-static",
     "tftp-dad-static",
+    "tftp-dad-low-port-static",
     "missing-address-static",
     "occupied-udp-static",
     "occupied-tcp-static",
@@ -1122,6 +1201,7 @@
     "dad-failed-dynamic",
     "dad-low-port-dynamic",
     "tftp-dad-dynamic",
+    "tftp-dad-low-port-dynamic",
     "missing-address-dynamic",
     "occupied-udp-dynamic",
     "occupied-tcp-dynamic",
@@ -1132,6 +1212,9 @@
     "runtime-occupied-udp-dynamic",
     "runtime-occupied-tcp-dynamic",
     "conflicting-modes-static",
+    "runtime-shared-tftp-dynamic",
+    "runtime-shared-dns-both-dynamic",
+    "runtime-shared-all-dynamic",
     "relay-wildcard",
     "relay-union-wildcard",
     "relay-except-wildcard",
@@ -1226,7 +1309,8 @@
       "boundary": "Static pending-DAD and dynamic binding preserve CAP_NET_BIND_SERVICE for low DNS/TFTP ports after UID change.",
       "id": "dad-capabilities",
       "profiles": [
-        "dad-low-port"
+        "dad-low-port",
+        "tftp-dad-low-port"
       ],
       "source": "dnsmasq.c:500-510"
     },
@@ -1253,11 +1337,14 @@
       "source": "dnsmasq.c:369-389; network.c:894-966"
     },
     {
-      "boundary": "Noninitial failed UDP/TCP/TFTP creation may retain the successful transports and must preserve service/cleanup on release.",
+      "boundary": "A successful UDP, TCP or TFTP transport sets iface->done for all three. Missing transports do not reappear when blockers are released. If all three fail, a later interface event retries the whole group.",
       "id": "partial-dynamic-listener",
       "profiles": [
         "runtime-occupied-udp",
-        "runtime-occupied-tcp"
+        "runtime-occupied-tcp",
+        "runtime-shared-tftp",
+        "runtime-shared-dns-both",
+        "runtime-shared-all"
       ],
       "source": "network.c:1087-1133,1184-1200"
     },
@@ -1290,7 +1377,8 @@
         "tftp-except",
         "tftp-no-dhcp",
         "tftp-no-v4",
-        "tftp-alias"
+        "tftp-alias",
+        "tftp-only"
       ],
       "source": "network.c:535-562; tftp.c:198-233"
     },
