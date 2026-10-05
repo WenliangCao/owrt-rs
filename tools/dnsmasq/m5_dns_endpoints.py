@@ -66,6 +66,30 @@ def syntax_cases():
             add(option+'-'+(value or 'empty'),option+'='+value+'\n','PORT-01')
     add('range-inverted','min-port=34003\nmax-port=34001\n','PORT-01')
     add('range-limit-overflow','min-port=34001\nmax-port=34002\nport-limit=3\n','PORT-01')
+    for directive in ('server','local'):
+        for label, value in [
+            ('empty',''),('hash','#'),('quoted','"/quoted.endpoint.test/127.0.0.2"'),
+            ('hidden-hash','"127.0.0.2#53"'),('hidden-at','"127.0.0.2@lo"'),
+            ('hidden-percent','"::1%lo"'),('interface15','127.0.0.2@abcdefghijklmno'),
+            ('interface16','127.0.0.2@abcdefghijklmnop'),
+            ('interface-long','127.0.0.2@abcdefghijklmnopqrstuvwxyz'),
+            ('name-case','V4.ENDPOINT.TEST'),('name-dot','v4.endpoint.test.'),
+            ('name-invalid','bad..endpoint.test'),('name-nonascii','é.endpoint.test')]:
+            add(directive+'-'+label,directive+'='+value+'\n','GRAM-01 GRAM-02 NAME-01 NAME-03')
+    for label, value in [
+        ('v4-empty-prefix','192.0.2.7/,127.0.0.2'),('v4-text-prefix','192.0.2.7/text,127.0.0.2'),
+        ('v4-wide-prefix','192.0.2.7/33,127.0.0.2'),('v4-negative-prefix','192.0.2.7/-1,127.0.0.2'),
+        ('v6-empty-prefix','2001:db8::7/,::1'),('v6-text-prefix','2001:db8::7/text,::1'),
+        ('v6-wide-prefix','2001:db8::7/129,::1'),('v6-negative-prefix','2001:db8::7/-1,::1'),
+        ('bad-address','bad/24,127.0.0.2'),('empty-address','/24,127.0.0.2'),
+        ('v4-no-prefix','192.0.2.7,127.0.0.2'),('v6-no-prefix','2001:db8::7,::1')]:
+        add('rev-'+label,'rev-server='+value+'\n','REV-01')
+    for option in ('query-port','min-port','max-port','port-limit'):
+        for value in ('2','1024','18446744073709551615'):
+            add(option+'-'+value,option+'='+value+'\n','PORT-01')
+        add(option+'-repeat-file',option+'=34001\n'+option+'=34002\n','PORT-01')
+        add(option+'-repeat-cli','', 'PORT-01',argv=['--'+option+'=34001','--'+option+'=34002'])
+        add(option+'-cli-file',option+'=34002\n','PORT-01',argv=['--'+option+'=34001'])
     return cases
 
 
@@ -80,7 +104,7 @@ def run_syntax(root, side, case, out):
     (out/'config').write_text(text);(root/'m2/endpoints.conf').write_text(text)
     (root/'etc/hosts').write_text(HOSTS)
     with (out/'stdout').open('wb') as stdout,(out/'stderr').open('wb') as stderr:
-        process=subprocess.Popen(command(root,side,'--test','-C','/m2/endpoints.conf'),stdout=stdout,stderr=stderr)
+        process=subprocess.Popen(command(root,side,*case.get('argv',[]),'--test','-C','/m2/endpoints.conf'),stdout=stdout,stderr=stderr)
         try:process.wait(timeout=5)
         except subprocess.TimeoutExpired:process.kill();process.wait();raise AssertionError('syntax process exceeded deadline')
     row={'exit':process.returncode,'stdout':(out/'stdout').read_text(),'stderr':(out/'stderr').read_text()}
