@@ -10,6 +10,7 @@ pub mod dhcp_relay;
 pub mod dns;
 pub mod edns;
 pub mod interface_records;
+pub mod synth_domain;
 pub mod ethers;
 pub mod logging;
 #[cfg(unix)]
