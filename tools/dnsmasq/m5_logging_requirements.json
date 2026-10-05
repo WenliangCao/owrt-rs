@@ -118,7 +118,8 @@
             "file-owner-normal",
             "file-owner-debug",
             "file-existing-group-owner",
-            "startup-fault-log-chown"
+            "startup-fault-log-chown",
+            "file-owner-warning-opaque-path"
           ]
         },
         {
