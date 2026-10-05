@@ -894,6 +894,84 @@ mod tests {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
+    #[ignore = "requires an isolated Linux network namespace with CAP_NET_ADMIN"]
+    fn device_binding_linux_sockets_retry_and_relay_gate() {
+        use std::os::fd::AsRawFd;
+        assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"));
+        fn ip(args: &[&str]) {
+            assert!(std::process::Command::new("ip")
+                .args(args)
+                .status()
+                .unwrap()
+                .success());
+        }
+        fn bound_device(socket: &crate::net::DatagramSocket) -> Vec<u8> {
+            extern "C" {
+                fn getsockopt(
+                    fd: i32,
+                    level: i32,
+                    option: i32,
+                    value: *mut u8,
+                    len: *mut u32,
+                ) -> i32;
+            }
+            let mut name = [0u8; 16];
+            let mut len = name.len() as u32;
+            // SAFETY: SO_BINDTODEVICE writes at most len initialized bytes;
+            // both output buffers and the live socket fd span the call.
+            assert_eq!(
+                unsafe { getsockopt(socket.as_raw_fd(), 1, 25, name.as_mut_ptr(), &mut len) },
+                0
+            );
+            name[..name
+                .iter()
+                .position(|byte| *byte == 0)
+                .unwrap_or(name.len())]
+                .to_vec()
+        }
+        let device = b"m5-bind";
+        ip(&["link", "add", "m5-bind", "type", "dummy"]);
+        let mut listener =
+            SocketListener::bind("127.0.0.1:0".parse().unwrap(), Listener::Dhcp, &[]).unwrap();
+        listener.configure_pxe(true, &[], false).unwrap();
+        assert!(listener
+            .configure_device_binding(Some(device.to_vec()), true)
+            .unwrap());
+        assert_eq!(bound_device(&listener.socket), device);
+        assert_eq!(bound_device(listener.pxe_socket.as_ref().unwrap()), device);
+        listener.set_logging(false);
+        ip(&["link", "del", "m5-bind"]);
+        listener.retry_device_binding();
+        listener.retry_device_binding();
+        let notices = listener.take_network_notices();
+        assert_eq!(notices.len(), 1);
+        assert_eq!(notices[0].service, crate::logging::Service::Dns);
+        assert_eq!(notices[0].priority, crate::logging::Priority::Error);
+        assert_eq!(
+            notices[0].message,
+            b"error binding DHCP socket to device m5-bind"
+        );
+        assert_eq!(listener.bound_device_notice(), Some(device.as_slice()));
+        ip(&["link", "add", "m5-bind", "type", "dummy"]);
+        listener.retry_device_binding();
+        assert_eq!(bound_device(&listener.socket), device);
+        assert_eq!(bound_device(listener.pxe_socket.as_ref().unwrap()), device);
+        assert!(listener.take_network_notices().is_empty());
+        drop(listener);
+
+        let mut relay =
+            SocketListener::bind("127.0.0.1:0".parse().unwrap(), Listener::Dhcp, &[]).unwrap();
+        relay.configure_pxe(true, &[], false).unwrap();
+        assert!(relay
+            .configure_device_binding(Some(device.to_vec()), false)
+            .unwrap());
+        assert!(bound_device(&relay.socket).is_empty());
+        assert_eq!(bound_device(relay.pxe_socket.as_ref().unwrap()), device);
+        ip(&["link", "del", "m5-bind"]);
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
     fn transient_send_is_deferred_without_an_inner_retry_loop() {
         use super::super::runtime::{DatagramSender, Destination, DestinationKind};
         struct Blocked(usize);
