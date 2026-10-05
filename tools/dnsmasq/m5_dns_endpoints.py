@@ -723,6 +723,10 @@ def controls():
     tests['port-limit-mutation']=bool(source_guard_errors(sample,{'udp_unique_ports':2}))
     missing=copy.deepcopy(sample);missing['source_events']=[]
     tests['missing-expanded-endpoint']=bool(source_guard_errors(missing,{'actions':[{'op':'query'}]}))
+    diagnostic=dict(sample,file_diagnostics=['bad interface name at line 1 of /m2/files/servers'])
+    assert not source_guard_errors(diagnostic,{'diagnostics':True})
+    diagnostic['file_diagnostics']=[]
+    tests['missing-file-diagnostic']=bool(source_guard_errors(diagnostic,{'diagnostics':True}))
     assert all(tests.values()),tests
     return tests
 
