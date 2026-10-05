@@ -106,6 +106,7 @@ def profiles():
         dict(case='stop-pending-dump', pending_dump=True, stop_pending=True, extra='add-mac\n'),
         dict(case='positive-record-enomem', allocation='positive', extra='add-mac\n'),
         dict(case='negative-record-enomem', allocation='negative', extra='add-mac\n'),
+        dict(case='stop-buffered-script-finishes', delay=True, stop_buffered=True),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -457,6 +458,35 @@ def allocation_contract(args, root, pid, folder, upstream, record):
             tracer.wait()
 
 
+def buffered_stop_contract(root, process, pid, folder, owned):
+    assert (root / 'm2/arp-delay-started').exists() and not (root / 'm2/arp-finished').read_bytes(), 'actual running callback before TERM'
+    start = time.monotonic()
+    cleanup = stop_daemon(process, pid)
+    elapsed = time.monotonic() - start
+    save(folder / 'parent-term.json', dict(cleanup=cleanup, elapsed=elapsed))
+    assert cleanup['exit'] == 0 and not cleanup['forced'] and elapsed < 1, 'parent waited for its running ARP script'
+    assert not (root / 'm2/arp-finished').read_bytes(), 'script finished before parent exit'
+    deadline = time.monotonic() + 3
+    while not (root / 'm2/arp-finished').read_bytes() and time.monotonic() < deadline:
+        time.sleep(.02)
+    finished = (root / 'm2/arp-finished').read_bytes()
+    (folder / 'finished-after-parent.raw').write_bytes(finished)
+    assert finished.startswith(b'arp-add|'), 'already delivered script was lost on TERM'
+    helper_statuses = []
+    for child in owned:
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            ended, status = os.waitpid(child['pid'], os.WNOHANG)
+            if ended:
+                helper_statuses.append(os.waitstatus_to_exitcode(status))
+                break
+            time.sleep(.02)
+        else:
+            raise AssertionError('helper survived its command EOF')
+    assert helper_statuses == [0], 'helper EOF exit'
+    return dict(case='stop-buffered-script-finishes', parent_exited_before_script=True, helper_statuses=helper_statuses)
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -635,7 +665,7 @@ def run_side(args):
                     assert call[0] == '3' and call[1] == 'arp-add', 'ARP argv/action'
                     assert call[4] == str(spec.get('helper_uid', 0)), 'actual helper UID'
                     assert call[6:] == ['inherited-iface', 'inherited-id'], 'inherited environment'
-                if spec.get('delay'):
+                if spec.get('delay') and not spec.get('stop_buffered'):
                     assert (root / 'm2/arp-delay-started').exists() and not (root / 'm2/arp-finished').read_bytes(), 'slow script is actually active'
                     replies = [health() for _ in range(10)]
                     save(folder / 'health-during-script.json', replies)
@@ -726,6 +756,8 @@ def run_side(args):
                     rows.append(dict(case=label, callbacks=[], reference_difference='c-no-done-owner-stall', **pending))
                 elif spec.get('allocation'):
                     rows.append(dict(case=label, **allocation_contract(args, root, pid, folder, upstream, spec['allocation'])))
+                elif spec.get('stop_buffered'):
+                    rows.append(buffered_stop_contract(root, process, pid, folder, owned))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
