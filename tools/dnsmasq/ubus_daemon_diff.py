@@ -469,8 +469,6 @@ class FrameProxy:
                             first.setblocking(False)
                             self.peers[first] = second
                             self.queues[first] = bytearray()
-                        if self.daemon_backend is None:
-                            self.daemon_backend = backend
                         continue
                     data = sock.recv(65536)
                     if not data:
@@ -482,6 +480,11 @@ class FrameProxy:
                         peer.close()
                         continue
                     target = self.peers[sock]
+                    # wait_registered may open a lookup client before the
+                    # product connects. Identify its actual ADD_OBJECT frame,
+                    # rather than guessing from connection arrival order.
+                    if self.daemon_backend is None and len(data) >= 2 and data[1] == 6:
+                        self.daemon_backend = target
                     if sock is self.daemon_backend and self.split is not None:
                         self.buffer.extend(data)
                         if self.held.is_set():
