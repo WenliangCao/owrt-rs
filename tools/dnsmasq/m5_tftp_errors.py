@@ -47,7 +47,7 @@ def cases():
 
 def expected(item):
     prefix=None if item.get('no_root') else ROOT+('/iface' if item.get('interface_root') else '')
-    path=item['filename'] if prefix is None else prefix.encode()+b'/'+item['filename']
+    path=b'/'+item['filename'] if prefix is None else prefix.encode()+b'/'+item['filename']
     path=path[:503]
     path=bytes(byte for byte in path if 0x20<=byte<=0x7e)
     code=item.get('code',1)
@@ -90,7 +90,7 @@ def side(args):
         (root/'m2/error.conf').write_text(config);(out/'config').write_text(config)
         try:
             with (out/'stderr').open('w') as stderr,(out/'stdout').open('w') as stdout:
-                process=subprocess.Popen(command(root,args.side,'-d','-C','/m2/error.conf'),stderr=stderr,stdout=stdout,start_new_session=True)
+                process=subprocess.Popen(command(root,args.side,'-k' if item.get('user') else '-d','-C','/m2/error.conf'),stderr=stderr,stdout=stdout,start_new_session=True)
                 time.sleep(.15)
                 assert process.poll() is None,'startup failed'
                 save(out/'identity.json',process_identity(root,process.pid))
