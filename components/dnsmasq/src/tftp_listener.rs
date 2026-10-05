@@ -157,6 +157,11 @@ impl<O: FileOpener> TftpListener<O> {
             .as_ref()
             .is_some_and(|policy| policy.config.unique_root_mac)
     }
+    pub fn quiet_not_found(&self) -> bool {
+        self.policy
+            .as_ref()
+            .is_some_and(|policy| policy.config.quiet)
+    }
     /// The owner queries this before dropping privileges. Only static DAD
     /// and dynamic listeners can need a later privileged TFTP bind.
     pub fn needs_privileged_rebind(&self) -> bool {
