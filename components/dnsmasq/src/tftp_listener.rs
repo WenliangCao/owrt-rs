@@ -153,6 +153,13 @@ impl<O: FileOpener> TftpListener<O> {
             .as_ref()
             .map_or_else(|| Ok(Vec::new()), |policy| policy.config.validate_roots())
     }
+    pub fn root_accesses(
+        &self,
+    ) -> Result<Vec<crate::config::tftp::RootWarning>, crate::config::tftp::RootAccessError> {
+        self.policy
+            .as_ref()
+            .map_or_else(|| Ok(Vec::new()), |policy| policy.config.root_accesses())
+    }
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
         self.servers
             .first()

@@ -6,6 +6,38 @@
 use super::{validate_directive, Directive, EncodedArg, Error};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RootWarning {
+    pub path: Vec<u8>,
+    pub interface: bool,
+}
+
+#[derive(Debug)]
+pub struct RootAccessError {
+    pub path: Vec<u8>,
+    pub error: std::io::Error,
+}
+
+impl std::fmt::Display for RootAccessError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        #[cfg(target_os = "linux")]
+        let error_text = crate::logging::error_text(&self.error);
+        #[cfg(not(target_os = "linux"))]
+        let error_text = self.error.to_string();
+        write!(
+            formatter,
+            "TFTP directory {} inaccessible: {}",
+            String::from_utf8_lossy(&self.path),
+            error_text
+        )
+    }
+}
+impl std::error::Error for RootAccessError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.error)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TftpRoot {
     /// `None` represents C's empty `tftp-root` string, which is accepted and
     /// stored as a null pointer by `opt_string_alloc`.
@@ -239,21 +271,36 @@ impl TftpConfig {
     /// Returns inaccessible roots only when --tftp-no-fail permits startup.
     #[cfg(unix)]
     pub fn validate_roots(&self) -> std::io::Result<Vec<Vec<u8>>> {
+        self.root_accesses()
+            .map(|warnings| warnings.into_iter().map(|warning| warning.path).collect())
+            .map_err(|error| error.error)
+    }
+
+    /// Retain path identity for fatal_event and the two distinct startup
+    /// warnings. Checks still occur after the selected process identity drop.
+    #[cfg(unix)]
+    pub fn root_accesses(&self) -> Result<Vec<RootWarning>, RootAccessError> {
         use std::os::unix::ffi::OsStrExt;
         let mut warnings = Vec::new();
         if !self.enabled {
             return Ok(warnings);
         }
-        for root in self.root.iter().chain(
+        for (root, interface) in self.root.iter().map(|root| (root, false)).chain(
             self.interface_roots
                 .iter()
-                .filter_map(|entry| entry.path.as_ref()),
+                .filter_map(|entry| entry.path.as_ref().map(|root| (root, true))),
         ) {
             if let Err(error) = std::fs::read_dir(std::ffi::OsStr::from_bytes(root)) {
                 if !self.no_fail {
-                    return Err(error);
+                    return Err(RootAccessError {
+                        path: root.clone(),
+                        error,
+                    });
                 }
-                warnings.push(root.clone());
+                warnings.push(RootWarning {
+                    path: root.clone(),
+                    interface,
+                });
             }
         }
         Ok(warnings)
@@ -394,12 +441,35 @@ mod tests {
             config.validate_roots().unwrap_err().kind(),
             std::io::ErrorKind::NotFound
         );
+        assert_eq!(
+            config.root_accesses().unwrap_err().path,
+            config.root.clone().unwrap()
+        );
         config.no_fail = true;
         assert_eq!(
             config.validate_roots().unwrap(),
             vec![config.root.clone().unwrap()]
         );
+        let interface_root = path.join("interface-missing");
+        config.interface_roots.push(TftpRoot {
+            path: Some(interface_root.as_os_str().as_bytes().to_vec()),
+            interface: Some(b"lo".to_vec()),
+        });
+        assert_eq!(
+            config.root_accesses().unwrap(),
+            vec![
+                RootWarning {
+                    path: config.root.clone().unwrap(),
+                    interface: false
+                },
+                RootWarning {
+                    path: interface_root.as_os_str().as_bytes().to_vec(),
+                    interface: true
+                },
+            ]
+        );
         std::fs::create_dir(&missing).unwrap();
+        std::fs::create_dir(&interface_root).unwrap();
         assert!(config.validate_roots().unwrap().is_empty());
         std::fs::remove_dir_all(path).unwrap();
     }
