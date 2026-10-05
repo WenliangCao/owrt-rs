@@ -76,7 +76,9 @@ def profiles():
         dict(case='argv-and-inherited-env'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
-        rows.append(dict(case='state-' + state, state=state, no_events=state in ['noarp', 'incomplete', 'failed']))
+        # The real kernel removes LLADDR when NUD_NONE is requested. The
+        # separate raw state-none-with-hardware case covers that C predicate.
+        rows.append(dict(case='state-' + state, state=state, no_events=state in ['none', 'noarp', 'incomplete', 'failed']))
     return rows
 
 

@@ -89,7 +89,8 @@
         "state-none",
         "state-noarp",
         "state-incomplete",
-        "state-failed"
+        "state-failed",
+        "state-none-with-hardware"
       ]
     },
     {
