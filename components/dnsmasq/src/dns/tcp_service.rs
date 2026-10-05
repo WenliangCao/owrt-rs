@@ -104,13 +104,13 @@ impl TcpDnsService {
                 ));
         }
     }
-    fn query_reply_notices(&mut self, packet: &[u8]) {
+    fn query_reply_notices(&mut self, query: &[u8], packet: &[u8]) {
         if !self.query_logging {
             return;
         }
         use crate::query_logging::{self as qlog, QueryData, QueryEvent};
         if let Some(server) = self.upstream.take_reply_server() {
-            if let Ok(question) = super::forward::Question::parse(packet) {
+            if let Ok(question) = super::forward::Question::parse(query) {
                 let mut event = QueryEvent::address(
                     qlog::SERVER,
                     &question.name.dnsmasq_bytes(),
@@ -355,7 +355,7 @@ impl TcpDnsService {
                 Ok(TcpServiceProgress::Pending(wait))
             }
             Ok(TcpProgress::Complete(reply)) => {
-                self.query_reply_notices(&reply);
+                self.query_reply_notices(&query, &reply);
                 finish_reply_with_edns(
                     &query,
                     &reply,
@@ -396,12 +396,41 @@ impl TcpDnsService {
             return Err(TcpServiceError::InvalidQuery);
         }
         if let Some(reply) = query_error(query)? {
+            if self.query_logging {
+                if header.opcode() != 0 {
+                    self.query_events
+                        .push(crate::query_logging::QueryEvent::error(
+                            crate::query_logging::REPLY,
+                            b"opcode",
+                            4,
+                            None,
+                        ));
+                } else {
+                    self.query_events
+                        .push(crate::query_logging::QueryEvent::error(
+                            crate::query_logging::CONFIG,
+                            b"error",
+                            5,
+                            Some(24),
+                        ));
+                }
+            }
             return Ok(PreparedQuery::Answer(reply));
         }
-        if let Some(packet) =
+        let policy_reply = if self.query_logging {
+            self.query_policy.reply_with_events(
+                query,
+                &self.routing,
+                local,
+                self.edns_packet_max,
+                true,
+                &mut self.query_events,
+            )
+        } else {
             self.query_policy
-                .reply(query, &self.routing, local, self.edns_packet_max, true)?
-        {
+                .reply(query, &self.routing, local, self.edns_packet_max, true)
+        };
+        if let Some(packet) = policy_reply? {
             return Ok(PreparedQuery::Answer(packet));
         }
         let question = Question::parse(query, 12)?;

@@ -28,6 +28,30 @@ impl QueryPolicy {
         maximum: u16,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, WireError> {
+        self.reply_inner(query, routing, local, maximum, tcp, None)
+    }
+
+    pub fn reply_with_events(
+        self,
+        query: &[u8],
+        routing: &RoutingTable,
+        local: Option<&LocalDnsService>,
+        maximum: u16,
+        tcp: bool,
+        events: &mut Vec<crate::query_logging::QueryEvent>,
+    ) -> Result<Option<Vec<u8>>, WireError> {
+        self.reply_inner(query, routing, local, maximum, tcp, Some(events))
+    }
+
+    fn reply_inner(
+        self,
+        query: &[u8],
+        routing: &RoutingTable,
+        local: Option<&LocalDnsService>,
+        maximum: u16,
+        tcp: bool,
+        events: Option<&mut Vec<crate::query_logging::QueryEvent>>,
+    ) -> Result<Option<Vec<u8>>, WireError> {
         let question = Question::parse(query, 12)?;
         let name = wire_to_dotted(&question.name);
         let private_reverse = self.bogus_priv
@@ -56,6 +80,32 @@ impl QueryPolicy {
                     super::service::unix_now(),
                 )
             });
+        if let Some(events) = events {
+            use crate::query_logging::{self as log, QueryEvent};
+            if private_reverse {
+                if let Some(address) = name.as_deref().and_then(arpa_address) {
+                    events.push(QueryEvent::address(
+                        log::CONFIG | log::REVERSE | log::NEGATIVE | log::NXDOMAIN,
+                        &question.name.dnsmasq_bytes(),
+                        address,
+                        None,
+                    ));
+                }
+            } else {
+                let family = match question.qtype {
+                    1 => log::IPV4,
+                    28 => log::IPV6,
+                    255 => log::IPV4 | log::IPV6,
+                    _ => 0,
+                };
+                events.push(QueryEvent::label(
+                    log::CONFIG | log::NEGATIVE | family | if known { 0 } else { log::NXDOMAIN },
+                    &question.name.dnsmasq_bytes(),
+                    None,
+                    0,
+                ));
+            }
+        }
         let header = Header::parse(query)?;
         let opt = find_pseudoheader(query, true)
             .ok()

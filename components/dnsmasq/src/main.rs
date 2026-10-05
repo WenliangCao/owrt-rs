@@ -3079,6 +3079,29 @@ impl SinglePoll {
             Err(_) => return,
         };
         #[cfg(target_os = "linux")]
+        if query.len() >= 12 && query[2] & 0x80 == 0 {
+            if let Ok(destination) = udp.local_addr() {
+                self.dump.udp_with_context(
+                    dnsmasq_rs::dump::QUERY,
+                    &query,
+                    incoming.peer,
+                    destination,
+                    query_context,
+                );
+            }
+        }
+        if self.config.loop_detect {
+            let mut parent = self.service.lock().unwrap();
+            let ParentDns { local, daemon, .. } = &mut *parent;
+            if let Some(daemon) = daemon {
+                if daemon.detect_loop(&query).unwrap_or(false) {
+                    local.config = daemon.local_config().clone();
+                    self.config = local.config.clone();
+                    return;
+                }
+            }
+        }
+        #[cfg(target_os = "linux")]
         if self.query_logging.enabled {
             if let (Some(logger), Some(event)) = (
                 &mut self.logger,
@@ -3089,18 +3112,6 @@ impl SinglePoll {
                 {
                     logger.emit(event);
                 }
-            }
-        }
-        #[cfg(target_os = "linux")]
-        if query.len() >= 12 && query[2] & 0x80 == 0 {
-            if let Ok(destination) = udp.local_addr() {
-                self.dump.udp_with_context(
-                    dnsmasq_rs::dump::QUERY,
-                    &query,
-                    incoming.peer,
-                    destination,
-                    query_context,
-                );
             }
         }
         let client = ClientRequest {
@@ -3207,11 +3218,6 @@ impl SinglePoll {
         let Some(daemon) = daemon.as_mut() else {
             return;
         };
-        if daemon.detect_loop(&query).unwrap_or(false) {
-            local.config = daemon.local_config().clone();
-            self.config = local.config.clone();
-            return;
-        }
         write_dns_metrics(
             &mut metrics,
             daemon.cache_counters(),
@@ -3233,11 +3239,23 @@ impl SinglePoll {
             dnsmasq_rs::dns::udp_query::Admission::Reply(answer) => {
                 if self.query_logging.enabled {
                     if let Ok(header) = dnsmasq_rs::dns::wire::Header::parse(packet) {
+                        let (flags, name, rcode, ede) = if header.opcode() != 0 {
+                            (
+                                dnsmasq_rs::query_logging::REPLY,
+                                b"opcode".as_slice(),
+                                4,
+                                None,
+                            )
+                        } else {
+                            (
+                                dnsmasq_rs::query_logging::CONFIG,
+                                b"error".as_slice(),
+                                5,
+                                Some(24),
+                            )
+                        };
                         local.record_query_event(dnsmasq_rs::query_logging::QueryEvent::error(
-                            dnsmasq_rs::query_logging::CONFIG,
-                            b"error",
-                            if header.opcode() != 0 { 4 } else { 5 },
-                            if header.opcode() != 0 { None } else { Some(24) },
+                            flags, name, rcode, ede,
                         ));
                     }
                 }

@@ -386,6 +386,36 @@ impl<R: Random> DnsDaemon<R> {
         }
     }
 
+    fn policy_reply(
+        &mut self,
+        query: &[u8],
+        external: Option<&LocalDnsService>,
+    ) -> Result<Option<Vec<u8>>, WireError> {
+        let local = external.unwrap_or(&self.local);
+        let mut events = Vec::new();
+        let reply = if self.query_logging.enabled {
+            self.query_policy.reply_with_events(
+                query,
+                &self.routing,
+                Some(local),
+                self.edns_packet_max,
+                false,
+                &mut events,
+            )
+        } else {
+            self.query_policy.reply(
+                query,
+                &self.routing,
+                Some(local),
+                self.edns_packet_max,
+                false,
+            )
+        };
+        self.query_events
+            .extend(events.into_iter().map(|event| (self.query_context, event)));
+        reply
+    }
+
     pub fn pending_count(&self) -> usize {
         self.upstream.pending_count()
     }
@@ -864,13 +894,7 @@ impl<R: Random> DnsDaemon<R> {
                 });
             }
         }
-        if let Some(packet) = self.query_policy.reply(
-            original,
-            &self.routing,
-            Some(local),
-            self.edns_packet_max,
-            false,
-        )? {
+        if let Some(packet) = self.policy_reply(original, Some(local))? {
             return Ok(QueryResult::Local(packet));
         }
         self.submit_upstream_with_metadata(
@@ -928,13 +952,7 @@ impl<R: Random> DnsDaemon<R> {
                 QueryResult::Cached(packet)
             });
         }
-        if let Some(packet) = self.query_policy.reply(
-            query,
-            &self.routing,
-            Some(local.as_deref().unwrap_or(&self.local)),
-            self.edns_packet_max,
-            false,
-        )? {
+        if let Some(packet) = self.policy_reply(query, local.as_deref())? {
             return Ok(QueryResult::Local(packet));
         }
         self.submit_upstream(query, &question, client, listener, true)

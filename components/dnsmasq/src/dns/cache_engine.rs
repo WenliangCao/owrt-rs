@@ -586,10 +586,6 @@ impl CacheContext<'_> {
                         // The link validates the CNAME lifetime, but C looks
                         // up the terminal name again for the current qtype.
                         let terminal_name = target_entry.record.name.clone();
-                        if local.config.filter_win2k && question.rrtype == 6 {
-                            record_windows_filter(local, &terminal_name);
-                            return Ok(finish_cached_answer_flags(writer, Some(0x8480), stale)?);
-                        }
                         let nx_target = (target_entry.record.kind == Kind::NxDomain
                             && target_entry.record.negative)
                             .then_some(target);
@@ -602,6 +598,7 @@ impl CacheContext<'_> {
                                     for id in reverse {
                                         let entry = cache.get(id).expect("live reverse entry");
                                         stale |= entry.is_stale(now);
+                                        record_cached(local, cache, id, now);
                                         match writer.record_at(
                                             Section::Answer,
                                             owner_offset,
@@ -629,6 +626,7 @@ impl CacheContext<'_> {
                             }
                         }
                         if local.config.filter_win2k && question.rrtype == 6 {
+                            record_windows_filter(local, &terminal_name);
                             return Ok(finish_cached_answer_flags(writer, Some(0x8480), stale)?);
                         }
                         match append_interface_terminal(
@@ -1347,9 +1345,9 @@ impl CacheContext<'_> {
 fn record_windows_filter(local: &mut LocalDnsService, name: &Name) {
     if local.query_logging {
         local.record_query_event(QueryEvent::label(
-            qlog::CONFIG,
+            qlog::CONFIG | qlog::NEGATIVE,
             &name.dnsmasq_bytes(),
-            Some(b"NODATA"),
+            None,
             0,
         ));
     }
@@ -1587,7 +1585,7 @@ fn append_synth_terminal(
 /// negative does not attach its original reverse-zone SOA to this answer.
 fn append_reverse_synth_terminal(
     writer: &mut PacketWriter,
-    local: &LocalDnsService,
+    local: &mut LocalDnsService,
     terminal: &Name,
     question: &super::forward::Question,
     owner_offset: u16,
@@ -1601,6 +1599,14 @@ fn append_reverse_synth_terminal(
     let Some(target) = local.config.synth_domains.reverse(address) else {
         return Ok(None);
     };
+    if local.query_logging {
+        local.record_query_event(QueryEvent::address(
+            qlog::CONFIG | qlog::REVERSE,
+            &target,
+            address,
+            None,
+        ));
+    }
     let target = Name::from_dotted_bytes(&target)?;
     match writer.record_at(
         Section::Answer,
