@@ -31,6 +31,8 @@ pub struct PersistReport {
     pub attempted: bool,
     pub error: Option<io::Error>,
     pub next_event: Option<i64>,
+    /// C's exact relative deadline printed with a write failure.
+    pub retry_in: Option<u32>,
     pub alarm: AlarmAction,
 }
 
@@ -80,10 +82,14 @@ pub fn update_file(
     } else {
         AlarmAction::Keep
     };
+    let retry_in = error
+        .as_ref()
+        .and_then(|_| next_event.map(|event| super::lease::remaining_seconds(event, now)));
     PersistReport {
         attempted,
         error,
         next_event,
+        retry_in,
         alarm,
     }
 }
