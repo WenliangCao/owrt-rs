@@ -119,16 +119,16 @@ def target_sockets(pid):
     return sorted(receipts, key=lambda row:row['port'])
 
 
-def health(folder, label):
+def health(folder, label, address):
     packet = query('health.bind.test', ident=0x7100)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
         endpoint.settimeout(2)
-        endpoint.sendto(packet, ('127.0.0.1', PORT))
+        endpoint.sendto(packet, (address, PORT))
         reply, peer = endpoint.recvfrom(4096)
     (folder/(label+'.query')).write_bytes(packet)
     (folder/(label+'.reply')).write_bytes(reply)
     result = semantics(reply)
-    if reply[:2]!=packet[:2] or peer!=('127.0.0.1', PORT):
+    if reply[:2]!=packet[:2] or peer!=(address, PORT):
         raise AssertionError('health reply identity')
     return dict(peer=list(peer), semantic=result, query_sha256=sha256(folder/(label+'.query')),
                 reply_sha256=sha256(folder/(label+'.reply')))
@@ -169,8 +169,9 @@ def execute(root, side, spec, folder):
             wait_ready(process, root)
             row['identity'] = process_identity(root, process.pid)
             def observe(label):
+                address='192.0.2.1' if spec['profile']=='listen-only' else '127.0.0.1'
                 phase = dict(label=label, network=network(), sockets=target_sockets(process.pid),
-                             health=health(folder, label))
+                             health=health(folder, label, address))
                 row['phases'].append(phase)
                 save(folder/(label+'.json'), phase)
             observe('startup')
@@ -276,7 +277,8 @@ def row_errors(spec, row, expected_sha):
             errors.append('live descriptor continuity')
         previous=handles
         semantic=phase.get('health', {}).get('semantic', {})
-        if (phase.get('health', {}).get('peer')!=['127.0.0.1', PORT]
+        address='192.0.2.1' if spec['profile']=='listen-only' else '127.0.0.1'
+        if (phase.get('health', {}).get('peer')!=[address, PORT]
                 or semantic.get('id')!=0x7100 or semantic.get('flags', 15)&15
                 or not any(r.get('type')==1 and r.get('data')=='198.51.100.99' for r in semantic.get('records', []))):
             errors.append('owner health')
@@ -316,6 +318,7 @@ def load(folder, side):
             if phase!=json.loads((case/(phase['label']+'.json')).read_text()):raise ValueError('phase receipt mismatch')
             reply=case/(phase['label']+'.reply');request=case/(phase['label']+'.query')
             if (sha256(reply)!=phase['health']['reply_sha256'] or sha256(request)!=phase['health']['query_sha256']
+                    or request.read_bytes()!=query('health.bind.test', ident=0x7100)
                     or semantics(reply.read_bytes())!=phase['health']['semantic'] or reply.read_bytes()[:2]!=request.read_bytes()[:2]):
                 raise ValueError('health wire receipt mismatch')
     return report
@@ -347,6 +350,12 @@ def compare(args):
                 elif mutation=='notice':wrong['notices'].append(WARNING.decode()+'unrelated')
                 else:wrong['forced']=True
                 controls.append(dict(case=spec['case'], control=mutation, rejected=bool(row_errors(spec, wrong, r['candidate_sha256']))))
+    cm={row['case']:row for row in c['cases']};rm={row['case']:row for row in r['cases']}
+    for spec in specs:
+        if spec['case'] not in cm or spec['case'] not in rm:continue
+        left=[phase['health']['semantic'] for phase in cm[spec['case']]['phases']]
+        right=[phase['health']['semantic'] for phase in rm[spec['case']]['phases']]
+        if left!=right:errors.append(spec['case']+': paired owner health wire semantics')
     result=dict(candidate_sha256=r['candidate_sha256'], c_sha256=STOCK_SHA256, required_count=len(specs),
                 covered_options=['bind-interfaces', 'bind-dynamic'], failures=errors, negative_controls=controls,
                 qualified=not errors and all(x['rejected'] for x in controls),
