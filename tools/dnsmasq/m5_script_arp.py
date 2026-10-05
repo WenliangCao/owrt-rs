@@ -7,6 +7,7 @@ cannot qualify the option. Callback order and payload come from the image C.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -509,9 +510,69 @@ def main():
     parser.add_argument('--image-root', type=Path, required=True)
     parser.add_argument('--rust-binary', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--side', choices=['c', 'rust'], required=True)
+    parser.add_argument('--side', choices=['c', 'rust', 'both'], default='both')
     parser.add_argument('--select')
-    return run_side(parser.parse_args())
+    args = parser.parse_args()
+    if args.side != 'both':
+        return run_side(args)
+    args.out.mkdir(parents=True, exist_ok=False)
+    exits = {}
+    for side in ['c', 'rust']:
+        with (args.out / (side + '.launch.log')).open('wb') as log:
+            argv = ['sh', str(HERE / 'run_isolated.sh'), sys.executable, __file__, '--side', side,
+                    '--image-root', str(args.image_root), '--rust-binary', str(args.rust_binary), '--out', str(args.out / side)]
+            if args.select:
+                argv += ['--select', args.select]
+            exits[side] = subprocess.run(argv, stdout=log, stderr=log).returncode
+    reports = [json.loads((args.out / side / 'result.json').read_text()) for side in ['c', 'rust']]
+    def observations(report):
+        rows = copy.deepcopy(report['rows'])
+        for row in rows:
+            if 'real_wait_seconds' in row:
+                assert row['real_wait_seconds'] >= 91, 'actual refresh time witness'
+                row.pop('real_wait_seconds')
+            for stream in ['stdout', 'stderr']:
+                if stream in row:
+                    row[stream] = bytes.fromhex(row[stream]).replace(b'dnsmasq-rs', b'dnsmasq').hex()
+        return rows
+    def differences(candidate):
+        result = []
+        if candidate['failures']:
+            result.append(dict(side='rust', failures=candidate['failures']))
+        if observations(reports[0]) != observations(candidate):
+            result.append(dict(c=observations(reports[0]), rust=observations(candidate)))
+        return result
+    mismatches = differences(reports[1])
+    if reports[0]['failures']:
+        mismatches.append(dict(side='c', failures=reports[0]['failures']))
+    if any(exits.values()):
+        mismatches.append(dict(error='side exit', exits=exits))
+    controls = []
+    if not mismatches:
+        for label in ['missing-case', 'wrong-uid', 'wrong-action', 'wrong-hardware', 'wrong-order', 'fixture-failure']:
+            mutant = copy.deepcopy(reports[1])
+            callbacks_row = next(row for row in mutant['rows'] if row.get('callbacks'))
+            if label == 'missing-case':
+                mutant['rows'].pop()
+            elif label == 'wrong-uid':
+                callbacks_row['callbacks'][0][4] = '123'
+            elif label == 'wrong-action':
+                callbacks_row['callbacks'][0][1] = 'arp-del'
+            elif label == 'wrong-hardware':
+                callbacks_row['callbacks'][0][2] = '00:00:00:00:00:00'
+            elif label == 'wrong-order':
+                next(row for row in mutant['rows'] if len(row.get('callbacks', [])) > 1)['callbacks'].reverse()
+            else:
+                mutant['failures'].append(dict(injected=True))
+            controls.append(dict(case=label, rejected=bool(differences(mutant))))
+    missing = {side: report['missing_required_cases'] for side, report in zip(['c', 'rust'], reports)}
+    qualified = not mismatches and not args.select and not any(missing.values()) and len(controls) == 6 and all(row['rejected'] for row in controls)
+    result = dict(exits=exits, failures=mismatches, missing_required_cases=missing, negative_controls=controls,
+                  paired_observations_passed=not mismatches, qualified=qualified,
+                  binary_sha256=sha256(args.rust_binary), bytes=args.rust_binary.stat().st_size)
+    save(args.out / 'result.json', result)
+    print(json.dumps(dict(paired=len(reports[0]['rows']), failures=len(mismatches), missing=len(missing['c']), qualified=qualified)))
+    return bool(mismatches)
 
 
 if __name__ == '__main__':
