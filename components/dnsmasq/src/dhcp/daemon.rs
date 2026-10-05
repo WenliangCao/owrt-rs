@@ -1713,7 +1713,7 @@ impl LocalProvider {
                     .or_else(|| existing.and_then(|lease| lease.identity.client_id.as_deref()))
             })
             .flatten();
-        let event_mac = events.as_ref().map(|_| event_mac(packet, clid));
+        let event_mac = Some(event_mac(packet, clid));
         let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
         let [oui, serial, _] = crate::helper::cpe_data(packet);
         if oui.is_some() && serial.is_some() {
@@ -2028,15 +2028,57 @@ impl LocalProvider {
             log_options: self.config.log_dhcp,
             has_error: false,
         };
+        let packet_notices = RefCell::new(Vec::new());
+        let packet_notice =
+            |kind: &[u8], address: Option<Ipv4Addr>, extra: Option<&[u8]>, error: Option<&[u8]>| {
+                if let Some(message) = super::logging::packet(
+                    logging,
+                    super::logging::PacketLog {
+                        kind,
+                        address,
+                        extra,
+                        error,
+                        mac: event_mac.as_deref(),
+                        interface: interface_name,
+                        xid,
+                    },
+                ) {
+                    packet_notices
+                        .borrow_mut()
+                        .push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Info,
+                            message,
+                        ));
+                }
+            };
         let mut on_event = |event: super::state::LogEvent<'_>| {
             let (kind, address, name, has_error) = match event {
+                super::state::LogEvent::Packet {
+                    kind,
+                    address,
+                    extra,
+                    error,
+                } => {
+                    packet_notice(kind, address, extra, error);
+                    return;
+                }
                 super::state::LogEvent::Ack { address, name } => {
+                    packet_notice(b"DHCPACK", Some(address), name, None);
                     (DhcpEventKind::Ack, address, name, false)
                 }
                 super::state::LogEvent::Release {
                     address,
                     unknown_lease,
-                } => (DhcpEventKind::Release, address, None, unknown_lease),
+                } => {
+                    packet_notice(
+                        b"DHCPRELEASE",
+                        Some(address),
+                        None,
+                        unknown_lease.then_some(b"unknown lease".as_slice()),
+                    );
+                    (DhcpEventKind::Release, address, None, unknown_lease)
+                }
             };
             let logging = DhcpLogging {
                 has_error,
@@ -2063,6 +2105,18 @@ impl LocalProvider {
         let lease_identity = super::state::identity(packet, environment.ignore_client_id);
         let reply_error = RefCell::new(None);
         let mut before_offer = |context: usize, counters: LeaseCounters| {
+            // C's DISCOVER record precedes reply-delay and any other service
+            // work during that wait. Emit through the existing owner gate.
+            for notice in packet_notices.borrow_mut().drain(..) {
+                if let Some(owner_wait) = wait.borrow_mut().as_deref_mut() {
+                    if let Err(error) = owner_wait(None, Duration::ZERO, counters, Some(notice)) {
+                        *reply_error.borrow_mut() = Some(error);
+                        return false;
+                    }
+                } else {
+                    self.network_notices.push(notice);
+                }
+            }
             let mut delay_tags: Vec<_> = self.request_tags.iter().map(Vec::as_slice).collect();
             if let Some(tag) = self.config.ranges[self.selected[context].source_index]
                 .set_tag
@@ -2130,6 +2184,9 @@ impl LocalProvider {
         let result = provider.resolve(dispatch);
         drop(provider);
         drop(before_offer);
+        drop(on_event);
+        drop(packet_notice);
+        self.network_notices.extend(packet_notices.into_inner());
         if let Some(error) = reply_error.into_inner() {
             return Err(RuntimeError::State(error.to_string()));
         }
