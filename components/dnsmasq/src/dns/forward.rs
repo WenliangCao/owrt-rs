@@ -97,7 +97,9 @@ impl Client {
     pub fn query_context(&self) -> crate::query_logging::QueryContext {
         crate::query_logging::QueryContext {
             display_id: self.log_id as i32,
-            client: Some(self.source),
+            // forward.c::return_reply retains the refresh display ID but
+            // clears log_source_addr when this recipient has fd=-1.
+            client: self.reply_requested.then_some(self.source),
         }
     }
 }

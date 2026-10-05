@@ -754,7 +754,8 @@
             "query-policy-bogus",
             "query-policy-rebind",
             "query-dhcp-origin",
-            "query-stale-producers"
+            "query-stale-producers",
+            "query-stale-refresh-context"
           ]
         },
         {
@@ -768,7 +769,8 @@
             "query-forward-proto",
             "query-transaction-coalesce",
             "query-transaction-clientretry",
-            "query-transaction-fastretry"
+            "query-transaction-fastretry",
+            "query-stale-refresh-context"
           ]
         },
         {
@@ -791,7 +793,8 @@
             "query-dhcp-origin",
             "query-control-labels",
             "query-upstream-errors",
-            "query-stale-producers"
+            "query-stale-producers",
+            "query-stale-refresh-context"
           ]
         }
       ],
