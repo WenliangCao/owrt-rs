@@ -577,24 +577,44 @@ def run_lifecycle(f, side):
             child, log = f.spawn([str(f.client), BUS, "call-raw", OBJECT, "metrics", payload.hex()],
                                  side + "-partial-call")
             assert proxy.held.wait(3), (split, proxy.errors)
+            # C completes a started frame synchronously. Release it from the
+            # fixture even if that owner cannot answer our concurrent DNS.
+            released = []
+            def release_frame():
+                released.append(time.monotonic_ns())
+                proxy.release.set()
+            timer = threading.Timer(.35, release_frame)
+            timer.start()
             first = time.monotonic_ns()
             answer = f.exchange("local.invalid")
             second = time.monotonic_ns()
-            time.sleep(.35)
             later = f.exchange("local.invalid")
-            f.check(side + f"-partial-{split}-owner-health", (second - first) < 75_000_000, True)
+            if side == "C":
+                f.check(side + f"-partial-{split}-blocking-frame-authority", second - first >= 250_000_000, True)
+            else:
+                f.check(side + f"-partial-{split}-owner-health", second - first < 75_000_000, True)
             f.check(side + f"-partial-{split}-same-daemon", f.daemon.poll(), None)
-            proxy.release.set()
             child.wait(3)
+            timer.join(1)
             result = read_json_lines(log)
             record(f"partial-{split}-local", [answer, later])
-            record(f"partial-{split}-method", [{"event": row["event"],
+            normalized_method = [{"event": row["event"],
                 **({"fields": fields(row["wire"])} if row["event"] == "data" else {"status": row["status"]})}
-                for row in result])
+                for row in result]
+            data = next(row for row in normalized_method if row["event"] == "data")
+            count = next(field for field in data["fields"] if field["name"] == "dns_local_answered")
+            # The method still reads actual live counters. Rust answers two
+            # local queries while the frame is incomplete; C answers them
+            # only after the method completes. Preserve the original wire.
+            f.check(side + f"-partial-{split}-actual-snapshot-local-count", count["value"], 0 if side == "C" else 2)
+            count["value"] = "validated-owner-order"
+            record(f"partial-{split}-method", normalized_method)
+            record(f"partial-{split}-after", f.metrics())
             record(f"partial-{split}-fd-balance",
                    len(list(Path(f"/proc/{f.daemon.pid}/fd").iterdir())) - before_fds)
             f.raw.append({"side": side, "partial_proxy": proxy.rows,
-                          "local_start_ns": first, "local_done_ns": second})
+                          "local_start_ns": first, "local_done_ns": second,
+                          "frame_released_ns": released, "method_wire": result})
             f.stop(f.daemon)
         finally:
             proxy.close()
