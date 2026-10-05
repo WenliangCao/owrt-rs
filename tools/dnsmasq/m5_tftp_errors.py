@@ -252,6 +252,7 @@ def trace_file_error(pid,operation,filename,error,after,output):
                         if 0 in raw:break
                     path=os.fsdecode(bytes(raw).split(b'\0')[0]);active=path==ROOT+'/'+filename
                 elif operation in ['stat','read']:active=active and path.endswith(ROOT+'/'+filename)
+                elif operation=='socket':active=active and registers[0] in [socket.AF_INET,socket.AF_INET6]
                 elif operation=='pmtu':active=active and registers[1]==0 and registers[2]==10
                 elif operation=='nonblock':active=active and (registers[1]==4 if registers[8]==25 else registers[1]==0x5421)
                 fault=active and successful>=after
@@ -295,7 +296,7 @@ def side(args):
     for item in cases():
         out=args.out/item['name'];out.mkdir()
         process=tracer=None
-        config='port=0\nno-hosts\nno-resolv\nuser='+item.get('user','root')+'\ngroup='+('nogroup' if item.get('user') else 'root')+'\npid-file=/m2/pid\n'+('' if item.get('scope') else 'bind-interfaces\n')+'listen-address=127.0.0.1,::1'+(',fe80::1' if item.get('scope') else '')+'\nenable-tftp\n'
+        config='port=0\nno-hosts\nno-resolv\nlog-facility=/m2/error.log\nuser='+item.get('user','root')+'\ngroup='+('nogroup' if item.get('user') else 'root')+'\npid-file=/m2/pid\n'+('' if item.get('scope') else 'bind-interfaces\n')+'listen-address=127.0.0.1,::1'+(',fe80::1' if item.get('scope') else '')+'\nenable-tftp\n'
         if not item.get('no_root'):config+='tftp-root='+ROOT+'\n'
         if item.get('interface_root'):config+='tftp-root='+ROOT+'/iface,lo\n'
         if item.get('quiet'):config+='quiet-tftp\n'
@@ -308,6 +309,7 @@ def side(args):
             config+='tftp-port-range=35000,35000\n'
             blocker=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);blocker.bind(('127.0.0.1',35000))
         (root/'m2/error.conf').write_text(config);(out/'config').write_text(config)
+        (root/'m2/error.log').unlink(missing_ok=True)
         try:
             with (out/'stderr').open('w') as stderr,(out/'stdout').open('w') as stdout:
                 process=subprocess.Popen(command(root,args.side,'-k' if item.get('user') else '-d','-C','/m2/error.conf'),stderr=stderr,stdout=stdout,start_new_session=True)
@@ -358,6 +360,16 @@ def side(args):
                     save(out/'descriptor-health.json',dict(before=baseline_fds,after=remaining_fds))
                     assert remaining_fds==baseline_fds,'file/transfer descriptor leak'
                 row=dict(case=item['name'],packet=result['packet'],source=result['peer'][0] if result['peer'] else None,dedicated=result['dedicated'])
+                logged=(root/'m2/error.log').read_bytes()
+                (out/'daemon.log').write_bytes(logged)
+                messages=re.findall(rb'dnsmasq-tftp(?:\[\d+\])?: ([^\n]*)',logged)
+                if wanted and wanted[:2]==b'\0\5':
+                    count=messages.count(wanted[4:-1])
+                    assert count==(0 if item.get('quiet') and wanted[2:4]==b'\0\1' else 1),'bounded wire/log identity or quiet guard'
+                    row['error_logged']=bool(count)
+                if item.get('exhausted'):
+                    assert messages.count(b'unable to get free port for TFTP')==1,'port exhaustion log guard'
+                    row['port_exhaustion_logged']=True
                 row['health']=not item.get('exhausted')
                 if item.get('fault'):row['fault']=dict(injected=True,errno=item['fault_errno'],after=item.get('fault_after',0))
                 if item.get('allocation'):row['allocation']=dict(injected=True,record=item['allocation'])
