@@ -204,6 +204,7 @@ impl<'a> LocalAnswerer<'a> {
         let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
         let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
         let mut owned = false;
+        let mut windows_filtered = false;
 
         // CNAME processing runs before every other local record path in C.
         // Once an alias is found, its own address/TXT/etc. records are not
@@ -256,6 +257,9 @@ impl<'a> LocalAnswerer<'a> {
                 && cache.as_deref().is_some_and(|cache| {
                     if question.qtype == 6 {
                         cache.cname_terminal_name(&question.name, now).is_some()
+                    } else if question.qtype == 255 {
+                        cache.cname_terminal_name(&question.name, now).is_some()
+                            || cache.has_nxdomain(&question.name, now)
                     } else {
                         cache.has_forward_candidate(&question.name, question.qtype, now)
                             || cache.has_nxdomain(&question.name, now)
@@ -263,6 +267,7 @@ impl<'a> LocalAnswerer<'a> {
                 });
             if !cache_candidate && filter_win2k_question(&question.name, question.qtype) {
                 owned = true;
+                windows_filtered = true;
             }
         }
 
@@ -320,7 +325,7 @@ impl<'a> LocalAnswerer<'a> {
         // an upstream server.
         let flags = 0x8000
             | 0x0080
-            | if rows.is_empty() && extra_rows.is_empty() {
+            | if !windows_filtered && rows.is_empty() && extra_rows.is_empty() {
                 0
             } else {
                 0x0400
