@@ -129,6 +129,8 @@ fn main() {
                     matches!(error, dnsmasq_rs::dns::daemon::DaemonError::SourceBind(_))
                 })
             || error.is::<dnsmasq_rs::startup::StartupError>();
+        #[cfg(target_os = "linux")]
+        let blank_line = blank_line || error.is::<dnsmasq_rs::logging::LogStartError>();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         let blank_line = blank_line
             || error.is::<dnsmasq_rs::helper::StartError>()
@@ -171,6 +173,10 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
         return error.exit_code;
     }
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::StartupError>() {
+        return error.code;
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(error) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
         return error.code;
     }
     if let Some(error) = error.downcast_ref::<SilentStartupError>() {
@@ -482,7 +488,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "linux")]
     if startup.active() {
         if let Err(error) = &result {
-            startup.fail(startup_status(error.as_ref()), &error.to_string());
+            if let Some(log) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
+                startup.fail_log(log.errno(), log.argument());
+            } else {
+                startup.fail(startup_status(error.as_ref()), &error.to_string());
+            }
             return Ok(());
         }
     }
@@ -905,7 +915,7 @@ fn run_inner(
                 // C selects log_stderr before dup(), so this failure already
                 // has its syslog report and die() does not echo it to stderr.
                 if runtime.logging.file.as_deref() == Some(std::path::Path::new("-")) {
-                    return Err(Box::new(SilentStartupError(error)));
+                    return Err(Box::new(SilentStartupError(error.into())));
                 }
             }
             return Err(Box::new(error));
@@ -1216,7 +1226,8 @@ fn run_inner(
         if last_interfaces.elapsed() >= Duration::from_millis(100) {
             last_interfaces = Instant::now();
             if let Ok(interfaces) = listeners::snapshot() {
-                let changed = *interface_snapshot.lock().unwrap() != interfaces;
+                let previous_interfaces = interface_snapshot.lock().unwrap().clone();
+                let changed = previous_interfaces != interfaces;
                 *interface_snapshot.lock().unwrap() = interfaces.clone();
                 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
                 if changed {
@@ -1285,6 +1296,17 @@ fn run_inner(
                     bound_listeners.retain(|(address, token)| {
                         if eligible.contains(address) {
                             return true;
+                        }
+                        #[cfg(target_os = "linux")]
+                        if let Some(logger) = &mut poll.logger {
+                            let interface = previous_interfaces
+                                .iter()
+                                .find(|interface| interface.address == address.ip());
+                            logger.emit(listener_debug_event(
+                                "stopped listening",
+                                *address,
+                                interface,
+                            ));
                         }
                         poll.remove_listener(*token);
                         false
@@ -1355,6 +1377,13 @@ fn run_inner(
                         }
                     }
                     if opened {
+                        #[cfg(target_os = "linux")]
+                        if let Some(logger) = &mut poll.logger {
+                            let interface = interfaces
+                                .iter()
+                                .find(|interface| interface.address == address.ip());
+                            logger.emit(listener_debug_event("listening", address, interface));
+                        }
                         if daemon_config.listen_addresses.contains(&address.ip())
                             && !interfaces
                                 .iter()
@@ -1458,6 +1487,23 @@ fn run_inner(
     #[cfg(target_os = "linux")]
     pid_file.cleanup();
     Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn listener_debug_event(
+    action: &str,
+    address: SocketAddr,
+    interface: Option<&DnsInterface>,
+) -> dnsmasq_rs::logging::LogEvent {
+    use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
+    let mut message = format!("{action} on ").into_bytes();
+    if let Some(interface) = interface {
+        message.extend_from_slice(&interface.name);
+        message.extend_from_slice(format!("(#{}): ", interface.index).as_bytes());
+    }
+    message.extend_from_slice(&address_text(address));
+    message.extend_from_slice(format!(" port {}", address.port()).as_bytes());
+    LogEvent::new(Service::Debug, Priority::Debug, message)
 }
 
 fn dns_local_addresses(
@@ -2730,6 +2776,16 @@ impl SinglePoll {
             #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
             let result =
                 self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None));
+            #[cfg(target_os = "linux")]
+            if let Some(logger) = &mut self.logger {
+                use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
+                for address in self.clients[index].forward.take_connection_failures() {
+                    let mut message = b"TCP connection failed to ".to_vec();
+                    message.extend_from_slice(&address_text(address));
+                    message.extend_from_slice(format!("#{}", address.port()).as_bytes());
+                    logger.emit(LogEvent::new(Service::Debug, Priority::Debug, message));
+                }
+            }
             if result.unwrap_or(false) {
                 index += 1;
             } else {
