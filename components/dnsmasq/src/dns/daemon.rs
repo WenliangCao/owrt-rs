@@ -592,6 +592,10 @@ impl<R: Random> DnsDaemon<R> {
     ) {
         self.local.interfaces = records;
     }
+    #[cfg(target_os = "linux")]
+    pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
+        self.upstream.set_dump(dump);
+    }
 
     pub fn enable_cache(
         &mut self,
@@ -718,7 +722,10 @@ impl<R: Random> DnsDaemon<R> {
         let now = unix_seconds();
         if !metadata.flags.no_cache
             && (super::local::interface_forward_name(&local.config, original).is_none()
-                || self.cache.as_ref().is_some_and(|cache| cache.has_nxdomain(&question.name, now)))
+                || self
+                    .cache
+                    .as_ref()
+                    .is_some_and(|cache| cache.has_nxdomain(&question.name, now)))
         {
             let answer = self.cached_answer_at_with_edns_limit(
                 original,
@@ -1278,7 +1285,10 @@ impl<R: Random> DnsDaemon<R> {
             query,
         )
         .is_some()
-            && !self.cache.as_ref().is_some_and(|cache| cache.has_nxdomain(&question.name, now))
+            && !self
+                .cache
+                .as_ref()
+                .is_some_and(|cache| cache.has_nxdomain(&question.name, now))
         {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -1360,7 +1370,9 @@ impl<R: Random> DnsDaemon<R> {
         if super::local::interface_forward_name(&self.local.config, query).is_some() {
             return true;
         }
-        let Ok(header) = Header::parse(query) else { return false; };
+        let Ok(header) = Header::parse(query) else {
+            return false;
+        };
         if header.flags & 0x8100 != 0x0100
             || header.questions != 1
             || header.answers != 0
@@ -1369,16 +1381,32 @@ impl<R: Random> DnsDaemon<R> {
         {
             return false;
         }
-        let Ok(question) = super::forward::Question::parse(query) else { return false; };
+        let Ok(question) = super::forward::Question::parse(query) else {
+            return false;
+        };
         if question.class != 1 || !matches!(question.rrtype, 1 | 28 | 255) {
             return false;
         }
-        if find_pseudoheader(query, true).ok().and_then(|scan| scan.opt).is_some_and(|opt| opt.dnssec_ok()) {
+        if find_pseudoheader(query, true)
+            .ok()
+            .and_then(|scan| scan.opt)
+            .is_some_and(|opt| opt.dnssec_ok())
+        {
             return false;
         }
-        let Some(target) = self.cache.as_ref().and_then(|cache| cache.cname_terminal_name(&question.name, now)) else { return false; };
-        let mut terminal = super::wire::PacketWriter::new(header.id, header.flags, 65535).expect("fixed envelope");
-        if terminal.question(&target, question.rrtype, question.class).is_err() {
+        let Some(target) = self
+            .cache
+            .as_ref()
+            .and_then(|cache| cache.cname_terminal_name(&question.name, now))
+        else {
+            return false;
+        };
+        let mut terminal =
+            super::wire::PacketWriter::new(header.id, header.flags, 65535).expect("fixed envelope");
+        if terminal
+            .question(&target, question.rrtype, question.class)
+            .is_err()
+        {
             return false;
         }
         super::local::interface_forward_name(&self.local.config, &terminal.finish()).is_some()

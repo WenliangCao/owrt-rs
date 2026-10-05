@@ -266,6 +266,8 @@ impl OwnedSocket {
 /// Query/socket counts are observable for resource tests; the dispatcher is
 /// read-only to callers so transactions cannot bypass socket ownership.
 pub struct UpstreamResolver<R = OsRandom> {
+    #[cfg(target_os = "linux")]
+    dump: crate::dump::DumpHandle,
     dispatcher: ForwardDispatcher,
     random: R,
     transactions: HashMap<QueryId, Transaction>,
@@ -320,6 +322,8 @@ impl<R: Random> UpstreamResolver<R> {
         }
         let receive_capacity = dispatcher.udp_receive_capacity();
         Ok(Self {
+            #[cfg(target_os = "linux")]
+            dump: Default::default(),
             dispatcher,
             random,
             transactions: HashMap::new(),
@@ -344,6 +348,10 @@ impl<R: Random> UpstreamResolver<R> {
 
     pub fn dispatcher(&self) -> &ForwardDispatcher {
         &self.dispatcher
+    }
+    #[cfg(target_os = "linux")]
+    pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
+        self.dump = dump;
     }
     pub fn pending_count(&self) -> usize {
         self.transactions.len()
@@ -1014,6 +1022,11 @@ impl<R: Random> UpstreamResolver<R> {
             );
             match result {
                 Ok(length) if length == packet.len() => {
+                    #[cfg(target_os = "linux")]
+                    if let Ok(source) = self.sockets[&token].socket.local_addr() {
+                        self.dump
+                            .udp(crate::dump::UP_QUERY, packet, source, address);
+                    }
                     self.dispatcher
                         .note_sent(id, server, token, self.milliseconds());
                     sent = true;
@@ -1159,6 +1172,15 @@ impl<R: Random> UpstreamResolver<R> {
             ) else {
                 continue;
             };
+            #[cfg(target_os = "linux")]
+            if let Ok(destination) = self.sockets[&token].socket.local_addr() {
+                self.dump.udp(
+                    crate::dump::UP_REPLY,
+                    &self.receive_buffer[..length],
+                    source,
+                    destination,
+                );
+            }
             // Keep the transaction and its server/retry counters untouched.
             // This must happen after source/ID admission but before
             // `complete_reply`, matching forward.c::reply_query.

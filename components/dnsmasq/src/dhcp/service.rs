@@ -133,6 +133,8 @@ struct PendingReply {
 /// accepted the packet; a full kernel queue is retried on the next poll turn.
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 struct OwnerSender<'a, S> {
+    dump: crate::dump::DumpHandle,
+    dump_source: SocketAddr,
     socket: &'a mut S,
     pending: &'a mut Option<PendingReply>,
     listener: Listener,
@@ -147,6 +149,12 @@ impl<S: super::runtime::DatagramSender> super::runtime::DatagramSender for Owner
         super::runtime::DatagramSender::prepare_destination(self.socket, destination)
     }
     fn send(&mut self, bytes: &[u8], destination: &super::runtime::Destination) -> io::Result<()> {
+        self.dump.udp(
+            crate::dump::DHCP,
+            bytes,
+            self.dump_source,
+            destination.address,
+        );
         match super::runtime::DatagramSender::send(self.socket, bytes, destination) {
             Err(error)
                 if matches!(
@@ -175,6 +183,7 @@ impl<S: super::runtime::DatagramSender> super::runtime::DatagramSender for Owner
 /// physical interfaces.
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub struct SocketListener {
+    dump: crate::dump::DumpHandle,
     socket: crate::net::DatagramSocket,
     pxe_socket: Option<crate::net::DatagramSocket>,
     pending_reply: Option<PendingReply>,
@@ -213,6 +222,7 @@ impl SocketListener {
         let socket = crate::net::DatagramSocket::bind_dhcp(address, reuse)?;
         socket.configure_dhcp()?;
         Ok(Self {
+            dump: Default::default(),
             socket,
             pxe_socket: None,
             pending_reply: None,
@@ -243,6 +253,9 @@ impl SocketListener {
             )?);
         }
         Ok(())
+    }
+    pub fn set_dump(&mut self, dump: crate::dump::DumpHandle) {
+        self.dump = dump;
     }
 
     pub fn configure_pxe(
@@ -384,6 +397,12 @@ impl SocketListener {
         {
             return Ok(Err(ListenerStep::Ignored));
         }
+        self.dump.udp(
+            crate::dump::DHCP,
+            &self.buffer[..datagram.len],
+            datagram.peer,
+            SocketAddr::new(datagram.destination, self.ports.server),
+        );
         if let Some(relay) = &mut self.relay {
             if relay.intercept(
                 &self.socket,
@@ -474,6 +493,8 @@ impl SocketListener {
                 .expect("PXE receive requires the socket")
         };
         let mut sender = OwnerSender {
+            dump: self.dump.clone(),
+            dump_source: socket.local_addr()?,
             socket,
             pending: &mut self.pending_reply,
             listener,
@@ -694,6 +715,8 @@ mod tests {
             arp: None,
         };
         let mut sender = OwnerSender {
+            dump: crate::dump::DumpHandle::default(),
+            dump_source: "0.0.0.0:67".parse().unwrap(),
             socket: &mut socket,
             pending: &mut pending,
             listener: Listener::Pxe,
