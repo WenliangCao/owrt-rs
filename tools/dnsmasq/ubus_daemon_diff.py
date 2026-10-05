@@ -743,7 +743,7 @@ def main():
     parser.add_argument("--rust-binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
-    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle", "records", "recovery"), default="baseline")
+    parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle", "records", "recovery", "all"), default="baseline")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert not Path("/etc/openwrt_release").exists()
@@ -774,19 +774,31 @@ def main():
     f.upstream.answer = timed_answer
     error, expected, actual = None, {}, {}
     try:
-        f.start_bus()
-        if args.suite == "extended":
-            storage_authority(f)
-        schedule = {"baseline": run_side, "extended": run_extended, "lifecycle": run_lifecycle,
-                    "records": run_records, "recovery": run_recovery}[args.suite]
-        expected = schedule(f, "C")
-        if args.suite == "baseline":
-            assert len(expected) == 69, "frozen paired service schedule changed"
+        schedules = {"baseline": run_side, "extended": run_extended, "lifecycle": run_lifecycle,
+                     "records": run_records, "recovery": run_recovery}
+        selected = list(schedules) if args.suite == "all" else [args.suite]
+        for suite in selected:
+            f.stop(f.bus)
+            f.start_bus()
+            if suite == "extended":
+                storage_authority(f)
+            left = schedules[suite](f, "C")
+            if suite == "baseline":
+                assert len(left) == 69, "frozen paired service schedule changed"
+            (out / (suite + "-c-observations.json")).write_text(json.dumps(left, indent=2) + "\n")
+            f.stop(f.bus)
+            f.start_bus()
+            right = schedules[suite](f, "Rust")
+            first_check = len(f.checks)
+            compare(f, left, right, args.inject_error)
+            for row in f.checks[first_check:]:
+                row["suite"] = suite
+            if args.suite == "all":
+                expected.update({suite + "/" + key: value for key, value in left.items()})
+                actual.update({suite + "/" + key: value for key, value in right.items()})
+            else:
+                expected, actual = left, right
         (out / "c-observations.json").write_text(json.dumps(expected, indent=2) + "\n")
-        f.stop(f.bus)
-        f.start_bus()
-        actual = schedule(f, "Rust")
-        compare(f, expected, actual, args.inject_error)
     except Exception as exception:
         error = repr(exception)
         f.check("uncaught-exception", error, None)
