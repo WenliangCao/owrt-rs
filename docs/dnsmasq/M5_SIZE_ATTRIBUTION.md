@@ -29,10 +29,10 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 | EDNS 解析、TFTP 分配和日志（混合） | `fead4da2` | 1,703,976 | +12,288 |
 | 邻居负缓存刷新等后继修复（混合） | `ff2b2d22` | 1,695,784 | -8,192 |
 
-该表从 M4 到归因基准完全守恒。helper-wired 的 SSH 回传在构建完成后失败；已从完成的 build.json、Finished 日志、ELF SHA 和已核验归档恢复，原控制器失败码 255 保留。第一轮没有强制重编译的固定路径矩阵复用了旧 Cargo 产物，已整轮拒绝；`ff2b2d22` 在共享构建锁内清 dnsmasq package 产物、保留依赖缓存，确保每次源码重新编译。旧 planner/SIGPIPE 矩阵主动刷新 mtime，原证据仍有效。
+该表从 M4 到归因基准完全守恒。独立 helper 完整接线相对 `ab5f36a` 的固定路径补测为 **+20,480 字节**（1,323,120 → 1,343,600），与旧族证据一致。helper-wired 的 SSH 回传在构建完成后失败；已从完成的 build.json、Finished 日志、ELF SHA 和已核验归档恢复，原控制器失败码 255 保留。第一轮没有强制重编译的固定路径矩阵复用了旧 Cargo 产物，已整轮拒绝；`ff2b2d22` 在共享构建锁内清 dnsmasq package 产物、保留依赖缓存，确保每次源码重新编译。旧 planner/SIGPIPE 矩阵主动刷新 mtime，原证据仍有效。
 
 `08f2e213` 的 GNU map 构建与候选 `468b5d72…be89` 完整 ELF 逐字节一致；2,322 个可验证 executable input sections 共覆盖 1,458,700 字节，8,376 字节执行区未归因。存储归属为 DNS 216,796、DHCP 189,112、配置 156,412、main/owner 122,560、helper 37,676、TFTP listener/runtime 37,316 字节；这些是当前存储量，不能直接当新增成本。unstripped profile 改变 ALLOC/LOAD 布局，已拒绝作为 companion，未用于归因。
 
-已找到可保持选择行为的简化：source pool 原来收集候选并完整稳定排序，只读取首个最小 rank；`ad66dfba` 改为直接取同 rank 最小值，唯一 ServerId 使用不稳定排序。精确 Rust 1.98.1 的等值首项和 16,512 个选择控制通过；物理 pool slot 唯一性和排序键已独立审查。纯前后体积及优化候选的镜像 C pool/preallocation 回归正在执行，尚未声明交付资格扩展。
+已找到可保持选择行为的简化：source pool 原来收集候选并完整稳定排序，只读取首个最小 rank；`ad66dfba` 改为直接取同 rank 最小值，唯一 ServerId 使用不稳定排序。精确 Rust 1.98.1 的等值首项和 16,512 个选择控制通过；物理 pool slot 唯一性和排序键已独立审查。同一可编译 `46aaaef5` 基线仅替换 upstream.rs 为排序前版本的受控构建：1,703,976 → 1,687,592，**节省 16,384 字节**；优化前后源码 SHA 固定，优化后首尾控制 ELF 逐字节同为 e95f7f26…f11bd0。直接构建中间 library-only commit 的两轮失败 101 已留档，未用于归因。优化候选完成镜像 C source pool/preallocation 61 配置/350 观察/67 required 子集和 10 负控，不据此冒称全候选已统一回归。[优化构建证据](../../private/dnsmasq-rewrite/evidence/M5/size-family-resume3-fresh/pool-root46-before/source-identity.json)，[C 回归证据](../../private/dnsmasq-rewrite/evidence/M5/interface-records/endpoints-optimized-46aaa-close-summary.json)。
 
 较大混合阶段继续补独立对照：helper、端点/source allocator、DNS files 和日志。保留成熟 std/process 与现有执行路径；没有为了体积变更功能合同或复用 M4 的体积特许。最终新增体积与满载 RSS 在 M5 统一版本验收后交用户决定。
