@@ -24,6 +24,7 @@ FACILITIES = {'kern': 0, 'user': 8, 'mail': 16, 'daemon': 24, 'auth': 32,
               'cron': 72, 'authpriv': 80, 'ftp': 88, 'local0': 128, 'local1': 136,
               'local2': 144, 'local3': 152, 'local4': 160, 'local5': 168,
               'local6': 176, 'local7': 184, 'mark': 192}
+RUST_VERSION_IDENTITY = '; dnsmasq-rs 0.1.0 (Rust implementation)'
 BASE = ['--no-hosts', '--no-resolv', '--bind-interfaces', '--no-0x20-encode',
         '--listen-address=127.0.0.1', '--port=15353', '--group=root',
         '--pid-file=', '--host-record=ready.logging,192.0.2.1']
@@ -97,15 +98,21 @@ def cases():
         rows.append({'id': 'cli-' + name, 'scope': 'cli', 'kind': 'cli', 'argv': argv,
                      'options': ['version'] if name == 'version' else ['help']})
     rows.extend([
+        {'id': 'cli-version-invalid-default', 'scope': 'cli', 'kind': 'cli',
+         'argv': ['--version'], 'invalid_default': True, 'options': ['version']},
+        {'id': 'cli-help-invalid-default', 'scope': 'cli', 'kind': 'cli',
+         'argv': ['--help'], 'invalid_default': True, 'options': ['help']},
         {'id': 'test-no-runtime-file', 'scope': 'cli', 'kind': 'test',
          'argv': ['--log-facility=/m2/logging/missing/daemon.log'],
          'options': ['log-facility', 'test']},
         {'id': 'test-debug-stderr', 'scope': 'cli', 'kind': 'test',
          'argv': ['-d', '--log-facility=-'], 'options': ['no-daemon', 'test']},
         {'id': 'no-ident-default', 'scope': 'identity', 'kind': 'run',
-         'argv': ['--log-facility=-'], 'chaos': True, 'options': ['no-ident']},
+         'argv': ['--log-facility=-', '--txt-record=kept.logging,explicit-user'],
+         'chaos': True, 'options': ['no-ident']},
         {'id': 'no-ident-enabled', 'scope': 'identity', 'kind': 'run',
-         'argv': ['--log-facility=-', '--no-ident'], 'chaos': True, 'options': ['no-ident']},
+         'argv': ['--log-facility=-', '--no-ident', '--txt-record=kept.logging,explicit-user'],
+         'chaos': True, 'options': ['no-ident']},
     ])
     return rows
 
@@ -186,6 +193,8 @@ def run(root, side, case, out):
     folder.mkdir(mode=0o777)
     folder.chmod(0o777)
     (folder / 'config').write_text(case.get('config', ''))
+    image_path(root, '/etc/dnsmasq.conf', follow_leaf=False).write_text(
+        'unrecognised-directive=fail\n' if case.get('invalid_default') else '')
     if 'existing' in case:
         (folder / case['file']).write_text(case['existing'])
         (folder / case['file']).chmod(case['file_mode'])
@@ -234,6 +243,11 @@ def run(root, side, case, out):
                         answer, raw = exchange(name, 16, True)
                         observed['dns'].append({'name': name, 'response': answer})
                         trace['dns'].append(raw)
+                    answer, raw = exchange('kept.logging', 16)
+                    if [record['data'] for record in answer['records']] != ['0d6578706c696369742d75736572']:
+                        raise AssertionError('no-ident changed explicit IN TXT record')
+                    observed['dns'].append({'name': 'kept.logging', 'response': answer})
+                    trace['dns'].append(raw)
                 if case.get('rotate'):
                     path = folder / case['file']
                     path.rename(path.with_suffix('.old'))
@@ -299,7 +313,8 @@ def compare(reference, candidate, case, reference_only=False):
             failures.append({'kind': 'C-CLI-dispatch', 'expected_prefix': expected,
                              'actual': reference['stdout']})
     if case.get('chaos') and any(record.get('section') == 'answer'
-                                for answer in reference['dns'] for record in answer['response']['records']):
+                                for answer in reference['dns'] if answer['name'] != 'kept.logging'
+                                for record in answer['response']['records']):
         failures.append({'kind': 'C-no-ID-generated-answer', 'actual': reference['dns']})
     if reference_only:
         return failures
@@ -311,6 +326,16 @@ def compare(reference, candidate, case, reference_only=False):
                          for value in row['syslog']]
         row['files'] = {name: normalized(bytes.fromhex(value).decode(errors='backslashreplace'))
                         for name, value in row['files'].items()}
+    if case.get('argv') == ['--version']:
+        first, separator, rest = left['stdout'].partition('\n')
+        expected = first + RUST_VERSION_IDENTITY + separator + rest
+        if right['stdout'] != expected:
+            failures.append({'kind': 'Rust-version-identity-and-license', 'expected': expected,
+                             'actual': right['stdout']})
+        else:
+            # This one disclosed first-line difference preserves the exact
+            # compile-options/init interface and every GPL/warranty line.
+            right['stdout'] = left['stdout']
     for field in left:
         if left[field] != right[field]:
             failures.append({'field': field, 'expected': left[field], 'actual': right[field]})
@@ -335,6 +360,34 @@ def controls():
         {'id': 'help-control', 'kind': 'cli', 'argv': ['--help', 'dhcp']}, True))
     if not result['help-argc-dispatch']:
         raise AssertionError('help dispatch calibration bypass')
+    version = dict(row, ready=False, stderr='', stdout='Dnsmasq version 2.93  Copyright (c) 2000-2026 Simon Kelley\nCompile time options: fixture\n\nThis software comes with ABSOLUTELY NO WARRANTY.\n')
+    candidate = dict(version, stdout=version['stdout'].replace('Simon Kelley\n', 'Simon Kelley' + RUST_VERSION_IDENTITY + '\n'))
+    version_case = {'id': 'version-control', 'kind': 'cli', 'argv': ['--version']}
+    assert not compare(version, candidate, version_case)
+    result['version-identity'] = bool(compare(version, version, version_case))
+    corrupt = dict(candidate, stdout=candidate['stdout'].replace('NO WARRANTY', 'SOME WARRANTY'))
+    result['version-license'] = bool(compare(version, corrupt, version_case))
+    assert result['version-identity'] and result['version-license']
+    frozen = {'options': {'example': {'qualification_ready': True,
+              'required': [{'id': 'missing-map', 'required_scenarios': []}]}}}
+    result['empty-required-map'] = not qualification(frozen, [], False)['example']['closed']
+    frozen['options']['example']['required'][0]['required_scenarios'] = ['unexecuted']
+    result['unexecuted-required-case'] = not qualification(frozen, [], False)['example']['closed']
+    assert result['empty-required-map'] and result['unexecuted-required-case']
+    return result
+
+
+def qualification(required, rows, reference_only):
+    executed = {row['id']: row for row in rows}
+    result = {}
+    for option, definition in required['options'].items():
+        checked = []
+        for boundary in definition['required']:
+            mapping = boundary['required_scenarios']
+            checked.append(dict(boundary, checked=not reference_only and bool(mapping)
+                                and all(key in executed and not executed[key]['failures'] for key in mapping)))
+        result[option] = {'closed': bool(checked) and definition.get('qualification_ready', False)
+                          and all(row['checked'] for row in checked), 'required': checked}
     return result
 
 
@@ -385,6 +438,8 @@ def main():
         case_out = out / case['id']
         case_out.mkdir()
         row = {'id': case['id'], 'options': case['options'], 'failures': []}
+        if case['argv'] == ['--version']:
+            row['declared_identity_difference'] = RUST_VERSION_IDENTITY
         try:
             values = {side: run(roots[side], side, case, case_out / side) for side in sides}
             row['failures'] = compare(values['c'], values.get('rust', values['c']), case, args.reference_only)
@@ -394,10 +449,11 @@ def main():
         save(out / 'progress.json', result)
     result['failures'] = [dict(case=row['id'], **failure)
                           for row in result['scenarios'] for failure in row['failures']]
-    # Qualification is intentionally absent until all source-derived boundary
-    # rows have concrete paired mappings; a C-only run cannot close an option.
+    required = json.loads(Path(__file__).with_name('m5_logging_requirements.json').read_text())
+    result['options'] = qualification(required, result['scenarios'], args.reference_only)
+    result['closed'] = [name for name, detail in result['options'].items() if detail['closed']]
     save(out / 'result.json', result)
-    print(json.dumps({'cases': len(scenarios), 'failures': len(result['failures']), 'closed': []}))
+    print(json.dumps({'cases': len(scenarios), 'failures': len(result['failures']), 'closed': result['closed']}))
     return int(bool(result['failures']))
 
 

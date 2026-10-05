@@ -302,10 +302,14 @@
         {
           "id": "ID01",
           "source": "option.c:6096-6117,image compile options no-ID",
-          "boundary": "Exact image has NO_ID: Boolean accepted but no generated CHAOS identity/stat records in default or enabled mode; user TXT class CHAOS remains unaffected.",
-          "required_scenarios": []
+          "boundary": "Exact image has NO_ID: Boolean accepted but no generated CHAOS identity/stat records in default/enabled mode; explicit user IN TXT records remain unchanged.",
+          "required_scenarios": [
+            "no-ident-default",
+            "no-ident-enabled"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "help": {
       "required": [
@@ -313,25 +317,38 @@
           "id": "HLP01",
           "source": "option.c:827-871,6039-6053",
           "boundary": "CLI help immediate terminal0 without reading default config; general full option list/source-defined formatting; help dhcp only argc3 and argv2 exact dhcp.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "cli-help",
+            "cli-help-invalid-default",
+            "cli-help-unknown",
+            "cli-help-dhcp6",
+            "cli-help-dhcp-extra"
+          ]
         },
         {
           "id": "HLP02",
           "source": "dhcp-common.c display_opts/option_names",
           "boundary": "DHCP4 option list exact numeric order/name/type, unknown help extra operand falls general usage; unavailable DHCP6 help falls usage.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "cli-help-dhcp"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "version": {
       "required": [
         {
           "id": "VER01",
           "source": "option.c:6055-6063",
-          "boundary": "CLI version immediate0 without reading config; compile options exact image; GPL2/3 and warranty banner; Rust identity deliberately disclosed and separately compared.",
-          "required_scenarios": []
+          "boundary": "CLI version immediate0 without reading config; compile options exact image and unchanged init callers; every GPL2/3 and warranty line exact; only first line adds explicit dnsmasq-rs0.1.0 Rust implementation identity.",
+          "required_scenarios": [
+            "cli-version",
+            "cli-version-invalid-default"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "test": {
       "required": [
