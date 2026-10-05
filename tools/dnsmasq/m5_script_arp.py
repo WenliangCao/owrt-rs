@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import fcntl
 import hashlib
 import json
 import os
@@ -113,6 +114,10 @@ def profiles():
         dict(case='edns-connection-snapshot', cache_caller='connection', upstream=True, extra='add-mac\n',
              neighbors=[(V4, MAC, 'arps0'), ('192.0.2.18', '02:00:00:91:00:18', 'arps0')]),
         dict(case='helper-buffer-enomem-reference', helper_frame_fault=True, neighbors=[], extra='add-mac\n'),
+        dict(case='burst-order-and-recovery', pressure=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
+        dict(case='stop-unsent-arp-drop', pressure=True, pressure_stop=True,
+             extra='enable-tftp\ntftp-root=/m2/arp-tftp\ntftp-unique-root=mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -197,7 +202,7 @@ def neighbor_packet(entries, sequence, pid, length, interface, done=True):
     return bytes(packet)
 
 
-def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complete'):
+def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complete', tftp=False):
     output = folder / 'netlink-fault.json'
     tracer = subprocess.Popen([sys.executable, __file__, '--trace-neighbor', str(pid), str(output), json.dumps(entries), mode])
     try:
@@ -205,13 +210,25 @@ def refresh_with_fixture(pid, entries, folder, target='127.0.0.1', mode='complet
         while not output.with_suffix('.ready').exists() and tracer.poll() is None and time.monotonic() < deadline:
             time.sleep(.01)
         assert output.with_suffix('.ready').exists(), 'neighbor tracer attach'
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
-            endpoint.settimeout(3)
-            endpoint.bind(('127.0.0.20', 0))
-            endpoint.connect((target, PORT))
-            wire = query('arp-health.test', 0x7102)
-            endpoint.sendall(struct.pack('!H', len(wire)) + wire)
-            reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
+        if tftp:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+                endpoint.settimeout(3)
+                endpoint.bind(('127.0.0.30', 0))
+                wire = b'\0\1public\0octet\0timeout\x00255\0'
+                endpoint.sendto(wire, (target, 69))
+                reply, peer = endpoint.recvfrom(4096)
+                assert reply == b'\0\6timeout\x00255\0', 'pressure lookup OACK'
+                endpoint.sendto(b'\0\5\0\0fixture complete\0', peer)
+                (folder / 'lookup.request').write_bytes(wire)
+                (folder / 'lookup.reply').write_bytes(reply)
+        else:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+                endpoint.settimeout(3)
+                endpoint.bind(('127.0.0.20', 0))
+                endpoint.connect((target, PORT))
+                wire = query('arp-health.test', 0x7102)
+                endpoint.sendall(struct.pack('!H', len(wire)) + wire)
+                reply = exact_read(endpoint, struct.unpack('!H', exact_read(endpoint, 2))[0])
         assert tracer.wait(3) == 0, 'neighbor tracer exit'
         receipt = json.loads(output.read_text())
         assert receipt['injected'], 'actual neighbor syscall receipt'
@@ -583,6 +600,94 @@ def cache_caller_contract(root, pid, folder, upstream, kind):
     return dict(case='edns-negative-refresh' if kind == 'negative-refresh' else 'negative-upgrade-position', mac_options=values, callbacks=observed)
 
 
+def helper_command_pipe(pid, child):
+    readers = {}
+    for entry in Path(f'/proc/{child}/fd').iterdir():
+        info = dict(line.split(':', 1) for line in Path(f'/proc/{child}/fdinfo/{entry.name}').read_text().splitlines())
+        if int(info['flags'].strip(), 8) & 3 == 0:
+            readers[os.readlink(entry)] = entry
+    for entry in Path(f'/proc/{pid}/fd').iterdir():
+        info = dict(line.split(':', 1) for line in Path(f'/proc/{pid}/fdinfo/{entry.name}').read_text().splitlines())
+        inode = os.readlink(entry)
+        if inode.startswith('pipe:[') and inode in readers and int(info['flags'].strip(), 8) & 3 == 1:
+            writer = os.open(entry, os.O_WRONLY | os.O_NONBLOCK)
+            try:
+                capacity = fcntl.fcntl(writer, 1031, 4096)  # F_SETPIPE_SZ
+            finally:
+                os.close(writer)
+            reader = os.open(readers[inode], os.O_RDONLY | os.O_NONBLOCK)
+            return reader, dict(inode=inode, parent_fd=int(entry.name), helper_fd=int(readers[inode].name), capacity=capacity)
+    raise AssertionError('actual shared helper command pipe missing')
+
+
+def pipe_bytes(reader):
+    value = bytearray(4)
+    fcntl.ioctl(reader, 0x541b, value)  # nonconsuming FIONREAD
+    return struct.unpack('=I', value)[0]
+
+
+def pressure_contract(root, process, pid, folder, owned, stopping):
+    assert len(owned) == 1, 'actual helper for pressure'
+    child = owned[0]['pid']
+    deadline = time.monotonic() + 2
+    while not (root / 'm2/arp-finished').read_bytes() and time.monotonic() < deadline:
+        time.sleep(.01)
+    assert (root / 'm2/arp-finished').read_bytes(), 'initial command actually consumed'
+    os.kill(child, signal.SIGSTOP)
+    reader, pipe = helper_command_pipe(pid, child)
+    try:
+        assert pipe_bytes(reader) == 0, 'pressure starts with an empty actual pipe'
+        (root / 'm2/arp-events').write_bytes(b'')
+        (root / 'm2/arp-finished').write_bytes(b'')
+        entries = [dict(address=V4, mac=MAC)] + [dict(address=f'198.18.{index // 256}.{index % 256}', mac=f'02:00:00:92:{index // 256:02x}:{index % 256:02x}') for index in range(1, 301)]
+        refresh_with_fixture(pid, entries, folder, tftp=True)
+        samples = []
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            samples.append(pipe_bytes(reader))
+            if len(samples) >= 5 and len(set(samples[-5:])) == 1 and samples[-1] > 0:
+                break
+            time.sleep(.05)
+        pipe['readable_bytes'] = samples[-1]
+        pipe['samples'] = samples
+        save(folder / 'command-pipe.json', pipe)
+        assert pipe['readable_bytes'] > pipe['capacity'] - 104, 'actual helper pressure was not reached'
+        assert callbacks(root) == [], 'stopped helper executed a command'
+        save(folder / 'health-under-pressure.json', [health() for _ in range(10)])
+        assert pipe_bytes(reader) == pipe['readable_bytes'], 'health consumed or replaced queued ARP callbacks'
+        if stopping:
+            os.kill(pid, signal.SIGTERM)
+            time.sleep(.1)
+            assert process.poll() is None, 'TERM discarded the already serialized blocked command'
+            save(folder / 'term-before-helper-resume.json', dict(parent_alive=True, readable_bytes=pipe_bytes(reader)))
+        os.kill(child, signal.SIGCONT)
+        expected = [['3', 'arp-add', entry['mac'], entry['address'], '0', '0', 'inherited-iface', 'inherited-id'] for entry in reversed(entries[1:])]
+        if stopping:
+            assert process.wait(5) == 0, 'parent TERM drain'
+            ended, status = os.waitpid(child, 0)
+            assert ended == child and os.waitstatus_to_exitcode(status) == 0, 'helper EOF after TERM'
+            observed = callbacks(root)
+            # C serializes104B commands. The pipe holds39, plus the already
+            # serialized owner slot; all remaining producer NEW entries drop.
+            assert observed == expected[:pipe['capacity'] // 104 + 1], 'TERM callback prefix or unsent NEW drop differs from C'
+        else:
+            deadline = time.monotonic() + 6
+            while len(callbacks(root)) < len(expected) and time.monotonic() < deadline:
+                time.sleep(.01)
+            observed = callbacks(root)
+            assert observed == expected, 'burst order or queue recovery'
+            (folder / 'health-after-recovery.reply').write_bytes(bytes.fromhex(health()))
+        save(folder / 'pressure-callbacks.json', observed)
+        return dict(case='stop-unsent-arp-drop' if stopping else 'burst-order-and-recovery', callbacks=observed,
+                    pipe_capacity=pipe['capacity'], pipe_readable_bytes=pipe['readable_bytes'], dns_health=True)
+    finally:
+        try:
+            os.kill(child, signal.SIGCONT)
+        except ProcessLookupError:
+            pass
+        os.close(reader)
+
+
 def helper_frame_fault_contract(args, root, process, pid, folder):
     if args.side == 'c':
         symbols = subprocess.run(['readelf', '-Ds', str(args.image_root / 'lib/libc.so')], capture_output=True, text=True, check=True).stdout
@@ -923,6 +1028,8 @@ def run_side(args):
                     rows.append(helper_failure_contract(root, pid, folder, owned))
                 elif spec.get('cache_caller'):
                     rows.append(cache_caller_contract(root, pid, folder, upstream, spec['cache_caller']))
+                elif spec.get('pressure'):
+                    rows.append(pressure_contract(root, process, pid, folder, owned, spec.get('pressure_stop', False)))
                 elif spec.get('helper_frame_fault'):
                     rows.append(helper_frame_fault_contract(args, root, process, pid, folder))
                 else:
