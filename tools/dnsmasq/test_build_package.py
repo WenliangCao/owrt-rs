@@ -2,7 +2,10 @@
 """Local failure-boundary checks; no SDK commands or network access."""
 from pathlib import Path
 import copy
+import contextlib
+import io
 import json
+import os
 import signal
 import subprocess
 import sys
@@ -15,6 +18,26 @@ import m4_package_lifecycle as lifecycle
 
 
 class PackageBuildTests(unittest.TestCase):
+    def test_sigterm_unwinds_sdk_recipe_and_records_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve(); sdk = root / 'sdk'; active = sdk / 'package/owrt-dnsmasq'
+            active.mkdir(parents=True); (active / 'old').write_text('preserve')
+            source = root / 'recipe'; source.mkdir(); (source / 'Makefile').write_text('candidate')
+            budget = root / 'budget.json'; budget.write_text(json.dumps({'schema': 1, 'elf_max_bytes': 1000000, 'apk_max_bytes': 700000}))
+            output = root / 'private/attempt'
+            def interrupted_build(args, out, report):
+                with package.package_recipe(sdk, source, out, report): os.kill(os.getpid(), signal.SIGTERM)
+            argv = ['build_package.py', str(sdk), str(output), '--budget', str(budget), '--expected-elf-sha256', 'a' * 64]
+            previous = signal.getsignal(signal.SIGTERM)
+            with patch.object(package, 'ROOT', root), patch.object(package, 'audit_build', interrupted_build), \
+                    patch.object(sys, 'argv', argv), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(package.main(), 1)
+            report = json.loads((output / 'manifest.json').read_text())
+            self.assertEqual(report['status'], 'failed'); self.assertTrue(report['sdk_recipe_restored'])
+            self.assertIn('interrupted by signal', report['error'])
+            self.assertEqual((active / 'old').read_text(), 'preserve')
+            self.assertEqual(signal.getsignal(signal.SIGTERM), previous)
+
     def test_failed_build_restores_existing_recipe(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

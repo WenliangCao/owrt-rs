@@ -15,6 +15,7 @@ from pathlib import Path
 import platform
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tomllib
@@ -435,6 +436,12 @@ def main():
     report = {"package": PACKAGE, "recipe": RECIPE, "target": TARGET, "activation": "unvalidated-package",
               "physical_router": False, "status": "building",
               "scope": "APK build audit only; lifecycle and deployment acceptance are separate"}
+    def interrupted(signum, frame):
+        # Unwind the recipe context on bounded harness cancellation as well
+        # as ordinary make failures. The manifest remains a failed attempt.
+        raise InterruptedError(f"package build interrupted by signal {signum}")
+    previous_signals = {number: signal.signal(number, interrupted)
+                        for number in (signal.SIGTERM, signal.SIGINT)}
     try:
         report["budget"] = read_budget(budget_path)
         audit_build(args, out, report)
@@ -444,6 +451,7 @@ def main():
         report["error"] = str(error)
         print(str(error), file=sys.stderr)
     finally:
+        for number, handler in previous_signals.items(): signal.signal(number, handler)
         report["warnings"] = [line for log in out.glob("*.log") for line in log.read_text(errors="replace").splitlines()
                               if "warning" in line.lower() or "ld.so" in line.lower()]
         (out / "manifest.json").write_text(json.dumps(report, indent=2) + "\n")
