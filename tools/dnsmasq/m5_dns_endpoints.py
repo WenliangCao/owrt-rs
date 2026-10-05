@@ -318,6 +318,11 @@ def service_cases():
         actions=[dict(op='start-udp',id='first',name='first.endpoint.test'),dict(op='start-udp',id='second',name='second.endpoint.test'),
             dict(op='inject',id='second',server=0),dict(op='receive-udp',id='second',pending='second'),
             dict(op='inject',id='first',server=0),dict(op='receive-udp',id='first',pending='first')],source_range=[34100,34100],same_udp_port=True)
+    original=next(case for case in cases if case['id']=='source-interface-recreated')
+    for label,extra_config,after in [('hup','',[signal_reload()]),('dynamic','bind-dynamic\n',[]),('wait','',[dict(op='pause',seconds=1)])]:
+        changed=copy.deepcopy(original);changed['id']='source-interface-recreated-'+label;changed['config']+=extra_config
+        at=next(index for index,action in enumerate(changed['actions']) if action.get('endpoint_action')=='recreate-interface')+1
+        changed['actions'][at:at]=after;cases.append(changed)
     return cases
 
 
