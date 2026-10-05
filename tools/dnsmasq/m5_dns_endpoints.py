@@ -224,7 +224,7 @@ def service_cases():
     add('duplicate-expanded-hosts-order','server=duplicate.endpoint.test\nserver=127.0.0.3\nall-servers\n',
         sys_files={'/etc/hosts':'127.0.0.2 duplicate.endpoint.test\n127.0.0.2 duplicate.endpoint.test\n127.0.0.3 duplicate.endpoint.test\n'})
     for label,name in [('case','V4.ENDPOINT.TEST'),('trailing-dot','v4.endpoint.test.')]:
-        add('hostname-'+label,'server='+name+'\n',sys_files={'/etc/hosts':HOSTS})
+        add('hostname-'+label,'server='+name+'\n',sys_files={'/etc/hosts':HOSTS},expected_test=1,expected_start=False)
     add('reverse-local-only','rev-server=192.0.2.0/24\nrev-server=2001:db8::/64\n',
         ('7.2.0.192.in-addr.arpa',ipaddress.ip_address('2001:db8::7').reverse_pointer,'one.endpoint.test'),no_upstream=True)
     for prefix in ('192.0.2.199/25','2001:db8::abcd/65'):
@@ -235,7 +235,7 @@ def service_cases():
     add('startup-range-inverted','min-port=34102\nmax-port=34100\n',actions=[],expected_start=False)
     add('startup-range-port-limit-overflow','min-port=34100\nmax-port=34101\nport-limit=3\n',actions=[],expected_start=False)
     add('global-query-preallocated-no-inline','query-port=34003\n',actions=[],socket_witness=[34003])
-    add('syntax-source-binding-elided','query-port=34003\n',actions=[],occupied_ports=[34003],expected_start=False)
+    add('syntax-source-binding-elided','query-port=34003\nserver=127.0.0.2\nbind-interfaces\n',actions=[],occupied_ports=[34003],expected_start=False)
     add('port-zero-suppresses-query-bind','query-port=34003\n',actions=[],occupied_ports=[34003],dns_disabled=True,no_upstream=True,socket_absent=[34003])
     add('self-selected-endpoint-filtered','server=127.0.0.1#{listen_port}\n',no_upstream=True)
     add('unselected-local-address-endpoint','bind-interfaces\nserver=127.0.0.2#15353\n',upstream_port=15353)
@@ -249,6 +249,34 @@ def service_cases():
         resolver_fixture=True,dns_disabled=True,actions=[])
     add('system-resolver-search-list','server=lookup\n',resolver_fixture=True,
         sys_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\nsearch endpoint.test\noptions timeout:1 attempts:1\n'})
+    def endpoint_action(op,**extra): return dict(op='write',path='endpoint-action',text='',endpoint_action=op,**extra)
+    add('range-release-partial-recovery','min-port=34100\nmax-port=34101\nserver=127.0.0.2\n',
+        occupied_ports=[34100,34101],source_range=[34101,34101],
+        actions=[probe('exhausted',transports=['udp']),endpoint_action('release-port',port=34101),probe('recovered',transports=['udp'])])
+    add('scoped-link-local-endpoint','server=fe80::53%m5scope\n',scoped_upstream=True)
+    topo=[{'name':'m5endpoint','addresses':['198.18.81.53/24','198.18.81.9/24','2001:db8:81::53/64','2001:db8:81::9/64']}]
+    remap={'127.0.0.2':'198.18.81.53','::1':'2001:db8:81::53'}
+    add('scoped-global-ipv6-endpoint','server=2001:db8:81::53%m5endpoint\n',topology=topo,upstream_remap=remap)
+    add('source-device-routed-topology','server=198.18.81.53@m5endpoint@198.18.81.9\n',topology=topo,upstream_remap=remap)
+    add('hostname-nonloopback-topology','server=mixed.endpoint.test\n',topology=topo,upstream_remap=remap,
+        sys_files={'/etc/hosts':'198.18.81.53 mixed.endpoint.test\n2001:db8:81::53 mixed.endpoint.test\n'})
+    add('source-address-removed-after-start','server=198.18.81.53@198.18.81.9\n',topology=topo,upstream_remap=remap,
+        actions=[probe('before'),endpoint_action('ip',argv=['addr','del','198.18.81.9/24','dev','m5endpoint']),probe('removed'),
+            endpoint_action('ip',argv=['addr','add','198.18.81.9/24','dev','m5endpoint']),probe('restored')])
+    add('source-interface-recreated','server=198.18.81.53@m5endpoint\n',topology=topo,upstream_remap=remap,
+        actions=[probe('before'),endpoint_action('ip',argv=['link','del','m5endpoint']),probe('removed'),
+            endpoint_action('recreate-interface',interface=topo[0]),probe('recreated')])
+    for name in ('abcdefghijklmno','abcdefghijklmnop','abcdefghijklmnopqrstuvwxyz'):
+        interface={'name':'abcdefghijklmno','addresses':['198.18.81.53/24','198.18.81.9/24']}
+        add('source-interface-truncate-'+str(len(name)),'server=198.18.81.53@'+name+'@198.18.81.9\n',
+            topology=[interface],upstream_remap={'127.0.0.2':'198.18.81.53'})
+    add('tcp-pending-endpoint-reload','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@127.0.0.9#34004\n'},
+        actions=[dict(op='start-tcp',id='held',name='held.endpoint.test'),write('servers','server=127.0.0.3@127.0.0.8#34005\n'),
+            signal_reload(),probe('new-parent'),dict(op='release-tcp',server=0),dict(op='receive-tcp',id='old-pending',pending='held'),
+            probe('old-child',transports=['held']),dict(op='disconnect',id='held'),probe('fresh')])
+    add('tcp-existing-upstream-reconnect','server=127.0.0.2@127.0.0.9#34004\n',tcp_close_after_reply=True,
+        actions=[dict(op='connect',id='held'),probe('first',transports=['held']),dict(op='pause',seconds=.15),
+            probe('reconnected',transports=['held']),dict(op='disconnect',id='held')])
     return cases
 
 
@@ -260,6 +288,15 @@ def run_service_side(root, side, case, folder):
     import m5_dns_files as files
     from dns_service_probe import exact_read, read_name
     parent_pid=None
+    topology=[]
+    def create_interface(interface):
+        name=interface['name']
+        subprocess.run(['ip','link','add',name,'type','dummy'],check=True)
+        subprocess.run(['ip','link','set',name,'up'],check=True)
+        for address in interface['addresses']:
+            subprocess.run(['ip',*(['-6'] if ':' in address else []),'addr','add',address,'dev',name,*(['nodad'] if ':' in address else [])],check=True)
+    for interface in case.get('topology',[]):
+        create_interface(interface);topology.append(interface['name'])
     original_identity=files.process_identity
     def identity(root,pid):
         nonlocal parent_pid
@@ -281,6 +318,7 @@ def run_service_side(root, side, case, folder):
     class Captured(original_upstream):
         def __init__(self,*args):
             self.source_events=[]
+            args=(args[0],case.get('upstream_remap',{}).get(args[1],args[1]),*args[2:])
             args=(*args[:-1],case.get("upstream_port",args[-1]))
             if case.get('resolver_fixture') and args[1]=='127.0.0.2':
                 fixtures=list(args[0])
@@ -356,7 +394,12 @@ def run_service_side(root, side, case, folder):
                         packet=exact_read(client,struct.unpack('!H',exact_read(client,2))[0])
                         response=self.answer(packet,'tcp')
                         self.source_events.append(dict(transport='tcp',peer=list(client.getpeername()),destination=list(client.getsockname()),name=read_name(packet,12)[0],wire=packet.hex()))
+                        fixture=self.probes.get((read_name(packet,12)[0],struct.unpack_from('!H',packet,read_name(packet,12)[1])[0]),{})
+                        if fixture.get('hold_tcp'):
+                            while not self.release_tcp.wait(.01):
+                                if self.stop.is_set(): return
                         client.sendall(struct.pack('!H',len(response))+response)
+                        if case.get('tcp_close_after_reply'): return
             except (ConnectionError,OSError,EOFError): pass
             except Exception as error: self.errors.append(repr(error))
     files.FileUpstream=Captured
@@ -395,6 +438,19 @@ def run_service_side(root, side, case, folder):
         if side=='c' and case.get('owner_progress'): time.sleep(1.5)
         return original_dhcp_receive(*args,**kwargs)
     files.dhcp_wire.receive=receive_dhcp
+    original_put=files.put
+    endpoint_receipts=[]
+    def endpoint_put(root,path,value,opened):
+        if not isinstance(value,dict) or 'endpoint_action' not in value: return original_put(root,path,value,opened)
+        op=value['endpoint_action']
+        if op=='release-port':
+            bound=next(sock for sock in occupied if sock.getsockname()[1]==value['port'])
+            occupied.remove(bound);bound.close()
+        elif op=='ip': subprocess.run(['ip',*value['argv']],check=True)
+        elif op=='recreate-interface': create_interface(value['interface'])
+        else: raise ValueError(op)
+        endpoint_receipts.append(dict(value,at=time.monotonic(),identity=identity(root,parent_pid)))
+    files.put=endpoint_put
     original_command=files.command
     def wrapped_command(root,side,*args):
         command=original_command(root,side,*case.get('argv',[]),*('-d' if arg=='-k' and case.get('debug') else arg for arg in args))
@@ -415,8 +471,13 @@ def run_service_side(root, side, case, folder):
         files.process_identity=original_identity
         files.socket.socket=original_socket
         files.dhcp_wire.receive=original_dhcp_receive
+        files.put=original_put
+        for name in reversed(topology):
+            if subprocess.run(['ip','link','show',name],capture_output=True).returncode==0:
+                subprocess.run(['ip','link','del',name],check=True)
     result['source_events']=[row for upstream in SourceCapture.instances for row in upstream.source_events]
     result['progress_receipts']=progress_receipts
+    result['endpoint_receipts']=endpoint_receipts
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
