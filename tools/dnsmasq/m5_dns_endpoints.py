@@ -156,6 +156,8 @@ def service_cases():
         add('range-width-'+str(width),'min-port=34100\nmax-port='+str(34099+width)+'\nserver=127.0.0.2\n',names=tuple('repeat'+str(i)+'.endpoint.test' for i in range(4)),source_range=[34100,34099+width])
     add('range-one-occupied','min-port=34100\nmax-port=34101\nserver=127.0.0.2\n',occupied_ports=[34100],source_range=[34101,34101])
     add('range-all-occupied','min-port=34100\nmax-port=34101\nserver=127.0.0.2\n',occupied_ports=[34100,34101],no_udp_upstream=True)
+    add('range-nonroot-eacces','min-port=79\nmax-port=80\nserver=127.0.0.2\nlog-facility=-\n',
+        user='dnsmasq',group='dnsmasq',no_udp_upstream=True,source_permission_denied=True,source_diagnostics=True)
     add('range-fixed-override','min-port=34100\nmax-port=34100\nserver=127.0.0.2@127.0.0.9#34004\n',expected_source_port=34004)
     add('range-two-families','min-port=34100\nmax-port=34100\nserver=127.0.0.2\nserver=::1\nall-servers\n',source_range=[34100,34100])
     for limit in (0,1,2,3):
@@ -670,7 +672,7 @@ def run_service_side(root, side, case, folder):
     result['injected_packets']=[row for upstream in SourceCapture.instances for row in getattr(upstream,'injected',[])]
     result['recv_faults']=[upstream.recv_fault for upstream in SourceCapture.instances if hasattr(upstream,'recv_fault')]
     result['fixture_errors']=[error for upstream in SourceCapture.instances for error in upstream.errors]
-    result['source_diagnostics']=[line.replace('dnsmasq-rs:','dnsmasq:') for line in result['stderr'].splitlines() if 'server socket' in line or 'ignoring nameserver' in line]
+    result['source_diagnostics']=[re.sub(r'^dnsmasq(?:-rs)?(?:\[[0-9]+\])?: ', '', line) for line in result['stderr'].splitlines() if 'server socket' in line or 'ignoring nameserver' in line]
     result['source_guard_errors']=source_guard_errors(result,case)
     save(folder/'observed.json',result)
     return result
@@ -688,6 +690,9 @@ def source_guard_errors(result,case):
     if (case.get('recv_fault') or case.get('poll_fault')) and (len(result.get('recv_faults',[]))!=1 or not result['recv_faults'][0].get('injected')): errors.append('actual source socket fault missing')
     udp=[row for row in result['source_events'] if row['transport']=='udp']
     tcp=[row for row in result['source_events'] if row['transport']=='tcp']
+    if case.get('source_permission_denied'):
+        if result['identity']['uid']==0 or int(result['identity']['cap_eff'],16)&(1<<10): errors.append('privileged source bind permission was not dropped')
+        if not any(line.endswith('Permission denied') for line in result['source_diagnostics']): errors.append('actual source EACCES diagnostic was not observed')
     if case.get('diagnostics') and not result.get('file_diagnostics'): errors.append('required servers-file error diagnostic was not observed')
     if 'recreated_udp_answer' in case:
         row=next((row for row in result['rows'] if row['id']=='recreated:udp'),None)

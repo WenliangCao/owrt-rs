@@ -1828,7 +1828,8 @@
       "boundary": "PORT-02",
       "required_case": "fully exhausted range",
       "case_ids": [
-        "range-all-occupied"
+        "range-all-occupied",
+        "range-nonroot-eacces"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
