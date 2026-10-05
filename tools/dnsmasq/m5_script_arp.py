@@ -107,6 +107,7 @@ def profiles():
         dict(case='positive-record-enomem', allocation='positive', extra='add-mac\n'),
         dict(case='negative-record-enomem', allocation='negative', extra='add-mac\n'),
         dict(case='stop-buffered-script-finishes', delay=True, stop_buffered=True),
+        dict(case='stop-helper-failure-cleanup', helper_failure=True, extra='add-mac\n'),
     ]
     for state in ['reachable', 'stale', 'delay', 'probe', 'permanent', 'none', 'noarp', 'incomplete', 'failed']:
         # The real kernel removes LLADDR when NUD_NONE is requested. The
@@ -487,6 +488,21 @@ def buffered_stop_contract(root, process, pid, folder, owned):
     return dict(case='stop-buffered-script-finishes', parent_exited_before_script=True, helper_statuses=helper_statuses)
 
 
+def helper_failure_contract(root, pid, folder, owned):
+    assert len(owned) == 1, 'actual helper identity'
+    os.kill(owned[0]['pid'], signal.SIGKILL)
+    time.sleep(.15)
+    (root / 'm2/arp-events').write_bytes(b'')
+    refresh_with_fixture(pid, [dict(address=V4, mac=MAC), dict(address='192.0.2.18', mac='02:00:00:91:00:18')], folder)
+    time.sleep(.15)
+    observed = callbacks(root)
+    save(folder / 'after-helper-failure.json', observed)
+    assert observed == [], 'dead helper received or retained a callback'
+    (folder / 'health-after-helper-failure.reply').write_bytes(bytes.fromhex(health()))
+    os.kill(pid, 0)
+    return dict(case='stop-helper-failure-cleanup', callbacks=observed, dns_health=True)
+
+
 def callbacks(root):
     return [line.decode('utf-8', 'surrogateescape').split('|')
             for line in (root / 'm2/arp-events').read_bytes().splitlines()]
@@ -758,6 +774,8 @@ def run_side(args):
                     rows.append(dict(case=label, **allocation_contract(args, root, pid, folder, upstream, spec['allocation'])))
                 elif spec.get('stop_buffered'):
                     rows.append(buffered_stop_contract(root, process, pid, folder, owned))
+                elif spec.get('helper_failure'):
+                    rows.append(helper_failure_contract(root, pid, folder, owned))
                 else:
                     row = dict(case=label, callbacks=observed, helper_count=len(owned), dns_health=reply is not None)
                     if spec.get('reference_difference'):
