@@ -125,6 +125,7 @@ pub struct ConditionalDomain {
 #[derive(Clone, Debug)]
 pub struct DnsConfig {
     pub records: super::records::RecordConfig,
+    pub edns: super::edns::EdnsConfig,
     /// Declaration order. A lookup must apply domain-match.c priorities, not
     /// pick the first suffix match (specificity and RR family both matter).
     pub rules: Vec<ServerRule>,
@@ -180,6 +181,7 @@ impl Default for DnsConfig {
     fn default() -> Self {
         Self {
             records: super::records::RecordConfig::default(),
+            edns: super::edns::EdnsConfig::default(),
             rules: Vec::new(),
             listen_addresses: Vec::new(),
             interfaces: Vec::new(),
@@ -699,7 +701,7 @@ impl DnsConfig {
     fn reverse_server(&mut self, argument: &EncodedArg) -> Result<(), Error> {
         let (range, server) = EncodedArg(argument.decoded()).split_once(b',');
         let (address, prefix) = range.split_once(b'/');
-        let address = ip(address.encoded()).ok_or(Error("bad reverse address"))?;
+        let address = ip(address.encoded()).ok_or(Error("error"))?;
         // C invalid numeric prefix falls back to the complete address width.
         let width = if address.is_ipv4() { 32 } else { 128 };
         let prefix = match prefix.as_ref() {

@@ -173,7 +173,8 @@ impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
             path: RuntimePathPolicy::default(),
-            packet_buffer_size: 8192,
+            // dnsmasq.c:124: EDNS_PKTSZ + MAXDNAME + RRFIXEDSZ.
+            packet_buffer_size: 1232 + 255 + 10,
             mtu: None,
             ipv6: false,
             no_block_size: false,
@@ -497,12 +498,22 @@ impl<O: FileOpener> TransferRuntime<O> {
             self.config.no_block_size,
         ) {
             Ok(request) => request,
-            Err(_) => {
+            Err(error) => {
+                let label = crate::tftp_service::peer_label(peer);
+                let message = match error {
+                    RequestError::WriteUnsupported => {
+                        format!("unsupported write request from {label}")
+                    }
+                    RequestError::InvalidFilename => {
+                        format!("empty filename in request from {label}")
+                    }
+                    _ => format!("unsupported request from {label}"),
+                };
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(4, "illegal TFTP operation"),
-                }])
+                    packet: error_packet(4, &message),
+                }]);
             }
         };
         let request = match request {
@@ -518,11 +529,17 @@ impl<O: FileOpener> TransferRuntime<O> {
         let path = match path {
             Ok(path) => path,
             Err(_error) => {
+                let rejected = crate::tftp_service::error_path(
+                    path_policy.prefix.as_deref(),
+                    path_policy.lowercase,
+                    request.filename,
+                )
+                .unwrap_or_default();
                 return Ok(vec![RuntimeEvent::Send {
                     id: None,
                     peer,
-                    packet: error_packet(2, "access violation"),
-                }])
+                    packet: access_error_packet(&rejected),
+                }]);
             }
         };
         let opened = match self.opener.open(&path) {
@@ -618,14 +635,26 @@ impl<O: FileOpener> TransferRuntime<O> {
             return Ok(vec![RuntimeEvent::TidError {
                 id,
                 peer,
-                packet: error_packet(5, "unknown transfer id"),
+                packet: error_packet(
+                    5,
+                    &format!(
+                        "ignoring packet from {} (TID mismatch)",
+                        crate::tftp_service::peer_label(peer)
+                    ),
+                ),
             }]);
         };
         if active.peer != peer {
             return Ok(vec![RuntimeEvent::TidError {
                 id,
                 peer,
-                packet: error_packet(5, "unknown transfer id"),
+                packet: error_packet(
+                    5,
+                    &format!(
+                        "ignoring packet from {} (TID mismatch)",
+                        crate::tftp_service::peer_label(peer)
+                    ),
+                ),
             }]);
         }
         if !active.transfer.receive(packet, now) {
@@ -826,7 +855,13 @@ fn open_error_packet(error: &io::Error, path: &[u8], peer: SocketAddr) -> Vec<u8
     };
     let path = sanitised_path(path);
     match code {
-        1 => error_packet(1, &format!("file {path} not found for {}", peer.ip())),
+        1 => error_packet(
+            1,
+            &format!(
+                "file {path} not found for {}",
+                crate::tftp_service::peer_label(peer)
+            ),
+        ),
         2 => access_error_packet(path.as_bytes()),
         _ => error_packet(0, &format!("cannot read {path}: {}", error_text(error))),
     }

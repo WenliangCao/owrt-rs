@@ -118,7 +118,7 @@ fn main() {
         if error.is::<WatchError>() && !DEBUG_MODE.load(Ordering::Relaxed) {
             std::process::exit(startup_status(error.as_ref()));
         }
-        let blank_line = error.is::<loader::LoadError>()
+        let blank_line = error.is::<loader::LoadError>() || error.is::<Error>()
             || error
                 .downcast_ref::<dnsmasq_rs::dns::daemon::DaemonError>()
                 .is_some_and(|error| {
@@ -816,6 +816,7 @@ fn run_inner(
             } else {
                 0
             },
+            packet_limit,
         ) {
             Ok(listener) => Some(listener),
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
@@ -892,7 +893,15 @@ fn run_inner(
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     let dhcp_helper = helper_config.map(Helper::start).transpose()?;
     #[cfg(target_os = "linux")]
-    identity.drop_privileges(&runtime.process, capabilities)?;
+    identity.drop_privileges(&runtime.process, capabilities).map_err(|error| {
+        if !startup.active() {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, error.message.as_bytes().to_vec()));
+            logger.emit(LogEvent::new(Service::Dns, Priority::Critical, b"FAILED to start up".to_vec()));
+            logger.finish();
+        }
+        error
+    })?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(listener) = &tftp_listener {
         // C tolerates inaccessible roots with no-fail, never socket errors.
@@ -2876,7 +2885,8 @@ impl SinglePoll {
             .as_ref()
             .and_then(|dhcp| dhcp.provider.as_ref()?.try_lock().ok());
         let neighbors = &mut self.neighbors;
-        let _ = listener.poll_once_with_mac(now, &mut |address, interface, now| {
+        let quiet_not_found = listener.quiet_not_found();
+        let events = listener.poll_once_with_mac(now, &mut |address, interface, now| {
             if let IpAddr::V4(address) = address {
                 let mac = provider
                     .as_ref()
@@ -2896,6 +2906,16 @@ impl SinglePoll {
                     neighbors.query(address, interface, now)
                 })
         });
+        if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
+            use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+            for event in events {
+                if let Some((code, message)) = event.error_message() {
+                    if code != 1 || !quiet_not_found {
+                        logger.emit(LogEvent::new(Service::Tftp, Priority::Error, message.to_vec()));
+                    }
+                }
+            }
+        }
         if self.helper.as_ref().is_none_or(Helper::is_finished) {
             while listener.pop_completion().is_some() {}
         }
