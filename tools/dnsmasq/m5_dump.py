@@ -548,7 +548,7 @@ def main():
         missing=sorted(needed-set(subsets[0])|needed-set(subsets[1]))
         option_failures=[failure for report in reports for failure in report['failures'] if failure['case'] in needed]
         equivalent=subsets[0]==subsets[1]
-        controls=[]
+        option_controls=[]
         if equivalent and not missing and not option_failures:
             for label in ['missing-case','wrong-header','wrong-mask-capture','fixture-failure']:
                 mutant=copy.deepcopy(subsets[1])
@@ -556,8 +556,8 @@ def main():
                 if label=='missing-case':mutant.pop(next(iter(mutant)))
                 elif label=='wrong-header':mutant['dns-v4-local']['pcap']['header']['snaplen']+=1
                 elif label=='wrong-mask-capture':mutant['mask-zero']['pcap']['records'].append(copy.deepcopy(mutant['dns-v4-local']['pcap']['records'][0]))
-                controls.append(dict(case=label,rejected=injected or mutant!=subsets[0]))
-        option_results[option]=dict(qualified=equivalent and not missing and not option_failures and len(controls)==4 and all(row['rejected'] for row in controls),required_count=len(needed),paired_count=len(subsets[0]),missing=missing,failures=option_failures,observations_equal=equivalent,controls=controls)
+                option_controls.append(dict(case=label,rejected=injected or mutant!=subsets[0]))
+        option_results[option]=dict(qualified=equivalent and not missing and not option_failures and len(option_controls)==4 and all(row['rejected'] for row in option_controls),required_count=len(needed),paired_count=len(subsets[0]),missing=missing,failures=option_failures,observations_equal=equivalent,controls=option_controls)
     qualified=not args.select and not failures and not any(row['missing'] for row in reports) and len(controls)==4 and all(row['rejected'] for row in controls)
     save(args.out/'result.json',dict(qualified=qualified,option_results=option_results,failures=failures,controls=controls,missing={row['side']:row['missing'] for row in reports},binary_sha256=sha256(args.rust)))
     print(json.dumps(dict(paired=len(reports[0]['rows']),failures=len(failures),qualified=qualified)))
