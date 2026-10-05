@@ -124,6 +124,21 @@ def scenarios():
     add('alias-required', spelling=['--dhcp-lease'], expected_test=1, expected_exit=1)
     add('short', duplicate, spelling=['-l','/m2/leases'], probes=probes)
     add('short-required', spelling=['-l'], expected_test=1, expected_exit=1)
+    add('file-optional', row(), spelling=['--conf-file=/m2/config'], path=DEFAULT,
+        files={'config':'dhcp-leasefile\n'})
+    add('file-alias-required', spelling=['--conf-file=/m2/config'],
+        files={'config':'dhcp-lease\n'}, expected_test=1, expected_exit=1)
+    add('short-empty', row(), spelling=['-l',''], path=DEFAULT)
+    add('cli-file-origin', row(), spelling=['--dhcp-leasefile=/m2/leases','--conf-file=/m2/config'],
+        files={'config':'dhcp-lease=/m2/other\n','other':row(9,name='foreign')},
+        probes=[dict(name='first'),dict(name='foreign')])
+    add('file-cli-origin', row(), spelling=['--conf-file=/m2/config','--dhcp-leasefile=/m2/leases'],
+        files={'config':'dhcp-lease=/m2/other\n','other':row(9,name='foreign')},
+        probes=[dict(name='first'),dict(name='foreign')])
+    add('file-occurrence', spelling=['--conf-file=/m2/config'],
+        files={'config':'dhcp-leasefile=/m2/leases\ndhcp-lease=/m2/other\n'}, expected_test=1, expected_exit=1)
+    add('capacity-zero', row(), maximum=0, expected_exit=5)
+    add('capacity-zero-empty', maximum=0)
     add('occurrence', spelling=['--dhcp-leasefile=/m2/leases','--dhcp-lease=/m2/other'],
         expected_test=1, expected_exit=1)
     return cases
@@ -253,6 +268,7 @@ def run(root, side, case, out):
     if target:(folder/'leases').symlink_to(target)
     if case.get('fifo'):os.mkfifo(real)
     if mounted:subprocess.run(['mount','-o','remount,ro',str(folder/'rofs')],check=True)
+    for name,contents in case.get('files',{}).items():(folder/name).write_text(contents)
     helper=folder/'helper';helper.write_text('#!/bin/sh\nif [ "$1" = init ]; then cat /m2/init; exit; fi\n'
         'printf "%s|%s|%s|%s|%s|%s|%s\\n" "$1" "$2" "$3" "$4" "${DNSMASQ_CLIENT_ID-}" "${DNSMASQ_INTERFACE-}" "${DNSMASQ_OLD_HOSTNAME-}" >> /m2/events\n')
     helper.chmod(0o755);(folder/'init').write_bytes(text.encode())
@@ -276,7 +292,7 @@ def run(root, side, case, out):
     def snapshot(label):
         time.sleep(.12)
         record={'id':label,'files':{},'events':(folder/'events').read_text().splitlines() if (folder/'events').exists() else []}
-        for name in [path,'/m2/target','/m2/held']:
+        for name in [path,'/m2/target','/m2/held','/m2/other']:
             candidate=image_path(root,name)
             if candidate.is_file():
                 raw=candidate.read_bytes();(out/(label+'-'+name.replace('/','_'))).write_bytes(raw)

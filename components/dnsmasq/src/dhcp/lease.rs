@@ -1135,6 +1135,46 @@ mod tests {
     }
 
     #[test]
+    fn duplicate_expiry_preserves_the_other_lease_and_each_script_event() {
+        let file = super::super::lease_file::parse(
+            b"200 01 192.0.2.1 first *\n150 02 192.0.2.1 second *\n",
+        );
+        let mut store = LeaseStore::new(2);
+        store.restore(file.records, 100).unwrap();
+        store.rerun_scripts();
+        let mut scripts = ScriptQueue::default();
+        let newest = scripts.next(&mut store, ScriptOptions::default()).unwrap();
+        let oldest = scripts.next(&mut store, ScriptOptions::default()).unwrap();
+        assert_eq!(newest.name.as_deref(), Some(b"second".as_slice()));
+        assert_eq!(oldest.name.as_deref(), Some(b"first".as_slice()));
+        assert!(scripts.next(&mut store, ScriptOptions::default()).is_none());
+        let removed = store.prune(None, 150);
+        assert_eq!(removed.len(), 1);
+        assert_eq!(removed[0].id(), newest.lease.id());
+        assert_eq!(store.get(address(1)).unwrap().id(), oldest.lease.id());
+        assert_eq!(store.next_expiry(), Some(200));
+        scripts.add_pruned(removed);
+        let deleted = scripts.next(&mut store, ScriptOptions::default()).unwrap();
+        assert_eq!(deleted.action, ScriptAction::Delete);
+        assert_eq!(deleted.lease.id(), newest.lease.id());
+        assert_eq!(store.counters().allocated4, 2);
+        assert_eq!(store.counters().pruned4, 1);
+    }
+
+    #[test]
+    fn restore_checks_capacity_before_pruning_expired_duplicate_records() {
+        let file =
+            super::super::lease_file::parse(b"50 01 192.0.2.1 first *\n50 02 192.0.2.1 second *\n");
+        let mut store = LeaseStore::new(1);
+        assert_eq!(
+            store.restore(file.records, 100).unwrap_err(),
+            RestoreError::Lease(LeaseError::Full)
+        );
+        assert_eq!(store.len(), 1);
+        assert_eq!(store.counters().allocated4, 1);
+    }
+
+    #[test]
     fn fqdn_only_restore_preserves_short_names_until_domains_are_calculated() {
         let input = b"200 01 192.0.2.1 host *\n200 02 192.0.2.2 host *\n";
         for fqdn_only in [false, true] {

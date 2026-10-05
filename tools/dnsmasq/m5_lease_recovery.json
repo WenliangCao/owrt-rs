@@ -31,6 +31,9 @@
     "capacity-duplicate",
     "capacity-expired",
     "capacity-invalid",
+    "capacity-zero",
+    "capacity-zero-empty",
+    "cli-file-origin",
     "client-fallback",
     "configured-names",
     "create-missing",
@@ -46,6 +49,10 @@
     "expiry-prune",
     "expiry-timer",
     "extensions",
+    "file-alias-required",
+    "file-cli-origin",
+    "file-occurrence",
+    "file-optional",
     "fqdn-scope",
     "held-inode",
     "hex-identities",
@@ -71,6 +78,7 @@
     "scanf-space",
     "scanf-width",
     "short",
+    "short-empty",
     "short-required",
     "sighup",
     "write-failure"
@@ -289,7 +297,9 @@
       "source": "lease.c:103-141,846-865",
       "contract": "Every syntactically valid stored row counts before expiry pruning; too many stored leases is EC_MISC.",
       "required_scenarios": [
-        "capacity-expired"
+        "capacity-expired",
+        "capacity-zero",
+        "capacity-zero-empty"
       ]
     },
     {
@@ -451,7 +461,8 @@
       "required_scenarios": [
         "optional-long",
         "optional-empty",
-        "optional-separated"
+        "optional-separated",
+        "file-optional"
       ]
     },
     {
@@ -461,7 +472,8 @@
       "required_scenarios": [
         "alias",
         "alias-empty",
-        "alias-required"
+        "alias-required",
+        "file-alias-required"
       ]
     },
     {
@@ -470,7 +482,8 @@
       "contract": "-l requires an argument; empty explicit value resets default.",
       "required_scenarios": [
         "short",
-        "short-required"
+        "short-required",
+        "short-empty"
       ]
     },
     {
@@ -478,7 +491,10 @@
       "source": "option.c:225-226;option.c:one_opt",
       "contract": "Aliases share duplicate-option tracking and CLI/file origin precedence.",
       "required_scenarios": [
-        "occurrence"
+        "occurrence",
+        "cli-file-origin",
+        "file-cli-origin",
+        "file-occurrence"
       ]
     }
   ],
