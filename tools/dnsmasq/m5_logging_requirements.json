@@ -687,44 +687,132 @@
           "id": "QRY01",
           "source": "option.c:3459-3475",
           "boundary": "Bare/empty/unknown enable ordinary; extra,proto,auth,only_failed flags accumulate across repeats, proto implies extra, auth suppresses recursive logs on this no-auth image.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-mode-00",
+            "query-mode-01",
+            "query-mode-02",
+            "query-mode-03",
+            "query-mode-04",
+            "query-mode-05",
+            "query-mode-06",
+            "query-mode-07",
+            "query-mode-08",
+            "query-mode-09",
+            "query-mode-10",
+            "query-mode-11",
+            "query-debug-proto"
+          ]
         },
         {
           "id": "QRY02",
           "source": "cache.c:2312-2342",
           "boundary": "only_failed includes F_RCODE/F_NEG including NXDOMAIN and NODATA; excludes successful query/forward/reply; auth gate F_NOERR.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-mode-04",
+            "query-mode-10",
+            "query-mode-03",
+            "query-mode-11",
+            "query-local-failed",
+            "query-forward-failed"
+          ]
         },
         {
           "id": "QRY03",
           "source": "cache.c:2344-2444",
           "boundary": "sanitise QNAME; null name removes gap, root prints dot; query-type and unknown TYPE/CLASS/opcode labels; A/AAAA/PTR/reverse/CNAME/RRNAME data.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-local-ordinary",
+            "query-local-proto",
+            "query-local-failed",
+            "query-control-labels"
+          ]
         },
         {
           "id": "QRY04",
           "source": "cache.c:2372-2411",
           "boundary": "RCODE SERVFAIL/REFUSED/FORMERR/NOTIMP/numeric and EDE wording including unset; forwarded non53 port appended #port.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-control-labels",
+            "query-upstream-errors",
+            "query-forward-ordinary",
+            "query-forward-proto",
+            "query-forward-failed"
+          ]
         },
         {
           "id": "QRY05",
           "source": "cache.c:2420-2478",
           "boundary": "Source precedence config/DHCP/hosts/reply/auth/query/validation/forwarded/stale/cached; reverse swap; NEG NXDOMAIN vs typed NODATA and CNAME placeholder.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-local-ordinary",
+            "query-local-proto",
+            "query-local-failed",
+            "query-forward-ordinary",
+            "query-forward-proto",
+            "query-forward-failed",
+            "query-policy-filter",
+            "query-policy-bogus",
+            "query-policy-rebind",
+            "query-dhcp-origin",
+            "query-stale-producers"
+          ]
         },
         {
           "id": "QRY06",
           "source": "cache.c:2478-2515,forward.c callers",
           "boundary": "Extra per-client id/address/port on UDP/TCP, retries and multi-source replies. Normal TCP accept reserves100 IDs in parent and session starts from inherited sequence; debug TCP shares parent sequence without reservation. proto chooses UDP/TCP from signed display id; NOEXTRA omits client prefix; restore pending forward client context before logging replies.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-mode-02",
+            "query-debug-proto",
+            "query-local-proto",
+            "query-forward-proto",
+            "query-transaction-coalesce",
+            "query-transaction-clientretry",
+            "query-transaction-fastretry"
+          ]
         },
         {
           "id": "QRY07",
           "source": "forward.c,rfc1035.c,cache.c log_query caller inventory",
           "boundary": "Every image-enabled local/forward/cache/bogus/filter/rebind/loop/error producer reachable through UDP and TCP; final answer bytes must remain unchanged when logging enabled.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "query-local-ordinary",
+            "query-local-proto",
+            "query-local-failed",
+            "query-forward-ordinary",
+            "query-forward-proto",
+            "query-forward-failed",
+            "query-policy-filter",
+            "query-policy-bogus",
+            "query-policy-rebind",
+            "query-transaction-coalesce",
+            "query-transaction-clientretry",
+            "query-transaction-fastretry",
+            "query-dhcp-origin",
+            "query-control-labels",
+            "query-upstream-errors",
+            "query-stale-producers"
+          ]
         }
+      ],
+      "qualification_ready": true,
+      "qualification_scope": "Ordinary image-enabled query producers and mode/context contract, UDP/TCP local/config/hosts/DHCP/cache/stale/upstream, policy and errors. DNSSEC/auth/ipset/nftset producer branches are unavailable in the exact image. Extreme malformed names, overlong output and display-id wrap remain separately deferred.",
+      "known_reference_defects": [
+        {
+          "source": "rfc1035.c:1838-1854,cache.c:2373-2399",
+          "input": "CHAOS TXT version.bind, no configured TXT, UDP/TCP, query-control-labels",
+          "description": "addr.log.rcode is NOTIMP while addr.log.ede is uninitialized. Only observed (EDE: unknown) suffix on the exact producer line is classified; both sides must retain the same CHAOS TXT question and NOTIMP response. Other EDE, name/ID/client/order/RCODE/wire differences are still failures."
+        }
+      ],
+      "excluded_image_producers": [
+        "F_AUTH and DNSSEC validation/keytag: no-auth/no-DNSSEC",
+        "F_IPSET and NFTSET: no-ipset/no-nftset",
+        "loop.c loop-rejection warning belongs to qualified loop-detect: no log_query invocation"
+      ],
+      "deferred_extreme": [
+        "malformed/nonprintable QNAME bytes and maximum-name serialization",
+        "display ID signed-width wrap",
+        "maximum multiple-TXT output record truncation"
       ]
     },
     "log-dhcp": {

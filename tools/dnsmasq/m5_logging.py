@@ -259,12 +259,67 @@ def cases():
                      'query_probes': True, 'query_mode': mode, 'query_sequence': forward_query_sequence,
                      'query_upstream': True, 'query_required_messages': required,
                      'options': ['log-queries']})
+    for label, extra, probes, required in [
+        ('filter', ['--filter-A', '--filter-AAAA', '--filter-rr=TXT'],
+         [('ready.logging', 1), ('a.forward.test', 1), ('a.forward.test', 1), ('v6.forward.test', 28), ('v6.forward.test', 28), ('txt.forward.test', 16), ('txt.forward.test', 16)],
+         ['config a.forward.test is NODATA-IPv4', 'config v6.forward.test is NODATA-IPv6', 'config txt.forward.test is NODATA']),
+        ('bogus', ['--bogus-nxdomain=192.0.2.7'],
+         [('ready.logging', 1), ('a.forward.test', 1), ('a.forward.test', 1), ('alias.forward.test', 1), ('alias.forward.test', 1)],
+         ['config a.forward.test is NXDOMAIN', 'cached a.forward.test is NXDOMAIN']),
+        ('rebind', ['--stop-dns-rebind'],
+         [('ready.logging', 1), ('rebind.forward.test', 1), ('rebind.forward.test', 1), ('rebind-alias.forward.test', 1), ('rebind-alias.forward.test', 1)],
+         ['possible DNS-rebind attack detected: rebind.forward.test', 'possible DNS-rebind attack detected: rebind-terminal.forward.test'])]:
+        rows.append({'id': 'query-policy-' + label, 'scope': 'query-policy', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957', '--cache-rr=TXT', *extra],
+                     'query_probes': True, 'query_mode': 'proto', 'query_sequence': probes,
+                     'query_upstream': True, 'query_required_messages': required, 'options': ['log-queries']})
+    rows.append({'id': 'query-control-labels', 'scope': 'query-control', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto'], 'query_probes': True,
+                 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)], 'query_control_probe': True,
+                 'chaos_notimp_uninitialised_ede': True,
+                 'query_required_messages': ['non-query opcode 2 from 127.0.0.1', 'reply opcode is not implemented',
+                                            'config version.bind is not implemented', 'query[A] ready.logging from 127.0.0.1'],
+                 'options': ['log-queries']})
+    rows.append({'id': 'query-stale-producers', 'scope': 'query-control', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto', '--use-stale-cache', '--server=127.0.0.2#15957'],
+                 'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
+                 'query_upstream': True, 'query_stale_probe': True,
+                 'query_required_messages': ['cached-stale stale-udp.forward.test is 192.0.2.7',
+                                             'cached-stale stale-tcp.forward.test is 192.0.2.7'],
+                 'options': ['log-queries']})
+    rows.append({'id': 'query-upstream-errors', 'scope': 'query-control', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries=proto', '--all-servers', '--server=127.0.0.2#15957', '--server=127.0.0.3#15958'],
+                 'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1), ('formerr.forward.test', 1), ('servfail.forward.test', 1), ('numeric.forward.test', 1)],
+                 'query_upstream': True, 'query_required_messages': ['reply error is FORMERR', 'reply error is SERVFAIL', 'reply error is 10'],
+                 'options': ['log-queries']})
     for kind in ['coalesce', 'clientretry', 'fastretry']:
         rows.append({'id': 'query-transaction-' + kind, 'scope': 'query-transactions', 'kind': 'run',
                      'argv': ['--log-facility=-', '--log-queries=proto', '--server=127.0.0.2#15957',
-                              *(['--fast-retry=20,1'] if kind == 'fastretry' else [])],
+                              *(['--fast-dns-retry=50,1000'] if kind == 'fastretry' else [])],
                      'query_probes': True, 'query_mode': 'proto', 'query_sequence': [('ready.logging', 1)],
                      'query_upstream': True, 'query_transaction_probe': kind, 'options': ['log-queries']})
+    rows.append({'id': 'query-dhcp-origin', 'scope': 'query-dhcp', 'kind': 'run',
+                 'argv': ['--log-facility=-', '--log-queries', '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m',
+                          '--dhcp-host=02:00:00:00:00:aa,127.0.0.10,m5-client', '--dhcp-host=02:00:00:00:00:bb,ignore',
+                          '--dhcp-authoritative', '--dhcp-leasefile=/m2/logging/leases', '--dhcp-broadcast', '--no-ping'],
+                 'dhcp_probes': True, 'quiet_dhcp': False, 'detail_dhcp': False, 'dhcp_query_origin': True,
+                 'options': ['log-queries']})
+    for label, quiet, detail in [('ordinary', False, False), ('quiet', True, False),
+                                  ('detail', False, True), ('quiet-detail', True, True)]:
+        rows.append({'id': 'dhcp-packets-' + label, 'scope': 'dhcp-packets', 'kind': 'run',
+                     'argv': ['--log-facility=-', '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m',
+                              '--dhcp-host=02:00:00:00:00:aa,127.0.0.10,m5-client',
+                              '--dhcp-host=02:00:00:00:00:bb,ignore', '--dhcp-authoritative',
+                              '--dhcp-leasefile=/m2/logging/leases', '--dhcp-broadcast', '--no-ping',
+                              *(['--quiet-dhcp'] if quiet else []), *(['--log-dhcp'] if detail else [])],
+                     'dhcp_probes': True, 'quiet_dhcp': quiet, 'detail_dhcp': detail,
+                     'options': ['log-dhcp', 'quiet-dhcp']})
+    delay_quiet = copy.deepcopy(next(row for row in rows if row['id'] == 'dhcp-packets-quiet-detail'))
+    delay_quiet['id'] = 'dhcp-packets-quiet-detail-delay'
+    delay_quiet['scope'] = 'dhcp-quiet-delay'
+    delay_quiet['argv'].append('--dhcp-reply-delay=0')
+    delay_quiet['quiet_delay_probe'] = True
+    rows.append(delay_quiet)
     rows.extend([
         {'id': 'daemon-default-stderr', 'scope': 'daemon', 'kind': 'run', 'mode': [],
          'argv': ['--log-facility=-'], 'daemonized': True, 'pidfile': '/m2/logging/daemon.pid',
@@ -973,6 +1028,7 @@ class QueryUpstream:
     def __init__(self):
         self.sockets, self.clients, self.wire, self.errors = [], {}, [], []
         self.pending = []
+        self.stale_seen = set()
         self.stopped = threading.Event()
         for address, port in [('127.0.0.2', 15957), ('127.0.0.3', 15958)]:
             udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -990,6 +1046,16 @@ class QueryUpstream:
         name, end = read_name(request, 12)
         kind = struct.unpack_from('!H', request, end)[0]
         question = request[12:end + 4]
+        if name == 'rebind.forward.test':
+            body = rr(1, bytes([10, 1, 2, 3]))
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
+        if name == 'rebind-alias.forward.test':
+            body = rr(5, wire_name('rebind-terminal.forward.test')) + rr(1, bytes([10, 1, 2, 3]), owner=wire_name('rebind-terminal.forward.test'))
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
+        if name.startswith('stale-'):
+            if name in self.stale_seen: return None
+            self.stale_seen.add(name)
+            return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + rr(1, bytes([192, 0, 2, 7]), ttl=1)
         if name == 'alias.forward.test':
             body = rr(5, wire_name('terminal.forward.test')) + rr(1, bytes([192, 0, 2, 7]), owner=wire_name('terminal.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0) + question + body
@@ -999,6 +1065,8 @@ class QueryUpstream:
         if kind == 12:
             body = rr(12, wire_name('ptr-target.forward.test'))
             return request[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + question + body
+        for prefix, rcode in [('formerr.', 1), ('servfail.', 2), ('numeric.', 10)]:
+            if name.startswith(prefix): return request[:2] + struct.pack('!5H', 0x8180 | rcode, 1, 0, 0, 0) + question
         if name.startswith('error.'):
             return request[:2] + struct.pack('!5H', 0x8185, 1, 0, 0, 0) + question
         if name.startswith('truncated.'):
@@ -1023,14 +1091,15 @@ class QueryUpstream:
                             length = int.from_bytes(pending[:2], 'big')
                             request = bytes(pending[2:2 + length]); del pending[:2 + length]
                             response = self.response(request)
-                            self.wire.append({'transport': 'tcp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
-                            endpoint.sendall(len(response).to_bytes(2, 'big') + response)
+                            self.wire.append({'transport': 'tcp', 'request': request.hex(), 'reply': None if response is None else response.hex(), 'server': list(endpoint.getsockname())})
+                            if response is not None: endpoint.sendall(len(response).to_bytes(2, 'big') + response)
                     elif endpoint.type == socket.SOCK_STREAM:
                         client, _ = endpoint.accept(); client.settimeout(.5); self.clients[client] = bytearray()
                     else:
                         request, peer = endpoint.recvfrom(65535)
                         response = self.response(request)
-                        self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': response.hex(), 'server': list(endpoint.getsockname())})
+                        self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': None if response is None else response.hex(), 'server': list(endpoint.getsockname())})
+                        if response is None: continue
                         if read_name(request, 12)[0] == 'delay.forward.test':
                             self.pending.append((time.monotonic() + .12, endpoint, peer, response))
                         else: endpoint.sendto(response, peer)
@@ -1071,6 +1140,108 @@ def query_transaction_probe(kind):
         rows.append({'transport': 'udp-cached', 'response': answer});trace.append(dict(raw, transport='udp-cached'))
     finally:
         for client in clients: client.close()
+    return rows, trace
+
+
+def query_stale_probe():
+    rows, trace = [], []
+    for name in ['stale-udp.forward.test', 'stale-tcp.forward.test']:
+        answer, raw = exchange(name, 1, port=16509, timeout=1)
+        rows.append({'name': name, 'transport': 'udp-warm', 'response': answer}); trace.append(dict(raw, transport='udp-warm'))
+    time.sleep(2.2)
+    answer, raw = exchange('stale-udp.forward.test', 1, port=16509, timeout=1)
+    rows.append({'name': 'stale-udp.forward.test', 'transport': 'udp-stale', 'response': answer}); trace.append(dict(raw, transport='udp-stale'))
+    tcp_rows, tcp_raw = tcp_sequence([('stale-tcp.forward.test', 1)])
+    rows.extend(tcp_rows); trace.extend(tcp_raw)
+    for row in rows[2:]:
+        addresses = [record for record in row['response']['records'] if record['type'] == 1]
+        if len(addresses) != 1 or addresses[0]['ttl'] != 0:
+            raise AssertionError(('actual stale answer missing', row))
+    return rows, trace
+
+
+def query_control_probe():
+    rows, trace = [], []
+    probes = [('ready.logging', 1, 1, 2), ('version.bind', 16, 3, 0), ('ready.logging', 1, 255, 0)]
+    for transport in ['udp', 'tcp']:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM if transport == 'tcp' else socket.SOCK_DGRAM) as client:
+            client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            client.bind(('127.0.0.1', 16510)); client.settimeout(1)
+            if transport == 'tcp': client.connect(('127.0.0.1', 15353))
+            for index, (name, kind, cls, opcode) in enumerate(probes):
+                wire = struct.pack('!6H', 0x7700 + index, 0x0100 | opcode << 11, 1, 0, 0, 0) + wire_name(name) + struct.pack('!HH', kind, cls)
+                if transport == 'tcp':
+                    client.sendall(len(wire).to_bytes(2, 'big') + wire); response = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+                else: client.sendto(wire, ('127.0.0.1', 15353)); response = client.recv(65535)
+                if response[:2] != wire[:2]: raise AssertionError('query control transaction changed')
+                rows.append({'name': name, 'class': cls, 'opcode': opcode, 'transport': transport, 'response': semantics(response)})
+                trace.append({'request': wire.hex(), 'reply': response.hex(), 'transport': transport})
+    return rows, trace
+
+
+def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0', server=None, message=None):
+    data = bytearray(240)
+    data[:3] = bytes([1, 1, 6]); data[4:8] = struct.pack('!I', xid)
+    data[10:12] = b'\x80\0'; data[12:16] = socket.inet_aton(ciaddr)
+    data[28:34] = bytes.fromhex(mac); data[236:240] = bytes.fromhex('63825363')
+    def option(code, value): data.extend(bytes([code, len(value)]) + value)
+    if kind: option(53, bytes([kind]))
+    if message is not None: option(56, message.encode())
+    if address is not None: option(50, socket.inet_aton(address))
+    if server is not None: option(54, socket.inet_aton(server))
+    option(12, b'm5-client'); option(60, b'm5-fixture'); option(77, b'\x04test')
+    option(55, bytes([1, 3, 6, 12, 15, 51, 58, 59]))
+    data.append(255)
+    return bytes(data)
+
+
+def dhcp_sequence(query_origin=False):
+    rows, trace = [], []
+    steps = [
+        ('bootp', 0, {}, 0),
+        ('discover', 1, {}, 2),
+        ('request', 3, {'address': '127.0.0.10', 'server': '127.0.0.1'}, 5),
+        ('inform', 8, {'ciaddr': '127.0.0.10'}, 5),
+        ('nak', 3, {'address': '127.0.0.99', 'server': '127.0.0.1'}, 6),
+        ('request-again', 3, {'address': '127.0.0.10', 'server': '127.0.0.1'}, 5),
+        ('release', 7, {'ciaddr': '127.0.0.10', 'server': '127.0.0.1'}, None),
+        ('release-unknown', 7, {'ciaddr': '127.0.0.10', 'server': '127.0.0.1'}, None),
+        ('decline', 4, {'address': '127.0.0.10', 'server': '127.0.0.1', 'message': 'client declines'}, None),
+        ('decline-empty', 4, {'address': '127.0.0.10', 'server': '127.0.0.1'}, None),
+        ('discover-ignored', 1, {'mac': '0200000000bb'}, None),
+        ('inform-ignored', 8, {'mac': '0200000000bb', 'ciaddr': '127.0.0.10'}, None)]
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        client.setsockopt(socket.SOL_SOCKET, 25, b'lo\0'); client.bind(('0.0.0.0', 68))
+        for index, (label, kind, fields, expected) in enumerate(steps):
+            xid = 0x1200 + index
+            request = dhcp_packet(kind, xid, **fields)
+            client.settimeout(.15 if expected is None else 1)
+            client.sendto(request, ('255.255.255.255', 67))
+            response = None
+            while True:
+                try: received = client.recv(65535)
+                except socket.timeout: break
+                if len(received) >= 240 and received[4:8] == request[4:8]: response = received; break
+            if expected is None and response is not None: raise AssertionError(('ignored DHCP replied', label))
+            if expected is not None:
+                if response is None: raise AssertionError(('missing DHCP reply', label))
+                at, actual = 240, None
+                while at < len(response):
+                    code = response[at]; at += 1
+                    if code == 255: break
+                    if code == 0: continue
+                    length = response[at]; at += 1
+                    if code == 53: actual = response[at]
+                    at += length
+                if actual != (None if expected == 0 else expected): raise AssertionError(('DHCP response type', label, actual, expected))
+            if query_origin and label == 'request':
+                for name, kind in [('m5-client', 1), ('10.0.0.127.in-addr.arpa', 12)]:
+                    answer, raw = exchange(name, kind, port=16509)
+                    rows.append({'label': 'dns-' + name, 'response': answer})
+                    trace.append(dict(raw, label='dns-' + name))
+            rows.append({'label': label, 'reply': response.hex() if response is not None else None})
+            trace.append({'label': label, 'request': request.hex(), 'reply': response.hex() if response is not None else None})
     return rows, trace
 
 
@@ -1277,6 +1448,9 @@ def run(root, side, case, out):
                     while time.monotonic() < deadline:
                         receiver.drain()
                         time.sleep(.005)
+                if case.get('dhcp_probes'):
+                    rows, raw = dhcp_sequence(case.get('dhcp_query_origin', False))
+                    observed['dhcp'] = rows; trace['dhcp'] = raw
                 if case.get('tftp_probes'):
                     rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
                     observed['tftp'] = rows
@@ -1309,6 +1483,10 @@ def run(root, side, case, out):
                     answer, raw = exchange('ready.logging', port=16503)
                     observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
+                    if case.get('query_stale_probe'):
+                        rows, raw = query_stale_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
+                    if case.get('query_control_probe'):
+                        rows, raw = query_control_probe(); observed['dns'].extend(rows); trace['dns'].extend(raw)
                     if case.get('query_transaction_probe'):
                         rows, raw = query_transaction_probe(case['query_transaction_probe'])
                         observed['dns'].extend(rows); trace['dns'].extend(raw)
@@ -2136,6 +2314,30 @@ def compare(reference, candidate, case, reference_only=False):
                                 for answer in reference['dns'] if answer['name'] != 'kept.logging'
                                 for record in answer['response']['records']):
         failures.append({'kind': 'C-no-ID-generated-answer', 'actual': reference['dns']})
+    if case.get('dhcp_probes'):
+        messages = [line.split(': ', 1)[-1] for line in reference['stderr'].splitlines() if 'DHCP' in line and 'range' not in line]
+        quiet, detail = case['quiet_dhcp'], case['detail_dhcp']
+        required = ['DHCPREQUEST(lo) 127.0.0.99 02:00:00:00:00:aa ',
+                    'DHCPRELEASE(lo) 127.0.0.10 02:00:00:00:00:aa unknown lease'] if quiet and not detail else [
+                    'DHCPDISCOVER(lo) 02:00:00:00:00:aa ',
+                    'DHCPOFFER(lo) 127.0.0.10 02:00:00:00:00:aa ',
+                    'DHCPACK(lo) 127.0.0.10 02:00:00:00:00:aa m5-client',
+                    'DHCPINFORM(lo) 127.0.0.10 02:00:00:00:00:aa ',
+                    'DHCPRELEASE(lo) 127.0.0.10 02:00:00:00:00:aa unknown lease']
+        if quiet and not detail: required = required[1:]  # only error-pointer notices survive.
+        for item in required:
+            if not any(item in message for message in messages): failures.append({'kind': 'C-DHCP-packet-producer', 'missing': item, 'actual': messages})
+        for item in ['DHCPDECLINE(lo) 127.0.0.10 02:00:00:00:00:aa client declines', 'disabling DHCP static address 127.0.0.10 for 10m']:
+            if item not in reference['stderr']: failures.append({'kind': 'C-DHCP-decline-producer', 'missing': item})
+        ignored = 'DHCPDISCOVER(lo) 02:00:00:00:00:bb ignored'
+        if quiet and any(ignored in message for message in messages): failures.append({'kind': 'C-DHCP-quiet-ignored-discover', 'actual': messages})
+        if detail and not all(re.match(r'^[0-9]+ DHCP', message) for message in messages if re.match(r'^([0-9]+ )?DHCP(?:DISCOVER|OFFER|REQUEST|ACK|NAK|INFORM|RELEASE)\(', message)):
+            failures.append({'kind': 'C-DHCP-detail-xid', 'actual': messages})
+    if case.get('quiet_delay_probe') and 'reply delay:' in reference['stderr']:
+        failures.append({'kind': 'C-quiet-DHCP-detail-independent-delay', 'actual': reference['stderr']})
+    if case.get('dhcp_query_origin'):
+        for message in ['DHCP m5-client is 127.0.0.10', 'DHCP 127.0.0.10 is m5-client']:
+            if message not in reference['stderr']: failures.append({'kind': 'C-query-DHCP-origin', 'missing': message})
     if case.get('query_probes'):
         mode, text = case['query_mode'], reference['stderr']
         if mode in ['auth', 'only_failed']:
@@ -2259,6 +2461,23 @@ def compare(reference, candidate, case, reference_only=False):
             row['stderr'] = clipped_identity(row['stderr'])
             row['syslog'] = [clipped_identity(value) for value in row['syslog']]
             row['files'] = {name: clipped_identity(value) for name, value in row['files'].items()}
+    if case.get('chaos_notimp_uninitialised_ede'):
+        # rfc1035.c:1838-1854 sets NOTIMP but leaves addr.log.ede unset.
+        # Keep only the observed unknown suffix exception, with exact matching
+        # CHAOS TXT question/response on both sides; every other byte compares.
+        for transport in ['UDP', 'TCP']:
+            def valid_chaos(row):
+                return any(item.get('transport') == transport.lower()
+                           and item.get('name') == 'version.bind'
+                           and item.get('class') == 3 and item.get('opcode') == 0
+                           and item['response']['questions'] == [['version.bind', 16, 3]]
+                           and item['response']['flags'] & 15 == 4
+                           and not item['response']['records'] for item in row['dns'])
+            if valid_chaos(left) and valid_chaos(right):
+                pattern = (r'(?m)^(dnsmasq\[<PID>\]: ' + transport +
+                           r' [0-9]+ 127\.0\.0\.1/16510 config version\.bind is not implemented)'
+                           r' \(EDE: unknown\)(?=\n|$)')
+                left['stderr'] = re.sub(pattern, r'\1', left['stderr'])
     if case.get('argv') == ['--version']:
         first, separator, rest = left['stdout'].partition('\n')
         expected = first + RUST_VERSION_IDENTITY + separator + rest
@@ -2319,6 +2538,24 @@ def controls():
     result['quiet-DHCP-warning-hidden'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'].replace('disabling DHCP static address 127.0.0.10 for 10m', '')), quiet_case))
     result['quiet-DHCP-ignored-discover-leak'] = bool(compare(quiet, dict(quiet, stderr=quiet['stderr'] + 'dnsmasq-dhcp[1]: DHCPDISCOVER(lo) 02:00:00:00:00:bb ignored\n'), quiet_case))
     assert all(value for key, value in result.items() if key.startswith('quiet-DHCP-'))
+    chaos_case = {'id': 'chaos-control', 'kind': 'run', 'chaos_notimp_uninitialised_ede': True}
+    chaos_dns = [{'transport': 'udp', 'name': 'version.bind', 'class': 3, 'opcode': 0,
+                  'response': {'questions': [['version.bind', 16, 3]], 'flags': 0x8184, 'records': []}}]
+    chaos_line = 'dnsmasq[1]: UDP 105 127.0.0.1/16510 config version.bind is not implemented'
+    chaos = dict(row, dns=chaos_dns, stderr=chaos_line + ' (EDE: unknown)\n')
+    clean_chaos = dict(chaos, stderr=chaos_line + '\n')
+    assert not compare(chaos, clean_chaos, chaos_case)
+    for name, old, new in [('ID', 'UDP 105', 'UDP 106'), ('name', 'version.bind', 'other.bind'),
+                           ('RCODE', 'not implemented', 'REFUSED'), ('client', '/16510', '/16511')]:
+        result['chaos-EDE-defect-' + name] = bool(compare(chaos, dict(clean_chaos, stderr=clean_chaos['stderr'].replace(old, new)), chaos_case))
+    result['chaos-EDE-defect-other-EDE'] = bool(compare(dict(chaos, stderr=chaos['stderr'].replace('unknown', 'not ready')), clean_chaos, chaos_case))
+    result['chaos-EDE-defect-order'] = bool(compare(dict(chaos, stderr=chaos['stderr'] + 'dnsmasq[1]: kept\n'), dict(clean_chaos, stderr='dnsmasq[1]: kept\n' + clean_chaos['stderr']), chaos_case))
+    wrong_class = copy.deepcopy(chaos_dns); wrong_class[0]['class'] = 1
+    result['chaos-EDE-defect-question-required'] = bool(compare(dict(chaos, dns=wrong_class), dict(clean_chaos, dns=wrong_class), chaos_case))
+    wrong_rcode = copy.deepcopy(chaos_dns); wrong_rcode[0]['response']['flags'] = 0x8185
+    result['chaos-EDE-defect-wire-RCODE-required'] = bool(compare(dict(chaos, dns=wrong_rcode), dict(clean_chaos, dns=wrong_rcode), chaos_case))
+    result['chaos-EDE-defect-scenario-required'] = bool(compare(chaos, clean_chaos, case))
+    assert all(value for key, value in result.items() if key.startswith('chaos-EDE-defect-'))
     for field, corrupt in [('exit', 3), ('ready', False), ('forced', True), ('stderr', 'dnsmasq: wrong\n'),
                            ('syslog', ['3c33303e77726f6e67']), ('files', {'daemon.log': '77726f6e67'}),
                            ('file_metadata', {'daemon.log': [0o600, 0, 0]}), ('dns', [{'name': 'wrong'}])]:
