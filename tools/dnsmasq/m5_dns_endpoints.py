@@ -100,7 +100,7 @@ def service_cases():
     def add(ident, config, names=('one.endpoint.test',), **extra):
         if 'all-servers' in config: extra.setdefault('udp_winner',0)
         actions=extra.pop('actions', [probe('query-'+str(i), name, transports=['udp','tcp']) for i,name in enumerate(names)])
-        cases.append(dict(id=ident,config='no-resolv\n'+config,files=extra.pop('files',{}),actions=actions,default_resolv=False,strict_order='all-servers' not in config,**extra))
+        cases.append(dict(id=ident,config=('no-resolv\n' if extra.pop('no_resolv',True) else '')+config,files=extra.pop('files',{}),actions=actions,default_resolv=extra.pop('default_resolv',False),strict_order='all-servers' not in config,**extra))
     for directive in ('server','local'):
         for label, endpoint in [('v4','127.0.0.2'),('v6','::1'),('name-v4','v4.endpoint.test'),('name-v6','v6.endpoint.test'),('name-multi','multi.endpoint.test'),('name-mixed','mixed.endpoint.test'),('name-legacy','127.1'),('named-v4-source','mixed.endpoint.test@127.0.0.9'),('named-v6-source','mixed.endpoint.test@::1'),('named-all-filtered','v4.endpoint.test@::1'),('scope6','::1%lo'),('scope4-ignored','127.0.0.2%missing'),('source4','127.0.0.2@127.0.0.9'),('source6','::1@::1'),('interface','127.0.0.2@lo'),('combined','127.0.0.2@lo@127.0.0.9'),('fixed-source','127.0.0.2@127.0.0.9#34001'),('empty-source','127.0.0.2@'),('empty-interface','127.0.0.2@@127.0.0.9')]:
             add(directive+'-service-'+label,directive+'='+endpoint+'\n',sys_files={'/etc/hosts':HOSTS},local_upstream=label=='name-legacy',no_upstream=label=='named-all-filtered')
@@ -163,7 +163,7 @@ def service_cases():
     add('source-interface-cleared-index','servers-file=/m2/files/servers\n',files={'servers':'server=127.0.0.2@lo\n'},actions=[probe('before','before.endpoint.test'),write('servers','server=127.0.0.2\n'),signal_reload(),probe('after','after.endpoint.test')])
     add('source-ipv6-interface','server=::1@lo\n')
     add('source-ipv6-address-interface','server=::1@lo@::1\n')
-    resolver_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\noptions timeout:3 attempts:1\n'}
+    resolver_files={'/etc/hosts':'','/etc/resolv.conf':'nameserver 127.0.0.2\noptions timeout:1 attempts:1\n'}
     add('system-resolver-startup','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True)
     add('system-resolver-nxdomain','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True,resolver_rcode=3,expected_start=False,expected_test=1)
     add('system-resolver-servfail','server=lookup.endpoint.test\n',sys_files=resolver_files,resolver_fixture=True,resolver_rcode=2,expected_start=False,expected_test=1)
@@ -179,6 +179,7 @@ def service_cases():
             ident=f'r{round_index}-q{i}'
             reuse_actions.extend([dict(op='inject',id=ident,server=0),dict(op='receive-udp',id=ident,pending=ident)])
     add('pool-slot-reuse-round-robin','dns-forward-max=40\nserver=127.0.0.2\n',inherited_nofile=40,port_epochs=True,actions=reuse_actions)
+    add('pool-retired-source-reference','dns-forward-max=2\nall-servers\nservers-file=/m2/files/servers\n',no_resolv=False,default_resolv=True,files={'resolv':'nameserver 127.0.0.2\n','servers':'server=127.0.0.3\n'},actions=[dict(op='start-udp',id='held',name='held.endpoint.test',upstream_count=2),write('resolv',''),dict(op='pause',seconds=.2),probe('new','new.endpoint.test',transports=['udp']),dict(op='inject',id='held',server=1,capture_server=0),dict(op='receive-udp',id='held',pending='held')],udp_unique_ports=2)
     return cases
 
 
