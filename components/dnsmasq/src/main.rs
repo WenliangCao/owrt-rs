@@ -216,6 +216,7 @@ struct Runtime {
     tftp: TftpConfig,
     dhcp: DhcpConfig,
     ubus: UbusConfig,
+    script_arp: dnsmasq_rs::config::script_arp::ScriptArpConfig,
 }
 
 // C's UDP listeners mutate one parent hosts generation. Each accepted TCP
@@ -466,6 +467,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         tftp: TftpConfig::default(),
         dhcp: DhcpConfig::default(),
         ubus: UbusConfig::default(),
+        script_arp: Default::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         if runtime.logging.apply(directive)?
@@ -475,6 +477,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
             || runtime.tftp.apply(directive)?
             || runtime.dhcp.apply(directive)?
             || runtime.ubus.apply(directive)?
+            || runtime.script_arp.apply(directive)?
         {
             Ok(())
         } else {
@@ -679,7 +682,9 @@ fn run_inner(
     let helper_config = dhcp_config
         .script
         .as_ref()
-        .filter(|_| !dhcp_config.ranges.is_empty() || tftp_config.enabled)
+        .filter(|_| {
+            !dhcp_config.ranges.is_empty() || tftp_config.enabled || runtime.script_arp.enabled
+        })
         .map(|script| HelperConfig {
             script: PathBuf::from(OsString::from_vec(script.clone())),
             // dnsmasq.c resolves scriptuser only when DHCP is configured.
@@ -1055,8 +1060,15 @@ fn run_inner(
         tftp.use_shared_listener_owner();
     }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    let neighbor_cache = if tftp_config.unique_root_mac || daemon_config.edns.needs_mac() {
-        NeighborCache::new().ok()
+    let neighbor_cache = if tftp_config.unique_root_mac
+        || daemon_config.edns.needs_mac()
+        || runtime.script_arp.enabled
+    {
+        let mut cache = NeighborCache::new().ok();
+        if let Some(cache) = &mut cache {
+            cache.enable_script_arp(runtime.script_arp.enabled);
+        }
+        cache
     } else {
         None
     };
@@ -1088,6 +1100,10 @@ fn run_inner(
         daemon_options.edns_packet_max,
         poll_listeners,
     );
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    {
+        poll.script_arp = runtime.script_arp.enabled;
+    }
     #[cfg(target_os = "linux")]
     {
         poll.dns_files = Some(dns_files);
@@ -1282,6 +1298,8 @@ fn run_inner(
         .map(|(address, _)| *address)
         .collect();
     while !STOP_REQUESTED.load(Ordering::Acquire) {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        poll.observe_arp_activity();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         poll.step_dhcp_files();
         #[cfg(target_os = "linux")]
@@ -1500,6 +1518,10 @@ fn run_inner(
         }
         poll.wait_for_files()?;
     }
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    if let Some(neighbors) = &mut poll.neighbors {
+        neighbors.discard_script_changes();
+    }
     #[cfg(target_os = "linux")]
     if let Some(files) = &mut poll.dns_files {
         files.begin_shutdown();
@@ -1709,6 +1731,10 @@ struct SinglePoll {
     tftp: Option<TftpListener<RealFileOpener>>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     neighbors: Option<NeighborCache>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    script_arp: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    arp_awake: bool,
 }
 
 struct PollListener {
@@ -2059,6 +2085,10 @@ impl SinglePoll {
             tftp,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             neighbors,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            script_arp: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            arp_awake: true,
         }
     }
 
@@ -2979,7 +3009,7 @@ impl SinglePoll {
         self.poll_udp_completions();
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        self.step_neighbors();
+        self.advance_neighbors();
         self.step_edns_udp();
         self.step_tftp();
         // Early DNS/TCP timers or any listener activity must not consume an
@@ -3005,6 +3035,24 @@ impl SinglePoll {
                     Ok(true) => self.pending_delivery = None,
                     Ok(false) => {}
                     Err(error) => eprintln!("dnsmasq-rs: DHCP helper enqueue: {error}"),
+                }
+            }
+            if self.pending_delivery.is_none() && helper.can_enqueue() {
+                if let Some(neighbors) = &mut self.neighbors {
+                    if let Some(change) = neighbors.front_script_change() {
+                        let event = dnsmasq_rs::helper::Event::Arp {
+                            added: change.added,
+                            address: change.address,
+                            hardware_address: change.hardware_address,
+                        };
+                        match helper.enqueue(&event) {
+                            Ok(true) => {
+                                neighbors.pop_script_change();
+                            }
+                            Ok(false) => {}
+                            Err(error) => eprintln!("dnsmasq-rs: ARP helper enqueue: {error}"),
+                        }
+                    }
                 }
             }
             if self.pending_delivery.is_none() && helper.can_enqueue() {
@@ -3367,7 +3415,91 @@ impl SinglePoll {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn observe_arp_activity(&mut self) {
+        use owrt_ubus::sys::{PollFd, POLLIN};
+        use std::os::fd::AsRawFd;
+        if !self.script_arp {
+            return;
+        }
+        let now = Instant::now();
+        self.arp_awake |= self.full_reload_pending
+            || RELOAD_REQUESTED.load(Ordering::Acquire) != 0
+            || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0;
+        let mut fds = Vec::new();
+        self.append_file_fds(&mut fds);
+        for listener in &self.listeners {
+            if let Some(udp) = &listener.udp {
+                fds.push(PollFd {
+                    fd: udp.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            }
+            if let Some(tcp) = &listener.tcp {
+                fds.push(PollFd {
+                    fd: tcp.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            }
+        }
+        let parent = self.service.lock().unwrap();
+        if let Some(daemon) = &parent.daemon {
+            let deadline = daemon.append_poll_fds(&mut fds, now + Duration::from_secs(3600));
+            self.arp_awake |= deadline <= now;
+        }
+        drop(parent);
+        if let Some(ubus) = &self.parent_events.lock().unwrap().ubus {
+            fds.push(PollFd {
+                fd: ubus.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            });
+        }
+        if let Some(dhcp) = &self.dhcp {
+            self.arp_awake |= dhcp.listener.has_input().unwrap_or(false);
+            if let Some(provider) = &dhcp.provider {
+                self.arp_awake |= provider
+                    .lock()
+                    .unwrap()
+                    .next_maintenance()
+                    .is_some_and(|deadline| deadline <= now);
+            }
+        }
+        if let Some(helper) = &self.helper {
+            for (fd, events) in helper.poll_fds() {
+                if fd >= 0 {
+                    fds.push(PollFd {
+                        fd,
+                        events,
+                        revents: 0,
+                    });
+                }
+            }
+        }
+        if let Some(tftp) = &self.tftp {
+            tftp.append_poll_fds(&mut fds);
+        }
+        if let Some(neighbors) = &self.neighbors {
+            neighbors.append_poll_fds(&mut fds);
+        }
+        self.arp_awake |= owrt_ubus::sys::poll_fds(&mut fds, 0).is_ok_and(|ready| ready != 0);
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_neighbors(&mut self) {
+        let awake = std::mem::take(&mut self.arp_awake);
+        if let Some(neighbors) = &mut self.neighbors {
+            let _ = neighbors.refresh_script_arp(now_seconds() as u64, awake);
+            if self.helper.as_ref().is_none_or(Helper::is_finished) {
+                neighbors.discard_script_changes();
+            }
+        }
+        self.advance_neighbors();
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn advance_neighbors(&mut self) {
         let Some(neighbors) = self.neighbors.as_mut() else {
             return;
         };
