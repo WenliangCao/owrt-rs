@@ -190,6 +190,22 @@ def cases():
         {'id': 'debug-relative-paths', 'scope': 'daemon', 'kind': 'run', 'mode': ['-d'],
          'argv': ['--log-facility=./relative.log'], 'file': '/m2/logging/relative.log',
          'pidfile': './daemon.pid', 'sentinel_pid': True, 'options': ['no-daemon', 'log-facility']},
+        {'id': 'debug-foreground-precedence', 'scope': 'daemon', 'kind': 'run', 'mode': ['-d', '-k'],
+         'argv': ['--log-facility=./relative.log'], 'file': '/m2/logging/relative.log',
+         'pidfile': './daemon.pid', 'sentinel_pid': True, 'options': ['no-daemon']},
+        {'id': 'debug-keeps-configured-nobody-identity', 'scope': 'daemon', 'kind': 'run', 'mode': ['-d'],
+         'user': 'nobody', 'argv': ['--log-facility=-'], 'pidfile': '/m2/logging/daemon.pid',
+         'options': ['no-daemon']},
+        {'id': 'foreground-drops-nobody-identity', 'scope': 'daemon', 'kind': 'run', 'mode': ['-k'],
+         'user': 'nobody', 'expected_uid': 65534, 'argv': ['--log-facility=-'],
+         'pidfile': '/m2/logging/daemon.pid', 'options': ['no-daemon']},
+        {'id': 'nonroot-pid-open-failure-ignored', 'scope': 'daemon', 'kind': 'run', 'mode': ['-k'],
+         'launcher_uid': 65534, 'expected_uid': 65534, 'ignore_pid_failure': True,
+         'argv': ['--log-facility=-'], 'pidfile': '/m2/logging/missing/daemon.pid',
+         'options': ['no-daemon']},
+        {'id': 'pid-symlink-target-preserved', 'scope': 'daemon', 'kind': 'run', 'mode': [],
+         'daemonized': True, 'pid_symlink': True, 'argv': ['--log-facility=-'],
+         'pidfile': '/m2/logging/daemon.pid', 'options': ['no-daemon']},
         {'id': 'debug-sigint-pid', 'scope': 'daemon', 'kind': 'run', 'mode': ['-d'],
          'argv': ['--log-facility=-'], 'pidfile': './daemon.pid', 'sentinel_pid': True,
          'signal': 'int', 'exit': 5, 'expect_ready': True, 'options': ['no-daemon']},
@@ -206,6 +222,16 @@ def cases():
          'pidfile': '/m2/logging/missing/daemon.pid', 'options': ['no-daemon']},
     ])
     for mode, label in [([], 'default'), (['-k'], 'foreground'), (['-d'], 'debug')]:
+        for service in ['tftp', 'dhcp']:
+            extra = ['--enable-tftp', '--tftp-root=/m2/logging'] if service == 'tftp' else [
+                '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases']
+            rows.append({'id': 'helper-startup-' + service + '-' + label, 'scope': 'daemon', 'kind': 'run',
+                         'mode': mode, 'daemonized': not mode, 'pidfile': '/m2/logging/daemon.pid',
+                         'helper_script': True, 'helper_fds': True,
+                         'expected_helper_uid': 65534 if service == 'dhcp' and label != 'debug' else 0,
+                         'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script',
+                                  '--dhcp-scriptuser=nobody', *extra], 'options': ['no-daemon']})
         rows.append({'id': 'log-path-opaque-failure-' + label, 'scope': 'daemon', 'kind': 'run',
                      'mode': mode, 'daemonized': not mode, 'exit': 3,
                      'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram', 'argv': [],
@@ -267,6 +293,26 @@ def cases():
                      'mode': ['-k'], 'fault': name, 'fault_number': number, 'fault_errno': errno.EPERM,
                      'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                      'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
+    rows.append({'id': 'helper-credential-fault-foreground', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': ['-k'], 'fault': 'helper-setuid', 'fault_number': 146, 'fault_errno': errno.EPERM,
+                 'fault_follow_child': True, 'exit': 5, 'pidfile': '/m2/logging/daemon.pid',
+                 'helper_script': True, 'receiver': 'dgram',
+                 'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=nobody',
+                          '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                          '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'],
+                 'options': ['no-daemon']})
+    rows.append({'id': 'helper-credential-fault-default', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': [], 'daemonized': True, 'fault': 'helper-setuid', 'fault_number': 146,
+                 'fault_errno': errno.EPERM, 'fault_follow_child': True, 'fault_follow_depth': 3,
+                 'exit': 5, 'pidfile': '/m2/logging/daemon.pid', 'helper_script': True, 'receiver': 'dgram',
+                 'argv': ['--log-facility=-', '--dhcp-script=/m2/logging/script', '--dhcp-scriptuser=nobody',
+                          '--dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,10m', '--no-ping',
+                          '--dhcp-broadcast', '--dhcp-leasefile=/m2/logging/leases'], 'options': ['no-daemon']})
+    rows.append({'id': 'startup-error-frame-interrupt', 'scope': 'startup-fault', 'kind': 'run',
+                 'mode': [], 'daemonized': True, 'fault': 'error-frame-interrupt', 'fault_number': 66,
+                 'fault_errno': errno.EINTR, 'fault_follow_child': True, 'fault_follow_depth': 2,
+                 'exit': 3, 'pidfile': '/m2/logging/daemon.pid', 'receiver': 'dgram',
+                 'argv': ['--log-facility=/m2/logging/missing/daemon.log'], 'options': ['no-daemon']})
     rows.append({'id': 'pid-chown-capability-missing', 'scope': 'ownership-warning', 'kind': 'run',
                  'mode': ['-k'], 'pidfile': '/m2/logging/daemon.pid', 'user': 'nobody',
                  'drop_chown': True, 'receiver': 'dgram', 'argv': [], 'options': ['no-daemon']})
@@ -1340,6 +1386,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
     attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
+    followed_children = 0
     socket_pending, logging_socket, logging_socket_type = 0, None, 0
     deadline = time.monotonic() + 5
     def wait_stop():
@@ -1353,7 +1400,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         status = wait_stop()
         if not os.WIFSTOPPED(status):
             raise AssertionError('tracee did not stop at initial exec')
-        ptrace(0x4200, 0, 1 | (2 if case['fault'] == 'fork-two' else 0))  # TRACESYSGOOD, optional TRACEFORK
+        ptrace(0x4200, 0, 1 | (2 if case['fault'] == 'fork-two' or case.get('fault_follow_child') else 0))
         for _ in range(50000):
             ptrace(24)
             status = wait_stop()
@@ -1361,11 +1408,12 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 process.returncode = os.waitstatus_to_exitcode(status)
                 attached = False
                 raise AssertionError('tracee exited before selected startup syscall')
-            if status >> 16 == 1 and case['fault'] == 'fork-two':
+            if status >> 16 == 1 and (case['fault'] == 'fork-two' or case.get('fault_follow_child')):
                 child = ctypes.c_ulong()
                 ptrace(0x4201, 0, ctypes.addressof(child))
-                ptrace(7)  # Original parent can read its error channel normally.
+                ptrace(17 if case.get('fault_follow_child') else 7)
                 pid = child.value
+                followed_children += 1
                 status = wait_stop()
                 if not os.WIFSTOPPED(status):
                     raise AssertionError('fork child did not stop')
@@ -1386,7 +1434,7 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     continue
                 if number == 59:
                     pipes += 1
-                    if case['fault'] == 'error-pipe-flags' and pipes == (2 if side == 'c' else 1):
+                    if case['fault'] in ['error-pipe-flags', 'error-frame-interrupt'] and pipes == (2 if side == 'c' else 1):
                         pipe_pointer = args[0]
                 if number == 198 and args[0] == 1:
                     socket_pending = args[1] & 0xf
@@ -1399,10 +1447,14 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 match = number == case['fault_number'] or (number == 66 and case['fault_number'] == 64)
                 if case['fault'] == 'fork-two':
                     match &= pid != process.pid
+                if case.get('fault_follow_child'):
+                    match &= followed_children == case.get('fault_follow_depth', 1)
                 if case['fault'] == 'error-pipe':
                     match &= pipes == (2 if side == 'c' else 1)
                 elif case['fault'] == 'error-pipe-flags':
                     match &= args[0] == error_writer and args[1] == 4
+                elif case['fault'] == 'error-frame-interrupt':
+                    match &= args[0] == error_writer
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
                 elif case.get('fault_target') == 'socket-open':
@@ -1503,6 +1555,9 @@ def run_daemon(root, side, case, out):
         pid_path.unlink(missing_ok=True)
     if case.get('sentinel_pid'):
         pid_path.write_text('sentinel\n')
+    if case.get('pid_symlink'):
+        (folder / 'pid-target').write_text('must survive\n')
+        pid_path.symlink_to('/m2/logging/pid-target')
     log_path = image_path(root, case['file']) if case.get('file') else None
     if log_path:
         log_path.unlink(missing_ok=True)
@@ -1512,6 +1567,10 @@ def run_daemon(root, side, case, out):
             '--group=' + case.get('group', 'root'),
             '--user=' + case.get('user', 'root'), '--pid-file=' + case['pidfile'], *case['mode'], *case['argv']]
     full = command(root, '/bin/sh', '-c', 'cd /m2/logging && exec "$@"', 'logging', executable, *argv)
+    if case.get('launcher_uid') is not None:
+        if full[0] != 'chroot':
+            raise AssertionError('nonroot launcher requires exact chroot command')
+        full.insert(1, '--userspec=' + str(case['launcher_uid']) + ':0')
     save(out / 'fixture.json', case)
     save(out / 'command.json', full)
     observed = {'ready': False, 'exit': None, 'forced': False, 'syslog': [], 'files': {},
@@ -1561,12 +1620,23 @@ def run_daemon(root, side, case, out):
                                 'uid': state['uid'], 'gid': state['gid']}
                             if 'expected_helper_uid' in case:
                                 helpers = []
+                                helper_states = []
                                 for item in Path('/proc').iterdir():
                                     if item.name.isdigit() and int(item.name) != service_pid:
                                         child = proc_state(int(item.name), root)
                                         if child and child['state'] != 'Z' and child['ppid'] == service_pid:
                                             helpers.append(child['uid'][1])
+                                            if case.get('helper_fds'):
+                                                descriptors = [os.readlink(fd) for fd in Path(f'/proc/{child["pid"]}/fd').iterdir()
+                                                               if int(fd.name) > 2]
+                                                helper_states.append({'same_session': child['sid'] == state['sid'],
+                                                    'same_group': child['pgrp'] == state['pgrp'],
+                                                    'cwd': child['cwd'], 'stdio': child['stdio'],
+                                                    'fd_count': len(descriptors),
+                                                    'only_command_event_pipes': all(target.startswith('pipe:[') for target in descriptors)})
                                 observed['helper_uids'] = sorted(helpers)
+                                if case.get('helper_fds'):
+                                    observed['helper_states'] = helper_states
                             observed['pid_written'] = pid_path.exists() and pid_path.read_text() != 'sentinel\n'
                             if not case.get('daemonized') or parent_exit == 0:
                                 break
@@ -1616,6 +1686,8 @@ def run_daemon(root, side, case, out):
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
     observed['pid_after_exit'] = False if case.get('overlong_pid') else pid_path.exists()
+    if case.get('pid_symlink'):
+        observed['pid_symlink_target_preserved'] = (folder / 'pid-target').read_text() == 'must survive\n'
     if log_path and log_path.is_file():
         observed['files']['relative.log'] = log_path.read_bytes().hex()
         meta = log_path.stat()
@@ -1669,10 +1741,10 @@ def compare(reference, candidate, case, reference_only=False):
             expected = {'is_original': not daemonized, 'session_leader': not daemonized,
                         'group_leader': not daemonized, 'cwd': '/m2/logging' if '-d' in case['mode'] else '/',
                         'stdio': ['null', 'capture', 'capture'] if '-d' in case['mode'] else ['null'] * 3,
-                        'uid': [0] * 4, 'gid': [0] * 4}
+                        'uid': [case.get('expected_uid', 0)] * 4, 'gid': [0] * 4}
             if reference['process'] != expected:
                 failures.append({'kind': 'C-daemon-process-state', 'expected': expected, 'actual': reference['process']})
-            if reference['pid_written'] != ('-d' not in case['mode']):
+            if reference['pid_written'] != ('-d' not in case['mode'] and not case.get('ignore_pid_failure')):
                 failures.append({'kind': 'C-daemon-PID-write', 'actual': reference['pid_written']})
             if reference['pid_after_exit'] != (case.get('signal') == 'int'):
                 failures.append({'kind': 'C-daemon-PID-cleanup', 'actual': reference['pid_after_exit']})
@@ -1681,6 +1753,19 @@ def compare(reference, candidate, case, reference_only=False):
         if reference.get('helper_uids') != expected:
             failures.append({'kind': 'C-helper-identity-control', 'expected': expected,
                              'actual': reference.get('helper_uids')})
+    if case.get('pid_symlink'):
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            if row.get('pid_symlink_target_preserved') is not True:
+                failures.append({'kind': 'PID-symlink-target-control', 'side': side})
+    if case.get('helper_fds'):
+        debug = '-d' in case['mode']
+        wanted = [{'same_session': True, 'same_group': True, 'cwd': '/m2/logging' if debug else '/',
+                   'stdio': ['null', 'capture', 'capture'] if debug else ['null'] * 3,
+                   'fd_count': 2, 'only_command_event_pipes': True}]
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            if row.get('helper_states') != wanted:
+                failures.append({'kind': 'helper-startup-owned-FD-control', 'side': side,
+                                 'expected': wanted, 'actual': row.get('helper_states')})
     if 'facility' in case and expected_ready:
         if not reference['syslog'] and not case.get('allow_no_syslog'):
             failures.append({'kind': 'C-no-syslog-records'})

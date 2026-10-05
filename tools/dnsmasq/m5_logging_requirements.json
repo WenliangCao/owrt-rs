@@ -218,7 +218,16 @@
           "id": "FAC10",
           "source": "log.c:135-160,301-319,log_write,flush_log",
           "boundary": "Real FIFO file open/write and blocked inherited stderr/debug echo preserve record semantics with explicit nonblocking single-owner startup/runtime/shutdown policy; demonstrate DNS/TFTP health while sink blocks and recovery after drain or reader arrival. C blocking differences retained separately.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "blocked-sink-fifo-no-reader",
+            "blocked-sink-fifo-full",
+            "blocked-sink-stderr-full",
+            "blocked-sink-debug-echo-full",
+            "blocked-sink-fifo-no-reader-shutdown",
+            "blocked-sink-fifo-full-shutdown",
+            "blocked-sink-stderr-full-shutdown",
+            "blocked-sink-debug-echo-full-shutdown"
+          ]
         },
         {
           "id": "FAC11",
@@ -574,33 +583,103 @@
           "id": "ASY01",
           "source": "option.c:3477-3483,744-766,config.h:58",
           "boundary": "Bare5, digits-only atoi wrap, values>100 cap100, zero disables queue, negative wrap boundary frozen against image; repeat/origin constraints.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "async-value-00",
+            "async-value-01",
+            "async-value-02",
+            "async-value-03",
+            "async-value-04",
+            "async-value-05",
+            "async-value-06",
+            "async-value-07",
+            "async-value-08",
+            "async-value-09",
+            "async-value-10",
+            "async-value-11",
+            "async-overridden-stderr",
+            "async-overridden-file",
+            "async-invalid-00",
+            "async-invalid-01",
+            "async-invalid-02",
+            "async-invalid-03",
+            "async-origin-precedence",
+            "async-repeat-cli",
+            "async-repeat-file",
+            "async-invalid-file"
+          ]
         },
         {
           "id": "ASY02",
           "source": "log.c:80-89,97-109,335-362",
           "boundary": "File/stderr override async0; ordinary preallocated1; async allocation up to limit; saturation drops new records and preserves order.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "async-value-01",
+            "async-value-02",
+            "async-value-07",
+            "async-value-08",
+            "async-overridden-stderr",
+            "async-overridden-file",
+            "async-overflow-startup",
+            "sink-fault-syslog-again"
+          ]
         },
         {
           "id": "ASY03",
           "source": "log.c:198-206",
           "boundary": "After completed record emit exactly one warning overflow:N log entries lost and reset counter; subsequent overflow continues accounting.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "async-overflow-startup",
+            "async-real-reconnect-two-cycles",
+            "async-tcp-inherited-queue"
+          ]
         },
         {
           "id": "ASY04",
           "source": "log.c:407-471",
           "boundary": "Nonblocking deferred sends, partial stream writes, queue readiness, reconnect/down/recover/ENOBUFS; C nanosleep pacing and blocking flush are documented policy differences because product single poll owner may not sleep.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "async-stream-short-write",
+            "async-real-reconnect-two-cycles",
+            "sink-fault-syslog-socket",
+            "sink-fault-stderr-dup",
+            "sink-fault-syslog-interrupt",
+            "sink-fault-syslog-again",
+            "sink-fault-syslog-buffers",
+            "sink-fault-syslog-not-connected",
+            "sink-fault-syslog-refused",
+            "sink-fault-syslog-destination",
+            "sink-fault-syslog-reset",
+            "sink-fault-syslog-pipe",
+            "sink-fault-syslog-fatal",
+            "sink-fault-connect-missing",
+            "sink-fault-connect-already",
+            "sink-fault-connect-refused",
+            "sink-fault-connect-connected",
+            "sink-fault-connect-interrupt",
+            "sink-fault-connect-again"
+          ]
         },
         {
           "id": "ASY05",
           "source": "log.c:182-190",
           "boundary": "Forked record PID guard and TCP child logging behavior; Rust single owner preserves one emission, no new logging thread.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "async-tcp-inherited-queue"
+          ]
         }
-      ]
+      ],
+      "qualification_ready": true,
+      "scheduler_policy": {
+        "source": "log.c:407-471",
+        "authority": "Project M5 single poll owner must not sleep or block for logging.",
+        "difference": "C uses occupancy nanosleep and sleeping/blocking flush; Rust uses nonblocking bounded writes, explicit POLLOUT, and bounded owner shutdown. This changes pacing and blocked-sink termination timing, not the verified record/counter/retry contract.",
+        "runtime_witnesses": [
+          "async-overflow-startup",
+          "async-stream-short-write",
+          "async-real-reconnect-two-cycles",
+          "async-tcp-inherited-queue"
+        ]
+      }
     },
     "log-queries": {
       "required": [
@@ -731,7 +810,18 @@
           "id": "DBG01",
           "source": "option.c:596,log.c:307-315",
           "boundary": "Suppress MS_DEBUG logs only unless option enabled; LOG_DEBUG script output remains emitted independent of option.",
-          "required_scenarios": []
+          "required_scenarios": [
+            "script-logs-stderr-debug-disabled",
+            "script-logs-stderr-debug-enabled",
+            "script-logs-file-debug-disabled",
+            "script-logs-file-debug-enabled",
+            "script-logs-syslog-debug-disabled",
+            "script-logs-syslog-debug-enabled",
+            "script-logs-stream-debug-disabled",
+            "script-logs-stream-debug-enabled",
+            "script-logs-signal",
+            "script-logs-exec"
+          ]
         },
         {
           "id": "DBG02",
@@ -749,7 +839,8 @@
             "tcp-accepted-file-rotation"
           ]
         }
-      ]
+      ],
+      "qualification_ready": true
     },
     "log-malloc": {
       "required": [
@@ -886,8 +977,8 @@
       ]
     },
     "tftp-root": {
-      "qualification_ready": false,
-      "qualification_scope": "Reopened complete debug echo and inherited stderr ownership must pair on the corrected product; historical startup/runtime evidence is retained.",
+      "qualification_ready": true,
+      "qualification_scope": "Retained M5 TFTP runtime path/transfer qualification is unchanged; this frozen supplement repairs the reopened startup root/no-fail gap.",
       "required": [
         {
           "id": "TRS01",
@@ -962,8 +1053,8 @@
       ]
     },
     "tftp-no-fail": {
-      "qualification_ready": false,
-      "qualification_scope": "Reopened complete debug echo and inherited stderr ownership must pair on the corrected product; historical startup/runtime evidence is retained.",
+      "qualification_ready": true,
+      "qualification_scope": "Retained M5 TFTP runtime path/transfer qualification is unchanged; this frozen supplement repairs the reopened startup root/no-fail gap.",
       "required": [
         {
           "id": "TNF01",
