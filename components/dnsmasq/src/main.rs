@@ -3605,7 +3605,7 @@ impl SinglePoll {
         let full_deadline = Instant::now() + timeout;
         let mut deadline = full_deadline;
         let mut fds = vec![PollFd {
-            fd: icmp.map_or(-1, AsRawFd::as_raw_fd),
+            fd: icmp.map_or(-1, |socket| socket.as_raw_fd()),
             events: POLLIN,
             revents: 0,
         }];
