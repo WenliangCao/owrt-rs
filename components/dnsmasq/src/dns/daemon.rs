@@ -506,6 +506,7 @@ impl<R: Random> DnsDaemon<R> {
                 && !self.local.config.no_poll
                 && !rows.is_empty());
         let mut removed = self.server_sources.replace(source, rows);
+        self.loop_state.reset_source(source, &self.server_sources);
         self.send_loop_probes()?;
         removed.extend(
             self.server_sources
