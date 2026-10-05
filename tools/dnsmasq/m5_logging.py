@@ -92,7 +92,8 @@ def cases():
                      'options': ['log-facility', 'test']})
     for name, argv in [('version', ['--version']), ('help', ['--help']),
                        ('help-dhcp', ['--help', 'dhcp']), ('help-dhcp6', ['--help', 'dhcp6']),
-                       ('help-unknown', ['--help', 'other'])]:
+                       ('help-unknown', ['--help', 'other']),
+                       ('help-dhcp-extra', ['--help', 'dhcp', 'extra'])]:
         rows.append({'id': 'cli-' + name, 'scope': 'cli', 'kind': 'cli', 'argv': argv,
                      'options': ['version'] if name == 'version' else ['help']})
     rows.extend([
@@ -189,7 +190,8 @@ def run(root, side, case, out):
         (folder / case['file']).write_text(case['existing'])
         (folder / case['file']).chmod(case['file_mode'])
     receiver = Receiver(root, case.get('receiver'))
-    argv = ['-C', '/m2/logging/config']
+    # C selects the DHCP help list only with exactly argc3 and argv[2]=dhcp.
+    argv = [] if case['kind'] == 'cli' else ['-C', '/m2/logging/config']
     if case['kind'] != 'cli':
         argv += BASE + ['--user=' + case.get('user', 'root')]
         argv += ['--test'] if case['kind'] == 'test' else case.get('mode', ['-k'])
@@ -289,6 +291,16 @@ def compare(reference, candidate, case, reference_only=False):
             match = re.match(r'<(\d+)>', text)
             if not match or (int(match[1]) & ~7) != case['facility']:
                 failures.append({'kind': 'C-PRI-facility', 'actual': text})
+    if case['kind'] == 'cli':
+        expected = ('Known DHCP options:\n' if case['argv'] == ['--help', 'dhcp'] else
+                    'Dnsmasq version 2.93  ' if case['argv'] == ['--version'] else
+                    'Usage: dnsmasq [options]\n')
+        if not reference['stdout'].startswith(expected):
+            failures.append({'kind': 'C-CLI-dispatch', 'expected_prefix': expected,
+                             'actual': reference['stdout']})
+    if case.get('chaos') and any(record.get('section') == 'answer'
+                                for answer in reference['dns'] for record in answer['response']['records']):
+        failures.append({'kind': 'C-no-ID-generated-answer', 'actual': reference['dns']})
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
@@ -318,6 +330,11 @@ def controls():
         result[field] = bool(compare(row, changed, case))
     if not all(result.values()):
         raise AssertionError('negative control bypass')
+    wrong_help = dict(row, stdout='Usage: dnsmasq [options]\n', ready=False)
+    result['help-argc-dispatch'] = bool(compare(wrong_help, wrong_help,
+        {'id': 'help-control', 'kind': 'cli', 'argv': ['--help', 'dhcp']}, True))
+    if not result['help-argc-dispatch']:
+        raise AssertionError('help dispatch calibration bypass')
     return result
 
 
