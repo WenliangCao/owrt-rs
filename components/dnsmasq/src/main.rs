@@ -140,6 +140,14 @@ fn main() {
         if blank_line {
             eprintln!();
         }
+        #[cfg(target_os = "linux")]
+        if let Some(raw) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
+            let mut stderr = std::io::stderr().lock();
+            let _ = stderr.write_all(b"dnsmasq-rs: ");
+            let _ = stderr.write_all(&raw.message_bytes());
+            let _ = stderr.write_all(b"\n");
+            std::process::exit(startup_status(error.as_ref()));
+        }
         eprintln!("dnsmasq-rs: {error}");
         std::process::exit(startup_status(error.as_ref()));
     }
@@ -1044,10 +1052,10 @@ fn run_inner(
         Ok(value) => value,
         Err(error) => {
             if !startup.active() {
-                dnsmasq_rs::logging::report_startup_failure(
+                dnsmasq_rs::logging::report_startup_failure_bytes(
                     &runtime.logging,
                     &runtime.process,
-                    &error.message,
+                    &error.message_bytes(),
                 );
                 // C selects log_stderr before dup(), so this failure already
                 // has its syslog report and die() does not echo it to stderr.
