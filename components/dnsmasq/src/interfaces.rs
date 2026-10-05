@@ -6,6 +6,12 @@ use std::net::{IpAddr, Ipv4Addr};
 #[path = "interfaces_broadcast.rs"]
 mod ipv4_broadcast;
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+#[path = "interfaces_ipv4.rs"]
+mod ipv4_snapshot;
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub use ipv4_snapshot::Ipv4Snapshot;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Ipv4Interface {
     pub index: u32,
@@ -42,7 +48,6 @@ mod linux {
         fn getifaddrs(addresses: *mut *mut IfAddrs) -> i32;
         fn freeifaddrs(addresses: *mut IfAddrs);
         fn if_nametoindex(name: *const c_char) -> u32;
-        fn if_indextoname(index: u32, name: *mut c_char) -> *mut c_char;
         fn ioctl(fd: i32, request: usize, argument: *mut u8) -> i32;
     }
 
@@ -51,12 +56,11 @@ mod linux {
     pub fn primary_ipv4(index: u32, control: &UdpSocket) -> io::Result<Ipv4Addr> {
         let mut request = [0u64; 5];
         // SAFETY: Linux 64-bit ifreq is 40 bytes with an aligned union. Its
-        // first 16 bytes are ifr_name; if_indextoname writes at most IFNAMSIZ.
+        // first 16 bytes are ifr_name. Reuse the retained control socket for
+        // SIOCGIFNAME rather than allowing libc to allocate another socket.
         let bytes =
             unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
-        if unsafe { if_indextoname(index, bytes.as_mut_ptr().cast()) }.is_null() {
-            return Err(io::Error::last_os_error());
-        }
+        bytes[..16].copy_from_slice(&crate::net::interface_name(control, index)?);
         // SAFETY: SIOCGIFADDR writes sockaddr_in at byte 16 of the live ifreq.
         // The UdpSocket owns the descriptor for the entire call.
         if unsafe { ioctl(control.as_raw_fd(), 0x8915, bytes.as_mut_ptr()) } < 0 {

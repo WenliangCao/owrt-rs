@@ -95,9 +95,19 @@ fn dhcp_ttl(argument: Option<&EncodedArg>) -> Result<u32, Error> {
 }
 
 fn port(argument: Option<&EncodedArg>) -> Result<u16, Error> {
-    integer(argument)?
-        .try_into()
-        .map_err(|_| Error("port exceeds 65535"))
+    let bytes = argument.ok_or(Error("missing parameter"))?.decoded();
+    if !bytes.iter().all(u8::is_ascii_digit) {
+        return Err(Error("error"));
+    }
+    // option.c's atoi_check16 calls musl atoi first. Long decimal input wraps
+    // to a 32-bit signed int before the 0..65535 check.
+    let value = bytes.iter().fold(0u32, |value, byte| {
+        value.wrapping_mul(10).wrapping_add(u32::from(byte - b'0'))
+    }) as i32;
+    if !(0..=u16::MAX as i32).contains(&value) {
+        return Err(Error("error"));
+    }
+    Ok(value as u16)
 }
 
 impl ScalarConfig {
@@ -122,11 +132,17 @@ impl ScalarConfig {
                 }
             }
             b"port-limit" => {
-                let value = integer(arg)?;
-                if value == 0 {
-                    return Err(Error("port-limit must be positive"));
+                let bytes = arg.ok_or(Error("missing parameter"))?.decoded();
+                if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+                    return Err(Error("error"));
                 }
-                self.port_limit = value;
+                let value = bytes.iter().fold(0u32, |value, byte| {
+                    value.wrapping_mul(10).wrapping_add(u32::from(byte - b'0'))
+                }) as i32;
+                if value < 1 {
+                    return Err(Error("error"));
+                }
+                self.port_limit = value as u32;
             }
             b"local-ttl" => self.local_ttl = integer(arg)?,
             b"neg-ttl" => self.negative_ttl = integer(arg)?,

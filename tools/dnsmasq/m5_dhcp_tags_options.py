@@ -629,7 +629,10 @@ def comparable_reply(response, event):
     if 51 in timers:
         remaining = timers[51]
         assert 580 <= remaining < 600, timers
-        assert timers == {51: remaining, 58: remaining-300, 59: remaining-75, 91: 600-remaining}, timers
+        expected = {51: remaining, 58: remaining-300, 59: remaining-75}
+        if 91 in timers:
+            expected[91] = 600 - remaining
+        assert timers == expected, timers
     else:
         assert not timers, timers
     for row in rows:

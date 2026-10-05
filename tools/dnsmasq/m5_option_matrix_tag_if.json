@@ -1,0 +1,2471 @@
+{
+  "schema": 1,
+  "executable": true,
+  "qualification_ready": false,
+  "status": "full-catalogue-awaiting-composition-C-calibration",
+  "scope": "Ordered tag-if predicates, generated request/context tags and actual DHCP policy consumers; separate parser/runtime expectations from image C.",
+  "source_identity": {
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+    "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+    "dhcp-common.c": "9139906c5d3a438853fe84e90387cfc299c3c28e7b16a23c7d0d6922847ccc79"
+  },
+  "options": {
+    "tag-if": {
+      "source": [
+        "option.c:4242-4305",
+        "dhcp-common.c:82-125,152-193",
+        "rfc2131.c:547-557,612-664,824-852,1139-1162,1358,1591,1779"
+      ],
+      "eligible_for_closure": false,
+      "known_gaps": [
+        "BOOT/PXE, leasequery, helper tag ordering composition witnesses not yet attached"
+      ],
+      "scenarios": [
+        "tagif-exact",
+        "tagif-trailing-wildcard",
+        "tagif-net-interface",
+        "tagif-multi-and",
+        "tagif-multi-and-missing",
+        "tagif-case-sensitive",
+        "tagif-internal-star-literal",
+        "tagif-negative",
+        "tagif-legacy-negative",
+        "tagif-negative-wildcard",
+        "tagif-negative-empty",
+        "tagif-multi-output",
+        "tagif-set-before-tag",
+        "tagif-unconditional",
+        "tagif-ordered-chain",
+        "tagif-reversed-chain",
+        "tagif-request-isolation",
+        "tagif-output-has-no-wildcard",
+        "tagif-quoted-comma",
+        "tagif-context-second-pass",
+        "tagif-request-options-first",
+        "tagif-range-selection",
+        "tagif-host-selection",
+        "tagif-ignore-selection",
+        "tagif-invalid-0",
+        "tagif-invalid-1",
+        "tagif-invalid-2",
+        "tagif-invalid-3",
+        "tagif-invalid-4",
+        "tagif-invalid-5",
+        "tagif-invalid-6",
+        "tagif-invalid-7",
+        "tagif-invalid-8",
+        "tagif-bootp-context",
+        "tagif-bootp-request",
+        "tagif-pxe-normal",
+        "tagif-pxe-proxy",
+        "tagif-leasequery-stored",
+        "tagif-helper-derived-order"
+      ],
+      "checklist": [
+        {
+          "boundary": "predicate",
+          "checked": false,
+          "required_scenarios": [
+            "tagif-exact",
+            "tagif-trailing-wildcard",
+            "tagif-net-interface",
+            "tagif-multi-and",
+            "tagif-multi-and-missing",
+            "tagif-case-sensitive",
+            "tagif-internal-star-literal",
+            "tagif-negative",
+            "tagif-legacy-negative",
+            "tagif-negative-wildcard",
+            "tagif-negative-empty",
+            "tagif-multi-output",
+            "tagif-set-before-tag",
+            "tagif-unconditional",
+            "tagif-output-has-no-wildcard"
+          ]
+        },
+        {
+          "boundary": "order",
+          "checked": false,
+          "required_scenarios": [
+            "tagif-ordered-chain",
+            "tagif-reversed-chain",
+            "tagif-request-isolation"
+          ]
+        },
+        {
+          "boundary": "syntax",
+          "checked": false,
+          "required_scenarios": [
+            "tagif-quoted-comma",
+            "tagif-invalid-0",
+            "tagif-invalid-1",
+            "tagif-invalid-2",
+            "tagif-invalid-3",
+            "tagif-invalid-4",
+            "tagif-invalid-5",
+            "tagif-invalid-6",
+            "tagif-invalid-7",
+            "tagif-invalid-8"
+          ]
+        },
+        {
+          "boundary": "context",
+          "checked": false,
+          "required_scenarios": [
+            "tagif-context-second-pass",
+            "tagif-request-options-first",
+            "tagif-range-selection"
+          ]
+        },
+        {
+          "boundary": "host",
+          "checked": false,
+          "required_scenarios": [
+            "tagif-host-selection",
+            "tagif-ignore-selection"
+          ]
+        },
+        {
+          "boundary": "Actual BOOTP request/context pass, PXE normal/proxy shared options, restored leasequery tags and helper tag order use the expanded list; each normal response/lease mutation and selected option has a positive C anchor.",
+          "checked": false,
+          "required_scenarios": [
+            "tagif-bootp-context",
+            "tagif-bootp-request",
+            "tagif-pxe-normal",
+            "tagif-pxe-proxy",
+            "tagif-leasequery-stored",
+            "tagif-helper-derived-order"
+          ]
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "tagif-exact",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-trailing-wildcard",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:sour*,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-net-interface",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:br-*,tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-multi-and",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:br-lan,tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-multi-and-missing",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:absent,tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-case-sensitive",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:Source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-internal-star-literal",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:s*ce,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-negative",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:!source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-legacy-negative",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:\"#source\",set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-negative-wildcard",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:!sour*,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-negative-empty",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:!,tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-multi-output",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:extra,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-set-before-tag",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=set:derived,tag:source\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-unconditional",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-ordered-chain",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:first\ntag-if=tag:first,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-reversed-chain",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:first,set:derived\ntag-if=tag:source,set:first\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-request-isolation",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "match-again",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-output-has-no-wildcard",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:literal*\ntag-if=tag:literal,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-quoted-comma",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:\"a,b\"\ntag-if=tag:\"a,b\",set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "01"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-context-second-pass",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:range,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-request-options-first",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ndhcp-option=224,1\ndhcp-option=tag:derived,224,2\ntag-if=tag:source,set:request\ntag-if=tag:range,set:derived\ndhcp-option=tag:request,224,3\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "03"
+            }
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-range-selection",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ntag-if=tag:source,set:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 0
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "ranges": [
+        "dhcp-range=tag:derived,10.77.0.10,10.77.0.10,255.255.255.0,600"
+      ]
+    },
+    {
+      "id": "tagif-host-selection",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ntag-if=tag:source,set:derived\ndhcp-host=tag:derived,02:00:4d:35:44:01,10.77.0.13\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.13",
+            "leases": 0
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "address": "10.77.0.10",
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "ranges": [
+        "dhcp-range=10.77.0.10,10.77.0.10,255.255.255.0,600"
+      ]
+    },
+    {
+      "id": "tagif-ignore-selection",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ntag-if=tag:source,set:derived\ndhcp-ignore=tag:derived\n",
+      "probes": [
+        {
+          "id": "match",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": null,
+            "leases": 0
+          }
+        },
+        {
+          "id": "nonmatch",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            51,
+            54,
+            58,
+            59,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4f74686572"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-invalid-0",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-1",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-2",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=tag:source\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-3",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=set:\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-4",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=set:derived,tag:\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-5",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=net:source,set:derived\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-6",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=derived\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-7",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=set:derived,\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-invalid-8",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=\"set:derived\"\n",
+      "probes": [],
+      "expected_test_exit": 1
+    },
+    {
+      "id": "tagif-bootp-context",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=tag:range,set:derived\nbootp-dynamic=tag:derived\ndhcp-option=tag:derived,224,2\n",
+      "probes": [
+        {
+          "id": "bootp",
+          "action": "bootp",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "expect": {
+            "status": 0,
+            "leases": 1,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-bootp-request",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=tag:bootp,set:derived\nbootp-dynamic=tag:derived\ndhcp-option=tag:derived,224,2\n",
+      "probes": [
+        {
+          "id": "bootp",
+          "action": "bootp",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "expect": {
+            "status": 0,
+            "leases": 1,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-pxe-normal",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=tag:range,set:derived\npxe-service=tag:derived,0,Derived,boot.bin\ndhcp-option=tag:derived,224,2\n",
+      "probes": [
+        {
+          "id": "pxe",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "505845436c69656e74"
+              ],
+              [
+                93,
+                "0000"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-pxe-proxy",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "tag-if=tag:range,set:derived\npxe-service=tag:derived,0,Derived,boot.bin\ndhcp-option-pxe=tag:derived,224,2\n",
+      "probes": [
+        {
+          "id": "pxe",
+          "action": "discover",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "packet": {
+            "extra": [
+              [
+                60,
+                "505845436c69656e74"
+              ],
+              [
+                93,
+                "0000"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 2,
+            "leases": 0,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "ranges": [
+        "dhcp-range=set:range,10.77.0.0,proxy,255.255.255.0,600"
+      ]
+    },
+    {
+      "id": "tagif-leasequery-stored",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ntag-if=tag:source,set:derived\ntag-if=tag:range,set:context\ndhcp-option=tag:derived,224,2\nleasequery=10.77.0.2\n",
+      "probes": [
+        {
+          "id": "ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 2,
+            "option_values": {
+              "224": "02"
+            }
+          }
+        },
+        {
+          "id": "query",
+          "action": "leasequery",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "address": "10.77.0.10",
+          "expect": {
+            "status": 13,
+            "leases": 2
+          }
+        }
+      ],
+      "expected_test_exit": 0
+    },
+    {
+      "id": "tagif-helper-derived-order",
+      "options": [
+        "tag-if"
+      ],
+      "adapter": "dhcp",
+      "config": "dhcp-vendorclass=set:source,Matrix\ntag-if=tag:source,set:derived\ntag-if=tag:range,set:context\ndhcp-option=tag:derived,224,2\n",
+      "probes": [
+        {
+          "id": "ack",
+          "action": "select",
+          "transports": [
+            "dhcp"
+          ],
+          "flags": 32768,
+          "prl": [
+            1,
+            3,
+            6,
+            43,
+            51,
+            54,
+            58,
+            59,
+            60,
+            224,
+            225
+          ],
+          "address": "10.77.0.10",
+          "packet": {
+            "extra": [
+              [
+                60,
+                "4d6174726978"
+              ]
+            ]
+          },
+          "expect": {
+            "status": 5,
+            "leases": 1,
+            "option_values": {
+              "224": "02"
+            },
+            "helper_marks": [
+              [
+                "add",
+                "derived"
+              ]
+            ]
+          }
+        }
+      ],
+      "expected_test_exit": 0,
+      "helper_tags": true
+    }
+  ]
+}

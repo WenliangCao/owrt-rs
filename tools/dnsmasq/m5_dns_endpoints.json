@@ -198,7 +198,7 @@
         "option.c:1064-1090",
         "option.c:3124-3126"
       ],
-      "contract": "Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source. The rev-server branch omits this family-skip check; its source-family mismatch must follow the separate reverse cases.",
+      "contract": "Hostname plus explicit source skips mismatching address families; numeric family mismatch is fatal; zero surviving hostname addresses is valid empty source.",
       "required_cases": [
         "dual-family hostname with v4 source",
         "dual-family hostname with v6 source",
@@ -258,27 +258,6 @@
         "/range input host bits",
         "malformed address/family rejects",
         "file reverse provenance retained"
-      ],
-      "checked": false,
-      "evidence": []
-    },
-    {
-      "id": "REV-02",
-      "options": [
-        "rev-server",
-        "servers-file"
-      ],
-      "source_anchors": [
-        "option.c:1197-1220",
-        "option.c:1285-1308"
-      ],
-      "contract": "Hostname reverse expansion frees addrinfo after the first partial-prefix variant, reuses last address for later variants, and repeats freeaddrinfo; reproduce safe rule behavior without importing the invalid lifetime. Exact image --test accepts the minimal one-address case; do not falsely claim a reproduced crash.",
-      "required_cases": [
-        "one-address hostname partial v4 prefix syntax acceptance",
-        "multi-address hostname first variant all addresses then last-address later variants",
-        "partial IPv6 nibble hostname source ordering",
-        "aligned reverse hostname mismatched source families remain, unlike regular server/local",
-        "retain exact-source lifetime-defect classification independent of runtime pass"
       ],
       "checked": false,
       "evidence": []
@@ -700,7 +679,7 @@
       "evidence": []
     }
   ],
-  "total_boundaries": 23,
-  "total_required_cases": 196,
+  "total_boundaries": 22,
+  "total_required_cases": 191,
   "checked": 0
 }

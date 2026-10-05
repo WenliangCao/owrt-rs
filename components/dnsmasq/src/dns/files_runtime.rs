@@ -2,8 +2,8 @@
 //! here. The caller publishes each completed source in its existing owner.
 
 use super::{resolver_line, server_line, FileStamp, ResolverSelection, Source, SourceRule};
+use crate::config::dns::lookup::EndpointLookup;
 use crate::config::dns::{RuleTarget, ServerHost};
-use crate::config::dns_lookup::EndpointLookup;
 use crate::config::{dns::DnsConfig, Error};
 use crate::dns::filewatch::{FileWatch, WatchError};
 use owrt_ubus::sys::PollFd;
@@ -229,6 +229,24 @@ pub struct DnsFiles {
 }
 
 impl DnsFiles {
+    pub fn begin_shutdown(&mut self) {
+        if let Some(lookup) = &mut self.endpoint_lookup {
+            lookup.cancel();
+        }
+    }
+
+    pub fn lookups_drained(&mut self) -> bool {
+        let Some(lookup) = &mut self.endpoint_lookup else {
+            return true;
+        };
+        if lookup.step().is_some() {
+            self.endpoint_lookup = None;
+            self.endpoint_update = None;
+            true
+        } else {
+            false
+        }
+    }
     pub fn new(
         config: &DnsConfig,
         dns_enabled: bool,
@@ -485,7 +503,14 @@ impl DnsFiles {
                     matches!(row.rule.target, RuleTarget::Upstream(ref endpoint) if matches!(endpoint.host, ServerHost::Name(_)))
                 });
                 if needs_lookup {
-                    let reverse = update.rows.iter().any(|row| row.reverse);
+                    let named_rows = update.rows.iter().filter(|row| matches!(row.rule.target, RuleTarget::Upstream(ref endpoint) if matches!(endpoint.host, ServerHost::Name(_))));
+                    let reverse_count = named_rows.clone().filter(|row| row.reverse).count();
+                    let named_count = named_rows.count();
+                    if reverse_count != 0 && reverse_count != named_count {
+                        result.diagnostics.push(FileDiagnostic::ResolverChild { path: update.path.clone(), error: "mixed server/rev-server hostname rows require grouped endpoint jobs".into() });
+                        return result;
+                    }
+                    let reverse = reverse_count != 0;
                     let rules = update.rows.iter().map(|row| row.rule.clone()).collect();
                     match EndpointLookup::start(rules, reverse) {
                         Ok(lookup) => {

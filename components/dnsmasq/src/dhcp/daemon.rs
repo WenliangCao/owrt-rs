@@ -189,6 +189,9 @@ pub struct LocalProvider {
     tftp_interfaces: Vec<Option<Vec<u8>>>,
     dns_port: u16,
     control: UdpSocket,
+    interface_owner: Option<crate::interfaces::Ipv4Snapshot>,
+    packet_interfaces: Option<Vec<crate::interfaces::Ipv4Interface>>,
+    restart_interfaces: bool,
     probe: IcmpProbe,
     probe_error: Option<io::Error>,
     should_stop: fn() -> bool,
@@ -300,6 +303,9 @@ impl LocalProvider {
             tftp_interfaces: Vec::new(),
             dns_port,
             control: UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)).map_err(StartupError::Socket)?,
+            interface_owner: None,
+            packet_interfaces: None,
+            restart_interfaces: false,
             persistence,
             dns_publisher: None,
             boot_host_lookup: None,
@@ -672,6 +678,47 @@ impl LocalProvider {
         }
     }
 
+    /// Keep the address-dump descriptor for the daemon lifetime, like C's
+    /// netlinkfd. No new descriptor is needed when an admitted packet arrives.
+    pub fn start_interface_owner(&mut self) -> io::Result<()> {
+        self.interface_owner = Some(crate::interfaces::Ipv4Snapshot::new()?);
+        Ok(())
+    }
+
+    pub fn prepare_packet_interfaces(&mut self) -> io::Result<bool> {
+        let Some(owner) = &mut self.interface_owner else {
+            return Ok(true);
+        };
+        if self.packet_interfaces.is_some() {
+            return Ok(true);
+        }
+        if !owner.busy() {
+            owner.begin()?;
+        }
+        if let Some(addresses) = owner.step(&self.control)? {
+            if std::mem::take(&mut self.restart_interfaces) {
+                return Ok(false);
+            }
+            self.packet_interfaces = Some(addresses);
+            return Ok(true);
+        }
+        Ok(false)
+    }
+
+    pub fn finish_packet_interfaces(&mut self) {
+        self.packet_interfaces = None;
+    }
+
+    fn packet_addresses(&self) -> io::Result<Vec<crate::interfaces::Ipv4Interface>> {
+        if self.interface_owner.is_some() {
+            self.packet_interfaces
+                .clone()
+                .ok_or_else(|| io::Error::other("DHCP address snapshot is not ready"))
+        } else {
+            ipv4_interfaces()
+        }
+    }
+
     /// Attach file input to the single poll owner after privilege setup.
     /// The initial bank must finish before the normal initialize stage.
     pub fn start_file_owner(&mut self) -> io::Result<()> {
@@ -698,10 +745,21 @@ impl LocalProvider {
     }
 
     pub fn files_runnable(&self) -> bool {
-        self.file_reload_pending || self.file_runnable
+        self.file_reload_pending
+            || self.file_runnable
+            || (!self.file_work_pending()
+                && self
+                    .interface_owner
+                    .as_ref()
+                    .is_some_and(|owner| owner.runnable()))
     }
 
     pub fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        if !self.file_work_pending() {
+            if let Some(owner) = &self.interface_owner {
+                owner.append_poll_fds(fds);
+            }
+        }
         if let Some(reader) = &self.ethers_read {
             reader.append_poll_fds(fds);
         } else if let Some(files) = &self.file_owner {
@@ -712,6 +770,16 @@ impl LocalProvider {
     /// At most one file/directory/event turn; packets and helper work run
     /// between these turns. During ICMP waits this method is never entered.
     pub fn step_files(&mut self, now: i64) -> Option<MaintenanceReport> {
+        if self.file_work_pending()
+            && self
+                .interface_owner
+                .as_ref()
+                .is_some_and(|owner| owner.busy())
+        {
+            // A long bank read may outlive an address change. Drain the old
+            // dump, then request a fresh generation before consuming DHCP.
+            self.restart_interfaces = true;
+        }
         if let Some(reader) = &mut self.ethers_read {
             let done = reader.step();
             self.file_runnable = reader.runnable();
@@ -1303,8 +1371,9 @@ impl LocalProvider {
             });
         }
         let interface = dispatch.ingress.interface_index;
-        let mut addresses =
-            ipv4_interfaces().map_err(|error| RuntimeError::State(error.to_string()))?;
+        let mut addresses = self
+            .packet_addresses()
+            .map_err(|error| RuntimeError::State(error.to_string()))?;
         let mut local = primary_ipv4(interface, &self.control)
             .map_err(|error| RuntimeError::State(error.to_string()))?;
         let loopback = dispatch.packet.giaddr().is_unspecified()
@@ -1885,8 +1954,9 @@ impl OutcomeProvider for LocalProvider {
             return Ok(None);
         }
         let interface = dispatch.ingress.interface_index;
-        let mut addresses =
-            ipv4_interfaces().map_err(|error| RuntimeError::State(error.to_string()))?;
+        let mut addresses = self
+            .packet_addresses()
+            .map_err(|error| RuntimeError::State(error.to_string()))?;
         let mut local = primary_ipv4(interface, &self.control)
             .map_err(|error| RuntimeError::State(error.to_string()))?;
         match self

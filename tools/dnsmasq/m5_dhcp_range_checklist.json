@@ -203,7 +203,9 @@
         "range-lease-wire--deprecated",
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
-        "range-lease-wire--wide"
+        "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite"
       ],
       "cases": [
         "range-lease-grammar",
@@ -226,7 +228,9 @@
         "range-lease-wire--deprecated",
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
-        "range-lease-wire--wide"
+        "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite"
       ],
       "cases": [
         "range-infinite-deprecated"
@@ -255,7 +259,9 @@
         "range-lease-wire--deprecated",
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
-        "range-lease-wire--wide"
+        "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite"
       ],
       "cases": [
         "range-wide-lease"
@@ -313,7 +319,9 @@
         "range-ipv6--ipv6-75",
         "range-full-address-space--full-76",
         "range-full-address-space--full-77",
-        "range-full-address-space--full-78"
+        "range-full-address-space--full-78",
+        "range-full-address-space--derived",
+        "range-full-address-space--zero-mask"
       ],
       "cases": [
         "range-invalid",
@@ -347,7 +355,8 @@
       "case_catalogue": [
         "range-basic--dora",
         "range-derived-mask--offer",
-        "range-mask-broadcast--explicit-zero"
+        "range-mask-broadcast--explicit-zero",
+        "range-mask-broadcast--fallback-and-no-prl"
       ],
       "cases": [
         "range-mask-broadcast-wire"
@@ -408,6 +417,9 @@
     {
       "case_catalogue": [
         "range-inconsistent-derived--none",
+        "range-no-context--excluded-ingress",
+        "range-full-address-space--derived",
+        "range-full-address-space--zero-mask",
         "range-multi-interface--guest"
       ],
       "cases": [
@@ -512,7 +524,9 @@
       "case_catalogue": [
         "range-proxy--ordinary-pxe",
         "range-bootp-static--known",
-        "range-bootp-dynamic--permission"
+        "range-bootp-dynamic--permission",
+        "range-bootp-dynamic--static-does-not-allocate",
+        "range-bootp-dynamic--proxy-does-not-allocate"
       ],
       "cases": [
         "range-bootp-static",
@@ -527,7 +541,9 @@
     {
       "case_catalogue": [
         "range-proxy--ordinary-pxe",
-        "range-mixed-proxy--head"
+        "range-mixed-proxy--head",
+        "range-mixed-proxy--tagged-tail",
+        "range-mixed-proxy--tagged-head"
       ],
       "cases": [
         "range-proxy",
@@ -603,6 +619,8 @@
         "range-lease-wire--infinite",
         "range-lease-wire--minimum",
         "range-lease-wire--wide",
+        "range-lease-wire--signed-boundary",
+        "range-lease-wire--maximum-finite",
         "range-host-and-client-lease--floor",
         "range-host-and-client-lease--client-floor"
       ],
@@ -622,7 +640,8 @@
         "range-broadcast-grammar--broadcast-64",
         "range-tag-priority--matched",
         "range-set-tag-stage--options",
-        "range-mask-broadcast--explicit-zero"
+        "range-mask-broadcast--explicit-zero",
+        "range-mask-broadcast--fallback-and-no-prl"
       ],
       "cases": [
         "range-mask-broadcast-wire",

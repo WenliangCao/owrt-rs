@@ -10,6 +10,9 @@ import copy
 import ctypes
 import errno
 import platform
+import re
+import resource
+import threading
 import json
 import os
 from pathlib import Path
@@ -23,6 +26,7 @@ import time
 import m5_dhcp_tags_options as wire
 from m2_rootfs import STOCK_SHA256,command,prepare,process_identity,sha256
 from m5_helper import children
+from m5_dns_files import partial_stream_error
 
 MAC='02:00:00:00:00:01'
 BASE='/m2/dhcp-files'
@@ -76,6 +80,7 @@ def scenarios():
     ]
     rows.extend(extra_scenarios())
     rows.extend(remaining_scenarios())
+    rows.extend(resource_scenarios())
     mapping = {
         'static-host-reload': ['HOST01/host-selectors', 'FILE02/static-no-live-watch', 'FILE02/hup-replace', 'FILE02/hup-empty-removes'],
         'dynamic-host-append': ['DYN04/host-live-add', 'DYN04/host-rewrite-same-ip', 'DYN04/host-rewrite-new-ip', 'DYN04/host-truncate-keeps-old', 'DYN06/host-delete-retained', 'DYN06/hup-after-delete'],
@@ -104,6 +109,7 @@ def write_file(path, value):
     if value.get('fifo'):os.mkfifo(path);return
     if 'symlink' in value:
         path.unlink(missing_ok=True);path.symlink_to(value['symlink']);return
+    if path.exists() and not path.is_file() and not path.is_dir():path.unlink()
     data=bytes.fromhex(value['hex']) if 'hex' in value else value.get('text','').encode()
     target=path.with_name(path.name+'.new') if value.get('atomic') else path
     target.write_bytes(data)
@@ -161,7 +167,9 @@ def extra_scenarios():
     rows.append(case('port-zero-dynamic','dhcp-hostsdir={base}/hosts\ndhcp-optsdir={base}/opts',{'hosts/a':f'{MAC},127.0.0.30\n','opts/a':'224,first\n'},[packet('initial'),write('hosts/b',f'{MAC},127.0.0.31\n'),packet('updated'),inform('opts')],['CFG02/dns-port-zero','STATE01/host-dns-disabled'],dns_port=0))
     rows.append(case('no-local-dhcp-skips-banks','dhcp-hostsfile={base}/broken\ndhcp-optsfile={base}/broken\ndhcp-hostsdir={base}/missing\ndhcp-optsdir={base}/missing',{'broken':'"broken quote\n'},[action('snapshot'),hup(),action('snapshot')],['CFG02/no-local-dhcp','CFG02/test-skips-bank'],dhcp=False))
     rows.append(case('name-inference-duplicate-boundary','addn-hosts={base}/dns\ndhcp-host='+MAC+',inferred\ndhcp-hostsfile={base}/hosts',{'dns':'127.0.0.30 inferred\n','hosts':''},[packet('inferred'),write('hosts','02:00:00:00:00:02,127.0.0.30,rejected\n'),hup(),packet('old-inferred-retained'),packet('duplicate-new-selector',mac='020000000002'),write('dns','127.0.0.31 inferred\n'),hup(),packet('new-dns-address')],['STATE01/host-name-to-address','STATE01/host-reload-dns-source']))
-    rows.append(case('live-two-lease-names-helper','dhcp-hostsdir={base}/hosts',{'hosts/seed':'# empty\n'},[packet('first-lease',3,address='127.0.0.30',extra=[option(12,b'oldfirst')]),packet('second-lease',3,address='127.0.0.31',mac='020000000002',extra=[option(12,b'oldsecond')]),write('hosts/a',f'{MAC},127.0.0.30,newfirst\n02:00:00:00:00:02,127.0.0.31,newsecond\n'),action('dns',name='newfirst.pool.test'),action('dns',name='30.0.0.127.in-addr.arpa',kind=12),action('dns',name='newsecond.pool.test'),hup(),action('snapshot')],['STATE02/live-lease-rename','STATE02/lease-expiry-unchanged','STATE02/dns-a-ptr-helper','RELOAD02/hup-scripts','STATE05/dora-updated-bank'],helper=True))
+    for disabled in [False,True]:
+        rows.append(case('name-inference-multiple-addresses-'+('port-zero' if disabled else 'dns'), 'addn-hosts={base}/dns\ndhcp-hostsdir={base}/hosts', {'dns':'127.0.0.30 inferred\n127.0.0.31 inferred\n','hosts/a':MAC+',inferred\n'}, [packet('multiple-addresses'),write('hosts/b','02:00:00:00:00:02,other\n'),packet('new-name-only',mac='020000000002')], ['STATE01/host-name-to-address','STATE01/host-dns-disabled'] if disabled else ['STATE01/host-name-to-address'],dns_port=0 if disabled else 15353))
+    rows.append(case('live-two-lease-names-helper','dhcp-hostsdir={base}/hosts',{'hosts/seed':'# empty\n'},[packet('first-lease',3,address='127.0.0.30',extra=[option(12,b'oldfirst')]),packet('second-lease',3,address='127.0.0.31',mac='020000000002',extra=[option(12,b'oldsecond')]),write('hosts/a',f'{MAC},127.0.0.30,newfirst\n02:00:00:00:00:02,127.0.0.31,newsecond\n'),action('dns',name='newfirst.pool.test'),action('dns',name='30.0.0.127.in-addr.arpa',kind=12),action('dns',name='newsecond.pool.test'),hup(),action('snapshot'),action('unlink',path='hosts/a'),hup(),action('dns',name='newfirst.pool.test'),action('dns',name='31.0.0.127.in-addr.arpa',kind=12)],['STATE02/live-lease-rename','STATE02/lease-expiry-unchanged','STATE02/dns-a-ptr-helper','RELOAD02/hup-scripts','STATE05/dora-updated-bank'],helper=True))
     rows.append(case('live-address-mismatch-keeps-lease-name','dhcp-hostsdir={base}/hosts',{'hosts/seed':'# empty\n'},[packet('initial',3,address='127.0.0.30',extra=[option(12,b'oldname')]),write('hosts/a',f'{MAC},127.0.0.31,mismatch\n'),action('dns',name='oldname.pool.test'),action('snapshot')],['STATE02/rename-address-mismatch'],helper=True))
     rows.append(case('options-helper-pxe-shared-bank','pxe-prompt=Menu,3\npxe-service=0,Boot,boot.bin\ndhcp-option-force=226,forced\ndhcp-optsdir={base}/opts',{'opts/seed':'224,old\n'},[packet('lease',3,address='127.0.0.30'),write('opts/a','224,new\n'),inform('updated-inform'),packet('pxe',extra=[option(60,b'PXEClient'),option(93,b'\0\0')],prl=[43,60,224,226]),hup(),packet('pxe-after-hup',extra=[option(60,b'PXEClient'),option(93,b'\0\0')],prl=[43,60,224,226])],['STATE04/options-no-lease-event','STATE04/options-pxe-shared-bank','STATE04/inline-prompt-survives','STATE05/inform-updated-bank','STATE05/pxe-query-integration'],helper=True))
     rows.append(case('bootp-updated-host','dhcp-hostsdir={base}/hosts',{'hosts/a':f'{MAC},127.0.0.30,first\n'},[packet('before',0),write('hosts/a',f'{MAC},127.0.0.31,second\n'),packet('after',0)],['STATE05/bootp-updated-host']))
@@ -183,7 +191,13 @@ def fifo_reload(root,side,folder,event,process,endpoint,out,index):
     try:
         os.write(writer,event['text'].encode())
         if event.get('repeat_signals'):
-            for _ in range(3):process.send_signal(signal.SIGHUP)
+            observed['signal_delivery_windows']=[]
+            for _ in range(3):
+                process.send_signal(signal.SIGHUP);time.sleep(.02)
+                status=Path(f'/proc/{process.pid}/status').read_text().splitlines()
+                pending=[int(line.split()[1],16) for line in status if line.startswith(('SigPnd:','ShdPnd:'))]
+                assert pending and not any(mask & 1 for mask in pending),'SIGHUP remained pending past delivery window'
+                observed['signal_delivery_windows'].append('not-pending-after-20ms')
             path.unlink();write_file(path,'224,second-generation\n')
         try:health();observed['dns_during_read']='reply'
         except socket.timeout:observed['dns_during_read']='timeout'
@@ -225,6 +239,9 @@ def remaining_scenarios():
     for directive in ['dhcp-hostsfile','dhcp-optsfile','dhcp-hostsdir','dhcp-optsdir']:
         for suffix,exit_code in [('',1),('=',0)]:
             rows.append(case('syntax-'+directive+('-missing' if not suffix else '-empty'),directive+suffix,{},[],['CFG01/required-path'] if not suffix else ['CFG01/empty-safe-syntax','SAFE01/unsafe-empty-combinations'],syntax_only=True,expected_syntax=exit_code))
+    for label,directive in [('host-filter','dhcp-host=tag:,'+MAC+',127.0.0.30'),('host-set','dhcp-host=set:,'+MAC+',127.0.0.30'),('option-filter','dhcp-option=tag:,224,unsafe')]:
+        rows.append(case('syntax-shared-bank-unsafe-'+label,directive,{},[],['SAFE01/existing-parser-unsafe-classification'],syntax_only=True,expected_syntax=0,
+                         unsafe_runtime_classification='option.c dhcp_netid_create stores opt_string_alloc(empty) as NULL; tag match/use dereferences it. BANK/OPTS enter the same host/option parser. Only outer --test is executed, never a daemon.'))
     rows.append(case('literal-dash-is-a-file','dhcp-optsfile=-',{},[inform('literal-dash')],['CFG01/literal-dash','FILE01/literal-dash-runtime'],system_files={'/-':'224,dash-file\n'}))
     rows.append(case('relative-byte-paths','dhcp-optsfile=m2/dhcp-files/\udcffopts\ndhcp-hostsfile="m2/dhcp-files/host file"',{'\udcffopts':'224,raw-path\n','host file':f'{MAC},127.0.0.30,relative\n'},[inform('non-utf8-path'),packet('relative-quoted')],['CFG01/relative-quoted']))
     rows.append(case('ethers-surviving-conflicts-open-failure','read-ethers\ndhcp-hostsfile={base}/hosts',{'hosts':''},[packet('ethers-initial'),action('system-unlink',path='/etc/ethers'),hup(),packet('ethers-open-failed-keeps-old'),write('hosts','02:00:00:00:00:02,127.0.0.30,bank-conflict\n'),hup(),packet('ethers-still-first'),packet('conflicting-bank-rejected',mac='020000000002'),action('system-write',path='/etc/ethers',text=MAC+' 127.0.0.31\n'),hup(),packet('ethers-new-address')],['STATE03/ethers-open-failure','STATE03/ethers-retained-conflict'],system_files={'/etc/ethers':MAC+' 127.0.0.30\n'}))
@@ -237,6 +254,177 @@ def remaining_scenarios():
     rows.append(case('fd-lifecycle-and-recovery','dhcp-hostsfile={base}/hosts\ndhcp-optsdir={base}/opts',{'hosts':f'{MAC},127.0.0.30,first\n','opts/a':'224,first\n'},[packet('initial'),action('fd-check'),action('unlink',path='hosts'),hup(),packet('missing-continues'),write('hosts',f'{MAC},127.0.0.31,second\n'),hup(),packet('recovered'),write('opts/a','224,second\n'),inform('option'),action('fd-check')],['OWNER02/failed-file-recovers','OWNER03/fd-count','OWNER03/watch-cleanup']))
     rows.append(case('dynamic-only-full-clear','dhcp-hostsdir={base}/hosts\ndhcp-optsdir={base}/opts',{'hosts/a':f'{MAC},127.0.0.30,first\n','opts/a':'224,first\n'},[packet('host-initial'),inform('option-initial'),action('unlink',path='hosts/a'),action('unlink',path='opts/a'),packet('live-host-retained'),inform('live-option-retained'),hup(),packet('host-bank-cleared'),inform('option-bank-cleared')],['RELOAD01/hup-dynamic-only']))
     return rows
+
+
+def trace_malformed_inotify(pid, descriptor, output):
+    """Replace one successful AArch64 inotify read with a bounded nameless event."""
+    if platform.machine() != 'aarch64': raise RuntimeError('ptrace ABI pinned to AArch64 image')
+    class Iovec(ctypes.Structure):
+        _fields_=[('base',ctypes.c_void_p),('length',ctypes.c_size_t)]
+    libc=ctypes.CDLL(None,use_errno=True);libc.ptrace.restype=ctypes.c_long
+    def ptrace(request,address=0,data=0):
+        ctypes.set_errno(0);value=libc.ptrace(ctypes.c_uint(request),ctypes.c_uint(pid),ctypes.c_void_p(address),ctypes.c_void_p(data))
+        if value == -1 and ctypes.get_errno():raise OSError(ctypes.get_errno(),'ptrace')
+        return value
+    registers=(ctypes.c_ulonglong*34)()
+    def regs(write=False):
+        value=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers));ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(value))
+    event=struct.pack('=iIII',1,0x00000008,0,8)+b'\0xxx\0\0\0\0'
+    report={'pid':pid,'descriptor':descriptor,'event':event.hex(),'injected':False,'reads':[]};attached=False;active=False
+    try:
+        ptrace(16);os.waitpid(pid,0);attached=True;Path(str(output)+'.ready').write_text('attached\n')
+        while True:
+            ptrace(24);_,status=os.waitpid(pid,0)
+            if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before inotify read')
+            if os.WSTOPSIG(status) not in (signal.SIGTRAP|0x80,signal.SIGTRAP):continue
+            info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
+            if info[0]==1:
+                active=registers[8] in (63,65) and registers[0]==descriptor
+                if active:report['reads'].append({'stage':'entry','buffer':int(registers[1])})
+            elif info[0]==2 and active:
+                returned=ctypes.c_longlong(registers[0]).value
+                report['reads'].append({'stage':'exit','result':returned})
+                if returned>0:
+                    buffer=int(registers[1]);
+                    for offset in range(0,len(event),8):
+                        word=int.from_bytes(event[offset:offset+8],'little')
+                        ptrace(5,buffer+offset,word)
+                    registers[0]=len(event);regs(write=True);report['injected']=True;dump(Path(output),report);ptrace(17);attached=False;return 0
+                active=False
+    finally:
+        if attached:
+            try:ptrace(17)
+            except OSError:pass
+        dump(Path(output),report)
+    return 1
+
+
+def find_inotify_fd(pid):
+    for path in Path(f'/proc/{pid}/fd').iterdir():
+        try:
+            if os.readlink(path).startswith('anon_inode:inotify'):return int(path.name)
+        except (FileNotFoundError,PermissionError):pass
+    raise AssertionError('inotify fd not found')
+
+
+def resource_scenarios():
+    def inform(label):return dict(op='packet',label=label,kind=8,ciaddr='127.0.0.40',prl=[224])
+    def case(name,config,events,cases,**fields):
+        value=dict(name=name,config='no-daemon\n'+config,files={'opts':'224,old\n','dir/a':'224,old\n'},events=events,cases=cases,boundaries=sorted({c.split('/')[0] for c in cases}));value.update(fields);return value
+    rows=[]
+    for kind,directive,path in [('static','dhcp-optsfile={base}/opts','opts'),('dynamic','dhcp-optsdir={base}/dir','dir/a')]:
+        rows.append(case('runtime-emfile-'+kind,directive,[inform('before'),dict(op='fd-limit'),dict(op='write',path=path,text='224,new\n'),dict(op='hup') if kind=='static' else dict(op='snapshot'),dict(op='emfile-witness',path=BASE+'/'+path),inform('during-emfile'),dict(op='fd-limit',restore=True),dict(op='hup'),inform('recovered')],['OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
+    rows.append(case('runtime-emfile-directory-scan','dhcp-optsdir={base}/dir',[inform('before'),dict(op='fd-limit'),dict(op='hup'),dict(op='emfile-witness',path=BASE+'/dir'),inform('empty-bank-after-failed-opendir'),dict(op='fd-limit',restore=True),dict(op='write',path='dir/a',text='224,recovered\n'),inform('existing-watch-recovers')],['DYN02/watch-failure','OWNER03/fd-open-failure','OWNER02/failed-file-recovers']))
+    rows.append(case('large-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=16*1024*1024,tail='224,large\n'),inform('after'),dict(op='fd-check')],['OWNER01/large-bank-owner-progress']))
+    rows.append(case('large-option-bank-owner-progress','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=512*1024,bank_rows=8192,tail='224,large-bank\n'),inform('after')],['OWNER01/large-bank-owner-progress']))
+    rows.append(dict(name='malformed-inotify-event',config='no-daemon\ndhcp-optsdir={base}/dir',files={'dir/a':'224,initial\n'},events=[inform('initial'),dict(op='malformed-event',path='dir/a'),inform('after-malformed')],cases=['DYN03/bounded-event-parser'],boundaries=['DYN03'],malformed_event=True))
+    rows.append(case('long-bank-line','dhcp-optsfile={base}/opts',[inform('before'),dict(op='large-file',path='opts',bytes=1024*1024,tail='224,long-line\n',single_line=True),inform('after')],['LEX01/partial-last-line']))
+    rows.append(case('watch-burst-owner-progress','dhcp-optsdir={base}/dir',[inform('before'),dict(op='burst-progress',path='dir/a',bytes=128*1024,count=128,tail='224,burst\n'),inform('after'),dict(op='fd-check')],['OWNER01/event-burst-fairness']))
+    for kind,directive,text,probe in [('hosts','dhcp-hostsfile',MAC+',127.0.0.30,partial',dict(op='packet',label='partial-host',kind=1)),('options','dhcp-optsfile','224,partial',inform('partial-option'))]:
+        rows.append(dict(name='partial-read-eio-'+kind,config=directive+'=/m2/files/bank',files={},system_files={'/m2/files/bank':'# initially empty\n'},events=[dict(op='partial-eio',text=text),probe],cases=['LEX01/partial-last-line','OWNER03/partial-stream-eof'],boundaries=['LEX01','OWNER03']))
+    rows.append(dict(name='fifo-tftp-owner-progress',config='dhcp-optsfile={base}/opts\nenable-tftp\ntftp-root={base}/data',files={'opts':'224,old\n','data/payload':'T'*1400},events=[dict(op='fifo-tftp',path='opts'),inform('after')],cases=['OWNER01/slow-stream-owner-progress'],boundaries=['OWNER01'],owner_liveness_difference=True))
+    rows.append(dict(name='fifo-helper-owner-progress',config='dhcp-optsfile={base}/opts',files={'opts':'224,old\n'},events=[dict(op='packet',label='lease',kind=3,address='127.0.0.30'),dict(op='fifo-helper',path='opts'),dict(op='snapshot')],cases=['OWNER01/slow-stream-owner-progress'],boundaries=['OWNER01'],helper=True,helper_delay=True))
+    return rows
+
+
+def open_bank_fds(pid,path):
+    found=[]
+    for item in Path(f'/proc/{pid}/fd').iterdir():
+        try:target=os.readlink(item)
+        except FileNotFoundError:continue
+        if target.endswith(path):found.append(int(item.name))
+    return found
+
+
+def fifo_other_protocol(folder,process,event):
+    path=folder/event['path'];kind=event['op'];transfer=None;packets=[]
+    if kind=='fifo-tftp':
+        transfer=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);transfer.settimeout(1)
+        transfer.sendto(b'\0\1payload\0octet\0',('127.0.0.1',69));packet,peer=transfer.recvfrom(4096)
+        assert packet[:4]==b'\0\3\0\1','missing TFTP DATA1';packets.append(packet)
+    path.unlink();os.mkfifo(path);process.send_signal(signal.SIGHUP);writer=fifo_writer(path)
+    proof={}
+    try:
+        os.write(writer,b'224,loaded')
+        assert open_bank_fds(process.pid,BASE+'/'+event['path']),'pending reader absent'
+        if transfer:
+            transfer.sendto(b'\0\4\0\1',peer);transfer.settimeout(.15)
+            try:packet,received=transfer.recvfrom(4096)
+            except socket.timeout:packet=None
+            proof['tftp_while_pending']=packet is not None
+            if packet is not None:
+                assert received==peer and packet[:4]==b'\0\3\0\2';packets.append(packet)
+                transfer.sendto(b'\0\4\0\2',peer);packet,received=transfer.recvfrom(4096)
+                assert received==peer and packet[:4]==b'\0\3\0\3';packets.append(packet)
+                transfer.sendto(b'\0\4\0\3',peer)
+        else:
+            log=folder/'helper.log';before=log.read_text().splitlines() if log.exists() else []
+            assert not any(line.startswith('add|') for line in before),'slow helper finished before pending bank'
+            deadline=time.monotonic()+3
+            while time.monotonic()<deadline:
+                after=log.read_text().splitlines() if log.exists() else []
+                if any(line.startswith('add|') for line in after):break
+                time.sleep(.01)
+            else:raise AssertionError('helper stalled during pending bank')
+            assert open_bank_fds(process.pid,BASE+'/'+event['path']),'bank reader finished before helper witness'
+            proof.update(helper_before=before,helper_while_pending=after,helper_completed_while_pending=True)
+    finally:os.close(writer)
+    if transfer:
+        try:
+            transfer.settimeout(1)
+            if len(packets)==1:
+                packet,received=transfer.recvfrom(4096);assert received==peer and packet[:4]==b'\0\3\0\2';packets.append(packet)
+                transfer.sendto(b'\0\4\0\2',peer);packet,received=transfer.recvfrom(4096)
+                assert received==peer and packet[:4]==b'\0\3\0\3';packets.append(packet);transfer.sendto(b'\0\4\0\3',peer)
+            assert b''.join(packet[4:] for packet in packets)==b'T'*1400,'TFTP body mismatch'
+            proof.update(packets=[packet.hex() for packet in packets],body_bytes=1400)
+        finally:transfer.close()
+    return proof
+
+
+def load_progress(folder,process,event,out):
+    path=folder/event['path'];inside=BASE+'/'+event['path']
+    body=(b'#'+b'x'*(event['bytes']-2)+b'\n' if event.get('single_line') else (b'#'+b'x'*126+b'\n')*(event['bytes']//128))+event['tail'].encode()
+    if event.get('bank_rows'):
+        body=b''.join(('224,"row%05d-' % number + 'x'*56 + '"\n').encode() for number in range(event['bank_rows'])) + event['tail'].encode()
+    samples=[];stop=threading.Event()
+    def sample():
+        while not stop.is_set():
+            opened=bool(open_bank_fds(process.pid,inside));start=time.monotonic()
+            try:answer=health();healthy=True
+            except (OSError,AssertionError) as error:answer=repr(error);healthy=False
+            samples.append({'file_active':opened,'file_still_active':bool(open_bank_fds(process.pid,inside)),'elapsed':time.monotonic()-start,'healthy':healthy,'reply':answer})
+            time.sleep(.001)
+    worker=threading.Thread(target=sample);worker.start()
+    marker='read '+inside
+    prior=sum(marker in line for line in (out/'daemon.log').read_text(errors='replace').splitlines())
+    expected=1 if event['op']=='large-file' else event['count']
+    try:
+        if event['op']=='large-file':
+            path.write_bytes(body);process.send_signal(signal.SIGHUP)
+        else:
+            process.send_signal(signal.SIGSTOP)
+            deadline=time.monotonic()+1
+            while '\nState:\tT' not in Path(f'/proc/{process.pid}/status').read_text():
+                assert time.monotonic()<deadline,'SIGSTOP not observed';time.sleep(.001)
+            try:
+                for _ in range(event['count']):
+                    path.write_bytes(body);path.with_name('.noise').write_text('alternate event\n')
+            finally:process.send_signal(signal.SIGCONT)
+        deadline=time.monotonic()+10
+        while time.monotonic()<deadline:
+            reads=sum(marker in line for line in (out/'daemon.log').read_text(errors='replace').splitlines())-prior
+            if len(samples)>=30 and reads>=expected and not open_bank_fds(process.pid,inside):break
+            time.sleep(.002)
+        else:raise AssertionError('file load did not finish expected reads')
+    finally:
+        stop.set();worker.join(2)
+    assert not worker.is_alive() and samples,'health sampler missing/leaked'
+    latency=sorted(sample['elapsed'] for sample in samples)
+    active=sorted(sample['elapsed'] for sample in samples if sample['file_active'])
+    return {'bytes':len(body),'file_sha256':sha256(path),'completed_reads':reads,'samples':samples,'p95_seconds':latency[min(len(latency)-1,int(len(latency)*.95))],
+        'pending_p95_seconds':active[min(len(active)-1,int(len(active)*.95))] if active else None,
+        'all_healthy':all(sample['healthy'] for sample in samples),'healthy_while_file_open':sum(sample['healthy'] and sample['file_active'] and sample['file_still_active'] for sample in samples)}
 
 
 def file_syntax(root,side,text,out):
@@ -301,6 +489,9 @@ def install(root,scenario):
     else:(root/'m2').chmod(0o755)
     if scenario.get('helper'):
         path=folder/'helper.sh';path.write_text("#!/bin/sh\nprintf '%s|%s|%s|%s\\n' \"$1\" \"$2\" \"$3\" \"$4\" >> "+BASE+'/helper.log\n');path.chmod(0o755)
+        if scenario.get('helper_delay'):
+            script=path.read_text().replace('#!/bin/sh\n', '#!/bin/sh\nif [ "$1" = add ]; then : > '+BASE+'/helper-start; sleep 1; fi\n')
+            path.write_text(script)
     for name,value in scenario.get('system_files',{}).items():
         path=root/name.lstrip('/');path.parent.mkdir(parents=True,exist_ok=True);write_file(path,value)
     for name in ['family.pid','family.leases']:(root/'m2'/name).unlink(missing_ok=True)
@@ -324,7 +515,7 @@ def lease_state(root):
 def run_side(root,side,scenario,out):
     out.mkdir();folder=install(root,scenario);text=config(scenario)
     (out/'config').write_bytes(text.encode(errors='surrogateescape'));(root/'m2/files.conf').write_bytes(text.encode(errors='surrogateescape'))
-    result={'side':side,'scenario':scenario['name'],'rows':[],'started':False};process=None;owned=set();opened={}
+    result={'side':side,'scenario':scenario['name'],'rows':[],'started':False,'expected_rust_sha256':sha256(root/'usr/sbin/dnsmasq-rs')};process=None;owned=set();opened={};limit_before=None
     with (out/'daemon.log').open('wb') as log,socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
         endpoint.bind(('0.0.0.0',68));endpoint.setsockopt(socket.SOL_SOCKET,socket.SO_BROADCAST,1);endpoint.setsockopt(socket.SOL_SOCKET,25,b'lo\0')
         try:
@@ -383,6 +574,43 @@ def run_side(root,side,scenario,out):
                 elif event['op']=='system-unlink':(root/event['path'].lstrip('/')).unlink();time.sleep(.1)
                 elif event['op']=='stop-loading':observed['stop']=stop_stream(folder,event,process)
                 elif event['op']=='fifo-reload':observed['fifo']=fifo_reload(root,side,folder,event,process,endpoint,out,index)
+                elif event['op'] in ('fifo-tftp','fifo-helper'):observed['pending_protocol']=fifo_other_protocol(folder,process,event)
+                elif event['op']=='malformed-event':
+                    descriptor=find_inotify_fd(process.pid);report_path=out/'malformed-inotify.json';tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-malformed-inotify',str(process.pid),str(descriptor),str(report_path)])
+                    try:
+                        deadline=time.monotonic()+2
+                        while not Path(str(report_path)+'.ready').exists():
+                            if tracer.poll() is not None:raise AssertionError('malformed tracer attach failed')
+                            if time.monotonic()>deadline:raise AssertionError('malformed tracer attach timeout')
+                            time.sleep(.005)
+                        write_file(folder/event['path'],'224,malformed\n');deadline=time.monotonic()+3
+                        while not report_path.exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.005)
+                        if tracer.poll() is None:tracer.wait(2)
+                        observed['malformed']=json.loads(report_path.read_text())
+                        assert observed['malformed'].get('injected'),'malformed event was not injected'
+                    finally:
+                        if tracer.poll() is None:tracer.kill();tracer.wait()
+                elif event['op']=='fd-limit':
+                    if event.get('restore'):
+                        resource.prlimit(process.pid,resource.RLIMIT_NOFILE,limit_before);limit_before=None
+                    else:
+                        limit_before=resource.prlimit(process.pid,resource.RLIMIT_NOFILE)
+                        descriptors={int(p.name) for p in Path(f'/proc/{process.pid}/fd').iterdir()}
+                        ceiling=next(n for n in range(max(descriptors)+2) if n not in descriptors)
+                        resource.prlimit(process.pid,resource.RLIMIT_NOFILE,(ceiling,limit_before[1]))
+                        observed['fd_exhaustion']={'descriptors':sorted(descriptors),'limits':resource.prlimit(process.pid,resource.RLIMIT_NOFILE)}
+                elif event['op']=='partial-eio':
+                    observed['partial_eio']=partial_stream_error(root,process,event['text'],out,relative='bank')
+                    observed['partial_eio_verified']=True
+                elif event['op']=='emfile-witness':
+                    observed['emfile_diagnostics']=[line for line in (out/'daemon.log').read_text(errors='replace').splitlines() if event['path'] in line and ('No file descriptors available' in line or 'Too many open files' in line)]
+                    assert observed['emfile_diagnostics'],'file open did not reach EMFILE'
+                    observed['emfile_verified']=True
+                elif event['op'] in ('large-file','burst-progress'):
+                    observed['progress']=load_progress(folder,process,event,out)
+                    assert observed['progress']['all_healthy'],'DNS failed during file work'
+                    if side=='rust':assert observed['progress']['healthy_while_file_open']>0,'no live owner progress witnessed'
+                    observed['owner_health_verified']=True
                 elif event['op']=='event-burst':
                     process.send_signal(signal.SIGSTOP)
                     deadline=time.monotonic()+1
@@ -406,6 +634,7 @@ def run_side(root,side,scenario,out):
         except Exception as error:result['error']=repr(error)
         finally:
             for opened_file in opened.values():opened_file.close()
+            if limit_before and process and process.poll() is None:resource.prlimit(process.pid,resource.RLIMIT_NOFILE,limit_before)
             if process is not None:
                 owned=children(process.pid)
                 if process.poll() is None:process.terminate()
@@ -434,9 +663,18 @@ def compare(c,rust):
     if wire.comparable_syntax(c.get('syntax',{}))!=wire.comparable_syntax(rust.get('syntax',{})):failures.append('syntax')
     if len(c['rows'])!=len(rust['rows']):failures.append('row count')
     for first,second in zip(c['rows'],rust['rows']):
-        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed']:
+        for key in ['index','event','alive','health','peer','comparable','dns','helper','bank_fds_closed','emfile_verified','owner_health_verified','partial_eio_verified']:
             if first.get(key)!=second.get(key):failures.append(f"{first['index']}:{key}")
+        if 'malformed' in first or 'malformed' in second:
+            left,right=first.get('malformed',{}),second.get('malformed',{})
+            if left.get('injected') is not True or right.get('injected') is not True or left.get('event')!=right.get('event'):
+                failures.append(f"{first['index']}:malformed")
         if (first.get('response') is None)!=(second.get('response') is None):failures.append(f"{first['index']}:response presence")
+        if 'pending_protocol' in first or 'pending_protocol' in second:
+            left,right=copy.deepcopy(first.get('pending_protocol')),copy.deepcopy(second.get('pending_protocol'))
+            if first['event']['op']=='fifo-tftp':
+                if left.pop('tftp_while_pending') is not False or right.pop('tftp_while_pending') is not True:failures.append(f"{first['index']}:TFTP owner disposition")
+            if left!=right:failures.append(f"{first['index']}:pending protocol")
         if 'stop' in first or 'stop' in second:
             if first.get('stop')!={'before_writer_close':'waiting','exit_after_close':0} or second.get('stop')!={'before_writer_close':'exited','exit_after_close':0}:failures.append(f"{first['index']}:stop owner disposition")
         if 'fifo' in first or 'fifo' in second:
@@ -450,6 +688,59 @@ def compare(c,rust):
         for x,y in zip(left,right):
             if x['fields']!=y['fields'] or (x['remaining'] is None)!=(y['remaining'] is None) or (x['remaining'] is not None and abs(x['remaining']-y['remaining'])>2):failures.append(f"{first['index']}:lease")
     return failures
+
+
+def audit_trace(folder,mode):
+    report=json.loads((folder/'run/result.json').read_text())
+    assert report['selected_comparison_passed'] and not report['failures']
+    lines=(folder/'syscalls.log').read_text().splitlines()
+    observations={}
+    for side,observed in report['results'][0]['sides'].items():
+        pid=observed['identity']['pid'];selected=[(number+1,line) for number,line in enumerate(lines) if re.match(str(pid)+r'\s',line)]
+        if mode=='watch':
+            watched=next((number,line) for number,line in selected if 'inotify_add_watch(' in line and '"/m2/dhcp-files/opts"' in line)
+            opened=next((number,line) for number,line in selected if number>watched[0] and 'openat(' in line and '"/m2/dhcp-files/opts"' in line and 'O_DIRECTORY' in line)
+            descriptor=int(re.search(r'= (\d+)$',opened[1])[1])
+            read=next((number,line) for number,line in selected if number>opened[0] and f'getdents64({descriptor},' in line and re.search(r'= [1-9][0-9]*$',line))
+            observations[side]={'pid':pid,'watch_before_open_before_readdir':True,'syscalls':[watched,opened,read]}
+        elif mode=='watch-fault':
+            attempts=[(number,line) for number,line in selected if 'inotify_add_watch(' in line]
+            assert len(attempts)==2 and all('ENOSPC' in line for _,line in attempts),(side,attempts)
+            observations[side]={'pid':pid,'failed_initial_watches':attempts,'hup_did_not_retry_failed_watch':True}
+        elif mode=='signals':
+            delivered=[(number,line) for number,line in selected if '--- SIGHUP ' in line]
+            fifo=next(row for row in observed['rows'] if row['event']['op']=='fifo-reload')
+            helpers=observed['rows'][-1]['helper']
+            assert len(delivered)==4,(side,delivered)
+            assert len([line for line in helpers if line.startswith('old|')])==len(delivered),(side,helpers)
+            observations[side]={'pid':pid,'delivered_sighup_count':len(delivered),'helper_events':helpers,'delivery_syscalls':delivered,'delivery_windows':fifo['fifo']['signal_delivery_windows']}
+        else:raise ValueError(mode)
+    proof={'checked':True,'scope':mode,'source_commit':json.loads((folder/'run/manifest.json').read_text())['source_commit'],'trace_sha256':sha256(folder/'syscalls.log'),'observations':observations}
+    save(folder/'trace-proof.json',proof)
+    return proof
+
+
+def witness_errors(scenario,observed,side):
+    errors=[]
+    for event,row in zip(scenario['events'],observed['rows']):
+        if event['op'] in ('large-file','burst-progress'):
+            proof=row.get('progress',{});samples=proof.get('samples',[])
+            overlap=sum(sample.get('healthy',False) and sample.get('file_active',False) and sample.get('file_still_active',False) for sample in samples)
+            if len(samples)<30 or proof.get('bytes',0)<event['bytes'] or not all(sample.get('healthy',False) for sample in samples):errors.append('large/burst health data absent or failed')
+            if side=='rust' and not overlap:errors.append('no DNS progress while a bank file was open')
+            if proof.get('healthy_while_file_open')!=overlap:errors.append('invalid overlap count')
+            expected=event.get('count',1)
+            if proof.get('completed_reads',0)<expected:errors.append('missing bank event reads')
+        if event['op']=='emfile-witness' and not row.get('emfile_diagnostics'):errors.append('missing actual EMFILE diagnostic')
+        if event['op']=='partial-eio':
+            proof=row.get('partial_eio',{})
+            if not proof.get('injected') or not any(read.get('result',0)>0 for read in proof.get('reads',[])) or not any(read.get('injected') and read.get('result')==-errno.EIO for read in proof.get('reads',[])):errors.append('partial data followed by injected EIO not proven')
+        if event['op']=='fd-check':
+            if not row.get('fd_targets') or any(BASE in target for target in row['fd_targets'].values()):errors.append('bank fd closure not proven')
+    if observed.get('started'):
+        expected=STOCK_SHA256 if side=='c' else observed.get('expected_rust_sha256')
+        if observed.get('identity',{}).get('sha256')!=expected:errors.append('running ELF identity mismatch')
+    return errors
 
 
 def controls():
@@ -473,6 +764,20 @@ def controls():
         elif name=='leaked-pid':changed['remaining']=[123]
         elif name=='extra-thread':changed['threads']=2
         assert compare(baseline,changed),name
+        detected.append(name)
+    case={'events':[{'op':'large-file','bytes':4096}]}
+    sample={'healthy':True,'file_active':True,'file_still_active':True}
+    witness={'rows':[{'progress':{'bytes':4096,'completed_reads':1,'samples':[sample]*30,'healthy_while_file_open':30}}]}
+    assert not witness_errors(case,witness,'rust')
+    for name in ['missing-health-samples','no-pending-overlap','missing-file-completion','wrong-byte-count']:
+        changed=copy.deepcopy(witness);proof=changed['rows'][0]['progress']
+        if name=='missing-health-samples':proof['samples']=[]
+        elif name=='no-pending-overlap':
+            for sample in proof['samples']:sample['file_still_active']=False
+            proof['healthy_while_file_open']=0
+        elif name=='missing-file-completion':proof['completed_reads']=0
+        elif name=='wrong-byte-count':proof['bytes']=0
+        assert witness_errors(case,changed,'rust'),name
         detected.append(name)
     return detected
 
@@ -515,6 +820,7 @@ def main(args):
         rows={side:run_side(root,side,scenario,args.out/(scenario['name']+'-'+side)) for side in manifest['sides']}
         errors=[]
         for side,value in rows.items():
+            errors.extend(side+': '+error for error in witness_errors(scenario,value,side))
             if scenario.get('syntax_only'):
                 if value.get('error') or value['syntax']['exit']!=scenario.get('expected_syntax',0):errors.append(side+': syntax result')
                 continue
@@ -529,7 +835,11 @@ def main(args):
 
 
 if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--audit-trace':
+        print(json.dumps(audit_trace(Path(sys.argv[3]),sys.argv[2])));raise SystemExit(0)
     if len(sys.argv)>1 and sys.argv[1]=='--self-test':
         print(json.dumps({'scenarios':len(scenarios()),'negative_controls':controls()}));raise SystemExit(0)
+    if len(sys.argv)>1 and sys.argv[1]=='--trace-malformed-inotify':
+        raise SystemExit(trace_malformed_inotify(int(sys.argv[2]),int(sys.argv[3]),sys.argv[4]))
     if len(sys.argv)>1 and sys.argv[1]=='--exec-watch-fault':exec_watch_fault(sys.argv[2:])
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--image-root',type=Path,required=True);p.add_argument('--rust',type=Path,required=True);p.add_argument('--source-commit',required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--side',choices=['c','rust','both'],default='both');p.add_argument('--case',action='append');raise SystemExit(main(p.parse_args()))

@@ -51,14 +51,14 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::Path;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 #[cfg(not(target_os = "linux"))]
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
-static RELOAD_REQUESTED: AtomicBool = AtomicBool::new(false);
+static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
@@ -74,7 +74,11 @@ extern "C" fn request_stop(_signal: i32) {
 }
 
 extern "C" fn request_reload(_signal: i32) {
-    RELOAD_REQUESTED.store(true, Ordering::Release);
+    // Standard signals coalesce in the kernel. Each delivered handler maps
+    // to a distinct C EVENT_RELOAD and must survive an active file read.
+    let _ = RELOAD_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+        Some(count.saturating_add(1))
+    });
 }
 
 extern "C" fn request_interrupt(_signal: i32) {
@@ -393,7 +397,7 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
         if runtime.process.apply(directive)?
             || runtime.scalar.apply(directive)?
-            || runtime.dns.apply(directive)?
+            || runtime.dns.apply_resolved(directive)?
             || runtime.tftp.apply(directive)?
             || runtime.dhcp.apply(directive)?
             || runtime.ubus.apply(directive)?
@@ -592,6 +596,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
             // DNS/TFTP continue through the borrowed probe wait meanwhile.
             || false,
         )?;
+        provider
+            .start_interface_owner()
+            .map_err(|error| dnsmasq_rs::startup::StartupError {
+                code: 5,
+                message: format!("cannot create DHCP netlink socket: {error}"),
+            })?;
         provider.set_dns_config(&daemon_config)?;
         provider.set_tftp_config(&tftp_config);
         if dns_enabled {
@@ -679,7 +689,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 daemon_config.bind_interfaces || daemon_config.bind_dynamic,
             )
             .map_err(NetworkStartupError)?;
-        Some(DhcpService { provider, listener })
+        Some(DhcpService {
+            provider,
+            listener,
+            pxe_next: false,
+        })
     } else {
         None
     };
@@ -897,7 +911,12 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        let signaled = RELOAD_REQUESTED.swap(false, Ordering::AcqRel);
+        let signaled = !poll.reload_in_progress()
+            && RELOAD_REQUESTED
+                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                    count.checked_sub(1)
+                })
+                .is_ok();
         let file_reload = std::mem::take(&mut poll.full_reload_pending);
         if signaled || file_reload {
             poll.reload_data(runtime.scalar.local_ttl)?;
@@ -917,9 +936,17 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         poll.wait_for_files()?;
     }
+    #[cfg(target_os = "linux")]
+    if let Some(files) = &mut poll.dns_files {
+        files.begin_shutdown();
+    }
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     loop {
-        let drained = poll.step_helper_shutdown();
+        let lookups_drained = poll
+            .dns_files
+            .as_mut()
+            .is_none_or(DnsFiles::lookups_drained);
+        let drained = lookups_drained && poll.step_helper_shutdown();
         if let Some(error) = poll.helper_init_error.take() {
             pid_file.cleanup();
             return Err(Box::new(error));
@@ -929,16 +956,11 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         }
         // EVENT_TERM drains sources and command bytes, not script execution.
         // Keep IPC and init processing nonblocking in the same poll owner.
-        let mut fds = poll
-            .helper
-            .as_ref()
-            .unwrap()
-            .poll_fds()
-            .map(|(fd, events)| owrt_ubus::sys::PollFd {
-                fd,
-                events,
-                revents: 0,
-            });
+        let mut fds = Vec::new();
+        for (fd, events) in poll.helper.as_ref().unwrap().poll_fds() {
+            if fd >= 0 { fds.push(owrt_ubus::sys::PollFd { fd, events, revents: 0 }); }
+        }
+        if let Some(files) = &poll.dns_files { files.append_poll_fds(&mut fds); }
         owrt_ubus::sys::poll_fds(&mut fds, 2)?;
     }
     #[cfg(target_os = "linux")]
@@ -976,6 +998,7 @@ fn open_dns_listener(address: SocketAddr) -> io::Result<(Arc<DnsSocket>, TcpList
 struct DhcpService {
     provider: Option<Arc<Mutex<DhcpProvider>>>,
     listener: DhcpSocketListener,
+    pxe_next: bool,
 }
 
 /// The production event owner. All daemon sockets are advanced from the
@@ -1300,6 +1323,26 @@ impl SinglePoll {
             report_dhcp_maintenance(&provider.reload_data_files(now_seconds()));
         }
         Ok(())
+    }
+
+    fn reload_in_progress(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self
+            .dhcp
+            .as_ref()
+            .and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| provider.lock().unwrap().file_work_pending())
+        {
+            return true;
+        }
+        #[cfg(target_os = "linux")]
+        {
+            self.dns_files.as_ref().is_some_and(DnsFiles::has_work)
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            false
+        }
     }
 
     fn files_initializing(&self) -> bool {
@@ -2045,6 +2088,11 @@ impl SinglePoll {
         if self.helper_init.is_some() || self.helper_init_error.is_some() {
             return;
         }
+        // EVENT_RELOAD is consumed before DHCP in C. A completed bank is
+        // still intermediate when another delivered SIGHUP waits in the queue.
+        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.reload_in_progress() {
+            return;
+        }
         let Some(mut dhcp) = self.dhcp.take() else {
             return;
         };
@@ -2073,6 +2121,21 @@ impl SinglePoll {
         if let Some(report) = provider.tick(now) {
             report_dhcp_maintenance(&report);
         }
+        // Leave input in the kernel until a fresh address generation arrives.
+        // Each turn advances at most one netlink datagram without a blocking wait.
+        if !dhcp.listener.has_input().unwrap_or(false)
+            || match provider.prepare_packet_interfaces() {
+                Ok(ready) => !ready,
+                Err(error) => {
+                    eprintln!("dnsmasq-rs: DHCP interface snapshot: {error}");
+                    true
+                }
+            }
+        {
+            drop(provider);
+            self.dhcp = Some(dhcp);
+            return;
+        }
         if self
             .tftp
             .as_ref()
@@ -2093,14 +2156,29 @@ impl SinglePoll {
                 self.wait_during_probe(socket, duration, leases)
             };
             let mut provider = provider.with_event_sink_and_wait(&mut sink, &mut wait);
-            let primary = dhcp
-                .listener
-                .process_once_local(&mut provider, &[], &mut output, || {
-                    STOP_REQUESTED.load(Ordering::Acquire)
-                });
-            let pxe = if dhcp.listener.has_pxe_listener() {
+            let has_pxe = dhcp.listener.has_pxe_listener();
+            let mut selected = if dhcp.pxe_next && has_pxe {
+                DhcpListener::Pxe
+            } else {
+                DhcpListener::Dhcp
+            };
+            let first = dhcp.listener.process_once_on_listener(
+                selected,
+                &mut provider,
+                &[],
+                &mut output,
+                || STOP_REQUESTED.load(Ordering::Acquire),
+            );
+            // A probe can take several seconds. Never carry its address dump
+            // into a second packet; the next owner turn obtains a fresh one.
+            let second = if matches!(first, Ok(ListenerStep::WouldBlock)) && has_pxe {
+                selected = if selected == DhcpListener::Pxe {
+                    DhcpListener::Dhcp
+                } else {
+                    DhcpListener::Pxe
+                };
                 dhcp.listener.process_once_on_listener(
-                    DhcpListener::Pxe,
+                    selected,
                     &mut provider,
                     &[],
                     &mut output,
@@ -2109,8 +2187,10 @@ impl SinglePoll {
             } else {
                 Ok(ListenerStep::WouldBlock)
             };
-            [primary, pxe]
+            dhcp.pxe_next = has_pxe && selected == DhcpListener::Dhcp;
+            [first, second]
         };
+        provider.finish_packet_interfaces();
         if self.pending_delivery.is_none() {
             self.pending_delivery = provider.take_script_delivery();
         }
@@ -2512,6 +2592,7 @@ mod tests {
             Some(DhcpService {
                 provider: Some(Arc::new(Mutex::new(provider))),
                 listener,
+                pxe_next: false,
             }),
             None,
             None,
