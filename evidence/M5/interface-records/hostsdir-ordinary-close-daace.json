@@ -1,0 +1,2531 @@
+{
+  "schema": "m5-hostsdir-ordinary-closure-v1",
+  "closed_options": [
+    "hostsdir"
+  ],
+  "source_commit": "daace344f093bf090d2e123df1cb183b4a23eb4d",
+  "elf_sha256": "cdc96e85c891634db0f9be197a29fe4429215ab214bb4c512fc84bde962f04b1",
+  "elf_bytes": 1929256,
+  "image_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "mapping_source_commit": "e30b724e",
+  "mapping_sha256": "1cc0a2136cd4fbbdae968fd4cff213f133d1003b2001541ae31e0b23c58eb6cf",
+  "ordinary_required": 57,
+  "qualified_required": 57,
+  "syntax_configurations": 5,
+  "service_configurations": 40,
+  "service_observations_per_side": 254,
+  "negative_controls": [
+    "missing-row",
+    "wrong-diagnostic",
+    "wrong-exit",
+    "startup",
+    "wrong-answer",
+    "missing-forward",
+    "wrong-server",
+    "leaked-child",
+    "leaked-pid",
+    "wrong-helper",
+    "wrong-metrics",
+    "wrong-reading",
+    "missing-partial-read",
+    "missing-fifo-progress",
+    "missing-large-progress",
+    "missing-kernel",
+    "extra-owner-thread",
+    "wrong-runtime-uid",
+    "local-ttl-not-hidden-by-cname-clock",
+    "wrong-allocation-size",
+    "allocation-did-not-fail",
+    "wrong-allocator-pc",
+    "missing-dhcp-domain-consumer",
+    "wrong-dhcp-domain",
+    "missing-hosts-stream",
+    "missing-hosts-read-fd",
+    "missing-hosts-consumed-prefix"
+  ],
+  "negative_control_count": 27,
+  "missing_required": 0,
+  "unclassified_differences": 0,
+  "infrastructure_failures": 0,
+  "reference_differences": [
+    {
+      "c": {
+        "health": {
+          "elapsed": 0.15027927700430155,
+          "healthy": false,
+          "reply": null,
+          "request": "3100010000010000000000000572656164790566696c657304746573740000010001"
+        },
+        "label": "hosts-stream",
+        "mode": "fifo",
+        "read_fds": [
+          {
+            "fd": 12,
+            "fdinfo": "pos:\t0\nflags:\t0400000\nmnt_id:\t463\nino:\t5002071\n",
+            "target": "/home/ubuntu/dnsmasq-m5-interface-records-20261005/private/paired-daace-hostsdir-final-08/c/rootfs/m2/files/dir/one"
+          }
+        ]
+      },
+      "case": "hostsdir-runtime-fifo",
+      "mode": "fifo",
+      "reason": "C hostsdir stream read blocks the parent; Rust keeps the single owner serving the prior complete generation.",
+      "rust": {
+        "health": {
+          "elapsed": 0.00027428194880485535,
+          "healthy": true,
+          "reply": "3100858000010001000000000572656164790566696c657304746573740000010001c00c00010001000000000004c00002fa",
+          "request": "3100010000010000000000000572656164790566696c657304746573740000010001"
+        },
+        "label": "hosts-stream",
+        "mode": "fifo",
+        "read_fds": [
+          {
+            "fd": 11,
+            "fdinfo": "pos:\t0\nflags:\t02404000\nmnt_id:\t608\nino:\t5002076\n",
+            "target": "/home/ubuntu/dnsmasq-m5-interface-records-20261005/private/paired-daace-hostsdir-final-08/rust/rootfs/m2/files/dir/one"
+          }
+        ]
+      }
+    },
+    {
+      "c": {
+        "health": {
+          "elapsed": 0.15026255592238158,
+          "healthy": false,
+          "reply": null,
+          "request": "3100010000010000000000000572656164790566696c657304746573740000010001"
+        },
+        "label": "hosts-stream",
+        "mode": "shutdown",
+        "read_fds": [
+          {
+            "fd": 12,
+            "fdinfo": "pos:\t0\nflags:\t0400000\nmnt_id:\t463\nino:\t5002107\n",
+            "target": "/home/ubuntu/dnsmasq-m5-interface-records-20261005/private/paired-daace-hostsdir-final-08/c/rootfs/m2/files/dir/one"
+          }
+        ],
+        "terminated_before_release": false
+      },
+      "case": "hostsdir-runtime-shutdown",
+      "mode": "shutdown",
+      "reason": "C hostsdir stream read blocks the parent; Rust keeps the single owner serving the prior complete generation.",
+      "rust": {
+        "health": {
+          "elapsed": 0.0020754170836880803,
+          "healthy": true,
+          "reply": "3100858000010001000000000572656164790566696c657304746573740000010001c00c00010001000000000004c00002fa",
+          "request": "3100010000010000000000000572656164790566696c657304746573740000010001"
+        },
+        "label": "hosts-stream",
+        "mode": "shutdown",
+        "read_fds": [
+          {
+            "fd": 12,
+            "fdinfo": "pos:\t0\nflags:\t02404000\nmnt_id:\t608\nino:\t5002113\n",
+            "target": "/home/ubuntu/dnsmasq-m5-interface-records-20261005/private/paired-daace-hostsdir-final-08/rust/rootfs/m2/files/dir/one"
+          }
+        ],
+        "terminated_before_release": true
+      }
+    }
+  ],
+  "source_corrections": [
+    {
+      "row": "HDIR-SOURCE/06",
+      "original_description_preserved": true,
+      "observation": "Fresh C nonterminal records have zero UID rather than path UID, so removing a path does not reconstruct or necessarily remove ancestors. A real-name insertion deletes an existing empty nonterminal; qualified C/R ancestor and configured-CNAME outcomes preserve this image behavior."
+    }
+  ],
+  "visible_temp_positive_control": "Actual C and Rust read(temp-one) completion barrier precedes rename; target duplicate is skipped, deleting target leaves temp UID and recreating target returns both .8 and .9. Ordinary inside-dir scheduling red is preserved, not erased.",
+  "preserved_red": [
+    "paired-f027-hostsdir-basic-04: initial helper duplicate old original repaired by Root frozen-delivery fix",
+    "paired-f027-hostsdir-failures-05: FIFO writer close caused C reopen; fixture moves FIFO outside before close. Inherited resolver-only EMFILE witness was rejected; actual host FD/error guard now qualifies.",
+    "paired-daace-hostsdir-service-07: transient accepted TCP FD made Rust first-free limit insufficient; initial UDP gate now faults host fopen on both. Debug clock-prefix fixture extraction corrected without changing diagnostic bodies."
+  ],
+  "archives": [
+    {
+      "run": "paired-daace-hostsdir-syntax-07",
+      "archive_sha256": "8b33b9b43cd0bd32be18afc6d4290edc7feb8c978dc886d0d364d48b05c0c067",
+      "entries": 122,
+      "regular_files": 75,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    },
+    {
+      "run": "paired-daace-hostsdir-final-08",
+      "archive_sha256": "46647005daacc8acc3843e1fbae6d56b0262b811235748ab9f416a62fb3c9582",
+      "entries": 527,
+      "regular_files": 369,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    }
+  ],
+  "archive_entries": 649,
+  "archive_regular_files": 444,
+  "required": [
+    {
+      "id": "HDIR-GRAM/01",
+      "boundary": "HDIR-GRAM",
+      "required_case": "one/multiple/repeated directories",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-multiple",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "ca6b1a3580d6552aeb669fbc983583e612aaed5de1ee7dc8b31ae78f6e4576fc",
+          "rust_observed_sha256": "9b2ceffa6dcb110cfe9b6986dd8dbd2789c33845e12b200e970d8a8f5f0c221a"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-repeated",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "shared-watch-update:udp",
+            "shared-watch-update:tcp",
+            "shared-watch-delete:udp",
+            "shared-watch-delete:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f5b880a88cff8001b9209f599632c524058cb57499ee34ccae6a2c68908fc434",
+          "rust_observed_sha256": "2b09b8bc24b9649d15c47450ebbe2e36ded29a47eab8babea94738a72c4349c2"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-GRAM/02",
+      "boundary": "HDIR-GRAM",
+      "required_case": "relative/absolute/quoted literal paths",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "syntax",
+          "case_id": "hostsdir-relative",
+          "run": "paired-daace-hostsdir-syntax-07",
+          "observation_ids": [
+            "syntax"
+          ],
+          "actual_caller_witnesses": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-relative",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "b6f819de8d890ff7b4ee10db347a8a110fc912a55041693594ef0f10b57210e5",
+          "rust_observed_sha256": "aee42603ec4d07727ce310fec607f0d83dc2aeebac4d37aa1e3e82f0a384b749"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "hostsdir-quoted",
+          "run": "paired-daace-hostsdir-syntax-07",
+          "observation_ids": [
+            "syntax"
+          ],
+          "actual_caller_witnesses": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-quoted",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "39930dc18930c0173a13518515ca217db94d084bb4525de6be39aa373cbb26be",
+          "rust_observed_sha256": "2023eadf07c84922c0fc79f870f986a4f1be07a8b0d2624834343f2c9275cf25"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-GRAM/03",
+      "boundary": "HDIR-GRAM",
+      "required_case": "empty directory token caller",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-empty-path",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "40107f187330b2edef4fbdbf77f97d3f7040b58aab5ac7f1db3364aa2b49191e",
+          "rust_observed_sha256": "530d4d1060a6327d02e1eb8b8867315b7d6d2ad373b4c6e87c02b6c2a770abad"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-GRAM/04",
+      "boundary": "HDIR-GRAM",
+      "required_case": "port0 and no-hosts/no-resolv combinations",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-port-zero",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "a3c243bb40887355180c3488740d6638cc01bfd6b13e246e6ea5f51f88d492c3",
+          "rust_observed_sha256": "385b3b0693c0a97d9c8eb4f3464fa8724770447cd4e2ab667635144fde46e235"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-coexist",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "directory:udp",
+            "directory:tcp",
+            "additional:udp",
+            "additional:tcp",
+            "explicit:udp",
+            "explicit:tcp",
+            "system:udp",
+            "system:tcp",
+            "directory-removed:udp",
+            "directory-removed:tcp",
+            "additional-retained:udp",
+            "additional-retained:tcp",
+            "explicit-retained:udp",
+            "explicit-retained:tcp",
+            "system-retained:udp",
+            "system-retained:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "57e2fdcb3b79295b8e67d6b0160f40458476214ddc2cc23e272713815fcbc12a",
+          "rust_observed_sha256": "b4238c68a69a87a67841814f025f0cf9d90ce461926f30922725726fa81aa7df"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-before-resolver",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "both-published:udp",
+            "both-published:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-burst"
+          ],
+          "c_observed_sha256": "7d3f3e21c1d7382994f16c1a7c58a5e745acb2a2443d3e01806c19378b588f1e",
+          "rust_observed_sha256": "a0bfea829a9bc8f6e8ab7cd13108db4f0f44a688b2102c13c8cdc1f34d003c72"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-GRAM/05",
+      "boundary": "HDIR-GRAM",
+      "required_case": "same directory twice watch descriptor alias",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-repeated",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "shared-watch-update:udp",
+            "shared-watch-update:tcp",
+            "shared-watch-delete:udp",
+            "shared-watch-delete:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f5b880a88cff8001b9209f599632c524058cb57499ee34ccae6a2c68908fc434",
+          "rust_observed_sha256": "2b09b8bc24b9649d15c47450ebbe2e36ded29a47eab8babea94738a72c4349c2"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-GRAM/06",
+      "boundary": "HDIR-GRAM",
+      "required_case": "symlinked directory path",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-symlink-retarget",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "retarget-no-event:udp",
+            "retarget-no-event:tcp",
+            "new-target-unwatched:udp",
+            "new-target-unwatched:tcp",
+            "old-watch-reads-current-path:udp",
+            "old-watch-reads-current-path:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "7ec0b78c54539caaf1ab1694fc59db7fef8bfc1a837f2bd698426611f87a3280",
+          "rust_observed_sha256": "917cd9c3e433c760ad5ba61e51d83da857ad4f9d33dccb656cf32e7c5317c00e"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-GRAM/07",
+      "boundary": "HDIR-GRAM",
+      "required_case": "initial directory watch before scan",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-before-resolver",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "both-published:udp",
+            "both-published:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-burst"
+          ],
+          "c_observed_sha256": "7d3f3e21c1d7382994f16c1a7c58a5e745acb2a2443d3e01806c19378b588f1e",
+          "rust_observed_sha256": "a0bfea829a9bc8f6e8ab7cd13108db4f0f44a688b2102c13c8cdc1f34d003c72"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/01",
+      "boundary": "HDIR-INIT",
+      "required_case": "valid IPv4/IPv6 hosts and aliases",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-repeated",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "shared-watch-update:udp",
+            "shared-watch-update:tcp",
+            "shared-watch-delete:udp",
+            "shared-watch-delete:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f5b880a88cff8001b9209f599632c524058cb57499ee34ccae6a2c68908fc434",
+          "rust_observed_sha256": "2b09b8bc24b9649d15c47450ebbe2e36ded29a47eab8babea94738a72c4349c2"
+        },
+        {
+          "mode": "syntax",
+          "case_id": "hostsdir-relative",
+          "run": "paired-daace-hostsdir-syntax-07",
+          "observation_ids": [
+            "syntax"
+          ],
+          "actual_caller_witnesses": [],
+          "c_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87",
+          "rust_observed_sha256": "ad114554ba87123d60449316426d7bfac6df8a7c77ad919246380791bc275e87"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-relative",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp",
+            "q3:udp",
+            "q3:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "b6f819de8d890ff7b4ee10db347a8a110fc912a55041693594ef0f10b57210e5",
+          "rust_observed_sha256": "aee42603ec4d07727ce310fec607f0d83dc2aeebac4d37aa1e3e82f0a384b749"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/02",
+      "boundary": "HDIR-INIT",
+      "required_case": "dot/tilde/hash filters",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-name-filters",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "dot:udp",
+            "dot:tcp",
+            "tilde:udp",
+            "tilde:tcp",
+            "hash:udp",
+            "hash:tcp",
+            "dot-close:udp",
+            "dot-close:tcp",
+            "tilde-delete:udp",
+            "tilde-delete:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "51c77de333484d1864cd3feb8db8504a4f166e85a07d0aa89f920a9dc530abb6",
+          "rust_observed_sha256": "8622f86bcf98b8c8e54dbd9f5610cfc6b42eb2735f6c47ee518e0a85b4e29e14"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/03",
+      "boundary": "HDIR-INIT",
+      "required_case": "subdirectory/FIFO/socket/device ignored",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-regular-only",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "089f30c65c2f88cc3ebb5440dd45da90c17e73c53c95925e3e11b4cb75b03b72",
+          "rust_observed_sha256": "8555065438daf28d2249fe20daa6c94b8d8c385cf79e3021a947cb803222d124"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/04",
+      "boundary": "HDIR-INIT",
+      "required_case": "regular symlink followed",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-regular-only",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "089f30c65c2f88cc3ebb5440dd45da90c17e73c53c95925e3e11b4cb75b03b72",
+          "rust_observed_sha256": "8555065438daf28d2249fe20daa6c94b8d8c385cf79e3021a947cb803222d124"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-symlink-retarget",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "retarget-no-event:udp",
+            "retarget-no-event:tcp",
+            "new-target-unwatched:udp",
+            "new-target-unwatched:tcp",
+            "old-watch-reads-current-path:udp",
+            "old-watch-reads-current-path:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "7ec0b78c54539caaf1ab1694fc59db7fef8bfc1a837f2bd698426611f87a3280",
+          "rust_observed_sha256": "917cd9c3e433c760ad5ba61e51d83da857ad4f9d33dccb656cf32e7c5317c00e"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/05",
+      "boundary": "HDIR-INIT",
+      "required_case": "missing/dangling/symlink-loop file",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-regular-only",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "089f30c65c2f88cc3ebb5440dd45da90c17e73c53c95925e3e11b4cb75b03b72",
+          "rust_observed_sha256": "8555065438daf28d2249fe20daa6c94b8d8c385cf79e3021a947cb803222d124"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/06",
+      "boundary": "HDIR-INIT",
+      "required_case": "missing/non-directory/denied root nonfatal logs",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-missing",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "b9b3f15e81d749fe4fbe413713e44619c3fe6f9e93642651c396c4682a7b55f5",
+          "rust_observed_sha256": "955346e7e15c5f97c3b1911553b4704d5d065a31e89db9f60f8335d3da91d60f"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-not-directory",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "e9fbf7391da6fee45dca39d8edaa32a826d0b899c79296774581f582b3db7fbe",
+          "rust_observed_sha256": "61723de39cbefa2af89f1a2a079585ba2efcc15be6ed977b2051d430e70941cb"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-watch-denied",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "dedefa02a686af235aac6d572f4e8b7052b1f504d3be2f87afc774cd0ebae4e8",
+          "rust_observed_sha256": "c26424f15db3ed1f907e65c5203197b02dc815d68c3075d7b003e9303a83caed"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/07",
+      "boundary": "HDIR-INIT",
+      "required_case": "nonroot initial file permissions",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-unprivileged",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "8f85149ab049fb34bb2f8356c9e252d45c49eadc54febbcda4517508435dd8f3",
+          "rust_observed_sha256": "1630c0425708953814c6f3f4b05ddb51387e7b8cfeb7ce355bb59c119d1d9041"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/08",
+      "boundary": "HDIR-INIT",
+      "required_case": "watch failure/opendir failure keeps daemon serving",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-watch-denied",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "dedefa02a686af235aac6d572f4e8b7052b1f504d3be2f87afc774cd0ebae4e8",
+          "rust_observed_sha256": "c26424f15db3ed1f907e65c5203197b02dc815d68c3075d7b003e9303a83caed"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-opendir-denied-hup",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "hup-denied:udp",
+            "hup-denied:tcp",
+            "hup-recovered:udp",
+            "hup-recovered:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "actual-hosts-directory-mode",
+            "actual-hosts-directory-mode"
+          ],
+          "c_observed_sha256": "7ee794458483d5a03185c685f061f8dafb287f7f77996c4c9dffd8876f55075e",
+          "rust_observed_sha256": "e8f72ba83aa7d550c24183102cf643d2c9176bb012ac5b50510e65a518a19729"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/09",
+      "boundary": "HDIR-INIT",
+      "required_case": "per-path stable source IDs including nonregular entries",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-regular-only",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "089f30c65c2f88cc3ebb5440dd45da90c17e73c53c95925e3e11b4cb75b03b72",
+          "rust_observed_sha256": "8555065438daf28d2249fe20daa6c94b8d8c385cf79e3021a947cb803222d124"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-directory",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "directory-replaces-source:udp",
+            "directory-replaces-source:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "5e3f1f0146d2c9a8a66181e8483a37a3f8c60571885db54e2e626c48badbbd3f",
+          "rust_observed_sha256": "85af4cc7787ff9bcb1f24e46726cbaa592e9e5d5524a41d7c090238f9023d884"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-fifo",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1d2f91a91c34dab49613ada33ded156c867915655f7edf3117662db8ef2fd6a9",
+          "rust_observed_sha256": "3fbdfcc4fe2fc8e4f7d14bd1b8062f36171ac31b7a7b316308975a7f456e8efc"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/10",
+      "boundary": "HDIR-INIT",
+      "required_case": "directory enumeration order duplicate forward/PTR",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-identical-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "winner-removed:udp",
+            "winner-removed:tcp",
+            "ancestor-after-remove:udp",
+            "ancestor-after-remove:tcp",
+            "hup-survivor:udp",
+            "hup-survivor:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f74ed63ef8177c0ad6dcf2a7ac185aabe83c9b8db736a56426a2c2c222b1b1b3",
+          "rust_observed_sha256": "0ab27c66f30e74a4a1600cc53e360884d5df54ffdcdf062315300efc7e6b513c"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-ptr-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "loser-forward:udp",
+            "loser-forward:tcp",
+            "ptr-not-promoted:udp",
+            "ptr-not-promoted:tcp",
+            "rewrite-promotes:udp",
+            "rewrite-promotes:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "9527e41c84ea2ac39b608b4cbc7a38091f4318d8ceb8ecf11b2568f3db81788f",
+          "rust_observed_sha256": "b33aa91a099d0ee32d7d4be67808bd230b78d774b9aa1d2a30b2d94879d828a6"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-multiple",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "ca6b1a3580d6552aeb669fbc983583e612aaed5de1ee7dc8b31ae78f6e4576fc",
+          "rust_observed_sha256": "9b2ceffa6dcb110cfe9b6986dd8dbd2789c33845e12b200e970d8a8f5f0c221a"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/11",
+      "boundary": "HDIR-INIT",
+      "required_case": "same names same/different addresses across files",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-identical-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "winner-removed:udp",
+            "winner-removed:tcp",
+            "ancestor-after-remove:udp",
+            "ancestor-after-remove:tcp",
+            "hup-survivor:udp",
+            "hup-survivor:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f74ed63ef8177c0ad6dcf2a7ac185aabe83c9b8db736a56426a2c2c222b1b1b3",
+          "rust_observed_sha256": "0ab27c66f30e74a4a1600cc53e360884d5df54ffdcdf062315300efc7e6b513c"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-rotation",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "rotation-0:udp",
+            "rotation-0:tcp",
+            "rotation-1:udp",
+            "rotation-1:tcp",
+            "rotation-2:udp",
+            "rotation-2:tcp",
+            "rotation-3:udp",
+            "rotation-3:tcp",
+            "changed-0:udp",
+            "changed-0:tcp",
+            "changed-1:udp",
+            "changed-1:tcp",
+            "changed-2:udp",
+            "changed-2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "183c1f63be2106d49d8667cc3ecb4b658d943eb9e0c05d1185b8d3125561ceab",
+          "rust_observed_sha256": "7063d15d32798a7b774172591c1c75469817e726b4ef2f1131fe8cb2bf400c39"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/12",
+      "boundary": "HDIR-INIT",
+      "required_case": "malformed address/name and partial final line",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-malformed",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "6b8e939796cfb84a12c806f4ba0dccb1358472570545bb8e2f9f10e44f8c253b",
+          "rust_observed_sha256": "da6723d69c7957e47b9b73acfb82bcc31d148169003d42e859dfefa366a85306"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-partial-eio",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1b266a0f91e330e5813069991cbb6ee094fa26a9ee44cfecea9acceaa487c160",
+          "rust_observed_sha256": "511377aca22879dff0ab4e1656bd63940e8aa60dae4a3ae14012991ad5232e4e"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/13",
+      "boundary": "HDIR-INIT",
+      "required_case": "local TTL no-round-robin/rotation",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-malformed",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "q0:udp",
+            "q0:tcp",
+            "q1:udp",
+            "q1:tcp",
+            "q2:udp",
+            "q2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "6b8e939796cfb84a12c806f4ba0dccb1358472570545bb8e2f9f10e44f8c253b",
+          "rust_observed_sha256": "da6723d69c7957e47b9b73acfb82bcc31d148169003d42e859dfefa366a85306"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-rotation",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "rotation-0:udp",
+            "rotation-0:tcp",
+            "rotation-1:udp",
+            "rotation-1:tcp",
+            "rotation-2:udp",
+            "rotation-2:tcp",
+            "rotation-3:udp",
+            "rotation-3:tcp",
+            "changed-0:udp",
+            "changed-0:tcp",
+            "changed-1:udp",
+            "changed-1:tcp",
+            "changed-2:udp",
+            "changed-2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "183c1f63be2106d49d8667cc3ecb4b658d943eb9e0c05d1185b8d3125561ceab",
+          "rust_observed_sha256": "7063d15d32798a7b774172591c1c75469817e726b4ef2f1131fe8cb2bf400c39"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-INIT/14",
+      "boundary": "HDIR-INIT",
+      "required_case": "CNAME interaction and suffix expansion",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-cname-expand",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "b67349f728437d4b792144af5623d8f070c92a3da78297c4a973d9fc9d1cd15c",
+          "rust_observed_sha256": "91e78d5124f0b07f164e469666654c66311f7ca0b2e94665d920159fe153de70"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/01",
+      "boundary": "HDIR-EVENT",
+      "required_case": "close-write add/replace",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/02",
+      "boundary": "HDIR-EVENT",
+      "required_case": "moved-to atomic replacement",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-atomic-stable-uid",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "atomic:udp",
+            "atomic:tcp",
+            "deleted:udp",
+            "deleted:tcp",
+            "recreated:udp",
+            "recreated:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "9dc01cab4519247ce32eff30739a1084c527ab2ccbde0757e7b882c7ec5af24f",
+          "rust_observed_sha256": "6e8b14c370bfd21d26784a8293b7b988fd3df3a16f5133b880c06f8e850f5a7e"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-visible-temp-source-guard",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "temp-read-before-rename:udp",
+            "temp-read-before-rename:tcp",
+            "target-skips-duplicate:udp",
+            "target-skips-duplicate:tcp",
+            "temp-uid-retained:udp",
+            "temp-uid-retained:tcp",
+            "temp-plus-recreated:udp",
+            "temp-plus-recreated:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-read-barrier"
+          ],
+          "c_observed_sha256": "bfe35b9698d09781b9f6026057c102e1cc84d1bfc08ea1c7a461de285a22a80d",
+          "rust_observed_sha256": "89690e84db5ae804e9f98c1ccf123e79db97749116c7c64a6d8b862298ceff7f"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/03",
+      "boundary": "HDIR-EVENT",
+      "required_case": "delete removes only file UID",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-coexist",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "directory:udp",
+            "directory:tcp",
+            "additional:udp",
+            "additional:tcp",
+            "explicit:udp",
+            "explicit:tcp",
+            "system:udp",
+            "system:tcp",
+            "directory-removed:udp",
+            "directory-removed:tcp",
+            "additional-retained:udp",
+            "additional-retained:tcp",
+            "explicit-retained:udp",
+            "explicit-retained:tcp",
+            "system-retained:udp",
+            "system-retained:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "57e2fdcb3b79295b8e67d6b0160f40458476214ddc2cc23e272713815fcbc12a",
+          "rust_observed_sha256": "b4238c68a69a87a67841814f025f0cf9d90ce461926f30922725726fa81aa7df"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/04",
+      "boundary": "HDIR-EVENT",
+      "required_case": "write-open no early publication",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-open-create-move",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "create-not-close:udp",
+            "create-not-close:tcp",
+            "closed:udp",
+            "closed:tcp",
+            "moved-away-stale:udp",
+            "moved-away-stale:tcp",
+            "moved-in:udp",
+            "moved-in:tcp",
+            "old-uid-remains:udp",
+            "old-uid-remains:tcp",
+            "hup-drops-old-uid:udp",
+            "hup-drops-old-uid:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d57235368d57917b8345db26d11b5fdf6b7eac3ed725debcfaab58c3f1ccc240",
+          "rust_observed_sha256": "f981f60a770540b55782a5d24323447052fc7bd5c48930fb1a9a680cf0978d16"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/05",
+      "boundary": "HDIR-EVENT",
+      "required_case": "create-only ignored",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-open-create-move",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "create-not-close:udp",
+            "create-not-close:tcp",
+            "closed:udp",
+            "closed:tcp",
+            "moved-away-stale:udp",
+            "moved-away-stale:tcp",
+            "moved-in:udp",
+            "moved-in:tcp",
+            "old-uid-remains:udp",
+            "old-uid-remains:tcp",
+            "hup-drops-old-uid:udp",
+            "hup-drops-old-uid:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d57235368d57917b8345db26d11b5fdf6b7eac3ed725debcfaab58c3f1ccc240",
+          "rust_observed_sha256": "f981f60a770540b55782a5d24323447052fc7bd5c48930fb1a9a680cf0978d16"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/06",
+      "boundary": "HDIR-EVENT",
+      "required_case": "moved-from/rename-away stale records remain",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-open-create-move",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "create-not-close:udp",
+            "create-not-close:tcp",
+            "closed:udp",
+            "closed:tcp",
+            "moved-away-stale:udp",
+            "moved-away-stale:tcp",
+            "moved-in:udp",
+            "moved-in:tcp",
+            "old-uid-remains:udp",
+            "old-uid-remains:tcp",
+            "hup-drops-old-uid:udp",
+            "hup-drops-old-uid:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d57235368d57917b8345db26d11b5fdf6b7eac3ed725debcfaab58c3f1ccc240",
+          "rust_observed_sha256": "f981f60a770540b55782a5d24323447052fc7bd5c48930fb1a9a680cf0978d16"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/07",
+      "boundary": "HDIR-EVENT",
+      "required_case": "move-to filtered filename ignored",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-name-filters",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "dot:udp",
+            "dot:tcp",
+            "tilde:udp",
+            "tilde:tcp",
+            "hash:udp",
+            "hash:tcp",
+            "dot-close:udp",
+            "dot-close:tcp",
+            "tilde-delete:udp",
+            "tilde-delete:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "51c77de333484d1864cd3feb8db8504a4f166e85a07d0aa89f920a9dc530abb6",
+          "rust_observed_sha256": "8622f86bcf98b8c8e54dbd9f5610cfc6b42eb2735f6c47ee518e0a85b4e29e14"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-actual-queue-overflow",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "recovery-after-overflow:udp",
+            "recovery-after-overflow:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-overflow"
+          ],
+          "c_observed_sha256": "c2fbb7f0985f64107c5963ba2fc37e25bc5c50e110956daa6218aad7f2beef30",
+          "rust_observed_sha256": "4c1d04c13aa43721ec80c62664525b77abc2bdf1c3a88ece8b65f089482b90de"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/08",
+      "boundary": "HDIR-EVENT",
+      "required_case": "delete filtered filename ignored",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-name-filters",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "dot:udp",
+            "dot:tcp",
+            "tilde:udp",
+            "tilde:tcp",
+            "hash:udp",
+            "hash:tcp",
+            "dot-close:udp",
+            "dot-close:tcp",
+            "tilde-delete:udp",
+            "tilde-delete:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "51c77de333484d1864cd3feb8db8504a4f166e85a07d0aa89f920a9dc530abb6",
+          "rust_observed_sha256": "8622f86bcf98b8c8e54dbd9f5610cfc6b42eb2735f6c47ee518e0a85b4e29e14"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/09",
+      "boundary": "HDIR-EVENT",
+      "required_case": "rename within directory UID split semantics",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-visible-temp-source-guard",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "temp-read-before-rename:udp",
+            "temp-read-before-rename:tcp",
+            "target-skips-duplicate:udp",
+            "target-skips-duplicate:tcp",
+            "temp-uid-retained:udp",
+            "temp-uid-retained:tcp",
+            "temp-plus-recreated:udp",
+            "temp-plus-recreated:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-read-barrier"
+          ],
+          "c_observed_sha256": "bfe35b9698d09781b9f6026057c102e1cc84d1bfc08ea1c7a461de285a22a80d",
+          "rust_observed_sha256": "89690e84db5ae804e9f98c1ccf123e79db97749116c7c64a6d8b862298ceff7f"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-open-create-move",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "create-not-close:udp",
+            "create-not-close:tcp",
+            "closed:udp",
+            "closed:tcp",
+            "moved-away-stale:udp",
+            "moved-away-stale:tcp",
+            "moved-in:udp",
+            "moved-in:tcp",
+            "old-uid-remains:udp",
+            "old-uid-remains:tcp",
+            "hup-drops-old-uid:udp",
+            "hup-drops-old-uid:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d57235368d57917b8345db26d11b5fdf6b7eac3ed725debcfaab58c3f1ccc240",
+          "rust_observed_sha256": "f981f60a770540b55782a5d24323447052fc7bd5c48930fb1a9a680cf0978d16"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/10",
+      "boundary": "HDIR-EVENT",
+      "required_case": "directory removed/recreated watch lifetime",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-watch-removed",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "recreated-not-watched:udp",
+            "recreated-not-watched:tcp",
+            "hup-scans-survivor:udp",
+            "hup-scans-survivor:tcp",
+            "still-not-watched:udp",
+            "still-not-watched:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d69443fca4c535e323356e3ce1577eaef20fc7c55099a6c29dfffc4289eaf258",
+          "rust_observed_sha256": "435444a5186b430863ac21302846f777d36db7e7e002ce5509bbc53a7aba6570"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/11",
+      "boundary": "HDIR-EVENT",
+      "required_case": "directory symlink retarget watch lifetime",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-symlink-retarget",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "retarget-no-event:udp",
+            "retarget-no-event:tcp",
+            "new-target-unwatched:udp",
+            "new-target-unwatched:tcp",
+            "old-watch-reads-current-path:udp",
+            "old-watch-reads-current-path:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "7ec0b78c54539caaf1ab1694fc59db7fef8bfc1a837f2bd698426611f87a3280",
+          "rust_observed_sha256": "917cd9c3e433c760ad5ba61e51d83da857ad4f9d33dccb656cf32e7c5317c00e"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/12",
+      "boundary": "HDIR-EVENT",
+      "required_case": "watch queue burst/order/overflow",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-burst-order",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "one-final:udp",
+            "one-final:tcp",
+            "two-final:udp",
+            "two-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-burst"
+          ],
+          "c_observed_sha256": "bcc1b22ce7623aa40be07feadfe6892fee7016e0af939e300b36d2f0344a4f12",
+          "rust_observed_sha256": "1563fc8ed8253f8b39cca52ac224998730c754cf5d37a49113432e1fa0c3b714"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-actual-queue-overflow",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "recovery-after-overflow:udp",
+            "recovery-after-overflow:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-overflow"
+          ],
+          "c_observed_sha256": "c2fbb7f0985f64107c5963ba2fc37e25bc5c50e110956daa6218aad7f2beef30",
+          "rust_observed_sha256": "4c1d04c13aa43721ec80c62664525b77abc2bdf1c3a88ece8b65f089482b90de"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/13",
+      "boundary": "HDIR-EVENT",
+      "required_case": "runtime nonregular moved-to caller behavior",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-directory",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "directory-replaces-source:udp",
+            "directory-replaces-source:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "5e3f1f0146d2c9a8a66181e8483a37a3f8c60571885db54e2e626c48badbbd3f",
+          "rust_observed_sha256": "85af4cc7787ff9bcb1f24e46726cbaa592e9e5d5524a41d7c090238f9023d884"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/14",
+      "boundary": "HDIR-EVENT",
+      "required_case": "FIFO runtime blocking C reference and Rust owner progress",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-fifo",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1d2f91a91c34dab49613ada33ded156c867915655f7edf3117662db8ef2fd6a9",
+          "rust_observed_sha256": "3fbdfcc4fe2fc8e4f7d14bd1b8062f36171ac31b7a7b316308975a7f456e8efc"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/15",
+      "boundary": "HDIR-EVENT",
+      "required_case": "runtime partial EIO/EMFILE source replacement",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-partial-eio",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1b266a0f91e330e5813069991cbb6ee094fa26a9ee44cfecea9acceaa487c160",
+          "rust_observed_sha256": "511377aca22879dff0ab4e1656bd63940e8aa60dae4a3ae14012991ad5232e4e"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-emfile",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "open-failed-source-removed:udp",
+            "owner-still-healthy:udp",
+            "recovered:udp",
+            "recovered:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "0f203a7263be149f60ffe600af453c2c80c47868f33b24c63a944b3dfeaa710b",
+          "rust_observed_sha256": "502f5146cdea66692fd8375901aa4015d2bfc4ab0de5b84811270888de413bac"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-EVENT/16",
+      "boundary": "HDIR-EVENT",
+      "required_case": "large file bounded owner service",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-large-owner",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "new-source:udp",
+            "new-source:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-large"
+          ],
+          "c_observed_sha256": "42b113efe7b9987f850317ddb270d94b08f676be312116269024c6ef4d64821a",
+          "rust_observed_sha256": "aed32571004f4440be6948e7c839ed69f39c0d6816314e5826251d4c7173a79d"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/01",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "stable UID across same path updates",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-atomic-stable-uid",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "atomic:udp",
+            "atomic:tcp",
+            "deleted:udp",
+            "deleted:tcp",
+            "recreated:udp",
+            "recreated:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "9dc01cab4519247ce32eff30739a1084c527ab2ccbde0757e7b882c7ec5af24f",
+          "rust_observed_sha256": "6e8b14c370bfd21d26784a8293b7b988fd3df3a16f5133b880c06f8e850f5a7e"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/02",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "source UID survives delete/recreate",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-atomic-stable-uid",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "atomic:udp",
+            "atomic:tcp",
+            "deleted:udp",
+            "deleted:tcp",
+            "recreated:udp",
+            "recreated:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "9dc01cab4519247ce32eff30739a1084c527ab2ccbde0757e7b882c7ec5af24f",
+          "rust_observed_sha256": "6e8b14c370bfd21d26784a8293b7b988fd3df3a16f5133b880c06f8e850f5a7e"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/03",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "duplicate identical entry source ownership",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-identical-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "winner-removed:udp",
+            "winner-removed:tcp",
+            "ancestor-after-remove:udp",
+            "ancestor-after-remove:tcp",
+            "hup-survivor:udp",
+            "hup-survivor:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f74ed63ef8177c0ad6dcf2a7ac185aabe83c9b8db736a56426a2c2c222b1b1b3",
+          "rust_observed_sha256": "0ab27c66f30e74a4a1600cc53e360884d5df54ffdcdf062315300efc7e6b513c"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-visible-temp-source-guard",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "temp-read-before-rename:udp",
+            "temp-read-before-rename:tcp",
+            "target-skips-duplicate:udp",
+            "target-skips-duplicate:tcp",
+            "temp-uid-retained:udp",
+            "temp-uid-retained:tcp",
+            "temp-plus-recreated:udp",
+            "temp-plus-recreated:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-read-barrier"
+          ],
+          "c_observed_sha256": "bfe35b9698d09781b9f6026057c102e1cc84d1bfc08ea1c7a461de285a22a80d",
+          "rust_observed_sha256": "89690e84db5ae804e9f98c1ccf123e79db97749116c7c64a6d8b862298ceff7f"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/04",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "deleting winner does not restore skipped duplicate",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-identical-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "winner-removed:udp",
+            "winner-removed:tcp",
+            "ancestor-after-remove:udp",
+            "ancestor-after-remove:tcp",
+            "hup-survivor:udp",
+            "hup-survivor:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f74ed63ef8177c0ad6dcf2a7ac185aabe83c9b8db736a56426a2c2c222b1b1b3",
+          "rust_observed_sha256": "0ab27c66f30e74a4a1600cc53e360884d5df54ffdcdf062315300efc7e6b513c"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/05",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "forward multiple-address and first PTR priority",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-ptr-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "loser-forward:udp",
+            "loser-forward:tcp",
+            "ptr-not-promoted:udp",
+            "ptr-not-promoted:tcp",
+            "rewrite-promotes:udp",
+            "rewrite-promotes:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "9527e41c84ea2ac39b608b4cbc7a38091f4318d8ceb8ecf11b2568f3db81788f",
+          "rust_observed_sha256": "b33aa91a099d0ee32d7d4be67808bd230b78d774b9aa1d2a30b2d94879d828a6"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-rotation",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "rotation-0:udp",
+            "rotation-0:tcp",
+            "rotation-1:udp",
+            "rotation-1:tcp",
+            "rotation-2:udp",
+            "rotation-2:tcp",
+            "rotation-3:udp",
+            "rotation-3:tcp",
+            "changed-0:udp",
+            "changed-0:tcp",
+            "changed-1:udp",
+            "changed-1:tcp",
+            "changed-2:udp",
+            "changed-2:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "183c1f63be2106d49d8667cc3ecb4b658d943eb9e0c05d1185b8d3125561ceab",
+          "rust_observed_sha256": "7063d15d32798a7b774172591c1c75469817e726b4ef2f1131fe8cb2bf400c39"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/06",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "source names/nonterminals/CNAME dependencies removed",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-identical-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "winner-removed:udp",
+            "winner-removed:tcp",
+            "ancestor-after-remove:udp",
+            "ancestor-after-remove:tcp",
+            "hup-survivor:udp",
+            "hup-survivor:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f74ed63ef8177c0ad6dcf2a7ac185aabe83c9b8db736a56426a2c2c222b1b1b3",
+          "rust_observed_sha256": "0ab27c66f30e74a4a1600cc53e360884d5df54ffdcdf062315300efc7e6b513c"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-cname-expand",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "b67349f728437d4b792144af5623d8f070c92a3da78297c4a973d9fc9d1cd15c",
+          "rust_observed_sha256": "91e78d5124f0b07f164e469666654c66311f7ca0b2e94665d920159fe153de70"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/07",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "system/addn/configured-host coexistence",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-coexist",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "directory:udp",
+            "directory:tcp",
+            "additional:udp",
+            "additional:tcp",
+            "explicit:udp",
+            "explicit:tcp",
+            "system:udp",
+            "system:tcp",
+            "directory-removed:udp",
+            "directory-removed:tcp",
+            "additional-retained:udp",
+            "additional-retained:tcp",
+            "explicit-retained:udp",
+            "explicit-retained:tcp",
+            "system-retained:udp",
+            "system-retained:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "57e2fdcb3b79295b8e67d6b0160f40458476214ddc2cc23e272713815fcbc12a",
+          "rust_observed_sha256": "b4238c68a69a87a67841814f025f0cf9d90ce461926f30922725726fa81aa7df"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/08",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "HUP full generation reads surviving files",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-identical-loser",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "winner-removed:udp",
+            "winner-removed:tcp",
+            "ancestor-after-remove:udp",
+            "ancestor-after-remove:tcp",
+            "hup-survivor:udp",
+            "hup-survivor:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "f74ed63ef8177c0ad6dcf2a7ac185aabe83c9b8db736a56426a2c2c222b1b1b3",
+          "rust_observed_sha256": "0ab27c66f30e74a4a1600cc53e360884d5df54ffdcdf062315300efc7e6b513c"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-opendir-denied-hup",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "hup-denied:udp",
+            "hup-denied:tcp",
+            "hup-recovered:udp",
+            "hup-recovered:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "actual-hosts-directory-mode",
+            "actual-hosts-directory-mode"
+          ],
+          "c_observed_sha256": "7ee794458483d5a03185c685f061f8dafb287f7f77996c4c9dffd8876f55075e",
+          "rust_observed_sha256": "e8f72ba83aa7d550c24183102cf643d2c9176bb012ac5b50510e65a518a19729"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/09",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "deleted file descriptor/source state cleanup",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-fifo",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1d2f91a91c34dab49613ada33ded156c867915655f7edf3117662db8ef2fd6a9",
+          "rust_observed_sha256": "3fbdfcc4fe2fc8e4f7d14bd1b8062f36171ac31b7a7b316308975a7f456e8efc"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-partial-eio",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1b266a0f91e330e5813069991cbb6ee094fa26a9ee44cfecea9acceaa487c160",
+          "rust_observed_sha256": "511377aca22879dff0ab4e1656bd63940e8aa60dae4a3ae14012991ad5232e4e"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-shutdown",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "fb946b370e44606bffb1cc6ac7dc7bfe19de131e947715e39f8d7642abe41502",
+          "rust_observed_sha256": "a0abf068f36a14227d3ef52250c193612c7555f4934943927371367464626fa8"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-SOURCE/10",
+      "boundary": "HDIR-SOURCE",
+      "required_case": "repeated events no FD/source leak",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-burst-order",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "one-final:udp",
+            "one-final:tcp",
+            "two-final:udp",
+            "two-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-burst"
+          ],
+          "c_observed_sha256": "bcc1b22ce7623aa40be07feadfe6892fee7016e0af939e300b36d2f0344a4f12",
+          "rust_observed_sha256": "1563fc8ed8253f8b39cca52ac224998730c754cf5d37a49113432e1fa0c3b714"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-actual-queue-overflow",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "recovery-after-overflow:udp",
+            "recovery-after-overflow:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-overflow"
+          ],
+          "c_observed_sha256": "c2fbb7f0985f64107c5963ba2fc37e25bc5c50e110956daa6218aad7f2beef30",
+          "rust_observed_sha256": "4c1d04c13aa43721ec80c62664525b77abc2bdf1c3a88ece8b65f089482b90de"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/01",
+      "boundary": "HDIR-CALLER",
+      "required_case": "UDP sees incremental source updates",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-basic",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c4ce28fd7ebdab8e96178d5bca750aa833875b7170ad07367584f041da9bc873",
+          "rust_observed_sha256": "9c3dc797f77c9772ec8cc1ccb1d993eaa8fc5714f59d4f2187130e25ffe7d627"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-open-create-move",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "create-not-close:udp",
+            "create-not-close:tcp",
+            "closed:udp",
+            "closed:tcp",
+            "moved-away-stale:udp",
+            "moved-away-stale:tcp",
+            "moved-in:udp",
+            "moved-in:tcp",
+            "old-uid-remains:udp",
+            "old-uid-remains:tcp",
+            "hup-drops-old-uid:udp",
+            "hup-drops-old-uid:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "d57235368d57917b8345db26d11b5fdf6b7eac3ed725debcfaab58c3f1ccc240",
+          "rust_observed_sha256": "f981f60a770540b55782a5d24323447052fc7bd5c48930fb1a9a680cf0978d16"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/02",
+      "boundary": "HDIR-CALLER",
+      "required_case": "open non-debug TCP retains accepted hosts records",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-tcp-view",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "child-old:held",
+            "parent-new:udp",
+            "child-stays-old:held",
+            "fresh-child:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c5d17ee77ab4a96e7c1f95b76b8dba8a356ae2f36fe3b655522bfc4086fed687",
+          "rust_observed_sha256": "46067b37c972ffb7ffe6d1658fc8076a1c0885b2930b1b6b1d7a7a0c6732c04d"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/03",
+      "boundary": "HDIR-CALLER",
+      "required_case": "new child sees updated records",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-tcp-view",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "child-old:held",
+            "parent-new:udp",
+            "child-stays-old:held",
+            "fresh-child:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c5d17ee77ab4a96e7c1f95b76b8dba8a356ae2f36fe3b655522bfc4086fed687",
+          "rust_observed_sha256": "46067b37c972ffb7ffe6d1658fc8076a1c0885b2930b1b6b1d7a7a0c6732c04d"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/04",
+      "boundary": "HDIR-CALLER",
+      "required_case": "DHCP existing name conflict re-evaluated",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-dhcp-conflict",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed-host-restores-lease:udp",
+            "removed-host-restores-lease:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "8bbca14775ee2d936ff1cdfa58c8a20afa8121645d40397be1b95ea3a9f93e93",
+          "rust_observed_sha256": "75adcfd741fa03d30804f9528747dac134f0b238e431d71f17ef8c9a90409064"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-dhcp-configured-address",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed-host-restores-lease:udp",
+            "removed-host-restores-lease:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "2750494f00f1260df118b1f9c0f659682dda8bcf6f2e7d60ab6e631f4f32595c",
+          "rust_observed_sha256": "59144348f945139685eb17faacfcf4a44a0d184e7460e74813acfd482641dd6c"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/05",
+      "boundary": "HDIR-CALLER",
+      "required_case": "DHCP lease name restored/changed on removal",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-dhcp-name-effects",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "initial-helper:helper",
+            "changed:udp",
+            "changed:tcp",
+            "changed-helper:helper",
+            "lease-name-retained:udp",
+            "lease-name-retained:tcp",
+            "removed-helper:helper"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "4194a8553f686b5051063cf8f72685aba86c6b650bfe29d9cb670740977949f0",
+          "rust_observed_sha256": "1725759ea9e9d37a06f2855222f6e28c6fed37106586650ad3f4be9abcf64171"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-dhcp-conflict",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed-host-restores-lease:udp",
+            "removed-host-restores-lease:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "8bbca14775ee2d936ff1cdfa58c8a20afa8121645d40397be1b95ea3a9f93e93",
+          "rust_observed_sha256": "75adcfd741fa03d30804f9528747dac134f0b238e431d71f17ef8c9a90409064"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/06",
+      "boundary": "HDIR-CALLER",
+      "required_case": "lease file/helper effects actual caller",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-dhcp-name-effects",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "initial-helper:helper",
+            "changed:udp",
+            "changed:tcp",
+            "changed-helper:helper",
+            "lease-name-retained:udp",
+            "lease-name-retained:tcp",
+            "removed-helper:helper"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "4194a8553f686b5051063cf8f72685aba86c6b650bfe29d9cb670740977949f0",
+          "rust_observed_sha256": "1725759ea9e9d37a06f2855222f6e28c6fed37106586650ad3f4be9abcf64171"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/07",
+      "boundary": "HDIR-CALLER",
+      "required_case": "inotify processing before resolver/full reload",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-before-resolver",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "both-published:udp",
+            "both-published:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-burst"
+          ],
+          "c_observed_sha256": "7d3f3e21c1d7382994f16c1a7c58a5e745acb2a2443d3e01806c19378b588f1e",
+          "rust_observed_sha256": "a0bfea829a9bc8f6e8ab7cd13108db4f0f44a688b2102c13c8cdc1f34d003c72"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/08",
+      "boundary": "HDIR-CALLER",
+      "required_case": "init/ordinary foreground/debug mode logs",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-logs-foreground",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "c0cbf22a12ee3c420936ac6ad1a56973f87566d6699902e173ae7e3030fe9b69",
+          "rust_observed_sha256": "2f391063882d5d05b88dba6aa0a73ec95470734bd1a91f3181b5d97a8265ca95"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-logs-debug",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "changed:udp",
+            "changed:tcp",
+            "removed:udp",
+            "removed:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel"
+          ],
+          "c_observed_sha256": "8f1f16cf94486b61822d72c9ed400519129da99a17d72430689047f9fa84f45d",
+          "rust_observed_sha256": "f4f61835afcd7af0e1d58f776adf174a292c4c68ce40c800c09535902f58da49"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/09",
+      "boundary": "HDIR-CALLER",
+      "required_case": "shutdown while stream update pending",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-shutdown",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "fb946b370e44606bffb1cc6ac7dc7bfe19de131e947715e39f8d7642abe41502",
+          "rust_observed_sha256": "a0abf068f36a14227d3ef52250c193612c7555f4934943927371367464626fa8"
+        }
+      ]
+    },
+    {
+      "id": "HDIR-CALLER/10",
+      "boundary": "HDIR-CALLER",
+      "required_case": "one parent poll thread and no orphan descriptors",
+      "status": "qualified-ordinary-input-contract",
+      "observations": [
+        {
+          "mode": "service",
+          "case_id": "hostsdir-runtime-fifo",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "completed:udp",
+            "completed:tcp",
+            "partial-final:udp",
+            "partial-final:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-stream"
+          ],
+          "c_observed_sha256": "1d2f91a91c34dab49613ada33ded156c867915655f7edf3117662db8ef2fd6a9",
+          "rust_observed_sha256": "3fbdfcc4fe2fc8e4f7d14bd1b8062f36171ac31b7a7b316308975a7f456e8efc"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-large-owner",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "new-source:udp",
+            "new-source:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-large"
+          ],
+          "c_observed_sha256": "42b113efe7b9987f850317ddb270d94b08f676be312116269024c6ef4d64821a",
+          "rust_observed_sha256": "aed32571004f4440be6948e7c839ed69f39c0d6816314e5826251d4c7173a79d"
+        },
+        {
+          "mode": "service",
+          "case_id": "hostsdir-actual-queue-overflow",
+          "run": "paired-daace-hostsdir-final-08",
+          "observation_ids": [
+            "initial:udp",
+            "initial:tcp",
+            "recovery-after-overflow:udp",
+            "recovery-after-overflow:tcp"
+          ],
+          "actual_caller_witnesses": [
+            "initial-kernel",
+            "hosts-overflow"
+          ],
+          "c_observed_sha256": "c2fbb7f0985f64107c5963ba2fc37e25bc5c50e110956daa6218aad7f2beef30",
+          "rust_observed_sha256": "4c1d04c13aa43721ec80c62664525b77abc2bdf1c3a88ece8b65f089482b90de"
+        }
+      ]
+    }
+  ]
+}
