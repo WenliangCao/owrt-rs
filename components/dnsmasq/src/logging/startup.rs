@@ -53,7 +53,11 @@ pub fn tftp_root_warning(warning: &crate::config::tftp::RootWarning) -> LogEvent
     } else {
         b"warning: ".to_vec()
     };
-    message.extend_from_slice(&warning.path);
+    message.extend_from_slice(if warning.interface && warning.path.is_empty() {
+        b"(null)".as_slice()
+    } else {
+        &warning.path
+    });
     message.extend_from_slice(b" inaccessible");
     LogEvent::new(Service::Tftp, Priority::Warning, message)
 }
