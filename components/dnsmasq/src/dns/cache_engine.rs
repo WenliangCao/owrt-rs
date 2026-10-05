@@ -977,8 +977,10 @@ impl CacheContext<'_> {
     ) -> Result<Option<super::cache::CacheTransaction>, WireError> {
         macro_rules! query_notice {
             ($event:expr) => {
-                if let Some(events) = notices.as_deref_mut() {
-                    events.push($event);
+                if local.query_logging {
+                    if let Some(events) = notices.as_deref_mut() {
+                        events.push($event);
+                    }
                 }
             };
         }
@@ -1190,7 +1192,7 @@ impl CacheContext<'_> {
                             0
                         };
                     if !matches!(kind, Kind::Ipv4 | Kind::Ipv6) {
-                        if question.qtype == 16 {
+                        if question.qtype == 16 && local.query_logging {
                             if let Some(events) = notices.as_deref_mut() {
                                 qlog::txt_events(
                                     log_flags,
@@ -1226,6 +1228,11 @@ impl CacheContext<'_> {
                             ))
                         };
                         if policy.rejects_rebind(&question.name, address) {
+                            if let Some(events) = notices.as_deref_mut() {
+                                let mut message = b"possible DNS-rebind attack detected: ".to_vec();
+                                message.extend_from_slice(&current.dnsmasq_bytes());
+                                events.push(QueryEvent::warning(message));
+                            }
                             return Ok(None);
                         }
                         query_notice!(QueryEvent::address(
@@ -1899,6 +1906,7 @@ mod tests {
         let mut cache = Cache::new(8, Default::default());
         let mut counters = CacheCounters::default();
         let mut local = LocalDnsService::new(DnsConfig::default(), Hosts::new(), 60, 1232);
+        local.query_logging = true;
         let mut context = CacheContext {
             cache: &mut cache,
             counters: &mut counters,

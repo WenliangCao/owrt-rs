@@ -54,9 +54,14 @@ impl QueryIds {
 
 #[derive(Clone, Debug)]
 pub enum QueryData {
+    /// Plain producer diagnostic, independent of query filters and prefixes.
+    Warning(Vec<u8>),
     None,
     Address(IpAddr),
-    Rcode { value: u16, ede: Option<i32> },
+    Rcode {
+        value: u16,
+        ede: Option<i32>,
+    },
     RrType(u16),
 }
 
@@ -72,6 +77,15 @@ pub struct QueryEvent {
 }
 
 impl QueryEvent {
+    pub fn warning(message: Vec<u8>) -> Self {
+        Self {
+            flags: 0,
+            name: None,
+            data: QueryData::Warning(message),
+            argument: None,
+            kind: 0,
+        }
+    }
     /// receive_query/tcp_request's admitted request, before local/forward work.
     pub fn request(packet: &[u8], client: SocketAddr) -> Option<Self> {
         let header = crate::dns::wire::Header::parse(packet).ok()?;
@@ -216,6 +230,13 @@ pub fn type_text(description: Option<&[u8]>, kind: u16) -> Vec<u8> {
 
 #[cfg(target_os = "linux")]
 pub fn format(config: QueryLogging, context: QueryContext, event: &QueryEvent) -> Option<LogEvent> {
+    if let QueryData::Warning(message) = &event.data {
+        return Some(LogEvent::new(
+            Service::Dns,
+            Priority::Warning,
+            message.clone(),
+        ));
+    }
     let flags = event.flags;
     if !config.enabled
         || config.only_failed && flags & (RCODE | NEGATIVE) == 0
@@ -232,6 +253,7 @@ pub fn format(config: QueryLogging, context: QueryContext, event: &QueryEvent) -
     let mut address = Vec::new();
     let mut extra = Vec::new();
     match &event.data {
+        QueryData::Warning(_) => (),
         QueryData::None => (),
         QueryData::Address(value) => {
             address = address_text(SocketAddr::new(*value, 0));
