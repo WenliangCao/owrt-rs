@@ -57,6 +57,11 @@ sudo -n python3 tools/dnsmasq/m5_final_validation.py summary --manifest SOURCE/p
 每个运行输出必须在对应 SOURCE/private 下，老工具保持其路径边界。
 控制器统一以 root 执行，namespace 检查需要它；fuzz/SDK build worker 用
 `runuser -u ubuntu`，避免污染唯一 Cargo/SDK 缓存的所有权。
+独立功能族可用重复 `--family FAMILY_ID` 分组并行，每组有独立 fresh
+namespace/output。只保存 `family:<id>` completion；所有 registry IDs 的
+完整 steps 在同一 source/ELF/manifest/tools 身份下通过后，才 aggregate 为
+`families`。completed.json 更新用 flock 和 atomic replace，partial 不能让
+package 前置门通过；失败会撤销该族旧 completion。
 失败复跑使用 `--attempt 2` 等新编号；旧失败原样保存。
 
 阶段门槛：完整 M2 的七个 DNS profile、四个实际 DHCP profile、两侧完整

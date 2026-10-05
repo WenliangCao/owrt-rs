@@ -1,4 +1,5 @@
 import contextlib
+from concurrent.futures import ThreadPoolExecutor
 import copy
 import io
 import json
@@ -57,7 +58,8 @@ class FinalValidationTests(unittest.TestCase):
                 self.assertTrue(final.run(args))
             result = json.loads((root / 'runs/families/attempt-1/result.json').read_text())
             self.assertFalse(result['passed']); self.assertEqual(result['commands'][0]['returncode'], 0)
-            self.assertTrue(result['failures']); self.assertFalse((root / 'completed.json').exists())
+            self.assertTrue(result['failures'])
+            self.assertNotIn('families', json.loads((root / 'completed.json').read_text()))
             self.assertTrue((root / 'runs/families/attempt-1/fixture/result.json').is_file())
 
     def test_resource_and_fuzz_schedule_keep_required_windows(self):
@@ -71,6 +73,34 @@ class FinalValidationTests(unittest.TestCase):
             self.assertEqual(job['checks'], {'accepted': True})
         for job in final.commands(spec, 'fuzz', Path('/source/private/final/runs/fuzz/attempt-1')):
             self.assertIn('-max_total_time=1800', job['argv'])
+
+    def test_parallel_partial_families_require_the_whole_frozen_union(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); names = ['a', 'b', 'c', 'd']
+            spec = {'output': str(root), 'source_commit': 'b' * 40, 'elf_sha256': 'a' * 64,
+                    'family_registry': {'families': [{'id': name, 'steps': [{'id': 'paired'}]} for name in names]}}
+            def result(name, passed=True):
+                attempt = root / name; attempt.mkdir(exist_ok=True)
+                return {'phase': 'families', 'passed': passed, 'failures': [], 'attempt': str(attempt),
+                        'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'],
+                        'manifest_sha256': 'c' * 64,
+                        'commands': [{'id': name + '-paired', 'family': name, 'passed': passed}]}
+            final.publish(spec, 'c' * 64, result('a'))
+            completed = json.loads((root / 'completed.json').read_text())
+            self.assertIn('family:a', completed); self.assertNotIn('families', completed)
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                list(pool.map(lambda name: final.publish(spec, 'c' * 64, result(name)), names[1:]))
+            completed = json.loads((root / 'completed.json').read_text())
+            self.assertTrue(completed['families']['passed'])
+            self.assertEqual(len(completed['families']['family_receipts']), 4)
+            final.publish(spec, 'c' * 64, result('a', False))
+            completed = json.loads((root / 'completed.json').read_text())
+            self.assertNotIn('families', completed); self.assertNotIn('family:a', completed)
+            final.publish(spec, 'c' * 64, result('a', True))
+            final.publish(spec, 'd' * 64, dict(result('a'), manifest_sha256='d' * 64))
+            completed = json.loads((root / 'completed.json').read_text())
+            self.assertNotIn('families', completed)
+            with self.assertRaises(ValueError): final.prerequisite(spec, 'd' * 64, completed, 'families')
 
 
 if __name__ == '__main__': unittest.main()

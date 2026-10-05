@@ -35,6 +35,11 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
 
 
+def atomic_save(path, value):
+    temporary = path.with_name(path.name + '.tmp-' + str(os.getpid()))
+    save(temporary, value); os.replace(temporary, path)
+
+
 def digest(path):
     return build_package.sha(Path(path))
 
@@ -100,6 +105,7 @@ def prepare(args):
     require(families['schema'] == 1 and families['complete'] is True and families['families'],
             'complete reviewed family replay registry required')
     require(len({row['id'] for row in families['families']}) == len(families['families']), 'duplicate family IDs')
+    require(all(len({step['id'] for step in row['steps']}) == len(row['steps']) for row in families['families']), 'duplicate family step IDs')
     require(all(row['steps'] and all(step.get('result') and step.get('checks') for step in row['steps'])
                 for row in families['families']), 'every family step needs a retained result and explicit completion checks')
     require(len(spec['cpus']) == 2 and spec['cpus'][0] != spec['cpus'][1]
@@ -164,12 +170,14 @@ def commands(spec, phase, output):
         jobs.append(dict(id=name, argv=argv, result=result, checks=checks or {}, timeout_seconds=timeout))
     if phase == 'families':
         for family in spec['family_registry']['families']:
+            if spec.get('selected_families') and family['id'] not in spec['selected_families']: continue
             current = dict(values, out=str(output / family['id']))
             for step in family['steps']:
                 job(family['id'] + '-' + step['id'], [expand(item, current) for item in step['argv']],
                     expand(step['result'], current) if step.get('result') else None,
                     {key: expand(value, current) if isinstance(value, str) else value
                      for key, value in step.get('checks', {}).items()}, step.get('timeout_seconds', 3600))
+                jobs[-1]['family'] = family['id']
     elif phase == 'm2':
         for profile in DNS:
             path = output / ('dns-' + profile)
@@ -268,24 +276,79 @@ def related_processes():
     return excluded | descendants
 
 
+def publish(spec, manifest_sha, result):
+    """Independent family groups publish under one lock without losing phases."""
+    root = Path(spec['output'])
+    with (root / '.completed.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        path = root / 'completed.json'
+        completed = json.loads(path.read_text()) if path.exists() else {}
+        if result['phase'] == 'families':
+            for family in spec['family_registry']['families']:
+                records = [row for row in result['commands'] if row.get('family') == family['id']]
+                expected = {family['id'] + '-' + step['id'] for step in family['steps']}
+                if not records: continue
+                if {row['id'] for row in records} != expected or not all(row.get('passed') is True for row in records):
+                    completed.pop('family:' + family['id'], None); completed.pop('families', None)
+                    continue
+                receipt = dict(result, phase='family:' + family['id'], passed=True, failures=[], commands=records)
+                receipt_path = Path(result['attempt']) / (family['id'] + '.result.json')
+                receipt['receipt'] = str(receipt_path); atomic_save(receipt_path, receipt)
+                completed['family:' + family['id']] = receipt
+            needed = ['family:' + row['id'] for row in spec['family_registry']['families']]
+            if all(completed.get(key, {}).get('passed') is True
+                   and completed[key].get('manifest_sha256') == manifest_sha
+                   and completed[key].get('elf_sha256') == spec['elf_sha256']
+                   and completed[key].get('source_commit') == spec['source_commit'] for key in needed):
+                aggregate = root / 'aggregates/families'; aggregate.mkdir(parents=True, exist_ok=True)
+                receipt = {'phase': 'families', 'passed': True, 'failures': [], 'commands': [], 'attempt': str(aggregate),
+                           'elf_sha256': spec['elf_sha256'], 'source_commit': spec['source_commit'], 'manifest_sha256': manifest_sha,
+                           'family_receipts': {key: completed[key]['receipt'] for key in needed}}
+                atomic_save(aggregate / 'result.json', receipt); completed['families'] = receipt
+            else:
+                completed.pop('families', None)
+        elif result['passed']:
+            completed[result['phase']] = result
+        atomic_save(path, completed)
+
+
+def prerequisite(spec, manifest_sha, completed, phase):
+    record = completed.get(phase, {})
+    require(record.get('passed') is True and record.get('manifest_sha256') == manifest_sha
+            and record.get('source_commit') == spec['source_commit'] and record.get('elf_sha256') == spec['elf_sha256'],
+            phase + ': complete result from this exact freeze required')
+    receipt = Path(record.get('receipt', str(Path(record['attempt']) / 'result.json')))
+    require(json.loads(receipt.read_text()) == record, phase + ': receipt changed')
+    return record
+
+
 def run(args):
     require(os.geteuid() == 0, 'use sudo for the controller; build workers run as ubuntu')
     spec = json.loads(args.manifest.read_text()); verify_identity(spec)
     root = Path(spec['output']); phase = args.phase
+    manifest_sha = digest(args.manifest)
+    selected = getattr(args, 'family', None) or []
+    require(not selected or phase == 'families', '--family applies only to families phase')
+    available = {row['id'] for row in spec['family_registry']['families']}
+    require(len(selected) == len(set(selected)) and set(selected) <= available, 'unknown or duplicate family ID')
+    spec['selected_families'] = selected
     completed = json.loads((root / 'completed.json').read_text()) if (root / 'completed.json').exists() else {}
     if phase == 'fuzz':
-        require(completed.get('fuzz-build', {}).get('passed'), 'fuzz-build must pass first')
-        spec['fuzz_build_directory'] = completed['fuzz-build']['artifact_directory']
-    if phase == 'full-cache-600': require(completed.get('resources', {}).get('passed'), '300-second resource trial must pass first')
+        spec['fuzz_build_directory'] = prerequisite(spec, manifest_sha, completed, 'fuzz-build')['artifact_directory']
+    if phase == 'full-cache-600': prerequisite(spec, manifest_sha, completed, 'resources')
     if phase in ['package', 'lifecycle']:
         needed = PHASES[:PHASES.index(phase)]
-        require(all(completed.get(name, {}).get('passed') for name in needed), 'prior phases must pass before package/lifecycle')
-    attempt = root / 'runs' / phase / ('attempt-' + str(args.attempt))
+        for name in needed: prerequisite(spec, manifest_sha, completed, name)
+    folder = root / 'runs' / phase
+    if selected:
+        selection = hashlib.sha256('\n'.join(sorted(selected)).encode()).hexdigest()[:12]
+        folder /= 'group-' + selection
+    attempt = folder / ('attempt-' + str(args.attempt))
     require(not attempt.exists(), 'attempt output exists; choose a fresh attempt number')
     attempt.mkdir(parents=True)
     if phase in ['fuzz-build', 'package']:
         account = pwd.getpwnam('ubuntu'); os.chown(attempt, account.pw_uid, account.pw_gid)
-    records = []; failures = []; lock = None
+    records = []; failures = []; lock = None; identity_verified = False
     try:
         if phase in ['resources', 'full-cache-600', 'pressure']:
             require(args.exclusive_window, 'root must coordinate an exclusive load-free window')
@@ -342,20 +405,29 @@ def run(args):
                 require(not list((attempt / job['id'] / 'artifacts').iterdir()), 'fuzz produced artifacts')
                 record['final_corpus'] = file_map(attempt / job['id'] / 'corpus')
                 save(attempt / (job['id'] + '.json'), record)
+            record['passed'] = True
             save(attempt / 'commands.json', records)
         verify_identity(spec)
+        require(digest(args.manifest) == manifest_sha, 'manifest changed while phase was running')
+        identity_verified = True
     except (Exception, KeyboardInterrupt) as error:
         failures.append(repr(error))
     finally:
         if lock: lock.close()
+        if not identity_verified:
+            try:
+                verify_identity(spec); require(digest(args.manifest) == manifest_sha, 'manifest changed while phase was running')
+                identity_verified = True
+            except Exception as error: failures.append('final identity check failed: ' + repr(error))
         result = {'phase': phase, 'passed': not failures, 'failures': failures, 'commands': records,
-                  'elf_sha256': spec['elf_sha256'], 'source_commit': spec['source_commit'], 'attempt': str(attempt)}
+                  'elf_sha256': spec['elf_sha256'], 'source_commit': spec['source_commit'], 'attempt': str(attempt),
+                  'selected_families': selected, 'manifest_sha256': manifest_sha}
         if phase == 'package' and records and records[-1].get('artifact'):
             result['artifact'] = records[-1]['artifact']
         if phase == 'fuzz-build' and records and result['passed']:
             result['artifact_directory'] = str(Path(records[-1]['result']).parent)
         save(attempt / 'result.json', result)
-        if result['passed']: completed[phase] = result; save(root / 'completed.json', completed)
+        if identity_verified: publish(spec, manifest_sha, result)
     print(json.dumps(result)); return bool(failures)
 
 
@@ -365,7 +437,9 @@ def summary(args):
     missing = [phase for phase in PHASES if not completed.get(phase, {}).get('passed')]
     for phase, record in completed.items():
         require(record['elf_sha256'] == spec['elf_sha256'] and record['source_commit'] == spec['source_commit'], 'phase used another identity')
-        require(json.loads((Path(record['attempt']) / 'result.json').read_text()) == record, 'completed phase receipt changed')
+        require(record['manifest_sha256'] == digest(args.manifest), 'phase used another frozen tools/input identity')
+        receipt = Path(record.get('receipt', str(Path(record['attempt']) / 'result.json')))
+        require(json.loads(receipt.read_text()) == record, 'completed phase receipt changed')
     report = {'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'], 'elf_bytes': spec['elf_bytes'],
               'elf_delta_from_m4_bytes': spec['elf_bytes'] - 1159280, 'missing_phases': missing,
               'functional_validation_passed': not missing, 'size_acceptance': 'pending-user-after-report',
@@ -401,6 +475,7 @@ def main():
     execute = sub.add_parser('run'); execute.add_argument('--manifest', type=Path, required=True)
     execute.add_argument('--phase', choices=PHASES + ['full-cache-600'], required=True); execute.add_argument('--attempt', type=int, default=1)
     execute.add_argument('--exclusive-window', action='store_true')
+    execute.add_argument('--family', action='append', help='independent fresh family group; repeat for several families')
     report = sub.add_parser('summary'); report.add_argument('--manifest', type=Path, required=True)
     args = parser.parse_args()
     return {'prepare': prepare, 'run': run, 'summary': summary}[args.action](args)
