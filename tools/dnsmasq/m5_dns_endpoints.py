@@ -341,6 +341,12 @@ def service_cases():
         files={'servers':'server=/one.endpoint.test/127.0.0.3\nserver=/one.endpoint.test/127.0.0.3\nrev-server=192.0.2.0/24,127.0.0.4\n'},
         actions=[probe('initial-one','one.endpoint.test'),probe('initial-local','local.endpoint.test'),probe('initial-reverse','7.2.0.192.in-addr.arpa'),
             write('servers','server=/one.endpoint.test/127.0.0.4\n'),signal_reload(),probe('replace-one','one.endpoint.test'),probe('retained-local','local.endpoint.test'),probe('retained-reverse','7.2.0.192.in-addr.arpa')])
+    add('global-query-local-precedence','query-port=34003\nlocal=127.0.0.2\n',expected_source_port=34003)
+    add('global-query-reverse-precedence','query-port=34003\nrev-server=192.0.2.0/24,127.0.0.2\n',
+        ('7.2.0.192.in-addr.arpa',),expected_source_port=34003)
+    add('global-query-server-file-precedence','query-port=34003\nservers-file=/m2/files/servers\n',
+        files={'servers':'server=/one.endpoint.test/127.0.0.2\nrev-server=192.0.2.0/24,127.0.0.3\n'},
+        names=('one.endpoint.test','7.2.0.192.in-addr.arpa'),expected_source_port=34003)
     return cases
 
 

@@ -1096,7 +1096,9 @@
       "boundary": "SOURCE-01",
       "required_case": "server/local/rev-file consistent precedence",
       "case_ids": [
-        "file-mixed-directives"
+        "global-query-local-precedence",
+        "global-query-reverse-precedence",
+        "global-query-server-file-precedence"
       ],
       "status": "awaiting-concrete-evidence",
       "source_anchors": [
