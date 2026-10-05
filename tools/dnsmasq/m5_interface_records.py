@@ -433,6 +433,14 @@ def service_cases():
                 files.probe('warm','alias.records.test',transports=['udp']),
                 files.probe('terminal','192-0-2-7.synthetic.records.test',cache=True),
                 files.probe('cached-alias','alias.records.test',cache=True)])
+    for label,interface in [('present','m5ir0'),('empty','missing_ir')]:
+        add('interface-cached-cname-negative-'+label,'interface-name=iface.records.test,'+interface+'\n',[],'IF-FWD',
+            topology=[primary],cache_size=16,negative_names=[],upstream_fixtures=[{'name':'negative-alias.records.test','type':1,'rcode':3,
+                'records':[{'type':5,'target':'iface.records.test'}, {'type':6,'owner':'records.test',
+                    'hex':(matrix.name('ns.records.test')+matrix.name('hostmaster.records.test')+struct.pack('!5I',1,60,60,3600,120)).hex(),'section':'authority'}]}],
+            actions=[files.probe('warm','negative-alias.records.test',transports=['udp']),
+                files.probe('terminal','iface.records.test',cache=True),
+                files.probe('cached-alias','negative-alias.records.test',cache=True)])
     add('synth-tcp-snapshot','synth-domain=synthetic.records.test,192.0.2.7,192.0.2.9,p*\nlocal-ttl=77\n',[],
         'SYN-PTR',actions=[dict(op='connect',id='held'),files.probe('child','p0.synthetic.records.test',transports=['held']),
             files.signal_reload(),files.probe('child-after','7.2.0.192.in-addr.arpa',type=12,transports=['held']),
