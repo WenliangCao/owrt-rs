@@ -619,6 +619,10 @@ fn finalize_dns_config(config: &mut DnsConfig) -> Result<(), loader::LoadError> 
                 diagnostic.message =
                     format!("CNAME loop involving {}", String::from_utf8_lossy(alias));
             }
+        } else if error == Error("bad SRV name after domain appended") {
+            diagnostic.exit_code = 5;
+            diagnostic.message =
+                "bad srv-host name No error information after domain appended".into();
         }
         diagnostic
     })
