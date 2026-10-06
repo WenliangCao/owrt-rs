@@ -1,0 +1,331 @@
+{
+  "all_eight_families_complete": true,
+  "details": {
+    "cache": {
+      "caller_controls_rejected": 9,
+      "controls_rejected": 1823,
+      "deferred_extreme_cases": [],
+      "differences": [],
+      "executed_cases": 536,
+      "fresh_independent_c_ptr_banks": 8,
+      "full_cache_family_qualified": true,
+      "intentional_differences": [
+        {
+          "case": "generic-expanded-u16-overflow",
+          "guarded": true,
+          "source": "dnsmasq.h:350;rfc1035.c:1016,1038,1052,2326-2327"
+        }
+      ],
+      "lease_tcp_caller_guard": true,
+      "passed_cases": 536,
+      "qualified": true,
+      "reference_reverse_order_variation": [
+        "ptr-multiple-targets",
+        "ptr-reverse-bucket-order",
+        "round-reverse-default",
+        "round-reverse-disabled"
+      ],
+      "required_source_cases": 512
+    },
+    "dns_files": {
+      "controls_executed": 15,
+      "scenarios": 107
+    },
+    "edns": {
+      "cases": 196,
+      "qualified": true
+    },
+    "endpoints": {
+      "source_rows_passed": 191,
+      "source_rows_required": 191
+    },
+    "filterwin2k": {
+      "controls_detected": 38,
+      "scenarios": 19
+    },
+    "listeners": {
+      "cases": 163,
+      "controls_rejected": 130,
+      "exits": {
+        "c": 0,
+        "rust": 0
+      },
+      "failures": [],
+      "observations": 3534,
+      "qualified": true,
+      "source_guarded_original_ipv6_transfer_scope_differences": 27
+    },
+    "loop": {
+      "cases": 90,
+      "controls_rejected": 670,
+      "qualified": true
+    },
+    "rr_filter": {
+      "cases": 8,
+      "mutation_checks_detected": 24,
+      "negative_control_groups": 8
+    }
+  },
+  "elf_bytes": 1929256,
+  "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+  "endpoint_gate_proofs": {
+    "service": {
+      "archive_sha256": "aead4228634c70d0ff40cae9c25625e7ccf3b1b06484fc0a85d7da467d7fc3b2",
+      "entries": 2146,
+      "local_full_metadata_verified": true,
+      "manifest_sha256": "9f40ba0866862344dab156100f2be24c2ead85529a4c9dab42804f3c2457d49e",
+      "regular_files": 1546,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true,
+      "verifier_host": "Wenliangs-MacBook-Air.local"
+    },
+    "syntax": {
+      "archive_sha256": "684dd539579f4a717c4a3d261356293478b9a050bab0d1eb09c11de55a25f0f4",
+      "entries": 2136,
+      "local_full_metadata_verified": true,
+      "manifest_sha256": "ed32d2cfd5781a0673f9eaab93e26f21b72a6b218cc471742faea0bf420195d8",
+      "regular_files": 1545,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true,
+      "verifier_host": "Wenliangs-MacBook-Air.local"
+    }
+  },
+  "family_results": [
+    {
+      "archive_entries": 1646,
+      "archive_sha256": "dde915ca51acfaf7277f21cfdda92e4366b45a803aff07a376af998c2c9e5822",
+      "command_results": {
+        "loop-detect-paired": "2882b456d536192643fd854655b8466b62fd3239c8a51a7abcb711eaf1979696"
+      },
+      "controller_result_sha256": "bd5f3fb318f1ac8ada6b5c20f8660766b9543381801a2275021e2afb4bfbab4b",
+      "family": "loop-detect",
+      "family_receipt_sha256": "4ee2e3fd1de56e69c7003bb99e4f055d451dac1365844f8c40829bb24fd22eae",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 731,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 1477,
+      "archive_sha256": "2aecf76047b134ed68d887c4fd6efd57f1363270722472f9ac3942e1effe05b5",
+      "command_results": {
+        "m5_edns-c": "b07eec97db504d8cfb13eead9c66eefceae8d0801c0ee35db5c8ac955b9964b9",
+        "m5_edns-compare": "cff2b00b6a8436e269ee6e1f13dd72fa2693a2698b958feab8bec1ac7e3826ae",
+        "m5_edns-rust": "4eb80d6af4c624a3eb553401eb82a129ab083dcfc32173623f4db0df8d2c1a14"
+      },
+      "controller_result_sha256": "630856ca6287baddb4ca3904e588c87998fd7362c82ee55d41adb1b8eff5ddca",
+      "family": "m5_edns",
+      "family_receipt_sha256": "8f1895729354275c7abed4761b59f99c001b09b5f675393126d9b88626efbbe3",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 1315,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 12067,
+      "archive_sha256": "55ac2a125841d797ac33bc2ad72e2f0c7a4e3a64c519e3290565111fd0a74f34",
+      "command_results": {
+        "m5_dns_cache-c": "6e9e9bd8a80b4594a28904d19c451efd337cc683d51f1c1c6bad1746484b45a6",
+        "m5_dns_cache-c-reverse-1": "e1d93aabccfd9eb35ca44d40504eb5b6776b43099a73cbcd87c791679126f073",
+        "m5_dns_cache-c-reverse-2": "f945321dcceea9b417a6d725f682dd08e0c41952d7dc9fe16e87572927fddb42",
+        "m5_dns_cache-c-reverse-3": "8d88dea17e34f4d129aca04c96268fae854b305ca19c4088ec651ec7afb81a81",
+        "m5_dns_cache-c-reverse-4": "d1ec8232688d56c4594bf96154b5bda59f29be6d2db10472b18fdb78d5f3c990",
+        "m5_dns_cache-c-reverse-5": "3b164c5ab7c75d47fce151ab6b4f06d6560d36d672ddad7b0c44e8ae7527443f",
+        "m5_dns_cache-c-reverse-6": "77dcaa0be36ad194bcf92b8310bd9328c93f241c3b64143e586fb8888c6b5ced",
+        "m5_dns_cache-c-reverse-7": "1f39b9a5d1e2746af810f7e89c90325c3ac410be7a56a42f09c6152fa3b3abe4",
+        "m5_dns_cache-c-reverse-8": "a30e80d6209945319805667a02cf3f050ddc663b0b3ab7db596ad4425f861448",
+        "m5_dns_cache-compare": "0d879e9d216b10e4b05cdeb86c686ab75fbc4c70aab92940823dcfa9b5a4b8fe",
+        "m5_dns_cache-lease-tcp-caller": "3c733d1289231fd601ecb325c3d9091ff0c6e24aedc199c663d88b571e70c002",
+        "m5_dns_cache-rust": "73f0e89dafba8d655e602c5987696a40e1b9c1fb5ffb352cdd573f5f5fa12f39"
+      },
+      "controller_result_sha256": "74d43f9d2592f7900d10fde379e831612ecf47b4f4d36510c74a57de6e829611",
+      "family": "m5_dns_cache",
+      "family_receipt_sha256": "2311b800d61de80d97b054894240175a63b1a2e5eb7b9f2e09eed24765068e32",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 10937,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 4229,
+      "archive_sha256": "bb6a5f1953c17c8d0db1e27e7e3ca7af3988eff33ae865520d7c71b6ea52b6f7",
+      "command_results": {
+        "m5_dns_endpoints-local-archive-gate": "a68e6ebf1fd87c13f38c5f94d8b48c16a2fe89699fa595af3e5acf7d132e574b",
+        "m5_dns_endpoints-service": "86a8644b1855e7f85a52b3f264d827ae1c1f18004859ddb6543c39ea32356784",
+        "m5_dns_endpoints-source-row-audit": "1f788c4f002f3ce6b5a92ceadb4dde0d4b16bc3c3f19dc031e719210fc36bf88",
+        "m5_dns_endpoints-syntax": "7e1a65f7d59f7d9c73ed88fae39d41b740a8e12bc1c47a71c5e40c654daf1ac1"
+      },
+      "controller_result_sha256": "ba9fb9d46102a39ccec548e55fb0e9e239427ba44eac22f450a8a7f3ee7ff34e",
+      "family": "m5_dns_endpoints",
+      "family_receipt_sha256": "5d1bb328b978afea274070869035711a8b1c4537f4204cdd165593d607f08565",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 3083,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 1471,
+      "archive_sha256": "3682e0d6bb53134490c400f23d063dea89687576e511d9ea833d28700eef69a7",
+      "command_results": {
+        "m5_rr_filter-paired": "0fa437a7111e8040bb5f0dd1921235ff28c6879d8fafa94ce2848215ee9d275b"
+      },
+      "controller_result_sha256": "190fcd80703014760b0ab50a56b2540d9677df974c9119ac98a5b34584a2f9d6",
+      "family": "m5_rr_filter",
+      "family_receipt_sha256": "0379f04abc6dc7f838a7e877efe209aa70d82203e7398bc513c471eb6f23cd0c",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 1093,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 311,
+      "archive_sha256": "ea096b7ba781293d8eb52ee147643c337756a6c75feea1dfeecb5f6e6aed91ce",
+      "command_results": {
+        "filterwin2k-paired": "9ce0ab8b51ee8a58107391658a48f405d7b6a686db7681fe52a47134f49c7a4e"
+      },
+      "controller_result_sha256": "f9f652f9e12b195371978e7e2ce8b9fa61bdbbf39e261b92b1d4af828b355d41",
+      "family": "filterwin2k",
+      "family_receipt_sha256": "3497a2380f59f07b67b1bdedc2e7d2084426b82db8b44cca71a80b07b204ae0c",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 205,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 1269,
+      "archive_sha256": "1b6ba5b66f95a9153d019b72487fa9c6801c1eaf33ec2546adc14d11a4e97782",
+      "command_results": {
+        "dns-files-paired": "364dee17ad67dac5d6b8481c263f71e7092917a275d5061b2c375d6947b0dcb5"
+      },
+      "controller_result_sha256": "024e3e59a6cf10c1bdb592640285a738fc774d7d065ba5a615f24d43a86c2330",
+      "family": "dns-files",
+      "family_receipt_sha256": "07fb5b216ab69c456f12f0d89907bdda9137ea0985aa7ad946fc4aba7d4b17b0",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 889,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 17616,
+      "archive_sha256": "da68274bce66c4eb5b434e2b95cf0ab21ae07125f8017642afcca7008e3015c4",
+      "command_results": {
+        "m5_listeners-paired": "61e89ae993eafd6fe0d7ba2b10104b1f5ddf15688a932e2de5fbf9afaecfa5dc"
+      },
+      "controller_result_sha256": "3f279da0c0c98b03d2476c756c4185020ebf01b97dcb2be6573dad65acdc813e",
+      "family": "m5_listeners",
+      "family_receipt_sha256": "fdb4ce9230e3749e41a7f7df55e7b9925669446de89b2408dea3d42a434ee440",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 17234,
+      "restored_plain_hashes_match": true
+    }
+  ],
+  "fixture_tools_commit": "6fb65d96390e46bb84f2d623b8ca4e653120888e",
+  "fresh_execution": true,
+  "frozen_postconditions": {
+    "all_eight_prerequisites_passed": true,
+    "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+    "families": [
+      {
+        "command_results": {
+          "loop-detect-paired": "2882b456d536192643fd854655b8466b62fd3239c8a51a7abcb711eaf1979696"
+        },
+        "family": "loop-detect",
+        "passed": true,
+        "receipt_sha256": "4ee2e3fd1de56e69c7003bb99e4f055d451dac1365844f8c40829bb24fd22eae"
+      },
+      {
+        "command_results": {
+          "m5_edns-c": "b07eec97db504d8cfb13eead9c66eefceae8d0801c0ee35db5c8ac955b9964b9",
+          "m5_edns-compare": "cff2b00b6a8436e269ee6e1f13dd72fa2693a2698b958feab8bec1ac7e3826ae",
+          "m5_edns-rust": "4eb80d6af4c624a3eb553401eb82a129ab083dcfc32173623f4db0df8d2c1a14"
+        },
+        "family": "m5_edns",
+        "passed": true,
+        "receipt_sha256": "8f1895729354275c7abed4761b59f99c001b09b5f675393126d9b88626efbbe3"
+      },
+      {
+        "command_results": {
+          "m5_dns_endpoints-local-archive-gate": "a68e6ebf1fd87c13f38c5f94d8b48c16a2fe89699fa595af3e5acf7d132e574b",
+          "m5_dns_endpoints-service": "86a8644b1855e7f85a52b3f264d827ae1c1f18004859ddb6543c39ea32356784",
+          "m5_dns_endpoints-source-row-audit": "1f788c4f002f3ce6b5a92ceadb4dde0d4b16bc3c3f19dc031e719210fc36bf88",
+          "m5_dns_endpoints-syntax": "7e1a65f7d59f7d9c73ed88fae39d41b740a8e12bc1c47a71c5e40c654daf1ac1"
+        },
+        "family": "m5_dns_endpoints",
+        "passed": true,
+        "receipt_sha256": "5d1bb328b978afea274070869035711a8b1c4537f4204cdd165593d607f08565"
+      },
+      {
+        "command_results": {
+          "m5_rr_filter-paired": "0fa437a7111e8040bb5f0dd1921235ff28c6879d8fafa94ce2848215ee9d275b"
+        },
+        "family": "m5_rr_filter",
+        "passed": true,
+        "receipt_sha256": "0379f04abc6dc7f838a7e877efe209aa70d82203e7398bc513c471eb6f23cd0c"
+      },
+      {
+        "command_results": {
+          "filterwin2k-paired": "9ce0ab8b51ee8a58107391658a48f405d7b6a686db7681fe52a47134f49c7a4e"
+        },
+        "family": "filterwin2k",
+        "passed": true,
+        "receipt_sha256": "3497a2380f59f07b67b1bdedc2e7d2084426b82db8b44cca71a80b07b204ae0c"
+      },
+      {
+        "command_results": {
+          "dns-files-paired": "364dee17ad67dac5d6b8481c263f71e7092917a275d5061b2c375d6947b0dcb5"
+        },
+        "family": "dns-files",
+        "passed": true,
+        "receipt_sha256": "07fb5b216ab69c456f12f0d89907bdda9137ea0985aa7ad946fc4aba7d4b17b0"
+      },
+      {
+        "command_results": {
+          "m5_dns_cache-c": "6e9e9bd8a80b4594a28904d19c451efd337cc683d51f1c1c6bad1746484b45a6",
+          "m5_dns_cache-c-reverse-1": "e1d93aabccfd9eb35ca44d40504eb5b6776b43099a73cbcd87c791679126f073",
+          "m5_dns_cache-c-reverse-2": "f945321dcceea9b417a6d725f682dd08e0c41952d7dc9fe16e87572927fddb42",
+          "m5_dns_cache-c-reverse-3": "8d88dea17e34f4d129aca04c96268fae854b305ca19c4088ec651ec7afb81a81",
+          "m5_dns_cache-c-reverse-4": "d1ec8232688d56c4594bf96154b5bda59f29be6d2db10472b18fdb78d5f3c990",
+          "m5_dns_cache-c-reverse-5": "3b164c5ab7c75d47fce151ab6b4f06d6560d36d672ddad7b0c44e8ae7527443f",
+          "m5_dns_cache-c-reverse-6": "77dcaa0be36ad194bcf92b8310bd9328c93f241c3b64143e586fb8888c6b5ced",
+          "m5_dns_cache-c-reverse-7": "1f39b9a5d1e2746af810f7e89c90325c3ac410be7a56a42f09c6152fa3b3abe4",
+          "m5_dns_cache-c-reverse-8": "a30e80d6209945319805667a02cf3f050ddc663b0b3ab7db596ad4425f861448",
+          "m5_dns_cache-compare": "0d879e9d216b10e4b05cdeb86c686ab75fbc4c70aab92940823dcfa9b5a4b8fe",
+          "m5_dns_cache-lease-tcp-caller": "3c733d1289231fd601ecb325c3d9091ff0c6e24aedc199c663d88b571e70c002",
+          "m5_dns_cache-rust": "73f0e89dafba8d655e602c5987696a40e1b9c1fb5ffb352cdd573f5f5fa12f39"
+        },
+        "family": "m5_dns_cache",
+        "passed": true,
+        "receipt_sha256": "2311b800d61de80d97b054894240175a63b1a2e5eb7b9f2e09eed24765068e32"
+      },
+      {
+        "command_results": {
+          "m5_listeners-paired": "61e89ae993eafd6fe0d7ba2b10104b1f5ddf15688a932e2de5fbf9afaecfa5dc"
+        },
+        "family": "m5_listeners",
+        "passed": true,
+        "receipt_sha256": "fdb4ce9230e3749e41a7f7df55e7b9925669446de89b2408dea3d42a434ee440"
+      }
+    ],
+    "fixture_tools_commit": "6fb65d96390e46bb84f2d623b8ca4e653120888e",
+    "manifest_sha256": "44035366332cd8f662d15870813325793310de6a39200f8024362b5c2c8d11a4",
+    "product_identity_verified": true,
+    "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074"
+  },
+  "frozen_product_changed": false,
+  "manifest_sha256": "44035366332cd8f662d15870813325793310de6a39200f8024362b5c2c8d11a4",
+  "physical_router_touched": false,
+  "private_evidence": "private/dnsmasq-rewrite/evidence/M5/final-fixture-6fb65d96-families",
+  "schema": 1,
+  "scope": "The eight assigned frozen family schedules. Root owns remaining families, resource/stress/APK gates and final M5 status.",
+  "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+  "status": "all-eight-fresh-frozen-family-replays-passed"
+}
