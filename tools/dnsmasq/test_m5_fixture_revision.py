@@ -23,7 +23,7 @@ class FixtureRevisionTests(unittest.TestCase):
         self.base = Path(self.temporary.name).resolve()
         self.number = 0
 
-    def fixture(self, changes=None, driver=None, registry_change=None, extra=None):
+    def fixture(self, changes=None, driver=None, registry_change=None, extra=None, arguments=None):
         self.number += 1
         base = self.base / str(self.number); source = base / 'source'; tools = source / 'tools/dnsmasq'
         tools.mkdir(parents=True)
@@ -41,12 +41,12 @@ class FixtureRevisionTests(unittest.TestCase):
         for name, contents in (extra or {}).items(): write(tools, name, contents)
         driver = driver or 'import helper\n'
         write(tools, 'driver.py', driver + '''import argparse,json,pathlib
-p=argparse.ArgumentParser();p.add_argument('out');p.add_argument('--cases');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('out');p.add_argument('--cases');p.add_argument('--config');a=p.parse_args()
 out=pathlib.Path(a.out);out.parent.mkdir(parents=True,exist_ok=True)
 out.write_text(json.dumps({'qualified':helper.QUALIFIED,'cases':[{'id':case} for case in a.cases.split(',')]}))
 ''')
         registry = {'schema': 1, 'complete': True, 'families': [{'id': 'fixture', 'steps': [{
-            'id': 'paired', 'argv': ['{python}', '{tools}/driver.py', '{out}/result.json', '--cases', 'a,b'],
+            'id': 'paired', 'argv': ['{python}', '{tools}/driver.py', '{out}/result.json', '--cases', 'a,b', *(arguments or [])],
             'result': '{out}/result.json', 'checks': {'qualified': True},
             'inventory': {'field': 'cases', 'key': 'id', 'ids': ['a', 'b']}}]}]}
         final.save(tools / 'm5_final_families.draft.json', registry)
@@ -150,6 +150,16 @@ helper=types.SimpleNamespace(QUALIFIED=value['qualified'])
         _, completed = self.revise(case)
         self.assertNotIn('family:fixture', completed)
 
+    def test_option_value_dependency_cannot_import(self):
+        case = self.fixture(extra={'profiles/cases.json': '{"qualified":true}\n'},
+                            changes={'profiles/cases.json': '{"qualified":false}\n'},
+                            arguments=['--config={tools}/profiles/cases.json'], driver='''import pathlib,json,sys,types
+value=json.loads(pathlib.Path(sys.argv[-1].split('=',1)[1]).read_text())
+helper=types.SimpleNamespace(QUALIFIED=value['qualified'])
+''')
+        _, completed = self.revise(case)
+        self.assertNotIn('family:fixture', completed)
+
     def test_origin_receipt_and_leaf_tampering_are_rejected(self):
         for mutation in ['leaf', 'receipt']:
             with self.subTest(mutation=mutation):
@@ -197,6 +207,14 @@ helper=types.SimpleNamespace(QUALIFIED=value['qualified'])
                 path = case.sidecar / 'driver.py' if mutation == 'tool' else case.archive
                 path.write_bytes(path.read_bytes() + b'changed')
                 with self.assertRaises(ValueError): final.verify_identity(spec)
+
+    def test_other_elf_cannot_publish_an_import(self):
+        case = self.fixture(); spec, _ = self.revise(case)
+        elf = self.base / 'other-elf'; elf.write_bytes(b'different product fixture ELF')
+        spec.update(elf=str(elf), elf_sha256=final.digest(elf), elf_bytes=elf.stat().st_size)
+        final.save(case.revised, spec); (case.args.out / 'completed.json').unlink()
+        with self.assertRaises(ValueError): revision.import_unchanged(case.revised)
+        self.assertFalse((case.args.out / 'completed.json').exists())
 
     def test_archive_tree_mismatch_and_commit_mismatch_are_rejected(self):
         for mutation in ['tree', 'commit']:
