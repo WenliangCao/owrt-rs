@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import struct
 import tempfile
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -82,6 +83,44 @@ class FrozenInputs(unittest.TestCase):
             window.save(path, {"value": "a\nb"})
             self.assertEqual(json.loads(path.read_text()), {"value": "a\nb"})
             self.assertFalse(path.with_suffix(".json.new").exists())
+
+    def test_tftp_worker_validates_full_file_and_terminal_empty_block(self):
+        class Endpoint:
+            def __init__(self):
+                payload = bytes(range(256)) * 4
+                self.packets = [struct.pack("!HH", 3, 1) + payload[:512],
+                                struct.pack("!HH", 3, 2) + payload[512:],
+                                struct.pack("!HH", 3, 3)]
+                self.sent = []
+
+            def settimeout(self, _timeout):
+                pass
+
+            def sendto(self, packet, peer):
+                self.sent.append((packet, peer))
+
+            def recvfrom(self, _size):
+                return self.packets.pop(0), ("127.0.0.1", 12345)
+
+            def close(self):
+                pass
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            now = time.monotonic_ns()
+            window.save(output / "epoch.json", {"warmup_start_ns": now - 1_000_000,
+                                                 "measurement_start_ns": now - 1_000_000,
+                                                 "measurement_end_ns": now + 20_000_000})
+            endpoint = Endpoint()
+            args = SimpleNamespace(output=output, cpu_load=2, timeout_ms=1000)
+            with patch.object(window.os, "sched_setaffinity", create=True), patch.object(window.socket, "socket", return_value=endpoint):
+                self.assertEqual(window.tftp_worker(args), 0)
+            value = json.loads((output / "tftp.json").read_text())
+            self.assertEqual(value["correct"], 1)
+            self.assertEqual(value["errors"], 0)
+            row = json.loads((output / "tftp-transfers.jsonl").read_text())
+            self.assertEqual(len(row["wire"]), 3)
+            self.assertEqual(endpoint.sent[-1], (struct.pack("!HH", 4, 3), ("127.0.0.1", 12345)))
 
 
 if __name__ == "__main__":
