@@ -1025,6 +1025,8 @@
             "{image}",
             "--rust-binary",
             "{elf}",
+            "--allocator-map",
+            "{link_map}",
             "--out",
             "{out}"
           ],
