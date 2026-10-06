@@ -131,7 +131,8 @@
         "write-error-recovery",
         "regular-term-cleanup",
         "fifo-term-cleanup",
-        "cross-family-shared-writer"
+        "cross-family-shared-writer",
+        "fifo-pressure"
       ]
     }
   ],
@@ -212,7 +213,8 @@
       "mask-file-quoted-seven",
       "mask-file-quoted-space-one",
       "mask-file-part-quoted-digit",
-      "mask-file-quoted-vertical-tab"
+      "mask-file-quoted-vertical-tab",
+      "fifo-pressure"
     ],
     "dumpmask": [
       "syntax-file",

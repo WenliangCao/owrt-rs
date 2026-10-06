@@ -9,6 +9,7 @@ import argparse
 import copy
 import ctypes
 import errno
+import fcntl
 import platform
 import json
 import os
@@ -233,6 +234,7 @@ def profiles():
         dict(case='mask-file-quoted-space-one',exchange=True,mask='" 1"',effective_mask=0),
         dict(case='mask-file-part-quoted-digit',exchange=True,mask='1"2"',effective_mask=1),
         dict(case='mask-file-quoted-vertical-tab',exchange=True,mask='"\x0b1"',effective_mask=0),
+        dict(case='fifo-pressure',pressure=True),
         dict(case='mask-empty',exchange=True,mask=''),dict(case='mask-no-file',exchange=True,no_file=True,mask='3'),
         dict(case='empty-file-disables',exchange=True,empty_file=True),
         dict(case='tcp-local-no-capture',exchange=True,tcp=True),dict(case='regular-term-cleanup',exchange=True),
@@ -388,6 +390,7 @@ def dhcp_case(args,root,spec):
 
 
 def case(args,root,spec):
+    if spec.get('pressure'): return fifo_pressure(args, root, spec)
     label=spec['case'];folder=args.out/label;folder.mkdir()
     path=spec.get('path','/m2/dump.pcap');file=root/path.lstrip('/')
     if file.exists():
@@ -503,6 +506,103 @@ def case(args,root,spec):
         if file.exists() and file.is_dir():file.rmdir()
 
 
+def fifo_pressure(args, root, spec):
+    """A fixed undrained pipe distinguishes bounded progress from C blocking."""
+    folder=args.out/spec['case'];folder.mkdir()
+    file=root/'m2/dump-pressure.pcap';file.unlink(missing_ok=True);os.mkfifo(file,0o600)
+    reader=os.open(file,os.O_RDONLY|os.O_NONBLOCK)
+    assert fcntl.fcntl(reader,fcntl.F_SETPIPE_SZ,4096)==4096,'fixed pipe capacity'
+    data=root/'m2/pressure-tftp';data.mkdir(exist_ok=True);(data/'evidence').write_bytes(b'pressure-evidence')
+    config=['port='+str(SERVER),'no-hosts','no-resolv','bind-interfaces','listen-address=127.0.0.1',
+            'user=root','group=root','pid-file=/m2/dump-pressure.pid','log-facility=-',
+            'host-record=dump.test,192.0.2.80','dumpfile=/m2/dump-pressure.pcap','dumpmask=1',
+            'enable-tftp','tftp-root=/m2/pressure-tftp','tftp-port-range=10690,10690']
+    (root/'m2/dump-pressure.conf').write_text('\n'.join(config)+'\n');(folder/'config').write_text('\n'.join(config)+'\n')
+    process=None;captured=bytearray();start=time.time();requests=[];replies=[]
+    def drain():
+        while True:
+            try:part=os.read(reader,65536)
+            except BlockingIOError:break
+            if not part:break
+            captured.extend(part)
+    try:
+        with (folder/'daemon.log').open('wb') as log:
+            process=subprocess.Popen(command(root,args.side,'-k','-C','/m2/dump-pressure.conf'),stdout=log,stderr=log)
+            deadline=time.monotonic()+3
+            while not (root/'m2/dump-pressure.pid').exists() and time.monotonic()<deadline:
+                assert process.poll() is None,'pressure startup died';time.sleep(.005)
+            assert (root/'m2/dump-pressure.pid').exists(),'pressure readiness'
+            save(folder/'identity.json',process_identity(root,process.pid))
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+                client.settimeout(.25);client.bind(('127.0.0.1',CLIENT))
+                for index in range(400):
+                    request=query('dump.test',1,0x4000+index);requests.append(request.hex())
+                    client.sendto(request,('127.0.0.1',SERVER))
+                    try:reply=client.recv(4096)
+                    except socket.timeout:break
+                    assert reply[:2]==request[:2] and reply[2]&0x80,'pressure response authenticates query'
+                    replies.append(reply.hex())
+            wchan=Path('/proc/'+str(process.pid)+'/wchan').read_text().strip()
+            blocked=len(replies)<400
+            assert (blocked and 'pipe' in wchan) if args.side=='c' else (len(replies)==400),'exact C pipe blocker/Rust complete progress'
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+                client.settimeout(.3);request=query('dump.test',1,0x6f00);client.sendto(request,('127.0.0.1',SERVER))
+                try:reply=client.recv(4096);dns_health=reply[:2]==request[:2] and bool(reply[2]&0x80)
+                except socket.timeout:dns_health=False
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as client:
+                client.settimeout(.3);client.sendto(b'\0\1evidence\0octet\0',('127.0.0.1',69))
+                try:
+                    reply,peer=client.recvfrom(4096);tftp_health=reply==b'\0\3\0\1pressure-evidence'
+                    client.sendto(b'\0\4\0\1',peer)
+                except socket.timeout:tftp_health=False
+            assert dns_health==tftp_health==(args.side=='rust'),'services progress with undrained dump'
+            os.kill(process.pid,signal.SIGTERM);time.sleep(.1)
+            exited_without_drain=process.poll() is not None
+            assert exited_without_drain==(args.side=='rust'),'signal progress follows same owner boundary'
+            deadline=time.monotonic()+3
+            while time.monotonic()<deadline:
+                drain()
+                if process.poll() is not None:break
+                time.sleep(.005)
+            assert process.wait(timeout=1)==0,'normal cleanup after pressure/drain'
+            drain();logged=(folder/'daemon.log').read_bytes()
+            (folder/'dump.raw').write_bytes(captured);save(folder/'transport-witnesses.json',dict(requests=requests,replies=replies))
+            observed=pcap(bytes(captured),start,time.time());save(folder/'pcap.json',observed)
+            payloads=[row['payload'] for row in observed['records']]
+            if args.side=='c':
+                assert len(requests)==len(replies)+1 and 1<len(replies)<100,'C stopped on one live query'
+                assert payloads==requests,'C drain completes exactly its already admitted query prefix'
+            else:
+                assert len(payloads)==57 and payloads==requests[:57],'Rust preserves completed pipe prefix on TERM'
+                assert logged.count(b'failed to write packet dump')==88,'400 plus one health query exceed313 stored records'
+            return dict(case=spec['case'],reference_difference='bounded-fifo-progress',
+                        accepted_queries=len(requests),answered_queries=len(replies),captured_records=len(payloads),
+                        dns_health=dns_health,tftp_health=tftp_health,exited_without_drain=exited_without_drain,
+                        dump_errors=logged.count(b'failed to write packet dump'),normal_cleanup=True,
+                        captured_prefix_authenticated=True,pipe_capacity=4096,queue_capacity=256,
+                        queued_records_lost_on_exit=256 if args.side=='rust' else 0)
+    finally:
+        if process is not None and process.poll() is None:process.kill();process.wait()
+        os.close(reader)
+
+
+def observations_match(crows, rrows):
+    if len(crows)!=len(rrows):return False
+    for c,rust in zip(crows,rrows):
+        if c.get('case')!='fifo-pressure':
+            if c!=rust:return False
+            continue
+        common=dict(case='fifo-pressure',reference_difference='bounded-fifo-progress',normal_cleanup=True,
+                    captured_prefix_authenticated=True,pipe_capacity=4096,queue_capacity=256)
+        if any(c.get(key)!=value or rust.get(key)!=value for key,value in common.items()):return False
+        if not (1<c.get('answered_queries',0)<100 and c.get('accepted_queries')==c['answered_queries']+1
+                and c.get('captured_records')==c['accepted_queries'] and c.get('dump_errors')==0
+                and c.get('queued_records_lost_on_exit')==0):return False
+        if any(c.get(key) is not False or rust.get(key) is not True for key in ['dns_health','tftp_health','exited_without_drain']):return False
+        if any(rust.get(key)!=value for key,value in dict(accepted_queries=400,answered_queries=400,captured_records=57,dump_errors=88,queued_records_lost_on_exit=256).items()):return False
+    return True
+
+
 def run_side(args):
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1','run_isolated.sh required'
     args.out.mkdir(parents=True,exist_ok=False)
@@ -546,7 +646,7 @@ def main():
     reports=[json.loads((args.out/side/'result.json').read_text()) for side in ['c','rust']]
     failures=[]
     if any(exits.values()) or any(row['failures'] for row in reports):failures.append(dict(exits=exits,sides=[row['failures'] for row in reports]))
-    if reports[0]['rows']!=reports[1]['rows']:failures.append(dict(error='exact-image observation difference',c=reports[0]['rows'],rust=reports[1]['rows']))
+    if not observations_match(reports[0]['rows'],reports[1]['rows']):failures.append(dict(error='exact-image observation difference',c=reports[0]['rows'],rust=reports[1]['rows']))
     controls=[]
     if not failures:
         for label in ['missing-case','wrong-header','wrong-payload','fixture-failure','wrong-display-id','missing-write-fault']:
@@ -562,10 +662,19 @@ def main():
                 if target is None:continue
                 target.pop('fault')
             else:
-                target=next(row for row in mutant['rows'] if row.get('pcap') and row['pcap']['records'])
+                target=next((row for row in mutant['rows'] if row.get('pcap') and row['pcap']['records']),None)
+                if target is None:continue
                 if label=='wrong-header':target['pcap']['header']['snaplen']+=1
                 else:target['pcap']['records'][0]['payload']='00'
-            controls.append(dict(case=label,rejected=bool(mutant['failures']) or mutant['rows']!=reports[0]['rows']))
+            controls.append(dict(case=label,rejected=bool(mutant['failures']) or not observations_match(reports[0]['rows'],mutant['rows'])))
+    reference_controls=[]
+    pressure=next((row for row in reports[1]['rows'] if row['case']=='fifo-pressure'),None)
+    if not failures and pressure is not None:
+        for field,value in [('dns_health',False),('tftp_health',False),('exited_without_drain',False),
+                            ('captured_prefix_authenticated',False),('dump_errors',0),('queue_capacity',255),
+                            ('captured_records',58),('queued_records_lost_on_exit',0)]:
+            mutant=copy.deepcopy(reports[1]['rows']);next(row for row in mutant if row['case']=='fifo-pressure')[field]=value
+            reference_controls.append(dict(field=field,rejected=not observations_match(reports[0]['rows'],mutant)))
     plan=json.loads((HERE/'m5_dump.json').read_text())
     option_results={}
     for option,needed in plan['option_required_cases'].items():
@@ -573,7 +682,7 @@ def main():
         subsets=[{row['case']:row for row in report['rows'] if row['case'] in needed} for report in reports]
         missing=sorted(needed-set(subsets[0])|needed-set(subsets[1]))
         option_failures=[failure for report in reports for failure in report['failures'] if failure['case'] in needed]
-        equivalent=subsets[0]==subsets[1]
+        equivalent=observations_match(list(subsets[0].values()),list(subsets[1].values()))
         option_controls=[]
         if equivalent and not missing and not option_failures:
             for label in ['missing-case','wrong-header','wrong-mask-capture','fixture-failure']:
@@ -582,10 +691,10 @@ def main():
                 if label=='missing-case':mutant.pop(next(iter(mutant)))
                 elif label=='wrong-header':mutant['dns-v4-local']['pcap']['header']['snaplen']+=1
                 elif label=='wrong-mask-capture':mutant['mask-zero']['pcap']['records'].append(copy.deepcopy(mutant['dns-v4-local']['pcap']['records'][0]))
-                option_controls.append(dict(case=label,rejected=injected or mutant!=subsets[0]))
+                option_controls.append(dict(case=label,rejected=injected or not observations_match(list(subsets[0].values()),list(mutant.values()))))
         option_results[option]=dict(qualified=equivalent and not missing and not option_failures and len(option_controls)==4 and all(row['rejected'] for row in option_controls),required_count=len(needed),paired_count=len(subsets[0]),missing=missing,failures=option_failures,observations_equal=equivalent,controls=option_controls)
-    qualified=not args.select and not failures and not any(row['missing'] for row in reports) and len(controls)==6 and all(row['rejected'] for row in controls)
-    save(args.out/'result.json',dict(qualified=qualified,option_results=option_results,failures=failures,controls=controls,missing={row['side']:row['missing'] for row in reports},binary_sha256=sha256(args.rust)))
+    qualified=not args.select and not failures and not any(row['missing'] for row in reports) and len(controls)==6 and all(row['rejected'] for row in controls) and len(reference_controls)==8 and all(row['rejected'] for row in reference_controls)
+    save(args.out/'result.json',dict(qualified=qualified,option_results=option_results,failures=failures,controls=controls,reference_controls=reference_controls,missing={row['side']:row['missing'] for row in reports},binary_sha256=sha256(args.rust)))
     print(json.dumps(dict(paired=len(reports[0]['rows']),failures=len(failures),qualified=qualified)))
     return bool(failures)
 
