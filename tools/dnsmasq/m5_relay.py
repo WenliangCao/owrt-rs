@@ -52,6 +52,7 @@ def actor():
         endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         endpoint.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, b"peer0\0")
         endpoint.setsockopt(socket.IPPROTO_IP, 8, 1)  # IP_PKTINFO
+        endpoint.setsockopt(socket.SOL_SOCKET, 35, 1)  # AArch64 SO_TIMESTAMPNS_OLD.
         endpoint.bind(("0.0.0.0", port))
         endpoint.setblocking(False)
         sockets[port] = endpoint
@@ -66,12 +67,17 @@ def actor():
                     packet, ancillary, flags, peer = endpoint.recvmsg(65535, 128)
                 except BlockingIOError:
                     break
-                destination = None
+                destination = None;received_ns=None
                 for level, kind, data in ancillary:
                     if level == socket.IPPROTO_IP and kind == 8 and len(data) >= 12:
                         destination = socket.inet_ntoa(data[8:12])
+                    if level == socket.SOL_SOCKET and kind == 35 and len(data)==16:
+                        seconds,nanoseconds=struct.unpack('=qq',data)
+                        assert 0<=nanoseconds<1_000_000_000,'native kernel receive timestamp'
+                        received_ns=seconds*1_000_000_000+nanoseconds
+                assert received_ns is not None,'actual kernel packet timestamp required'
                 rows.append({"packet": packet.hex(), "source": list(peer),
-                             "destination": [destination, port], "flags": flags})
+                             "destination": [destination, port], "flags": flags,"received_ns":received_ns})
 
     while True:
         ready = poll.select(3)
@@ -536,7 +542,12 @@ def collect_packets(client, server, item):
         # positive completion waits for actual packets, bounded to two seconds.
         if now>=deadline or complete is not None and now-complete>=.12:break
         time.sleep(min(.01,max(0,deadline-now)))
-    return observed,dict(positive=positive,elapsed_seconds=time.monotonic()-start,max_seconds=2 if positive else .25)
+    raw=copy.deepcopy(observed)
+    for key in observed:
+        observed[key].sort(key=lambda row:row['received_ns'])
+        for row in observed[key]:row.pop('received_ns')
+    return observed,dict(positive=positive,elapsed_seconds=time.monotonic()-start,max_seconds=2 if positive else .25,
+                         raw_kernel_receives=raw,collected_epoch=time.time())
 
 
 def run_profile(root,side,profile,client,server,out,syscall_witness=False):
@@ -657,6 +668,22 @@ def evaluate(rows,profiles,sides):
             if not row.get("pid_removed"):errors.append(f"{key}: PID remains")
             if row.get("cleanup",{}).get("forced") or row.get("cleanup",{}).get("returncode")!=0:errors.append(f"{key}: cleanup")
             actual={case["name"]:case for case in row["cases"]}
+            for case in row['cases']:
+                witness=case.get('observation',{}).get('raw_kernel_receives')
+                if witness is None:
+                    errors.append(f"{key}/{case['name']}: missing kernel receive witness");continue
+                reconstructed={direction:[{k:v for k,v in packet.items() if k!='received_ns'}
+                               for packet in sorted(witness[direction],key=lambda packet:packet['received_ns'])]
+                               for direction in witness}
+                echo=[]
+                for direction in reconstructed:
+                    echo.extend(packet for packet in reconstructed[direction]
+                                if packet['packet']==case['request'] and packet['source'][0] in [CLIENT,SERVER])
+                    reconstructed[direction]=[packet for packet in reconstructed[direction] if packet not in echo]
+                    if any(packet['received_ns']<=0 or packet['received_ns']>case['observation']['collected_epoch']*1_000_000_000+1000
+                           for packet in witness[direction]):errors.append(f"{key}/{case['name']}: invalid kernel receive time")
+                if reconstructed!=case['observed'] or echo!=case['peer_echo']:
+                    errors.append(f"{key}/{case['name']}: kernel witness/order differs")
             if len(actual)!=len(row["cases"]) or set(actual)!={item["name"] for item in profile["cases"]}:errors.append(f"{key}: missing/extra cases")
             for item in profile["cases"]:
                 case=actual.get(item["name"])
