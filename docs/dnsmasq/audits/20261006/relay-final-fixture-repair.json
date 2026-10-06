@@ -1,0 +1,247 @@
+{
+  "schema": "m5-relay-final-fixture-repair-v1",
+  "date": "2026-10-06",
+  "scope": "calibration on prior candidate; final dc1b full replay separate",
+  "product_elf_sha256": "80a7213277fd8e71ca1687ea63007493c327460ae86acc3d2ae8159d7107dc1c",
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "products_modified": false,
+  "cases_added_or_removed": false,
+  "packet_fields_normalized": false,
+  "profiles": 37,
+  "packet_cases": 174,
+  "grammar_cases": 40,
+  "binding_modes": 4,
+  "negative_controls": [
+    {
+      "detected": true,
+      "name": "hops"
+    },
+    {
+      "detected": true,
+      "name": "giaddr"
+    },
+    {
+      "detected": true,
+      "name": "port"
+    },
+    {
+      "detected": true,
+      "name": "destination"
+    },
+    {
+      "detected": true,
+      "name": "missing-packet"
+    },
+    {
+      "detected": true,
+      "name": "extra-packet"
+    },
+    {
+      "detected": true,
+      "name": "missing-side"
+    },
+    {
+      "detected": true,
+      "name": "missing-case"
+    },
+    {
+      "detected": true,
+      "name": "not-alive"
+    },
+    {
+      "detected": true,
+      "name": "cleanup"
+    },
+    {
+      "detected": true,
+      "name": "option82"
+    },
+    {
+      "detected": true,
+      "name": "stdout"
+    },
+    {
+      "detected": true,
+      "name": "stderr"
+    },
+    {
+      "detected": true,
+      "name": "exit"
+    },
+    {
+      "detected": true,
+      "name": "startup"
+    }
+  ],
+  "review": {
+    "failures": [],
+    "grammar_controls": [
+      {
+        "detected": true,
+        "name": "stdout"
+      },
+      {
+        "detected": true,
+        "name": "stderr"
+      },
+      {
+        "detected": true,
+        "name": "exit"
+      },
+      {
+        "detected": true,
+        "name": "startup"
+      }
+    ],
+    "input_manifest_sha256": "ca32281cf3e7ccbfc989dc3593d8a8018ee1aa1fd6a8ee8084f18d4a4798612b",
+    "input_result_sha256": "102c2c5a134aee9921c830516ed1b70f9b3ab251436bd6bc42a61882ceaebac4",
+    "normalization": "--test executable prefix dnsmasq-rs: to dnsmasq: only; forwarding payload/source/destination unchanged",
+    "packet_controls": {
+      "controls": [
+        {
+          "detected": true,
+          "name": "hops"
+        },
+        {
+          "detected": true,
+          "name": "giaddr"
+        },
+        {
+          "detected": true,
+          "name": "port"
+        },
+        {
+          "detected": true,
+          "name": "destination"
+        },
+        {
+          "detected": true,
+          "name": "missing-packet"
+        },
+        {
+          "detected": true,
+          "name": "extra-packet"
+        },
+        {
+          "detected": true,
+          "name": "missing-side"
+        },
+        {
+          "detected": true,
+          "name": "missing-case"
+        },
+        {
+          "detected": true,
+          "name": "not-alive"
+        },
+        {
+          "detected": true,
+          "name": "cleanup"
+        },
+        {
+          "detected": true,
+          "name": "option82"
+        }
+      ],
+      "passed": true
+    },
+    "passed": true,
+    "tool_sha256": "de7ad186c7e71f7f74faa6b1e31ba5bcf5ca119ef3e8ff3857eeb4608755de28"
+  },
+  "archives": [
+    {
+      "name": "ordinary-witness-01",
+      "verified": {
+        "archive_sha256": "c165c48bd0f2bcdd504f6558bfdb929a19ac0c9820c9f236934eb1777b14ace4",
+        "entries": 40,
+        "regular_files": 23,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "raw_pruned": true,
+      "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/ordinary-witness-01.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/ordinary-witness-01.inventory.json"
+    },
+    {
+      "name": "ordinary-witness-02",
+      "verified": {
+        "archive_sha256": "64fb085ae2f9752581b6188b6376e2ced039296a09a9acada29af565064cc608",
+        "entries": 41,
+        "regular_files": 24,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "raw_pruned": true,
+      "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/ordinary-witness-02.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/ordinary-witness-02.inventory.json"
+    },
+    {
+      "name": "ordinary-witness-03",
+      "verified": {
+        "archive_sha256": "356f7f1eab9e67d547e7c84c4c942125026198ff76ca1c9fc3b5a45df90df703",
+        "entries": 41,
+        "regular_files": 24,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "raw_pruned": true,
+      "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/ordinary-witness-03.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/ordinary-witness-03.inventory.json"
+    },
+    {
+      "name": "multiple-witness-04",
+      "verified": {
+        "archive_sha256": "9af6f0908a4bfe1f31e6182aa852f4865bcfa1719d9d3da56d3d86e6a4d1b639",
+        "entries": 41,
+        "regular_files": 24,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "raw_pruned": true,
+      "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/multiple-witness-04.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/multiple-witness-04.inventory.json"
+    },
+    {
+      "name": "full-fixed-01",
+      "verified": {
+        "archive_sha256": "6161d228c94ad82252a34083176c6ca46849bd5a67fcc5b12300d871a5ee49b6",
+        "entries": 689,
+        "regular_files": 512,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "raw_pruned": true,
+      "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/full-fixed-01.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/full-fixed-01.inventory.json"
+    },
+    {
+      "name": "full-fixed-02",
+      "verified": {
+        "archive_sha256": "407591de60a0956dc3d2a14dcd0fd9206f9cf7e68ac94f7c573df1c7982613ad",
+        "entries": 689,
+        "regular_files": 512,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "raw_pruned": true,
+      "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/full-fixed-02.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-12b3/full-fixed-02.inventory.json"
+    }
+  ],
+  "causes": [
+    {
+      "kind": "uncontrolled-address-generation",
+      "source": "netlink.c:406-410;main.rs interface snapshot changed->invalidate_relay_interfaces",
+      "actual": "new automatic IPv6 link-local readiness after primer and after interface-down/up clears learned relay state; recv witnessed, no send/ARP call",
+      "repair": "isolated namespace future veth addr_gen_mode1 NONE; IPv6 protocol and explicit address changes kept"
+    },
+    {
+      "kind": "cross-FD receive order",
+      "actual": "C and Rust actual sendmsg and kernel enqueue both1067/giaddr.3 then67/giaddr.1; actor FD scan sometimes emits67 then1067",
+      "repair": "SO_TIMESTAMPNS receive witness, validated timestamp and reconstructed semantic packet order; no port/payload sorting or wire/count relaxation"
+    }
+  ],
+  "selected_controls_limitation": "selected15/2 diagnostics hit existing negative-controls option82 lookup requiring split-request; partial rows retained, not family qualification",
+  "physical_router": false,
+  "m6_formal_window": false
+}
