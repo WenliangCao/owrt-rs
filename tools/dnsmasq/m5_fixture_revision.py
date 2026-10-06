@@ -18,6 +18,8 @@ def dependencies(spec, records):
     root = tools_root(spec); pending = set()
     for record in records:
         for word in record['argv']:
+            if word.startswith('-') and '=' in word: word = word.split('=', 1)[1]
+            if word.startswith('-') and str(root) in word: word = word[word.index(str(root)):]
             path = Path(word)
             if path.is_relative_to(root) and path.is_file(): pending.add(str(path.relative_to(root)))
     if not pending and {record['id'] for record in records} == set(final.FUZZ):
