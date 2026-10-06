@@ -1,6 +1,6 @@
 # M5 最终统一验收准备
 
-完整计划已审阅；最终统一资格尚未执行。源码、ELF/link.map 与 source-bound review
+完整计划已审阅；12b3首轮已实际执行并记录失败，最终统一资格尚未完成。源码、ELF/link.map 与 source-bound review
 由主代理冻结；旧单族成功结果不替代本次 fresh 运行。
 
 `m5_final_validation.py` 使用一个冻结 ELF，写出全部结构化 argv，再逐阶段
@@ -79,7 +79,7 @@ fuzz 通过 `oracle_build.sh ... fuzz` 使用同一
 package，再复制实际 instrumented ELFs、输入 SHA、锁和 nightly 工具身份。
 它们来自同一源码，但与交付 musl ELF 是不同产物；只 build/no-run 不算通过。
 cargo-fuzz 0.13.2 的本机 help 与 [上游命令文档](https://github.com/rust-fuzz/cargo-fuzz)
-已核对。实际三轮 fuzz 总计至少 90 分钟。
+已核对。三个独立target并行各实跑至少1800秒，累计至少90target-minutes；每个target独立保存准确开始/结束/elapsed、SHA、corpus/artifacts及日志，一路失败不终止其他target。这是M2健壮性复测，不是M6性能窗口。
 
 300 秒 full-cache 通过后，可选
 `--phase full-cache-600 --exclusive-window` 进一步核对内存稳定性。
