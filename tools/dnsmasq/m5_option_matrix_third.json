@@ -511,10 +511,8 @@
       "eligible_for_closure": true
     },
     "local": {
-      "eligible_for_closure": false,
-      "known_gaps": [
-        "C LOPT_LOCAL shares server endpoint syntax (option.c3059,3107); Rust validate_ready rejects upstream hostnames/scope and routing.validate_endpoint rejects explicit source binding. Delegate whole endpoint implementation to server/resolv/source family."
-      ],
+      "eligible_for_closure": true,
+      "known_gaps": [],
       "source": [
         "option.c:3059-3158",
         "option.c:parse_server",
@@ -523,7 +521,7 @@
       ],
       "checklist": [
         {
-          "boundary": "Retain minimal C/Rust syntax+startup+runtime examples for numeric local endpoint and inherited hostname/scope/source-binding gaps; this batch must never count local as closed.",
+          "boundary": "Actual numeric, hostname, scoped and source-bound local endpoints; the full191-row endpoint qualification supplies shared endpoint boundaries.",
           "checked": false,
           "required_scenarios": [
             "local-numeric-control",

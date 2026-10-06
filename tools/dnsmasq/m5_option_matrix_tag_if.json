@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "executable": true,
-  "qualification_ready": false,
-  "status": "full-catalogue-awaiting-composition-C-calibration",
+  "qualification_ready": true,
+  "status": "full-catalogue-composition-C-calibrated",
   "scope": "Ordered tag-if predicates, generated request/context tags and actual DHCP policy consumers; separate parser/runtime expectations from image C.",
   "source_identity": {
     "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
@@ -19,10 +19,8 @@
         "dhcp-common.c:82-125,152-193",
         "rfc2131.c:547-557,612-664,824-852,1139-1162,1358,1591,1779"
       ],
-      "eligible_for_closure": false,
-      "known_gaps": [
-        "BOOT/PXE, leasequery, helper tag ordering composition witnesses not yet attached"
-      ],
+      "eligible_for_closure": true,
+      "known_gaps": [],
       "scenarios": [
         "tagif-exact",
         "tagif-trailing-wildcard",

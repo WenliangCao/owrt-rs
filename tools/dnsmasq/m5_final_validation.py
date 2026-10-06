@@ -12,6 +12,7 @@ robustness checks; formal M6 performance is outside this controller.
 from __future__ import annotations
 
 import argparse
+import ast
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import copy
 import fcntl
@@ -216,7 +217,7 @@ def prepare(args):
 
 
 def context(spec, output):
-    return {**spec.get('bindings', {}), 'python': sys.executable, 'source': spec['source_root'], 'tools': spec['source_root'] + '/tools/dnsmasq',
+    return {**spec.get('bindings', {}), 'python': sys.executable, 'source': spec['source_root'], 'tools': spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq'),
             'image': spec['image_root'], 'runtime': spec['runtime_root'], 'elf': spec['elf'],
             'elf_sha': spec['elf_sha256'], 'commit': spec['source_commit'], 'out': str(output),
             'sdk': spec.get('sdk', ''),
@@ -314,7 +315,7 @@ def verify_identity(spec):
     require(sys.flags.optimize == 0 and not os.environ.get('PYTHONOPTIMIZE'), 'driver assertions were disabled')
     require(digest(spec['elf']) == spec['elf_sha256'], 'ELF changed after freeze')
     require(build_package.inputs(Path(spec['source_root'])) == spec['source_files'], 'product/packaging source changed')
-    require(file_map(Path(spec['source_root']) / 'tools/dnsmasq') == spec['tools'], 'frozen tools changed')
+    require(file_map(Path(spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq'))) == spec['tools'], 'frozen tools changed')
     require(file_map(Path(spec['runtime_root'])) == spec['runtime_files'], 'runtime evidence changed')
     require(file_map(Path(spec['image_root'])) == spec['image_files'], 'exact image files changed')
     require(build_package.sdk_inputs(Path(spec['sdk'])) == spec['sdk_files'], 'SDK tools changed')
@@ -403,6 +404,10 @@ def prerequisite(spec, manifest_sha, completed, phase):
             phase + ': complete result from this exact freeze required')
     receipt = Path(record.get('receipt', str(Path(record['attempt']) / 'result.json')))
     require(json.loads(receipt.read_text()) == record, phase + ': receipt changed')
+    if record.get('imported_from'):
+        from m5_fixture_revision import verify_import
+        verify_import(spec, record)
+        return record
     if phase == 'families':
         expected = {'family:' + row['id'] for row in spec['family_registry']['families']}
         require(set(record.get('family_receipts', {})) == expected, 'aggregate misses frozen families')
@@ -662,7 +667,17 @@ def main():
     execute.add_argument('--exclusive-window', action='store_true')
     execute.add_argument('--family', action='append', help='independent fresh family group; repeat for several families')
     report = sub.add_parser('summary'); report.add_argument('--manifest', type=Path, required=True)
+    revision = sub.add_parser('fixture-revision')
+    revision.add_argument('--manifest', type=Path, required=True)
+    revision.add_argument('--tools-root', type=Path, required=True)
+    revision.add_argument('--tools-archive', type=Path, required=True)
+    revision.add_argument('--tools-commit', required=True)
+    revision.add_argument('--out', type=Path, required=True)
+    refresh = sub.add_parser('import-unchanged'); refresh.add_argument('--manifest', type=Path, required=True)
     args = parser.parse_args()
+    if args.action in ['fixture-revision', 'import-unchanged']:
+        from m5_fixture_revision import revise, import_unchanged
+        return revise(args) if args.action == 'fixture-revision' else import_unchanged(args.manifest)
     return {'prepare': prepare, 'run': run, 'summary': summary}[args.action](args)
 
 
