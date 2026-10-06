@@ -922,6 +922,17 @@ def diagnostic(data):
     return re.sub(r'dnsmasq(?:-rs)?: ?', '',data.decode('utf-8','surrogateescape')).strip()
 
 
+def schedule_clock_phase():
+    # Drive both independent daemons from the same real second fraction.
+    # Product clocks are untouched and every packet retains its actual clocks.
+    before_wall=time.time_ns();before_mono=time.monotonic_ns()
+    wait=((200_000_000-before_wall%1_000_000_000)%1_000_000_000)/1_000_000_000
+    time.sleep(wait)
+    return {'target_fraction_ns':200_000_000,'before_realtime_ns':before_wall,
+            'before_monotonic_ns':before_mono,'after_realtime_ns':time.time_ns(),
+            'after_monotonic_ns':time.monotonic_ns()}
+
+
 def run(args):
     if os.geteuid()!=0 or os.environ.get('DNSMASQ_TEST_ISOLATED')!='1':raise ValueError('run through run_isolated.sh')
     network();out=args.out.resolve()
@@ -971,6 +982,7 @@ def run(args):
                 time.sleep(.01)
             else:raise AssertionError('startup pid readiness deadline')
             trace['identity']=process_identity(root,process.pid);(folder/'pid').write_text(str(process.pid))
+            trace['schedule_clock_phase']=schedule_clock_phase()
             trace['observations']=schedule(spec,port,upstream,folder,root);report['executed_cases'].append(label)
             if (folder/'lease-witness.json').exists():trace['lease_witness']=json.loads((folder/'lease-witness.json').read_text())
         except Exception as error:
