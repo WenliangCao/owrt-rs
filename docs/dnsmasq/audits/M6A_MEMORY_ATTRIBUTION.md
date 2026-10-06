@@ -2,7 +2,7 @@
 
 产品始终是源码 `dc1b740d7973838e2ae7f098d0726b0484e55074`、opt3 ELF `37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b`。本分析不修改、插桩或替换被测 ELF。C ELF为 `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87`，使用精确匹配的 dnsmasq 2.93 nodhcpv6 源码；布局取 Linux AArch64 ABI，不能当成物理路由器上的驻留量或性能结论。
 
-当前结构账和 M5 的旧 smaps 交叉核对已经完成。M6a 的新 smaps/性能采样身份与对照组身份由正式报告补入；下面明确区分目标布局、诊断复制件的容量观测与 M5 已有运行证据。
+当前结构账、M5 的旧 smaps与M6a正式第1/5轮UDP hit的smaps交叉核对已经完成。M6a最终5轮采样与性能判定由正式报告补入；下面明确区分目标布局、诊断复制件、排除的pilot和正式第1轮观察。
 
 ## 方法与误差
 
@@ -116,3 +116,35 @@ M6协议的20个TCP逻辑client不是无限寿命连接：精确C/R调用链都�
 4. LeaseStore和发布副本：BTree索引占用率与232 B本体较C160 B大，是否值得调整取决于M6a DHCP查找CPU、20租约实际PSS和用户实际规模；不能为省内存提前退回线性扫描。
 
 以上只做归因与候选记录，未实现优化、未变更产品，也未启动M6b。
+
+## 正式 r01 UDP hit 的交叉核（仅1/5轮）
+
+原始证据在 `private/dnsmasq-rewrite/evidence/M6a/freeze-c3402ba6/archives/r01-udp-hit-{c,r3,rs}/attempt-1/plain/formal/`。三组 `excluded_preflight=false`，正式预热30 s、测量120 s、同配置/4096唯一A及16 B wire名全量填充/核对证明；协议SHA为 `6ba6a9ea462713dd57ebab1600d8bd9375c70c38f510b3b88f19a580de62aa6e`。本节只核对内存守恒和采样方法，尚未有5轮，不判“有收益/无差异/变差”，也不把b85 pilot算入正式样本。
+
+| rollup观察，KiB | C | R3 | Rs |
+| --- | ---: | ---: | ---: |
+| empty RSS / PSS | 1,576 / 1,568 | 2,020 / 2,012 | 2,032 / 2,024 |
+| empty Anon / File | 648 / 920 | 560 / 1,452 | 568 / 1,456 |
+| filled RSS / PSS | 1,580 / 1,572 | 3,456 / 3,448 | 3,332 / 3,324 |
+| filled Anon / File | 652 / 920 | 1,868 / 1,580 | 1,868 / 1,456 |
+| verified／cache-full RSS / PSS | 1,580 / 1,572 | 3,520 / 3,512 | 3,332 / 3,324 |
+| verified／cache-full Anon / File | 652 / 920 | 1,868 / 1,644 | 1,868 / 1,456 |
+| empty→filled Anon增长 | 4 | 1,308 | 1,300 |
+
+正式第1轮的filled后匿名部分不再增长；R3 filled→verified增加64 KiB File，Anon不变。R3/Rs cache-full匿名均1868 KiB，188 KiB总差为File；这些是单次观察事实，不能直接称s改善正式性能或堆内存。C正式File920 KiB也与pilot972 KiB不同，映射触页/路径状态应各按本轮证据记录。
+
+full smaps还能拆出先前残差中的stack与映射匿名页：
+
+| cache-full 结构守恒，KiB | C | R3 | Rs |
+| --- | ---: | ---: | ---: |
+| 16 B名字的cache requested预算 | 548 | 1,400.039 | 1,400.039 |
+| stack匿名驻留 | 8 | 76 | 76 |
+| 文件路径映射内的Anonymous页 | 56 | 4 | 4 |
+| 其余匿名驻留减去cache请求预算 | 40 | 387.961 | 387.961 |
+| 合计＝rollup Anon | 652 | 1,868 | 1,868 |
+
+因此本轮的1216 KiB匿名差 = 852.039 KiB cache requested差＋68 KiB stack差−52 KiB文件映射内匿名差＋**347.961 KiB仍未精确归因的其余差**。这里对cache请求预算作减法不是宣称已证明每一请求页都驻留；未知项仍含allocator class/header/空闲组、网络/解析scratch与释放后保留页。C的548 KiB匿名大映射在empty时已驻留；Rust empty有456 KiB大匿名映射，与448 KiB slots加页/allocator开销的机制相符，但没有对象级heap定位，不给该映射任意标注HashMap或所有cache对象。
+
+新名字容量已用本地、无Oracle工作的诊断复制件实测：`memory-layout-05-m6a/layout.json`记录原始Name与canonical key各65,536 B、RDATA16,384 B、索引capacity16,384个usize，HashMap requested401,416 B；snapshot索引capacity4096个usize。复现器加 `--names m6a` 即可重现，不更改被测ELF。
+
+同标签的proc文件不是原子快照。r01 Rs `empty.smaps_rollup`为2032 RSS/568 Anon，但紧邻full smaps逐段总和为2024/560；`measurement-start` rollup为3332/1868，full smaps为3340/1876，观察到8 KiB瞬时差。逐段分布使用该full smaps自己的和，峰值/轮次统计使用原resources/rollup，不能把两次读取拼成同一原子视图或因几KiB变化声称泄漏。正式5轮后再报告其范围和是否持续增长。
