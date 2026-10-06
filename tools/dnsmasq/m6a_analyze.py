@@ -478,6 +478,13 @@ def analyze_window(directory):
     if full["origin_counts"]["correct"] and not raw_samples["measurement"]:
         row["analysis_errors"].append("measured correct requests have no retained raw sample")
         row["methodology_valid"] = False
+    auxiliary_files = ["load.wire-samples.jsonl"]
+    if (directory / "reloads.json").exists():
+        auxiliary_files.append("reloads.json")
+    if (directory / "tftp.json").exists():
+        auxiliary_files.append("tftp.json")
+    if (directory / "tftp-transfers.jsonl").exists():
+        auxiliary_files.append("tftp-transfers.jsonl")
     row.update({"phases": phases, "measurement": full, "record_count": records,
                 "binary_counts": binary_counts, "load_counters": load,
                 "late_completion_counts": late, "outside_origin_counts": outside_origin,
@@ -490,7 +497,7 @@ def analyze_window(directory):
                 "tftp": read_json(directory / "tftp.json") if (directory / "tftp.json").exists() else None,
                 "input_sha256": {name: sha256(directory / name) for name in
                                   ("result.json", "load.json", "epoch.json", "resources.json",
-                                   "load.latencies.bin", "load.send-lag.bin")}})
+                                   "load.latencies.bin", "load.send-lag.bin", *auxiliary_files)}})
     return row
 
 
@@ -590,8 +597,11 @@ def comparison_tables(windows, authoritative):
                     if metric.endswith("_count"):
                         return row["origin_counts"][metric.removesuffix("_count")]
                     return row[metric]
-                restricted = any(row and row["generator_limited"] for row in [*a, *b]) and metric in (
-                    "qps", "cpu_us_per_correct", "p50_ns", "p95_ns", "p99_ns")
+                # A saturated native generator limits only the offered-capacity
+                # throughput conclusion. CPU and latency are still measured at
+                # the fixed offered rate and retain their ordinary gates, with
+                # the limitation carried as an annotation in each window.
+                restricted = any(row and row["generator_limited"] for row in [*a, *b]) and metric == "qps"
                 verdict = classify([value(row) for row in a], [value(row) for row in b], metric, restricted)
                 if metric in ("p50_ns", "p99_ns", "fd_count", "thread_count", "child_processes"):
                     verdict["classification"] = "受限"
