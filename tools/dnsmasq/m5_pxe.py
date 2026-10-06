@@ -633,18 +633,24 @@ def run_profile(root, side, profile, client, server, out):
                 client.call(op="take")
                 if server is not None:server.call(op="take")
                 sender=client if item["sender"]=="client" else server
+                sent_epoch = time.time()
                 sender.call(op="send", packet=item["request"], port=item["source_port"],
                             destination=[SERVER if item["sender"]=="client" else net.UP,item["listener"]], copies=item["copies"])
                 time.sleep(.15)
                 raw = client.call(op="take")["packets"]
-                echoes = [entry for entry in raw if entry["packet"] == item["request"] and entry["source"][0] == CLIENT]
-                replies = [entry for entry in raw if entry not in echoes]
-                upstream=server.call(op="take")["packets"] if server is not None else []
+                raw_upstream=server.call(op="take")["packets"] if server is not None else []
+                observation = {"sent_epoch": sent_epoch, "collected_epoch": time.time(),
+                               "raw_kernel_receives": {"client": raw, "upstream": raw_upstream}}
+                ordered = sorted(raw, key=lambda packet: packet['received_ns'])
+                echoes = [entry for entry in ordered if entry["packet"] == item["request"] and entry["source"][0] == CLIENT]
+                replies = [entry for entry in ordered if entry not in echoes]
+                upstream=sorted(raw_upstream, key=lambda packet: packet['received_ns'])
                 leases = root/"m2/pxe.leases"
                 tftp=tftp_health() if profile.get("tftp") else None
                 if item["helper_busy"] and (root/"m2/pxe-helper.done").exists():raise AssertionError("helper finished before PXE/DNS/TFTP witness")
                 helper_events=(root/"m2/pxe-helper.events").read_text().splitlines() if profile.get("helper") and (root/"m2/pxe-helper.events").exists() else None
                 row["cases"].append({"name": item["name"], "request": item["request"], "replies": replies,
+                                     "observation": observation,
                                      "peer_echo": echoes, "alive": process.poll() is None, "heartbeat": health(),
                                      "leases": leases.read_text() if leases.exists() else None,
                                      "observed_epoch":int(time.time()),"upstream":upstream,
@@ -740,6 +746,33 @@ def same_leases(first,second):
     return True
 
 
+def wire_frames(packets):
+    """Absolute kernel clock values are provenance, not protocol fields."""
+    return [{key: value for key, value in packet.items() if key != 'received_ns'} for packet in packets]
+
+
+def kernel_receive_errors(case):
+    observation = case.get('observation', {})
+    witness = observation.get('raw_kernel_receives')
+    if witness is None or set(witness) != {'client', 'upstream'}:
+        return ['missing kernel receive witness']
+    start, end = observation.get('sent_epoch'), observation.get('collected_epoch')
+    if type(start) not in (int, float) or type(end) not in (int, float) or not 0 < start <= end < float('inf'):
+        return ['invalid kernel receive clock bounds']
+    for packets in witness.values():
+        if any(type(packet.get('received_ns')) is not int
+               or not start * 1_000_000_000 - 1000 <= packet['received_ns'] <= end * 1_000_000_000 + 1000
+               for packet in packets):
+            return ['invalid kernel receive time']
+    client = sorted(witness['client'], key=lambda packet: packet['received_ns'])
+    echoes = [packet for packet in client if packet['packet'] == case['request'] and packet['source'][0] == CLIENT]
+    replies = [packet for packet in client if packet not in echoes]
+    upstream = sorted(witness['upstream'], key=lambda packet: packet['received_ns'])
+    if replies != case['replies'] or echoes != case['peer_echo'] or upstream != case['upstream']:
+        return ['kernel witness/order differs']
+    return []
+
+
 def evaluate(rows, corpus, sides):
     failures = []
     indexed = {(row["profile"], row["side"]): row for row in rows}
@@ -771,6 +804,8 @@ def evaluate(rows, corpus, sides):
             if row.get("fd_end", {}).get("floor", 0) > row.get("fd_start", {}).get("floor", 0):
                 failures.append(f"{key}: descriptor growth")
             observed = {item["name"]: item for item in row["cases"]}
+            for case in row['cases']:
+                failures.extend(f"{key}/{case['name']}: {error}" for error in kernel_receive_errors(case))
             if len(observed) != len(row["cases"]) or set(observed) != {item["name"] for item in profile["cases"]}:
                 failures.append(f"{key}: missing/extra case")
             for index,item in enumerate(profile["cases"]):
@@ -810,7 +845,8 @@ def evaluate(rows, corpus, sides):
                 if first["test"][stream] != second["test"][stream].replace("dnsmasq-rs:", "dnsmasq:"):
                     failures.append(f"{profile['name']}: --test {stream} differs")
             for c, rust in zip(first["cases"], second["cases"]):
-                if c["name"] != rust["name"] or c["replies"] != rust["replies"] or c["upstream"]!=rust["upstream"]:
+                if (c["name"] != rust["name"] or wire_frames(c["replies"]) != wire_frames(rust["replies"])
+                        or wire_frames(c["upstream"]) != wire_frames(rust["upstream"])):
                     failures.append(f"{profile['name']}/{c['name']}: wire/endpoint differs")
                 if not same_leases(c,rust):
                     failures.append(f"{profile['name']}/{c['name']}: lease state differs")

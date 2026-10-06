@@ -145,10 +145,6 @@ def compare_logs(left, right):
     return [] if left == right else [{'kind': 'DHCP-notices', 'expected': left, 'actual': right}]
 
 
-def relay_channels(packets):
-    return sorted(packets, key=lambda packet: tuple(packet['destination']))
-
-
 def controls():
     baseline = ['dnsmasq-dhcp[<PID>]: 7 DHCPLEASEQUERY(br-lan) 10.77.0.10 02:00:4d:35:01:01 from 10.77.0.2',
                 'dnsmasq-dhcp[<PID>]: 7 DHCPLEASEACTIVE(br-lan) 10.77.0.10 02:00:4d:35:01:01 active',
@@ -163,13 +159,12 @@ def controls():
     result = {name: bool(compare_logs(baseline, changed)) for name, changed in variants.items()}
     packets = [{'destination': ['10.78.0.2', port], 'source': ['10.77.0.1', 67], 'packet': payload}
                for port, payload in [(67, 'aa'), (1067, 'bb'), (67, 'cc')]]
-    assert relay_channels(packets) == relay_channels([packets[1], packets[0], packets[2]])
     for name, field, value in [('packet', 'packet', 'dd'), ('source', 'source', ['10.77.0.9', 67]),
-                               ('destination', 'destination', ['10.78.0.2', 9999])]:
+                               ('destination', 'destination', ['10.78.0.2', 9999]), ('flags', 'flags', 32)]:
         changed = copy.deepcopy(packets);changed[0][field] = value
-        result['UDP-channel-' + name] = relay_channels(packets) != relay_channels(changed)
-    result['UDP-channel-count'] = relay_channels(packets) != relay_channels(packets[1:])
-    result['UDP-channel-order'] = relay_channels(packets) != relay_channels([packets[2], packets[1], packets[0]])
+        result['UDP-' + name] = pxe.wire_frames(packets) != pxe.wire_frames(changed)
+    result['UDP-count'] = pxe.wire_frames(packets) != pxe.wire_frames(packets[1:])
+    result['UDP-order'] = pxe.wire_frames(packets) != pxe.wire_frames([packets[2], packets[1], packets[0]])
     assert all(result.values()) and not compare_logs(baseline, baseline)
     return result
 
@@ -252,20 +247,12 @@ def main(args):
         if scope == 'leasequery': errors = leasequery.evaluate(rows, corpus, cleanup)
         elif scope == 'pxe': errors = pxe.evaluate(rows, corpus, ['c', 'rust'])
         else:
-            evaluation_rows = copy.deepcopy(rows)
-            for row in evaluation_rows:
-                if not row['profile'].startswith('relay-multi-'): continue
-                # The peer drains distinct UDP sockets in select readiness
-                # order, which changes between C runs. Preserve every byte,
-                # endpoint and within-channel order, and compare channels.
-                for packet_case in row['cases']:
-                    packet_case['observed']['upstream'] = relay_channels(packet_case['observed']['upstream'])
-            errors = relay.evaluate(evaluation_rows, corpus, ['c', 'rust'])
+            errors = relay.evaluate(rows, corpus, ['c', 'rust'])
         if scope != 'leasequery':
             for name, item in cleanup.items():
                 if item.get('actor_exit') != 0 or item.get('namespace', {}).get('forced'): errors.append(name + ': namespace cleanup')
         save(out/(scope+'-wire-evaluation.json'), {'failures': errors, 'cleanup': cleanup,
-             'peer_order_policy': 'relay-multi only: stable destination-channel comparison; raw UDP socket readiness order retained; every packet/source/destination/count stays compared'})
+             'peer_order_policy': 'kernel receive chronology verified per side; packet/source/destination/flags/count/order exact; absolute receive clocks excluded from paired protocol equality'})
         result['failures'].extend({'scope': scope, 'kind': 'independent-wire-health-cleanup', 'error': error} for error in errors)
     result['failures'].extend(dict(case=row['id'], **failure) for row in result['scenarios'] for failure in row['failures'])
     if not result['scenarios']: result['failures'].append({'kind': 'missing-scenarios'})
