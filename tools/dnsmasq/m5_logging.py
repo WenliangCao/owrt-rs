@@ -2053,6 +2053,12 @@ def run_daemon(root, side, case, out):
                             trace['identity'] = process_identity(root, service_pid)
                             if trace['identity']['sha256'] != sha256(image_path(root, executable)):
                                 raise AssertionError('wrong detached daemon ELF')
+                            # The readiness request may wait while startup
+                            # changes cwd/stdio. Record the state after its
+                            # response, rather than the earlier liveness probe.
+                            state = proc_state(service_pid, root)
+                            if not state or state['state'] == 'Z':
+                                raise ProcessLookupError(service_pid)
                             observed['ready'] = True
                             trace['samples'].append(state)
                             observed['process'] = {'is_original': service_pid == process.pid,
