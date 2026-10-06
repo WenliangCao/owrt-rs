@@ -235,6 +235,9 @@ def archive_gate(spec, attempt, record, state, state_path):
         if sha256(folder/'archive.tar.gz')!=packed['archive_sha256']:raise ValueError('remote archive changed')
         intent=folder/'prune-intent.json'
         if not intent.exists():
+            archive.assert_finished(attempt)
+            if archive.inventory(attempt)!=inventory:
+                raise ValueError('raw run changed after packing; preserve all new content')
             save(intent,{'run':str(attempt),'archive_sha256':packed['archive_sha256'],
                          'local_full_metadata_verified':True,
                          'allocated_bytes':sum(p.lstat().st_blocks*512 for p in [attempt,*attempt.rglob('*')])})
