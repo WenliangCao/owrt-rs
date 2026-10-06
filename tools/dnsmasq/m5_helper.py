@@ -170,6 +170,7 @@ class Side:
         self.env = {**os.environ, 'LC_ALL': 'C', 'M5_OUTPUT': self.inside + '/events',
                     **(env or {})}
         self.debug = debug
+        self.cli_flags = []
         self.process = None; self.log = None; self.client = None
         self.xid = 0; self.raw = []; self.stages = []; self.descendants = set()
         self.support = []
@@ -214,7 +215,7 @@ class Side:
         if self.name == 'hotplug':
             self.start_hotplug()
         self.log = (self.out / f'{self.side}-{self.name}.log').open('wb')
-        args = ['--no-daemon' if self.debug else '--keep-in-foreground', '--conf-file=' + self.inside + '/config']
+        args = ['--no-daemon' if self.debug else '--keep-in-foreground', '--conf-file=' + self.inside + '/config', *self.cli_flags]
         self.process = subprocess.Popen(command(self.root, self.side, *args),
                                         env=self.env, stdout=self.log, stderr=self.log,
                                         start_new_session=True)

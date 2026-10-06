@@ -413,7 +413,9 @@ def delay_case(root, side, out, spec):
     (folder / 'config').write_text(runner.config.read_text())
     try:
         runner.start()
-        save(folder / 'identity.json', process_identity(root, runner.process.pid))
+        identity=process_identity(root, runner.process.pid)
+        save(folder / 'identity.json', identity)
+        assert all(flag in identity['cmdline'] for flag in runner.cli_flags),'actual configured CLI caller'
         packets = [delay_exchange(runner, folder, spec)]
         if spec.get('ack'): packets.append(delay_exchange(runner, folder, spec, 0x7932, kind=3))
         result = dict(case=spec['case'], packets=packets)
