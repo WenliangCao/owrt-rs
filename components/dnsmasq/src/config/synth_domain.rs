@@ -292,7 +292,12 @@ impl SynthDomain {
         name.extend_from_slice(label.as_bytes());
         name.push(b'.');
         name.extend_from_slice(&self.domain);
-        Some(name)
+        // domain.c:153-209 constructs PTR targets without DNS label or wire
+        // length checks. Only publish a target the ordinary encoder can emit;
+        // its root fallback would fabricate a PTR for an invalid target.
+        crate::dns::wire::Name::from_dotted_bytes(&name)
+            .ok()
+            .map(|_| name)
     }
 }
 
@@ -311,6 +316,29 @@ mod tests {
         assert!(ipv4.range.contains("192.0.2.6".parse().unwrap()));
         assert!(!ipv4.range.contains("192.0.2.5".parse().unwrap()));
     }
+    #[test]
+    fn reverse_derivation_requires_representable_target() {
+        let mut argument = b"test,2001:db8::7,2001:db8::9,".to_vec();
+        argument.extend_from_slice(&[b'p'; 47]);
+        let domain = parse(&EncodedArg::command_line(&argument)).unwrap();
+        assert!(domain.reverse("2001:db8::7".parse().unwrap()).is_none());
+        let mut forward = [b'p'; 47].to_vec();
+        forward.extend_from_slice(b"2001-db8--7.test");
+        assert_eq!(domain.forward(&forward, true), Some("2001:db8::7".parse().unwrap()));
+
+        for (prefix, valid) in [(24, true), (25, false)] {
+            let argument = format!("test,2001:db8::7,2001:db8::9,{}", "p".repeat(prefix));
+            let domain = parse(&EncodedArg::command_line(argument.as_bytes())).unwrap();
+            assert_eq!(domain.reverse("2001:db8::7".parse().unwrap()).is_some(), valid);
+        }
+        for (last_label, valid) in [(51, true), (52, false)] {
+            let suffix = format!("{}.{}.{}.{}", "a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(last_label));
+            let argument = format!("{suffix},192.0.2.7,192.0.2.9");
+            let domain = parse(&EncodedArg::command_line(argument.as_bytes())).unwrap();
+            assert_eq!(domain.reverse("192.0.2.7".parse().unwrap()).is_some(), valid);
+        }
+    }
+
     #[test]
     fn image_explicit_ipv6_range_and_indexed_literal_boundaries() {
         let domain = parse(&EncodedArg::command_line(b"test,2001:db8::7,2001:db8::9")).unwrap();

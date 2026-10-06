@@ -451,7 +451,7 @@ impl RecordConfig {
                     name.push(b'.');
                     name.extend_from_slice(domain);
                     record.name = crate::hosts::canonicalise(&name)
-                        .ok_or(Error("bad SRV name after domain appended"))?;
+                        .ok_or(Error("bad srv-host name (null) after domain appended"))?;
                 }
             }
         }
