@@ -244,6 +244,7 @@ def tftp_worker(args):
     next_ns = epoch["warmup_start_ns"]
     end_ns = epoch["measurement_end_ns"]
     rows = []
+    raw_counts = {"warmup": 0, "measurement": 0}
     stream = (args.output / "tftp-transfers.jsonl").open("w")
     try:
         while next_ns < end_ns:
@@ -284,8 +285,7 @@ def tftp_worker(args):
                         raise ValueError("incorrect TFTP payload")
                     ack = struct.pack("!HH", 4, block)
                     endpoint.sendto(ack, peer)
-                    if len(rows) < 10:
-                        row["wire"].append({"data": packet.hex(), "ack": ack.hex()})
+                    row["wire"].append({"data": packet.hex(), "ack": ack.hex()})
                     if len(packet) < 516:
                         if bytes(received) != expected:
                             raise ValueError("incomplete TFTP payload")
@@ -299,6 +299,10 @@ def tftp_worker(args):
             row["completion_monotonic_ns"] = time.monotonic_ns()
             row["latency_ns"] = row["completion_monotonic_ns"] - started
             row["completed_within_window"] = row["completion_monotonic_ns"] <= end_ns
+            if row["correct"] and raw_counts[row["phase"]] >= 10:
+                row["wire"] = []
+            else:
+                raw_counts[row["phase"]] += 1
             rows.append(row)
             stream.write(json.dumps(row) + "\n")
             stream.flush()
@@ -483,17 +487,17 @@ def run_load(args, daemon, root, upstream):
             time.sleep(.005)
         if process.returncode != 0:
             raise RuntimeError(f"load generator exited {process.returncode}")
+        for label, scheduled in boundaries:
+            if label not in points:
+                points[label] = snapshot(daemon.pid, args.output, label)
+                points[label]["scheduled_monotonic_ns"] = scheduled
+                points[label]["capture_lag_ns"] = points[label]["cgroup_cpu"]["monotonic_ns"] - scheduled
         if tftp is not None:
             tftp.wait(args.timeout_ms / 1000 + 3)
             if tftp.returncode != 0:
                 raise RuntimeError(f"TFTP measurement worker exited {tftp.returncode}")
             if not (args.output / "tftp.json").exists():
                 raise RuntimeError("TFTP worker did not produce complete counters")
-        for label, scheduled in boundaries:
-            if label not in points:
-                points[label] = snapshot(daemon.pid, args.output, label)
-                points[label]["scheduled_monotonic_ns"] = scheduled
-                points[label]["capture_lag_ns"] = points[label]["cgroup_cpu"]["monotonic_ns"] - scheduled
         load_finished = snapshot(daemon.pid, args.output, "load-finished")
         if pending_reload is not None:
             pending_reload["row"]["publication_correct"] = False
