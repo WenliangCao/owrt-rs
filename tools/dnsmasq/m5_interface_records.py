@@ -800,6 +800,11 @@ def service_cases():
             files.probe('ptr-new','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
             files.probe('ptr-v6',ipaddress.ip_address('2001:db8:91::9').reverse_pointer,type=12,transports=['udp']),
             files.probe('recovered','iface.records.test',transports=['udp'])])
+    for option in ('domain','domain-suffix'):
+        wrapped=copy.deepcopy(next(case for case in cases if case['id']==option+'-bounds-prefix4-0'))
+        wrapped.update(id=option+'-extreme-prefix-wrap-runtime',extreme_input=True)
+        wrapped['config']=wrapped['config'].replace('192.0.2.7/0\n','192.0.2.7/4294967296\n')
+        cases.append(wrapped)
     owner='s'*63+'.'+'t'*63
     suffix='a'*63+'.'+'b'*61
     target='.'.join(['a'*63,'b'*63,'c'*63,'d'*61])
@@ -1503,7 +1508,7 @@ def ordinary_contract(scope):
     manifest=json.loads(Path(__file__).with_suffix('.json').read_text())
     options=manifest['options'] if scope=='all' else SCOPES[scope]
     prefixes={'interface':('IF-','DH-'),'synth':('SYN-',),'domain':('DOM',),'hostsdir':('HDIR-',)}
-    rows=[row for row in manifest['required_cases'] if (scope=='all' or row['id'].startswith(prefixes[scope])) and not row['status'].startswith('deferred-')]
+    rows=[row for row in manifest['required_cases'] if (scope=='all' or row['id'].startswith(prefixes[scope])) and not row['status'].startswith('deferred-') and not row.get('closeout_only')]
     if not rows or any(not row['case_ids'] for row in rows):raise AssertionError('ordinary source row lacks concrete profiles')
     return manifest,options,rows
 
@@ -1511,7 +1516,7 @@ def ordinary_contract(scope):
 def ordinary_cases(mode,scope):
     manifest,options,rows=ordinary_contract(scope)
     mapped={ident for row in rows for ident in row['case_ids']}
-    deferred={ident for item in manifest.get('known_deferred_components',[]) for ident in item['case_ids']}
+    deferred={ident for item in manifest.get('known_deferred_components',[]) for ident in item['case_ids']} | set(manifest.get('ordinary_excluded_cases',[]))
     prefixes=[]
     if set(options)&{'interface-name','dynamic-host'}:prefixes+=['interface-','dynamic-']
     if 'synth-domain' in options:prefixes+=['synth-']

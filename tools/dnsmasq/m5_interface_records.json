@@ -4118,12 +4118,21 @@
       "boundary": "SYN-PTR",
       "required_case": "prefix/name length and wire label boundary",
       "source_anchors": [
-        "domain.c:153-202",
-        "rfc1035.c:1875-2011"
+        "domain.c:153-209",
+        "rfc1035.c:1992-2000",
+        "rfc1035.c:1600-1608",
+        "util.c:294-324"
       ],
-      "case_ids": [],
-      "status": "deferred-extreme-input-under-user-policy",
-      "scope_note": "Overlong derived DNS labels/names retain the original boundary for later known-differences repair and do not gate ordinary operation closure."
+      "case_ids": [
+        "synth-extreme-label-24",
+        "synth-extreme-label-25",
+        "synth-extreme-label-47",
+        "synth-extreme-name-51",
+        "synth-extreme-name-52"
+      ],
+      "status": "closeout-extreme-disposed-with-explicit-wire-safety-difference",
+      "scope_note": "Legal 63-byte labels/255-byte wire names pair exactly. C emits label64/86 or 256-byte wire targets; Rust omits invalid PTR and takes the normal resolver path. Explicit raw-wire, real-forward, health and cleanup guards preserve this intentional difference.",
+      "closeout_only": true
     },
     {
       "id": "SYN-PTR/14",
@@ -4986,20 +4995,62 @@
       "observation": "Fresh C nonterminal records have zero UID rather than path UID, so removing a path does not reconstruct or necessarily remove ancestors. A real-name insertion deletes an existing empty nonterminal; qualified C/R ancestor and configured-CNAME outcomes preserve this image behavior."
     }
   ],
-  "qualification_scope_policy": "Ordinary complete interface/dynamic/synthetic contracts close independently. Extreme-input differences retain their frozen rows and raw red evidence for later repair under the user policy.",
-  "known_deferred_components": [
+  "qualification_scope_policy": "Frozen ordinary contracts stay unchanged. Closeout extreme profiles are separately disposed by fresh pairing or explicit safe-reference guard; they never silently become ordinary rows.",
+  "known_deferred_components": [],
+  "ordinary_excluded_cases": [
+    "domain-prefix-wrap",
+    "domain-suffix-prefix-wrap"
+  ],
+  "closeout_dispositions": [
     {
       "row": "DOM-GRAM/08",
+      "status": "repaired-and-fresh-paired",
       "case_ids": [
         "domain-prefix-wrap",
-        "domain-suffix-prefix-wrap"
+        "domain-suffix-prefix-wrap",
+        "domain-extreme-prefix-wrap-runtime",
+        "domain-suffix-extreme-prefix-wrap-runtime"
       ],
-      "reason": "Frozen overflow input 4294967296 is retained as extreme-input C/R difference; C wraps to zero, Rust rejects. Ordinary empty/text/negative and valid-width contract still qualifies."
+      "result": "Both aliases fold 4294967296 to image low-32-bit zero, accept and reproduce /0 address-specific host expansion. Ordinary frozen scope stays unchanged."
     },
     {
       "row": "DOM-CALLER/09",
-      "case_ids": [],
-      "reason": "Overlong appended SRV owner maximum-name input remains unexecuted extreme component; ordinary one-dot owner/suffix ordering is qualified separately."
+      "status": "repaired-and-fresh-paired",
+      "case_ids": [
+        "domain-srv-appended-125",
+        "domain-srv-appended-126",
+        "domain-suffix-srv-appended-125",
+        "domain-suffix-srv-appended-126",
+        "domain-srv-components-max"
+      ],
+      "result": "253-byte finalized owner accepted; 254-byte owner rejects with exact image EC_MISC5 and errno-zero diagnostic. Legal 63-byte owner labels and 253-byte target pair over UDP/TCP."
+    },
+    {
+      "row": "SYN-PTR/13",
+      "status": "intentional-wire-safety-difference-fresh-guarded",
+      "case_ids": [
+        "synth-extreme-label-24",
+        "synth-extreme-label-25",
+        "synth-extreme-label-47",
+        "synth-extreme-name-51",
+        "synth-extreme-name-52"
+      ],
+      "result": "Wire-unrepresentable synthesized targets are omitted instead of malformed C wire or the old Rust fake-root PTR."
+    },
+    {
+      "row": "DOM-GRAM/SYN-GRAM-negative-ipv6",
+      "status": "intentional-memory-safety-rejection-rust-only",
+      "case_ids": [
+        "domain-negative-v6-prefix",
+        "domain-suffix-negative-v6-prefix",
+        "synth-domain-negative-v6-prefix"
+      ],
+      "source_anchors": [
+        "option.c:2679-2697",
+        "domain.c:264-279",
+        "util.c:523-535"
+      ],
+      "result": "4294967295 folds to signed -1 in C, which reaches memcmp with a huge size_t. Rust explicitly rejects; this undefined C memory path is never executed."
     }
   ]
 }
