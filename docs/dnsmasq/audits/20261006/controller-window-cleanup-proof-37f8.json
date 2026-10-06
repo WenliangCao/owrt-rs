@@ -1,0 +1,119 @@
+{
+  "behaviors": {
+    "cleanup": "Remember PID start times for this job and its descendants before termination and during execution. Signal only matching PID generations, including detached sessions; stop surviving tracked descendants even after the parent exits.",
+    "guard": "After the first real process scan, recheck only its candidates against a fresh ancestry snapshot. Newly born owned children are excluded; unrelated family processes still reject the window."
+  },
+  "cleanup_controls": [
+    "Real workers with their own sessions/process groups stop while unrelated sibling remains alive.",
+    "A mismatched PID start-time witness never signals the unrelated process.",
+    "Real namespace wrappers and their workers in separate groups all stop; unrelated sibling remains alive."
+  ],
+  "cleanup_repair_commit": "7692ee704552bd5ca7ee35cf19c903642523b5ba",
+  "date": "2026-10-06",
+  "default_6fb_producer_modified": false,
+  "diagnostics": [
+    {
+      "actual_observations": [
+        {
+          "first_scan_candidates": [
+            {
+              "argv": "unshare --net --mount --pid --fork --mount-proc /usr/bin/python3 /tmp/m5-window-dq5_9kkr/m3_owned_guard.py /tmp/m5-window-dq5_9kkr/owned-ready.json ",
+              "pid": 3715692
+            },
+            {
+              "argv": "/usr/bin/python3 /tmp/m5-window-dq5_9kkr/m3_owned_guard.py /tmp/m5-window-dq5_9kkr/owned-ready.json ",
+              "pid": 3715693
+            }
+          ],
+          "namespace": {
+            "net_namespace": "net:[4026533131]",
+            "pid": 1
+          },
+          "own_child_accepted": true,
+          "related_scans": 2
+        },
+        {
+          "busy": [
+            {
+              "argv": "/usr/bin/python3 /tmp/m5-window-hmkl3dwu/m3_foreign_guard.py /tmp/m5-window-hmkl3dwu/foreign-ready.json ",
+              "pid": 3715694
+            }
+          ],
+          "foreign_rejected": true,
+          "related_scans": 2
+        }
+      ],
+      "archive": {
+        "archive_sha256": "613dd4e90bfe54ebc88d07a0722a3e52637ab01942aadaead7ed9c9430b9d5ed",
+        "entries": 4,
+        "regular_files": 3,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "git_tools_archive_sha256": "688a63fad18ae8f8884f87d9cf0ab54265782835a6fccd78b8c8d5d307e2705a",
+      "private_evidence": "private/dnsmasq-rewrite/evidence/M5/final-window-guard-20261006",
+      "raw_archive_tree_pruned": true,
+      "raw_log_sha256": "efe03e8d4950611a18f7edf7ca1cbc5ee6c648dbf8217de6e773496ecff37437",
+      "tests_passed": 2,
+      "tools_commit": "5f4aeda88099742674db06ca71d4653ce47c6e30",
+      "tools_sha256": {
+        "m5_final_validation.py": "81f12c11d9bcf7a33059d815b2499686a2ec7de8d96234b92183f46ac9a62d0d",
+        "test_m5_exclusive_window.py": "8763e81cf1cf94e66ef899b1264ba6227c51f244481013467128392587255da2"
+      }
+    },
+    {
+      "actual_observations": [
+        {
+          "all_owned_live_processes_stopped": true,
+          "foreign_pid": 3718788,
+          "foreign_survived": true,
+          "namespace": false,
+          "owned_groups": {
+            "3718789": 3718789,
+            "3718790": 3718790,
+            "3718791": 3718791
+          }
+        },
+        {
+          "all_owned_live_processes_stopped": true,
+          "foreign_pid": 3718794,
+          "foreign_survived": true,
+          "namespace": true,
+          "owned_groups": {
+            "3718795": 3718795,
+            "3718796": 3718796,
+            "3718797": 3718797,
+            "3718798": 3718796,
+            "3718799": 3718797
+          }
+        }
+      ],
+      "archive": {
+        "archive_sha256": "9771d99731705b503740eb6df1eb34c40324f6439c4d3d7a378dfd2e434afa08",
+        "entries": 4,
+        "regular_files": 3,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "git_tools_archive_sha256": "682ae03b17077d5ec5555f091215174c85f09eeda2e144325ab9212d60c7bf9a",
+      "private_evidence": "private/dnsmasq-rewrite/evidence/M5/final-job-cleanup-20261006",
+      "raw_archive_tree_pruned": true,
+      "raw_log_sha256": "bbd16eaef62d2c8acf96c943a24c27f62c1a9565d018ba52004a18fbdf35153d",
+      "tests_passed": 3,
+      "tools_commit": "7692ee704552bd5ca7ee35cf19c903642523b5ba",
+      "tools_sha256": {
+        "m5_final_validation.py": "48a1eecf7f5a946b7470d7586d427a90344a1b9ae88d281001b3857b505b922f",
+        "test_m5_job_cleanup.py": "b3cbe743b73971cb48829048b839b287136584c99aa31ccf5e9d146a863263e7"
+      }
+    }
+  ],
+  "exclusive_guard_repair_commit": "5f4aeda88099742674db06ca71d4653ce47c6e30",
+  "frozen_product_elf_modified": false,
+  "guard_controls": [
+    "Real child born after first exclusion snapshot in a separate PID/mount/network namespace; two initial false candidates removed by second real ancestry scan.",
+    "Real unrelated sibling remained outside the ownership tree and rejected the exclusive window."
+  ],
+  "physical_router_touched": false,
+  "schema": 1,
+  "scope": "Short isolated tooling diagnostics. The passing pressure run used the earlier guarded controller; this cleanup refinement is for later controller cancellations and does not change that frozen result."
+}
