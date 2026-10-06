@@ -22,5 +22,15 @@
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libgmp10-6.3.0-r2.apk": "47e0bdd7041cfc23918fb395028ff06786ac4b36bff2f001c67323e1c33a068e",
     "/home/ubuntu/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M4/package-faa-accepted-1791030400/variant-apks/libnetfilter-conntrack3-1.1.0-r1.apk": "9003e84ff2d673f53c16747fc06b27d4d8a01751d42ee51f0123be3f3ac08200"
   },
-  "scope": "Paths and hashes checked read-only on Oracle; final source/ELF and exclusive resource window are not chosen, and no final qualification was executed."
+  "scope": "Paths and hashes checked read-only on Oracle; final source/ELF and exclusive resource window are not chosen, and no final qualification was executed.",
+  "ubus_exact_image_assets": {
+    "runner": "/home/ubuntu/m5-final-assets-20261006/private/ubus-image/dnsmasq-image-runner",
+    "runner_sha256": "955e427b572e4274fcf6188d2053ca9cbb7c04cc595fa2df599164c5d30f46da",
+    "identity": "/home/ubuntu/m5-final-assets-20261006/private/ubus-image/image-identity.json",
+    "identity_sha256": "26d029efc7835af8a80c16bf555fabe73345bdd29f8b8b401ae798d6a408bf6e",
+    "native_helper_build": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01",
+    "native_helper_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "reference_source": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93/src",
+    "scope": "Root verified actual exact-image --version and all five pinned image files; native build supplies helpers only."
+  }
 }

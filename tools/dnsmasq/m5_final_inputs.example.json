@@ -27,11 +27,11 @@
   "safety_review": "/home/ubuntu/M5-FINAL/private/safety-review.json",
   "bindings": {
     "link_map": "/home/ubuntu/M5-FINAL/private/release/link.map",
-    "reference_source": "MATCHING_UPSTREAM_DNSMASQ_2_93_SRC_DIRECTORY",
-    "ubus_reference_build": "AUDITED_NATIVE_UBUS_HELPER_BUILD_DIRECTORY",
-    "ubus_native_c_sha": "AUDITED_NATIVE_HELPER_C_SHA256_NOT_AUTHORITY",
-    "ubus_image_runner": "PINNED_EXACT_IMAGE_MUSL_RUNNER",
-    "ubus_image_identity": "PINNED_EXACT_IMAGE_RUNNER_IDENTITY_JSON"
+    "reference_source": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93/src",
+    "ubus_reference_build": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01",
+    "ubus_native_c_sha": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "ubus_image_runner": "/home/ubuntu/m5-final-assets-20261006/private/ubus-image/dnsmasq-image-runner",
+    "ubus_image_identity": "/home/ubuntu/m5-final-assets-20261006/private/ubus-image/image-identity.json"
   },
   "cpus": [
     0,

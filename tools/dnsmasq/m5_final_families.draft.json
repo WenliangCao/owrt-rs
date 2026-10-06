@@ -1,12 +1,8 @@
 {
   "schema": 1,
-  "complete": false,
-  "scope": "Fresh full original driver schedules on one final ELF; no old result reuse. Draft awaits final remaining-family tools and review of completion fields/scopes.",
-  "pending": [
-    "Incoming logging companion overflow-seven and signed-ID probe tools must be merged into the frozen source; registry commands and exact IDs now specified.",
-    "Endpoint local archive gate requires retained plain receipts and locally verified/pruned archive proof; fill reference_source and UBus helper/runner bindings.",
-    "Complete remaining original-family report-field review, then set complete=true as plan review only; execution_status stays not-executed."
-  ],
+  "complete": true,
+  "scope": "Reviewed complete final functional registry. Every command runs fresh on one frozen ELF; complete describes plan coverage only, never execution.",
+  "pending": [],
   "families": [
     {
       "id": "m5_option_matrix",
@@ -665,7 +661,8 @@
             "passed": true,
             "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
             "rust_sha256": "{elf_sha}",
-            "failures": []
+            "failures": [],
+            "compared": 102
           },
           "inventory": {
             "field": "cases",
@@ -940,7 +937,9 @@
               "capacity-single-fd40",
               "reference-single-replace-v4",
               "reference-single-replace-v6",
-              "reference-root-parent-component"
+              "reference-root-parent-component",
+              "reference-zero-block-v4",
+              "reference-zero-block-v6"
             ],
             "fields": [
               "rows",
@@ -1201,7 +1200,11 @@
           "checks": {
             "passed": true,
             "comparison_executed": true,
-            "failures": []
+            "failures": [],
+            "profile_count": 138,
+            "case_count": 260,
+            "syntax_count": 61,
+            "negative_controls.passed": true
           },
           "inventory": {
             "field": "profiles",
@@ -4671,6 +4674,162 @@
             "source_commit": "{commit}",
             "image_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
           }
+        },
+        {
+          "id": "closeout-syntax",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_interface_records.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--mode",
+            "syntax",
+            "--side",
+            "both",
+            "--out",
+            "{out}/closeout-syntax",
+            "--case",
+            "domain-prefix-wrap",
+            "--case",
+            "domain-suffix-prefix-wrap",
+            "--case",
+            "domain-srv-appended-125",
+            "--case",
+            "domain-srv-appended-126",
+            "--case",
+            "domain-suffix-srv-appended-125",
+            "--case",
+            "domain-suffix-srv-appended-126"
+          ],
+          "result": "{out}/closeout-syntax/result.json",
+          "checks": {
+            "failures": [],
+            "comparison_executed": true,
+            "rust_sha256": "{elf_sha}",
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "id",
+            "ids": [
+              "domain-prefix-wrap",
+              "domain-suffix-prefix-wrap",
+              "domain-srv-appended-125",
+              "domain-srv-appended-126",
+              "domain-suffix-srv-appended-125",
+              "domain-suffix-srv-appended-126"
+            ]
+          }
+        },
+        {
+          "id": "closeout-rust-refusals",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_interface_records.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--mode",
+            "syntax",
+            "--side",
+            "rust",
+            "--out",
+            "{out}/closeout-rust-refusals",
+            "--case",
+            "domain-negative-v6-prefix",
+            "--case",
+            "domain-suffix-negative-v6-prefix",
+            "--case",
+            "synth-domain-negative-v6-prefix"
+          ],
+          "result": "{out}/closeout-rust-refusals/result.json",
+          "checks": {
+            "failures": [],
+            "comparison_executed": false,
+            "rust_sha256": "{elf_sha}",
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "id",
+            "ids": [
+              "domain-negative-v6-prefix",
+              "domain-suffix-negative-v6-prefix",
+              "synth-domain-negative-v6-prefix"
+            ]
+          }
+        },
+        {
+          "id": "closeout-service",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_interface_records.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--source-commit",
+            "{commit}",
+            "--mode",
+            "service",
+            "--side",
+            "both",
+            "--out",
+            "{out}/closeout-service",
+            "--case",
+            "domain-extreme-prefix-wrap-runtime",
+            "--case",
+            "domain-suffix-extreme-prefix-wrap-runtime",
+            "--case",
+            "domain-srv-components-max",
+            "--case",
+            "synth-extreme-label-24",
+            "--case",
+            "synth-extreme-label-25",
+            "--case",
+            "synth-extreme-label-47",
+            "--case",
+            "synth-extreme-name-51",
+            "--case",
+            "synth-extreme-name-52"
+          ],
+          "result": "{out}/closeout-service/result.json",
+          "checks": {
+            "failures": [],
+            "comparison_executed": true,
+            "rust_sha256": "{elf_sha}",
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "id",
+            "ids": [
+              "domain-extreme-prefix-wrap-runtime",
+              "domain-suffix-extreme-prefix-wrap-runtime",
+              "domain-srv-components-max",
+              "synth-extreme-label-24",
+              "synth-extreme-label-25",
+              "synth-extreme-label-47",
+              "synth-extreme-name-51",
+              "synth-extreme-name-52"
+            ]
+          }
         }
       ]
     },
@@ -5204,5 +5363,33 @@
       ]
     }
   ],
-  "execution_status": "not-executed"
+  "execution_status": "not-executed",
+  "coverage_review": {
+    "ordinary_options": 169,
+    "families": 44,
+    "commands": 68,
+    "cache_schedules": 536,
+    "device_binding_schedules": 27,
+    "primary_logging": 329,
+    "ordinary_dhcp_logging": 55,
+    "additional_warning_profiles": 7,
+    "dump_full_rows": 70,
+    "dumpmask_required": 36,
+    "dumpfile_required": 70,
+    "reply_delay_profiles": 25,
+    "tftp_service_profiles": 30,
+    "tftp_reference_profiles": 5,
+    "tftp_configuration_safety_refusals": 6,
+    "pxe_syntax": 61,
+    "pxe_packet_cases": 260,
+    "boot_compared": 102,
+    "boot_parser_cases": 6,
+    "interface_ordinary_required": 288,
+    "interface_closeout_paired_syntax": 6,
+    "interface_closeout_rust_only_syntax": 3,
+    "interface_closeout_paired_service": 8,
+    "endpoint_required_rows": 191,
+    "ubus_paired_observations": 350,
+    "archive_gate": "Real local full-metadata verification and SHA-tied prune receipts; no placeholder completion."
+  }
 }
