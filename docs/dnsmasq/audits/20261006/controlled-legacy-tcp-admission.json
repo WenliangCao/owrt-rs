@@ -1,0 +1,715 @@
+{
+  "schema": "m5-controlled-legacy-tcp-admission-v1",
+  "date": "2026-10-06",
+  "tool_commit": "8d76c2d40d2fc028746b3e968331dec1ee43c164",
+  "tool_inputs": {
+    "tools/dnsmasq/actual_config_e2e.py": "72d6eb8382c8c56cc550833d79cbd37fc98a558a82a0412ca56082fa30d5cd67",
+    "tools/dnsmasq/actual_config_network.py": "c2c94c0264f7622953014402d1be02cc501bbd87dac122cbc2ff9bbc22c5ef17",
+    "tools/dnsmasq/actual_config_rootfs.py": "4ed8ae1420497dd6826ec06295e746fc4dc0af4c3cdd6b8168ca9a1ebe7fd2dc",
+    "tools/dnsmasq/bootp_service_diff.py": "23ebff535a3520ee6141802b36906ef674ae871c7aba14049d8ce1250bef8269",
+    "tools/dnsmasq/bootp_vendor_diff.py": "854b3059b9b12fe59a852bbf8a36d157c57080f0bf02d6f3ade569d1d7ef1121",
+    "tools/dnsmasq/build_dyn1.py": "53df39558748af6c4d49f039ab191c9443ee689f70c64eb7f0aab8e3561b5cac",
+    "tools/dnsmasq/build_package.py": "358b5df1ff65f55bb8014613e80ccfdca1097f1c6683e7b279396e2159fd1c78",
+    "tools/dnsmasq/build_package.sh": "d71d477606d13515f95d3eacc0d4fdef56ae9be9ae86dd6b021822abdeee97c2",
+    "tools/dnsmasq/build_reference.sh": "3044f4c84b0ea70cf8553c0dc5208ccbd6e3b9fa9a541197f28fccb0f5a3f138",
+    "tools/dnsmasq/cache_answer_diff.py": "1d3a85be12f467190806833f47e863b760c95f4e67204d72b785898a7d8b260c",
+    "tools/dnsmasq/cache_answer_driver.c": "2066f1d536b2e25a8bc9659819c8d932bf51192a04b0cb844595fe08a9e980f8",
+    "tools/dnsmasq/cache_clipped_diff.py": "3307caa06f7730aa45cbd472ce7f72259e069566ede4df71291590e74028411b",
+    "tools/dnsmasq/cache_clipped_service_diff.py": "a00511e33c568f8e43c68da2df12ae817ab2859f7581782baea6813d419d5a0f",
+    "tools/dnsmasq/cache_edns_diff.py": "41def5daf71f7754685fe4a74fa00aac0186036454ef76a9c4e641e48c297aea",
+    "tools/dnsmasq/cache_expiry_baseline.py": "c8fe7e8824ba2a17433ceef24edf698acfb12e0dbf64065fdf77aa3ee77513c2",
+    "tools/dnsmasq/cache_expiry_screen.py": "28662eb0b2a6f9ae2215b64fcc71dde9e40c9e3663e399714f9d53c4b5b85c00",
+    "tools/dnsmasq/cache_expiry_screen.rs": "a0fa9c10011ff6d3d097d940f050a33b5b1aa0b10e9ec1f9bfcf23e50af57f60",
+    "tools/dnsmasq/cache_full_resource.py": "95f1e991f80201271ac40c1cea586c9f01ca9fb3a08d13042b59164ffda95d26",
+    "tools/dnsmasq/cache_metrics_diff.py": "f560089cfc3fd6b6b78ad3376ec7bf60113211d9152bf4255134342d5e0210aa",
+    "tools/dnsmasq/cache_metrics_driver.c": "8063b9afa4c4512418158a1d272616cbeeb14205a389dc638932f35933cf37a0",
+    "tools/dnsmasq/cache_metrics_probe.rs": "40c69f6e466e14cde9eb87f084c55e1de05d717767efcd511c157aec7020a4b2",
+    "tools/dnsmasq/cache_name_presence_diff.py": "c63a56f8d68c945ea0a2205ddedd9685cded21e989ad4298e81b5b9a9ee1a251",
+    "tools/dnsmasq/cache_partial_eof_driver.c": "94588a0e49a987430f934ffcf3643bcbcc4399623a77517dee6aba6bf1f83cc7",
+    "tools/dnsmasq/cache_partial_eof_oracle.py": "d7a8b8aceab54d822dec50c33a1e73f919c0babd3303973b21919b7ffcca094f",
+    "tools/dnsmasq/cache_partial_eof_rust_diff.py": "326a5c9ef2448652c73d635a9c2eb1abe138422cc5c40b138bf5753ff95e2d24",
+    "tools/dnsmasq/cache_policy_service_diff.py": "dfa8de929f3ef89109989924d1830eb45c79ec06ca89bfb3a21f91698fd6fdbb",
+    "tools/dnsmasq/cache_policy_transaction_diff.py": "ab2fa26b6856b402038a105aa43c46bc7f2249c755f49978a12202e395a523c6",
+    "tools/dnsmasq/cache_reverse_order_driver.c": "d94b7b204d7e91197d2dd064fb2021c877599b65fef8f9a56d3f1758f4cd7544",
+    "tools/dnsmasq/cache_reverse_order_oracle.py": "54071f778999a29f4a6aeca575e42497c817e66886787ece594bacef00756fdd",
+    "tools/dnsmasq/cache_reverse_order_recheck.py": "316da3bb8dfb8d04a1f844a9257c485a42a17268afc19e05a47eca57bd8c8029",
+    "tools/dnsmasq/cache_reverse_transfer_cases.py": "50be7e7aef5745972df5d5096526eaa69b8ef7f682ee9318afd4d321dbd850bc",
+    "tools/dnsmasq/cache_reverse_transfer_driver.c": "3360c37032f61933ac7b6516ec60374eea2973aeb2b37582b0e67e64651601e0",
+    "tools/dnsmasq/cache_reverse_transfer_oracle.py": "6b84e199d345374a0037fd489c793e19a13228095e42a93488acc4a1c56e592e",
+    "tools/dnsmasq/cache_reverse_transfer_probe.rs": "c05abe91dc84f3fe51dced680da4e2a5648337a150e40a170d76137045a15e86",
+    "tools/dnsmasq/cache_reverse_transfer_rust.py": "adf2d50b0059aac8939043bb44f1d376de3b336df8c849957a68c702496252ff",
+    "tools/dnsmasq/cache_transfer_allocation.py": "73799baf193aadf7cfe184f15aa8e1c0712c94eb054f0824fc15ecaafb10b3fc",
+    "tools/dnsmasq/cache_transfer_diff.py": "2ce5501cc302fbabfb31f3dc03a68ac31dc86ee3a0aeadcb0883072258bb260a",
+    "tools/dnsmasq/cache_transfer_driver.c": "578e5db1b31e262de14f02af1ebb26c79e0f9bb70099858f0868924698e20d2d",
+    "tools/dnsmasq/cache_transfer_rust_diff.py": "6f47991eb86f18efe6c24f4c2091ed9e18fdd7168571f0b99b201883e0214d0c",
+    "tools/dnsmasq/cache_uninit_probe.py": "5a571c31a49163e6c8324f95a633bb890020b8096ed29ee3992cc13d2b51895d",
+    "tools/dnsmasq/check_rootfs_overlay.py": "04b4468dda011eed687bbeda50f51b537cd3c4811d4e8d723b9080169cd0a7f6",
+    "tools/dnsmasq/config_startup_exit_diff.py": "f592f5d78cb8d9be2c3051f4c2bb71a6081be26aac497583a46088a9997e55b0",
+    "tools/dnsmasq/contract_inventory.py": "edd6a92c3902f71fe3b4211433f9eac4c1270143ce8ce0c607e31bde5daf9985",
+    "tools/dnsmasq/dhcp_actual_tags_diff.py": "4d61fe5b47a07f98f0a518af43ef0a12adaa56493962f1cee2f0f182e6973414",
+    "tools/dnsmasq/dhcp_arp_diff.py": "b7881aa90b06da95f2adceb1636d0580013cb0300befb7c9550fa7ec4ad92226",
+    "tools/dnsmasq/dhcp_arp_linux.py": "434e1851c0abb6a31869a8fc9bb7eaf47ace876c8ae8d7494788f426f471fc50",
+    "tools/dnsmasq/dhcp_arp_probe.rs": "895da24965bf6bce6d5103fe4bbf41b5b9282764c1f51fe99a0fcb12a0654393",
+    "tools/dnsmasq/dhcp_boot_hosts_diff.py": "a69c982900e709bafd95597b454c7aef536f47a8a99dda5e5b6817e7de6eb9df",
+    "tools/dnsmasq/dhcp_boot_options_diff.py": "15ec2281a73488cb934513fb0cf62661b17ae10c7954fb1d3e7519ae262d5e02",
+    "tools/dnsmasq/dhcp_boot_service_diff.py": "e6bd3a233f62f9dc120f7aecb523437ebab41fb19a39cf1eecb0fa0efd7dc847",
+    "tools/dnsmasq/dhcp_config_diff.py": "8a6043dcb7b4983a3bd483c71e4be82e99dc8843efbd799be0a90d10918f75c4",
+    "tools/dnsmasq/dhcp_context_diff.py": "f9a4f41771b8bebe568eecb11c8ab71e5fc4e5f34b00b35ddc71119dfb2c9115",
+    "tools/dnsmasq/dhcp_daemon_smoke.py": "9c276bf13970b6531a640a86defb384bbcce652d1693b52c475f3da21e61f97f",
+    "tools/dnsmasq/dhcp_destination_diff.py": "e0238a06076096bb2bc77a96a8c0cc5ab28938d4f140a59b1954142cf6aab012",
+    "tools/dnsmasq/dhcp_destination_probe.rs": "4700ae3bb8867644f65b5986e40f313e3b9c70f975a3fc66e0648abedc675c19",
+    "tools/dnsmasq/dhcp_differential.py": "c9f9663a4d271529de8020105a6910b1beacdc8e95e6740e690e1d363607b158",
+    "tools/dnsmasq/dhcp_dns_diff.py": "de48a307723122ebb122701dc18a265a08077905805585df71a581ae6b77d9fe",
+    "tools/dnsmasq/dhcp_ethers_diff.py": "f5e389e57e840d902de1eff2e620620a303cdfd66995ff5e8f9a3600b6a5637b",
+    "tools/dnsmasq/dhcp_ethers_hosts_diff.py": "b1bf09551db84824899823cfad0efeca6157764bb6f1ded67371153f87ee4430",
+    "tools/dnsmasq/dhcp_event_order_check.py": "596bc12f317412af8f610d9c82816ac9c44fd396d1eb6454f670c25050ced5f5",
+    "tools/dnsmasq/dhcp_event_order_probe.rs": "bec1f055168c9c30c011af14b80587115b75ee543131c076e814834a77c0244c",
+    "tools/dnsmasq/dhcp_events_diff.py": "c8b536811a018e68861350027ca3d5a9c0cd480dbf0fac7bfcab1202b5a91102",
+    "tools/dnsmasq/dhcp_events_driver.c": "e518590741c5f61f589ac70dbd2e135a571e1857d26a42a7558ba023db7e993f",
+    "tools/dnsmasq/dhcp_events_probe.rs": "a7e3e03663fe05d7b4e169d291a5b3eb06c0ef4a3f110dc7d6466ff8905cca8e",
+    "tools/dnsmasq/dhcp_fqdn_domain_diff.py": "7e8fad998f501e2af4e494f1e552a30f5ec4ca96227273da0d5448cd5eae6738",
+    "tools/dnsmasq/dhcp_fqdn_restore_service.py": "6f6ca1a093e8209a1d040cd18a857ac01f4b7c555c4925e627d174d20507707a",
+    "tools/dnsmasq/dhcp_host_address_diff.py": "59d85be2f9d7578cbd597b24660ec5c7d53ceed8bea6eeddc7d6aeeaad322179",
+    "tools/dnsmasq/dhcp_host_config_diff.py": "3a70e99ebbc7a35fa0b4208406376f2e7ea041172071e08c8040488fe36df571",
+    "tools/dnsmasq/dhcp_host_lifecycle.py": "4e1c3363253864ba8de7a5758a01c1b8f0c5cf2006684695f0d61f03caab63fa",
+    "tools/dnsmasq/dhcp_host_reload_lifecycle.py": "94f973d9832d09d56ca1dd784ccec047a158972859d42056c29028cc701c4839",
+    "tools/dnsmasq/dhcp_hostfile_boundary.py": "538207ec127a4dc737c22cbb83cfbc66c5708da1efbaa598b10cc8444c5bfa2c",
+    "tools/dnsmasq/dhcp_hostsfile_diff.py": "70aea5200b820fd537519f754eeeade5b11e29ea8a8b7273b92b502a423a7878",
+    "tools/dnsmasq/dhcp_icmp_diff.py": "27a9d141b74f0cab5798b1087645e8d8d8fc3059189e0cbda5c9c78a0dd00bc9",
+    "tools/dnsmasq/dhcp_icmp_linux.py": "735d89154d761d84b53605785d6c019d291028522b93ad68df767bdcdcebfab2",
+    "tools/dnsmasq/dhcp_icmp_probe.rs": "dbb650fb565205bcddef3de6b2fac7e63e3114787c796dc50ad5e0880702ea99",
+    "tools/dnsmasq/dhcp_lease_lifecycle.py": "30f418c1d943ca1d833618c65e41d230bdd9850c441303134e9c52bf75115710",
+    "tools/dnsmasq/dhcp_listener_smoke.sh": "d2fd291ea2097322c704cb3dbb4bb7cbb2ded6b1bdef0508619a273ea3792ad5",
+    "tools/dnsmasq/dhcp_message_metrics_diff.py": "863593a8b6b91c06ddb14b83ed2689517188fa8b6b78975b5975c81ded7d59e7",
+    "tools/dnsmasq/dhcp_message_metrics_driver.c": "3e53af6c2df15bad8f0f50db088163256a9a7e58812e1ccdb588effc3857409c",
+    "tools/dnsmasq/dhcp_message_metrics_probe.rs": "b02f53ad84372296c7332c2c85648c5ba33db4f7bdd3b6579ea0c822eb954766",
+    "tools/dnsmasq/dhcp_options_service_diff.py": "c1c1605c4e12c93e3a5042b25fc9be28c9c762a6fec466846a791b0e52af4b92",
+    "tools/dnsmasq/dhcp_persistence_diff.py": "25c72d76fe3c51f5ac1c43c83fd519338a3fa33e4c0c950ce18ccd98f622100c",
+    "tools/dnsmasq/dhcp_persistence_probe.rs": "040b851a739285cb7e6b3a8be4da28331e8f72e4a9b09b5ffdd6435b3f8bafc8",
+    "tools/dnsmasq/dhcp_probe.rs": "b2b21fdf3b217f59db11b891721e34a43d8754c67a35c658bf251c631ea1a4b2",
+    "tools/dnsmasq/dhcp_reply_diff.py": "d369bde6d5da7ec9ac658c92a5745d406f045c8ac49e8d081d6dd400aeffd491",
+    "tools/dnsmasq/dhcp_restore_fqdn_diff.py": "cbc299a319567941fba58ec37be15574f2488cfda1a6f76cefcb215c7104bc9e",
+    "tools/dnsmasq/dhcp_reverse_lifecycle_diff.py": "b482323c782cc1dfa52406377e47be00a02a254239623f101e15d2a5968cea6c",
+    "tools/dnsmasq/dhcp_reverse_name_diff.py": "7a1f01cd2f1f78c7fdd6751efe3b9fac9d026cf1c8364bfd3e64942350a3fda0",
+    "tools/dnsmasq/dhcp_state_differential.py": "3a948c75a30b6d99d803f9632c7cdc962db112ba1801b92a3e7146079fa77d2e",
+    "tools/dnsmasq/dhcp_state_probe.rs": "88a1c4b3245cfdda973585e19b7fd30047ec1058cbff4de5e2948e4fbe650e63",
+    "tools/dnsmasq/dns_actual_policy_diff.py": "5c10c581432b63289c6fcce85c3d02ef1bf1eedb007e76fd52b7162f2c59a0a2",
+    "tools/dnsmasq/dns_address_config_diff.py": "e29a604470cf0790d62bffead059450072b13c608ec09e8560056fcb2083d2b5",
+    "tools/dnsmasq/dns_alias_config_diff.py": "fc05f9b82e99986aedc36e342c839c72a47f595d7ee66abb1305395c4bce4457",
+    "tools/dnsmasq/dns_alias_service_diff.py": "2740635b7dff5a15d3783ea2e03bfe13b62c8c074d03b159ef350f9120c4a89e",
+    "tools/dnsmasq/dns_bogus_cache_diff.py": "9f885db8003b5560d7a8fda506a7ad73c55d3d0b014abd2598bd64b9f345f1d6",
+    "tools/dnsmasq/dns_c_cost.py": "78bc4fe9a77a6f4c1ddc9cc00c0e57f46710a958376200ac51fa74ad2be7a86d",
+    "tools/dnsmasq/dns_c_cost_audit.py": "963252de1d0793d0d6d5e3b6f1aceeca4e6da2b6342df0f94e7a645284e9b2d9",
+    "tools/dnsmasq/dns_cache_diff.py": "4f2011408275e7aa6f08ac536f46d49e63a0b2396c32f4b1162485ebcbb0c215",
+    "tools/dnsmasq/dns_cache_rr_diff.py": "172561b2bea3e0b85a9bf05bbf1c663feaade545944887dd56c6706df295d90d",
+    "tools/dnsmasq/dns_cache_rr_zero_diff.py": "caad10ce0eb4eea6642b30727f5f1d59db6d058d38eacbabeff743709c975d69",
+    "tools/dnsmasq/dns_cd_prefix_diff.py": "7179d7661adfe9c55dc4de8b5b09d4f131ede673a7b7468857bb8243c9ca9bb9",
+    "tools/dnsmasq/dns_do_cache_diff.py": "a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4",
+    "tools/dnsmasq/dns_do_cross_type_pressure_diff.py": "12b983d90e49791df4e908df9b5bea601d784face6597f1939646c77efa700de",
+    "tools/dnsmasq/dns_do_lookup_pressure_diff.py": "3d2fd04aca8c52147ac40dc6903720d7cad01ea1523abb622ccb85e3ac34753d",
+    "tools/dnsmasq/dns_do_soa_pressure_diff.py": "cd0e07de387f983f8f8d0bf1d73a9440b7ee105369d5a095838bf1ac7465335d",
+    "tools/dnsmasq/dns_edns_coalescing_diff.py": "7c7b0b0305094adb4ed38e913fad94ecefbce87ee63ce79383f00c408c2d7f8a",
+    "tools/dnsmasq/dns_forward_diff.py": "bac139c6e770de336719fb721f875fd0fa3c54ffe86bf754d5590b29ad6d9ef9",
+    "tools/dnsmasq/dns_forward_service_diff.py": "0eaa6ae89a40bb1ad39236f2a4b0a7248ebd16cb7742f1eb6595b00ee7227f11",
+    "tools/dnsmasq/dns_generic_malformed_diff.py": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+    "tools/dnsmasq/dns_hosts_generation_diff.py": "e6024f68833c79d60c3eda6c61d28213c1b7c295db23eca48fbd5b60e308872e",
+    "tools/dnsmasq/dns_hosts_generation_oracle.py": "34130d862e2a06ad1938e79e4aa7866ce41fa23073940f7de41178f0636497c2",
+    "tools/dnsmasq/dns_listener_lifecycle_diff.py": "fe7e041b8f6ecbc82eea6148218f4a9c91f9c99526db76fbb640011909613f9b",
+    "tools/dnsmasq/dns_listener_policy_diff.py": "0b4dcbfca6edf80aa99fb7773af6b8b8983aaecbe03e16790dd7c4c7095749e9",
+    "tools/dnsmasq/dns_local_service_probe.py": "30a5cd8faadf8aa467d3e867b52a52907afd111f9b7ce952811788d587883098",
+    "tools/dnsmasq/dns_local_udp_diff.py": "9a4a03dda713dcd0b1130519bc3a41045bb2e3c247c3c68186af67d6a53381ed",
+    "tools/dnsmasq/dns_process_diff.py": "4abab5733a6e8db837551b94d0bdbcd384da12822cb5771e1e64f443243832dc",
+    "tools/dnsmasq/dns_reload_diff.py": "4158678550ee7d88884d0af191a17e3b34d3c2464690484ef79b7b5dd5c2cb14",
+    "tools/dnsmasq/dns_reply_diff.py": "b8db53b309b96dd3732353cb8fe6997bc066de623f8d88296d8e84e92567385d",
+    "tools/dnsmasq/dns_retry_failure_diff.py": "7321b08fd72c08aba87c4933589e16346dd49c6d53229dc3931d641c2ffdc799",
+    "tools/dnsmasq/dns_reverse_cache_diff.py": "c4c47d9e2854d1949487b1ac6efc8886bcdb03b2686eeea12b050f6954dc17cf",
+    "tools/dnsmasq/dns_reverse_lease_diff.py": "76e97c4dedc1026411e80ef985764050d8f0808c20f10588a5582530251146ee",
+    "tools/dnsmasq/dns_reverse_local_addon.py": "42bf3d66bb6ade586cfe37277f251889c178ab6e252240f0eaf493db584e8eb0",
+    "tools/dnsmasq/dns_send_retry_diff.py": "122fb8847c864e5476b91b1eecc57a75d6ea26dc5e0bbf072d272ce84bebdd7b",
+    "tools/dnsmasq/dns_service_probe.py": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+    "tools/dnsmasq/dns_shared_state_diff.py": "706d9de1eb97b9a6bf2839a6cd9fc3cffa2d4a3ea0ebb068f16308d668326e39",
+    "tools/dnsmasq/dns_signal_smoke.py": "84dae2d3fdae2333edee5a9ee8357fc50460d4c38f931310bd8d6dfc0b7ba2ba",
+    "tools/dnsmasq/dns_stale_refresh_diff.py": "4cfe0b53b8b443afd6ed6f6ebdfaca8928ae08006d00ea882ae6fbb99d13da11",
+    "tools/dnsmasq/dns_start_failure_diff.py": "f56c9435c57b72ed8aac1936363f69ff8cedf610a94a83eccbb40f6c5a11de28",
+    "tools/dnsmasq/dns_tcp_accept_failure_diff.py": "a08cfe8c247d7dcc978f0cf579a6a9631457c86dc311ff3834159ceeb6e96e54",
+    "tools/dnsmasq/dns_tcp_cache_diff.py": "00331e3ac704ad604a057e00dccda3f4f2806b88acaad5cea7e3303a8e6e65a3",
+    "tools/dnsmasq/dns_tcp_capacity_diff.py": "13293710fc4d30dd729a5f5a2e6e98bf6a743b8e199ea2549b1136ace9b2094d",
+    "tools/dnsmasq/dns_tcp_daemon_diff.py": "eaaa2dcbdef682dceccc34521a07c2a0f6465ceb0b40119665a1e26e9363779c",
+    "tools/dnsmasq/dns_tcp_ingress_diff.py": "7e824b8ce8a633266a9cb5698b4a5029b131e8dee47061f8d0a2c926db02e54a",
+    "tools/dnsmasq/dns_tcp_reload_diff.py": "d060a82af36ec7d6bf6c297a1a5fc66fe310e6b5d4905ee976b9c12c81f0712a",
+    "tools/dnsmasq/dns_tcp_writeback_diff.py": "755cc342b4e53fe6477e3f54d87ad20c84e547ffa8aeb99a26726d2e1dff6fef",
+    "tools/dnsmasq/dns_udp_admission_diff.py": "629a0a009db7d576bcf3811e0c2ce47b81080c5636a69c7b23df377c4bd1732e",
+    "tools/dnsmasq/dns_udp_admission_helper_diff.py": "e5b1c7b8d293b73e49efbe73b472aa3fdf2796c3b22010a1d5c81d1ec17a1606",
+    "tools/dnsmasq/dns_udp_deadline_diff.py": "905a25fe1f0a3152ecc47d028a07c85ef9b12cfd8178cae2c5ad539646886ff3",
+    "tools/dnsmasq/dns_udp_duplicate_limit_reference.py": "6c06f3487d83caf2ea3924523b13923bbf8f91df2b40514d989d4bae699cdc71",
+    "tools/dnsmasq/dns_udp_duplicate_policy_diff.py": "2661b9e1ed048208ec95ad2f9dcae126afa4a919fe1d1d3b3e84d3b97fec9c20",
+    "tools/dnsmasq/dns_udp_icmp_recovery.py": "28c7896e5c20ac11d0558ff0a53b5966d488c6953e9cd8dd885b23d660d6bba3",
+    "tools/dnsmasq/dns_udp_policy_diff.py": "aacc10c4e2c45a31be541a7380cfa077b5dee44e7fedd747e91707e3e38c8ee3",
+    "tools/dnsmasq/dns_udp_refusal_diff.py": "fd9c6be5c48104115103c4f0a0311e091c59e88916e7c93258f58dacca7ef901",
+    "tools/dnsmasq/dns_upstream_probe.py": "c898506e1b81bc9cddab6ec07787ea02414a06f248335f5b55b90b96e6b815fb",
+    "tools/dnsmasq/dns_upstream_size_diff.py": "3fb4034c9ab8214721d89c97651a16fd278a10f2cb29cba2b4b090950954b8cb",
+    "tools/dnsmasq/dns_wire_diff.py": "996c9ddf57df2062905de10f616b0785f175ef82a62d8dc194b95c92965fc6e1",
+    "tools/dnsmasq/doctor_packet_diff.py": "37ab71636a0006367471189c1ef87e84e848e00d8a70a7ad402e54fd1a43b359",
+    "tools/dnsmasq/doctor_packet_driver.c": "987be08a5ffc89648f5ca084aa5d8aa9c218887496a4f26d467831017a0fa7fb",
+    "tools/dnsmasq/doctor_packet_probe.rs": "b9515044d51b5e22be2f60340188c8d1707b2857a7d5b7b9e1682152b18da2b9",
+    "tools/dnsmasq/elf_cost.py": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7",
+    "tools/dnsmasq/elf_link_map_report.py": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+    "tools/dnsmasq/elf_size_report.py": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+    "tools/dnsmasq/hosts_generation_inventory.c": "4cca35173d5964b1137bd940b28cdc43f11b6a1d19db5c11ed034e74b67d2cca",
+    "tools/dnsmasq/hosts_oracle.py": "860f094f2c53fa59e411b87e8c7c72ccecce94fe670970849fac81c58d7624ac",
+    "tools/dnsmasq/lease_cache_collisions.py": "d22dd1a8df8fcaf956b9cb57a1c80338db7e6a95e00d71e38d9aa015805d1b03",
+    "tools/dnsmasq/lease_cache_diff.py": "69af3bbb2f61936a99ecb6a8d902569dd7a9dd32df5179aa80369093959619b4",
+    "tools/dnsmasq/lease_cache_driver.c": "5e166e5704ae7b551092cfbeaf4297a13c0a8f112a0929146c9b78aa9efdec84",
+    "tools/dnsmasq/lease_cache_probe.rs": "8a975c85b38004a1537f97e5fc14bd6daf8601291f67690d1c9054b7bdb50f17",
+    "tools/dnsmasq/lease_cache_reachability.py": "6d9ddefd38cd328281a2fcab3f4f7fbd3a569d6385f216d51f4f7520ef69b334",
+    "tools/dnsmasq/lease_clock_diff.py": "ca54694dbd8e49a582d98e5ed6b730dc53005dffd549ef00c6b9ef7ebff117aa",
+    "tools/dnsmasq/lease_clock_driver.c": "211e2fb70e8f75a45e6ea480cd9477f3f50492082b48786ea7b91eb984b3f1af",
+    "tools/dnsmasq/lease_insert_diff.py": "66f30aaa7a2b64b343a5e53694a684129064e4f34f0a13f9871ef5a351ad705d",
+    "tools/dnsmasq/lease_metrics_diff.py": "e52a323908e54544ab9ef4a60a2ef695a5ae30bc1135cbaadf68c4e25a1f60e8",
+    "tools/dnsmasq/lease_metrics_driver.c": "35c71788443c2a6c8e021106953d74720068788046caa30af85f6a20a795e9b8",
+    "tools/dnsmasq/lease_metrics_probe.rs": "301461b39c1e8ba747f30c13f6448fec61ee4c626cb2658b9974bc9f86a58f3a",
+    "tools/dnsmasq/lease_names_diff.py": "89826cb67aa777272bca0569d242a9732ae715eacdc748467a77c5fefeb27d68",
+    "tools/dnsmasq/lease_names_driver.c": "c14781b13d4fe07a045f834934e636c02fa90eae7196da20b755f68e360421fe",
+    "tools/dnsmasq/lease_names_probe.rs": "1d71e3f53655e677683cb58deca098f94aa7dcbe86d8d531285c5bfbddbece95",
+    "tools/dnsmasq/local_answer_diff.py": "866dd03c61212958e20334a8bcb499fa87e9dc2c56919a2fcd4937cdc269a124",
+    "tools/dnsmasq/local_answer_driver.c": "cc6a66d9467ede21665945efde1c728a1642ad396f0c7464c0a094199dd526e3",
+    "tools/dnsmasq/local_answer_probe.rs": "170476a41574590dd9e5795866d03dce3e7e8f7190368e35ef718d68939b9c29",
+    "tools/dnsmasq/local_answer_recheck.py": "d0410bdd4b82b60e659e920526bd545ccc3597a15f8607653bb94452d97c8395",
+    "tools/dnsmasq/logging_id_wrap.c": "64ab86dcd621b31c44c6a2dca2d7fb494b1b60cd482a2fd9e81a45cf0c1cf783",
+    "tools/dnsmasq/m2_dhcp_scenarios.py": "902cdc2221a87e8fdbb9fb791c81624a551d0fb3535e44b28715322043126b57",
+    "tools/dnsmasq/m2_dhcp_suite.py": "7c83d4d101f68a4a2bd21e7a351da8b0f328e084a7efcd5df87898049db5fc4a",
+    "tools/dnsmasq/m2_dns_diff.py": "0d6650fecf04e5410ef6d7a9417f6b18567c92f81e6cd1a5808a590834f776e8",
+    "tools/dnsmasq/m2_dns_replay.py": "f461280bb9b9c3fe7e12199cad604cf2cc1c0a2345034dd4e4d467f6cf65d7e9",
+    "tools/dnsmasq/m2_dns_support.py": "cc32b54abea607ae17b22502e18dc53dcb1c908b43c19e9cd9baba17268f3f6a",
+    "tools/dnsmasq/m2_lifecycle.py": "103af1794c0c50f297410dc332a053a540a74579e077b9192bee4fc2b6c2c2a6",
+    "tools/dnsmasq/m2_rootfs.py": "cfc11e58d2c04b637687565389108206542d4bc6d2e639d6fccbc5c05761d6eb",
+    "tools/dnsmasq/m2_rootfs_image.py": "f427d8cdec4df3a2578ee719631c0c2709a669b8809ec1cbf5f36f5000a7d6a5",
+    "tools/dnsmasq/m2_upstream_profiles.py": "fcb02a3a90c8a980b74269d7aceb873a3db6df313ae08e7693f446313a65b8bd",
+    "tools/dnsmasq/m3_pressure_exact.py": "5d26b7d6d6b05097af6af43953f557cf81d7982ebf2eda1dbbe2fe9a5ac87f74",
+    "tools/dnsmasq/m3_pressure_probe.py": "c4e10cc192762d7c4d896c222571c258b9ebe2697ebb1ccef4fd07f781a616bb",
+    "tools/dnsmasq/m3_soak.py": "8ece6074d7544f118c8f4bd15e1741d988c0b8e71133257c3e1e73ecf9e4d7b7",
+    "tools/dnsmasq/m4_package_lifecycle.py": "92d75479357400abf4ab37fdb95d127bd00e5e3fac585871eca2b7d004acdd86",
+    "tools/dnsmasq/m5_boot.py": "c812d901ceb0170c9b3a82124bbe86472a5e85a38d50c47a11e6a2f7b07492a4",
+    "tools/dnsmasq/m5_cli_final.json": "28229f05023e92c549cc13de054434d244d698f7b0421cae0d50aa8792a8e4d5",
+    "tools/dnsmasq/m5_cli_final.py": "432e9e3fdfbc22de1d2c539b1f82e72e90f0a9f8cb04e837a6d0049df5c3f476",
+    "tools/dnsmasq/m5_config_inputs.json": "4c67c1d49c70fce0bbff9fc9c77bd60e04073a738a27ecf83f1c6879a99ddf98",
+    "tools/dnsmasq/m5_config_inputs.py": "59fd9910d14c9125aeb946b9db23bc36bf062198a3acb8680afafb564064e68a",
+    "tools/dnsmasq/m5_device_binding.json": "a75e04208e9f47dd7ab5eccbd533257ab4c67e5d891438934a86d375e3a049fe",
+    "tools/dnsmasq/m5_device_binding.py": "051bf6a4a61dae571ba992060575b3b4b1b7272b7b83c6507951f47744e1bf88",
+    "tools/dnsmasq/m5_dhcp_files.json": "d2cdd49f598ea5ad0b62df4fe047df3550a88a46a5e348dbe15e641ac6683719",
+    "tools/dnsmasq/m5_dhcp_files.py": "3909c02766c6c5bc205f5f1a77852dbea71e80c8876ffa0062290b1c052f8bc8",
+    "tools/dnsmasq/m5_dhcp_network.json": "b5d87000d16235a1da210b707b2dd495f71810e84f71f30ffc644e002f15e853",
+    "tools/dnsmasq/m5_dhcp_network.py": "92fd62721f3dc5783fc3bc5b23d453e791be65f6af9862170ea14230c4eacc44",
+    "tools/dnsmasq/m5_dhcp_range.py": "cf0e64320c0856f202de114a2242854c8eeffe008c42716641878ab25dbbfa88",
+    "tools/dnsmasq/m5_dhcp_range_checklist.json": "1c8397af10edba3a609b4b4ca3c6e3645672382e94d5bb7c286bf91cd8c4a850",
+    "tools/dnsmasq/m5_dhcp_tags_options.py": "ad55507d50cf89b067b9d4fac5f7395409e160abd13b1d042c912a717b438a00",
+    "tools/dnsmasq/m5_dns_cache.json": "1f2bd3324050b1c128bff34527e61a476ce9d0edf87b50df8edd738369914759",
+    "tools/dnsmasq/m5_dns_cache.py": "c6247c2f0c756934502a2aef65a03f95e616ac1ea90a0415f33c04546ef9dc79",
+    "tools/dnsmasq/m5_dns_cache_qualify.py": "71f5ed0a25541dc0174a9d86c934da8b5f4a36cf7d9f06ae5297cd7bc83b6621",
+    "tools/dnsmasq/m5_dns_endpoints.json": "b29b6badc86bfe90e135762e3b55ded884e98827a833575f49c2ef1b5b593972",
+    "tools/dnsmasq/m5_dns_endpoints.py": "7923aa250f9474d8f97c03e50393191b05c3d7bcb7db9924ed81e4f2abe1ec80",
+    "tools/dnsmasq/m5_dns_endpoints_requirements.json": "5deba784117834a9bc362745b2034fc8d2b3869622ea31569c3be0978559355a",
+    "tools/dnsmasq/m5_dns_files.py": "08b913583cc866c07d03bba5839bb24291e24e6e83ff4fd151e608c157bca158",
+    "tools/dnsmasq/m5_dns_files_requirements.json": "5d42c7ad349a664622d41dbee650fc168a3c36faafa08ac85abd1326818db719",
+    "tools/dnsmasq/m5_dump.json": "d9100d47835b361d677b9489f4a6243ea675c1ea27e07d17227170a19c7280e1",
+    "tools/dnsmasq/m5_dump.py": "88a05d297d5b6b23b5214a6dc031a0b275908a625e433a9c585e788e4fa56f5b",
+    "tools/dnsmasq/m5_edns.json": "41ba8c39ea346d2e4e5f01f92ce7a602f0fecfea18373c5aa8bc0fa66de1a058",
+    "tools/dnsmasq/m5_edns.py": "b30fb544849f7fcb230121c47605a7ed572ae09aa7372a0e759238bb9fda5e50",
+    "tools/dnsmasq/m5_edns_netlink.py": "e7b728ea57ec6a75cce5260e16173c5b1fad4631ea1298b902d4d6d062a62350",
+    "tools/dnsmasq/m5_filterwin2k.json": "5827a517c9fd211e0998a7bb7ffb424f4de5e22f66c5c570c2f3d48dd51625aa",
+    "tools/dnsmasq/m5_final_archive_gate.py": "924f99da8cba7dbd2617c93eeb3b586a6729304373bacba95e3a7c6b10d3fbb4",
+    "tools/dnsmasq/m5_final_assets.json": "0dd9c05a71455457a15e9d87ec277426d290d81115ab2c864270a1a4171f8d4b",
+    "tools/dnsmasq/m5_final_budget.json": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43",
+    "tools/dnsmasq/m5_final_families.draft.json": "3237eae6fb5115d361484060c4afb3d129f0d379b316f412f7efb10a4da9df12",
+    "tools/dnsmasq/m5_final_inputs.example.json": "1a9e55f89ccffd602004534aeb03c8d841775eb93b6b3fceea6d7b5d10d0d9a1",
+    "tools/dnsmasq/m5_final_validation.py": "74a552531c909e6caade7452d02ec7ee1d83934fb2870b9531cd5471f27fd922",
+    "tools/dnsmasq/m5_fixture_revision.py": "a651e4a5be6663fe0afda84297cb92c6ea27f37c89743451e86ee8dcd95a393b",
+    "tools/dnsmasq/m5_helper.py": "1a8724cb5b9d60176254b636d248c7db8ffbab968b1b957f0431d16d88502c7c",
+    "tools/dnsmasq/m5_interface_records.json": "34b66403dbd8227676c2429834ad0aa008744b24edfab470a3d54473e33f07df",
+    "tools/dnsmasq/m5_interface_records.py": "b353969f1026ea923898c7e4abe7cc29f8d2cd8c930cbb0cbf35fbdfe41bd983",
+    "tools/dnsmasq/m5_interface_records_qualify.py": "b385bec57c29a3bbd93968961eb7545d41d9ad65a357868445ead0eac2d80006",
+    "tools/dnsmasq/m5_lease_recovery.json": "cb706a0a34eb980a85ef6461b95c3a2585713edfc8881839f0728a4cf3d1729d",
+    "tools/dnsmasq/m5_lease_recovery.py": "d853d726a3003da10349e0180a1115ffef88d28103bf0bfd623b36afc6bb6189",
+    "tools/dnsmasq/m5_leasequery.py": "5467a36abf6d8acbd567db8c7030a2cd29210a336efd8b83aaeee7a04c6101f1",
+    "tools/dnsmasq/m5_listeners.json": "a96b72643f3b784ddca171a3d682543e818e033c1eb462a8eb549b3419a65f88",
+    "tools/dnsmasq/m5_listeners.py": "ff420cd1c61351893b0c9fb730ab2672e5a6c9f126673bdc2e69bf4d72c39709",
+    "tools/dnsmasq/m5_local_records.py": "f006e668faeae2c25e0be82633be82830ae38f331b0485946dd5a86ab69ad9d9",
+    "tools/dnsmasq/m5_logging.py": "3485d153bd45ae3134a63b8f1ffd88d2ada2cc4d9c008e78afd1c167548a04ce",
+    "tools/dnsmasq/m5_logging_dhcp.py": "c52db8b33e06d5659c556caeac77cd65f2edd77298bef511b4efd266990bfe56",
+    "tools/dnsmasq/m5_logging_hooks.md": "42da47ee23d58e11c895a04556e6fbb6bf92a16f39e603ae9fcf5856bed9d1c1",
+    "tools/dnsmasq/m5_logging_id_wrap.py": "7411991479caae488601bd80453b5264a7d6e7132157ffe7a489cdc3d0a6f46d",
+    "tools/dnsmasq/m5_logging_requirements.json": "732d72afb17b11e228de8be5cf964ed8b13739e1df6f6908880f3e848cde8e63",
+    "tools/dnsmasq/m5_loop_detect.json": "6a4b4dc57987c32a48fa796f069a37620da67b28726b47ec747f7e3ab2d9eebd",
+    "tools/dnsmasq/m5_loop_detect.py": "606691044bd273872ba8e5f3ff05865c75aa9756a702addbfb9f89c637a26b23",
+    "tools/dnsmasq/m5_option_matrix.json": "19b1d10c7614c1343477847d7bc8e596c4647c188782ba1ca71d4ac9ed4c1896",
+    "tools/dnsmasq/m5_option_matrix.py": "c1a9ac84ad6b965e5a4ca5b429265776a219517f53b4d66e8b7d9fe343d7e332",
+    "tools/dnsmasq/m5_option_matrix_admission_timing.json": "e0117c3f02fcbadba004bea1bb0fabf071b6c271b43bf738c5b4e7eaa4772e5f",
+    "tools/dnsmasq/m5_option_matrix_archive.py": "70f2ad81b495d6cd9459c7211a3e3d5b23193b3d4e075198a4b018aaceabb107",
+    "tools/dnsmasq/m5_option_matrix_dhcp.json": "117bba018b12ea82e05723fcafd722f4bf43c0b64130390c38ea8a9b57aea9ac",
+    "tools/dnsmasq/m5_option_matrix_dhcp.py": "d0fa8e84bac8b638940f2944e445d7b41ebb9766fabf756d79517e52e1b6c5eb",
+    "tools/dnsmasq/m5_option_matrix_dhcp_v4.json": "5050a4d3bb94975f9a33802776b1eff0a838e8a712be488d2467c9ff9bf610dc",
+    "tools/dnsmasq/m5_option_matrix_lease_names.json": "21aa42e12e11e8f25dabf22e20cb63e9fc06ec8bfbbfe6e4e04b182ff05038dd",
+    "tools/dnsmasq/m5_option_matrix_next.json": "282411076a2a0ab34deaea94b01f9f33193f4a221f041402a792dbf6c862cd53",
+    "tools/dnsmasq/m5_option_matrix_probes.py": "74098a24dd561cb141fbe37a0c53ba776040aa44f8a5f0963075de588328ebb8",
+    "tools/dnsmasq/m5_option_matrix_tag_if.json": "8aa0f4b02575ae2175db16b4086252563b9642f5943803bed5864160da0b9a20",
+    "tools/dnsmasq/m5_option_matrix_third.json": "eb7a58b83c14a856a0658784cd8e9c356d0071adf07e033b5dc7ea571d890458",
+    "tools/dnsmasq/m5_pxe.py": "4ffb9f842080bdb34b3e0406302ccda24a3c3e725438d340dcf12adab0485e3d",
+    "tools/dnsmasq/m5_relay.py": "de7ad186c7e71f7f74faa6b1e31ba5bcf5ca119ef3e8ff3857eeb4608755de28",
+    "tools/dnsmasq/m5_relay_trace.py": "0457711e9c8a3f77a509496aa2640504decd957fa0a5720249578f089c9858bf",
+    "tools/dnsmasq/m5_rr_filter.py": "d1a34d8d0d4bdfe1a3622798eb2f8e3783b4b16e6fafd99c0e95afbfc3b92f2d",
+    "tools/dnsmasq/m5_script_arp.json": "87a2884f6344e7986e90bfc987020c2360c121ec5ad0f2cb59770d2c38e4d3c5",
+    "tools/dnsmasq/m5_script_arp.py": "d44cb29b610899cbd085481b8d9991a6b38be8e60dbdd7451dd4ee065aabc5a5",
+    "tools/dnsmasq/m5_tftp.py": "fa1e4ce3333f9c692836ecd28ec2e57ff4a383ef758b3849af9c97fd737c9080",
+    "tools/dnsmasq/m5_tftp_allocation.py": "048436d4897d2e3dc718eb1139c3fd365cbf233ad30562b8f3c7aa2f5edf9fa9",
+    "tools/dnsmasq/m5_tftp_errors.json": "375832cad267d23b1ddb71b65c3397842af8cec9a0623e5f6b2bfb5d6c44b130",
+    "tools/dnsmasq/m5_tftp_errors.py": "8d4a736a3d106ab65c92787552a6995c8b8719af2b83a9676040f72961dad12a",
+    "tools/dnsmasq/net_abi.c": "e4344fc6283c7a4d41e96a0ee1d36618b1464d478b9257280aa85779f47ca464",
+    "tools/dnsmasq/oracle_build.sh": "0af285cc599398b5bdb757194297e0b9bcec5eb197248dcb3d8d0d3edd8d126f",
+    "tools/dnsmasq/port_zero_dhcp_diff.py": "944d38bb5d081726169d4984f146540a9e44fce207998b7fadb41334c4ee1e8f",
+    "tools/dnsmasq/port_zero_tftp_diff.py": "e78125fd8b560938448f52e74405598765c9e20f5323ec0ca2a6d69600228bfa",
+    "tools/dnsmasq/prepare_reference.py": "ccb40805d085a704db2a9a82cd7862577d7c0beec0fbdc1065b5051423327652",
+    "tools/dnsmasq/reverse_cache_c_gate.py": "fd4dcdab4f4ca005411915a5e02f602b72f2c9f3e947ca58eaec36d8c5714d0b",
+    "tools/dnsmasq/reverse_cache_driver.c": "18a004b826b119cb160bbec182cbffee9c545f5f6b9fff9d6a46fe8c1f88b298",
+    "tools/dnsmasq/reverse_cache_probe.rs": "c07122be0d059e1e9c2d7a8f8344e4d14611192bff06f70527fc2c903efd32fd",
+    "tools/dnsmasq/reverse_cache_rust_gate.py": "1aa96c03de23770157fa0a88230f8c700fcfa10862efdb59146a2fe81971175a",
+    "tools/dnsmasq/reverse_cache_state_probe.rs": "5ef1378274af7d61fac45a88d4df4d22f77b7be9d563e73a19c667b54b2de711",
+    "tools/dnsmasq/reverse_name_expiry_gate.py": "c52d0d212a138bb411ff6154855bd8465ddb619e153538c6532f4b108f27a260",
+    "tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "tools/dnsmasq/stale_metadata_diff.py": "abfb7aa54e7411b18bd04fc16263c33d2a660875eb58f40b3f25a1ff7777209b",
+    "tools/dnsmasq/stale_metadata_oracle.py": "b3a3eeb0e61506b16cf43aec618bf6ed8d32dcf9d9a7f38a12bebf70f9aa5373",
+    "tools/dnsmasq/startup_identity_diff.py": "8f073578a28c10a5869f682c12147561454a66ba38dcca0cd9fc069723f529a0",
+    "tools/dnsmasq/startup_privilege_diff.py": "b375c54e145dfc92d7285d704a46c4a27f24cbb8d2eb491f284530da9f8d2471",
+    "tools/dnsmasq/tcp_caller_diff.py": "7fd7966e4dde292276b50c58fea4dcd7c6b8e7260fddb61dadc685e16ff835aa",
+    "tools/dnsmasq/tcp_caller_driver.c": "1e366cefe31dc436793299ba5f8209ecdca58bdde380ec979933e7b9b39b0619",
+    "tools/dnsmasq/tcp_caller_session_scope.py": "97127d349066ffdb593b31dd7e4e6754a18069ef2163867e749741790a051123",
+    "tools/dnsmasq/tcp_cd_policy_oracle.py": "2b5f8b1d3b462585e131eec1755890429f2f935b6e797784c5b24d32a8f16c65",
+    "tools/dnsmasq/tcp_connect_probe.py": "38894bac3a45e5c4352f187b249b6f4f8ae39b2d5eaaed8f68fbb60f01968e6b",
+    "tools/dnsmasq/tcp_connect_probe.rs": "628055f33290ea6fa7a4bfc9f7eada6262a29d0141c115f76c88404be63bbd62",
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.py": "762eb3a3171045fbba652151b4daff6800d5d779d63689e55e891ca68906ae3e",
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.rs": "7844d55e956d3a1d7b757574c47474a7ead6512e9fb0649b588fc10bad7a1af1",
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.slots.rs": "3a8e5cacda6ab4c4570c9691a34f998a48f885d1d5697c441e3caa81ce4fd233",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.payload.rs": "dbeb70156053ffba4963b28b5dc0502e38360f99a82d2bce6549eaac2741fe90",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.py": "3f2ae4a2c96bd54553fb0bc89b26e3ce8a30360231a87eb32eaca87a08c4d945",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.rdata.rs": "62182ec2d9f55663593d954217d459ca3629e70e48953013b598fa3c13053ea3",
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.rs": "60c3da6edddfe534c34b5f005f887a1df4b2366d761fbced14376e591a797db2",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.checks.rs": "26eaa866a09ef99f3b1699925ade92813ba0cbd47ddf86c9fbb265fe5ce79392",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.index.rs": "0782108ea2cd3a6885522dfa707b7f9941100068a94b27ae2f64346d9210a93d",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.payload.rs": "1cf79332efa95b18cddb822ca19f755d558c3bca6bceb54739040ea8462c162d",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.py": "3a947480e7fd61e3006547c2718b5ae5a2c2055ecdb6c6ef3de6a5a23611644d",
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.rs": "d5bdea6173a906f39d59bb5f3efd84a00448f33d9fe2a2571dd07d5bdc3a7e3f",
+    "tools/dnsmasq/tcp_snapshot_screen.py": "375c56835a293f3ef969caed1168d4297dfe75c45aca55acfd5a18a3d8bbf819",
+    "tools/dnsmasq/tcp_snapshot_screen.rs": "59909dd61eae492e8d95472e8ceea71f91e03977b3ff61657d2a743e74fc3dfc",
+    "tools/dnsmasq/tcp_stale_oracle.py": "034c2b9fd79be61c14e17f02307d273debf9a0b99dd1d8bf1aa5fa8a9f9d6b8b",
+    "tools/dnsmasq/tcp_upstream_diff.py": "5bcc08daece9bccb6d9fe86e11b5a6d1e8b0ffecc6884362ec7b1a34725409d8",
+    "tools/dnsmasq/tcp_upstream_oracle.c": "bf04423ce8d41cf692a3f99f89e018a46ea2d943fe186d8d06faac0a5425b773",
+    "tools/dnsmasq/tcp_upstream_probe.rs": "f61fef4b8ef4e600ef5b20adbc89d428051109955c162b757ae0b28c00c28c18",
+    "tools/dnsmasq/tcp_writeback_subscriber.c": "a48d507c5f216adc300ebc6852768b043d564d98a7f0aab7b6ccd9602af3bc2f",
+    "tools/dnsmasq/test_build_package.py": "3325a73d742e365ffdcec61ae8da0bc6ffd596c763c3a5cc906ebe1c5b5bd1d8",
+    "tools/dnsmasq/test_cache_full_resource.py": "07c08d5cbba0d824e7b68a009551bb9afed7156ca5288395a7e261a03820f477",
+    "tools/dnsmasq/test_config_startup_exit_diff.py": "55b280a8a24f421c3b8eb6860dbbbfc8f3e301fa877e0d9391b54bb0ee543d8c",
+    "tools/dnsmasq/test_elf_size_report.py": "f28b2c3d216889fb5d045a1f9b169f48cc63ac31a820a724557bb2941a7e778b",
+    "tools/dnsmasq/test_icmp_service.py": "03cb01bbcb970d003ab44f78bc6167e3db9a7568598fd89beaed5c3e21862b42",
+    "tools/dnsmasq/test_icmp_service_checks.py": "6771764e57e5346612bbe902b523be250d5c47945bece20a4021673682a7ae87",
+    "tools/dnsmasq/test_m2_dhcp_scenarios.py": "0c9f31109a93e560781a987a37277b1be020495a2fcf2faf495e6d6d4c6d9890",
+    "tools/dnsmasq/test_m2_dns_diff.py": "0cb01e85e618efb4ac81713498b13d0359ed361178e64644f18384b88fbf1d04",
+    "tools/dnsmasq/test_m2_lifecycle.py": "1eef99ba4636ee53ba14dcb9a61fbe49135ec643b1546c06d6fbf67123f6a337",
+    "tools/dnsmasq/test_m3_soak.py": "c00eed5872ae85693310a89aa2dfedaf3a5df83504c0e4b8c210d624f5c4cdad",
+    "tools/dnsmasq/test_m5_cache_clock_phase.py": "532290265503733a83f3c942b825c2eefcbae5459056a0d9270fc2aaefe5550f",
+    "tools/dnsmasq/test_m5_final_archive_gate.py": "f271843c018d2d67c7b0c1be3e01a6cf1ddc417800cd8c3603e371a428e397d8",
+    "tools/dnsmasq/test_m5_final_validation.py": "e2be36e4853475b19c4b86426f97815102e062ae5c2d7d2f372c57511dff8f31",
+    "tools/dnsmasq/test_m5_pxe_kernel_witness.py": "32764ed80ba8aa337babfa5c0852718abb94fffce9b7338096b73b038ce4e482",
+    "tools/dnsmasq/test_single_poll_service.py": "9e7eef28fd17d61590528fcf8e0ec5aa1394454a217cf39b8a8c435ad91e3851",
+    "tools/dnsmasq/test_unix_socket_path.py": "80e1ec180e711b57e4f60bc4337e2c934f1284a9d20e6ecc2cd2cf00ad3a6597",
+    "tools/dnsmasq/tftp_benchmark.py": "ba1d1677575594319909a1d4401a4aeff7fc200cdfa63ff911cfa4db579e2a3e",
+    "tools/dnsmasq/tftp_config_diff.py": "caa3971b45414248af27ea6e54e31a48d34d66c1b204a82c7049e6ae5882999e",
+    "tools/dnsmasq/tftp_identity_diff.py": "f1c40ff2918709a3c9fe238702dd36a93fa35a1900562430a9abd954543ce5ff",
+    "tools/dnsmasq/tftp_listener_diff.py": "21bf9998606ff7da9c46a8a2a7c87af6fbd3bc79716569af8ae86817b6bbaf88",
+    "tools/dnsmasq/tftp_listener_probe.rs": "fbee06374351d79b26a93befd5da2d554518ad0032f613dacb0c314b70dcc66a",
+    "tools/dnsmasq/tftp_oracle.py": "91f37c305e5812de325232e182b0fd82570746ad605bf09f2fc486169cdc0d29",
+    "tools/dnsmasq/tftp_service_diff.py": "436b71fb902cca3e3a8133d714dbaf1169f4f4182384e0f54d4216c9725a3a3b",
+    "tools/dnsmasq/ubus_config_diff.py": "43b72079e97a249435e39968edb79b7d685f75698ad515cf5756cc7590681521",
+    "tools/dnsmasq/ubus_contract_client.c": "007792f12929ba95a041460a760e0ca43273394c53721427fe8b3862b5ac9da5",
+    "tools/dnsmasq/ubus_contract_diff.py": "0fcc8f6354dcc633022a6e108d37ce4b639de3bcc1c91cdf49e932175cf66743",
+    "tools/dnsmasq/ubus_daemon_diff.py": "ef130ca708d82349501e0392e24c626a879e5e3ed3ae74e08583bfaaf0e1c265",
+    "tools/dnsmasq/ubus_doctor_diff.py": "6ac288a4e7f103a0c17b65dccd5a29191b68a575b4686e70ba5846d6d9cfd611",
+    "tools/dnsmasq/ubus_library_diff.py": "fe83bdd087a76af33d67714f3c4f373adf340c8751a3c8b74e4698a720da0e7b",
+    "tools/dnsmasq/ubus_name_diff.py": "000b77c87cc12bf730ca01a2283241ccd0fee1589f93b86ac6484166814bd964",
+    "tools/dnsmasq/ubus_order_diff.py": "55418b1ef4eb038bcd3c7d84a6f697cedccc6f974afa7b3c9577589074cdde86",
+    "tools/dnsmasq/ubus_service_probe.rs": "86f970812c5705de81aa1da113a05fea6994041834ac5cffffb9c24bd6e562aa",
+    "tools/dnsmasq/udp_query_probe.rs": "56c15b6198fa41540989f91abf238f354353cd8317733b23a9b7cf21135e13ea",
+    "tools/dnsmasq/verify_reference.py": "c91bd6cf13b6e0b68c92877e563d6fdcacafbffb7f4ec53491ca666f2313a667"
+  },
+  "product_source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+  "product_elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "reports": [
+    {
+      "name": "bare-controlled-01",
+      "paired_rows": 18,
+      "failures": [],
+      "result_sha256": "8ece83618a56ef5f181418131844d42c71cf4f1113adc4928e2e90347fffdbee",
+      "scope": "selected actual comparison; incomplete option qualification stays open",
+      "schedules": [
+        {
+          "scenario": "local-service-bare",
+          "observations": {
+            "c": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            },
+            "rust": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "controlled-four-02",
+      "paired_rows": 72,
+      "failures": [],
+      "result_sha256": "cdb4bba6f22ae8cb3111437570a2e65fcdcce20e979bb564c87dd949381232eb",
+      "scope": "selected actual comparison; incomplete option qualification stays open",
+      "schedules": [
+        {
+          "scenario": "local-service-bare",
+          "observations": {
+            "c": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            },
+            "rust": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "scenario": "local-service-net",
+          "observations": {
+            "c": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            },
+            "rust": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "scenario": "local-service-cli-net",
+          "observations": {
+            "c": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            },
+            "rust": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "scenario": "local-service-cli-host",
+          "observations": {
+            "c": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            },
+            "rust": {
+              "rows": 18,
+              "queued": [
+                {
+                  "id": "remote-v4-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v4-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-1:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                },
+                {
+                  "id": "remote-v6-2:tcp",
+                  "queued_rx_bytes": 41,
+                  "errno": 104,
+                  "termination": "reset"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "archives": [
+    {
+      "name": "bare-controlled-01",
+      "verified": {
+        "archive_sha256": "f2c22e315ad750986a4ab5ca172eb8a6ac121e648053466f9324368b24ec03b8",
+        "entries": 74,
+        "regular_files": 39,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "archive": "private/dnsmasq-rewrite/evidence/M5/admission-queued-20261006/bare-controlled-01.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/admission-queued-20261006/bare-controlled-01.inventory.json",
+      "raw_pruned": true
+    },
+    {
+      "name": "controlled-four-02",
+      "verified": {
+        "archive_sha256": "dd71a811a11106fa46832429eb9b6df54e626b7184f2a8c2fd956761345a29f1",
+        "entries": 119,
+        "regular_files": 75,
+        "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "verified": true
+      },
+      "archive": "private/dnsmasq-rewrite/evidence/M5/admission-queued-20261006/controlled-four-02.tar.gz",
+      "inventory": "private/dnsmasq-rewrite/evidence/M5/admission-queued-20261006/controlled-four-02.inventory.json",
+      "raw_pruned": true
+    }
+  ],
+  "case_ids_rows_counts_unchanged": true,
+  "udp_schedules_unchanged": true,
+  "existing_explicit_queued_and_idle_guards_unchanged": true,
+  "EOF_RST_tolerance_added": false,
+  "product_modified": false,
+  "complete_matrix_qualification": false,
+  "physical_router": false
+}
