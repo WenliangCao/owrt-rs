@@ -14,7 +14,9 @@
 
 通用DNS：daemon `127.0.0.1:15353`，唯一原生上游`127.0.0.1:15354`，cache-size4096、cache-rr=TXT、dns-forward-max1024、TTL/local-ttl3600、no-resolv、no-poll、关闭0x20编码、query logging关闭，不启用ECS/MAC/rebind等会改变输入的可选策略。keep-in-foreground、同root用户/组；stderr保留。全部DNS question IN；flags/ID/question/rcode及每个RR的owner/type/class/RDATA/合法TTL均校验。固定A `192.0.2.1`、AAAA `2001:db8::1`、TXT `m6a`，CNAME为`m6a.target`并有上述A终值。记录上游UDP/TCP requests/replies/drop与按phase的计数。
 
-20客户端，UDP每client独立socket，TCP20条持久连接，每socket最多1在途；相同源、轮次种子和名字算法用于三组。种子为`0x4d364100+round`，round=1..5。名字`q%04x.<prefix>`为重复bank，`u%012x.<prefix>`为每请求唯一名字；CNAME加`cname-`前缀。负载器记录完整发送/完成monotonic时间、状态和client/qtype/kind/phase，抽取固定有限raw请求/回复以独立验真。
+20客户端，UDP每client独立socket，TCP20个逻辑客户端保持连接复用，每socket最多1在途；相同源、轮次种子和名字算法用于三组。种子为`0x4d364100+round`，round=1..5。名字`q%04x.<prefix>`为重复bank，`u%012x.<prefix>`为每请求唯一名字；CNAME加`cname-`前缀。负载器记录完整发送/完成monotonic时间、状态和client/qtype/kind/phase，抽取固定有限raw请求/回复以独立验真。
+
+正式窗口前的TCP合同澄清（第2次工具冻结，正式数据仍0）：首C pilot在1969次正确warmup后正常关闭连接，精确`config.h:20 TCP_MAX_QUERIES=100`／`forward.c:2457,2489`及Rust `main.rs self.queries==100`都限制每连接100次查询。三组客户端都按该上限复用、完成100个response后关闭并为下一请求重连，记录connections/reconnects。正常上限关闭不算错误，意外EOF/timeout仍保留行为结果；不能因此丢慢/坏产品窗口。保持原20客户端、rate、时长、轮次、阈值，不修改被测产品。实际首send→reply延迟不含connect以前的等待，scheduled lag和吞吐反映它；CG CPU包括窗口内重连触发的fork/缓存快照/回收，TCP结果代表100-query循环复用模型，不能称纯无重连稳定连接或独立握手吞吐。初版协议与失败pilot均保留。
 
 | 正式profile | 负载与初态 | 120秒测量阶段 |
 | --- | --- | --- |

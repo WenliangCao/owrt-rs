@@ -547,11 +547,14 @@ def run_load(args, daemon, root, upstream):
         ticks_per_second = os.sysconf("SC_CLK_TCK")
         for (left, before), (right, after) in zip(ordered, ordered[1:]):
             ticks = after["tree"]["cpu_ticks"] - before["tree"]["cpu_ticks"]
-            if ticks < 0:
-                raise RuntimeError("CPU accounting decreased across a measured segment")
+            cg_seconds = (after["cgroup_cpu"]["usage_usec"] - before["cgroup_cpu"]["usage_usec"]) / 1e6
+            if cg_seconds < 0:
+                raise RuntimeError("primary cgroup CPU accounting decreased")
             segments[left + ".." + right] = {
                 "cpu_ticks": ticks, "proc_cpu_seconds": ticks / ticks_per_second,
-                "cpu_seconds": (after["cgroup_cpu"]["usage_usec"] - before["cgroup_cpu"]["usage_usec"]) / 1e6,
+                "cpu_seconds": cg_seconds,
+                "proc_snapshot_churn": ticks < 0 or bool(before["children_disappeared_during_sample"]
+                                                           or after["children_disappeared_during_sample"]),
                 "start_capture_lag_ns": before["capture_lag_ns"],
                 "end_capture_lag_ns": after["capture_lag_ns"]}
         measured = [r for r in resources if 0 <= r["measurement_elapsed_seconds"] < args.duration]
