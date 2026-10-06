@@ -41,7 +41,7 @@ def main():
             save(local/'state.json',state)
             gate=state.get('archive_gate')
             if gate:
-                job=state['current_job'];number=state['current_attempt'];key=(job,number)
+                job=gate['job_id'];number=gate['attempt'];key=(job,number)
                 folder=Path(gate['archive_folder']);dest=local/'archives'/job/f'attempt-{number}'
                 dest.mkdir(parents=True,exist_ok=True)
                 proof=dest/'local-verification.json'

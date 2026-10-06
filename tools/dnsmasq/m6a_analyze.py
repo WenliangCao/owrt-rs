@@ -590,8 +590,7 @@ def comparison_tables(windows, authoritative):
                     if metric.endswith("_count"):
                         return row["origin_counts"][metric.removesuffix("_count")]
                     return row[metric]
-                restricted = any(row and row["generator_limited"] for row in [*a, *b]) and metric in (
-                    "qps", "cpu_us_per_correct", "p50_ns", "p95_ns", "p99_ns")
+                restricted = any(row and row["generator_limited"] for row in [*a, *b]) and metric == "qps"
                 verdict = classify([value(row) for row in a], [value(row) for row in b], metric, restricted)
                 if metric in ("p50_ns", "p99_ns", "fd_count", "thread_count", "child_processes"):
                     verdict["classification"] = "受限"

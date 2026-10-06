@@ -88,8 +88,19 @@ def prepare(args):
     if sha256(args.r3)!=R3 or sha256(args.image_root/'usr/sbin/dnsmasq')!=STOCK_SHA256:
         raise ValueError('M5 or exact-image identity differs')
     r3_build=json.loads(args.r3_build.read_text());rs_build=json.loads(args.rs_build.read_text())
-    if r3_build['source_files']!=rs_build['source_files'] or rs_build['opt_level']!='s':
-        raise ValueError('s must use the same exact product inputs')
+    frozen=json.loads(args.product_freeze.read_text())
+    if frozen['source_commit']!=PRODUCT or frozen['elf_sha256']!=R3:
+        raise ValueError('M5 product source freeze differs')
+    for build,level,elf in [(r3_build,'3',args.r3),(rs_build,'s',args.rs)]:
+        if (build['kind']!='release' or build['opt_level']!=level
+                or build['source']!=frozen['source_root'] or build['cargo_target_dir']!=str(TARGET)
+                or build['artifacts']!=[{'path':'dnsmasq-rs','bytes':elf.stat().st_size,'sha256':sha256(elf)}]):
+            raise ValueError('release build/source/artifact identity differs')
+    flags=lambda build:re.sub(r' -Clink-arg=-Wl,-Map=\S+','',build['rustflags'])
+    if flags(r3_build)!=flags(rs_build):raise ValueError('s changed non-optimization build flags')
+    source=Path(frozen['source_root'])
+    for name,digest in frozen['source_files'].items():
+        if sha256(source/name)!=digest:raise ValueError('frozen product input changed: '+name)
     compiler=subprocess.run(['cc','--version'],check=True,capture_output=True,text=True).stdout
     for name in ['m6a_loadgen','m6a_upstream']:
         binary=native/name
@@ -97,7 +108,9 @@ def prepare(args):
                         '-o',str(binary)],check=True)
     spec={'schema':1,'source_commit':PRODUCT,'root':str(root),'protocol':str(root/'docs/dnsmasq/M6A_PROTOCOL.md'),
           'protocol_sha256':sha256(root/'docs/dnsmasq/M6A_PROTOCOL.md'),'tools_files':file_map(tools),
-          'source_files':rs_build['source_files'],'image_root':str(args.image_root),
+          'source_files':frozen['source_files'],'source_root':str(source),
+          'product_freeze':{'path':str(args.product_freeze),'sha256':sha256(args.product_freeze)},
+          'image_root':str(args.image_root),
           'groups':{'c':{'elf':str(args.image_root/'usr/sbin/dnsmasq'),'sha256':STOCK_SHA256},
                     'r3':{'elf':str(args.r3),'sha256':R3,'bytes':args.r3.stat().st_size},
                     'rs':{'elf':str(args.rs),'sha256':sha256(args.rs),'bytes':args.rs.stat().st_size}},
@@ -122,8 +135,10 @@ def verify(spec, manifest):
     if file_map(Path(spec['root'])/'tools/dnsmasq')!=spec['tools_files']:raise ValueError('frozen tool tree changed')
     for group in spec['groups'].values():
         if sha256(Path(group['elf']))!=group['sha256']:raise ValueError('ELF changed')
-    for asset in [*spec['native'].values(),*spec['builds'].values()]:
+    for asset in [*spec['native'].values(),*spec['builds'].values(),spec['product_freeze']]:
         if sha256(Path(asset['path']))!=asset['sha256']:raise ValueError('frozen asset changed')
+    for name,digest in spec['source_files'].items():
+        if sha256(Path(spec['source_root'])/name)!=digest:raise ValueError('product input changed')
 
 def command_for(spec, profile, group, round_no, output, pilot):
     _,scenario,tcp,rate,sat,bank=profile;root=Path(spec['root']);tools=root/'tools/dnsmasq'
@@ -175,50 +190,79 @@ def pilot_behavior(report, profile):
     b=report.get('behavior_checks',{})
     if profile[1]=='dhcp' and not b.get('dhcp_release_endstate',{}).get('leasefile_empty'):return False
     if profile[1]=='reload':
-        if not all(r.get('publication_correct') for r in b.get('reload_publications',[])):return False
+        published=b.get('reload_publications',[])
+        if len(published)!=3 or not all(r.get('publication_correct') for r in published):return False
         tftp=b.get('tftp',{})
         if not tftp.get('correct') or tftp.get('errors'):return False
     return True
 
 def archive_gate(spec, attempt, record, state, state_path):
     private=Path(spec['root'])/'private'; folder=private/'archives'/record['job_id']/attempt.name
-    folder.mkdir(parents=True,exist_ok=False)
-    packed=archive.pack(attempt,folder/'archive.tar.gz',folder/'manifest.json')
+    existing=state.get('archive_gate')
+    if existing:
+        if existing['job_id']!=record['job_id'] or existing['attempt']!=record['attempt']:
+            raise ValueError('must finish the previous archive gate first')
+        packed=existing
+    else:
+        folder.mkdir(parents=True,exist_ok=True)
+        if (folder/'manifest.json').exists():
+            m=json.loads((folder/'manifest.json').read_text())
+            if archive.inventory(attempt)!=m['entries'] or sha256(folder/'archive.tar.gz')!=m['archive_sha256']:
+                raise ValueError('partial archival no longer matches the finished attempt')
+            packed={'archive_sha256':m['archive_sha256'],'entries':len(m['entries']),'archive_bytes':m['archive_bytes']}
+        else:packed=archive.pack(attempt,folder/'archive.tar.gz',folder/'manifest.json')
     state['status']='awaiting-local-archive-verification'
-    state['archive_gate']={'run':str(attempt),'archive_folder':str(folder),**packed}
+    state['archive_gate']={'job_id':record['job_id'],'attempt':record['attempt'],
+                           'run':str(attempt),'archive_folder':str(folder),**packed}
     save(state_path,state)
     proof_path=folder/'local-verification.json'
     while not proof_path.exists():
         state['heartbeat_unix_ns']=time.time_ns();save(state_path,state);time.sleep(1)
     proof=json.loads(proof_path.read_text())
+    already_pruned=(folder/'prune.json').exists()
     if (not proof.get('verified') or not proof.get('local_full_metadata_verified')
         or proof.get('verifier_host')==socket.gethostname()
-        or proof.get('archive_sha256')!=sha256(folder/'archive.tar.gz')
+        or proof.get('archive_sha256')!=packed['archive_sha256']
         or proof.get('manifest_sha256')!=sha256(folder/'manifest.json')):
         raise ValueError('local archive proof differs')
     inventory=json.loads((folder/'manifest.json').read_text())['entries']
     keep=[p for p,row in inventory.items() if row['kind']=='file' and Path(p).suffix in {'.json','.log','.jsonl'}]
     selected={Path('.')}
     for name in keep:selected.add(Path(name));selected.update(Path(name).parents)
-    pruned=archive.prune(attempt,folder/'manifest.json')
-    members=[str(Path(attempt.name)/p) for p in sorted(selected,key=lambda p:(len(p.parts),str(p)))]
-    subprocess.run(['tar','--no-recursion','--xattrs','--xattrs-include=*','--acls','--numeric-owner',
-                    '-xpf',str(folder/'archive.tar.gz'),'-C',str(attempt.parent),'--',*members],check=True)
+    if already_pruned:pruned=json.loads((folder/'prune.json').read_text())
+    else:
+        if sha256(folder/'archive.tar.gz')!=packed['archive_sha256']:raise ValueError('remote archive changed')
+        pruned=archive.prune(attempt,folder/'manifest.json')
+        members=[str(Path(attempt.name)/p) for p in sorted(selected,key=lambda p:(len(p.parts),str(p)))]
+        subprocess.run(['tar','--no-recursion','--xattrs','--xattrs-include=*','--acls','--numeric-owner',
+                        '-xpf',str(folder/'archive.tar.gz'),'-C',str(attempt.parent),'--',*members],check=True)
     restored=archive.inventory(attempt)
     if not all(restored[p]==inventory[p] for p in keep):raise ValueError('retained gates changed')
     pruned.update(retained_gate_files=len(keep),retained_full_metadata_verified=True)
-    save(folder/'prune.json',pruned);(folder/'archive.tar.gz').unlink()
+    save(folder/'prune.json',pruned);(folder/'archive.tar.gz').unlink(missing_ok=True)
     record['archive']={'folder':str(folder),'archive_sha256':packed['archive_sha256'],
                        'local_verified':True,'pruned':True};state.pop('archive_gate',None)
     save(state_path,state)
 
 def run(args):
+    if not args.pilot_only and (args.profile or args.group):
+        raise ValueError('formal suite cannot filter or reorder the frozen schedule')
     manifest=args.manifest.resolve();spec=json.loads(manifest.read_text());verify(spec,manifest)
     private=Path(spec['root'])/'private';state_path=private/'state.json';state=json.loads(state_path.read_text())
     if state['manifest_sha256']!=sha256(manifest):raise ValueError('state belongs to another freeze')
     os.sched_setaffinity(0,{3});os.environ['PYTHONDONTWRITEBYTECODE']='1'
     state['controller_pid']=os.getpid()
     state['status']='running';save(state_path,state)
+    # Complete an interrupted archive barrier before scheduling any new window.
+    pending=state.get('archive_gate')
+    if pending:
+        window=state['windows'][pending['job_id']]
+        record=next(x for x in window['attempts'] if x['attempt']==pending['attempt'])
+        attempt=private/'runs'/record['job_id']/f"attempt-{record['attempt']}"
+        archive_gate(spec,attempt,record,state,state_path)
+        if record['methodology_valid']:window['valid_attempt']=record['attempt']
+        state['formal_valid_windows']=sum(w['valid_attempt'] is not None for w in state['windows'].values())
+        save(state_path,state)
     for round_no,order in enumerate(ORDERS,1):
         for profile in PROFILES:
             if args.profile and profile[0] not in args.profile:continue
@@ -278,7 +322,8 @@ def run(args):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='action',required=True)
     p=sub.add_parser('prepare');p.add_argument('--root',type=Path,required=True)
-    for name in ['r3','rs','r3-build','rs-build','image-root']:p.add_argument('--'+name,type=Path,required=True)
+    for name in ['r3','rs','r3-build','rs-build','image-root','product-freeze']:
+        p.add_argument('--'+name,type=Path,required=True)
     p=sub.add_parser('run');p.add_argument('--manifest',type=Path,required=True)
     p.add_argument('--pilot-only',action='store_true');p.add_argument('--profile',action='append');p.add_argument('--group',action='append')
     args=parser.parse_args()
