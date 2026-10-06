@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import signal
+import shutil
 import socket
 import subprocess
 import sys
@@ -232,7 +233,24 @@ def archive_gate(spec, attempt, record, state, state_path):
     if already_pruned:pruned=json.loads((folder/'prune.json').read_text())
     else:
         if sha256(folder/'archive.tar.gz')!=packed['archive_sha256']:raise ValueError('remote archive changed')
-        pruned=archive.prune(attempt,folder/'manifest.json')
+        intent=folder/'prune-intent.json'
+        if not intent.exists():
+            save(intent,{'run':str(attempt),'archive_sha256':packed['archive_sha256'],
+                         'local_full_metadata_verified':True,
+                         'allocated_bytes':sum(p.lstat().st_blocks*512 for p in [attempt,*attempt.rglob('*')])})
+        if attempt.exists() and archive.inventory(attempt)==inventory:
+            pruned=archive.prune(attempt,folder/'manifest.json')
+        else:
+            # The only writer at this point is our completed archival transaction.
+            # Full local verification and the unchanged tar precede the intent.
+            started=json.loads(intent.read_text())
+            if started['run']!=str(attempt) or started['archive_sha256']!=packed['archive_sha256']:
+                raise ValueError('interrupted prune intent belongs to another run')
+            if attempt.exists():
+                archive.assert_finished(attempt)
+                shutil.rmtree(attempt)
+            pruned={'removed':str(attempt),'allocated_bytes_removed':started['allocated_bytes'],
+                    'archive_sha256':packed['archive_sha256'],'recovered_interrupted_prune':True}
         members=[str(Path(attempt.name)/p) for p in sorted(selected,key=lambda p:(len(p.parts),str(p)))]
         subprocess.run(['tar','--no-recursion','--xattrs','--xattrs-include=*','--acls','--numeric-owner',
                         '-xpf',str(folder/'archive.tar.gz'),'-C',str(attempt.parent),'--',*members],check=True)
