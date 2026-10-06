@@ -26,7 +26,7 @@ import sys
 import time
 
 from dns_service_probe import exact_read, query, semantics
-from m2_rootfs import command, prepare, process_identity, sha256
+from m2_rootfs import bind_unix_socket, command, prepare, process_identity, sha256
 from test_single_poll_service import stop
 
 HERE = Path(__file__).resolve().parent
@@ -185,7 +185,8 @@ class Syslog:
         self.path=root/'dev/log'
         self.out=out
         self.endpoint=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
-        self.endpoint.bind(str(self.path));self.path.chmod(0o666)
+        bind_unix_socket(self.endpoint,self.path)
+        self.path.chmod(0o666)
         self.endpoint.setblocking(False)
         self.packets=[]
     def drain(self):
