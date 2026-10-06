@@ -2,15 +2,17 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5步骤1、步骤2均完成，169项已关闭、0部分、0未实现、剩余0；[M5_REPORT终版](M5_REPORT.md)已完成。现在到用户授权的步骤3，等待体积决定，不开始正式M6性能窗口。物理路由器未触碰。
-- 刚关闭：最终44/44功能族全通过（logging329实际578.681秒）；Linux706库＋10main、完整M2两轮、三个instrumented fuzz各actual1801秒、混合/满缓存各实际300秒、ENOSPC/EMFILE、APK8阶段安装/升级/卸载/回滚/降级及两variant solver互斥全部完成。日志/资源/压力/包/生命周期原始失败及复跑均保留、全SHA+metadata核验后prune，原JSON/log/APK恢复并再次通过[后置验收门](../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/post-archive-gate.json)。全部有限延期已修复或说明保留理由，SAFETY/unwrap/expect/Mutex审查完成；生产globalallocator跟踪已撤。
-- 当前代码：产品源码dc1b740d7973838e2ae7f098d0726b0484e55074，opt3 ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b，1,929,256B；APK bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa，1,065,071B，包内ELF原样。当前fixture manifest8da6dcf43dc585af54ffa89bf120dfc1b29d70ab0d9bec18469a09c1192a058f；默认tools6fb65d96390e，仅logging override9684b010256f，43族锁定tree/receipt/hash/argv严格导入。最终[summary](../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/summary.json)8阶段、44族齐全、missing_phases[]，functional_validation_passed true。
-- 下一步：请用户决定是否接受最终opt3 ELF/APK体积。相对M4，ELF+769,976B（66.4%）、APK+431,087B（68.0%），满缓存3524KiB相对2676多848KiB（31.7%），Q4−Q3=0。原ELF1,000,000B/APK700,000B预算均失败，package artifact qualification不表示体积获准；M4特许未复用。不接受可选s样本1,613,864B（省315,392B）或z1,503,272B（省425,984B），代价为新freeze、功能/资源/压力/包生命周期复测及未知CPU/尾延迟影响；两样本也超过原ELF预算，APK尚未测。更多源码缩减暂无已证明的净节省/工期承诺。
-- 阻塞点：只等待用户的最终体积/构建方式决定；没有未执行的M5功能或收尾验收。M6只有[冻结方案草稿](M6_PROTOCOL_DRAFT.md)，未开始正式性能。Oracle最后[现场检查](../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/final-site-check.json)无dnsmasq测试残留进程、无final运行挂载，剩26,285,703,168B（约24.5GiB）。
-- 活跃分工：本轮功能、报告、归档与独立审核全部结束；只等待用户体积决定。logging_resume最终只读身份/报告审查PASS，edns_resume已保全patch/原文件/ignored缓存与durable refs后删除三个旧M5树及branch（54→51），tftp_closeout终版报告已合入。后续子代理不指定model/reasoning_effort/fork_turns，默认全量继承。任务树的durable refs/补丁/ignored证据保留边界见[失败与退休索引](audits/20261006/FINAL_REPLAY_FAILURES.md)；未知历史dirty树及证据载体保持原样，用户docs/prompts未改。
-- 续接注意：只从本账本恢复，不读旧聊天；本轮最终原始证据位于private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973及final-9684-logging。source-only/unsafe-excluded不改称actual。169表中的旧族身份是初闭历史，最终同ELF逐族身份见报告与summary；完整行为差异（含日志退出/队列/FD与TCP OPT）见下表。用户决定之前保持最终产品身份，不替换为s/z，也不重复已绿43族或开M6窗口。
+- 当前里程碑：用户已接受M5最终体积，M5完成；进入M6a，只测量、归因，不改产品，不启动M6b。产品仍dc1b740d／opt3 37f85d22（1,929,256B）与镜像C097a9e21，s只作同源性能对照。[M6a冻结协议](M6A_PROTOCOL.md)本次先提交后测，M6_PROTOCOL_DRAFT保留历史草案。
+- 刚关闭：M5体积决定已解决；Oracle4核/affinity0..3/cgroup2可写已核对，仍约24.5GiB、无物理路由器操作。新的原生UDP/TCP/DHCP负载器及静态内存账已提交，本地正确性/解析守卫完成，不冒称正式性能。
+- 当前代码：M5产品源码dc1b740d7973838e2ae7f098d0726b0484e55074、ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b；C097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87。正式tools/配置/种子和新s构建SHA须另建M6a immutable manifest，产品代码不修改。169项仍全关闭。
+- 下一步：冻结协议后构建同源s并记录身份；工具接线、每窗口独立短试跑通过后执行9profile（7场景族、TCP3profile）×C/R3/Rs×5交错有效轮次，共135正式窗口。每个正式窗口预热30s、计量120s，CPU0daemon/1upstream/2load/3sample、daemon独立cgroupCPU含TCPchild。正式窗口持共享构建锁并排除所有外部build/test/fuzz，子代理只本地读源码/写报告。
+- 阻塞点：无须用户决定。当前native upstream/controller及runner接线/试跑待完成；正式有效轮次0/135。实际错答/timeout保留为行为结果、不计正确吞吐；只有方法/环境/采样/清理错误作废，原证据保留。阈值/时长/顺序在协议中事先固定，不能看结果改。报告完成后停等用户决定M6b，性能不外推路由器。
+- 活跃分工：root独占protocol/ledger、native upstream、suite/analyzer、Oracle构建和窗口；m6a_runner独占window驱动；m6a_loadgen交原生负载器；m6a_memory只本地内存结构归因；m6a_review只本地方案/工具/结果审查。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间全部子代理禁止Oracle工作。用户docs/prompts原样。
+- 续接注意：本轮只从账本恢复；M5原始身份/报告/行为差异保留，不重跑M5或把s当功能验收。M6a原始证据统一private/dnsmasq-rewrite/evidence/M6a；静态布局诊断既有M6A目录有独立SHA，后续报告显式链接不混计。每批回拷全SHA+metadata核验再清Oracle raw/overlay并恢复原JSON/log；产品artifact与用户文件不丢。
 
 ## 工作规则
+
+- 用户当前授权：M5最终opt3 ELF/APK体积已接受。M6a仅冻结方案后的性能/资源测量和内存归因，不改产品；同源s仅性能对照、未功能验收。M6A_REPORT提交后等待用户决定M6b；正式窗口不得并行build/test/fuzz，子代理只本地读代码/写报告。
 
 续接只从本账本的「当前状态与下一步」、工作规则和选项表恢复，不必重读历史消息。每次汇报同步更新开头状态。
 
@@ -31,7 +33,7 @@
 - M5 结束时，在同一版本执行完整 M2、实际 5 分钟资源试跑、两项压力测试和 APK 生命周期验证；复测 ELF 体积和满载 RSS，与 M4 的 1,159,280 字节、2,676 KiB 比较。M4 体积例外仅属于原 ELF，新增体积不能自行豁免。
 - 物理路由器不碰；本阶段只做本地与构建机隔离验证。
 
-日更：2026-10-06。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M5**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
+日更：2026-10-06。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M6a**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
 
 ## 与 C 的行为差异
 
@@ -78,7 +80,7 @@
 | M2 使用场景 | 镜像 musl C 对照：20 客户端租约全流程、静态/ethers/重启、reload/UCI/odhcpd、DNS 故障恢复与 TCP/cache；三入口各 30 分钟 fuzz。已关闭，历史身份与失败见 [M2_REPORT.md](M2_REPORT.md)。旧 all-servers 夹具实际启用了 strict-order，该项由 M4 的修正工具和真正 all-servers 对照补齐。 |
 | M3 长时与资源 | 混合负载实际 60 分钟，比较计数、资源走势和退出回收；ENOSPC/EMFILE 对照。已按用户修订范围收尾，见 [M3_REPORT.md](M3_REPORT.md)。到期等功能引用 M2，不强塞进 12 小时租期的长跑。旧缓存计数不能作为 live occupancy，M4 已完成双方填满后的实测，见 [M4_REPORT.md](M4_REPORT.md)。 |
 | M4 可替换包 | 单线程功能和资源验证；最终源码/ELF 对应；稳定工具链 opt-level 3、static、strip、panic=abort；最终 APK 真实安装、升级、卸载、回滚。原 ELF 目标 1,000,000 字节未达成；用户已明确接受方案 A 的 1,159,280 字节，其他超标不能自行豁免。见 [M4_REPORT.md](M4_REPORT.md)。 |
-| M5 完整合同 | 169项及最终44族同ELF对照、延期处置/健壮性/M2/fuzz/资源/压力/APK生命周期/报告均完成。见[M5_REPORT](M5_REPORT.md)；最终ELF/APK超预算，步骤3等待用户体积决定，未自行接受。 |
+| M5 完整合同 | 169项及最终44族同ELF对照、延期处置/健壮性/M2/fuzz/资源/压力/APK生命周期/报告均完成。见[M5_REPORT](M5_REPORT.md)；最终ELF/APK超原预算，用户已在M6a指令明确接受此M5身份体积。 |
 | M6 性能 | 用户决定M5最终体积/构建方式后，在获准最终产物上按冻结协议测缓存命中/未命中/混合/失败/TCP/DHCP/reload；报告吞吐、错误、延迟、CPU、RSS/FD 和体积，无收益写未证明。尚未启动正式性能窗口；仅有 [冻结方案草稿](M6_PROTOCOL_DRAFT.md)。 |
 | M7 真机 | 离线 runbook、备份、自动回滚、客户端检查和约三分钟窗口；用户另行明确授权才操作物理路由器。未经 M7 不称生产验收。 |
 
