@@ -20,7 +20,7 @@ import sys
 import threading
 import time
 
-from m2_rootfs import command, prepare, sha256
+from m2_rootfs import bind_unix_socket, command, prepare, sha256
 from dns_service_probe import query, semantics
 
 HERE=Path(__file__).resolve().parent
@@ -103,7 +103,7 @@ class SyslogCollector:
     """Receive continuously so the fixture cannot backpressure ordinary logs."""
     def __init__(self,path):
         path.unlink(missing_ok=True);self.socket=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
-        self.socket.bind(str(path));self.socket.settimeout(.02);self.records=[];self.stop=threading.Event();self.error=None
+        bind_unix_socket(self.socket,path);self.socket.settimeout(.02);self.records=[];self.stop=threading.Event();self.error=None
         self.worker=threading.Thread(target=self.receive);self.worker.start()
 
     def receive(self):
@@ -254,7 +254,7 @@ def qualify(out,family):
                               allocation_content_equal=False))
     result=dict(family=family,qualified=not failures,paired_cases=len(pairs),failures=failures,pairs=pairs,
                 binaries={side:value['binary_sha256'] for side,value in sides.items()},
-                known_deferred=plan['known_deferred'],ordinary_option_count=169 if family=='test' else 1,
+                extreme_disposition=plan['extreme_disposition'],ordinary_option_count=169 if family=='test' else 1,
                 allocation_content_difference=plan['log_malloc_contract'] if family=='log-malloc' else None)
     save(out/'result.json',result);print(json.dumps(dict(family=family,qualified=result['qualified'],paired_cases=len(pairs),failures=len(failures))))
     return not result['qualified']
