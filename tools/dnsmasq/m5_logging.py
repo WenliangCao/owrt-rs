@@ -825,7 +825,22 @@ def query_sequence(case=None):
             ('kept.logging', 16), ('nxdomain.logging', 1), ('ready.logging', 65400)]
 
 
-def tcp_sequence(probes):
+def query_clock():
+    return {'wall_ns': time.time_ns(), 'monotonic_ns': time.monotonic_ns()}
+
+
+def align_query_phase():
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        clock = query_clock()
+        fraction = clock['wall_ns'] % 1_000_000_000
+        if 190_000_000 <= fraction <= 210_000_000:
+            return {'epoch': clock['wall_ns'] // 1_000_000_000, 'aligned_at': clock, 'intervals': []}
+        time.sleep(.001)
+    raise AssertionError('real wall-clock query phase alignment timed out')
+
+
+def tcp_sequence(probes, intervals=None):
     rows, raw = [], []
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
         client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -834,8 +849,11 @@ def tcp_sequence(probes):
         client.connect(('127.0.0.1', 15353))
         for name, kind in probes:
             wire = query_packet(name, kind, 0x7200)
+            started = query_clock() if intervals is not None else None
             client.sendall(len(wire).to_bytes(2, 'big') + wire)
             reply = exact_read(client, int.from_bytes(exact_read(client, 2), 'big'))
+            if intervals is not None:
+                intervals.append({'name': name, 'type': kind, 'transport': 'tcp', 'started': started, 'finished': query_clock()})
             rows.append({'name': name, 'type': kind, 'transport': 'tcp', 'response': semantics(reply)})
             raw.append({'request': wire.hex(), 'reply': reply.hex(), 'transport': 'tcp'})
     return rows, raw
@@ -1567,14 +1585,25 @@ def run(root, side, case, out):
                         observed['dns'].extend(rows)
                         trace['dns'].extend(raw)
                 if case.get('query_probes'):
+                    phase = align_query_phase() if case['id'] == 'query-forward-ordinary' else None
+                    intervals = phase['intervals'] if phase else None
                     for name, kind in query_sequence(case):
+                        started = query_clock() if phase else None
                         answer, raw = exchange(name, kind, port=16501, timeout=1 if case.get('query_upstream') else .03)
+                        if phase:
+                            intervals.append({'name': name, 'type': kind, 'transport': 'udp', 'started': started, 'finished': query_clock()})
                         observed['dns'].append({'name': name, 'type': kind, 'transport': 'udp', 'response': answer})
                         trace['dns'].append(dict(raw, transport='udp'))
-                    rows, raw = tcp_sequence(query_sequence(case))
+                    rows, raw = tcp_sequence(query_sequence(case), intervals)
                     observed['dns'].extend(rows)
                     trace['dns'].extend(raw)
+                    started = query_clock() if phase else None
                     answer, raw = exchange('ready.logging', port=16503)
+                    if phase:
+                        intervals.append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp',
+                                          'started': started, 'finished': query_clock()})
+                        observed['query_phase'] = phase
+                        save(out / 'query-phase.json', phase)
                     observed['dns'].append({'name': 'ready.logging', 'type': 1, 'transport': 'udp-after-tcp', 'response': answer})
                     trace['dns'].append(dict(raw, transport='udp-after-tcp'))
                     if case.get('query_extreme_probe'):
@@ -2242,6 +2271,26 @@ def fast_retry_witness_errors(row):
     return []
 
 
+def query_phase_errors(row, case):
+    phase = row.get('query_phase') or {}
+    intervals = phase.get('intervals', [])
+    expected = [(name, kind, transport) for transport in ['udp', 'tcp'] for name, kind in query_sequence(case)]
+    expected.append(('ready.logging', 1, 'udp-after-tcp'))
+    if [(item.get('name'), item.get('type'), item.get('transport')) for item in intervals] != expected:
+        return ['missing exact UDP seed/read and TCP read interval inventory']
+    aligned = phase.get('aligned_at', {})
+    clocks = [aligned] + [item[edge] for item in intervals for edge in ['started', 'finished']]
+    if any(type(clock.get(key)) is not int or clock[key] <= 0 for clock in clocks for key in ['wall_ns', 'monotonic_ns']):
+        return ['missing actual wall/monotonic observation clocks']
+    epoch = phase.get('epoch')
+    if (not 190_000_000 <= aligned['wall_ns'] % 1_000_000_000 <= 210_000_000
+            or any(clock['wall_ns'] // 1_000_000_000 != epoch for clock in clocks)
+            or [clock['monotonic_ns'] for clock in clocks] != sorted(clock['monotonic_ns'] for clock in clocks)
+            or [clock['wall_ns'] for clock in clocks] != sorted(clock['wall_ns'] for clock in clocks)):
+        return ['cache seed/read sequence crossed its real integer-second phase']
+    return []
+
+
 def compare(reference, candidate, case, reference_only=False):
     failures = []
     expected_ready = case.get('expect_ready', case['kind'] == 'run' and case.get('exit', 0) == 0)
@@ -2578,6 +2627,11 @@ def compare(reference, candidate, case, reference_only=False):
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
+    if case['id'] == 'query-forward-ordinary':
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            failures.extend({'kind': 'actual-cache-seed-read-phase', 'side': side, 'error': error}
+                            for error in query_phase_errors(row, case))
+        left.pop('query_phase', None); right.pop('query_phase', None)
     if case.get('query_transaction_probe') == 'fastretry':
         for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
             failures.extend({'kind': 'actual-fast-retry-witness', 'side': side, 'error': error}
