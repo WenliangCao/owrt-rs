@@ -370,6 +370,15 @@ def related_processes():
     return excluded | descendants
 
 
+def exclusive_busy_processes():
+    """Recheck ancestry for children born after the initial exclusion scan."""
+    busy = family_processes(related_processes())
+    if busy:
+        related = related_processes()
+        busy = [row for row in busy if row['pid'] not in related]
+    return busy
+
+
 def publish(spec, manifest_sha, result):
     """Independent family groups publish under one lock without losing phases."""
     root = Path(spec['output'])
@@ -563,7 +572,7 @@ def run(args):
         if phase in ['resources', 'full-cache-600', 'pressure']:
             require(args.exclusive_window, 'root must coordinate an exclusive load-free window')
             lock = (TARGET / '.dnsmasq-build.lock').open('a'); fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            busy = family_processes(related_processes()); save(attempt / 'window-before.json', busy)
+            busy = exclusive_busy_processes(); save(attempt / 'window-before.json', busy)
             require(not busy, 'other build/test processes are active; retain this unexecuted attempt')
         if phase == 'package':
             freeze = {key: spec[key] for key in ['source_commit', 'source_date_epoch', 'source_files', 'sdk_archive_sha256', 'sdk_files']}
@@ -585,7 +594,7 @@ def run(args):
                 try:
                     while process.poll() is None:
                         if lock:
-                            busy = family_processes(related_processes())
+                            busy = exclusive_busy_processes()
                             require(not busy, f'exclusive window contaminated: {busy}')
                         require(time.monotonic() - started < job['timeout_seconds'], 'job timeout')
                         try: process.wait(timeout=1)
