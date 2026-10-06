@@ -22,7 +22,7 @@ import time
 
 from dns_service_probe import exact_read, query, semantics
 from dhcp_daemon_smoke import decode
-from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
+from m2_rootfs import bind_unix_socket, STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 
 DEFAULT = '/var/lib/misc/dnsmasq.leases'
 BASE = ['--conf-file=', '--no-hosts', '--no-resolv', '--no-ping', '--no-0x20-encode',
@@ -313,7 +313,7 @@ def run(root, side, case, out):
     argv+=case.get('spelling',['--dhcp-leasefile='+path])
     binary='/usr/sbin/dnsmasq'+('-rs' if side=='rust' else '')
     syslog=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM);syslog.setblocking(False)
-    (root/'dev/log').unlink(missing_ok=True);syslog.bind(str(root/'dev/log'));(root/'dev/log').chmod(0o666)
+    (root/'dev/log').unlink(missing_ok=True);bind_unix_socket(syslog, root/'dev/log');(root/'dev/log').chmod(0o666)
     syntax=subprocess.run(command(root,binary,'--test',*argv),capture_output=True,timeout=3)
     observed={'syntax':dict(exit=syntax.returncode,stdout=syntax.stdout.decode(errors='backslashreplace').replace('dnsmasq-rs:','dnsmasq:'),
                            stderr=syntax.stderr.decode(errors='backslashreplace').replace('dnsmasq-rs:','dnsmasq:')),
