@@ -1,0 +1,257 @@
+{
+  "all_eight_exact_comparisons_passed": true,
+  "archives": {
+    "c": {
+      "archive_sha256": "09f1bfed662615b639b22208e023bd70c8794d019ba453ca7a26245bbe0ce4b5",
+      "entries": 186,
+      "regular_files": 162,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    },
+    "rust": {
+      "archive_sha256": "ec53ba293a75b1304abab572ccd14f35af77c1138d06c72c49957ce42144e8bc",
+      "entries": 186,
+      "regular_files": 162,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true
+    }
+  },
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "candidate_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+  "cases": [
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000298415633684,
+          "after_realtime_ns": 1791275681200079301,
+          "before_monotonic_ns": 1000297660223554,
+          "before_realtime_ns": 1791275680444669691,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000298415626964,
+          "after_realtime_ns": 1791275681200072461,
+          "before_monotonic_ns": 1000297673170421,
+          "before_realtime_ns": 1791275680457616198,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "forward-stale-background-capacity",
+      "corruption_controls_executed": 6,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000294415636388,
+          "after_realtime_ns": 1791275677200081565,
+          "before_monotonic_ns": 1000293830422586,
+          "before_realtime_ns": 1791275676614867963,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000294415632068,
+          "after_realtime_ns": 1791275677200077445,
+          "before_monotonic_ns": 1000293691396516,
+          "before_realtime_ns": 1791275676475842173,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "generic-mf",
+      "corruption_controls_executed": 4,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000295415636662,
+          "after_realtime_ns": 1791275678200082199,
+          "before_monotonic_ns": 1000294448875023,
+          "before_realtime_ns": 1791275677233321080,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000295415642662,
+          "after_realtime_ns": 1791275678200088759,
+          "before_monotonic_ns": 1000294450880120,
+          "before_realtime_ns": 1791275677235326097,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "order-expired-reclaim-before-live",
+      "corruption_controls_executed": 5,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000301415624426,
+          "after_realtime_ns": 1791275684200070123,
+          "before_monotonic_ns": 1000300864055342,
+          "before_realtime_ns": 1791275683648501559,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000301415630066,
+          "after_realtime_ns": 1791275684200076323,
+          "before_monotonic_ns": 1000300872939336,
+          "before_realtime_ns": 1791275683657385273,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "round-tcp-snapshot-vs-parent",
+      "corruption_controls_executed": 4,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000305415631522,
+          "after_realtime_ns": 1791275688200076739,
+          "before_monotonic_ns": 1000304604920894,
+          "before_realtime_ns": 1791275687389366911,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000305415642282,
+          "after_realtime_ns": 1791275688200087819,
+          "before_monotonic_ns": 1000304611473588,
+          "before_realtime_ns": 1791275687395919565,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "tcp-existing-lease-ttl",
+      "corruption_controls_executed": 4,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000302415623620,
+          "after_realtime_ns": 1791275685200069637,
+          "before_monotonic_ns": 1000301449059463,
+          "before_realtime_ns": 1791275684233505640,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000302415631180,
+          "after_realtime_ns": 1791275685200076677,
+          "before_monotonic_ns": 1000301472075573,
+          "before_realtime_ns": 1791275684256521670,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "tcp-parent-lease-added",
+      "corruption_controls_executed": 4,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000304415629248,
+          "after_realtime_ns": 1791275687200075145,
+          "before_monotonic_ns": 1000303558649317,
+          "before_realtime_ns": 1791275686343095654,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000304415626128,
+          "after_realtime_ns": 1791275687200072305,
+          "before_monotonic_ns": 1000303576648346,
+          "before_realtime_ns": 1791275686361094243,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "tcp-parent-lease-released",
+      "corruption_controls_executed": 4,
+      "exact_case_equal": true
+    },
+    {
+      "actual_schedule_clock_phase": {
+        "c": {
+          "after_monotonic_ns": 1000303415631974,
+          "after_realtime_ns": 1791275686200077351,
+          "before_monotonic_ns": 1000302505609924,
+          "before_realtime_ns": 1791275685290056101,
+          "target_fraction_ns": 200000000
+        },
+        "rust": {
+          "after_monotonic_ns": 1000303415631494,
+          "after_realtime_ns": 1791275686200076751,
+          "before_monotonic_ns": 1000302516451294,
+          "before_realtime_ns": 1791275685300897511,
+          "target_fraction_ns": 200000000
+        }
+      },
+      "all_controls_rejected": true,
+      "case": "tcp-parent-lease-renamed",
+      "corruption_controls_executed": 4,
+      "exact_case_equal": true
+    }
+  ],
+  "comparator_sha256": "c6247c2f0c756934502a2aef65a03f95e616ac1ea90a0415f33c04546ef9dc79",
+  "dhcp_caller_negative_controls": [
+    {
+      "control": "lease-added",
+      "rejected": true
+    },
+    {
+      "control": "lease-renamed",
+      "rejected": true
+    },
+    {
+      "control": "lease-released",
+      "rejected": true
+    },
+    {
+      "control": "ttl-decay",
+      "rejected": true
+    },
+    {
+      "control": "ttl-unbounded",
+      "rejected": true
+    },
+    {
+      "control": "missing-case",
+      "rejected": true
+    },
+    {
+      "control": "bad-identity",
+      "rejected": true
+    },
+    {
+      "control": "missing-witness",
+      "rejected": true
+    },
+    {
+      "control": "short-wait",
+      "rejected": true
+    }
+  ],
+  "earlier_endpoint_controller_archive": {
+    "archive_sha256": "3ea30ea477b06863a555dc8714c99f1b2c3b9821b5ce93928c8e07c836369d59",
+    "entries": 6325,
+    "regular_files": 5179,
+    "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+    "verified": true
+  },
+  "fixture_change_commit": "4c521f804606ab4c3bdaf76bb12225195787817d",
+  "full_cache_family_qualified": false,
+  "lease_tcp_caller_guard": true,
+  "product_source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+  "repair": "Align both service scenario schedules near0.2 of the real wall second. Actual clocks remain recorded; all existing exact TTL and packet comparisons remain enforced.",
+  "reports": {
+    "c": "e38f8adb45c25f3587b89f7a0fc8140df246ef12e4f9333a53d944f61392c031",
+    "private_dhcp_caller_proof_sha256": "3c733d1289231fd601ecb325c3d9091ff0c6e24aedc199c663d88b571e70c002",
+    "private_phase_proof_sha256": "4291cfe89eacc9a6817614a10f8fe6bdd880c5cfb31bb372a06b1400f6c07e33",
+    "rust": "023d3e1a5a0b109735ffcaa0d8e02a3209c60f0a34b02ed29fe8328064bb2786"
+  },
+  "scope": "Eight exploratory cases from the failed full cache run; full536-case qualification remains pending."
+}
