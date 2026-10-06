@@ -88,6 +88,13 @@ def pxe_profiles():
                       'pxe-service=0,' + 'B' * 200 + ',second']
     row['cases'] = row['cases'][:1];rows.append(row)
     enterprise = ['vi-encap:1234,1,' + 'a' * 240, 'vi-encap:1234,2,' + 'b' * 20]
+    row = copy.deepcopy(available['dynamic-pxe']);row['name'] = 'ordinary-menu-too-large-detail'
+    row['options'] = ['log-facility=-', 'log-dhcp', 'pxe-service=0,' + 'A' * 200 + ',first',
+                      'pxe-service=0,' + 'B' * 200 + ',second']
+    row['cases'] = row['cases'][:1];rows.append(row)
+    row = copy.deepcopy(template);row['name'] = 'ordinary-duplicate-options-detail'
+    row['options'].extend(['dhcp-option=220,first', 'dhcp-option=220,second'])
+    row['cases'] = [packet_case('duplicates', pxe.request(arch=None, vendor=b'ordinary', prl=bytes([220])))];rows.append(row)
     row = copy.deepcopy(available['legacy-proxy']);row['name'] = 'pxe-enterprise-overflow-detail'
     row['options'].extend(['log-facility=-', 'log-dhcp', *['dhcp-option-pxe=' + option for option in enterprise]])
     row['cases'] = row['cases'][:1];rows.append(row)
@@ -187,7 +194,7 @@ def main(args):
     for scope, corpus in [('pxe', pxe_profiles()), ('leasequery', leasequery_profiles()), ('relay', relay_profiles())]:
         if scope not in args.scopes.split(','): continue
         if args.profiles: corpus = [row for row in corpus if row['name'] in args.profiles.split(',')]
-        else: corpus = [row for row in corpus if not any(word in row['name'] for word in ['too-large', 'enterprise-overflow', 'option-exhaustion'])]
+        else: corpus = [row for row in corpus if not any(word in row['name'] for word in ['too-large', 'enterprise-overflow', 'option-exhaustion', 'duplicate-options'])]
         rows = [];cleanup = {};client = server = network = None
         try:
             if scope == 'leasequery': network = Network();network.start()
@@ -225,7 +232,8 @@ def main(args):
                     elif profile['name'].startswith('warning-no-range'): required.append('no address range available for DHCP request via client0')
                     elif profile['name'].startswith('client-fqdn'): required.append('client provides name: Client.Logging')
                     elif profile['name'].startswith('boot-item'): required.append('PXE BIS not supported')
-                    elif profile['name'].startswith('pxe-menu-too-large'): required.append('PXE menu too large')
+                    elif 'menu-too-large' in profile['name']: required.append('PXE menu too large')
+                    elif 'duplicate-options' in profile['name']: required.append('Ignoring duplicate dhcp-option 220')
                     elif 'enterprise-overflow' in profile['name']: required.append('cannot send RFC3925 option: too many options for enterprise number 1234')
                     elif 'option-exhaustion' in profile['name']: required.append('no space left in packet')
                     if detail and not profile['name'].startswith('warning-no-range'):
