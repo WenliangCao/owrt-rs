@@ -1,24 +1,24 @@
 # M5 收尾报告
 
-**草稿，2026-10-06。** 169项普通合同已关闭、剩余0；最终同ELF44功能族已有43个正式PASS，logging全329仍待完整复跑。两次完整M2、三入口fuzz与资源试跑已通过。压力、APK及包生命周期待补真实结果，当前不宣布M5收尾完成或体积已获接受。物理路由器未操作；M6只保留[协议草稿](M6_PROTOCOL_DRAFT.md)，没有正式性能窗口。
+**草稿，2026-10-06。** 169项普通合同已关闭、剩余0；最终同ELF44功能族全部正式PASS，包括logging完整329场景。Linux706＋10、两次完整M2、三入口fuzz、两项五分钟资源窗口与ENOSPC／EMFILE已通过。APK已实际构建并绑定最终ELF，ELF/APK均超原预算；包生命周期待补真实结果，当前不宣布M5收尾完成或体积已获接受。物理路由器未操作；M6只保留[协议草稿](M6_PROTOCOL_DRAFT.md)，没有正式性能窗口。
 
 ## 交付身份与验收进度
 
 产品源码`dc1b740d7973838e2ae7f098d0726b0484e55074`；AArch64 musl ELF SHA256 `37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b`，1,929,256字节。构建为Rust1.98.1／固定SDK、opt-level3、static、strip、panic-abort、no-unwind，构建和产物复制在唯一Cargo锁内完成。镜像C为OpenWrt25.12.5 dnsmasq2.93／SHA256 `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87`。[完整冻结身份][identity]
 
-工具6fb65独立git archive冻结后全44重新执行；单族6d572edf override保持原默认tree/ELF及43个原锁定receipt与argv，仅logging使用新tree。不是重新解释旧选项资格，也没有删case/inventory或放宽wire/count。当前43个PASS及M2/fuzz的输入SHA/执行退出保存在[完成表][completed]。
+工具6fb65独立git archive冻结后全44重新执行；最新fixture9684b010256f／manifest SHA256 `8da6dcf43dc585af54ffa89bf120dfc1b29d70ab0d9bec18469a09c1192a058f`保持原默认6fb65工具tree、产品ELF及43个原锁定receipt与argv，仅logging使用新tree。窗口guard修复只控制执行资格，没有删case/inventory或放宽wire/count。43个PASS及M2/fuzz的输入SHA/执行退出保存在[完成表][completed]；[最后logging资格][logging-final]加入后，[44族总门][families-aggregate]passed true、failures[]。[最终fixture身份][fixture]同时绑定本次压力验收。
 
 | 验收门 | 实际结果与证据 |
 | --- | --- |
 | 169选项 | 已关闭169，部分/未实现均0；[逐项账本](DELIVERY_LEDGER.md#m5-盘点与工作顺序) |
-| Linux单元 | 库706＋main10实际通过；20 ignored不计。[同源测试构建身份][tests]；**待root补实际lib/main运行日志链接，不能以build/no-run代替执行** |
-| 同ELF44族 | 43正式通过，logging329待复跑；逐族表如下 |
+| Linux单元 | 库706＋main10实际通过；20 ignored不计。[实际lib/main执行日志][tests-run]、[同源测试构建身份][tests]；测试ELF与交付release ELF分别绑定，不把build/no-run当作执行 |
+| 同ELF44族 | 44/44正式PASS，logging329全量实际执行；[完整资格总门][families-aggregate]，逐族表如下 |
 | 完整M2 | 两轮PASS：7 DNS、4 DHCP profile、C/R init/HUP/UCI/odhcpd/stop。[第一轮][m2a]、[第二轮][m2b] |
 | native fuzz | dns_wire1801.324s、dhcp_packet1801.272s、config_line1801.470s，各exit0、artifacts空，累计5404.065 target-seconds；同源instrumented产物独立于交付musl ELF。[实际运行][fuzz] |
-| 混合资源 | 排他窗口实际305.073s，C/R accepted true、failures[]；**待root补本地资源archive/result链接** |
-| 满缓存资源 | 实际300s，双方4096条live A及命中证明，accepted true、failures[]；**待root补资源receipt链接** |
-| ENOSPC／EMFILE | **待root补实际压力结果、恢复/清理及receipt；未记通过** |
-| APK | **待root补实际APK SHA/字节、payload ELF绑定、预算结果与recipe恢复；未记构建通过** |
+| 混合资源 | 300s实际采样／controller305.073s，C/R accepted true、failures[]；工作量及退出清理相同。[资源receipt][resources]、[实际采样][mixed-resource] |
+| 满缓存资源 | inner实际300s／controller356.807s，双方4096条live A及首尾命中证明，accepted true、failures[]。[实际满缓存与负控][full-resource] |
+| ENOSPC／EMFILE | PASS，C/R规范化观察完全相同、failures[]；leaf122.063s／controller122.165s，300s是每侧deadline。[压力receipt][pressure]、[故障、恢复与清理][pressure-leaf] |
+| APK | 实际产物1,065,071B／SHA `bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa`，payload等于最终37f85ELF，identity_verified/recipe_restored均true；**ELF/APK预算均失败，待用户体积决定**。[构建与预算manifest][package]、[执行controller][package-controller] |
 | 包生命周期 | **待root补真实安装/升级/卸载/回滚/变体互斥及init激活结果；未记通过** |
 
 ## 44族逐项结果
@@ -56,7 +56,7 @@
 | dhcp-range | 通过；冻结147事件与完整caller | [锁定PASS][completed] |
 | dhcp-files | 通过；82配置／330事件 | [锁定PASS][completed] |
 | loop-detect | 通过；90required／670负控 | [锁定PASS][completed] |
-| logging-all-scopes | **pending**：原329中fastretry producer时序红；三模式diagnostic过，全329尚未完成 | [原红及诊断][logging]、[失败链](audits/20261006/FINAL_REPLAY_FAILURES.md) |
+| logging-all-scopes | 全329实际PASS／controller578.681s；44负控，phase true、leaf failures[] | [最终锁定PASS][logging-final]、[全部329与负控][logging-leaf] |
 | cli-test | 通过；169×2＋7，345配对 | [锁定PASS][completed] |
 | cli-log-malloc | 通过；15配对 | [锁定PASS][completed] |
 | m5_edns | 通过；196required／21负控，7故意差异 | [锁定PASS][completed] |
@@ -92,11 +92,15 @@
 | 指标 | M4已接受基线 | M5最终opt3 | 增量 |
 | --- | ---: | ---: | ---: |
 | ELF字节 | 1,159,280 | 1,929,256 | +769,976（66.4%） |
-| APK字节 | 633,984 | **待root补实测** | **待计算** |
+| APK字节 | 633,984 | 1,065,071 | +431,087（68.0%） |
 | 4096满缓存Q4 RSS（KiB） | 2,676 | 3,524 | +848（31.7%） |
 | 同轮C满缓存Q4 RSS（KiB） | 1,652（M4） | 1,660 | 同轮Rust比C多1,864 |
 
-M5 Rust空载RSS2,024KiB、填满3,460、命中验证后3,524，满缓存Q4同为3,524；C对应1,656/1,660KiB。300秒结果只能支持本次资源/回收门，不能推断M6收益或长期内存趋势。**待root补RSS采样/stat/健康/FD/PID与完整resource receipt链接。**
+M5 Rust空载RSS2,024KiB、填满3,460、命中验证后3,524，满缓存Q4同为3,524；C对应1,656/1,660KiB。双方满缓存Q4−Q3为0，C/R全程FD11/10、线程各1、子进程各0；4095命中缺一项负控正确拒绝，4096首尾命中时上游请求均0。混合窗口双方FD17、线程1、子进程0，20次DORA、41次renew、44次rebind、164次UDP与51次TCP查询完全相同；停机后daemon/ubusd均退出、socket关闭、lease行0。[RSS与满载证明][full-resource]、[混合采样及清理][mixed-resource]、[receipt][resources]均绑定最终ELF；[本地全SHA及metadata核验][resources-verification]通过后远端raw已prune。300秒结果只支持本次资源/回收门，不能推断M6收益或长期内存趋势；满载范围是4096条短名称动态A，不包含任意复杂RR或长名称。
+
+ENOSPC在双方tmpfs实际填满16,384B，仍收到`127.0.0.15`的offer及ACK、满盘时没有durable lease，释放空间后分别60.046／60.042s恢复1条lease。EMFILE在双方实际施加FD压力，恢复后的DNS reply ID为`3201`、长度47B；规范化C/R观察完全相同。双方各场景退出后daemon/pid均无残留、lease行0、exit0。[实际故障与恢复][pressure-leaf]、[最终压力receipt][pressure]和[归档核验][pressure-verification]保存原始观察；leaf总122.063s，controller122.165s，参数300s只是每侧deadline，没有额外五分钟压力暴露的主张。
+
+`dnsmasq-2.93-r2.apk`使用已验收的冻结ELF作为payload；不再次codegen/strip，SDK原recipe在构建后恢复，产物身份核验为true。[实际构建manifest][package]的status为failed、`failure_boundary=size-target`：1,929,256B ELF超过1,000,000B预算，1,065,071B APK超过700,000B预算。build returncode1只来自这两个预算检查；controller passed true只表示真实、可审查、身份正确的产物已生成，不能解释为预算通过或体积已被接受。生命周期结果仍待补齐。
 
 [功能族体积归因](M5_SIZE_ATTRIBUTION.md)保留固定路径连续构建、首尾同字节控制及失败矩阵；混合阶段/共享泛型/链接布局不能冒称纯单族增量。下面是同次最终[link.map归属][size-map]的当前执行区存储：2,561输入sections覆盖1,674,984B，220B未归因；它不是+769,976B新增成本的因果拆分。
 
@@ -122,21 +126,40 @@ M5 Rust空载RSS2,024KiB、填满3,460、命中验证后3,524，满缓存Q4同�
 | opt-level s样本 | 1,613,864 | 315,392 | 仅同源size sample；尚未功能/资源/APK验收或M6，须重新冻结并验证 |
 | opt-level z样本 | 1,503,272 | 425,984 | 同上；CPU/尾延迟影响未测，不能保证速度保持 |
 
-M4的体积特许只属于M4 ELF；M5未自行接受新的ELF超标。原预算ELF1,000,000/APK700,000字节仍必须如实报告。**待root填完压力/APK/生命周期与logging最终资格后提交终版，才请用户决定接受opt3体积，或选择s/z并承担重冻结/功能资源包复测及后续M6测量成本。**
+M4的体积特许只属于M4 ELF；M5未自行接受新的ELF超标。原预算ELF1,000,000/APK700,000字节仍必须如实报告；s/z样本也都超过原ELF预算，APK压缩体积尚未测，不能保证满足700,000B。**待root填完生命周期后提交终版，才请用户决定接受opt3体积，或选择s/z并承担重冻结/功能资源包复测及后续M6测量成本。**
 
 ## 失败与重跑记录
 
 完整失败链见[FINAL_REPLAY_FAILURES](audits/20261006/FINAL_REPLAY_FAILURES.md)，原12b3、dc1b首轮与各tools revision的红/未执行数据不覆盖。主要产品修复是masked-MAC错误文案和实际bind-before-loop-probe启动race；夹具修复涵盖长Unix path、helper init/ready边界、queued TCP、scope/资格元数据、ARP map资产、PXE时钟字段、relay DAD与跨FD真实kernel序、cache实际整秒phase。没有删除case、放宽wire/count或把基础设施异常归为已通过。
 
-logging原329只剩fastretry固定reply在C真实重传前返回；有界等实际第二个相同request再释放唯一reply的三模式diagnostic已过，但全329仍**pending**，不得用诊断代替整族资格。资源attempt1因诊断负载污染在8.3s被门拒绝，attempt2因外部worker残留在采样前拒绝；按精确PGID清理后attempt3完整PASS。**待root补上述资源attempt1/2/3、本次压力/APK任何失败与复跑的本地receipt链接；以终版真实结果为准。**
+logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重传前返回；有界等实际第二个相同request再释放唯一reply的三模式diagnostic已过，随后[全329正式复跑][logging-final]完整PASS，不用诊断替代整族资格。最终logging归档SHA `be4f23357acf6b655f1974ca06802b9de2daa54354aa65b929097c7a362a3da1`，[5,583路径／4,559文件完整核验][logging-verification]通过后远端raw已prune。资源[attempt1][resources-rejected-1]因诊断负载污染在8.3005s被门拒绝，[attempt2][resources-rejected-2]因外部worker残留在采样前拒绝；按精确PGID清理后[attempt3][resources]完整PASS。压力[首轮][pressure-missing-namespace]因缺失`run_isolated`在0.0930s退出，[第二轮][pressure-born-race]因guard把自身新生子进程误当外部污染在5.0567s拒绝；9684修复own/foreign namespace资格及阳性/负控后[实际重跑][pressure]完整PASS。上述失败保留原receipt与执行边界，不记作产品通过。[APK首轮][package-controller]controller31.005s实际生成正确产物，build return1为显式预算失败；没有修改预算或删除失败。生命周期失败与复跑仍待实测补齐。
 
 [identity]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/final-identity.json
 [completed]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-6d572edf9ff0/completed.json
 [tests]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-tests/plain/build.json
+[tests-run]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/tests-run.log
+[fixture]: ../../private/dnsmasq-rewrite/evidence/M5/final-9684-logging/gate/identity.json
+[families-aggregate]: ../../private/dnsmasq-rewrite/evidence/M5/final-9684-logging/gate/families.aggregate.result.json
 [m2a]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-m2/plain/result.json
 [m2b]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-6fb65d96390e/archive-m2/plain/result.json
 [fuzz]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-fuzz/plain/result.json
 [logging]: ../../private/dnsmasq-rewrite/evidence/M5/final-6fb65-logging-families/regression-receipt.json
+[logging-final]: ../../private/dnsmasq-rewrite/evidence/M5/final-9684-logging/logging-all-scopes-9684-attempt-1/logging-all-scopes.result.json
+[logging-leaf]: ../../private/dnsmasq-rewrite/evidence/M5/final-9684-logging/logging-all-scopes-9684-attempt-1/logging-all-scopes/result.json
+[logging-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-9684-logging/logging-all-scopes-9684-attempt-1.local-verification.json
 [deferred]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/deferred-review.json
 [safety]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/safety-review.json
 [size-map]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/size-map-report.json
+[resources]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-resources-final/plain/result.json
+[mixed-resource]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-resources-final/plain/mixed-300/result.json
+[full-resource]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-resources-final/plain/full-cache-300/result.json
+[resources-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-resources-final/local-verification.json
+[resources-rejected-1]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-resources-rejected-1/plain/result.json
+[resources-rejected-2]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-resources-rejected-2/plain/result.json
+[pressure]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-final/plain/result.json
+[pressure-leaf]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-final/plain/enospc-emfile/result.json
+[pressure-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-final/local-verification.json
+[pressure-missing-namespace]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-missing-namespace/plain/result.json
+[pressure-born-race]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-born-race/plain/result.json
+[package]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/package-manifest.json
+[package-controller]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/package-controller-attempt-1.log
