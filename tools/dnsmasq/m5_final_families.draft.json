@@ -3,9 +3,9 @@
   "complete": false,
   "scope": "Fresh full original driver schedules on one final ELF; no old result reuse. Draft awaits final remaining-family tools and review of completion fields/scopes.",
   "pending": [
-    "Incoming seven explicit DHCP overflow profiles and signed display-ID source probe need final tool IDs/commands.",
-    "Endpoint source-row audit waits for locally verified/pruned archives and preserved plain receipts; fill reference_source and UBus bindings.",
-    "Finish remaining original-family inventory/result-field review before setting complete=true."
+    "Incoming logging companion overflow-seven and signed-ID probe tools must be merged into the frozen source; registry commands and exact IDs now specified.",
+    "Endpoint local archive gate requires retained plain receipts and locally verified/pruned archive proof; fill reference_source and UBus helper/runner bindings.",
+    "Complete remaining original-family report-field review, then set complete=true as plan review only; execution_status stays not-executed."
   ],
   "families": [
     {
@@ -42,7 +42,56 @@
             "options.stop-dns-rebind.closed": true,
             "options.rebind-localhost-ok.closed": true,
             "options.rebind-domain-ok.closed": true,
-            "options.ignore-address.closed": true
+            "options.ignore-address.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "domain-needed",
+              "domain-needed-invalid",
+              "bogus-priv",
+              "bogus-priv-explicit",
+              "bogus-priv-invalid",
+              "localise-queries",
+              "localise-invalid",
+              "expand-hosts",
+              "expand-no-suffix",
+              "expand-invalid",
+              "alias-single",
+              "alias-range",
+              "alias-mask",
+              "alias-newest",
+              "alias-zero-mask",
+              "alias-cache",
+              "alias-missing",
+              "alias-descending",
+              "rebind-ranges",
+              "rebind-invalid",
+              "rebind-localhost",
+              "rebind-localhost-invalid",
+              "domain-plain",
+              "domain-list",
+              "rebind-domain-root",
+              "rebind-domain-empty-label",
+              "ignore-v4",
+              "ignore-v6",
+              "ignore-exact",
+              "ignore-before-alias",
+              "ignore-invalid4",
+              "ignore-invalid6",
+              "alias-rebind-order",
+              "alias-bogus-order",
+              "alias-v6-invalid",
+              "ignore-address-invalid",
+              "ignore-zero4",
+              "ignore-zero6",
+              "ignore-empty-prefix",
+              "localise-disabled"
+            ]
           }
         }
       ]
@@ -77,7 +126,56 @@
             "options.no-0x20-encode.closed": true,
             "options.max-tcp-connections.closed": true,
             "options.local-service.closed": true,
-            "options.fast-dns-retry.closed": true
+            "options.fast-dns-retry.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "case-default",
+              "case-do",
+              "case-no",
+              "case-do-no",
+              "case-no-do",
+              "case-repeat",
+              "invalid-do-0x20-encode",
+              "invalid-no-0x20-encode",
+              "capacity-1",
+              "capacity-2",
+              "capacity-zero",
+              "capacity-invalid",
+              "local-service-absent",
+              "local-service-bare",
+              "local-service-net",
+              "local-service-host",
+              "local-service-cli-net",
+              "local-service-cli-host",
+              "local-service-net-interface",
+              "local-service-net-except",
+              "local-service-net-listen",
+              "local-service-host-interface",
+              "local-service-host-except",
+              "local-service-host-listen",
+              "local-service-invalid",
+              "local-service-duplicate",
+              "retry-absent",
+              "retry-bare",
+              "retry-50",
+              "retry-zero",
+              "retry-999",
+              "retry-1000",
+              "retry-1999",
+              "retry-success",
+              "retry-two-normal",
+              "retry-two-strict",
+              "retry-send-failure",
+              "retry-invalid-49",
+              "retry-invalid-bad",
+              "retry-invalid-extra"
+            ]
           }
         }
       ]
@@ -110,7 +208,72 @@
             "failures": [],
             "options.address.closed": true,
             "options.bogus-nxdomain.closed": true,
-            "options.local.closed": true
+            "options.local.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "address-v4",
+              "address-v6",
+              "address-multiple",
+              "address-zero",
+              "address-domains",
+              "address-character-wildcard",
+              "address-label-wildcard",
+              "address-exact-wildcard-priority",
+              "address-leading-dots",
+              "address-implicit-global",
+              "address-hash-global",
+              "address-star-global",
+              "address-dotless",
+              "address-empty",
+              "address-family-fallback",
+              "address-family-same-tier-upstream",
+              "address-local-record-precedence",
+              "address-numeric-carveout",
+              "address-local-nodata",
+              "address-invalid-bad-ip",
+              "address-invalid-too-long-label",
+              "address-empty-label-domain",
+              "local-numeric-control",
+              "local-hostname-gap",
+              "local-scope-gap",
+              "local-source-gap",
+              "bogus-singletons",
+              "bogus-prefixes",
+              "bogus-v4-zero",
+              "bogus-v4-empty",
+              "bogus-v4-max",
+              "bogus-v6-max",
+              "bogus-v6-zero",
+              "bogus-sections-classes",
+              "bogus-bypass",
+              "bogus-order",
+              "bogus-cache-default",
+              "bogus-cache-noneg",
+              "bogus-tcp-publication1",
+              "bogus-tcp-publication28",
+              "bogus-cname-cache-owner",
+              "bogus-expiry",
+              "bogus-invalid-v4-width",
+              "bogus-invalid-v6-width",
+              "bogus-invalid-bad-ip",
+              "bogus-invalid-bad-prefix",
+              "bogus-invalid-empty",
+              "address-global-star-dot-with-upstream",
+              "address-global-star-with-upstream",
+              "address-global-hash-with-upstream",
+              "address-global-star-dot-no-upstream",
+              "address-global-star-no-upstream",
+              "address-global-hash-no-upstream",
+              "address-resolv-default-star-dot",
+              "address-resolv-default-hash",
+              "bogus-tcp-zero-expiry"
+            ]
           }
         }
       ]
@@ -141,7 +304,55 @@
           "result": "{out}/result.json",
           "checks": {
             "failures": [],
-            "options.tag-if.closed": true
+            "options.tag-if.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "tagif-exact",
+              "tagif-trailing-wildcard",
+              "tagif-net-interface",
+              "tagif-multi-and",
+              "tagif-multi-and-missing",
+              "tagif-case-sensitive",
+              "tagif-internal-star-literal",
+              "tagif-negative",
+              "tagif-legacy-negative",
+              "tagif-negative-wildcard",
+              "tagif-negative-empty",
+              "tagif-multi-output",
+              "tagif-set-before-tag",
+              "tagif-unconditional",
+              "tagif-ordered-chain",
+              "tagif-reversed-chain",
+              "tagif-request-isolation",
+              "tagif-output-has-no-wildcard",
+              "tagif-quoted-comma",
+              "tagif-context-second-pass",
+              "tagif-request-options-first",
+              "tagif-range-selection",
+              "tagif-host-selection",
+              "tagif-ignore-selection",
+              "tagif-invalid-0",
+              "tagif-invalid-1",
+              "tagif-invalid-2",
+              "tagif-invalid-3",
+              "tagif-invalid-4",
+              "tagif-invalid-5",
+              "tagif-invalid-6",
+              "tagif-invalid-7",
+              "tagif-invalid-8",
+              "tagif-bootp-context",
+              "tagif-bootp-request",
+              "tagif-pxe-normal",
+              "tagif-pxe-proxy",
+              "tagif-leasequery-stored",
+              "tagif-helper-derived-order"
+            ]
           }
         }
       ]
@@ -176,7 +387,81 @@
             "options.dhcp-broadcast.closed": true,
             "options.dhcp-lease-max.closed": true,
             "options.dhcp-sequential-ip.closed": true,
-            "options.no-dhcp-interface.closed": true
+            "options.no-dhcp-interface.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "auth-off-baseline",
+              "auth-on-baseline",
+              "broadcast-off",
+              "broadcast-on",
+              "capacity-zero",
+              "capacity-one",
+              "sequential-baseline",
+              "exclude-none",
+              "exclude-lan",
+              "auth-existing-0",
+              "auth-existing-1",
+              "auth-alias-0-10-77-0-254",
+              "auth-alias-0-127-0-0-1",
+              "auth-alias-1-10-77-0-254",
+              "auth-alias-1-127-0-0-1",
+              "authoritative-invalid",
+              "broadcast-tag",
+              "broadcast-net",
+              "broadcast-bare-tag",
+              "broadcast-no-match",
+              "broadcast-not",
+              "broadcast-legacy-not",
+              "broadcast-and-miss",
+              "broadcast-or",
+              "broadcast-no-wildcard",
+              "broadcast-interface",
+              "broadcast-context-too-late",
+              "broadcast-tag-if",
+              "broadcast-incoming-bit",
+              "broadcast-leasequery",
+              "broadcast-null-empty",
+              "broadcast-null-tag",
+              "broadcast-null-net",
+              "capacity-restart",
+              "capacity-restored-full",
+              "capacity-overflow-zero",
+              "capacity-overflow-one",
+              "capacity-overflow-expired-counted-first",
+              "capacity-expired-reclaimed",
+              "capacity-invalid",
+              "sequential-offer-only",
+              "sequential-wrap",
+              "sequential-reserved",
+              "sequential-decline",
+              "sequential-restored-high",
+              "sequential-invalid",
+              "exclude-guest",
+              "exclude-wildcard",
+              "exclude-empty",
+              "exclude-empty-list",
+              "exclude-csv",
+              "exclude-repeat",
+              "exclude-listen-union",
+              "exclude-tftp-0",
+              "exclude-tftp-1",
+              "broadcast-and-hit",
+              "broadcast-not-hit",
+              "broadcast-legacy-not-hit",
+              "nonauth-alias-0-10-77-0-254",
+              "nonauth-alias-0-127-0-0-1",
+              "nonauth-alias-1-10-77-0-254",
+              "nonauth-alias-1-127-0-0-1",
+              "auth-alias-lo-dedicated",
+              "auth-alias-lo-excluded",
+              "auth-alias-lo-no-dhcp-dedicated"
+            ]
           }
         }
       ]
@@ -207,7 +492,33 @@
           "result": "{out}/result.json",
           "checks": {
             "failures": [],
-            "options.no-dhcpv4-interface.closed": true
+            "options.no-dhcpv4-interface.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "v4-exclude-none",
+              "v4-exclude-lan",
+              "v4-exclude-guest",
+              "v4-exclude-wildcard",
+              "v4-exclude-empty",
+              "v4-exclude-empty-list",
+              "v4-exclude-csv",
+              "v4-exclude-repeat",
+              "v4-exclude-listen-union",
+              "v4-exclude-tftp-0",
+              "v4-exclude-tftp-1",
+              "v4-missing-argument",
+              "v4-exclude-tftp-0-bind-interfaces",
+              "v4-exclude-tftp-1-bind-interfaces",
+              "v4-exclude-tftp-0-bind-dynamic",
+              "v4-exclude-tftp-1-bind-dynamic",
+              "v4-mixed-spellings"
+            ]
           }
         }
       ]
@@ -240,7 +551,63 @@
             "failures": [],
             "options.dhcp-fqdn.closed": true,
             "options.dhcp-ignore-clid.closed": true,
-            "options.dhcp-ttl.closed": true
+            "options.dhcp-ttl.closed": true,
+            "reference_only": false,
+            "rust_sha256": "{elf_sha}",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "fqdn-off-live",
+              "fqdn-off-restore",
+              "fqdn-off-authoritative",
+              "fqdn-off-option81-ascii",
+              "fqdn-off-option81-encoded",
+              "fqdn-on-live",
+              "fqdn-on-restore",
+              "fqdn-on-authoritative",
+              "fqdn-on-option81-ascii",
+              "fqdn-on-option81-encoded",
+              "fqdn-restore-same-domain",
+              "fqdn-domain-change-restart",
+              "fqdn-unnamed",
+              "fqdn-no-default",
+              "fqdn-conditional-only",
+              "fqdn-invalid-argument",
+              "fqdn-duplicate",
+              "clid-off-same-mac-other-id",
+              "clid-off-same-id-other-mac",
+              "clid-off-missing-id",
+              "clid-off-restore",
+              "clid-on-same-mac-other-id",
+              "clid-on-same-id-other-mac",
+              "clid-on-missing-id",
+              "clid-on-restore",
+              "clid-on-restored-id-static-match",
+              "clid-duplicate",
+              "clid-invalid-argument",
+              "ttl-absent",
+              "ttl-empty",
+              "ttl-zero",
+              "ttl-custom",
+              "ttl-infinite",
+              "ttl-int-max",
+              "ttl-int-wrap",
+              "ttl-uint-max",
+              "ttl-uint-wrap",
+              "ttl-finite-ceiling",
+              "ttl-live-and-elapsed",
+              "ttl-nonnumeric",
+              "ttl-negative",
+              "ttl-duplicate",
+              "clid-off-unrelated-release-decline",
+              "clid-on-unrelated-release-decline",
+              "ttl-finite-int-wrap",
+              "ttl-finite-uint-max",
+              "ttl-long-decimal"
+            ]
           }
         }
       ]
@@ -268,7 +635,9 @@
             "compared": 418,
             "parse_compared": 102,
             "unexecuted": 0,
-            "rust_sha256": "{elf_sha}"
+            "rust_sha256": "{elf_sha}",
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "failures": []
           }
         }
       ],
@@ -293,7 +662,40 @@
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "rust_sha256": "{elf_sha}",
+            "failures": []
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "name",
+            "ids": [
+              "basic",
+              "no-override",
+              "file-only",
+              "empty-fields",
+              "zero-next-server",
+              "last-directive-wins",
+              "quoted-comma",
+              "fixed-field-boundary",
+              "option-254",
+              "option-255",
+              "large-capacity",
+              "occupied-file-overload",
+              "tagged-before-fallback",
+              "tagged-after-fallback",
+              "no-tag-match",
+              "negation-only",
+              "negated-tag",
+              "last-tagged-wins",
+              "empty-tagged-fields",
+              "range-tag",
+              "range-tag-if",
+              "hostname-server",
+              "missing-hostname",
+              "ordinary-option-is-not-boot"
+            ]
           }
         }
       ]
@@ -313,11 +715,44 @@
             "--rust",
             "{elf}",
             "--out",
-            "{out}"
+            "{out}",
+            "--cases",
+            "lifecycle,renewal,scriptuser,scriptuser-debug,slow,exit,signal,readonly,hotplug,missing-exec,unknown-user,init-exit,helper-death,slow-init,init-capacity,shutdown"
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "comparison_executed": true,
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "rust_sha256": "{elf_sha}",
+            "failures": []
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "case",
+            "side_key": "side",
+            "sides": [
+              "c",
+              "rust"
+            ],
+            "ids": [
+              "lifecycle",
+              "renewal",
+              "scriptuser",
+              "scriptuser-debug",
+              "slow",
+              "exit",
+              "signal",
+              "readonly",
+              "hotplug",
+              "missing-exec",
+              "unknown-user",
+              "init-exit",
+              "helper-death",
+              "slow-init",
+              "init-capacity",
+              "shutdown"
+            ]
           }
         }
       ]
@@ -341,7 +776,24 @@
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "rust_sha256": "{elf_sha}",
+            "failures": []
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "directive",
+            "ids": [
+              "filter-A",
+              "filter-AAAA",
+              "filter-rr=TXT",
+              "filter-rr=ANY",
+              "filter-A\nfilter-AAAA\nfilter-rr=TXT",
+              "filter-rr=1,28",
+              "filter-rr=CNAME,TXT,SOA",
+              "filter-rr=MX,ANY"
+            ]
           }
         }
       ]
@@ -445,11 +897,55 @@
             "--out",
             "{out}",
             "--source-commit",
-            "{commit}"
+            "{commit}",
+            "--reference-differences"
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "failures": []
+          },
+          "inventory": {
+            "key": "scenario",
+            "ids": [
+              "ordinary-dual-stack",
+              "dedicated-interface",
+              "excluded-interface",
+              "interface-root-earliest",
+              "unique-ip",
+              "unique-mac",
+              "unique-ip-and-mac",
+              "unique-missing-fallback",
+              "lowercase",
+              "secure-ownership",
+              "negotiation-mtu",
+              "no-blocksize",
+              "single-port",
+              "port-range",
+              "missing-root-fails",
+              "missing-root-no-fail",
+              "sighup-live-transfer",
+              "directed-parser-corpus",
+              "unique-mac-lease-preferred",
+              "unique-mac-nonether-lease-fallback",
+              "completion-script-once",
+              "incomplete-script-not-called",
+              "final-ack-timeout-script-once",
+              "no-fail-bind-error",
+              "capacity-dedicated-0",
+              "capacity-dedicated-1",
+              "capacity-single-0",
+              "capacity-single-1",
+              "capacity-dedicated-fd40",
+              "capacity-single-fd40",
+              "reference-single-replace-v4",
+              "reference-single-replace-v6",
+              "reference-root-parent-component"
+            ],
+            "fields": [
+              "rows",
+              "reference_differences"
+            ]
           }
         }
       ]
@@ -629,7 +1125,57 @@
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "comparison_executed": true,
+            "errors": []
+          },
+          "inventory": {
+            "field": "rows",
+            "key": "profile",
+            "side_key": "side",
+            "sides": [
+              "c",
+              "rust"
+            ],
+            "ids": [
+              "ordinary-opaque",
+              "ordinary-reply",
+              "reply-interface",
+              "relay-multi",
+              "relay-broadcast",
+              "relay-missing-interface",
+              "relay-zero-server",
+              "relay-excluded",
+              "reply-before-dhcp-exclusion",
+              "relay-wrong-interface",
+              "relay-secondary",
+              "split-request",
+              "split-literal",
+              "split-zero-uplink",
+              "split-missing-uplink",
+              "split-reply",
+              "split-multiple",
+              "split-ordinary-order",
+              "ordinary-split-order",
+              "split-reply-order",
+              "alternate",
+              "alternate-default",
+              "alternate-upstream",
+              "address-invalidation",
+              "except-interface",
+              "no-dhcpv4-interface",
+              "listen-address-override",
+              "multiple-local-addresses",
+              "duplicate-local-address",
+              "no-ingress-address",
+              "unreachable-upstream",
+              "split-unavailable-source",
+              "opaque-mutations",
+              "split-mutations",
+              "local-server",
+              "alternate-local-server",
+              "interface-recreated"
+            ]
           }
         }
       ]
@@ -653,7 +1199,158 @@
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "comparison_executed": true,
+            "failures": []
+          },
+          "inventory": {
+            "field": "profiles",
+            "key": "profile",
+            "side_key": "side",
+            "sides": [
+              "c",
+              "rust"
+            ],
+            "ids": [
+              "legacy-proxy",
+              "efi-proxy",
+              "efi-multiple",
+              "boot-item",
+              "numeric-service",
+              "local-boot-service",
+              "unknown-server",
+              "no-matching-menu",
+              "prompt-default",
+              "prompt-empty",
+              "prompt-timeout",
+              "prompt-shared-order",
+              "prompt-tag-pruned",
+              "vendor-custom",
+              "pxe-options",
+              "static-pxe",
+              "dynamic-pxe",
+              "normal-prl",
+              "normal-encap-mode",
+              "bootp-global",
+              "bootp-scoped",
+              "bootp-denied",
+              "bootp-static",
+              "no-override-default",
+              "no-override-enabled",
+              "4011-leasequery",
+              "enabled-no-range",
+              "vendor-option-only",
+              "boot-target-hosts",
+              "boot-target-missing",
+              "efi-target-hosts",
+              "efi-target-missing",
+              "duplicate-type-numeric-first",
+              "duplicate-type-basename-first",
+              "service-tags",
+              "ignored-proxy",
+              "ignored-boot-item",
+              "boot-filename-bounds",
+              "proxy-option-overload",
+              "proxy-option-overload-nooverride",
+              "ordinary-option-overload",
+              "ordinary-option-overload-nooverride",
+              "no-boot-option-fallback",
+              "owner-burst",
+              "inform-without-context",
+              "ordinary-efi-configured-vendor",
+              "proxy-context-tags",
+              "bootp-filename-tag",
+              "bootp-context-tag",
+              "bootp-context-tag-if",
+              "bootp-negative-tag",
+              "menu-length-249",
+              "menu-length-250",
+              "server-list-35",
+              "server-list-36",
+              "server-list-37",
+              "packet-capacity",
+              "4011-relay-67",
+              "4011-relay-2067",
+              "pxe-metrics-success",
+              "pxe-metrics-ignored",
+              "prompt-length-251-runtime",
+              "bootp-static-conflict",
+              "bootp-existing-lease",
+              "bootp-wrong-network-prune",
+              "bootp-pool-full",
+              "bootp-lease-capacity",
+              "bootp-host-time",
+              "bootp-static-no-dynamic",
+              "bootp-predicate-or-and",
+              "bootp-context-negative",
+              "owner-helper-tftp",
+              "architecture-case-wrap",
+              "quoted-service-prompt",
+              "hosts-multiple",
+              "hosts-dns-disabled",
+              "vendor-repeat-order",
+              "vendor-quoted",
+              "boot-item-requested-address",
+              "boot-item-context-negative",
+              "boot-item-vendor-tags",
+              "boot-item-capacity",
+              "boot-item-ip-dot",
+              "proxy-tag-if",
+              "proxy-boot-target",
+              "proxy-boot-hosts-missing",
+              "proxy-option-priority-zero",
+              "disabled-host",
+              "uefi-one-basename-numeric",
+              "uefi-field-bounds",
+              "ordinary-option-priority",
+              "ordinary-forced-vendor",
+              "no-override-long-forced",
+              "no-override-long-boot",
+              "bootp-no-override",
+              "bootp-filename128",
+              "bootp-with-pxe-vendor",
+              "leasequery-active-encap",
+              "prompt-runtime-0",
+              "prompt-runtime-255",
+              "prompt-runtime--1",
+              "prompt-runtime-bad",
+              "prompt-runtime-empty",
+              "prompt-runtime-65536",
+              "menu-accumulated-251",
+              "menu-accumulated-252",
+              "menu-accumulated-253",
+              "mixed-dynamic-proxy",
+              "mixed-proxy-dynamic",
+              "mixed-static-proxy",
+              "mixed-proxy-static",
+              "malformed-input",
+              "service-negative-tags",
+              "proxy-nooverride4011",
+              "boot-item-relay-route",
+              "uefi-arch5-6",
+              "proxy-existing-lease",
+              "proxy-expired-lease",
+              "pxe-excluded-interface",
+              "proxy-mask-inferred",
+              "static-explicit-broadcast",
+              "bootp-bare-predicate",
+              "prompt-only-enables",
+              "prompt-no-range",
+              "pxe-seeded-scanner",
+              "dual-listener-burst",
+              "secondary-interface-context",
+              "disabled-host-ordinary",
+              "bootp-named-helper",
+              "proxy-order-known-known",
+              "proxy-order-missing-known",
+              "proxy-order-known-missing",
+              "boot-item-optional-architecture",
+              "ordinary-no-prl-capacity",
+              "bind-4011-external-conflict",
+              "bind-4011-default-exclusive",
+              "bind-4011-bind-interfaces",
+              "bind-4011-bind-dynamic"
+            ]
           }
         }
       ]
@@ -677,7 +1374,44 @@
           ],
           "result": "{out}/summary.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "rust_sha256": "{elf_sha}",
+            "failures": [],
+            "comparison_executed": true
+          },
+          "inventory": {
+            "field": "profiles",
+            "key": "profile",
+            "side_key": "side",
+            "sides": [
+              "c",
+              "rust"
+            ],
+            "ids": [
+              "disabled",
+              "denied",
+              "ipv6-acl",
+              "allowed",
+              "acl-prefix",
+              "acl-route",
+              "defaults",
+              "implicit-mask",
+              "remote-context",
+              "stored-tags",
+              "request-tags",
+              "configured",
+              "remote-active",
+              "dns-default",
+              "packet-expiry",
+              "capacity",
+              "capacity-no-override",
+              "infinite",
+              "expired",
+              "older",
+              "no-dhcp-interface",
+              "no-override"
+            ]
           }
         }
       ]
@@ -1214,7 +1948,9 @@
           "result": "{out}/result.json",
           "checks": {
             "qualified": true,
-            "failures": []
+            "failures": [],
+            "binaries.c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "binaries.rust": "{elf_sha}"
           }
         }
       ]
@@ -1241,7 +1977,9 @@
           "result": "{out}/result.json",
           "checks": {
             "qualified": true,
-            "failures": []
+            "failures": [],
+            "binaries.c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "binaries.rust": "{elf_sha}"
           }
         }
       ]
@@ -4022,7 +4760,8 @@
             "failures": [],
             "rust_sha256": "{elf_sha}",
             "options.filterwin2k.missing_scenarios": [],
-            "options.filterwin2k.failed_scenarios": []
+            "options.filterwin2k.failed_scenarios": [],
+            "source_commit": "{commit}"
           },
           "inventory": {
             "field": "scenarios",
@@ -4074,7 +4813,10 @@
           "result": "{out}/result.json",
           "checks": {
             "passed": true,
-            "failures": []
+            "failures": [],
+            "comparison_executed": true,
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "rust_sha256": "{elf_sha}"
           },
           "inventory": {
             "field": "cases",
@@ -4230,6 +4972,49 @@
               "dhcp-callers-relay-split-literal-quiet-detail"
             ]
           }
+        },
+        {
+          "id": "overflow-seven",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_logging_dhcp.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--output",
+            "{out}/overflow",
+            "--scopes",
+            "pxe,leasequery,relay",
+            "--profiles",
+            "pxe-menu-too-large-detail,ordinary-menu-too-large-detail,ordinary-duplicate-options-detail,pxe-enterprise-overflow-detail,ordinary-enterprise-overflow-detail,ordinary-option-exhaustion-detail,leasequery-enterprise-overflow-detail"
+          ],
+          "result": "{out}/overflow/result.json",
+          "checks": {
+            "failures": [],
+            "rust_sha256": "{elf_sha}",
+            "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "source_commit": "{commit}"
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "dhcp-callers-pxe-pxe-menu-too-large-detail",
+              "dhcp-callers-pxe-ordinary-menu-too-large-detail",
+              "dhcp-callers-pxe-ordinary-duplicate-options-detail",
+              "dhcp-callers-pxe-pxe-enterprise-overflow-detail",
+              "dhcp-callers-pxe-ordinary-enterprise-overflow-detail",
+              "dhcp-callers-pxe-ordinary-option-exhaustion-detail",
+              "dhcp-callers-leasequery-leasequery-enterprise-overflow-detail"
+            ]
+          }
         }
       ]
     },
@@ -4372,6 +5157,48 @@
             "failures": [],
             "candidate_sha256": "{elf_sha}",
             "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+          }
+        }
+      ]
+    },
+    {
+      "id": "query-id-wrap-source-controls",
+      "scope": "Matching C source expressions and SDK ABI controls; not two billion actual daemon requests.",
+      "steps": [
+        {
+          "id": "sdk-source-probe",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_logging_id_wrap.py",
+            "--cc",
+            "{sdk}/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+            "--reference-cache",
+            "{reference_source}/cache.c",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "kind": "matching-C-source-control",
+            "actual_daemon_counter_exhaustion_executed": false
+          },
+          "inventory": {
+            "field": "rows",
+            "key": "optimisation",
+            "side_key": "display_word",
+            "ids": [
+              "-Os",
+              "-O2"
+            ],
+            "sides": [
+              0,
+              1,
+              4294967295,
+              2147483647,
+              2147483648
+            ]
           }
         }
       ]

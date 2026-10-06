@@ -68,7 +68,8 @@ def check_result(path, checks, inventory=None):
         require(type(actual) is type(expected) and actual == expected,
                 f'{path}: {name} differs from {expected!r}')
     if inventory:
-        rows = field(value, inventory['field'])
+        names = inventory.get('fields') or [inventory['field']]
+        rows = [row for name in names for row in field(value, name)]
         if inventory.get('side_key'):
             actual = [(row[inventory['key']], row[inventory['side_key']]) for row in rows]
             expected = [(name, side) for name in inventory['ids'] for side in inventory['sides']]
@@ -113,6 +114,7 @@ def ubus_assets(spec):
     require(digest(native / 'dnsmasq/dnsmasq') == bindings['ubus_native_c_sha'], 'native UBus helper build identity differs')
     assets = {str(identity.parent / name): expected for name, expected in TARGET_FILES.items()}
     assets.update({str(path): digest(path) for path in [runner, identity, native / 'dnsmasq/dnsmasq']})
+    assets.update({str(path): digest(path) for path in (native / 'deps/lib').glob('*.so*') if path.is_file()})
     return assets, {'root': str(native / 'deps'), 'files': file_map(native / 'deps'), 'reference': reference}
 
 
@@ -210,6 +212,7 @@ def context(spec, output):
     return {**spec.get('bindings', {}), 'python': sys.executable, 'source': spec['source_root'], 'tools': spec['source_root'] + '/tools/dnsmasq',
             'image': spec['image_root'], 'runtime': spec['runtime_root'], 'elf': spec['elf'],
             'elf_sha': spec['elf_sha256'], 'commit': spec['source_commit'], 'out': str(output),
+            'sdk': spec.get('sdk', ''),
             'ubus_image_runner_sha': spec.get('ubus_helpers', {}).get('reference', {}).get('runner_sha256', ''),
             'ubus_image_identity_sha': spec.get('ubus_helpers', {}).get('reference', {}).get('identity_sha256', '')}
 
