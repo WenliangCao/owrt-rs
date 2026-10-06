@@ -148,6 +148,16 @@ def syntax_cases():
         add('synth-width-'+label,'synth-domain=records.test,192.0.2.7/'+value+'\n','SYN-GRAM')
     for label,value in [('ordinary','/m2/hosts-dir'),('relative','hosts-dir'),('empty',''),('quoted','"/m2/hosts dir"'),('duplicate','/m2/hosts-dir\nhostsdir=/m2/hosts-dir')]:
         add('hostsdir-'+label,'hostsdir='+value+'\n','HDIR-GRAM')
+    # Closeout-only extreme cases stay outside the frozen ordinary matrix.
+    for option in ('domain', 'domain-suffix', 'synth-domain'):
+        add(option+'-negative-v6-prefix', option+'=records.test,2001:db8::7/4294967295\n',
+            'DOM-GRAM SYN-GRAM', extreme_input=True, rust_only=True)
+    for option in ('domain', 'domain-suffix'):
+        owner = 's'*63+'.'+'t'*63
+        for width in (125,126):
+            suffix='a'*63+'.'+'b'*(width-64)
+            add(option+'-srv-appended-'+str(width), option+'='+suffix+'\nsrv-host='+owner+',target.test,1234\n',
+                'DOM-CALLER', extreme_input=True)
     return cases
 
 
@@ -790,6 +800,26 @@ def service_cases():
             files.probe('ptr-new','10.91.18.198.in-addr.arpa',type=12,transports=['udp']),
             files.probe('ptr-v6',ipaddress.ip_address('2001:db8:91::9').reverse_pointer,type=12,transports=['udp']),
             files.probe('recovered','iface.records.test',transports=['udp'])])
+    owner='s'*63+'.'+'t'*63
+    suffix='a'*63+'.'+'b'*61
+    target='.'.join(['a'*63,'b'*63,'c'*63,'d'*61])
+    add('domain-srv-components-max', 'domain='+suffix+'\nsrv-host='+owner+','+target+',1234,65535,65535\n',
+        [(owner+'.'+suffix,33)], 'DOM-CALLER', extreme_input=True)
+    for prefix in (24,25,47):
+        target='p'*prefix+'2001-0db8-0000-0000-0000-0000-0000-0007.test'
+        add('synth-extreme-label-'+str(prefix), 'synth-domain=test,2001:db8::7,2001:db8::9,'+'p'*prefix+'\n',
+            [('p'*prefix+'2001-db8--7.test',28)], 'SYN-PTR', extreme_input=True,
+            actions=[files.probe('forward','p'*prefix+'2001-db8--7.test',type=28),
+                files.probe('reverse',ipaddress.ip_address('2001:db8::7').reverse_pointer,type=12,raw_extreme_synth=True),
+                files.probe('health','ready.files.test')],
+            **({'invalid_synth_target':target} if prefix>24 else {}))
+    for width in (51,52):
+        suffix='.'.join(['a'*63,'b'*63,'c'*63,'d'*width])
+        target='192-0-2-7.'+suffix
+        add('synth-extreme-name-'+str(width), 'synth-domain='+suffix+',192.0.2.7,192.0.2.9\n',[],
+            'SYN-PTR', extreme_input=True,
+            actions=[files.probe('reverse','7.2.0.192.in-addr.arpa',type=12,raw_extreme_synth=True),files.probe('health','ready.files.test')],
+            **({'invalid_synth_target':target} if width>51 else {}))
     return cases
 
 
@@ -1071,19 +1101,26 @@ def run_service_side(root,side,case,out):
             if temporary is None:raise AssertionError('actual temporary IPv6 address was not created')
             action=dict(action,name=ipaddress.ip_address(temporary).reverse_pointer)
             dynamic.append({'id':action['id'],'transport':args[1],'address':temporary,'name':action['name'],'kernel':raw})
-        if action.get('destination'):
+        if action.get('destination') or action.get('raw_extreme_synth'):
             ident,transport,upstreams,connections=args
             packet=files.query(action,ident);before=[len(u.events) for u in upstreams]
             started=time.monotonic();response=None;error=None
             with socket.socket(socket.AF_INET,socket.SOCK_DGRAM if transport=='udp' else socket.SOCK_STREAM) as client:
-                client.settimeout(.5);client.connect((action['destination'],port))
+                client.settimeout(.5);client.connect((action.get('destination','127.0.0.1'),port))
                 try:
                     client.sendall(packet if transport=='udp' else struct.pack('!H',len(packet))+packet)
                     response=client.recv(65535) if transport=='udp' else files.exact_read(client,struct.unpack('!H',files.exact_read(client,2))[0])
                 except (OSError,EOFError) as problem:error={'kind':type(problem).__name__,'errno':getattr(problem,'errno',None)}
-            return {'id':action['id']+':'+transport,'response':files.semantics(response) if response else None,'error':error,
+            parsed=None;parse_error=None
+            try:parsed=files.semantics(response) if response else None
+            except ValueError as problem:
+                if not action.get('raw_extreme_synth'):raise
+                parse_error=str(problem)
+            row={'id':action['id']+':'+transport,'response':parsed,'error':error,
                 'request':packet.hex(),'reply':response.hex() if response else None,'elapsed':time.monotonic()-started,'cache':False,
                 'upstreams':[{'server':u.host,'events':copy.deepcopy(u.events[n:])} for u,n in zip(upstreams,before)]}
+            if parse_error is not None:row['parse_error']=parse_error
+            return row
         row=original_exchange(port,action,*args)
         if action['id']=='ready' and row.get('response') and not any(state['label']=='initial-kernel' for state in states):
             record('initial-kernel')
@@ -1268,6 +1305,27 @@ def compare_service(left,right,case):
             mode=action['hosts_stream'];differences.append({'reason':'C hostsdir stream read blocks the parent; Rust keeps the single owner serving the prior complete generation.',
                 'mode':mode,'c':next(state for state in left['interface_states'] if state.get('mode')==mode),
                 'rust':next(state for state in right['interface_states'] if state.get('mode')==mode)})
+    if case.get('invalid_synth_target'):
+        target=case['invalid_synth_target'];data=b''.join(bytes([len(label)])+label.encode('ascii') for label in target.split('.'))+b'\0'
+        expected_ids=['reverse:'+transport for transport in ('udp','tcp')]
+        for side,observed in [('c',left),('rust',right)]:
+            if [r['id'] for r in observed['rows'] if r['id'].startswith('reverse:')]!=expected_ids:
+                return [{'phase':'synth-extreme','side':side,'error':'exact reverse transports missing'}],[]
+        for c_row,r_row in zip([r for r in left['rows'] if r['id'] in expected_ids],[r for r in right['rows'] if r['id'] in expected_ids]):
+            request=bytes.fromhex(c_row['request'])
+            expected=request[:2]+struct.pack('!5H',0x8580,1,1,0,0)+request[12:]+b'\xc0\x0c'+struct.pack('!HHIH',12,1,0,len(data))+data
+            if c_row.get('error') is not None or c_row.get('reply')!=expected.hex() or any(u['events'] for u in c_row['upstreams']):
+                return [{'phase':'synth-extreme','side':'c','id':c_row['id'],'error':'exact malformed synthesized wire differs'}],[]
+            answer=r_row.get('response');events=[e for u in r_row['upstreams'] for e in u['events']]
+            if r_row.get('error') is not None or r_row.get('parse_error') is not None or not answer or answer['flags']!=0x8183 or answer['records'] or len(events)!=1:
+                return [{'phase':'synth-extreme','side':'rust','id':r_row['id'],'error':'safe NXDOMAIN fallback and actual upstream missing'}],[]
+            if answer['questions']!=files.semantics(request)['questions'] or events[0]['name']!=answer['questions'][0][0] or events[0]['type']!=12:
+                return [{'phase':'synth-extreme','side':'rust','id':r_row['id'],'error':'question or actual upstream identity changed'}],[]
+            differences.append({'id':c_row['id'],'reason':'C synthesizes an unrepresentable PTR target; Rust omits it and uses the normal resolver path.',
+                'target':target,'c':c_row,'rust':r_row})
+        left=copy.deepcopy(left);right=copy.deepcopy(right);case=copy.deepcopy(case)
+        for observed in (left,right):observed['rows']=[r for r in observed['rows'] if r['id'] not in expected_ids]
+        case['actions']=[a for a in case['actions'] if a['id']!='reverse']
     if case.get('debug_blocking_reference'):
         expected=[a['id']+':'+transport for a in case['actions'] if a['op']=='query' for transport in a.get('transports',['udp','tcp'])]
         if [r['id'] for r in left['rows']]!=expected or [r['id'] for r in right['rows']]!=expected:
@@ -1434,7 +1492,7 @@ def ordinary_cases(mode,scope):
     if 'domain' in options or 'domain-suffix' in options:prefixes+=['domain-','domain-suffix-']
     if 'hostsdir' in options:prefixes+=['hostsdir-']
     catalog=syntax_cases() if mode=='syntax' else service_cases()
-    return [case for case in catalog if not case.get('c_only') and case['id'] not in deferred and
+    return [case for case in catalog if not case.get('c_only') and not case.get('extreme_input') and case['id'] not in deferred and
         (case['id'] in mapped or case['id'].startswith(tuple(prefixes)))]
 
 
@@ -1442,7 +1500,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root',type=Path,required=True);parser.add_argument('--rust',type=Path,required=True)
     parser.add_argument('--source-commit',required=True);parser.add_argument('--out',type=Path,required=True)
-    parser.add_argument('--side',choices=['c','both'],default='c');parser.add_argument('--mode',choices=['syntax','service'],default='syntax')
+    parser.add_argument('--side',choices=['c','rust','both'],default='c');parser.add_argument('--mode',choices=['syntax','service'],default='syntax')
     parser.add_argument('--case',action='append');parser.add_argument('--allocator-map',type=Path)
     parser.add_argument('--ordinary-scope',choices=['all',*SCOPES]);args=parser.parse_args()
     assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
@@ -1451,6 +1509,7 @@ def main():
     assert not (args.ordinary_scope and args.case),'full ordinary scope cannot be narrowed by --case'
     catalog=ordinary_cases(args.mode,args.ordinary_scope) if args.ordinary_scope else (syntax_cases() if args.mode=='syntax' else service_cases())
     selected=[case for case in catalog if (not args.case or case['id'] in args.case) and (args.side=='c' or not case.get('c_only'))]
+    assert args.side=='rust' or not any(case.get('rust_only') for case in selected), 'unsafe C memory boundary is Rust-only'
     assert selected and (not args.case or len(selected)==len(set(args.case)))
     for case in selected:
         if args.allocator_map:case['allocator_map']=str(args.allocator_map)
@@ -1461,7 +1520,7 @@ def main():
         'm5_tftp_allocation.py','test_single_poll_service.py','m2_dhcp_scenarios.py']:
         shutil.copy2(Path(__file__).with_name(name),driver/name)
     subprocess.run(['sysctl','-q','-w','net.ipv4.ip_local_port_range=40000 60999','net.ipv4.ip_unprivileged_port_start=1024'],check=True)
-    sides=['c','rust'] if args.side=='both' else ['c'];roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
+    sides=['c','rust'] if args.side=='both' else [args.side];roots={side:prepare(args.image_root,None,args.out/side,args.rust) for side in sides}
     report={'mode':args.mode,'comparison_executed':args.side=='both','source_commit':args.source_commit,
         'rust_sha256':sha256(args.rust),'c_sha256':STOCK_SHA256,'tool_sha256':sha256(__file__),
         'requirements_sha256':sha256(Path(__file__).with_suffix('.json')),
