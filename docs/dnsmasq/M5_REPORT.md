@@ -106,7 +106,7 @@ ENOSPC在双方tmpfs实际填满16,384B，仍收到`127.0.0.15`的offer及ACK、
 
 [包生命周期leaf][lifecycle] SHA256 `8c3d0c223e9b88ad2e7aa1c0dc4839f66346747902feb6d81d1200f0d11cd813`实际执行stock→candidate升级、candidate重装、卸载、fresh安装、为回滚移除、移除后stock回滚、为降级再次升级、直接stock降级8阶段；stock脚本真实启用，在隔离镜像net/mount/pid namespace运行。安装阶段观察包数据库、payload、用户/组、init链接、修改过配置的SHA/mode/uid/gid、实际procd/ujail/daemon ELF以及DNS应答；卸载后package/ELF均不存在且保留用户配置。`dnsmasq-dhcpv6`／`dnsmasq-full`使用各自真实APK做`apk add --simulate`的solver互斥检查，依赖只供模拟，未声称运行这两个variant。镜像postinst语义是init start；stock重装控制保留原PID，对替换ELF的4个事务显式执行init restart并核对新ELF/DNS，未声称APK自动restart。cleanup errors及remaining_children均空、unmount exit0；短controller runtime2.465s是这些真实事务的实测时间。
 
-包构建完整归档SHA `be85c1b1573965e654ea8db510f3a0ea3e911d8e7783592afaf279244a8b0e92`，[275路径／208文件核验][package-verification]通过，并实际读取本地APK核对完整SHA与1,065,071B。生命周期归档SHA `c5266c104362d3bb6ef6f2fb199f7113648297e6f4caf23bd8c6e629482b4de8`，[167路径／104文件核验][lifecycle-verification]通过；两者均核对全SHA、类型、mode、uid/gid、nanosecond mtime、link/device及全部xattr，归档leaf与首次回拷leaf字节一致。
+包构建完整归档SHA `be85c1b1573965e654ea8db510f3a0ea3e911d8e7783592afaf279244a8b0e92`，[275路径／208文件核验][package-verification]通过，并实际读取本地APK核对完整SHA与1,065,071B。生命周期归档SHA `c5266c104362d3bb6ef6f2fb199f7113648297e6f4caf23bd8c6e629482b4de8`，[167路径／104文件核验][lifecycle-verification]通过；两者均核对全SHA、类型、mode、uid/gid、nanosecond mtime、link/device及全部xattr，归档leaf与首次回拷leaf字节一致。 本地[最终ELF][elf-artifact]与[APK][apk-artifact]保留完整产物。归档后[package清理][package-prune]、[lifecycle清理][lifecycle-prune]已完成，16／60个原JSON、日志和APK文件按原字节及metadata恢复；[后置验收门][post-archive]再次核验44族、全部8阶段、manifest／ELF／APK和每个receipt，qualified true。[最终现场][final-site]无dnsmasq测试残留进程、无final运行挂载，磁盘剩26,285,703,168B。
 
 [功能族体积归因](M5_SIZE_ATTRIBUTION.md)保留固定路径连续构建、首尾同字节控制及失败矩阵；混合阶段/共享泛型/链接布局不能冒称纯单族增量。下面是同次最终[link.map归属][size-map]的当前执行区存储：2,561输入sections覆盖1,674,984B，220B未归因；它不是+769,976B新增成本的因果拆分。
 
@@ -140,7 +140,7 @@ M4的体积特许只属于M4 ELF；M5未自行接受新的ELF超标。原预算E
 
 完整失败链见[FINAL_REPLAY_FAILURES](audits/20261006/FINAL_REPLAY_FAILURES.md)，原12b3、dc1b首轮与各tools revision的红/未执行数据不覆盖。主要产品修复是masked-MAC错误文案和实际bind-before-loop-probe启动race；夹具修复涵盖长Unix path、helper init/ready边界、queued TCP、scope/资格元数据、ARP map资产、PXE时钟字段、relay DAD与跨FD真实kernel序、cache实际整秒phase。没有删除case、放宽wire/count或把基础设施异常归为已通过。
 
-logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重传前返回；有界等实际第二个相同request再释放唯一reply的三模式diagnostic已过，随后[全329正式复跑][logging-final]完整PASS，不用诊断替代整族资格。最终logging归档SHA `be4f23357acf6b655f1974ca06802b9de2daa54354aa65b929097c7a362a3da1`，[5,583路径／4,559文件完整核验][logging-verification]通过后远端raw已prune。资源[attempt1][resources-rejected-1]因诊断负载污染在8.3005s被门拒绝，[attempt2][resources-rejected-2]因外部worker残留在采样前拒绝；按精确PGID清理后[attempt3][resources]完整PASS。压力[首轮][pressure-missing-namespace]因缺失`run_isolated`在0.0930s退出，[第二轮][pressure-born-race]因guard把自身新生子进程误当外部污染在5.0567s拒绝；9684修复own/foreign namespace资格及阳性/负控后[实际重跑][pressure]完整PASS。上述失败保留原receipt与执行边界，不记作产品通过。[APK首轮][package-controller]controller31.005s实际生成正确产物，build return1为显式预算失败；没有修改预算或删除失败。[生命周期首轮][lifecycle-controller]完整通过，无产品修复或第二轮。
+logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重传前返回；有界等实际第二个相同request再释放唯一reply的三模式diagnostic已过，随后[全329正式复跑][logging-final]完整PASS，不用诊断替代整族资格。最终logging归档SHA `be4f23357acf6b655f1974ca06802b9de2daa54354aa65b929097c7a362a3da1`，[5,583路径／4,559文件完整核验][logging-verification]通过后远端raw已prune。资源[attempt1][resources-rejected-1]因诊断负载污染在8.3005s被门拒绝，[attempt2][resources-rejected-2]因外部worker残留在采样前拒绝；按精确PGID清理后[attempt3][resources]完整PASS。压力[首轮][pressure-missing-namespace]因缺失`run_isolated`在0.0930s退出，[第二轮][pressure-born-race]因guard把自身新生子进程误当外部污染在5.0567s拒绝；9684修复own/foreign namespace资格及阳性/负控后[实际重跑][pressure]完整PASS。上述失败保留原receipt与执行边界，不记作产品通过。[APK首轮][package-controller]controller31.005s实际生成正确产物，build return1为显式预算失败；没有修改预算或删除失败。[生命周期首轮][lifecycle-controller]完整通过，无产品修复或第二轮。归档恢复脚本首轮因目录递归先消费子条目而exit2；原树已经完整恢复且inventory与原manifest相同，修为`--no-recursion`后两归档恢复通过，后置门再核验。原错误、retry日志及处理过程保留在失败索引，未改产品或冒称功能重跑。
 
 [identity]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/final-identity.json
 [completed]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/completed.json
@@ -176,3 +176,10 @@ logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重�
 [lifecycle-controller]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/lifecycle-controller-attempt-1.log
 [lifecycle-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-lifecycle-final/local-verification.json
 [summary]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/summary.json
+
+[elf-artifact]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/release/dnsmasq-rs
+[apk-artifact]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-package-final/plain/build/dnsmasq-2.93-r2.apk
+[package-prune]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-package-final/prune.json
+[lifecycle-prune]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-lifecycle-final/prune.json
+[post-archive]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/post-archive-gate.json
+[final-site]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/final-site-check.json
