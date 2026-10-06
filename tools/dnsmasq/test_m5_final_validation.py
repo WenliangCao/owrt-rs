@@ -5,6 +5,7 @@ import io
 import json
 from pathlib import Path
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -87,6 +88,119 @@ class FinalValidationTests(unittest.TestCase):
             self.assertEqual(job['checks'], {'accepted': True})
         for job in final.commands(spec, 'fuzz', Path('/source/private/final/runs/fuzz/attempt-1')):
             self.assertIn('-max_total_time=1800', job['argv'])
+            self.assertEqual(job['timeout_seconds'], 1920)
+
+    def fuzz_fixture(self, root, *, durations=None, failed=None, artifact=None, starters=3):
+        build = root / 'build'; build.mkdir(); (root / 'starts').mkdir()
+        durations = durations or {name: .3 for name in final.FUZZ}
+        script = f'''#!{final.sys.executable}
+import json,pathlib,sys,time
+root=pathlib.Path({str(root)!r});target=pathlib.Path(sys.argv[0]).name
+corpus=pathlib.Path(sys.argv[1]);folder=corpus.parent
+(root/'starts'/target).write_text(str(time.time_ns()))
+deadline=time.monotonic()+2
+while len(list((root/'starts').iterdir()))<{starters}:
+    if time.monotonic()>deadline:sys.exit(9)
+    time.sleep(.005)
+print('executing '+target,flush=True)
+time.sleep({durations!r}[target])
+(corpus/'generated').write_bytes(target.encode())
+if target=={artifact!r}:(folder/'artifacts'/'crash-fixture').write_bytes(b'preserved failure input')
+(root/(target+'.finished')).write_text(str(time.time_ns()))
+sys.exit(7 if target=={failed!r} else 0)
+'''
+        for target in final.FUZZ:
+            path = build / target; path.write_text(script); path.chmod(0o755)
+        final.save(build / 'build.json', {'kind': 'fuzz', 'artifacts': [
+            {'path': target, 'sha256': final.digest(build / target)} for target in final.FUZZ]})
+        spec = {'source_root': str(root), 'output': str(root), 'source_commit': 'b' * 40,
+                'image_root': '/unused', 'runtime_root': '/unused', 'elf': '/unused', 'elf_sha256': 'a' * 64,
+                'family_registry': {'families': []}, 'fuzz_build_directory': str(build)}
+        attempt = root / 'runs/fuzz/attempt-1'
+        return spec, attempt, final.commands(spec, 'fuzz', attempt)
+
+    def test_three_fuzz_processes_really_overlap(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); spec, attempt, jobs = self.fuzz_fixture(root)
+            attempt.mkdir(parents=True)
+            # Only this short fixture lowers the gate; production has no override.
+            with patch.object(final, 'FUZZ_SECONDS', .2):
+                records, failures = final.run_fuzz(spec, attempt, jobs)
+            self.assertEqual(failures, [])
+            starts = [int(path.read_text()) for path in (root / 'starts').iterdir()]
+            finishes = [int((root / (name + '.finished')).read_text()) for name in final.FUZZ]
+            self.assertLess(max(starts), min(finishes))
+            self.assertEqual(len({record['pid'] for record in records}), 3)
+            for record in records:
+                self.assertTrue(record['passed']); self.assertGreaterEqual(record['elapsed_seconds'], .2)
+                self.assertLess(record['started_at_unix_ns'], record['finished_at_unix_ns'])
+                self.assertEqual(record['instrumented_target_sha256'], final.digest(jobs[0]['argv'][0]))
+                self.assertEqual(record['artifact_entries'], [])
+                self.assertEqual(record['final_corpus']['generated'], final.hashlib.sha256(record['id'].encode()).hexdigest())
+                self.assertIn(record['id'], Path(record['log']).read_text())
+                self.assertEqual(json.loads((attempt / (record['id'] + '.json')).read_text()), record)
+            self.assertEqual(json.loads((attempt / 'commands.json').read_text()), records)
+
+    def test_failed_fuzz_target_keeps_all_peers_and_artifacts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            spec, attempt, jobs = self.fuzz_fixture(root,
+                durations={'dns_wire': .03, 'dhcp_packet': .3, 'config_line': .4}, failed='dns_wire', artifact='dns_wire')
+            manifest = root / 'identity.json'; final.save(manifest, spec)
+            args = final.argparse.Namespace(manifest=manifest, phase='fuzz', attempt=1, exclusive_window=False)
+            with patch.object(final, 'verify_identity'), patch.object(final.os, 'geteuid', return_value=0), \
+                    patch.object(final, 'prerequisite', return_value={'artifact_directory': spec['fuzz_build_directory']}), \
+                    patch.object(final, 'FUZZ_SECONDS', .2), contextlib.redirect_stdout(io.StringIO()):
+                self.assertTrue(final.run(args))
+            result = json.loads((attempt / 'result.json').read_text()); records = result['commands']
+            self.assertFalse(result['passed']); self.assertEqual(len(records), 3)
+            failed, *peers = records
+            self.assertEqual(failed['returncode'], 7); self.assertFalse(failed['passed'])
+            self.assertTrue(any('exited 7' in error for error in failed['failures']))
+            self.assertTrue(any('produced artifacts' in error for error in failed['failures']))
+            self.assertEqual(failed['artifact_entries'], ['crash-fixture'])
+            self.assertEqual((Path(failed['artifact_directory']) / 'crash-fixture').read_bytes(), b'preserved failure input')
+            self.assertTrue(all(record['passed'] and record['returncode'] == 0 for record in peers))
+            self.assertTrue(all(record['finished_at_unix_ns'] > failed['finished_at_unix_ns'] for record in peers))
+            self.assertEqual(len(result['failures']), len(failed['failures']))
+            self.assertAlmostEqual(result['target_seconds'], sum(record['elapsed_seconds'] for record in records))
+            self.assertNotIn('fuzz', json.loads((root / 'completed.json').read_text()))
+            self.assertTrue(all((attempt / (record['id'] + '.json')).is_file() for record in records))
+
+    def test_fuzz_identity_rejection_still_collects_other_targets(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); spec, attempt, jobs = self.fuzz_fixture(root, starters=2)
+            build = Path(spec['fuzz_build_directory']) / 'build.json'; receipt = json.loads(build.read_text())
+            receipt['artifacts'][0]['sha256'] = '0' * 64; final.save(build, receipt)
+            attempt.mkdir(parents=True)
+            with patch.object(final, 'FUZZ_SECONDS', .2): records, failures = final.run_fuzz(spec, attempt, jobs)
+            self.assertTrue(failures); self.assertIsNone(records[0]['returncode'])
+            self.assertTrue(any('instrumented target changed' in error for error in records[0]['failures']))
+            self.assertFalse((root / 'starts/dns_wire').exists())
+            self.assertTrue(all(record['passed'] for record in records[1:]))
+
+    def test_short_fuzz_runs_cannot_satisfy_the_production_window(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); spec, attempt, jobs = self.fuzz_fixture(root, durations={name: .03 for name in final.FUZZ})
+            attempt.mkdir(parents=True)
+            records, failures = final.run_fuzz(spec, attempt, jobs)
+            self.assertEqual(final.FUZZ_SECONDS, 1800); self.assertEqual(len(records), 3)
+            self.assertEqual(len(failures), 3)
+            self.assertTrue(all(record['returncode'] == 0 and not record['passed'] for record in records))
+            self.assertTrue(all('30-minute' in record['failures'][0] for record in records))
+
+    def test_fuzz_timeout_stops_and_preserves_every_target(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); spec, attempt, jobs = self.fuzz_fixture(root, durations={name: 5 for name in final.FUZZ})
+            attempt.mkdir(parents=True)
+            for job in jobs: job['timeout_seconds'] = .2
+            started = time.monotonic()
+            records, failures = final.run_fuzz(spec, attempt, jobs)
+            self.assertLess(time.monotonic() - started, 4)
+            self.assertEqual(len(records), 3); self.assertTrue(failures)
+            self.assertTrue(all(not record['passed'] and record['returncode'] is not None for record in records))
+            self.assertTrue(all(any('job timeout' in error for error in record['failures']) for record in records))
+            self.assertFalse(list(root.glob('*.finished')))
 
     def test_parallel_partial_families_require_the_whole_frozen_union(self):
         with tempfile.TemporaryDirectory() as temporary:

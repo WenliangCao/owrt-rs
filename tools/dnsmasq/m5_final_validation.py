@@ -8,6 +8,7 @@ for isolated lifecycle testing and never becomes a user size exception.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import copy
 import fcntl
 import hashlib
@@ -20,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import threading
 import time
 
 import build_package
@@ -30,6 +32,7 @@ TARGET = Path('/home/ubuntu/dnsmasq-cargo-target')
 PHASES = ['families', 'm2', 'fuzz-build', 'fuzz', 'resources', 'pressure', 'package', 'lifecycle']
 DNS = ['udp-cache', 'expiry', 'tcp', 'failure-recovery', 'strict-order', 'all-servers', 'representative-mix']
 FUZZ = ['dns_wire', 'dhcp_packet', 'config_line']
+FUZZ_SECONDS = 1800
 
 
 def save(path, value):
@@ -414,6 +417,94 @@ def prerequisite(spec, manifest_sha, completed, phase):
     return record
 
 
+def fuzz_target(spec, attempt, job, cancelled):
+    """One independent target retains its receipt even when execution fails."""
+    folder = attempt / job['id']
+    record = copy.deepcopy(job)
+    record.update(passed=False, failures=[], returncode=None, elapsed_seconds=0,
+                  started_at_unix_ns=None, finished_at_unix_ns=None,
+                  log=str(attempt / (job['id'] + '.log')),
+                  corpus_directory=str(folder / 'corpus'), artifact_directory=str(folder / 'artifacts'))
+    process = None; started = None
+    try:
+        (folder / 'artifacts').mkdir(parents=True); (folder / 'corpus').mkdir()
+        seeds = Path(spec['source_root']) / 'components/dnsmasq/fuzz/corpus' / job['id']
+        if seeds.exists(): shutil.copytree(seeds, folder / 'corpus', dirs_exist_ok=True)
+        else: (folder / 'corpus/seed').write_bytes(b'port=53\n')
+        with Path(record['log']).open('wb') as log:
+            build = json.loads((Path(spec['fuzz_build_directory']) / 'build.json').read_text())
+            record['instrumented_target_sha256'] = digest(job['argv'][0])
+            require(any(row['path'] == job['id'] and row['sha256'] == record['instrumented_target_sha256']
+                        for row in build['artifacts']), 'instrumented target changed')
+            require(not cancelled.is_set(), 'fuzz phase interrupted')
+            started = time.monotonic(); record['started_at_unix_ns'] = time.time_ns()
+            process = subprocess.Popen(job['argv'], cwd=spec['source_root'], stdout=log, stderr=log, start_new_session=True)
+            record['pid'] = process.pid
+            save(attempt / (job['id'] + '.json'), record)
+            while process.poll() is None:
+                require(not cancelled.is_set(), 'fuzz phase interrupted')
+                remaining = job['timeout_seconds'] - (time.monotonic() - started)
+                require(remaining > 0, 'job timeout')
+                try: process.wait(timeout=min(1, remaining))
+                except subprocess.TimeoutExpired: pass
+    except Exception as error:
+        record['failures'].append(repr(error))
+    finally:
+        if process is not None:
+            if process.poll() is None:
+                try:
+                    from m3_soak import stop_process_group
+                    stop_process_group(process)
+                except Exception as error:
+                    record['failures'].append('target cleanup failed: ' + repr(error))
+            record.update(returncode=process.returncode, elapsed_seconds=time.monotonic() - started,
+                          finished_at_unix_ns=time.time_ns())
+        if record['returncode'] != 0:
+            record['failures'].append(f'{job["id"]} exited {record["returncode"]}')
+        if record['elapsed_seconds'] > job['timeout_seconds'] and not any('job timeout' in error for error in record['failures']):
+            record['failures'].append('job timeout')
+        if record['elapsed_seconds'] < FUZZ_SECONDS:
+            record['failures'].append('fuzz stopped before the actual 30-minute window')
+        try:
+            record['final_corpus'] = file_map(folder / 'corpus')
+            record['artifact_entries'] = sorted(path.name for path in (folder / 'artifacts').iterdir())
+            record['final_artifacts'] = file_map(folder / 'artifacts')
+            require(not record['artifact_entries'], 'fuzz produced artifacts')
+        except Exception as error:
+            record['failures'].append(repr(error))
+        try:
+            require(digest(job['argv'][0]) == record.get('instrumented_target_sha256'), 'instrumented target changed while running')
+        except Exception as error:
+            record['failures'].append(repr(error))
+        record['passed'] = not record['failures']
+        save(attempt / (job['id'] + '.json'), record)
+    return record
+
+
+def run_fuzz(spec, attempt, jobs):
+    """Run all three targets concurrently; a failed target does not stop peers."""
+    require(len(jobs) == len(FUZZ) and {job['id'] for job in jobs} == set(FUZZ), 'complete three-target fuzz inventory required')
+    records = [dict(copy.deepcopy(job), passed=False, returncode=None) for job in jobs]
+    save(attempt / 'commands.json', records)
+    cancelled = threading.Event(); interruptions = []
+    with ThreadPoolExecutor(max_workers=len(FUZZ)) as pool:
+        futures = {pool.submit(fuzz_target, spec, attempt, job, cancelled): index for index, job in enumerate(jobs)}
+        def retain(future):
+            index = futures[future]
+            try: records[index] = future.result()
+            except Exception as error:
+                records[index].update(failures=['target worker failed: ' + repr(error)])
+            atomic_save(attempt / 'commands.json', records)
+        try:
+            for future in as_completed(futures):
+                retain(future)
+        except KeyboardInterrupt as error:
+            cancelled.set(); interruptions.append(repr(error))
+            for future in futures: retain(future)
+    failures = interruptions + [record['id'] + ': ' + error for record in records for error in record['failures']]
+    return records, failures
+
+
 def run(args):
     require(os.geteuid() == 0, 'use sudo for the controller; build workers run as ubuntu')
     spec = json.loads(args.manifest.read_text()); verify_identity(spec)
@@ -455,14 +546,11 @@ def run(args):
             save(root / 'package-freeze.json', freeze)
         if phase == 'lifecycle':
             spec['package_artifact'] = completed['package']['artifact']
-        for job in commands(spec, phase, attempt):
-            if phase == 'fuzz':
-                folder = attempt / job['id']; (folder / 'artifacts').mkdir(parents=True); (folder / 'corpus').mkdir()
-                seeds = Path(spec['source_root']) / 'components/dnsmasq/fuzz/corpus' / job['id']
-                if seeds.exists(): shutil.copytree(seeds, folder / 'corpus', dirs_exist_ok=True)
-                else: (folder / 'corpus/seed').write_bytes(b'port=53\n')
-                build = json.loads((Path(spec['fuzz_build_directory']) / 'build.json').read_text())
-                require(any(row['path'] == job['id'] and row['sha256'] == digest(job['argv'][0]) for row in build['artifacts']), 'instrumented target changed')
+        jobs = commands(spec, phase, attempt)
+        if phase == 'fuzz':
+            records, failures = run_fuzz(spec, attempt, jobs)
+            jobs = []
+        for job in jobs:
             record = copy.deepcopy(job); started = time.monotonic()
             records.append(record); save(attempt / 'commands.json', records)
             with (attempt / (job['id'] + '.log')).open('wb') as log:
@@ -494,11 +582,6 @@ def run(args):
                     report = check_result(result, {'errors': []})
                     require(report['c_binary'] and set(report['c_binary']) == {STOCK_SHA256}
                             and report['rust_binary'] and set(report['rust_binary']) == {spec['elf_sha256']}, 'DHCP comparisons used another ELF')
-            if phase == 'fuzz':
-                require(record['elapsed_seconds'] >= 1800, 'fuzz stopped before the actual 30-minute window')
-                require(not list((attempt / job['id'] / 'artifacts').iterdir()), 'fuzz produced artifacts')
-                record['final_corpus'] = file_map(attempt / job['id'] / 'corpus')
-                save(attempt / (job['id'] + '.json'), record)
             record['passed'] = True
             save(attempt / 'commands.json', records)
         verify_identity(spec)
@@ -516,6 +599,9 @@ def run(args):
         result = {'phase': phase, 'passed': not failures, 'failures': failures, 'commands': records,
                   'elf_sha256': spec['elf_sha256'], 'source_commit': spec['source_commit'], 'attempt': str(attempt),
                   'selected_families': selected, 'manifest_sha256': manifest_sha}
+        if phase == 'fuzz':
+            result['target_seconds'] = sum(record.get('elapsed_seconds', 0) for record in records)
+            result['required_target_seconds'] = len(FUZZ) * FUZZ_SECONDS
         if phase == 'package' and records and records[-1].get('artifact'):
             result['artifact'] = records[-1]['artifact']
         if phase == 'fuzz-build' and records and result['passed']:
