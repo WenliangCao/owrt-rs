@@ -22,7 +22,7 @@ Oracle是4核AArch64构建机，kernel`6.17.0-1020-oracle`、页大小4096 B、`
 
 通用DNS配置为cache-size4096、cache-rr=TXT、dns-forward-max1024、TTL/local-ttl3600、no-resolv/no-poll/no-0x20-encode，query logging关闭；C/R3/Rs配置相同。20个逻辑客户端、每socket最多1个在途。每个正式窗口先全新独立2秒预热＋10秒pilot，再重建初态，30秒预热＋120秒正式测量；pilot、预填、验证、尾排空和清理均不计吞吐。
 
-每profile5轮，round为外层、profile依冻结顺序执行；三组顺序为`C→R3→Rs`、`R3→Rs→C`、`Rs→C→R3`、`C→Rs→R3`、`Rs→R3→C`。不挑最快attempt。方法失败保留原轮、修环境或工具后fresh重跑；真实错答、timeout、DHCP末态或reload发布错误仍是有效坏产品观测，单列错误并排除出正确吞吐。
+每profile5轮，round为外层、profile依冻结顺序执行；三组顺序为`C→R3→Rs`、`R3→Rs→C`、`Rs→C→R3`、`C→Rs→R3`、`Rs→R3→C`。不挑最快attempt。最终实际归档的第5轮顺序是`Rs→R3→C`，与冻结协议一致；报告不使用`Rs→C→R3`作为第5轮顺序。方法失败保留原轮、修环境或工具后fresh重跑；真实错答、timeout、DHCP末态或reload发布错误仍是有效坏产品观测，单列错误并排除出正确吞吐。
 
 正确吞吐按阶段内真实完成数除以固定monotonic阶段秒数。正确latency来自该阶段实际首send的全部正确请求，包括后续阶段或窗口后才完成的请求；这些跨界完成另列，不能算进前一阶段吞吐。p50/p95为nearest-rank，阶段正确样本至少10,000才报p99。不得用平均延迟遮蔽尾部。steady还报告scheduled→send lag、scheduled未发与在途限制；closed-loop只表示20并发完成量，不是开放式daemon绝对最大容量。
 
