@@ -52,6 +52,10 @@ def dependencies(spec, records):
                         raise ValueError('dynamic helper dependency requires fresh replay')
             for node in ast.walk(tree):
                 modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module] if isinstance(node, ast.ImportFrom) and node.module else []
+                if isinstance(node, ast.Call) and node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
+                    dynamic_import = isinstance(node.func, ast.Name) and node.func.id == '__import__'
+                    dynamic_import |= isinstance(node.func, ast.Attribute) and node.func.attr == 'import_module'
+                    if dynamic_import: modules.append(node.args[0].value)
                 for module in modules:
                     candidate = module.split('.')[0] + '.py'
                     if candidate in spec['tools'] and candidate not in found: pending.add(candidate)
