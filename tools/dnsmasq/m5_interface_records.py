@@ -804,7 +804,8 @@ def service_cases():
     suffix='a'*63+'.'+'b'*61
     target='.'.join(['a'*63,'b'*63,'c'*63,'d'*61])
     add('domain-srv-components-max', 'domain='+suffix+'\nsrv-host='+owner+','+target+',1234,65535,65535\n',
-        [(owner+'.'+suffix,33)], 'DOM-CALLER', extreme_input=True)
+        [(owner+'.'+suffix,33),(ipaddress.ip_address('2001:db8::7').reverse_pointer,12),('7.2.0.192.in-addr.arpa',12)], 'DOM-CALLER', extreme_input=True)
+    cases[-1]['no_upstream']=False
     for prefix in (24,25,47):
         target='p'*prefix+'2001-0db8-0000-0000-0000-0000-0000-0007.test'
         add('synth-extreme-label-'+str(prefix), 'synth-domain=test,2001:db8::7,2001:db8::9,'+'p'*prefix+'\n',
@@ -1301,7 +1302,7 @@ def controls():
         common={'id':'reverse:'+transport,'request':request.hex(),'cache':False,'error':None}
         bad=request[:2]+struct.pack('!5H',0x8580,1,1,0,0)+request[12:]+b'\xc0\x0c'+struct.pack('!HHIH',12,1,0,len(data))+data
         reference['rows'].append(dict(common,reply=bad.hex(),response=None,parse_error='invalid label',upstreams=[{'server':'127.0.0.2','events':[]}]))
-        nx=request[:2]+struct.pack('!5H',0x8183,1,0,0,0)+request[12:]
+        nx=request[:2]+struct.pack('!5H',0x8583,1,0,0,0)+request[12:]
         actual['rows'].append(dict(common,reply=nx.hex(),response=files.semantics(nx),upstreams=[{'server':'127.0.0.2','events':[{'name':'7.2.0.192.in-addr.arpa','type':12,'transport':transport}]}]))
     assert not compare_service(reference,actual,case)[0]
     for label,side,change in [
@@ -1341,8 +1342,8 @@ def compare_service(left,right,case):
             if c_row.get('error') is not None or c_row.get('reply')!=expected.hex() or any(u['events'] for u in c_row['upstreams']):
                 return [{'phase':'synth-extreme','side':'c','id':c_row['id'],'error':'exact malformed synthesized wire differs'}],[]
             answer=r_row.get('response');events=[e for u in r_row['upstreams'] for e in u['events']]
-            nx=request[:2]+struct.pack('!5H',0x8183,1,0,0,0)+request[12:]
-            if r_row.get('request')!=c_row['request'] or r_row.get('reply')!=nx.hex() or r_row.get('error') is not None or r_row.get('parse_error') is not None or not answer or answer['flags']!=0x8183 or answer['records'] or len(events)!=1 or any(u['events'] for u in r_row['upstreams'] if u['server']!='127.0.0.2'):
+            nx=request[:2]+struct.pack('!5H',0x8583,1,0,0,0)+request[12:]
+            if r_row.get('request')!=c_row['request'] or r_row.get('reply')!=nx.hex() or r_row.get('error') is not None or r_row.get('parse_error') is not None or not answer or answer['flags']!=0x8583 or answer['records'] or len(events)!=1 or any(u['events'] for u in r_row['upstreams'] if u['server']!='127.0.0.2'):
                 return [{'phase':'synth-extreme','side':'rust','id':r_row['id'],'error':'safe NXDOMAIN fallback and actual upstream missing'}],[]
             if answer['questions']!=files.semantics(request)['questions'] or events[0]['name']!=answer['questions'][0][0] or events[0]['type']!=12:
                 return [{'phase':'synth-extreme','side':'rust','id':r_row['id'],'error':'question or actual upstream identity changed'}],[]
