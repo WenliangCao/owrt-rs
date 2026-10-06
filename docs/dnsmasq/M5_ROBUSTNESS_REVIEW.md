@@ -16,3 +16,5 @@
 `37c187e1` 在 Linux 实际通过 692 库测试和 10 main 测试，19 ignored 不计。M2 TCP 的 10 配对/3负控和真实 DHCP ping-conflict 配对通过；源版本及 ELF 为 `bcebb72d…64074f`，1,912,872B。完整 SHA+metadata 已核验并清远端，见 [预检证据](../../private/dnsmasq-rewrite/evidence/M5/unified-preflight/refcell-preflight/)。
 
 `e79fdf13` 也已实际通过 692+10 Linux 测试，19 ignored 不计。后继 DHCP 状态错误传播与 dumpmask VT 修复须在新候选继续实际复测；最终各族、M2、资源/压力和APK结果在完成后统一记入报告。
+
+收尾分工已交审查：[DNS17模块](audits/20261006/DNS_RUNTIME_SAFETY.md)、[config29/接口/hosts审查](audits/20261006/config-interface-safety-review.json)、[TFTP/helper13模块](M5_TFTP_HELPER_SAFETY.md)、[logging审查](M5_LOGGING_SAFETY_AUDIT.md)。后继device binding、typed PID和截断notice属于已审模块的显式增量，最终源码身份/回归结果仍需汇合。新device service不保留新增PXE unwrap；last errno按C两次实际syscall站位，包括后继ignored EPERM。
