@@ -23,7 +23,7 @@ class FixtureRevisionTests(unittest.TestCase):
         self.base = Path(self.temporary.name).resolve()
         self.number = 0
 
-    def fixture(self, changes=None, driver=None, registry_change=None, extra=None, arguments=None):
+    def fixture(self, changes=None, driver=None, registry_change=None, extra=None, arguments=None, family_ids=None):
         self.number += 1
         base = self.base / str(self.number); source = base / 'source'; tools = source / 'tools/dnsmasq'
         tools.mkdir(parents=True)
@@ -49,6 +49,9 @@ out.write_text(json.dumps({'qualified':helper.QUALIFIED,'cases':[{'id':case} for
             'id': 'paired', 'argv': ['{python}', '{tools}/driver.py', '{out}/result.json', '--cases', 'a,b', *(arguments or [])],
             'result': '{out}/result.json', 'checks': {'qualified': True},
             'inventory': {'field': 'cases', 'key': 'id', 'ids': ['a', 'b']}}]}]}
+        if family_ids:
+            template = registry['families'][0]
+            registry['families'] = [dict(copy.deepcopy(template), id=name) for name in family_ids]
         final.save(tools / 'm5_final_families.draft.json', registry)
         external = {}
         for name in ['image', 'runtime', 'ubus', 'reference']:
@@ -73,15 +76,18 @@ out.write_text(json.dumps({'qualified':helper.QUALIFIED,'cases':[{'id':case} for
                 'assets': {}, 'family_registry': registry}
         manifest = old_output / 'identity.json'; final.save(manifest, spec); final.verify_identity(spec)
         attempt = old_output / 'attempt-1'
-        command = final.commands(spec, 'families', attempt)[0]
-        started = time.monotonic(); run = subprocess.run(command['argv'], capture_output=True)
-        self.assertEqual(run.returncode, 0, run.stderr.decode())
-        command.update(passed=True, returncode=0, elapsed_seconds=time.monotonic() - started,
-                       result_sha256=final.digest(command['result']))
-        record = {'phase': 'family:fixture', 'passed': True, 'failures': [], 'commands': [command],
-                  'attempt': str(attempt), 'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'],
-                  'manifest_sha256': final.digest(manifest), 'receipt': str(attempt / 'family.result.json')}
-        final.save(Path(record['receipt']), record); final.save(old_output / 'completed.json', {record['phase']: record})
+        records = {}
+        for command in final.commands(spec, 'families', attempt):
+            started = time.monotonic(); run = subprocess.run(command['argv'], capture_output=True)
+            self.assertEqual(run.returncode, 0, run.stderr.decode())
+            command.update(passed=True, returncode=0, elapsed_seconds=time.monotonic() - started,
+                           result_sha256=final.digest(command['result']))
+            record = {'phase': 'family:' + command['family'], 'passed': True, 'failures': [], 'commands': [command],
+                      'attempt': str(attempt), 'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'],
+                      'manifest_sha256': final.digest(manifest), 'receipt': str(attempt / (command['family'] + '.result.json'))}
+            final.save(Path(record['receipt']), record); records[record['phase']] = record
+        record = next(iter(records.values()))
+        final.save(old_output / 'completed.json', records)
         repository = base / 'git'; repository.mkdir()
         shutil.copytree(tools, repository / 'tools/dnsmasq', ignore=shutil.ignore_patterns('__pycache__'))
         repaired = repository / 'tools/dnsmasq'
@@ -223,6 +229,125 @@ helper=types.SimpleNamespace(QUALIFIED=value['qualified'])
                 if mutation == 'tree': (case.sidecar / 'driver.py').write_text('changed\n')
                 else: case.args.tools_commit = '0' * 40
                 with self.assertRaises(ValueError): self.revise(case)
+
+    def selected_fixture(self, **kwargs):
+        case = self.fixture(family_ids=['fixture', 'keep'], **kwargs)
+        case.args.family = ['fixture']
+        return case
+
+    def test_selected_mode_imports_unchanged_full_tree_despite_dynamic_launcher(self):
+        case = self.selected_fixture(extra={'launcher_helper.py': 'print(True)\n'},
+            changes={'launcher_helper.py': 'print(False)\n'}, driver='''import pathlib,subprocess,sys,types
+name='launcher_helper'
+child=subprocess.run([sys.executable,str(pathlib.Path(__file__).parent/(name+'.py'))],capture_output=True,text=True,check=True)
+helper=types.SimpleNamespace(QUALIFIED=child.stdout.strip()=='True')
+''')
+        spec, completed = self.revise(case)
+        for name in ['tools', 'family_registry', 'assets']:
+            self.assertEqual(spec[name], case.old[name])
+        self.assertEqual(revision.tools_root(spec), revision.tools_root(case.old))
+        self.assertNotIn('family:fixture', completed)
+        record = final.prerequisite(spec, final.digest(case.revised), completed, 'family:keep')
+        self.assertEqual(record['imported_from']['mode'], 'identical-default-tools')
+        commands = final.commands(spec, 'families', case.args.out / 'fresh')
+        self.assertEqual(commands[0]['argv'][1], str(case.sidecar / 'driver.py'))
+        self.assertEqual(commands[1]['argv'][1], str(revision.tools_root(case.old) / 'driver.py'))
+        self.assertEqual(final.context(spec, case.args.out)['tools'], str(revision.tools_root(case.old)))
+        # The selected helper change really executes, rather than changing only metadata.
+        process = subprocess.run(commands[0]['argv'], capture_output=True)
+        self.assertEqual(process.returncode, 0, process.stderr.decode())
+        with self.assertRaises(ValueError): final.check_result(Path(commands[0]['result']), commands[0]['checks'])
+
+    def test_selected_override_tree_archive_and_commit_tampering_rejected(self):
+        for mutation in ['tool', 'archive', 'commit', 'extra-file', 'symlink']:
+            with self.subTest(mutation=mutation):
+                case = self.selected_fixture(); spec, _ = self.revise(case)
+                if mutation == 'tool': (case.sidecar / 'helper.py').write_text('changed\n')
+                elif mutation == 'archive': case.archive.write_bytes(case.archive.read_bytes() + b'changed')
+                elif mutation == 'extra-file': (case.sidecar / 'untracked.py').write_text('changed\n')
+                elif mutation == 'symlink': (case.sidecar / 'json.py').symlink_to(case.sidecar / 'helper.py')
+                else: spec['family_tool_overrides']['fixture']['commit'] = '0' * 40
+                with self.assertRaises(ValueError): final.verify_identity(spec)
+
+    def test_selected_import_keeps_origin_leaf_and_execution_projection_strict(self):
+        for mutation in ['leaf', 'imported-command', 'selected-family']:
+            with self.subTest(mutation=mutation):
+                case = self.selected_fixture(); spec, completed = self.revise(case)
+                record = completed['family:keep']
+                if mutation == 'leaf': final.save(Path(record['commands'][0]['result']), {'qualified': False})
+                elif mutation == 'imported-command':
+                    record['commands'][0]['elapsed_seconds'] += 1
+                    final.save(Path(record['receipt']), record)
+                else:
+                    spec['family_tool_overrides']['keep'] = spec['family_tool_overrides']['fixture']
+                with self.assertRaises(ValueError): final.prerequisite(spec, final.digest(case.revised), completed, 'family:keep')
+
+    def test_selected_import_rejects_changed_default_tree_product_and_scope(self):
+        for mutation in ['tools', 'assets', 'registry', 'elf', 'source']:
+            with self.subTest(mutation=mutation):
+                case = self.selected_fixture(); spec, _ = self.revise(case)
+                if mutation == 'tools': spec['tools_root'] = str(case.sidecar); spec['tools'] = final.file_map(case.sidecar)
+                elif mutation == 'assets': spec['assets'][str(case.archive)] = final.digest(case.archive)
+                elif mutation == 'registry': spec['family_registry']['families'].pop()
+                elif mutation == 'elf':
+                    elf = self.base / ('another-elf-' + str(self.number)); elf.write_bytes(b'another ELF')
+                    spec.update(elf=str(elf), elf_sha256=final.digest(elf), elf_bytes=elf.stat().st_size)
+                else: spec['source_commit'] = 'a' * 40
+                final.save(case.revised, spec); (case.args.out / 'completed.json').unlink()
+                with contextlib.redirect_stdout(io.StringIO()):
+                    try: revision.import_unchanged(case.revised)
+                    except ValueError: pass
+                value = json.loads((case.args.out / 'completed.json').read_text()) if (case.args.out / 'completed.json').exists() else {}
+                self.assertNotIn('family:keep', value)
+
+    def test_selected_mode_cannot_shrink_scope_checks_or_inventory(self):
+        for change in [lambda r: r['families'].pop(),
+                       lambda r: r['families'][0]['steps'][0].__setitem__('checks', {}),
+                       lambda r: r['families'][0]['steps'][0]['inventory'].__setitem__('ids', ['a']),
+                       lambda r: r['families'][0]['steps'][0]['argv'].__setitem__(-1, 'a')]:
+            case = self.selected_fixture(registry_change=change)
+            with self.assertRaises(ValueError): self.revise(case)
+
+    def test_selected_mode_rejects_unknown_or_duplicate_family(self):
+        for selected in [['absent'], ['fixture', 'fixture']]:
+            case = self.selected_fixture(); case.args.family = selected
+            with self.assertRaises(ValueError): self.revise(case)
+
+    def test_repeated_family_selection_only_replays_those_families(self):
+        case = self.fixture(family_ids=['fixture', 'second', 'keep'])
+        case.args.family = ['fixture', 'second']
+        spec, completed = self.revise(case)
+        self.assertEqual(set(spec['family_tool_overrides']), {'fixture', 'second'})
+        self.assertEqual(set(completed), {'family:keep'})
+        final.prerequisite(spec, final.digest(case.revised), completed, 'family:keep')
+
+    def test_selected_mode_preserves_chained_import_receipts_and_original_argv(self):
+        case = self.fixture(family_ids=['fixture', 'keep'])
+        prior, prior_completed = self.revise(case)
+        actual = prior_completed['family:keep']['commands']
+        self.assertNotIn(str(case.sidecar), actual[0]['argv'][1])
+        # Freeze a second real Git archive with a distinct selected-family repair.
+        repository = self.base / 'next-git'; repository.mkdir()
+        shutil.copytree(case.sidecar, repository / 'tools/dnsmasq', ignore=shutil.ignore_patterns('__pycache__'))
+        (repository / 'tools/dnsmasq/helper.py').write_text('QUALIFIED = False\n')
+        subprocess.run(['git', 'init', '-q'], cwd=repository, check=True)
+        subprocess.run(['git', 'add', 'tools/dnsmasq'], cwd=repository, check=True)
+        subprocess.run(['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                        '-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'second fixture'],
+                       cwd=repository, check=True)
+        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repository, text=True).strip()
+        archive = self.base / 'next-tools.tar'
+        subprocess.run(['git', 'archive', '--format=tar', '--output', str(archive), 'HEAD', 'tools/dnsmasq'], cwd=repository, check=True)
+        sidecar = case.source / 'private/next-tools'; shutil.copytree(repository / 'tools/dnsmasq', sidecar)
+        args = argparse.Namespace(manifest=case.revised, tools_root=sidecar, tools_archive=archive,
+                                  tools_commit=commit, out=case.source / 'private/next-output', family=['fixture'])
+        with patch.object(final, 'PHASES', ['families']), contextlib.redirect_stdout(io.StringIO()): revision.revise(args)
+        spec = json.loads((args.out / 'identity.json').read_text())
+        completed = json.loads((args.out / 'completed.json').read_text())
+        record = final.prerequisite(spec, final.digest(args.out / 'identity.json'), completed, 'family:keep')
+        self.assertEqual(record['commands'], actual)
+        self.assertEqual(spec['tools_root'], prior['tools_root'])
+        self.assertNotIn('family:fixture', completed)
 
 
 if __name__ == '__main__': unittest.main()

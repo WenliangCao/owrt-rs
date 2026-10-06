@@ -78,11 +78,29 @@ def assert_schedule(spec, old, record, completed):
     current = dict(spec, selected_families=selected)
     if phase == 'fuzz': current['fuzz_build_directory'] = completed['fuzz-build']['artifact_directory']
     expected = final.commands(current, actual_phase, Path(record['attempt']))
+    if spec.get('fixture_revision', {}).get('mode') == 'selected-families':
+        prior = dict(old, selected_families=selected)
+        if phase == 'fuzz': prior['fuzz_build_directory'] = current['fuzz_build_directory']
+        final.require(expected == final.commands(prior, actual_phase, Path(record['attempt'])),
+                      'default frozen command schedule changed')
+        # The origin prerequisite and receipt projection certify actual argv,
+        # including earlier imports whose executable paths precede tools_root.
+        return
     final.require(len(expected) == len(record['commands']), 'repaired schedule step count changed')
     for observed, wanted in zip(record['commands'], expected):
         normalized = copy.deepcopy(observed)
         normalized['argv'] = [word.replace(str(tools_root(old)), str(tools_root(spec))) for word in observed['argv']]
         final.require(all(normalized.get(key) == value for key, value in wanted.items()), 'repaired schedule changed')
+
+
+def unchanged_default_tools(spec, old, phase):
+    """An identical full default tree needs no inferred dependency closure."""
+    final.require(spec.get('fixture_revision', {}).get('mode') == 'selected-families', 'selected revision required')
+    family = phase.removeprefix('family:') if phase.startswith('family:') else None
+    final.require(family not in spec.get('family_tool_overrides', {}), 'selected family requires fresh replay')
+    final.require(tools_root(spec) == tools_root(old) and spec['tools'] == old['tools']
+                  and spec['family_registry'] == old['family_registry'] and spec['assets'] == old['assets'],
+                  'default frozen tools, scope or assets changed')
 
 
 def verify_import(spec, record):
@@ -96,10 +114,13 @@ def verify_import(spec, record):
     canonical = json.dumps(original, sort_keys=True, separators=(',', ':')).encode()
     final.require(hashlib.sha256(canonical).hexdigest() == origin['record_sha256'], 'origin receipt changed')
     projected = {key: value for key, value in record.items() if key not in ['receipt', 'manifest_sha256', 'imported_from']}
-    original_projection = {key: value for key, value in original.items() if key not in ['receipt', 'manifest_sha256']}
+    original_projection = {key: value for key, value in original.items() if key not in ['receipt', 'manifest_sha256', 'imported_from']}
     final.require(projected == original_projection, 'imported execution differs from origin')
-    required = dependencies(old, original['commands'])
-    final.require(required == origin['dependencies'] and all(spec['tools'].get(name) == sha for name, sha in required.items()), 'driver dependency changed')
+    if origin.get('mode') == 'identical-default-tools':
+        unchanged_default_tools(spec, old, record['phase'])
+    else:
+        required = dependencies(old, original['commands'])
+        final.require(required == origin['dependencies'] and all(spec['tools'].get(name) == sha for name, sha in required.items()), 'driver dependency changed')
     assert_schedule(spec, old, original, completed)
 
 
@@ -120,8 +141,13 @@ def import_unchanged(manifest):
             if phase == 'families' or phase in completed: continue
             try:
                 final.prerequisite(old, old_sha, old_completed, phase)
-                required = dependencies(old, original['commands'])
-                final.require(all(spec['tools'].get(name) == sha for name, sha in required.items()), 'changed dependency')
+                if spec['fixture_revision'].get('mode') == 'selected-families':
+                    unchanged_default_tools(spec, old, phase)
+                    evidence = {'mode': 'identical-default-tools'}
+                else:
+                    required = dependencies(old, original['commands'])
+                    final.require(all(spec['tools'].get(name) == sha for name, sha in required.items()), 'changed dependency')
+                    evidence = {'dependencies': required}
                 assert_schedule(spec, old, original, old_completed)
             except (ValueError, KeyError, OSError) as error:
                 replay.append({'phase': phase, 'reason': str(error)}); continue
@@ -129,7 +155,7 @@ def import_unchanged(manifest):
             record.update(manifest_sha256=final.digest(manifest), receipt=str(root / 'imports' / (phase.replace(':', '-') + '.json')),
                           imported_from={'manifest': str(previous), 'manifest_sha256': old_sha,
                                          'record_sha256': hashlib.sha256(json.dumps(original, sort_keys=True, separators=(',', ':')).encode()).hexdigest(),
-                                         'dependencies': required})
+                                         **evidence})
             Path(record['receipt']).parent.mkdir(exist_ok=True); final.atomic_save(Path(record['receipt']), record)
             completed[phase] = record; retained.append(phase)
         needed = ['family:' + row['id'] for row in spec['family_registry']['families']]
@@ -162,16 +188,29 @@ def revise(args):
     for family, prior in zip(families['families'], old['family_registry']['families']):
         for step, previous in zip(family['steps'], prior['steps']):
             normalized = list(step['argv'])
-            if family['id'] == 'm5_script_arp' and step['id'] == 'paired' and '--allocator-map' in normalized:
+            if (family['id'] == 'm5_script_arp' and step['id'] == 'paired'
+                    and '--allocator-map' in normalized and '--allocator-map' not in previous['argv']):
                 at = normalized.index('--allocator-map')
                 final.require(normalized[at:at+2] == ['--allocator-map', '{link_map}'], 'allocator map binding changed')
                 del normalized[at:at+2]
             final.require(normalized == previous['argv'], 'fixture revision changed frozen arguments')
-    spec = copy.deepcopy(old); spec.update(output=str(out), tools_root=str(root), tools=updated, family_registry=families,
+    spec = copy.deepcopy(old); spec.update(output=str(out),
         fixture_revision={'tools_commit': args.tools_commit, 'previous_manifest': str(args.manifest),
                           'previous_manifest_sha256': final.digest(args.manifest), 'archive': str(args.tools_archive),
                           'changed_files': sorted(name for name in set(old['tools']) | set(updated) if old['tools'].get(name) != updated.get(name))})
-    spec['assets'][str(args.tools_archive.resolve())] = final.digest(args.tools_archive)
+    selected = getattr(args, 'family', None)
+    if selected:
+        known = {row['id'] for row in old['family_registry']['families']}
+        final.require(len(selected) == len(set(selected)) and set(selected) <= known, 'unknown or duplicate selected family')
+        spec['fixture_revision']['mode'] = 'selected-families'
+        spec['fixture_revision']['selected_families'] = selected
+        overrides = spec.setdefault('family_tool_overrides', {})
+        for family in selected:
+            overrides[family] = {'root': str(root), 'files': updated, 'archive': str(args.tools_archive.resolve()),
+                                 'archive_sha256': final.digest(args.tools_archive), 'commit': args.tools_commit}
+    else:
+        spec.update(tools_root=str(root), tools=updated, family_registry=families)
+        spec['assets'][str(args.tools_archive.resolve())] = final.digest(args.tools_archive)
     out.mkdir(); (out / 'imports').mkdir(); final.save(out / 'identity.json', spec)
     final.save(out / 'commands.json', {phase: final.commands(spec, phase, out / 'runs' / phase / 'attempt-1') for phase in final.PHASES})
     return import_unchanged(out / 'identity.json')

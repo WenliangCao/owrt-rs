@@ -216,8 +216,10 @@ def prepare(args):
     print(json.dumps({'status': spec['status'], 'identity': str(out / 'identity.json'), 'executed': False}))
 
 
-def context(spec, output):
-    return {**spec.get('bindings', {}), 'python': sys.executable, 'source': spec['source_root'], 'tools': spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq'),
+def context(spec, output, family=None):
+    tools = spec.get('family_tool_overrides', {}).get(family, {}).get('root',
+                spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq'))
+    return {**spec.get('bindings', {}), 'python': sys.executable, 'source': spec['source_root'], 'tools': tools,
             'image': spec['image_root'], 'runtime': spec['runtime_root'], 'elf': spec['elf'],
             'elf_sha': spec['elf_sha256'], 'commit': spec['source_commit'], 'out': str(output),
             'sdk': spec.get('sdk', ''),
@@ -240,7 +242,7 @@ def commands(spec, phase, output):
     if phase == 'families':
         for family in spec['family_registry']['families']:
             if spec.get('selected_families') and family['id'] not in spec['selected_families']: continue
-            current = dict(values, out=str(output / family['id']))
+            current = context(spec, output / family['id'], family['id'])
             for step in family['steps']:
                 job(family['id'] + '-' + step['id'], [expand(item, current) for item in step['argv']],
                     expand(step['result'], current) if step.get('result') else None,
@@ -316,6 +318,22 @@ def verify_identity(spec):
     require(digest(spec['elf']) == spec['elf_sha256'], 'ELF changed after freeze')
     require(build_package.inputs(Path(spec['source_root'])) == spec['source_files'], 'product/packaging source changed')
     require(file_map(Path(spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq'))) == spec['tools'], 'frozen tools changed')
+    known_families = {row['id'] for row in spec['family_registry']['families']}
+    for family, override in spec.get('family_tool_overrides', {}).items():
+        require(family in known_families, 'unknown family tool override')
+        root = Path(override['root'])
+        require(root.parent == Path(spec['source_root']) / 'private'
+                and root != Path(spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq')),
+                'family tools must use a separate private tree')
+        require(root.is_dir() and not root.is_symlink()
+                and not any(path.is_symlink() for path in root.rglob('*')), 'family override contains symlinks')
+        require(file_map(root) == override['files'], 'family override tools changed')
+        require(digest(override['archive']) == override['archive_sha256'], 'family override archive changed')
+        with tarfile.open(override['archive']) as stream:
+            require(stream.pax_headers.get('comment') == override['commit'], 'family override archive commit changed')
+            archived = {member.name.removeprefix('tools/dnsmasq/'): hashlib.sha256(stream.extractfile(member).read()).hexdigest()
+                        for member in stream.getmembers() if member.isfile() and member.name.startswith('tools/dnsmasq/')}
+        require(archived == override['files'], 'family override differs from Git archive')
     require(file_map(Path(spec['runtime_root'])) == spec['runtime_files'], 'runtime evidence changed')
     require(file_map(Path(spec['image_root'])) == spec['image_files'], 'exact image files changed')
     require(build_package.sdk_inputs(Path(spec['sdk'])) == spec['sdk_files'], 'SDK tools changed')
@@ -672,6 +690,7 @@ def main():
     revision.add_argument('--tools-root', type=Path, required=True)
     revision.add_argument('--tools-archive', type=Path, required=True)
     revision.add_argument('--tools-commit', required=True)
+    revision.add_argument('--family', action='append', help='replace tools only for selected families; keep the default frozen tree')
     revision.add_argument('--out', type=Path, required=True)
     refresh = sub.add_parser('import-unchanged'); refresh.add_argument('--manifest', type=Path, required=True)
     args = parser.parse_args()
