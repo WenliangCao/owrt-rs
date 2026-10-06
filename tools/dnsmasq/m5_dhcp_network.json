@@ -142,6 +142,19 @@
         "shared-interface-not-relay",
         "shared-direct-renewal"
       ]
+    },
+    {
+      "option": "dhcp-reply-delay",
+      "id": "signed-delay-arithmetic",
+      "source": "option.c:744-765,4398-4415;dnsmasq.c:2446-2447",
+      "required_cases": [
+        "delay-extreme-empty",
+        "delay-extreme-signed-negative",
+        "delay-extreme-intmax-budget",
+        "delay-extreme-budget-wrap",
+        "delay-extreme-u32-wrap-zero",
+        "delay-extreme-u32-wrap-one"
+      ]
     }
   ],
   "deferred": [
