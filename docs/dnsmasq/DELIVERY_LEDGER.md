@@ -3,10 +3,10 @@
 ## 当前状态与下一步
 
 - 当前里程碑：用户已接受M5最终体积，M5完成；进入M6a，只测量、归因，不改产品，不启动M6b。产品仍dc1b740d／opt3 37f85d22（1,929,256B）与镜像C097a9e21，s只作同源性能对照。[M6a冻结协议](M6A_PROTOCOL.md)本次先提交后测，M6_PROTOCOL_DRAFT保留历史草案。
-- 刚关闭：M5体积决定已解决；Oracle4核/affinity0..3/cgroup2可写已核对，仍约24.5GiB、无物理路由器操作。新的原生UDP/TCP/DHCP负载器及静态内存账已提交，本地正确性/解析守卫完成，不冒称正式性能。
-- 当前代码：M5产品源码dc1b740d7973838e2ae7f098d0726b0484e55074、ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b；C097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87。正式tools/配置/种子和新s构建SHA须另建M6a immutable manifest，产品代码不修改。169项仍全关闭。
-- 下一步：冻结协议后构建同源s并记录身份；工具接线、每窗口独立短试跑通过后执行9profile（7场景族、TCP3profile）×C/R3/Rs×5交错有效轮次，共135正式窗口。每个正式窗口预热30s、计量120s，CPU0daemon/1upstream/2load/3sample、daemon独立cgroupCPU含TCPchild。正式窗口持共享构建锁并排除所有外部build/test/fuzz，子代理只本地读源码/写报告。
-- 阻塞点：无须用户决定。当前native upstream/controller及runner接线/试跑待完成；正式有效轮次0/135。实际错答/timeout保留为行为结果、不计正确吞吐；只有方法/环境/采样/清理错误作废，原证据保留。阈值/时长/顺序在协议中事先固定，不能看结果改。报告完成后停等用户决定M6b，性能不外推路由器。
+- 刚关闭：M5体积决定已解决；Oracle4核/affinity0..3/cgroup2可写已核对，仍约24.5GiB、无物理路由器操作。新的原生UDP/TCP/DHCP负载器、单核原生上游、cgroup窗口/归档恢复/离线分析器及静态内存账已提交。LinuxC DHCP retry200/200cycle、0错误/超时、lease末态空；原错误端口pilot和GCC严格编译错误保留。29个本地人工/解析/计量守卫通过，不冒称正式性能。
+- 当前代码：M5产品源码dc1b740d7973838e2ae7f098d0726b0484e55074、ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b；C097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87。同源s新构建8427b9ab9718e3645137db4670ef3afcb8d983a2b88bb997127224de39988a2a、1,613,864B；manifest dadd85b658faa61eb74ea1457e75e8b16e6d0f729aa3bafe0a8745fa832a615c绑定实际M5 source_files/build报告/协议/全工具/native SHA，产品代码不修改。169项仍全关闭。
+- 下一步：协议51d1ba62已在任何性能试跑前提交；s和freeze-b85a9628已准备，ROOT=/home/ubuntu/dnsmasq-m6a-20261006/freeze-b85a9628，MANIFEST=$ROOT/private/manifest.json，STATE=$ROOT/private/state.json。当前root nohup suite --pilot-only和本地archive watcher串行27组合，每个finished window先本地完整SHA+metadata核验再prune并恢复gate。全部pilot通过后同manifest执行9profile（7场景族、TCP3profile）×C/R3/Rs×5交错有效轮次，共135正式窗口。每个正式窗口预热30s、计量120s，CPU0daemon/1upstream/2load/3sample、daemon独立cgroupCPU含TCPchild。正式窗口持共享构建锁并排除所有外部build/test/fuzz，子代理只本地读源码/写报告。
+- 阻塞点：无须用户决定。当前全27组合短试跑进行中（前9已过且归档），正式有效轮次0/135。实际错答/timeout保留为行为结果、不计正确吞吐；只有方法/环境/采样/清理错误作废，原证据保留。阈值/时长/顺序在协议中事先固定，不能看结果改。报告完成后停等用户决定M6b，性能不外推路由器。
 - 活跃分工：root独占protocol/ledger、native upstream、suite/analyzer、Oracle构建和窗口；m6a_runner独占window驱动；m6a_loadgen交原生负载器；m6a_memory只本地内存结构归因；m6a_review只本地方案/工具/结果审查。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间全部子代理禁止Oracle工作。用户docs/prompts原样。
 - 续接注意：本轮只从账本恢复；M5原始身份/报告/行为差异保留，不重跑M5或把s当功能验收。M6a原始证据统一private/dnsmasq-rewrite/evidence/M6a；静态布局诊断既有M6A目录有独立SHA，后续报告显式链接不混计。每批回拷全SHA+metadata核验再清Oracle raw/overlay并恢复原JSON/log；产品artifact与用户文件不丢。
 
