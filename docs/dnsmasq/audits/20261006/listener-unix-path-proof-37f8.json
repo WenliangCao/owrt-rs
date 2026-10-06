@@ -1,0 +1,229 @@
+{
+  "archives": {
+    "c-eight-align-01": {
+      "archive_sha256": "09f1bfed662615b639b22208e023bd70c8794d019ba453ca7a26245bbe0ce4b5",
+      "entries": 186,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 162,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 154
+    },
+    "dns-files-attempt-1": {
+      "archive_sha256": "51e1223b4cac95139615ea999aedbfad230f214206068dbafbb99e7db020b127",
+      "entries": 1269,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 911
+    },
+    "filterwin2k-attempt-1": {
+      "archive_sha256": "80210f04f9067a4d1df1756c8a07fffab562495dd391c330eedabce3bc03d1d7",
+      "entries": 311,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 221
+    },
+    "listener-unix-path-fault-01": {
+      "archive_sha256": "a6604db26299c6f2b39697d12e9d0892f4a5d0f217188dc7ea9bccc9f90ced7c",
+      "entries": 250,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 211,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 193
+    },
+    "listener-unix-path-longest-fault-02": {
+      "archive_sha256": "51b5fdd32ef4253f987fbc413dd78cce8d20b2485917afce6b4f39245f6cefa7",
+      "entries": 250,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 211,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 193
+    },
+    "loop-detect-attempt-1": {
+      "archive_sha256": "5a59004210dbeba371102e8a3b366009ca39facede203ec21c8fd3fde1cee779",
+      "entries": 1645,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 1154
+    },
+    "m5_dns_cache-attempt-1": {
+      "archive_sha256": "64890dd364a7f1a3f123b0a6d5f200787a40340b90deef4babe038c7eaa6889c",
+      "entries": 12064,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 11010,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 10934
+    },
+    "m5_dns_endpoints-attempt-1": {
+      "archive_sha256": "919148cddaf4c805e53ea25cc49effb39b87f179049d9c4b41a4ee1fd24ecf65",
+      "entries": 4229,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 3083,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 3083
+    },
+    "m5_edns-attempt-1": {
+      "archive_sha256": "6d3818eb9c2055e5985159e4cb0a55dd2dea6c9a40ff34313689735c1a3d3766",
+      "entries": 1477,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 1331
+    },
+    "m5_listeners-attempt-1": {
+      "archive_sha256": "53455bbd0047ae1b95056d9fcc857cbde500f24c179204aabe6d74d1dc5d968b",
+      "entries": 14841,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 14477,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 14459
+    },
+    "m5_rr_filter-attempt-1": {
+      "archive_sha256": "73b247c8c752add8b9c3d3ad463284b45bf1d60a6ff51f767da280cb27268946",
+      "entries": 1471,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 1221
+    },
+    "manual-loop-startup-order-01": {
+      "archive_sha256": "2ad5be1847c5395987b657ad0e3088c219af62009d7a26bd73599552aa216266",
+      "entries": 59,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 28,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 12
+    },
+    "rust-eight-align-01": {
+      "archive_sha256": "ec53ba293a75b1304abab572ccd14f35af77c1138d06c72c49957ce42144e8bc",
+      "entries": 186,
+      "local_full_metadata_verified": true,
+      "raw_pruned": true,
+      "regular_files": 162,
+      "restored_hashes_verified": true,
+      "restored_plain_files": 154
+    }
+  },
+  "date": "2026-10-06",
+  "fixture_repair": {
+    "behavior": "Syslog binds through the existing scoped directory-FD helper, keeping the same filesystem entry and chmod. No service comparison or scenario inventory change.",
+    "changed_file": "tools/dnsmasq/m5_listeners.py",
+    "commit": "19c2ffae33ab7c5c5fa2e3a82faa51f15aa88e37",
+    "driver_sha256": "ff420cd1c61351893b0c9fb730ab2672e5a6c9f126673bdc2e69bf4d72c39709",
+    "helper_sha256": "cfc11e58d2c04b637687565389108206542d4bc6d2e639d6fccbc5c05761d6eb",
+    "sidecar_tools_archive_sha256": "9d8d7eb6006e8c5611ed7e819b321dd26c34db6bef1b64ed81123d975e3a7e73"
+  },
+  "linux_helper_tests": {
+    "cases": [
+      "test_long_absolute_path_receives_after_directory_fd_is_closed",
+      "test_short_path_is_unchanged"
+    ],
+    "passed": 2,
+    "transports": [
+      "AF_UNIX SOCK_DGRAM",
+      "AF_UNIX SOCK_STREAM"
+    ],
+    "verified": "same filesystem socket entry, receive after directory FD closes, cwd unchanged"
+  },
+  "longest_path_diagnostic": {
+    "exits": {
+      "c": 0,
+      "rust": 0
+    },
+    "negative_controls": [
+      {
+        "name": "missing-case",
+        "rejected": true
+      },
+      {
+        "name": "failure-inventory",
+        "rejected": true
+      },
+      {
+        "name": "lost-service-socket-unsupported-eprotonosupport-wildcard",
+        "rejected": true
+      }
+    ],
+    "paired_comparison_failures": [],
+    "qualified": false,
+    "qualified_reason": "Selected exploratory case; complete formal listener replay remains required.",
+    "result_sha256": "f9c56bf0b5c076f7768b3b03fcf72af5d36b52b2e8d4f4910163352ba0a48e90",
+    "run": "/home/ubuntu/dnsmasq-m5-listener-path-20261006/19c2ffae33ab/private/diagnostics/formal-final-controller-output-path-length-regression-longest-scenario-02/m5_listeners",
+    "selected_case": "socket-unsupported-eprotonosupport-wildcard",
+    "sides": [
+      {
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "observations": 37,
+        "runtime_failures": 0,
+        "side": "c",
+        "socket_fault": {
+          "abi": "aarch64",
+          "errno": 93,
+          "family": 10,
+          "filter": "errno only matching socket(AF_INET6)",
+          "kind": 0,
+          "syscall": 198
+        },
+        "syslog_packets_received": 14,
+        "syslog_path_bytes": 185
+      },
+      {
+        "binary_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+        "observations": 37,
+        "runtime_failures": 0,
+        "side": "rust",
+        "socket_fault": {
+          "abi": "aarch64",
+          "errno": 93,
+          "family": 10,
+          "filter": "errno only matching socket(AF_INET6)",
+          "kind": 0,
+          "syscall": 198
+        },
+        "syslog_packets_received": 11,
+        "syslog_path_bytes": 191
+      }
+    ]
+  },
+  "original_failed_listener_attempt": {
+    "aggregate_errors": 2440,
+    "controller_result_sha256": "dafad7f1bd70cded0c3c5857001e3359eb1632224e501869618eef2e542726fd",
+    "original_rust_syslog_path_bytes": 156,
+    "passed": false,
+    "runtime_failures_by_side": {
+      "c": 32,
+      "rust": 32
+    }
+  },
+  "original_family_results": {
+    "cache_executed_schedules": 536,
+    "cache_passed_schedules": 528,
+    "failed_pending_formal_fixture_replay": [
+      "m5_dns_cache",
+      "m5_listeners"
+    ],
+    "loop_qualified_controls_rejected": 670,
+    "passed": [
+      "loop-detect",
+      "m5_edns",
+      "m5_dns_endpoints",
+      "m5_rr_filter",
+      "filterwin2k",
+      "dns-files"
+    ]
+  },
+  "private_evidence_root": "private/dnsmasq-rewrite/evidence/M5/final-dc1b-families",
+  "product": {
+    "physical_router_touched": false,
+    "product_source_changed": false,
+    "rust_elf_bytes": 1929256,
+    "rust_elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+    "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+    "stock_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+  },
+  "schema": 1
+}
