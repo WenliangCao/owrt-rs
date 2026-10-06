@@ -83,6 +83,20 @@ def pxe_profiles():
     row['range_value'] = '192.0.2.10,192.0.2.20,255.255.255.0,600s'
     row['cases'][0]['reply'] = False
     rows.append(row)
+    row = copy.deepcopy(available['legacy-proxy']);row['name'] = 'pxe-menu-too-large-detail'
+    row['options'] = ['log-facility=-', 'log-dhcp', 'pxe-service=0,' + 'A' * 200 + ',first',
+                      'pxe-service=0,' + 'B' * 200 + ',second']
+    row['cases'] = row['cases'][:1];rows.append(row)
+    enterprise = ['vi-encap:1234,1,' + 'a' * 240, 'vi-encap:1234,2,' + 'b' * 20]
+    row = copy.deepcopy(available['legacy-proxy']);row['name'] = 'pxe-enterprise-overflow-detail'
+    row['options'].extend(['log-facility=-', 'log-dhcp', *['dhcp-option-pxe=' + option for option in enterprise]])
+    row['cases'] = row['cases'][:1];rows.append(row)
+    row = copy.deepcopy(template);row['name'] = 'ordinary-enterprise-overflow-detail'
+    row['options'].extend('dhcp-option=' + option for option in enterprise)
+    row['cases'] = [packet_case('enterprise', pxe.request(arch=None, vendor=b'ordinary', prl=bytes([125])))];rows.append(row)
+    row = copy.deepcopy(template);row['name'] = 'ordinary-option-exhaustion-detail'
+    row['options'].extend('dhcp-option-force=' + str(code) + ',' + chr(65 + code - 220) * 200 for code in range(220, 240))
+    rows.append(row)
     return rows
 
 
@@ -96,6 +110,12 @@ def leasequery_profiles():
     for name in ['stored-tags', 'request-tags', 'configured', 'capacity']:
         row = copy.deepcopy(available[name]);row.setdefault('config', []).append('log-dhcp')
         row['name'] += '-detail';rows.append(row)
+    row = copy.deepcopy(available['allowed']);row['name'] = 'leasequery-enterprise-overflow-detail'
+    row['config'] = ['log-dhcp', 'dhcp-option=vi-encap:1234,1,' + 'a' * 240,
+                     'dhcp-option=vi-encap:1234,2,' + 'b' * 20]
+    row['queries'] = [copy.deepcopy(row['queries'][2])]
+    row['queries'][0]['packet'] = leasequery.request(0x8001, ciaddr=leasequery.RANGE_START, prl=bytes([125]))
+    rows.append(row)
     return rows
 
 
@@ -167,6 +187,7 @@ def main(args):
     for scope, corpus in [('pxe', pxe_profiles()), ('leasequery', leasequery_profiles()), ('relay', relay_profiles())]:
         if scope not in args.scopes.split(','): continue
         if args.profiles: corpus = [row for row in corpus if row['name'] in args.profiles.split(',')]
+        else: corpus = [row for row in corpus if not any(word in row['name'] for word in ['too-large', 'enterprise-overflow', 'option-exhaustion'])]
         rows = [];cleanup = {};client = server = network = None
         try:
             if scope == 'leasequery': network = Network();network.start()
@@ -204,6 +225,9 @@ def main(args):
                     elif profile['name'].startswith('warning-no-range'): required.append('no address range available for DHCP request via client0')
                     elif profile['name'].startswith('client-fqdn'): required.append('client provides name: Client.Logging')
                     elif profile['name'].startswith('boot-item'): required.append('PXE BIS not supported')
+                    elif profile['name'].startswith('pxe-menu-too-large'): required.append('PXE menu too large')
+                    elif 'enterprise-overflow' in profile['name']: required.append('cannot send RFC3925 option: too many options for enterprise number 1234')
+                    elif 'option-exhaustion' in profile['name']: required.append('no space left in packet')
                     if detail and not profile['name'].startswith('warning-no-range'):
                         required.append('available DHCP ')
                         if not profile['name'].startswith('bootp-denied'): required.append('tags: ')

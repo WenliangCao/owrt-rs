@@ -306,6 +306,25 @@ pub fn requested_options(xid: u32, codes: &[u8]) -> Vec<Vec<u8>> {
 
 /// dhcp_packet_size visits overloaded file/sname before primary options.
 /// The serializer has already supplied its actual final fields and flags.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum OptionWarning {
+    Duplicate(u8),
+    EnterpriseTooLarge(u32),
+}
+
+pub fn option_warning(warning: OptionWarning) -> Vec<u8> {
+    match warning {
+        OptionWarning::Duplicate(code) => {
+            format!("Ignoring duplicate dhcp-option {code}").into_bytes()
+        }
+        OptionWarning::EnterpriseTooLarge(number) => format!(
+            "cannot send RFC3925 option: too many options for enterprise number {}",
+            number as i32
+        )
+        .into_bytes(),
+    }
+}
+
 pub fn omission(code: u8) -> Vec<u8> {
     format!("cannot send DHCP/BOOTP option {code}: no space left in packet").into_bytes()
 }

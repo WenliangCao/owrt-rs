@@ -264,7 +264,7 @@ def process_identity(root, pid):
         raise AssertionError(f'process root mismatch: {actual_root}')
     return {'pid': pid, 'root': actual_root, 'exe': os.readlink(proc / 'exe'),
             'sha256': sha256(proc / 'exe'),
-            'cmdline': (proc / 'cmdline').read_bytes().replace(b'\0', b' ').decode(),
+            'cmdline': (proc / 'cmdline').read_bytes().replace(b'\0', b' ').decode(errors='backslashreplace'),
             'maps': (proc / 'maps').read_text()}
 
 
