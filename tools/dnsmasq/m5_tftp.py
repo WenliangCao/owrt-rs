@@ -108,6 +108,31 @@ REFERENCE_CHECKLIST = [
 ]
 
 
+def reference_configuration(root, args):
+    """Only --test executes for configured values outside C's int domain."""
+    rows=[]
+    values=[('max-signed-overflow','tftp-max=2147483648'),
+            ('max-zero-wrap','tftp-max=4294967296'),
+            ('mtu-signed-overflow','tftp-mtu=2147483648'),
+            ('mtu-zero-wrap','tftp-mtu=4294967296'),
+            ('port-zero-wrap','tftp-port-range=4294967296,0'),
+            ('port-one-wrap','tftp-port-range=4294967297,1')]
+    for name,text in values:
+        folder=args.out/('syntax-'+name);folder.mkdir()
+        (root/'m2/tftp-syntax.conf').write_text(text+'\n');(folder/'config').write_text(text+'\n')
+        row=dict(case=name,runtime_executed=False)
+        for side in ['c','rust']:
+            result=subprocess.run(command(root,side,'--test','-C','/m2/tftp-syntax.conf'),capture_output=True,timeout=3)
+            (folder/(side+'.stdout')).write_bytes(result.stdout);(folder/(side+'.stderr')).write_bytes(result.stderr)
+            row[side]=dict(exit=result.returncode,stdout=result.stdout.hex(),stderr=result.stderr.hex())
+        assert row['c']['exit']==0 and row['rust']['exit']==1,'exact bounded syntax refusal'
+        assert row['c']['stderr']==b'dnsmasq: syntax check OK.\n'.hex(),'C syntax witness'
+        assert b'integer exceeds defined C int range' in bytes.fromhex(row['rust']['stderr']),'candidate precise range diagnostic'
+        rows.append(row)
+    save(args.out/'configuration-differences.json',rows)
+    return rows
+
+
 def reference_scenarios():
     base = 'enable-tftp\ntftp-root=' + ROOT + '/reference\n'
     cases = [dict(name='reference-single-replace-'+version, binding='',
@@ -542,10 +567,11 @@ def main():
     if args.reference_differences:
         save(args.out/'reference-plan.json', {'source': REFERENCE_SOURCE, 'checklist': REFERENCE_CHECKLIST,
                                             'scope': 'synthetic fixture only; wildcard single-port; no undefined-behavior reproduction'})
-    network=Network();report={'passed':False,'rows':[],'failures':[], 'reference_differences': []}
+    network=Network();report={'passed':False,'rows':[],'failures':[], 'reference_differences': [], 'configuration_differences': []}
     try:
         root=prepare(args.image_root,None,args.out/'image',args.rust_binary)
         files(root)
+        if args.reference_differences:report['configuration_differences']=reference_configuration(root,args)
         network.start()
         ip('addr','add',V6_SERVER+'/64','dev','br-lan','nodad')
         network.exec('ip','addr','add',V6_CLIENT+'/64','dev','client0','nodad')
