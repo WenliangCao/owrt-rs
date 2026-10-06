@@ -77,8 +77,23 @@ def foreign_load():
                                   'cmdline_sha256':row['cmdline_sha256']})
     # A namespace child can be born between the process table and candidate read.
     fresh=pid_state()
-    return [r for r in suspects if fresh.get(r['pid'],{}).get('start')==r['start']
-            and not related(r['pid'],fresh)]
+    foreign=[r for r in suspects if fresh.get(r['pid'],{}).get('start')==r['start']
+             and not related(r['pid'],fresh)]
+    for row in foreign:
+        chain=[];pid=row['pid'];seen=set()
+        while pid and pid not in seen:
+            seen.add(pid);witness=fresh.get(pid)
+            if witness is None:break
+            chain.append({'pid':pid,**witness});pid=witness['parent']
+        row['ancestry']=chain
+        proc=Path('/proc')/str(row['pid'])
+        for filename in ['status','cgroup']:
+            try:row[filename]=(proc/filename).read_text()
+            except (FileNotFoundError,ProcessLookupError):row[filename]=None
+        for filename in ['root','exe']:
+            try:row[filename]=os.readlink(proc/filename)
+            except (FileNotFoundError,ProcessLookupError,PermissionError):row[filename]=None
+    return foreign
 
 def prepare(args):
     root=args.root.resolve(); private=root/'private'; private.mkdir(exist_ok=True)

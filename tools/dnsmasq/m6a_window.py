@@ -8,6 +8,7 @@ controller and /proc sampling use CPU3. Raw evidence remains under private/.
 from __future__ import annotations
 
 import argparse
+import errno
 import hashlib
 import json
 import os
@@ -130,8 +131,9 @@ def snapshot(pid: int, out: Path, label: str):
             try:
                 (directory / f"{label}.{row['pid']}.{filename}").write_bytes(
                     (Path("/proc") / str(row["pid"]) / filename).read_bytes())
-            except FileNotFoundError:
-                pass
+            except OSError as error:
+                if error.errno not in (errno.ENOENT, errno.ESRCH):
+                    raise
     save(directory / f"{label}.json", tree)
     return tree
 
