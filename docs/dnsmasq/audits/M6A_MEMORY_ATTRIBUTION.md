@@ -49,7 +49,7 @@ Rust的 requested-byte 差为 **888,872 B（868.039 KiB，约217 B/配置slot）
 
 M6 b85 pilot 的夹具名字改为 `q%04x.m6a.test`。该字符串是14个ASCII字符；Rust `Name` 的 wire 表示是三个label-length字节、14个字符和一个root终止字节，共 **16 B**（pilot 的 `cache-proof.json`首尾名与 `wire-samples`可核对）。15 B只是不含root的长度字段加字符，不是Vec容量。因而 pilot 名字的原始与canonical backing分别是65,536 B（64 KiB），不是M5名字表的73,728 B；仅按该名字变化，Rust逻辑缓存预算为 **1,433,640 B = 1,400.039 KiB**，比C548 KiB多852.039 KiB。pilot实测 C/R3/Rs 的 full-cache驻留是1632/3520/3332 KiB RSS、1624/3512/3324 KiB PSS；R3与Rs匿名均1868 KiB，R3较Rs多188 KiB file页。该pilot的 `identity.json`明确 `excluded_preflight=true`、时长10 s、仅1轮，因此这里只校准归因方法，**不作为M6a性能结果，也不替代正式5轮**。
 
-名字长度变化不能倒推完整RSS变化：pilot R3与Rs匿名相同，说明这2 B/名字的16 KiB requested差低于4 KiB页/allocator量化；R3/Rs的188 KiB file差属于不同ELF code/data映射和加载触页，不能记到缓存条目。C的cache-full full smaps能看到单一548 KiB匿名映射，与544 KiB `crec`分配加页对齐一致；Rust匿名映射被分成多段，不能仅按匿名段pathname给某一段指定HashMap或Vec。
+名字长度变化不能倒推完整RSS变化：M5与pilot名字backing请求相差16 KiB，但各自配置/路径和allocator/page状态也不同，不能隔离名字变化的实际RSS收益。pilot R3与Rs使用同一组名字，匿名相同只表明本诊断没有显示opt-level改变对象驻留量；R3/Rs的188 KiB file差属于不同ELF code/data映射和加载触页，不能记到缓存条目。C的cache-full full smaps能看到单一548 KiB匿名映射，与544 KiB `crec`分配加页对齐一致；Rust匿名映射被分成多段，不能仅按匿名段pathname给某一段指定HashMap或Vec。
 
 ## M5 smaps 的守恒账
 
@@ -101,6 +101,8 @@ M6 b85 pilot 的夹具名字改为 `q%04x.m6a.test`。该字符串是14个ASCII�
 原cache每名索引capacity4，**clone后的Vec以len1复制，而非capacity4**；复制件实际snapshot观测slot capacity4096、HashMap capacity7168、索引capacity合计4096。因此4096唯一名字的clone预算为：slots448 KiB＋HashMap物理桶约392 KiB＋canonical keys72 KiB＋索引32 KiB = **约944 KiB/连接**，另有container和LocalDnsService的hosts/config快照。不能直接套原cache的1040 KiB索引容量；20个连接约18.4 MiB是此cache部分的requested-byte机制估算，需实际TCP进程族smaps核验，不是已测峰值。
 
 C parent＋20 child的RSS相加会把共享页重复计算；PSS相加才能正确分摊同一process family的共享页。正式报告应同时保留parent RSS/PSS、family RSS/PSS和进程数，不把C分叉开销遗漏，也不把共享页的多份RSS当成真实RAM重复占用。debug模式两侧均不同，不能让C普通fork与Rustdebug不快照作对比。
+
+M6协议的20个TCP逻辑client不是无限寿命连接：精确C/R调用链都在每连接100个query后回收，负载生成器关闭/重连，因此正式CPU/PSS包含反复fork或cache view clone。M6 q名字下clone的key backing为64 KiB，预算约936 KiB/活连接；20活连接同时存在时约18.3 MiB只是结构预算，不代表整窗始终维持该值。需要在正式证据核对reconnect计数、C短命child采样消失、family PSS峰值和Rust回收后的allocator驻留，不能用“20永久连接”模型解释结果。
 
 ## M6a采样交叉核对与M6b候选边界
 
