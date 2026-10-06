@@ -192,7 +192,8 @@ impl DhcpMac {
             return Err(Error("empty DHCP MAC tag"));
         }
         let address = address.ok_or(Error("bad DHCP MAC rule"))?.decoded();
-        let hardware = super::host::parse_hardware(&address, 16, true, true)?;
+        let hardware = super::host::parse_hardware(&address, 16, true, true)
+            .map_err(|_| Error("error"))?;
         Ok(Self { set_tag, hardware })
     }
 
