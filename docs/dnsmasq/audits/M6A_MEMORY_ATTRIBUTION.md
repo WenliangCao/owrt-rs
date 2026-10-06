@@ -145,6 +145,8 @@ full smaps还能拆出先前残差中的stack与映射匿名页：
 
 因此本轮的1216 KiB匿名差 = 852.039 KiB cache requested差＋68 KiB stack差−52 KiB文件映射内匿名差＋**347.961 KiB仍未精确归因的其余差**。这里对cache请求预算作减法不是宣称已证明每一请求页都驻留；未知项仍含allocator class/header/空闲组、网络/解析scratch与释放后保留页。C的548 KiB匿名大映射在empty时已驻留；Rust empty有456 KiB大匿名映射，与448 KiB slots加页/allocator开销的机制相符，但没有对象级heap定位，不给该映射任意标注HashMap或所有cache对象。
 
+源代码审查给出一个需要正式full-smaps/heap采样验证的scratch候选：Rust `main.rs:3482` 在每次UDP读取路径创建 `Vec<u8>` 容量65,535，成功处理后truncate再释放；目标musl分配器可能保留64 KiB class或映射，不能假设释放立即归还内核。Rust上游还有`upstream.rs:357`的持久接收缓冲，DHCP路径在`main.rs:4734`按需创建16 KiB输出；C `dnsmasq.c:124`则启动时只预分配 `edns_pktsz + MAXDNAME + RRFIXEDSZ` 的单个packet buffer（当前配置通常约4–5 KiB）。这些是解释347.961 KiB未知项的代码候选，不是对象级实证，也不是已授权的优化结论；正式窗口应在empty/filled/after-drain的full smaps和allocator heap统计中观察其是否随UDP负载增长或在释放后常驻。
+
 新名字容量已用本地、无Oracle工作的诊断复制件实测：`memory-layout-05-m6a/layout.json`记录原始Name与canonical key各65,536 B、RDATA16,384 B、索引capacity16,384个usize，HashMap requested401,416 B；snapshot索引capacity4096个usize。复现器加 `--names m6a` 即可重现，不更改被测ELF。
 
 同标签的proc文件不是原子快照。r01 Rs `empty.smaps_rollup`为2032 RSS/568 Anon，但紧邻full smaps逐段总和为2024/560；`measurement-start` rollup为3332/1868，full smaps为3340/1876，观察到8 KiB瞬时差。逐段分布使用该full smaps自己的和，峰值/轮次统计使用原resources/rollup，不能把两次读取拼成同一原子视图或因几KiB变化声称泄漏。正式5轮后再报告其范围和是否持续增长。
