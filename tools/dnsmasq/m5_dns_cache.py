@@ -1100,8 +1100,11 @@ def immediate_ptr_phase(row, observation):
     # Only these two immediate PTR replays use this integer-second witness.
     # The exact configured TTL600 and each row's wall/monotonic intervals
     # determine its possible remaining TTL; unrelated RR clocks stay exact.
-    if row['case'] not in IMMEDIATE_PTR_PHASE_CASES or observation['label']=='query-0':return False
-    seed=next((value for value in row['observations'] if value['label']=='query-0'),None)
+    if row['case'] not in IMMEDIATE_PTR_PHASE_CASES:return False
+    seed_label='query-0' if row['case']=='ptr-tcp-child-import' else 'seed'
+    allowed_labels={'query-1'} if row['case']=='ptr-tcp-child-import' else {'round-'+str(n) for n in range(5)}
+    if observation['label'] not in allowed_labels:return False
+    seed=next((value for value in row['observations'] if value['label']==seed_label),None)
     if not seed:return False
     keys=['sent_monotonic_ns','completed_monotonic_ns','sent_realtime_ns','completed_realtime_ns']
     if any(not isinstance(value.get(key),int) for value in [seed,observation] for key in keys):return False
@@ -1262,6 +1265,9 @@ def case_equal(c,r,reverse_variation=False):
     if c.get('case')!=r.get('case') or c.get('config')!=r.get('config'):return False
     if c['case'] in STARTUP_REJECTION_CASES or 'startup_rejection' in c or 'startup_rejection' in r:
         return startup_rejection_guard(c) and startup_rejection_guard(r)
+    if c['case'] in IMMEDIATE_PTR_PHASE_CASES:
+        seed_label='query-0' if c['case']=='ptr-tcp-child-import' else 'seed'
+        if any(not immediate_ptr_phase(row,obs) for row in [c,r] for obs in row['observations'] if obs['label']!=seed_label):return False
     if not real_expiry_witness(c) or not real_expiry_witness(r):return False
     if c['case'].startswith('forward-'):
         if not forward_contract_witness(c) or not forward_contract_witness(r):return False
@@ -1310,6 +1316,16 @@ def giant_canonical_guard(c,r):
 def corruption_controls(c,r,reverse_variation=False):
     controls=[];label=r['case']
     if 'observations' not in r:return controls
+    if label in IMMEDIATE_PTR_PHASE_CASES:
+        seed_label='query-0' if label=='ptr-tcp-child-import' else 'seed'
+        for mode in ['fresh-clock-missing','fresh-clock-step','fresh-clock-too-slow']:
+            wrong=copy.deepcopy(r);obs=next(v for v in wrong['observations'] if v['label']!=seed_label)
+            if mode=='fresh-clock-missing':obs.pop('sent_realtime_ns')
+            elif mode=='fresh-clock-step':
+                obs['sent_realtime_ns']+=10_000_000;obs['completed_realtime_ns']+=10_000_000
+            else:
+                for key in ['sent_realtime_ns','completed_realtime_ns','sent_monotonic_ns','completed_monotonic_ns']:obs[key]+=1_000_000_000
+            controls.append({'case':label,'control':mode,'rejected':not case_equal(c,wrong,reverse_variation)})
     if label in STARTUP_REJECTION_CASES:
         for mode in ['startup-exit','startup-diagnostic','missing-rejection','startup-observation','startup-upstream','startup-identity','startup-case']:
             wrong=copy.deepcopy(r)

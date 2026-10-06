@@ -31,5 +31,12 @@ class ImmediatePtrClockTests(unittest.TestCase):
                 current['sent_monotonic_ns']+=1000000000;current['completed_monotonic_ns']+=1000000000
             self.assertFalse(family.immediate_ptr_phase(bad,current),mode)
 
+    def test_reverse_seed_and_cached_round_labels_use_the_same_phase_proof(self):
+        row,replay=self.fixture();row['case']='round-reverse-disabled'
+        row['observations'][0]['label']='seed';replay['label']='round-0'
+        self.assertTrue(family.immediate_ptr_phase(row,replay))
+        replay['label']='unrelated-stage'
+        self.assertFalse(family.immediate_ptr_phase(row,replay))
+
 
 if __name__=='__main__':unittest.main()
