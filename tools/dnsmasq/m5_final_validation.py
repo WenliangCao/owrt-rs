@@ -251,7 +251,10 @@ def commands(spec, phase, output):
             '--plan', spec['dhcp_plan'], '--label', 'final', '--out', str(path)], timeout=2400)
         for side in ['c', 'rust']:
             path = output / ('lifecycle-' + side)
-            job('lifecycle-' + side, isolated + [tools + '/m2_lifecycle.py', *image_elf,
+            job('lifecycle-' + side, isolated + [tools + '/actual_config_network.py',
+                '--source-root', spec['runtime_root'], '--router-cidr', '192.168.1.1/24',
+                '--output', str(output / ('lifecycle-' + side + '-network')), '--',
+                py, tools + '/m2_lifecycle.py', *image_elf,
                 '--implementation', side, '--output', str(path)], str(path / 'result.json'), {'passed': True})
     elif phase == 'fuzz-build':
         job('native-fuzz-build', ['runuser', '-u', 'ubuntu', '--', 'sh', tools + '/oracle_build.sh', spec['source_root'],
