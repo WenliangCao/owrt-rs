@@ -85,7 +85,10 @@ case ${ORACLE_BUILD_LINK_MAP:-0} in
     *) echo 'ORACLE_BUILD_LINK_MAP must be 0 or 1' >&2; exit 2;;
 esac
 unset CARGO_ENCODED_RUSTFLAGS RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER
-export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+case ${ORACLE_BUILD_OPT_LEVEL:-3} in
+    3|s|z) export CARGO_PROFILE_RELEASE_OPT_LEVEL=${ORACLE_BUILD_OPT_LEVEL:-3} ;;
+    *) echo 'ORACLE_BUILD_OPT_LEVEL must be 3, s or z' >&2; exit 2;;
+esac
 cargo=/home/ubuntu/.cargo/bin/cargo
 # Git archives preserve historical mtimes. Reusing a fixed source path can
 # otherwise make Cargo accept stale package artifacts after the input changes.
@@ -132,6 +135,7 @@ if kind in ('tests', 'ubus-tests'):
     if len(artifacts) != expected:
         raise RuntimeError(f'expected {expected} test executable(s)')
 report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
+          'opt_level': os.environ['CARGO_PROFILE_RELEASE_OPT_LEVEL'],
           'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [
               {'path': path.name, 'bytes': path.stat().st_size,
                'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in artifacts]}

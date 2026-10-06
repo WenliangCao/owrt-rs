@@ -74,3 +74,21 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 收尾单owner改造 `37c187e1`（只改变main/dump共享状态与DHCP callback Send边界，另消除main中已证明的Option unwrap）冻结ELF为 **1,912,872B**／`bcebb72d…64074f`，比普通候选daace少 **16,384B**，比M4多 **753,592B**。这是整次改造的链接后差额，不把main简化与布局效果冒称纯Mutex成本。实际Linux692库＋10main通过（19ignored不计），M2 TCP10配对/3负控和ping-conflict C/R预检通过；最终同ELF全族与满缓存RSS仍未执行。构建及source/input SHA已归档，见 [37构建](../../private/dnsmasq-rewrite/evidence/M5/resume3-20261005/37c187e1/release/build.json)。
 
 后继实测阶段：6e3a8bc8租约/定时显式错误与dumpmaskVT为1,916,968B；16838ca0 stale forward prefix为1,908,776B；3b9f8e1a普通DHCP多caller/负capacity为1,916,968B；bee4cb50真实device binding/单次PXE序列化+omitted列表/prefix/LoggerRc/成功refresh修复为1,925,160B；typed PID和实际截断notice的2e446f7e为1,929,256B（M4+769,976B）。这些是冻结代码的混合阶段链接差额，raw build.json与源码/ELF SHA已归档；最终同ELF资格、APK和full-cache RSS尚待收尾，不冒称已接受新体积。
+
+首轮统一冻结 `12b3ecfa` 的同次 map已逐字节绑定ELF `80a72132…7dc1c` 与build.json：1,929,256B，M4+769,976B。2,561个可验证input sections覆盖1,674,804B执行区，仅208B未归因。以下为最终候选的存储归属，不能当纯功能增量；最终修复freeze后再更新数字。完整证据见[map归属](../../private/dnsmasq-rewrite/evidence/M5/final-20261006/12b3ecfac9e7/size-map-report.json)。
+
+| 当前代码归属 | 执行区字节 |
+| --- | ---: |
+| DNS | 287,508 |
+| DHCP | 214,972 |
+| 配置解析 | 185,272 |
+| main/owner及root命名空间 | 166,244 |
+| helper | 38,312 |
+| TFTP listener/runtime/service/packet | 42,096 |
+| logging/query logging | 23,972 |
+| startup | 12,816 |
+| neighbors/ARP | 10,576 |
+| UBus组件与daemon服务 | 25,940 |
+| dump | 5,400 |
+
+最大的单段为run_inner29,664B、DNS配置apply18,488B、DHCP resolve_events16,380B与helper child15,356B。已经完成source-pool等值简化及loop固定缓冲，继续拆分这些大函数会引入调度/诊断回归，当前无已证明的额外纯代码节省。作为用户最后决定的可选构建方案，oracle_build.sh支持显式`ORACLE_BUILD_OPT_LEVEL=s/z`并记录opt_level，默认仍3；只做独立体积构建，不跑M6正式性能，也不替换本次最终候选。任何切换都需相同功能回归、资源/包验证及后续M6性能评估，不能仅凭变小判定行为已验收。
