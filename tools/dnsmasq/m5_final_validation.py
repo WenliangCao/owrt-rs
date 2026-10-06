@@ -4,6 +4,10 @@
 Preparation only hashes inputs and writes commands. Each run uses fresh outputs;
 failed attempts remain intact. Package size rejection retains its audited APK
 for isolated lifecycle testing and never becomes a user size exception.
+
+Fuzz runs three independent instrumented targets concurrently for at least
+1800 real seconds each, totaling at least 90 target-minutes. These are M5
+robustness checks; formal M6 performance is outside this controller.
 """
 from __future__ import annotations
 
