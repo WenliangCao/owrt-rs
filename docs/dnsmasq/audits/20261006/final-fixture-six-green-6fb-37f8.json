@@ -1,0 +1,140 @@
+{
+  "all_eight_families_complete": false,
+  "details": {
+    "dns_file_scenarios": 107,
+    "edns_cases": 196,
+    "endpoint_source_rows_passed": 191,
+    "filterwin2k_scenarios": 19,
+    "loop_cases": 90,
+    "loop_controls_rejected": 670,
+    "rr_filter_cases": 8
+  },
+  "elf_bytes": 1929256,
+  "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+  "endpoint_gate_proofs": {
+    "service": {
+      "archive_sha256": "aead4228634c70d0ff40cae9c25625e7ccf3b1b06484fc0a85d7da467d7fc3b2",
+      "entries": 2146,
+      "local_full_metadata_verified": true,
+      "manifest_sha256": "9f40ba0866862344dab156100f2be24c2ead85529a4c9dab42804f3c2457d49e",
+      "regular_files": 1546,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true,
+      "verifier_host": "Wenliangs-MacBook-Air.local"
+    },
+    "syntax": {
+      "archive_sha256": "684dd539579f4a717c4a3d261356293478b9a050bab0d1eb09c11de55a25f0f4",
+      "entries": 2136,
+      "local_full_metadata_verified": true,
+      "manifest_sha256": "ed32d2cfd5781a0673f9eaab93e26f21b72a6b218cc471742faea0bf420195d8",
+      "regular_files": 1545,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+      "verified": true,
+      "verifier_host": "Wenliangs-MacBook-Air.local"
+    }
+  },
+  "fixture_tools_commit": "6fb65d96390e46bb84f2d623b8ca4e653120888e",
+  "fresh_execution": true,
+  "frozen_product_changed": false,
+  "manifest_sha256": "44035366332cd8f662d15870813325793310de6a39200f8024362b5c2c8d11a4",
+  "passed_families": [
+    {
+      "archive_entries": 1646,
+      "archive_sha256": "dde915ca51acfaf7277f21cfdda92e4366b45a803aff07a376af998c2c9e5822",
+      "command_results": {
+        "loop-detect-paired": "2882b456d536192643fd854655b8466b62fd3239c8a51a7abcb711eaf1979696"
+      },
+      "controller_result_sha256": "bd5f3fb318f1ac8ada6b5c20f8660766b9543381801a2275021e2afb4bfbab4b",
+      "family": "loop-detect",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 731,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 1477,
+      "archive_sha256": "2aecf76047b134ed68d887c4fd6efd57f1363270722472f9ac3942e1effe05b5",
+      "command_results": {
+        "m5_edns-c": "b07eec97db504d8cfb13eead9c66eefceae8d0801c0ee35db5c8ac955b9964b9",
+        "m5_edns-compare": "cff2b00b6a8436e269ee6e1f13dd72fa2693a2698b958feab8bec1ac7e3826ae",
+        "m5_edns-rust": "4eb80d6af4c624a3eb553401eb82a129ab083dcfc32173623f4db0df8d2c1a14"
+      },
+      "controller_result_sha256": "630856ca6287baddb4ca3904e588c87998fd7362c82ee55d41adb1b8eff5ddca",
+      "family": "m5_edns",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 1315,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 4229,
+      "archive_sha256": "bb6a5f1953c17c8d0db1e27e7e3ca7af3988eff33ae865520d7c71b6ea52b6f7",
+      "command_results": {
+        "m5_dns_endpoints-local-archive-gate": "a68e6ebf1fd87c13f38c5f94d8b48c16a2fe89699fa595af3e5acf7d132e574b",
+        "m5_dns_endpoints-service": "86a8644b1855e7f85a52b3f264d827ae1c1f18004859ddb6543c39ea32356784",
+        "m5_dns_endpoints-source-row-audit": "1f788c4f002f3ce6b5a92ceadb4dde0d4b16bc3c3f19dc031e719210fc36bf88",
+        "m5_dns_endpoints-syntax": "7e1a65f7d59f7d9c73ed88fae39d41b740a8e12bc1c47a71c5e40c654daf1ac1"
+      },
+      "controller_result_sha256": "ba9fb9d46102a39ccec548e55fb0e9e239427ba44eac22f450a8a7f3ee7ff34e",
+      "family": "m5_dns_endpoints",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 3083,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 1471,
+      "archive_sha256": "3682e0d6bb53134490c400f23d063dea89687576e511d9ea833d28700eef69a7",
+      "command_results": {
+        "m5_rr_filter-paired": "0fa437a7111e8040bb5f0dd1921235ff28c6879d8fafa94ce2848215ee9d275b"
+      },
+      "controller_result_sha256": "190fcd80703014760b0ab50a56b2540d9677df974c9119ac98a5b34584a2f9d6",
+      "family": "m5_rr_filter",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 1093,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 311,
+      "archive_sha256": "ea096b7ba781293d8eb52ee147643c337756a6c75feea1dfeecb5f6e6aed91ce",
+      "command_results": {
+        "filterwin2k-paired": "9ce0ab8b51ee8a58107391658a48f405d7b6a686db7681fe52a47134f49c7a4e"
+      },
+      "controller_result_sha256": "f9f652f9e12b195371978e7e2ce8b9fa61bdbbf39e261b92b1d4af828b355d41",
+      "family": "filterwin2k",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 205,
+      "restored_plain_hashes_match": true
+    },
+    {
+      "archive_entries": 1269,
+      "archive_sha256": "1b6ba5b66f95a9153d019b72487fa9c6801c1eaf33ec2546adc14d11a4e97782",
+      "command_results": {
+        "dns-files-paired": "364dee17ad67dac5d6b8481c263f71e7092917a275d5061b2c375d6947b0dcb5"
+      },
+      "controller_result_sha256": "024e3e59a6cf10c1bdb592640285a738fc774d7d065ba5a615f24d43a86c2330",
+      "family": "dns-files",
+      "local_full_metadata_verified": true,
+      "passed": true,
+      "raw_pruned": true,
+      "restored_plain_files": 889,
+      "restored_plain_hashes_match": true
+    }
+  ],
+  "pending": [
+    "m5_dns_cache",
+    "m5_listeners"
+  ],
+  "physical_router_touched": false,
+  "private_evidence": "private/dnsmasq-rewrite/evidence/M5/final-fixture-6fb65d96-families",
+  "schema": 1,
+  "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+  "status": "six-fresh-groups-passed-two-still-running"
+}
