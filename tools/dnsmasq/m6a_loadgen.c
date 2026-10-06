@@ -5,6 +5,9 @@
  * completion: sequence:u64, latency_ns:u64, send_mono_ns:u64, client:u16,
  * qtype:u16, status:u8 (0 correct,1 timeout,2 wrong,3 transport), phase:u8
  * (1 steady/2 saturation), kind:u8 (DNS 0 hit/1 miss, DHCP 2 cycle), pad:u8.
+ * TCP uses 20 logical clients and rotates each physical connection after 100
+ * complete responses, matching dnsmasq TCP_MAX_QUERIES. Unexpected closure
+ * and timeout stay in the evidence while a fresh stream serves later work.
  * Release has no protocol reply and is reported separately, never throughput.
  * A=192.0.2.1, AAAA=2001:db8::1, TXT="m6a"; CNAME=m6a.target plus A.
  * PREFIX.send-lag.bin is sequence:u64, actual-minus-scheduled-send-ns:u64.
@@ -46,6 +49,7 @@ struct client {
   uint64_t scheduled_at, send_lag_ns;
   unsigned phase;
   uint16_t id, qtype; uint8_t kind, dhcp_stage;
+  uint16_t tcp_queries;
   char name[256]; uint32_t address, xid;
   unsigned char tx[1024], rx[PACKET]; size_t tx_len, tx_off, rx_len;
 };
@@ -60,9 +64,13 @@ static struct client clients[MAX_CLIENTS];
 static struct counters counts[3];
 static struct sockaddr_in destination;
 static FILE *latencies, *send_lags, *wire_samples; static bool output_failed; static uint64_t sequence;
+static uint64_t tcp_connections, tcp_reconnections, tcp_idle_connection_errors;
 static volatile sig_atomic_t stopping;
 static uint64_t warmup_start, measure_start, measure_end, saturation_start, run_end;
 static unsigned sample_counts[3][4][3];
+static bool socket_connect(struct client *c);
+static void socket_close(struct client *c);
+static void tcp_reset(struct client *c);
 
 static void stop_signal(int signal_number) { (void)signal_number; stopping = 1; }
 static uint64_t now_ns(void) {
@@ -294,6 +302,10 @@ static void start_request(struct client *c,uint64_t scheduled,unsigned phase) {
     return;
   }
   choose_dns(c); v->sent++;
+  if (!strcmp(opt.mode,"tcp") && c->fd<0) {
+    if (!socket_connect(c)) { completion(c,TRANSPORT,now_ns()); tcp_reset(c); return; }
+    tcp_reconnections++;
+  }
   if (!strcmp(opt.mode,"udp")) {
     actual_send_at(c,now_ns());
     ssize_t length=send(c->fd,c->tx,c->tx_len,0);
@@ -311,9 +323,15 @@ static bool socket_connect(struct client *c) {
         setsockopt(c->fd,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(one))) return false;
   }
   if (connect(c->fd,(struct sockaddr *)&destination,sizeof(destination))) return false;
-  int flags=fcntl(c->fd,F_GETFL); return flags>=0 && fcntl(c->fd,F_SETFL,flags|O_NONBLOCK)==0;
+  int flags=fcntl(c->fd,F_GETFL);
+  if (flags<0 || fcntl(c->fd,F_SETFL,flags|O_NONBLOCK)) return false;
+  if (type==SOCK_STREAM) tcp_connections++;
+  return true;
 }
 static void socket_close(struct client *c) { if (c->fd>=0) close(c->fd); c->fd=-1; }
+static void tcp_reset(struct client *c) {
+  socket_close(c); c->rx_len=0; c->tx_off=0; c->tx_len=0; c->tcp_queries=0;
+}
 static void receive_dns(struct client *c,uint64_t time) {
   if (!strcmp(opt.mode,"udp")) {
     for (;;) {
@@ -330,18 +348,25 @@ static void receive_dns(struct client *c,uint64_t time) {
   if (size<0 && (errno==EAGAIN || errno==EWOULDBLOCK)) return;
   if (size<=0) {
     if (c->busy) completion(c,TRANSPORT,time);
-    socket_close(c); stopping=1; return;
+    else tcp_idle_connection_errors++;
+    tcp_reset(c); return;
   }
   c->rx_len+=(size_t)size;
   if (c->rx_len<2) return;
   size_t length=read16(c->rx);
   if (length<12 || c->rx_len>length+2) {
-    if (c->busy) completion(c,WRONG,time); stopping=1; return;
+    if (c->busy) completion(c,WRONG,time); else tcp_idle_connection_errors++;
+    tcp_reset(c); return;
   }
   if (c->rx_len==length+2) {
     if (!c->busy) { counts[c->phase].stale++; c->rx_len=0; return; }
     uint64_t received_at=now_ns();bool correct=dns_correct(c,c->rx+2,length);
     sample_wire(c,c->rx+2,length,correct);completion(c,correct?CORRECT:WRONG,received_at);
+    if (++c->tcp_queries>=100) {
+      /* Count every complete response, including a wrong answer. Close before
+       * reading a normal FIN or starting request 101 on the old stream. */
+      tcp_reset(c);
+    }
   }
 }
 static void receive_dhcp(void) {
@@ -503,9 +528,8 @@ int main(int argc,char **argv) {
       struct client *c=&clients[i];
       if (c->busy && time>=c->deadline) {
         completion(c,TIMEOUT,time);
-        /* Late framed TCP replies cannot be safely assigned to the next
-         * transaction. An interrupted persistent connection invalidates run. */
-        if (!strcmp(opt.mode,"tcp")) stopping=1;
+        /* Keep the timeout, then discard the stream before another request. */
+        if (!strcmp(opt.mode,"tcp")) tcp_reset(c);
       }
       if (c->busy) outstanding++;
     }
@@ -543,10 +567,13 @@ int main(int argc,char **argv) {
         uint64_t first_send=now_ns();
         ssize_t n=send(c->fd,c->tx+c->tx_off,c->tx_len-c->tx_off,0);
         if (n>0) { if (!c->tx_off) actual_send_at(c,first_send);c->tx_off+=(size_t)n; }
-        else if (n<0 && errno!=EAGAIN && errno!=EWOULDBLOCK) { completion(c,TRANSPORT,now_ns());stopping=1; }
+        else if (n<0 && errno!=EAGAIN && errno!=EWOULDBLOCK) { completion(c,TRANSPORT,now_ns());tcp_reset(c); }
       }
-      if (events&POLLIN) { if (dhcp) receive_dhcp();else receive_dns(c,now_ns()); }
-      if (events&(POLLERR|POLLHUP|POLLNVAL)) { if (c->busy) completion(c,TRANSPORT,now_ns());stopping=1; }
+      if (c->fd>=0 && events&POLLIN) { if (dhcp) receive_dhcp();else receive_dns(c,now_ns()); }
+      if (c->fd>=0 && events&(POLLERR|POLLHUP|POLLNVAL)) {
+        if (c->busy) completion(c,TRANSPORT,now_ns());else tcp_idle_connection_errors++;
+        tcp_reset(c);
+      }
     }
   }
   run_end=now_ns();
@@ -561,10 +588,10 @@ int main(int argc,char **argv) {
     "\"profile\":\"%s\",\"qtype\":\"%s\",\"name_prefix\":\"%s\",\"seed\":%" PRIu64 ",\"rate\":%.9g,\n"
     "\"warmup_seconds\":%.9g,\"measurement_seconds\":%.9g,\"saturation_seconds\":%.9g,\"timeout_ms\":%u,\n"
     "\"warmup_start_ns\":%" PRIu64 ",\"measurement_start_ns\":%" PRIu64 ",\"measurement_end_ns\":%" PRIu64 ",\"run_end_ns\":%" PRIu64 ",\n"
-    "\"interrupted\":%s,\"output_failed\":%s,\"warmup\":",
+    "\"interrupted\":%s,\"output_failed\":%s,\"tcp_connections\":%" PRIu64 ",\"tcp_reconnections\":%" PRIu64 ",\"tcp_idle_connection_errors\":%" PRIu64 ",\"warmup\":",
     opt.mode,opt.host,opt.port,opt.clients,opt.profile,opt.qtype,opt.prefix,opt.seed,opt.rate,
     opt.warmup,opt.duration,opt.saturation,opt.timeout_ms,warmup_start,measure_start,measure_end,run_end,
-    stopping?"true":"false",output_failed?"true":"false");
+    stopping?"true":"false",output_failed?"true":"false",tcp_connections,tcp_reconnections,tcp_idle_connection_errors);
   struct counters measured=aggregate(&counts[1],&counts[2]);
   print_counters(json,&counts[0]);fputs(",\n\"measurement\":",json);print_counters(json,&measured);
   fputs(",\n\"steady\":",json);print_counters(json,&counts[1]);
