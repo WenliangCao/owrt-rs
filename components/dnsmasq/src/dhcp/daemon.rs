@@ -1628,7 +1628,7 @@ fn pxe_host(name: &[u8], dns_port: u16, lookup: &mut Option<BootHostLookup>) -> 
 }
 
 fn apply_reply_delay(
-    seconds: Option<u32>,
+    seconds: Option<i32>,
     received_at: i64,
     xid: u32,
     quiet: bool,
@@ -1651,7 +1651,7 @@ fn apply_reply_delay(
         if let Some(notice) = notice {
             notices.push(notice);
         }
-        return if seconds == 0 {
+        return if !super::reply_delay::pending(received_at, epoch_seconds(), seconds, 0) {
             Ok(())
         } else {
             Err(io::Error::other(
