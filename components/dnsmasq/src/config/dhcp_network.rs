@@ -7,7 +7,7 @@ use std::net::Ipv4Addr;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReplyDelay {
     pub tags: TagPredicate,
-    pub seconds: u32,
+    pub seconds: i32,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -106,14 +106,13 @@ impl NetworkConfig {
                     }
                 }
                 let value = number.ok_or(Error("error"))?;
-                let seconds = std::str::from_utf8(&value)
-                    .ok()
-                    .filter(|value| {
-                        !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit())
-                    })
-                    .and_then(|value| value.parse::<u32>().ok())
-                    .filter(|&value| value <= i32::MAX as u32)
-                    .ok_or(Error("error"))?;
+                // option.c:760 accepts decimal digits (including empty) and
+                // image musl atoi retains the low signed-int bits.
+                let seconds = value.iter().try_fold(0u32, |total, byte| {
+                    byte.is_ascii_digit()
+                        .then(|| total.wrapping_mul(10).wrapping_add(u32::from(byte - b'0')))
+                        .ok_or(Error("error"))
+                })? as i32;
                 self.delays.insert(
                     0,
                     ReplyDelay {
@@ -194,7 +193,7 @@ impl NetworkConfig {
     }
 
     /// Tagged matches win before any untagged fallback, in linked-list order.
-    pub fn reply_delay(&self, tags: &[&[u8]]) -> Option<u32> {
+    pub fn reply_delay(&self, tags: &[&[u8]]) -> Option<i32> {
         self.delays
             .iter()
             .find(|rule| rule.tags.matches_with(tags, false))

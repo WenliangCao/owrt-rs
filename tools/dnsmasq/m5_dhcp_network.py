@@ -9,6 +9,7 @@ import argparse
 import copy
 import json
 import os
+import re
 from pathlib import Path
 import socket
 import struct
@@ -285,6 +286,12 @@ def delay_specs():
     mac = 'dhcp-mac=set:slow,02:00:00:00:00:01'
     return [
         dict(case='delay-zero', config=['dhcp-reply-delay=0'], delayed=False),
+        dict(case='delay-extreme-empty', config=['dhcp-reply-delay='], delayed=False, expected_delay=0),
+        dict(case='delay-extreme-signed-negative', config=['dhcp-reply-delay=2147483648'], delayed=False, expected_delay=-2147483648),
+        dict(case='delay-extreme-intmax-budget', config=['dhcp-reply-delay=2147483647'], delayed=False, expected_delay=2147483647),
+        dict(case='delay-extreme-budget-wrap', config=['dhcp-reply-delay=536870912'], delayed=False, expected_delay=536870912),
+        dict(case='delay-extreme-u32-wrap-zero', config=['dhcp-reply-delay=4294967296'], delayed=False, expected_delay=0),
+        dict(case='delay-extreme-u32-wrap-one', config=['dhcp-reply-delay=4294967297'], delayed=True, expected_delay=1),
         dict(case='delay-global', config=['dhcp-reply-delay=1'], delayed=True),
         dict(case='delay-tag-match', config=[mac, 'dhcp-reply-delay=tag:slow,1'], delayed=True),
         dict(case='delay-tag-miss', config=['dhcp-reply-delay=tag:slow,1'], delayed=False),
@@ -409,7 +416,13 @@ def delay_case(root, side, out, spec):
         save(folder / 'identity.json', process_identity(root, runner.process.pid))
         packets = [delay_exchange(runner, folder, spec)]
         if spec.get('ack'): packets.append(delay_exchange(runner, folder, spec, 0x7932, kind=3))
-        return dict(case=spec['case'], packets=packets)
+        result = dict(case=spec['case'], packets=packets)
+        if 'expected_delay' in spec:
+            runner.log.flush()
+            values = re.findall(r'(\d+) reply delay: (-?\d+)', (folder / (runner.side+'-'+runner.name+'.log')).read_text())
+            assert values == [('31024', str(spec['expected_delay']))], 'actual signed reply-delay diagnostic'
+            result['delay_diagnostic'] = values
+        return result
     finally:
         cleanup = runner.stop(); save(folder / 'cleanup.json', cleanup)
         assert cleanup['exit'] == 0 and not cleanup['forced'] and not cleanup['remaining'], 'reply delay cleanup'
@@ -485,6 +498,7 @@ def run_side(args):
                            ('shared-syntax-cli', [], ['--shared-network=lo,198.18.0.1'])],
     }
     for label, lines, flags in syntaxes.get(args.family, []):
+        if args.select and not re.search(args.select, label): continue
         folder = args.out / label; folder.mkdir()
         (root / 'm2/network.conf').write_text('\n'.join(lines) + '\n')
         result = subprocess.run(command(root, args.side, '--test', '-C', '/m2/network.conf', *flags), capture_output=True, timeout=4)
@@ -495,6 +509,7 @@ def run_side(args):
         rows.append(dict(case=label, exit=result.returncode, stdout=result.stdout.hex(), stderr=result.stderr.replace(b'dnsmasq-rs', b'dnsmasq').hex()))
     specs, run_case = (proxy_specs(), proxy_case) if args.family == 'dhcp-proxy' else (shared_specs(), shared_case) if args.family == 'shared-network' else (bridge_specs(), bridge_case) if args.family == 'bridge-interface' else (delay_specs(), delay_case) if args.family == 'dhcp-reply-delay' else ([], None)
     for spec in specs:
+        if args.select and not re.search(args.select, spec['case']): continue
         try:
             rows.append(run_case(root, args.side, args.out, spec))
         except Exception as error:
@@ -515,6 +530,7 @@ def main():
     parser.add_argument('--rust', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--side', choices=['c', 'rust', 'both'], default='both')
+    parser.add_argument('--select', help='calibration subset; never whole-family qualification')
     parser.add_argument('--family', choices=['dhcp-proxy', 'bridge-interface', 'shared-network', 'dhcp-reply-delay'], required=True)
     args = parser.parse_args()
     if args.side != 'both': return run_side(args)
@@ -522,8 +538,10 @@ def main():
     exits = {}
     for side in ['c', 'rust']:
         with (args.out / (side + '.launch.log')).open('wb') as output:
-            exits[side] = subprocess.run(['sh', str(HERE / 'run_isolated.sh'), sys.executable, __file__, '--side', side,
-                '--family', args.family, '--image-root', str(args.image_root), '--rust', str(args.rust), '--out', str(args.out / side)], stdout=output, stderr=output).returncode
+            argv = ['sh', str(HERE / 'run_isolated.sh'), sys.executable, __file__, '--side', side,
+                '--family', args.family, '--image-root', str(args.image_root), '--rust', str(args.rust), '--out', str(args.out / side)]
+            if args.select: argv += ['--select', args.select]
+            exits[side] = subprocess.run(argv, stdout=output, stderr=output).returncode
     reports = [json.loads((args.out / side / 'result.json').read_text()) for side in ['c', 'rust']]
     failures = []
     if any(exits.values()) or any(report['failures'] for report in reports): failures.append(dict(exits=exits, sides=[report['failures'] for report in reports]))
@@ -544,7 +562,7 @@ def main():
                     wire[24] ^= 1
                 observed['wire'] = wire.hex()
             controls.append(dict(case=label, rejected=mutant['rows'] != reports[0]['rows'] or bool(mutant['failures'])))
-    qualified = not failures and not any(report['missing'] for report in reports) and len(controls) == 4 and all(control['rejected'] for control in controls)
+    qualified = not args.select and not failures and not any(report['missing'] for report in reports) and len(controls) == 4 and all(control['rejected'] for control in controls)
     save(args.out / 'result.json', dict(family=args.family, qualified=qualified, failures=failures, controls=controls,
          missing={report['side']:report['missing'] for report in reports}, binary_sha256=sha256(args.rust)))
     print(json.dumps(dict(family=args.family, qualified=qualified, paired=len(reports[0]['rows']), failures=len(failures))))

@@ -8,8 +8,13 @@ use std::time::Duration;
 
 pub const POLL_INTERVAL: Duration = Duration::from_millis(250);
 
-pub fn pending(received_at: i64, now: i64, seconds: u32, idle_polls: u64) -> bool {
-    now.saturating_sub(received_at) <= i64::from(seconds) && idle_polls < u64::from(seconds) * 4
+pub fn pending(received_at: i64, now: i64, seconds: i32, idle_polls: u64) -> bool {
+    // Image dnsmasq.c:2447 computes sec * 4 as a signed C int. Preserve
+    // its observed low bits explicitly rather than overflowing Rust arithmetic.
+    let idle_budget = seconds.wrapping_mul(4);
+    now.saturating_sub(received_at) <= i64::from(seconds)
+        && idle_budget > 0
+        && idle_polls < idle_budget as u64
 }
 
 /// `poll` returns true for any admitted activity, including an earlier DNS
@@ -17,7 +22,7 @@ pub fn pending(received_at: i64, now: i64, seconds: u32, idle_polls: u64) -> boo
 /// Pending signals and additional DHCP input remain with the outer owner.
 pub fn wait(
     received_at: i64,
-    seconds: u32,
+    seconds: i32,
     mut now: impl FnMut() -> i64,
     mut poll: impl FnMut(Duration) -> io::Result<bool>,
 ) -> io::Result<()> {
