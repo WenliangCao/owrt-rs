@@ -14,3 +14,5 @@
 TCP修复374e19df后的第二campaign manifest f0055eb3410c961a54818854b60a30d058e58be38994e43241e3e74a766e88f8全量短试跑仍excluded。udp-miss-r3 attempt1被exclusive门拒绝（foreign PID3799283/start102126517/cmdline hash978de9…db29）；本窗口primary start102125543且cmdline hash不同、10个resource样本children[]，现有证据不能确认来源，不改归属规则。原archive f5d1af7f…cf61已本地full SHA+metadata核验；同manifest孤立attempt2与串行attempt3均通过。原command与guard报告保留[命令证据](../../../private/dnsmasq-rewrite/evidence/M6a/freeze-tcp374e19df/udp-miss-r3-pilot1-command.json)，不将拒绝改写成已通过或产品失败。
 
 TCP100-query修复后的tcp374e19df pilot-c正常复用重连，但资源snapshot读刚退出的子进程`/proc/914/smaps_rollup`触发ESRCH（ProcessLookupError）而方法无效；原[leaf](../../../private/dnsmasq-rewrite/evidence/M6a/freeze-tcp374e19df/archives/r01-tcp-local-c/attempt-1/plain/pilot/result.json)与700路径全metadata归档保留。c3402ba6只在snapshot已知ENOENT/ESRCH竞态略过已消失child，primary cgroup仍完整累计；其他OSError保留拒绝。新manifest885d7eda6fcec0e7b057682c7798a09dda67a9dfc2300b8d898cfb15c3d50f40重新短试跑剩余15组合，正式依冻结顺序135个窗口且每窗口自带独立pilot。foreign suspect新增祖先链/NSpid/cgroup/root/exe见证，排除规则和阈值不改。
+
+正式冻结身份为manifest885d7eda6fcec0e7b057682c7798a09dda67a9dfc2300b8d898cfb15c3d50f40、tools c3402ba6；27个pilot（TCP修复后）全通过，原始正式窗口仍0/135，正式控制器已启动。
