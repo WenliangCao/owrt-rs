@@ -529,6 +529,12 @@ def grammar_cases():
                         ("negative", "bootp-dynamic=tag:!skip"), ("legacy", "bootp-dynamic=net:bootp,#skip"), ("bare", "bootp-dynamic=bootp,#skip")]:
         add("bootp-"+name, value)
     add("bootp-empty", "bootp-dynamic=", "C NULL predicate from dhcp_netid_create dereferenced in match_netid; retained first-packet SIGSEGV in paired-checklist-02")
+    add("architecture-signed-overflow", "pxe-service=2147483648,Menu,boot",
+        "C atoi signed overflow then CSA narrow; candidate keeps defined int configuration range")
+    add("service-type-signed-overflow", "pxe-service=0,Menu,2147483648",
+        "C atoi signed overflow then service type narrow; candidate keeps defined int configuration range")
+    add("prompt-timeout-signed-overflow", "pxe-prompt=Choose,2147483648",
+        "C atoi signed overflow then timeout byte narrow; candidate keeps defined int configuration range")
     return rows
 
 
