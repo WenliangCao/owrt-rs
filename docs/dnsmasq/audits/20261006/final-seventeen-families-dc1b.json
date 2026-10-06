@@ -1,0 +1,653 @@
+{
+  "schema": "m5-final-seventeen-families-dc1b-v1",
+  "date": "2026-10-06",
+  "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+  "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+  "elf_bytes": 1929256,
+  "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "executed_families": 17,
+  "passed_families": 15,
+  "families": [
+    {
+      "family": "bridge-interface",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "bridge-interface-paired",
+          "returncode": 0,
+          "elapsed_seconds": 8.866925715003163,
+          "result_sha256": "cf4e9a4f8b25c8e20dd1eba5b38e8a4c82f8ae423b3601095674f05bf5e64475"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/bridge-interface-7699d0b36559.tar.gz",
+      "raw_sha256": "8d4e862a92070d555b2b03fe5157a2bba42988ac5551e3fb0371bc69bb242e5a",
+      "raw_entries": 376,
+      "raw_regular_files": 273,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "2584a3e42731c3041cd7cb7a7df9be543f2b48cc04477ce819751045bc72cd05",
+          "entries": 87,
+          "regular_files": 59,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-bridge-interface.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-bridge-interface.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-device-binding",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-device-binding-c",
+          "returncode": 0,
+          "elapsed_seconds": 2.8662918449845165,
+          "result_sha256": "9b7e148592d79092e4d2016154623c91aeaa8f9f51b844a5f5e4d3046ad7869c"
+        },
+        {
+          "id": "dhcp-device-binding-rust",
+          "returncode": 0,
+          "elapsed_seconds": 3.003363899071701,
+          "result_sha256": "c2130f4b4178f77319ec4d77da11202fd475a9f31a923434acf8ed2f86d8e39d"
+        },
+        {
+          "id": "dhcp-device-binding-compare",
+          "returncode": 0,
+          "elapsed_seconds": 0.16519464692100883,
+          "result_sha256": "e4dd1d1786777d8a72e269404cacd01d7f34cbdd87d7e55692bddaa0870eaa7c"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-device-binding-f5506e25776d.tar.gz",
+      "raw_sha256": "2a78591dfd776226cb685a9741f1e31a71a311f334f3d42f19d4953d1a923228",
+      "raw_entries": 534,
+      "raw_regular_files": 447,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "8335fbfe8fa519ee911e62ee8539657ff374335a5245eb750e1e149c020288e9",
+          "entries": 195,
+          "regular_files": 135,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-device-binding.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-device-binding.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-files",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-files-paired",
+          "returncode": 0,
+          "elapsed_seconds": 61.27685050689615,
+          "result_sha256": "d8eca64d33de9574418034f3b6e0fffc070a2b9e1d5c57d75bf26b1f79ff1a09"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-files-adc7706a55de.tar.gz",
+      "raw_sha256": "357d224ab857cf6b5fed0b81e75abff00651c3ed78b0b309828da8f1915dd114",
+      "raw_entries": 2614,
+      "raw_regular_files": 2261,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "9a55ae53998d77ee60a0cb0789e41a73a48d5e0df0cb4488ee5e741e213de9ff",
+          "entries": 349,
+          "regular_files": 180,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-files.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-files.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-identities",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-identities-paired",
+          "returncode": 0,
+          "elapsed_seconds": 30.91994347202126,
+          "result_sha256": "6720d06a5af67975d2b66e9b4891f5d225d42259d3c9845d5f5e065557792a07"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-identities-dcce3d6d80ab.tar.gz",
+      "raw_sha256": "f3d04a728ba20c90d41dfefd21b2c5538eefcbdb61a7c7d3750c974acd22fde5",
+      "raw_entries": 6572,
+      "raw_regular_files": 5449,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "9e7481bca8a89648907c264f551810d09770623ba9d86795e86a37b061e725e6",
+          "entries": 2688,
+          "regular_files": 1578,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-identities.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-identities.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-proxy",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-proxy-paired",
+          "returncode": 0,
+          "elapsed_seconds": 3.816737349028699,
+          "result_sha256": "89702b5d3e144ab57f798f34a93e72fbab8937bca1c768788cf248bcbdfb8008"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-proxy-f08446da5f9c.tar.gz",
+      "raw_sha256": "17fe886274c71fb4dc05fc657e10c9dfc85b5392b98e5d74736c8832635cc72d",
+      "raw_entries": 384,
+      "raw_regular_files": 281,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "2c623b55355dca0e6db61e38206d56e773128b7e9da93d210bdf1a91b0c42322",
+          "entries": 129,
+          "regular_files": 101,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-proxy.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-proxy.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-range",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-range-paired",
+          "returncode": 0,
+          "elapsed_seconds": 0.9166759459767491,
+          "result_sha256": "f6f74827d89fbf9326dd340503f1252fb09a4047293192347dd7f31483279399"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-range-3662b22c88c9.tar.gz",
+      "raw_sha256": "f4328302bb74c08e2cfc829c7dfe6e8032cbeef94759ecc9afc17f8e67444688",
+      "raw_entries": 897,
+      "raw_regular_files": 646,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "6ae975b5308400ac1c9fb4519dfc7905b9963fe1af11d6f89b4cc7f00c8da713",
+          "entries": 403,
+          "regular_files": 166,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-range.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-range.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-reply-delay",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-reply-delay-paired",
+          "returncode": 0,
+          "elapsed_seconds": 33.419196626055054,
+          "result_sha256": "9d58781de83ca645908da040ffab654c51af3ea3a6469ca3406b2f5711c77257"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-reply-delay-eadf357958c2.tar.gz",
+      "raw_sha256": "407ed16ffc6cfcde4f9bd1beb31a1c64c89e2f3a463b863899a1412adaa41438",
+      "raw_entries": 756,
+      "raw_regular_files": 583,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "c1a1f544e5460bd04c7541f3dc0913d2ae26b1a39cfbaec289e884b0114d4964",
+          "entries": 195,
+          "regular_files": 145,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-reply-delay.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-reply-delay.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "dhcp-tags-options",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "dhcp-tags-options-paired",
+          "returncode": 0,
+          "elapsed_seconds": 5.065286441007629,
+          "result_sha256": "0e8d7d572208fafd120b88ccf5a5e89a3ff2da94644d9ce16923abadb6bfd706"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/dhcp-tags-options-9219986b7413.tar.gz",
+      "raw_sha256": "22ffd31640c4471702938ec6f37f7cbb7652b2091f13fafb3b88ff55436b0805",
+      "raw_entries": 1656,
+      "raw_regular_files": 1323,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "da96490fd99dcdd934d99260397fcd99a3cd9887309761b56ea4f4065e8a2b2a",
+          "entries": 712,
+          "regular_files": 392,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-tags-options.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-dhcp-tags-options.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_boot",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "m5_boot-paired",
+          "returncode": 0,
+          "elapsed_seconds": 2.2668146409559995,
+          "result_sha256": "17d8c250a19e09f8fbdc8ac8daee706e930960aed486efa106a22cd62f298f41"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_boot-165a06eb23f3.tar.gz",
+      "raw_sha256": "838f328a4021c972d5be22d7b81d801337392ac0aa2d149d88605dfd914c0307",
+      "raw_entries": 1264,
+      "raw_regular_files": 1128,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "55b2e876138404cfb8761c91b374b5028aac36c671f546248538a4339a86720a",
+          "entries": 430,
+          "regular_files": 307,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_boot.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_boot.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_dump",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "m5_dump-paired",
+          "returncode": 0,
+          "elapsed_seconds": 13.91751238098368,
+          "result_sha256": "886cf78c6298c42025555a2890b0045a4cb92537fb5cc942d7a1c59da0814273"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_dump-7488bfb915bd.tar.gz",
+      "raw_sha256": "65c275795982d5ca37f912ef52f3847204a55b360487aeaaf81b411bd67c3b63",
+      "raw_entries": 1534,
+      "raw_regular_files": 1331,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "4d27011eb25dc8be6986b9c709aab50e7a9591a9ac19961ac2781ffd39de2e63",
+          "entries": 675,
+          "regular_files": 537,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_dump.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_dump.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_leasequery",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "m5_leasequery-paired",
+          "returncode": 0,
+          "elapsed_seconds": 31.96975269599352,
+          "result_sha256": "362dd68b1df7b65fb260892ee5f3bfd4308f533272654f19671d1626a0f816a3"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_leasequery-9a41727fb489.tar.gz",
+      "raw_sha256": "d154417bdfd5422f2f9e61fd8a4166ab0eaef46ababc7d906b1489cf0e4fd106",
+      "raw_entries": 278,
+      "raw_regular_files": 219,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "8b3e8ed65a7db0dc66d6a750c743231a93462e1cf650ee05fd89e24e56e224b9",
+          "entries": 172,
+          "regular_files": 126,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_leasequery.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_leasequery.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_pxe",
+      "passed": false,
+      "failures": [
+        "ValueError('m5_pxe-paired exited 1')"
+      ],
+      "commands": [
+        {
+          "id": "m5_pxe-paired",
+          "returncode": 1,
+          "elapsed_seconds": 203.64037889800966
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_pxe-354a5dbe79c5.tar.gz",
+      "raw_sha256": "dbd9eacda8da20abfecb3fb3bf4e85e246ba01564233632825268a88ed58b3d6",
+      "raw_entries": 1547,
+      "raw_regular_files": 1131,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "4a90d587db3dff158c5708308ae1680af6cdcc997795c74068c62f6b825268be",
+          "entries": 805,
+          "regular_files": 405,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_pxe.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_pxe.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_relay",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "m5_relay-paired",
+          "returncode": 0,
+          "elapsed_seconds": 102.37829183007125,
+          "result_sha256": "1d04e15ba28b488c27ec2c0ae3efb29776d162f1b80c874cdbcf98d34fac8b60"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_relay-f29fc7160a43.tar.gz",
+      "raw_sha256": "aa6062b794cae7b6200b9f1ccbc2427b517146643f5671ca1ff07cfce199a7ce",
+      "raw_entries": 689,
+      "raw_regular_files": 512,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "dbdae63527579053d6524e629bf6f0b8253ddd04538474f02585ca1e25109421",
+          "entries": 336,
+          "regular_files": 172,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_relay.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_relay.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_script_arp",
+      "passed": false,
+      "failures": [
+        "ValueError('m5_script_arp-paired exited 1')"
+      ],
+      "commands": [
+        {
+          "id": "m5_script_arp-paired",
+          "returncode": 1,
+          "elapsed_seconds": 439.46741274604574
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_script_arp-e49ce3d197fa.tar.gz",
+      "raw_sha256": "24942aba202f9d1cd30d7e9f0cd7bc8fff99170228dbc17f978768193a10dc90",
+      "raw_entries": 1983,
+      "raw_regular_files": 1790,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "e42fe5a4d7233f7828b7922d2bd197af0f5fabbf0f0603ecb3eaf49aae149db7",
+          "entries": 1169,
+          "regular_files": 1017,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_script_arp.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_script_arp.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "m5_tftp",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "m5_tftp-paired",
+          "returncode": 0,
+          "elapsed_seconds": 277.7135410030605,
+          "result_sha256": "97c5f9e59a60b02704243e47f8a442a90796672c8fd4a104bcdaebee9f8be9c9"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/m5_tftp-de9893697b18.tar.gz",
+      "raw_sha256": "8aacf00abb9f0042fa6d6904ea2f923207a39f0487347f2cb39d97840edf295d",
+      "raw_entries": 1177,
+      "raw_regular_files": 936,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "6af23479a5dd156c7bb5c7961a1dcdf75d84185f854c75214952f0d66dc47edb",
+          "entries": 387,
+          "regular_files": 179,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_tftp.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-m5_tftp.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "shared-network",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "shared-network-paired",
+          "returncode": 0,
+          "elapsed_seconds": 7.576570146018639,
+          "result_sha256": "c8edc953059931d6e1998073d567a5012906001b9f603dac3579fa4d08ab0d49"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/shared-network-280fca442830.tar.gz",
+      "raw_sha256": "243b6725f110060626ac95bee9b07b93c3c548fb982866d5e5e6ad94bc239cd9",
+      "raw_entries": 402,
+      "raw_regular_files": 279,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "ee7239d647fbdde1514676c37328998013f29ae67c4e3c7f5f73a08ef5c3d01c",
+          "entries": 101,
+          "regular_files": 67,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-shared-network.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-shared-network.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    },
+    {
+      "family": "tftp-errors",
+      "passed": true,
+      "failures": [],
+      "commands": [
+        {
+          "id": "tftp-errors-paired",
+          "returncode": 0,
+          "elapsed_seconds": 66.1808339569252,
+          "result_sha256": "1b99a3e58fa570ae16e78d43033e9b9d346a02b52a27cf079b07518bc232fe3a"
+        }
+      ],
+      "raw_archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/tftp-errors-0edc2f7e4810.tar.gz",
+      "raw_sha256": "60fc4a732dee85158a0f778dcec5bc92cf0bdcb5a5c484990b48d0efa53bdd63",
+      "raw_entries": 2409,
+      "raw_regular_files": 2174,
+      "raw_pruned": true,
+      "locked_json_kept": true,
+      "controller_archive": {
+        "verified": {
+          "archive_sha256": "1a7fe234945f5ef633f653bddd145be14f3943eea994b579b628a372ad294c8c",
+          "entries": 1194,
+          "regular_files": 998,
+          "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+          "verified": true
+        },
+        "archive": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-tftp-errors.tar.gz",
+        "inventory": "private/dnsmasq-rewrite/evidence/M5/final-fresh-dc1b/controller-tftp-errors.inventory.json",
+        "phase_kept_remote": true
+      },
+      "phase_manifest_sha256": "e336546e3a078c6e1d70634356b38a28aed7bb6960ee7861cf411ada6b78f790"
+    }
+  ],
+  "extra_relay_recheck": {
+    "passed": true,
+    "failures": [],
+    "tool_sha256": "de7ad186c7e71f7f74faa6b1e31ba5bcf5ca119ef3e8ff3857eeb4608755de28",
+    "input_result_sha256": "1d04e15ba28b488c27ec2c0ae3efb29776d162f1b80c874cdbcf98d34fac8b60",
+    "input_manifest_sha256": "c89d35465e80722e603262ec37304a48708439427c9cb47470ab88460f637126",
+    "packet_controls": {
+      "passed": true,
+      "controls": [
+        {
+          "name": "hops",
+          "detected": true
+        },
+        {
+          "name": "giaddr",
+          "detected": true
+        },
+        {
+          "name": "port",
+          "detected": true
+        },
+        {
+          "name": "destination",
+          "detected": true
+        },
+        {
+          "name": "missing-packet",
+          "detected": true
+        },
+        {
+          "name": "extra-packet",
+          "detected": true
+        },
+        {
+          "name": "missing-side",
+          "detected": true
+        },
+        {
+          "name": "missing-case",
+          "detected": true
+        },
+        {
+          "name": "not-alive",
+          "detected": true
+        },
+        {
+          "name": "cleanup",
+          "detected": true
+        },
+        {
+          "name": "option82",
+          "detected": true
+        }
+      ]
+    },
+    "grammar_controls": [
+      {
+        "name": "stdout",
+        "detected": true
+      },
+      {
+        "name": "stderr",
+        "detected": true
+      },
+      {
+        "name": "exit",
+        "detected": true
+      },
+      {
+        "name": "startup",
+        "detected": true
+      }
+    ],
+    "normalization": "--test executable prefix dnsmasq-rs: to dnsmasq: only; forwarding payload/source/destination unchanged"
+  },
+  "unresolved_fixture_families": {
+    "m5_pxe": "Shared actor adds received_ns; PXE evaluator treated metadata as wire. Independent logging owner repairs protocol extraction with per-side timestamp witness; original false-red remains failed, affected sidecar fresh replay required.",
+    "m5_script_arp": "Three Rust allocation controls not executed because frozen registry omitted --allocator-map {link_map}. Existing pinned link.map supplies actual malloc/realloc sites; a8e4f587 adds only required argv pair, affected sidecar fresh replay required."
+  },
+  "old_green_reused": false,
+  "complete": false,
+  "physical_router": false,
+  "m6_formal_performance": false
+}
