@@ -122,3 +122,15 @@ Selective tar恢复同时传了根目录和子路径，默认递归先恢复整�
 | `/Users/USER/Developer/owrt-m2-integration`：`tools/dnsmasq/m2_lifecycle.py` | `055d5ae05060c7d904bcee325b8b51275a91d54a35721f646b90c1e69309febc` |
 
 其中`resume-send-retry-20261001`的两个untracked文件SHA分别为`5af7d9b0ad13869de1e50154c3804681f9697b55e7d2da7555ce58215f7c31ad`（shared-upstream-before-integration.rs）、`473b2256c6638f0b5b4558497d956c6039d309fadb3b37785ca144f0dc40d42d`（upstream-draft.patch）。`patchcheck2`与`patchcheck3/4`的diff SHA不同，不能按目录名或base相同就合并丢弃。Root的所有`docs/prompts`修改/未跟踪文件原样保留。
+
+## 随后获授权的三个 M5 任务树退休回执
+
+Root随后明确授权清理已退休M5树，要求保留当前Root/本任务/logging/TFTP/报告树、历史detached及未知dirty工作。仅清理以下三个已结束旧树及同名task branch，54个worktrees降至51。首次保守预检发现ignored pyc缓存即停止、未删树；retry将这些缓存也全部保全。未访问Oracle，未改产品、report、ledger或用户prompts。
+
+| 已退休task | durable tip ref | 原tip | 私有保全manifest |
+| --- | --- | --- | --- |
+| `m5/endpoint-closeout` | `refs/archive/dnsmasq/task-retirement-20261006/m5-endpoint-closeout` | `869d6e7d3bd6f76072d7f9657895658ec715f57c` | [完整文件/补丁SHA](/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/worktree-retirement-20261006/batch-27fe4fd3-02/m5-endpoint-closeout/manifest.json) |
+| `m5/final-validation-prep` | `refs/archive/dnsmasq/task-retirement-20261006/m5-final-validation-prep` | `16aacf2bdaa82f1a7815ba6c33924cbde36647db` | [完整文件/补丁SHA](/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/worktree-retirement-20261006/batch-27fe4fd3-02/m5-final-validation-prep/manifest.json) |
+| `m5/fixture-revision-tests` | `refs/archive/dnsmasq/task-retirement-20261006/m5-fixture-revision-tests` | `1ba8c90540b752f9bd925d75b937d2364b13490e` | [完整文件/补丁SHA](/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/worktree-retirement-20261006/batch-27fe4fd3-02/m5-fixture-revision-tests/manifest.json) |
+
+[私有总manifest](/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/worktree-retirement-20261006/batch-27fe4fd3-02/manifest.json)保存每树原status、working/staged binary diff SHA、原文件完整SHA/大小/mode/mtime及backup路径；共6个tracked变更原文件、2个untracked文件、27个ignored pyc缓存。删除前后均核对持久ref，备份文件SHA再次核验。原未提交内容仍在私有目录，未将其猜测合入最终产品。总manifest SHA256为`e9e758624e86552554deee4476a7d7ba6717c21748bb2ee712ca174f765a47f3`。其它树保持原状；当前任务树仍需等本回执合入后由Root决定退休。
