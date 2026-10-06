@@ -92,3 +92,15 @@ M4 获准 ELF 为 1,159,280 字节。当前归因基准 `ff2b2d22` 在固定源�
 | dump | 5,400 |
 
 最大的单段为run_inner29,664B、DNS配置apply18,488B、DHCP resolve_events16,380B与helper child15,356B。已经完成source-pool等值简化及loop固定缓冲，继续拆分这些大函数会引入调度/诊断回归，当前无已证明的额外纯代码节省。作为用户最后决定的可选构建方案，oracle_build.sh支持显式`ORACLE_BUILD_OPT_LEVEL=s/z`并记录opt_level，默认仍3；只做独立体积构建，不跑M6正式性能，也不替换本次最终候选。任何切换都需相同功能回归、资源/包验证及后续M6性能评估，不能仅凭变小判定行为已验收。
+
+最终交付产品 `dc1b740d` / `37f85d22…7f7b` 为1,929,256B。修复masked-MAC文案和loop bind/probe顺序后总ELF大小未变。同次map绑定build.json，2,561输入sections覆盖执行区，未归因220B；配置185,284B、main/root166,412B，DNS287,508B、DHCP214,972B，其余族与首轮数值相同。这仍是存储归属，不能冒称纯功能新增成本；完整map/ELF已验证，[最终map归属](../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/size-map-report.json)。
+
+同一冻结产品源码路径、Rust1.98.1、SDK、static/strip/panic-abort/no-unwind条件下，已构建两种独立体积样本，默认交付opt3不变。输出各有同次map与build.json（包含实际opt_level）；当前只测体积，没有把它们用于功能资格或正式M6性能。
+
+| 构建方案 | ELF字节 | 对交付opt3 | 对M4 | ELF SHA256 |
+| --- | ---: | ---: | ---: | --- |
+| opt-level3（交付） | 1,929,256 | 0 | +769,976 | 37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b |
+| opt-levels（样本） | 1,613,864 | −315,392 | +454,584 | 8427b9ab9718e3645137db4670ef3afcb8d983a2b88bb997127224de39988a2a |
+| opt-levelz（样本） | 1,503,272 | −425,984 | +343,992 | d082ff43d8eedbb47dcb667cd77fc4cd0fcc6c0f89a31bb210bf048c82025c4b |
+
+选择s/z的代价是重新冻结交付构建并完成其功能/资源/包资格，随后在正式M6确认CPU与尾延迟影响；当前未测，不能承诺速度保持。优化方式不删169选项或有意改变行为。最后由用户在M5_REPORT完成后决定是否接受opt3体积，或选择这些缩减样本；不复用M4特许。
