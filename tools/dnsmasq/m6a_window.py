@@ -370,7 +370,7 @@ def load_command(args):
     profile = ("hit" if mode == "tcp" and args.tcp_profile == "local" else args.tcp_profile if mode == "tcp" else "hit" if args.scenario in ("hit", "reload") else
                "mixed" if args.scenario == "mixed" else "miss")
     result = ["taskset", "-c", str(args.cpu_load), str(args.loadgen),
-              "--mode", mode, "--host", "127.0.0.1", "--port", str(PORT),
+              "--mode", mode, "--host", "127.0.0.1", "--port", str(67 if mode == "dhcp" else PORT),
               "--clients", str(args.clients), "--duration-seconds", str(args.duration),
               "--rate", str(args.rate), "--seed", str(args.seed),
               "--name-prefix", f"localbank.{PREFIX}" if args.scenario == "tcp" and args.tcp_profile == "local" else PREFIX,
