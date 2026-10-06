@@ -23,6 +23,7 @@ import tarfile
 import time
 
 import build_package
+from dns_udp_refusal_diff import TARGET_FILES, verify_reference
 from m2_rootfs import STOCK_SHA256
 
 TARGET = Path('/home/ubuntu/dnsmasq-cargo-target')
@@ -63,7 +64,9 @@ def field(value, name):
 def check_result(path, checks, inventory=None):
     value = json.loads(path.read_text())
     for name, expected in checks.items():
-        require(field(value, name) == expected, f'{path}: {name} differs from {expected!r}')
+        actual = field(value, name)
+        require(type(actual) is type(expected) and actual == expected,
+                f'{path}: {name} differs from {expected!r}')
     if inventory:
         rows = field(value, inventory['field'])
         if inventory.get('side_key'):
@@ -72,8 +75,19 @@ def check_result(path, checks, inventory=None):
         else:
             actual = [row[inventory['key']] if inventory.get('key') else row for row in rows]
             expected = inventory['ids']
+        require(expected and len(expected) == len(set(expected)), 'invalid frozen case inventory')
         require(len(actual) == len(expected) and set(actual) == set(expected), f'{path}: complete frozen case inventory differs')
     return value
+
+
+def verify_command_results(records):
+    require(records, 'completion has no executed commands')
+    for record in records:
+        require(record.get('passed') is True and record.get('returncode') == 0,
+                'family command did not complete successfully')
+        result = Path(record['result'])
+        require(record.get('result_sha256') == digest(result), 'completed result changed: ' + str(result))
+        check_result(result, record['checks'], record.get('inventory'))
 
 
 def package_artifact(report, returncode, expected_sha, manifest):
@@ -87,7 +101,23 @@ def package_artifact(report, returncode, expected_sha, manifest):
     return {'size_acceptance': 'pending-user-after-report' if size_only else 'target-met', 'artifact': str(path)}
 
 
+def ubus_assets(spec):
+    bindings = spec.get('bindings', {})
+    names = ['ubus_reference_build', 'ubus_native_c_sha', 'ubus_image_runner', 'ubus_image_identity']
+    require(all(bindings.get(name) for name in names), 'exact-image UBus runner and independent helper build bindings required')
+    runner, identity = (Path(bindings[name]).resolve() for name in ['ubus_image_runner', 'ubus_image_identity'])
+    reference = verify_reference(runner, identity)
+    require(reference['kind'] == 'image-aarch64-musl' and reference['elf_sha256'] == STOCK_SHA256,
+            'native C is a UBus helper input, never behavioural authority')
+    native = Path(bindings['ubus_reference_build']).resolve()
+    require(digest(native / 'dnsmasq/dnsmasq') == bindings['ubus_native_c_sha'], 'native UBus helper build identity differs')
+    assets = {str(identity.parent / name): expected for name, expected in TARGET_FILES.items()}
+    assets.update({str(path): digest(path) for path in [runner, identity, native / 'dnsmasq/dnsmasq']})
+    return assets, {'root': str(native / 'deps'), 'files': file_map(native / 'deps'), 'reference': reference}
+
+
 def prepare(args):
+    require(sys.flags.optimize == 0 and not os.environ.get('PYTHONOPTIMIZE'), 'assertion-enabled Python required by original drivers')
     spec = json.loads(args.inputs.read_text())
     source = Path(spec['source_root']).resolve()
     out = args.out.resolve()
@@ -132,6 +162,12 @@ def prepare(args):
     assets.update({str(Path(path).resolve()): digest(Path(path)) for path in spec['variant_apks'] + spec['variant_dependency_apks']})
     for path in spec.get('bindings', {}).values():
         if Path(path).is_file(): assets[str(Path(path).resolve())] = digest(path)
+    pinned_ubus, ubus_helpers = ubus_assets(spec)
+    assets.update(pinned_ubus)
+    link_map = Path(spec.get('bindings', {}).get('link_map', '')).resolve()
+    require(link_map == Path(spec['build_json']).resolve().parent / 'link.map'
+            and any(row['path'] == 'link.map' and row['sha256'] == digest(link_map)
+                    for row in build['artifacts']), 'link map must belong to this exact release build')
     tools = source / 'tools/dnsmasq'
     spec.update(schema=1, status='prepared-not-executed', source_root=str(source), output=str(out),
                 elf=str(elf), elf_bytes=elf.stat().st_size, assets=assets,
@@ -140,6 +176,7 @@ def prepare(args):
                 image_files=file_map(image),
                 sdk_archive_sha256=archive_sha, sdk_files=build_package.sdk_inputs(sdk),
                 family_registry=families, dhcp_profiles=list(plan['profiles']),
+                ubus_helpers=ubus_helpers,
                 phases=PHASES, physical_router=False, size_acceptance='pending-user-after-report',
                 m4_baseline={'elf_bytes': 1159280, 'full_cache_rss_kib': 2676},
                 resource_seconds=300, fuzz_seconds_per_target=1800)
@@ -162,7 +199,9 @@ def prepare(args):
 def context(spec, output):
     return {**spec.get('bindings', {}), 'python': sys.executable, 'source': spec['source_root'], 'tools': spec['source_root'] + '/tools/dnsmasq',
             'image': spec['image_root'], 'runtime': spec['runtime_root'], 'elf': spec['elf'],
-            'elf_sha': spec['elf_sha256'], 'commit': spec['source_commit'], 'out': str(output)}
+            'elf_sha': spec['elf_sha256'], 'commit': spec['source_commit'], 'out': str(output),
+            'ubus_image_runner_sha': spec.get('ubus_helpers', {}).get('reference', {}).get('runner_sha256', ''),
+            'ubus_image_identity_sha': spec.get('ubus_helpers', {}).get('reference', {}).get('identity_sha256', '')}
 
 
 def expand(value, values):
@@ -249,12 +288,14 @@ def commands(spec, phase, output):
 
 
 def verify_identity(spec):
+    require(sys.flags.optimize == 0 and not os.environ.get('PYTHONOPTIMIZE'), 'driver assertions were disabled')
     require(digest(spec['elf']) == spec['elf_sha256'], 'ELF changed after freeze')
     require(build_package.inputs(Path(spec['source_root'])) == spec['source_files'], 'product/packaging source changed')
     require(file_map(Path(spec['source_root']) / 'tools/dnsmasq') == spec['tools'], 'frozen tools changed')
     require(file_map(Path(spec['runtime_root'])) == spec['runtime_files'], 'runtime evidence changed')
     require(file_map(Path(spec['image_root'])) == spec['image_files'], 'exact image files changed')
     require(build_package.sdk_inputs(Path(spec['sdk'])) == spec['sdk_files'], 'SDK tools changed')
+    require(file_map(Path(spec['ubus_helpers']['root'])) == spec['ubus_helpers']['files'], 'independent UBus helper inputs changed')
     for path, expected in spec['assets'].items(): require(digest(path) == expected, f'frozen asset changed: {path}')
 
 
@@ -297,9 +338,18 @@ def publish(spec, manifest_sha, result):
             for family in spec['family_registry']['families']:
                 records = [row for row in result['commands'] if row.get('family') == family['id']]
                 expected = {family['id'] + '-' + step['id'] for step in family['steps']}
-                if not records: continue
-                if {row['id'] for row in records} != expected or not all(row.get('passed') is True for row in records):
+                selected = result.get('selected_families') or [row['id'] for row in spec['family_registry']['families']]
+                if not records and family['id'] not in selected: continue
+                if len(records) != len(expected) or {row['id'] for row in records} != expected or not all(row.get('passed') is True for row in records):
                     completed.pop('family:' + family['id'], None); completed.pop('families', None)
+                    continue
+                try:
+                    verify_command_results(records)
+                except (ValueError, OSError, KeyError) as error:
+                    completed.pop('family:' + family['id'], None); completed.pop('families', None)
+                    result['passed'] = False
+                    result['failures'].append('completion result validation: ' + repr(error))
+                    atomic_save(Path(result['attempt']) / 'result.json', result)
                     continue
                 receipt = dict(result, phase='family:' + family['id'], passed=True, failures=[], commands=records)
                 receipt_path = Path(result['attempt']) / (family['id'] + '.result.json')
@@ -329,6 +379,14 @@ def prerequisite(spec, manifest_sha, completed, phase):
             phase + ': complete result from this exact freeze required')
     receipt = Path(record.get('receipt', str(Path(record['attempt']) / 'result.json')))
     require(json.loads(receipt.read_text()) == record, phase + ': receipt changed')
+    if phase == 'families':
+        expected = {'family:' + row['id'] for row in spec['family_registry']['families']}
+        require(set(record.get('family_receipts', {})) == expected, 'aggregate misses frozen families')
+        for name, path in record['family_receipts'].items():
+            child = prerequisite(spec, manifest_sha, completed, name)
+            require(child['receipt'] == path, 'aggregate points to another family receipt')
+    elif phase.startswith('family:'):
+        verify_command_results(record['commands'])
     return record
 
 
@@ -403,7 +461,9 @@ def run(args):
                 record.update(package_artifact(report, process.returncode, spec['elf_sha256'], Path(job['result'])))
             else:
                 require(process.returncode == 0, f'{job["id"]} exited {process.returncode}')
-                if job['result']: check_result(Path(job['result']), job['checks'], job.get('inventory'))
+                if job['result']:
+                    check_result(Path(job['result']), job['checks'], job.get('inventory'))
+                    record['result_sha256'] = digest(Path(job['result']))
             if phase == 'm2' and job['id'] == 'dhcp-four-profiles':
                 for profile in spec['dhcp_profiles']:
                     result = Path(job['argv'][-1]) / ('final-' + profile + '-comparison.json')
@@ -445,6 +505,7 @@ def summary(args):
     spec = json.loads(args.manifest.read_text()); verify_identity(spec)
     root = Path(spec['output']); completed = json.loads((root / 'completed.json').read_text())
     missing = [phase for phase in PHASES if not completed.get(phase, {}).get('passed')]
+    if 'families' not in missing: prerequisite(spec, digest(args.manifest), completed, 'families')
     for phase, record in completed.items():
         require(record['elf_sha256'] == spec['elf_sha256'] and record['source_commit'] == spec['source_commit'], 'phase used another identity')
         require(record['manifest_sha256'] == digest(args.manifest), 'phase used another frozen tools/input identity')

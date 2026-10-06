@@ -84,10 +84,15 @@ class FinalValidationTests(unittest.TestCase):
                     'family_registry': {'families': [{'id': name, 'steps': [{'id': 'paired'}]} for name in names]}}
             def result(name, passed=True):
                 attempt = root / name; attempt.mkdir(exist_ok=True)
+                output = attempt / 'fixture-result.json'
+                final.save(output, {'qualified': passed})
                 return {'phase': 'families', 'passed': passed, 'failures': [], 'attempt': str(attempt),
+                        'selected_families': [name],
                         'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'],
                         'manifest_sha256': 'c' * 64,
-                        'commands': [{'id': name + '-paired', 'family': name, 'passed': passed}]}
+                        'commands': [{'id': name + '-paired', 'family': name, 'passed': passed,
+                                      'returncode': 0 if passed else 1, 'result': str(output),
+                                      'result_sha256': final.digest(output), 'checks': {'qualified': True}}]}
             final.publish(spec, 'c' * 64, result('a'))
             completed = json.loads((root / 'completed.json').read_text())
             self.assertIn('family:a', completed); self.assertNotIn('families', completed)
@@ -96,6 +101,11 @@ class FinalValidationTests(unittest.TestCase):
             completed = json.loads((root / 'completed.json').read_text())
             self.assertTrue(completed['families']['passed'])
             self.assertEqual(len(completed['families']['family_receipts']), 4)
+            final.prerequisite(spec, 'c' * 64, completed, 'families')
+            altered = root / 'c/fixture-result.json'
+            final.save(altered, {'qualified': False})
+            with self.assertRaises(ValueError): final.prerequisite(spec, 'c' * 64, completed, 'families')
+            final.save(altered, {'qualified': True})
             final.publish(spec, 'c' * 64, result('a', False))
             completed = json.loads((root / 'completed.json').read_text())
             self.assertNotIn('families', completed); self.assertNotIn('family:a', completed)
