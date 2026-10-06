@@ -10,3 +10,5 @@
 | suite人工中断守卫f405 | 9PASS/1FAIL：已prune但未恢复gate时重启，再次inventory缺失run；不是Oracle性能失败，完整归档一直在。 | 6e2e6062加先验prune-intent和恢复；b85a9628首次intent前严格full inventory相等、拒绝未归档变化。53c8a71a人工12/12PASS，包括半scp原子重拷、PID归属/重用、pending gate优先、旧prune恢复、坏产品数据保留；[私有审查目录](../../../private/dnsmasq-rewrite/evidence/M6A/review/)。 |
 
 全部工具bug在正式数据仍0/135时处理。s fresh build仍8427b9ab…／1,613,864B，只用于性能；没有修改产品或执行M6b。CPU/延迟等结论必须等至少5轮正式数据，不从这些pilot挑数。
+
+TCP修复374e19df后的第二campaign manifest f0055eb3410c961a54818854b60a30d058e58be38994e43241e3e74a766e88f8全量短试跑仍excluded。udp-miss-r3 attempt1被exclusive门拒绝（foreign PID3799283/start102126517/cmdline hash978de9…db29）；本窗口primary start102125543且cmdline hash不同、10个resource样本children[]，现有证据不能确认来源，不改归属规则。原archive f5d1af7f…cf61已本地full SHA+metadata核验；同manifest孤立attempt2与串行attempt3均通过。原command与guard报告保留[命令证据](../../../private/dnsmasq-rewrite/evidence/M6a/freeze-tcp374e19df/udp-miss-r3-pilot1-command.json)，不将拒绝改写成已通过或产品失败。
