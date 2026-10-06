@@ -593,9 +593,11 @@ def run_profile(root,side,profile,client,server,out,syscall_witness=False):
                     topology=client.recreate_client_link()
                     time.sleep(.15)
                 before={'upstream':server.call(op='take')['packets'],'downstream':client.call(op='take')['packets']}
+                topology_before=json.loads(subprocess.check_output(['ip','-j','address','show'],text=True)) if syscall_witness else None
                 value=bytes.fromhex(item["packet"]).replace(b"IFID",struct.pack("!I",socket.if_nametoindex("client0")))
                 peer=client if item["sender"]=="client" else server
                 case_started_ns=time.monotonic_ns()
+                case_started_epoch=time.time()
                 peer.call(op="send",packet=value.hex(),port=item["source_port"],destination=item["destination"],source_address=item["source_address"],copies=item["copies"])
                 observed,observation=collect_packets(client,server,item)
                 # Linux loops a peer's own emitted limited broadcast into
@@ -608,6 +610,7 @@ def run_profile(root,side,profile,client,server,out,syscall_witness=False):
                 row["cases"].append({"name":item["name"],"request":value.hex(),"observed":observed,
                                      "peer_echo":echo,
                                      "pending_before":before,"observation":observation,"case_started_ns":case_started_ns,
+                                     "case_started_epoch":case_started_epoch,"topology_before":topology_before,
                                      "topology":topology,
                                      "alive":process.poll() is None,"heartbeat":heartbeat()})
                 if item["after"]=="down-interface":
@@ -740,12 +743,15 @@ def main(args):
     sides=["c","rust"] if args.side=="both" else [args.side]
     profiles=[profile for profile in scenarios() if not args.profile or profile["name"] in args.profile]
     save(out/"manifest.json",{"profiles":profiles,"sides":sides,"c_sha256":STOCK_SHA256,"rust_sha256":sha256(args.rust),"elf_bytes":args.rust.stat().st_size,"tool_sha256":sha256(__file__)})
-    rows=[];errors=[];cleanup={};client=server=None;grammar=[];binding=[]
+    rows=[];errors=[];cleanup={};client=server=None;grammar=[];binding=[];monitor=None;monitor_log=None
     grammar_items=[] if args.profile else grammar_cases()
     try:
         for item in grammar_items:
             for side in sides:
                 grammar.append(run_grammar(root,side,item,out/f"grammar-{item['name']}-{side}"))
+        if args.syscall_witness:
+            monitor_log=(out/'address-link-events.log').open('wb')
+            monitor=subprocess.Popen(['ip','-ts','monitor','address','link'],stdout=monitor_log,stderr=monitor_log,start_new_session=True)
         client=Peer("client0",DOWN,CLIENT);server=Peer("server0",UP,SERVER)
         save(out/"interfaces.json",[{"index":index,"name":name} for index,name in socket.if_nameindex()])
         if not args.profile:
@@ -762,6 +768,8 @@ def main(args):
             if peer is not None:
                 try:cleanup[name]=peer.close()
                 except Exception as error:cleanup[name]={"error":repr(error)}
+        if monitor is not None:cleanup['address-monitor']=stop(monitor)
+        if monitor_log is not None:monitor_log.close()
     errors+=evaluate(rows,profiles,sides)+grammar_errors(grammar,grammar_items,sides)
     if not args.profile:errors+=binding_errors(binding,sides)
     for name,result in cleanup.items():
