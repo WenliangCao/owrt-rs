@@ -157,10 +157,19 @@
       ]
     }
   ],
-  "deferred": [
-    "integer-overflow delay arithmetic",
-    "malformed relay/header combinations",
-    "allocator fault combinations"
-  ],
-  "normalization": "DHCP XID is fixture-fixed; epoch expiry and randomized timers are validated and excluded. All remaining DHCP header/options, context order, helper argv, routing interface and required log lines are compared. Delay intervals use actual receive time and C whole-second/quarter-poll bounds; counters never qualify a missing service caller."
+  "normalization": "DHCP XID is fixture-fixed; epoch expiry and randomized timers are validated and excluded. All remaining DHCP header/options, context order, helper argv, routing interface and required log lines are compared. Delay intervals use actual receive time and C whole-second/quarter-poll bounds; counters never qualify a missing service caller.",
+  "extreme_disposition": {
+    "integer-overflow delay arithmetic": {
+      "status": "fixed-and-executed",
+      "scope": "six frozen empty/signed/budget/u32 wrap actual DHCP callers and19 ordinary rows, candidate0dba599a all25 paired with4 corruption controls"
+    },
+    "malformed relay/header combinations": {
+      "status": "coverage-limit",
+      "scope": "Existing relay frozen43 source boundaries,174 packet scenarios and dedicated DHCP parser fuzz remain the defined input sets. No differing extreme input was attached to the generic cross-product label; unbounded combinations are not claimed passed."
+    },
+    "allocator fault combinations": {
+      "status": "coverage-limit",
+      "scope": "Per-family fixed failure callers and final EMFILE/ENOSPC runs are explicit gates. No observed network-policy allocation mismatch was attached to this label; arbitrary compound allocator failures are not claimed tested."
+    }
+  }
 }

@@ -2592,8 +2592,14 @@
     "malloc-workload-no-overflow"
   ],
   "log_malloc_contract": "Explicit user scope: match C option acceptance, ordinary startup and --test behavior. C emits actual allocation/reallocation/free wrapper diagnostics; Rust accepts the option and starts normally but emits no allocation trace. Allocation sizes, source sites, pointer hashes, record counts and diagnostic contents are documented behavior differences, not reproduced or fabricated. The retired binary-only global allocator experiment is preserved separately.",
-  "known_deferred": [
-    "allocation-log contents intentionally differ by explicit user instruction",
-    "extreme syntax numeric/malformed combinations"
-  ]
+  "extreme_disposition": {
+    "allocation-log contents intentionally differ by explicit user instruction": {
+      "status": "intentional-user-scope",
+      "scope": "Accept/start/--test match; allocation log contents excluded by explicit user instruction, production tracing removed."
+    },
+    "extreme syntax numeric/malformed combinations": {
+      "status": "finite-disposition-and-coverage-limit",
+      "scope": "Known domain/cache/forward/delay wrap cases are fixed under their owners. Six TFTP and three PXE out-of-int-domain safe syntax refusals have exact C/Rust witnesses; second empty conf-file and implementation version text are documented intentional differences. The generic label attached no additional concrete failing input;169x2 plus7 frozen CLI cases remain the full qualifier, not exhaustive arbitrary malformed combinations."
+    }
+  }
 }

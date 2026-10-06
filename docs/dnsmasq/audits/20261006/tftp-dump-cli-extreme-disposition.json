@@ -1,0 +1,286 @@
+{
+  "schema": "m5-tftp-dump-cli-extreme-disposition-v1",
+  "date": "2026-10-06",
+  "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "candidates": [
+    {
+      "source_commit": "2522e4a0b84c53b39e6f2fb4d5f3617884d97d3c",
+      "artifact": {
+        "path": "dnsmasq-rs",
+        "bytes": 1929256,
+        "sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d"
+      }
+    },
+    {
+      "source_commit": "0dba599ad719778c7a9928b4340710abec8ee286",
+      "artifact": {
+        "path": "dnsmasq-rs",
+        "bytes": 1929256,
+        "sha256": "ecbf16f5bab4404cada8b3f627386ac95195cbcaa19eab0675a4fe376215992b"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "name": "boot-2522-01",
+      "candidate_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "c86469c693cf0d71027473533210a5cd481f0b1dcca5d857fc648454927b2afa",
+        "entries": 1264,
+        "regular_files": 1128,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/boot-2522-01",
+      "status": true,
+      "compared": 102,
+      "syntax_count": 6,
+      "intentional_syntax_differences": 3
+    },
+    {
+      "name": "delay-0dba-01",
+      "candidate_sha256": "ecbf16f5bab4404cada8b3f627386ac95195cbcaa19eab0675a4fe376215992b",
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "ef855d965a2764597265e16a28cc77c21dcd71372f0a9194617f58c5a02c26a3",
+        "entries": 758,
+        "regular_files": 585,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/delay-0dba-01",
+      "status": false,
+      "paired_count": 24,
+      "controls": 0,
+      "side_failures": {
+        "c": [
+          {
+            "case": "delay-tag-before-fallback",
+            "error": "AssertionError('actual reply delay interval/caller gate')"
+          }
+        ],
+        "rust": [
+          {
+            "case": "delay-tag-before-fallback",
+            "error": "AssertionError('actual reply delay interval/caller gate')"
+          }
+        ]
+      }
+    },
+    {
+      "name": "delay-0dba-02",
+      "candidate_sha256": "ecbf16f5bab4404cada8b3f627386ac95195cbcaa19eab0675a4fe376215992b",
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "8720d8a7e6e421ef0ddd3fb3b07a24070fdb77ea35254eb2c25e9f054089c4af",
+        "entries": 756,
+        "regular_files": 583,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/delay-0dba-02",
+      "status": true,
+      "paired_count": 25,
+      "controls": 4,
+      "side_failures": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "name": "fifo-pressure-2522-01",
+      "candidate_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "3ce80383da66cdd15eb50c2420882042b1c6ce29fe1e85423a89ff3ab1e06bcc",
+        "entries": 77,
+        "regular_files": 38,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/fifo-pressure-2522-01",
+      "status": false,
+      "paired_count": 1,
+      "intentional_difference_count": 1,
+      "controls": 8
+    },
+    {
+      "name": "fifo-pressure-2522-02",
+      "candidate_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "8cd8b0ead6257a5fc466077b660a447a1935f19d26e13a7bd495edddad85f0fc",
+        "entries": 79,
+        "regular_files": 40,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/fifo-pressure-2522-02",
+      "status": false,
+      "paired_count": 1,
+      "intentional_difference_count": 1,
+      "controls": 8
+    },
+    {
+      "name": "mask-2522-01",
+      "candidate_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "72b396bbfdddaae9f8d47c18dde8141479e731ec462ba9a82ea13b80635d8c25",
+        "entries": 298,
+        "regular_files": 241,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/mask-2522-01",
+      "status": false,
+      "paired_count": 12,
+      "ordinary_mismatches": 0,
+      "controls": 4
+    },
+    {
+      "name": "pxe-syntax-0dba-01",
+      "candidate_sha256": null,
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "6465b33ffa2e35e6e8ed386e60c46dc1a81f9c956d35ce6d7d3b62944cbe0341",
+        "entries": 401,
+        "regular_files": 263,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/pxe-syntax-0dba-01",
+      "status": true,
+      "syntax_count": 61,
+      "intentional_syntax_differences": 11,
+      "runtime_executed": false
+    },
+    {
+      "name": "pxe-syntax-2522-01",
+      "candidate_sha256": null,
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "0ecc30a01887199c9e910d7f97fec686624426b554f6ff37050db06a222d229c",
+        "entries": 383,
+        "regular_files": 251,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/pxe-syntax-2522-01",
+      "status": true,
+      "syntax_count": 58,
+      "intentional_syntax_differences": 8,
+      "runtime_executed": false
+    },
+    {
+      "name": "tftp-reference-0dba-01",
+      "candidate_sha256": null,
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "fc80ec2241328bf74aa885c08fa92bcce52129ce5156bd2aa3e46c41327e7018",
+        "entries": 157,
+        "regular_files": 108,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/tftp-reference-0dba-01",
+      "status": true,
+      "reference_services": 3,
+      "syntax_count": 6,
+      "controls": 32,
+      "unexpected_cases": []
+    },
+    {
+      "name": "tftp-reference-2522-01",
+      "candidate_sha256": null,
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "51072df83b143ea208363b4c6993838e80bc6941080e4e5b67664992382999b9",
+        "entries": 119,
+        "regular_files": 76,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/tftp-reference-2522-01",
+      "status": true,
+      "reference_services": 3,
+      "syntax_count": 0,
+      "controls": 32,
+      "unexpected_cases": []
+    },
+    {
+      "name": "tftp-zero-0dba-01",
+      "candidate_sha256": null,
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "48ed3cd02ebf0cb44b6a94e8529b6076bfedba9c71baa3e9c4297432a6ef48c1",
+        "entries": 132,
+        "regular_files": 88,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/tftp-zero-0dba-01",
+      "status": false,
+      "reference_services": 2,
+      "syntax_count": 6,
+      "controls": 24,
+      "unexpected_cases": [
+        "reference-zero-block-v4",
+        "reference-zero-block-v6"
+      ]
+    },
+    {
+      "name": "tftp-zero-0dba-02",
+      "candidate_sha256": null,
+      "scope": "closeout calibration; final frozen ELF replay remains required",
+      "archive": {
+        "sha256": "ee87850e7ef089461156db9c6a9cdc2367f782fb29406cde35eaeef5c597d08a",
+        "entries": 134,
+        "regular_files": 90,
+        "verified_metadata": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr",
+        "remote_pruned": true
+      },
+      "evidence_prefix": "private/dnsmasq-rewrite/evidence/M5/tftp-closeout-20261006/tftp-zero-0dba-02",
+      "status": true,
+      "reference_services": 2,
+      "syntax_count": 6,
+      "controls": 24,
+      "unexpected_cases": []
+    }
+  ],
+  "final_required": {
+    "dump": {
+      "rows": 70,
+      "mask": 36,
+      "controls": 6,
+      "reference_controls": 8
+    },
+    "reply-delay": {
+      "rows": 25,
+      "controls": 4
+    },
+    "tftp": {
+      "ordinary_scenarios": 30,
+      "reference_scenarios": 5,
+      "syntax_range_refusals": 6,
+      "argv_requires": "--reference-differences; no --case"
+    },
+    "pxe": {
+      "syntax": 61,
+      "ordinary_packet_scenarios": 260
+    },
+    "boot": {
+      "observations": 102,
+      "syntax": 6
+    }
+  },
+  "known_failures_preserved": [
+    "deferred dump-cal01 andcal02 VT controls before product fix",
+    "delay-0dba-01 actual CLI omission in Side.start, both sides reply0 instead1; full25 re-run after caller wiring",
+    "tftp-zero-0dba-01 C cached DATA1 replay instead guessed DATA2; wrong V4 fixture source assumption corrected, full2 re-run"
+  ],
+  "coverage_limits_are_not_passage": true,
+  "physical_router_touched": false,
+  "m6_formal_performance_run": false
+}

@@ -137,12 +137,6 @@
     }
   ],
   "normalization": "PCAP wall timestamps validated against run interval and microsecond bounds then excluded. DNS forwarding random wire ID must first match the independent actual upstream request/reply witness; only that ID and consequent checksum are canonicalized. Configured fixed client/server/transfer ports prevent hidden endpoint normalization. Keep all IP/UDP header bytes, payloads, record lengths/order/count, file header/metadata and required dump log fields. Runtime TCP control must produce no dump record.",
-  "known_deferred": [
-    "malformed or oversized wire/header combinations",
-    "FIFO pressure beyond ordinary draining consumer",
-    "integer-overflow mask grammar combinations",
-    "allocator and gettimeofday fault combinations"
-  ],
   "option_required_cases": {
     "dumpfile": [
       "actual-write-error",
@@ -255,7 +249,22 @@
       "mask-file-quoted-vertical-tab"
     ]
   },
-  "deferred_resolution_notes": {
-    "integer_mask_grammar": "Seven source-derived LP64 strtol saturation/C-isspace controls and five file-lexer encoded/quoted controls are required; only actual PCAP execution may qualify."
+  "extreme_disposition": {
+    "integer-overflow mask grammar combinations": {
+      "status": "fixed-and-executed",
+      "scope": "12 frozen CLI/file C-isspace, LP64 saturation and encoded quoted controls; candidate2522e4a0 actual PCAP pair, no mismatch"
+    },
+    "FIFO pressure beyond ordinary draining consumer": {
+      "status": "intentional-and-executed",
+      "scope": "4096-byte undrained FIFO; fixed400queries plus DNS/TFTP health and TERM, C block/Rust bounded256 queue; raw prefix/error counts and8 negative guards"
+    },
+    "malformed or oversized wire/header combinations": {
+      "status": "coverage-limit",
+      "scope": "No observed differing input was attached to this label. Dump receives bounded service-owner payloads; ordinary frozen IP/UDP PCAP cases and TFTP503-byte parser/maximum DHCP receive boundaries are separate explicit tests. Arbitrary cross-product mutation is not claimed exhaustive."
+    },
+    "allocator and gettimeofday fault combinations": {
+      "status": "source-only-limit",
+      "scope": "dump.c uses stack header and caller buffer, without per-record allocator. Its gettimeofday receives a valid stack timeval and NULL zone; a Linux EFAULT needs an invalid caller pointer. No actual combined allocation/time failure input was observed or executed; do not count this as fault-test passage."
+    }
   }
 }
