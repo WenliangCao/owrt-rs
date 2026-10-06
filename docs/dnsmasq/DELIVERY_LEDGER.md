@@ -52,6 +52,9 @@
 | 负signed IPv6 prefix | `option.c:2679–2697`、`domain.c:264–279`把溢出prefix折叠到负int；`util.c:524–533`将负比较长度转换为size_t，可能越界读地址。 | domain/synth负IPv6 prefix在配置边界明确拒绝。 | 不进入C未定义内存路径；3实际Rust语法精准拒绝、静态C调用链，正常wrap0和IPv4折叠实际配对；[极端处置](audits/20261006/ENDPOINT_EXTREME_DISPOSITION.md)。 |
 | 不可编码的SYN PTR目标 | `domain.c:153–209`派生64/86字节label或256B wire target，`rfc1035.c:1992–2000/1600–1608`、`util.c:294–324`不检查DNS界限，实际返回损坏PTR。 | 按wire Name规则验证，不能表示的目标不发PTR，按正常路由转发；已修原Rust伪造root PTR。 | 不生成损坏DNS或虚假root PTR；合法label63/name253、真实上下游NX阳性/传输/健康及33负控严格。 |
 | dump FIFO压力与退出待写 | `dump.c:70–76/291–295`同步写阻塞，4096B满pipe下C在第58query停滞，并等待drain才能服务/退出。 | 队列上限256；400查询和DNS/TFTP健康保持，满后报failed to write packet dump，TERM不阻塞并丢未写队列。 | 单owner不得因dump消费者停读而停止网络或退出；C58完整PCAP及blocking阳性、Rust57已写/256pending/88overlimit精确守卫与8负控，不把队列丢弃当零差异。 |
+| 非法dns-rr hex | `option.c:5091/5103/5116`将`util.c:623–625 parse_hex`的-1转为size_t，与32位-1U比较未拦截，C分配失败退出4。 | 语法拒绝退出1。 | 无有效RR编码；不把非法hex变成超大分配，普通合法hex及error边界仍对照；最终local-records新跑绑定。 |
+| CAA总长超u16 | `dnsmasq.h:403`/`option.c:5144–5149`先窄化len分配后复制完整65536/65537B字符串，C heap越界。 | 明确拒绝超过wire容量的值。 | 不复制越界访问；既有定位/记录保留，最终同ELF length profiles会明确分类，当前不冒称新资格。 |
+| TFTP零块MTU | `tftp.c` MTU减IP/UDP/TFTP头使块长为0；原块状态保存零offset重复空DATA1。V4 MTU32/V6 MTU52实际OACK0后两次空DATA1。 | 返回完整ERR4，保持FD回收及其他网络服务。 | 零块协商不能传输合法文件；C真实wire序列、Rust错误、双方正常退出/FD0/健康及24负控严格，最终TFTP ref5再fresh。 |
 
 ## 当前状态与退出条件
 
