@@ -521,7 +521,25 @@ def binding_errors(rows,sides):
     return failures
 
 
-def run_profile(root,side,profile,client,server,out):
+def collect_packets(client, server, item):
+    start=time.monotonic()
+    positive=bool(item['upstream'] or item['downstream'])
+    deadline=start+(2 if positive else .25)
+    complete=None
+    observed={'upstream':[],'downstream':[]}
+    while True:
+        observed['upstream'] += server.call(op='take')['packets']
+        observed['downstream'] += client.call(op='take')['packets']
+        now=time.monotonic()
+        if positive and complete is None and all(len(observed[key])>=item[key] for key in observed):complete=now
+        # Keep the original120ms post-receive observation to detect extras;
+        # positive completion waits for actual packets, bounded to two seconds.
+        if now>=deadline or complete is not None and now-complete>=.12:break
+        time.sleep(min(.01,max(0,deadline-now)))
+    return observed,dict(positive=positive,elapsed_seconds=time.monotonic()-start,max_seconds=2 if positive else .25)
+
+
+def run_profile(root,side,profile,client,server,out,syscall_witness=False):
     out.mkdir()
     text=config(profile)
     (out/"dnsmasq.conf").write_text(text)
@@ -531,7 +549,7 @@ def run_profile(root,side,profile,client,server,out):
     row={"side":side,"profile":profile["name"],"cases":[],"started":False}
     checked=subprocess.run(command(root,side,"--test","-C","/m2/relay.conf"),capture_output=True,text=True,timeout=3)
     row["test"]={"exit":checked.returncode,"stdout":checked.stdout,"stderr":checked.stderr}
-    process=None
+    process=None;tracer=None;trace_log=None
     if profile.get("secondary"):
         ip("addr","add","10.77.0.3/24","brd","+","dev","client0")
     if profile.get("duplicate"):
@@ -544,6 +562,14 @@ def run_profile(root,side,profile,client,server,out):
             time.sleep(.18)
             if process.poll() is not None:
                 raise AssertionError(f"daemon startup exit {process.returncode}")
+            if syscall_witness:
+                trace_path=out/'syscall-witness.jsonl';trace_log=(out/'trace-controller.log').open('wb')
+                tracer=subprocess.Popen([sys.executable,str(Path(__file__).with_name('m5_relay_trace.py')),
+                    '--pid',str(process.pid),'--out',str(trace_path)],stdout=trace_log,stderr=trace_log)
+                ready=trace_path.with_suffix('.ready');deadline=time.monotonic()+3
+                while not ready.exists() and tracer.poll() is None and time.monotonic()<deadline:time.sleep(.005)
+                assert ready.exists(),'actual syscall witness attachment'
+                row['syscall_witness']='syscall-witness.jsonl'
             row["started"]=True
             row["identity"]=process_identity(root,process.pid)
             row["threads"]=len(list(Path(f"/proc/{process.pid}/task").iterdir()))
@@ -566,12 +592,12 @@ def run_profile(root,side,profile,client,server,out):
                 elif item["after"]=="recreate":
                     topology=client.recreate_client_link()
                     time.sleep(.15)
-                client.call(op="take");server.call(op="take")
+                before={'upstream':server.call(op='take')['packets'],'downstream':client.call(op='take')['packets']}
                 value=bytes.fromhex(item["packet"]).replace(b"IFID",struct.pack("!I",socket.if_nametoindex("client0")))
                 peer=client if item["sender"]=="client" else server
+                case_started_ns=time.monotonic_ns()
                 peer.call(op="send",packet=value.hex(),port=item["source_port"],destination=item["destination"],source_address=item["source_address"],copies=item["copies"])
-                time.sleep(.12)
-                observed={"upstream":server.call(op="take")["packets"],"downstream":client.call(op="take")["packets"]}
+                observed,observation=collect_packets(client,server,item)
                 # Linux loops a peer's own emitted limited broadcast into
                 # its other listening port. Keep that raw observation, but
                 # it is not a packet emitted by the relay under test.
@@ -581,6 +607,7 @@ def run_profile(root,side,profile,client,server,out):
                     observed[direction]=[row for row in observed[direction] if row not in echo]
                 row["cases"].append({"name":item["name"],"request":value.hex(),"observed":observed,
                                      "peer_echo":echo,
+                                     "pending_before":before,"observation":observation,"case_started_ns":case_started_ns,
                                      "topology":topology,
                                      "alive":process.poll() is None,"heartbeat":heartbeat()})
                 if item["after"]=="down-interface":
@@ -593,6 +620,10 @@ def run_profile(root,side,profile,client,server,out):
     except Exception as error:
         row["error"]=repr(error)
     finally:
+        if tracer is not None:
+            tracer.terminate();tracer.wait(timeout=3)
+            assert tracer.returncode==0,'syscall witness clean detach'
+        if trace_log is not None:trace_log.close()
         if process is not None:
             row["cleanup"]=stop(process)
         row["pid_removed"]=not (root/"m2/relay.pid").exists()
@@ -722,7 +753,7 @@ def main(args):
                 for side in sides:binding.append(run_binding(root,side,kind,out/f"binding-{kind}-{side}"))
         for profile in profiles:
             for side in sides:
-                row=run_profile(root,side,profile,client,server,out/f"{profile['name']}-{side}")
+                row=run_profile(root,side,profile,client,server,out/f"{profile['name']}-{side}",args.syscall_witness)
                 rows.append(row)
                 print(json.dumps({"profile":profile["name"],"side":side,"cases":len(row["cases"]),"error":row.get("error")}),flush=True)
     except Exception as error:errors.append(repr(error))
@@ -752,6 +783,7 @@ if __name__=="__main__":
     parser.add_argument("--out",type=Path)
     parser.add_argument("--side",choices=["both","c","rust"],default="both")
     parser.add_argument("--profile",action="append")
+    parser.add_argument("--syscall-witness",action="store_true",help="read-only recv/send/SIOCSARP ptrace witness")
     args=parser.parse_args()
     if args.actor:actor()
     elif args.recheck:raise SystemExit(recheck(args.recheck))
