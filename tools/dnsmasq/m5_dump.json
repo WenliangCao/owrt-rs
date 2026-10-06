@@ -38,7 +38,12 @@
         "mask-long-negative-overflow",
         "mask-unsigned-long-max",
         "mask-hex-overflow",
-        "mask-base-zero-octal-stop"
+        "mask-base-zero-octal-stop",
+        "mask-file-vertical-tab",
+        "mask-file-quoted-seven",
+        "mask-file-quoted-space-one",
+        "mask-file-part-quoted-digit",
+        "mask-file-quoted-vertical-tab"
       ]
     },
     {
@@ -202,7 +207,12 @@
       "mask-long-negative-overflow",
       "mask-unsigned-long-max",
       "mask-hex-overflow",
-      "mask-base-zero-octal-stop"
+      "mask-base-zero-octal-stop",
+      "mask-file-vertical-tab",
+      "mask-file-quoted-seven",
+      "mask-file-quoted-space-one",
+      "mask-file-part-quoted-digit",
+      "mask-file-quoted-vertical-tab"
     ],
     "dumpmask": [
       "syntax-file",
@@ -235,10 +245,15 @@
       "mask-long-negative-overflow",
       "mask-unsigned-long-max",
       "mask-hex-overflow",
-      "mask-base-zero-octal-stop"
+      "mask-base-zero-octal-stop",
+      "mask-file-vertical-tab",
+      "mask-file-quoted-seven",
+      "mask-file-quoted-space-one",
+      "mask-file-part-quoted-digit",
+      "mask-file-quoted-vertical-tab"
     ]
   },
   "deferred_resolution_notes": {
-    "integer_mask_grammar": "Seven source-derived LP64 strtol saturation/C-isspace PCAP controls added; calibration pending, unexecuted controls do not qualify."
+    "integer_mask_grammar": "Seven source-derived LP64 strtol saturation/C-isspace controls and five file-lexer encoded/quoted controls are required; only actual PCAP execution may qualify."
   }
 }
