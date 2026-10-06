@@ -52,6 +52,21 @@ impl QueryIds {
     }
 }
 
+#[cfg(test)]
+mod id_wrap_tests {
+    use super::*;
+    #[test]
+    fn signed_display_and_parent_reservation_wrap_explicitly() {
+        let mut ids = QueryIds(i32::MAX);
+        assert_eq!(ids.next(false, None).display_id, i32::MIN);
+        assert_eq!(ids.next(true, None).display_id, i32::MAX);
+        let mut parent = QueryIds(i32::MAX - 49);
+        let child = parent.accept_tcp();
+        assert_eq!(child.0, i32::MAX - 49);
+        assert_eq!(parent.0, i32::MIN + 50);
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum QueryData {
     /// Plain producer diagnostic, independent of query filters and prefixes.
@@ -507,6 +522,32 @@ mod tests {
         };
         assert!(format(only_failed, QueryContext::default(), &reverse).is_none());
         assert!(format(only_failed, QueryContext::default(), &negative).is_some());
+    }
+    #[test]
+    fn source_controlled_signed_extremes_use_the_C_unsigned_display_word() {
+        let config = crate::config::logging::QueryLogging {
+            enabled: true,
+            extra: true,
+            protocol: true,
+            ..Default::default()
+        };
+        let event = QueryEvent::label(CONFIG, b"wrap.logging", Some(b"value"), 0);
+        for (seed, expected) in [
+            (0, "UDP 0"),
+            (1, "UDP 1"),
+            (-1, "TCP 1"),
+            (i32::MAX, "UDP 2147483647"),
+            (i32::MIN, "TCP 2147483648"),
+        ] {
+            let context = QueryContext {
+                display_id: seed,
+                client: None,
+            };
+            assert_eq!(
+                format(config, context, &event).unwrap().message,
+                format!("{expected} config wrap.logging is value").as_bytes()
+            );
+        }
     }
     #[test]
     fn actual_client_protocol_and_parent_tcp_reservation_are_independent() {
