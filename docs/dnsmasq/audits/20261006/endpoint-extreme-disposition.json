@@ -1,0 +1,237 @@
+{
+  "schema": "m5-endpoint-extreme-disposition-v1",
+  "candidate_source_commit": "2522e4a0b84c53b39e6f2fb4d5f3617884d97d3c",
+  "rust_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+  "rust_elf_bytes": 1929256,
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "paired_syntax_profiles": 6,
+  "rust_only_undefined_reference_rejections": 3,
+  "paired_service_profiles": 8,
+  "service_observations_per_side": 104,
+  "negative_controls": [
+    "missing-row",
+    "wrong-diagnostic",
+    "wrong-exit",
+    "startup",
+    "wrong-answer",
+    "missing-forward",
+    "wrong-server",
+    "leaked-child",
+    "leaked-pid",
+    "wrong-helper",
+    "wrong-metrics",
+    "wrong-reading",
+    "missing-partial-read",
+    "missing-fifo-progress",
+    "missing-large-progress",
+    "missing-kernel",
+    "extra-owner-thread",
+    "wrong-runtime-uid",
+    "local-ttl-not-hidden-by-cname-clock",
+    "wrong-allocation-size",
+    "allocation-did-not-fail",
+    "wrong-allocator-pc",
+    "missing-dhcp-domain-consumer",
+    "wrong-dhcp-domain",
+    "missing-hosts-stream",
+    "missing-hosts-read-fd",
+    "missing-hosts-consumed-prefix",
+    "synth-wrong-c-wire",
+    "synth-fabricated-root-ptr",
+    "synth-missing-real-upstream",
+    "synth-wrong-upstream-source",
+    "synth-wrong-question",
+    "synth-missing-transport"
+  ],
+  "original_product_red_profiles": 5,
+  "corrected_fixture_red_profiles": 3,
+  "partial_catalog_failed_attempts": 1,
+  "intentional_differences": [
+    "unrepresentable synthesized PTR targets omitted instead of C malformed wire",
+    "negative signed IPv6 prefix safely rejected instead of C out-of-bounds memcmp"
+  ],
+  "qualified_ordinary_rows_preserved": 288,
+  "ordinary_syntax_profiles_preserved": 252,
+  "ordinary_service_profiles_preserved": 276,
+  "scope": "Extreme closeout only. Final frozen all-family replay is still required on the final ELF. No physical router and no M6 performance window.",
+  "archives": [
+    {
+      "run": "syntax-before-01",
+      "archive_sha256": "8d7a2c97e520561b1b34ee346a6aae266356570b51e2a83a8eb490dcf78fd71f",
+      "inventory_sha256": "90cc32a5cc6b28b8910b895c3597cd1fc3bf9551ea77ce0e9c35d825ebba0664",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "73e87b7ccf2b06a20f7cf845e054c910c86a2c298c8dfd40013c345acb8414cf",
+      "cases": 6,
+      "failures": [
+        {
+          "case": "domain-srv-appended-126",
+          "error": "syntax differs"
+        },
+        {
+          "case": "domain-suffix-srv-appended-126",
+          "error": "syntax differs"
+        }
+      ],
+      "comparison_executed": true,
+      "rust_sha256": "6448e581a479390e235b838b46b72f9f2066ad2203f4f353dafb0938bce37813",
+      "driver_sha256": "81888b7992c363ad9e9b01e80c11e73032c83755573267f9525dbbb95472d5bd"
+    },
+    {
+      "run": "service-before-01",
+      "archive_sha256": "b2868e26c81df166fcca2ced547d4adbba0f8111acc4d6c882ec0cd2600de152",
+      "inventory_sha256": "d368d62a4b32aba893836be6343b43617ee126b845395c7ce740d95086ecbbc2",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "a2c57624a4f81d65c8807149af0c94c2eae947e5c5f505038e289a0d7414bb9c",
+      "cases": 6,
+      "failures": [
+        {
+          "case": "synth-extreme-label-25",
+          "error": {
+            "error": "safe NXDOMAIN fallback and actual upstream missing",
+            "id": "reverse:udp",
+            "phase": "synth-extreme",
+            "side": "rust"
+          }
+        },
+        {
+          "case": "synth-extreme-label-47",
+          "error": {
+            "error": "safe NXDOMAIN fallback and actual upstream missing",
+            "id": "reverse:udp",
+            "phase": "synth-extreme",
+            "side": "rust"
+          }
+        },
+        {
+          "case": "synth-extreme-name-52",
+          "error": {
+            "error": "safe NXDOMAIN fallback and actual upstream missing",
+            "id": "reverse:udp",
+            "phase": "synth-extreme",
+            "side": "rust"
+          }
+        }
+      ],
+      "comparison_executed": true,
+      "rust_sha256": "6448e581a479390e235b838b46b72f9f2066ad2203f4f353dafb0938bce37813",
+      "driver_sha256": "81888b7992c363ad9e9b01e80c11e73032c83755573267f9525dbbb95472d5bd"
+    },
+    {
+      "run": "negative-v6-before-01",
+      "archive_sha256": "f6ca09c2f6667c299598cc6382d6d2255c0de6fe028991c4e1a3717c57ad262c",
+      "inventory_sha256": "d02f7cbc6344cf64ef857e391598536b3d583a8fedfabebfe070eef669c674b1",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "0f3da4fdd5b5465c20a912637e1e5cbc083fbac52685a9b5cc96fccfb920898b",
+      "cases": 3,
+      "failures": [],
+      "comparison_executed": false,
+      "rust_sha256": "6448e581a479390e235b838b46b72f9f2066ad2203f4f353dafb0938bce37813",
+      "driver_sha256": "81888b7992c363ad9e9b01e80c11e73032c83755573267f9525dbbb95472d5bd"
+    },
+    {
+      "run": "syntax-after-252-01",
+      "archive_sha256": "b32225647174bf9ed0040bff028a3fb604f9e8502e26171ca1f2cf98f846b98b",
+      "inventory_sha256": "20ea74b9040b73eb31d5253241efea7dd969e9b50f39352ff2640734d072d552",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "b7bc60a343b0644414fcbed4e3664fd58bc0147bb6a0e27f4c85c701fe77f7d5",
+      "cases": 6,
+      "failures": [],
+      "comparison_executed": true,
+      "rust_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "driver_sha256": "9cb264193cea56a8f1af961478c26441a99f81cd154fd08922895fd5ea04a9e3"
+    },
+    {
+      "run": "negative-v6-after-252-01",
+      "archive_sha256": "3432b46158d688f645f6b09c5862c0dd86febb019e82822f9241511ace89dfb4",
+      "inventory_sha256": "30baa7a9cb16ddac3bbc0b475e37f4a6fc5a93a350dd528be5b696ca5676857f",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "1f36f13a0d33912e3e1500bccf7eb4fc38588c25b66b88254c4ed0f2cc951402",
+      "cases": 3,
+      "failures": [],
+      "comparison_executed": false,
+      "rust_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "driver_sha256": "9cb264193cea56a8f1af961478c26441a99f81cd154fd08922895fd5ea04a9e3"
+    },
+    {
+      "run": "service-after-252-01",
+      "archive_sha256": "230975a4b3887dddfc2ed7d27f6b63363d9395f8bc0f2968c84cb4f21b40963a",
+      "inventory_sha256": "3e8d493ae3ee19d2d5c09b6dbfd450812283f710184c598180b10cba74640267",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "897bc40ffa3604bae4d63a531ae7d247d65c62fc1e0a6a36f13dc47a340b91b7",
+      "cases": 6,
+      "failures": [
+        {
+          "case": "synth-extreme-label-25",
+          "error": {
+            "error": "safe NXDOMAIN fallback and actual upstream missing",
+            "id": "reverse:udp",
+            "phase": "synth-extreme",
+            "side": "rust"
+          }
+        },
+        {
+          "case": "synth-extreme-label-47",
+          "error": {
+            "error": "safe NXDOMAIN fallback and actual upstream missing",
+            "id": "reverse:udp",
+            "phase": "synth-extreme",
+            "side": "rust"
+          }
+        },
+        {
+          "case": "synth-extreme-name-52",
+          "error": {
+            "error": "safe NXDOMAIN fallback and actual upstream missing",
+            "id": "reverse:udp",
+            "phase": "synth-extreme",
+            "side": "rust"
+          }
+        }
+      ],
+      "comparison_executed": true,
+      "rust_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "driver_sha256": "9cb264193cea56a8f1af961478c26441a99f81cd154fd08922895fd5ea04a9e3"
+    },
+    {
+      "run": "service-after-252-02",
+      "archive_sha256": "867f765f0612e26f2e81da97eec9cd3401cd297225375cdb6d891d2989c29788",
+      "inventory_sha256": "a957abf0b1206d7aa9319bca702415fe0d8f772161a393683d5ad42a51ad8c93",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "classification": "catalog-construction failure before any C/R execution; controller log retained",
+      "log_sha256": "5b8595ff2176cadbdce2542f3de4948cb1a4f65fcc11b004644e599d0c0cef11"
+    },
+    {
+      "run": "service-after-252-03",
+      "archive_sha256": "d4110141263388da49f6f264cb891bef2fbb1a928e77aa86e765a46e9ee6d07b",
+      "inventory_sha256": "56a2efa485d0f74dd92ef690fda28bd657ea729f1e439303f0681f0caa8f8579",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "a760e8df2c22d72ca2b0c55e9706ff23cf3b4acbc6b4dc4b7fb32406e6435999",
+      "cases": 6,
+      "failures": [],
+      "comparison_executed": true,
+      "rust_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "driver_sha256": "d75f46c9174a65c3be5845e0094e9983f6d1371c32724fb6529769f39af75a44"
+    },
+    {
+      "run": "wrap-runtime-after-252-01",
+      "archive_sha256": "49db7b26ccc6743fc63e791112ede9385244aaa8f8d3eba7d2b4882e6f4898e7",
+      "inventory_sha256": "d68caf8ec612ffb0ab5947e443dfc2ec00e30fc08f5a4a034a3dc0d87d7b6fc1",
+      "metadata_verified": true,
+      "remote_run_pruned": true,
+      "result_sha256": "6aa40dede2314e4ad6f85f545232c338aa76994bf12f4381ebbe844cfa0cffdb",
+      "cases": 2,
+      "failures": [],
+      "comparison_executed": true,
+      "rust_sha256": "7f256a35731ae02a5d7d860022587ac3328e1f0ecc81440d199fe926df3ac67d",
+      "driver_sha256": "b353969f1026ea923898c7e4abe7cc29f8d2cd8c930cbb0cbf35fbdfe41bd983"
+    }
+  ]
+}
