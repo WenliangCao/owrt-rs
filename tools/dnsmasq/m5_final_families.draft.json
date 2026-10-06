@@ -264,10 +264,15 @@
           ],
           "result": "{out}/result.json",
           "checks": {
-            "passed": true
+            "passed": true,
+            "compared": 418,
+            "parse_compared": 102,
+            "unexecuted": 0,
+            "rust_sha256": "{elf_sha}"
           }
         }
-      ]
+      ],
+      "coverage_note": "Full21 configurations include local-record-boundaries (418runtime/102syntax); --length-only is forbidden because it drops required records/srv negative controls."
     },
     {
       "id": "m5_boot",
@@ -1031,7 +1036,27 @@
           ],
           "result": "{out}/comparison.json",
           "checks": {
-            "qualified": true
+            "qualified": true,
+            "full_cache_family_qualified": true
+          }
+        },
+        {
+          "id": "lease-tcp-caller",
+          "argv": [
+            "{python}",
+            "{tools}/m5_dns_cache.py",
+            "qualify-dhcp-caller",
+            "--c",
+            "{out}/c",
+            "--candidate",
+            "{out}/rust",
+            "--out",
+            "{out}/lease-tcp-caller.json"
+          ],
+          "result": "{out}/lease-tcp-caller.json",
+          "checks": {
+            "qualified": true,
+            "candidate_sha256": "{elf_sha}"
           }
         }
       ]
@@ -1114,12 +1139,17 @@
             "--mode",
             "syntax",
             "--out",
-            "{out}/syntax"
+            "{out}/syntax",
+            "--ordinary-scope",
+            "all",
+            "--allocator-map",
+            "{link_map}"
           ],
           "result": "{out}/syntax/result.json",
           "checks": {
             "failures": [],
-            "rust_sha256": "{elf_sha}"
+            "rust_sha256": "{elf_sha}",
+            "comparison_executed": true
           }
         },
         {
@@ -1140,12 +1170,44 @@
             "--mode",
             "service",
             "--out",
-            "{out}/service"
+            "{out}/service",
+            "--ordinary-scope",
+            "all",
+            "--allocator-map",
+            "{link_map}"
           ],
           "result": "{out}/service/result.json",
           "checks": {
             "failures": [],
-            "rust_sha256": "{elf_sha}"
+            "rust_sha256": "{elf_sha}",
+            "comparison_executed": true
+          }
+        },
+        {
+          "id": "qualify",
+          "argv": [
+            "{python}",
+            "{tools}/m5_interface_records_qualify.py",
+            "--scope",
+            "all",
+            "--source-commit",
+            "{commit}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--run",
+            "{out}/syntax",
+            "--run",
+            "{out}/service",
+            "--out",
+            "{out}/qualified.json"
+          ],
+          "result": "{out}/qualified.json",
+          "checks": {
+            "qualified": true,
+            "required_count": 288,
+            "qualified_required": 288,
+            "missing_required": 0,
+            "missing_profiles": 0
           }
         }
       ]
@@ -1203,6 +1265,183 @@
             "qualified": true,
             "failures": [],
             "binary_sha256": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "filterwin2k",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_option_matrix.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--manifest",
+            "{tools}/m5_filterwin2k.json",
+            "--output",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "reference_only": false,
+            "failures": [],
+            "rust_sha256": "{elf_sha}",
+            "options.filterwin2k.missing_scenarios": [],
+            "options.filterwin2k.failed_scenarios": []
+          },
+          "inventory": {
+            "field": "scenarios",
+            "key": "id",
+            "ids": [
+              "filterwin2k-enabled",
+              "filterwin2k-disabled",
+              "filterwin2k-short",
+              "filterwin2k-repeat",
+              "filterwin2k-opt-do0-rd0",
+              "filterwin2k-opt-do0-rd1",
+              "filterwin2k-opt-do1-rd0",
+              "filterwin2k-opt-do1-rd1",
+              "filterwin2k-configured-srv",
+              "filterwin2k-configured-raw",
+              "filterwin2k-configured-address-any",
+              "filterwin2k-configured-cname",
+              "filterwin2k-non-in",
+              "filterwin2k-local-domain",
+              "filterwin2k-cache-srv",
+              "filterwin2k-cache-soa",
+              "filterwin2k-cache-nx",
+              "filterwin2k-cache-any",
+              "filterwin2k-cache-cname"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "helper-shutdown",
+      "steps": [
+        {
+          "id": "paired",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_helper.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--out",
+            "{out}",
+            "--cases",
+            "init-capacity,init-exit,readonly,shutdown-debug-int,shutdown-exec-error,shutdown-exit,shutdown-group,shutdown-int,shutdown-output,shutdown-pid,shutdown-queued,shutdown-signal,slow-init"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "passed": true,
+            "failures": []
+          },
+          "inventory": {
+            "field": "cases",
+            "key": "case",
+            "side_key": "side",
+            "sides": [
+              "c",
+              "rust"
+            ],
+            "ids": [
+              "init-capacity",
+              "init-exit",
+              "readonly",
+              "shutdown-debug-int",
+              "shutdown-exec-error",
+              "shutdown-exit",
+              "shutdown-group",
+              "shutdown-int",
+              "shutdown-output",
+              "shutdown-pid",
+              "shutdown-queued",
+              "shutdown-signal",
+              "slow-init"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "ubus-ordinary",
+      "steps": [
+        {
+          "id": "all",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/ubus_daemon_diff.py",
+            "--reference-build",
+            "{ubus_reference_build}",
+            "--c-sha256",
+            "{ubus_native_c_sha}",
+            "--c-binary",
+            "{ubus_image_runner}",
+            "--c-identity",
+            "{ubus_image_identity}",
+            "--rust-binary",
+            "{elf}",
+            "--suite",
+            "all",
+            "--out",
+            "{out}"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "normal_contract_qualified": true,
+            "failed": 0,
+            "error": null,
+            "reference.kind": "image-aarch64-musl",
+            "reference.elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "identities.rust": "{elf_sha}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logging-dhcp-companion",
+      "steps": [
+        {
+          "id": "all",
+          "argv": [
+            "sh",
+            "{tools}/run_isolated.sh",
+            "{python}",
+            "{tools}/m5_logging_dhcp.py",
+            "--image-root",
+            "{image}",
+            "--rust",
+            "{elf}",
+            "--rust-sha256",
+            "{elf_sha}",
+            "--source-commit",
+            "{commit}",
+            "--output",
+            "{out}",
+            "--scopes",
+            "pxe,leasequery,relay"
+          ],
+          "result": "{out}/result.json",
+          "checks": {
+            "failures": []
           }
         }
       ]

@@ -25,6 +25,9 @@ class FinalValidationTests(unittest.TestCase):
             final.save(path, {'qualified': False})
             with self.assertRaises(ValueError): final.check_result(path, {'qualified': True})
             with self.assertRaises(KeyError): final.check_result(path, {'missing': []})
+            final.save(path, {'qualified': True, 'cases': [{'id': 'a'}]})
+            with self.assertRaises(ValueError):
+                final.check_result(path, {'qualified': True}, {'field': 'cases', 'key': 'id', 'ids': ['a', 'b']})
 
     def test_only_reviewable_size_failure_continues(self):
         with tempfile.TemporaryDirectory() as temporary:

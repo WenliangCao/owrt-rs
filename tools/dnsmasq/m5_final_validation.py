@@ -60,10 +60,19 @@ def field(value, name):
     return value
 
 
-def check_result(path, checks):
+def check_result(path, checks, inventory=None):
     value = json.loads(path.read_text())
     for name, expected in checks.items():
         require(field(value, name) == expected, f'{path}: {name} differs from {expected!r}')
+    if inventory:
+        rows = field(value, inventory['field'])
+        if inventory.get('side_key'):
+            actual = [(row[inventory['key']], row[inventory['side_key']]) for row in rows]
+            expected = [(name, side) for name in inventory['ids'] for side in inventory['sides']]
+        else:
+            actual = [row[inventory['key']] if inventory.get('key') else row for row in rows]
+            expected = inventory['ids']
+        require(len(actual) == len(expected) and set(actual) == set(expected), f'{path}: complete frozen case inventory differs')
     return value
 
 
@@ -178,6 +187,7 @@ def commands(spec, phase, output):
                     {key: expand(value, current) if isinstance(value, str) else value
                      for key, value in step.get('checks', {}).items()}, step.get('timeout_seconds', 3600))
                 jobs[-1]['family'] = family['id']
+                if step.get('inventory'): jobs[-1]['inventory'] = step['inventory']
     elif phase == 'm2':
         for profile in DNS:
             path = output / ('dns-' + profile)
@@ -393,7 +403,7 @@ def run(args):
                 record.update(package_artifact(report, process.returncode, spec['elf_sha256'], Path(job['result'])))
             else:
                 require(process.returncode == 0, f'{job["id"]} exited {process.returncode}')
-                if job['result']: check_result(Path(job['result']), job['checks'])
+                if job['result']: check_result(Path(job['result']), job['checks'], job.get('inventory'))
             if phase == 'm2' and job['id'] == 'dhcp-four-profiles':
                 for profile in spec['dhcp_profiles']:
                     result = Path(job['argv'][-1]) / ('final-' + profile + '-comparison.json')
