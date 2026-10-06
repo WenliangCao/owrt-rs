@@ -160,14 +160,15 @@ def zero_block(item, out):
         packet,peer=endpoint.recvfrom(2048);packets=[packet.hex()];(out/'reply-0.bin').write_bytes(packet)
         assert peer[0]==target[0] and peer[1]!=69,'dedicated zero-block source'
         if packet[:2]==b'\0\5':
-            expected=b'\0\5\0\4unsupported request from '+(V6_CLIENT if item.get('v6') else CLIENT['address']).encode()+b'\0'
+            expected=b'\0\5\0\4unsupported request from '+(V6_CLIENT if item.get('v6') else '10.77.0.2').encode()+b'\0'
             assert packet==expected,'exact bounded zero-block refusal wire'
             return dict(kind='zero-block-refusal',packets=packets,source='dedicated')
         assert packet==b'\0\6blksize\x000\0','C zero-block OACK'
         for block in [1,2]:
             endpoint.sendto(struct.pack('!HH',4,block-1),peer)
-            packet,current=endpoint.recvfrom(2048);assert current==peer and packet==struct.pack('!HH',3,block),'C nonempty file makes no progress'
-            packets.append(packet.hex());(out/('reply-'+str(block)+'.bin')).write_bytes(packet)
+            packet,current=endpoint.recvfrom(2048);(out/('reply-'+str(block)+'.bin')).write_bytes(packet)
+            assert current==peer and packet==struct.pack('!HH',3,1),'C zero offset replays cached empty DATA1'
+            packets.append(packet.hex())
         endpoint.sendto(b'\0\5\0\0bounded-zero-block-abort\0',peer)
         return dict(kind='zero-block-stalled',packets=packets,source='dedicated')
 
@@ -225,9 +226,9 @@ def reference_pair(c, rust, scenario):
                 return False
         return True
     if scenario['reference_difference']=='zero-block':
-        peer=V6_CLIENT if scenario['requests'][0].get('v6') else CLIENT['address']
+        peer=V6_CLIENT if scenario['requests'][0].get('v6') else '10.77.0.2'
         error=(b'\0\5\0\4unsupported request from '+peer.encode()+b'\0').hex()
-        return (c.get('requests')==[dict(kind='zero-block-stalled',packets=[b'\0\6blksize\x000\0'.hex(),b'\0\3\0\1'.hex(),b'\0\3\0\2'.hex()],source='dedicated')]
+        return (c.get('requests')==[dict(kind='zero-block-stalled',packets=[b'\0\6blksize\x000\0'.hex(),b'\0\3\0\1'.hex(),b'\0\3\0\1'.hex()],source='dedicated')]
                 and rust.get('requests')==[dict(kind='zero-block-refusal',packets=[error],source='dedicated')]
                 and all(row.get('fixture_fds_before')==[] and row.get('fixture_fds_after')==[] for row in [c,rust]))
     data = REFERENCE_FILES['boot.bin']
