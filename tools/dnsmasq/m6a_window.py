@@ -571,6 +571,8 @@ def run_load(args, daemon, root, upstream):
                 "sample_count": len(measured), "all_sample_count": len(resources),
                 "quality": {"capture_lag_passed": all(0 <= p["capture_lag_ns"] <= 250_000_000 for p in points.values()),
                             "sample_count_passed": len(measured) >= max(1, int(args.duration) - 2),
+                            "reload_schedule_complete": args.scenario != "reload" or len(reloads) == int(
+                                (args.duration - 1e-9) // args.reload_period),
                             "service_cpu_affinity_passed": all(
                                 node["affinity"] == [args.cpu_daemon] for row in measured
                                 for node in [row["parent"], *row["children"]]),
