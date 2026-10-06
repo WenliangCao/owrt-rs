@@ -1223,12 +1223,14 @@ impl<R: Random> DnsDaemon<R> {
                         continue;
                     }
                 };
+            let mut projected_truncated = false;
             for (index, recipient) in reply.recipients.iter().enumerate() {
                 if !recipient.client.reply_requested {
                     continue;
                 }
                 match self.recipient_packet(&reply, recipient, rcode) {
-                    Ok(Some(packet)) => {
+                    Ok(Some((packet, clipped))) => {
+                        projected_truncated |= clipped;
                         // return_reply logs an extra recipient after its full
                         // answer send; an upstream TC packet still fits here.
                         if self.query_logging.extra
@@ -1256,6 +1258,24 @@ impl<R: Random> DnsDaemon<R> {
                         self.poll_failures.recipient_errors =
                             self.poll_failures.recipient_errors.saturating_add(1)
                     }
+                }
+            }
+            // return_reply logs one projection after full-sized recipients,
+            // using the primary source's saved display/client context.
+            if projected_truncated {
+                if let Some(primary) = reply.recipients.first() {
+                    let mut context = primary.client.query_context();
+                    context.client = Some(primary.client.source);
+                    self.query_notice(
+                        context,
+                        QueryEvent {
+                            flags: qlog::REPLY,
+                            name: None,
+                            data: qlog::QueryData::None,
+                            argument: Some(b"truncated".to_vec()),
+                            kind: 0,
+                        },
+                    );
                 }
             }
         }
@@ -1419,7 +1439,7 @@ impl<R: Random> DnsDaemon<R> {
         reply: &UncheckedReply,
         recipient: &super::forward::Recipient,
         rcode: u16,
-    ) -> Result<Option<Vec<u8>>, DaemonError> {
+    ) -> Result<Option<(Vec<u8>, bool)>, DaemonError> {
         let mut packet = reply.packet.clone();
         recipient.restore_question(&mut packet, &reply.upstream_name)?;
         let envelope = prepare_udp_reply(
@@ -1473,7 +1493,11 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
         resize_reply(&mut packet);
-        Ok(Some(limit_udp_reply(&packet, recipient.client.udp_limit)?))
+        let clipped = packet.len() > usize::from(recipient.client.udp_limit);
+        Ok(Some((
+            limit_udp_reply(&packet, recipient.client.udp_limit)?,
+            clipped,
+        )))
     }
 
     #[cfg(test)]

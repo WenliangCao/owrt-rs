@@ -135,6 +135,7 @@ fn main() {
         #[cfg(target_os = "linux")]
         let blank_line = blank_line
             || error.is::<dnsmasq_rs::logging::LogStartError>()
+            || error.is::<dnsmasq_rs::startup::PidStartError>()
             || error.is::<dnsmasq_rs::dump::DumpError>();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         let blank_line = blank_line
@@ -147,6 +148,14 @@ fn main() {
         }
         #[cfg(target_os = "linux")]
         if let Some(raw) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
+            let mut stderr = std::io::stderr().lock();
+            let _ = stderr.write_all(b"dnsmasq-rs: ");
+            let _ = stderr.write_all(&raw.message_bytes());
+            let _ = stderr.write_all(b"\n");
+            std::process::exit(startup_status(error.as_ref()));
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(raw) = error.downcast_ref::<dnsmasq_rs::startup::PidStartError>() {
             let mut stderr = std::io::stderr().lock();
             let _ = stderr.write_all(b"dnsmasq-rs: ");
             let _ = stderr.write_all(&raw.message_bytes());
@@ -198,6 +207,10 @@ fn startup_status(error: &(dyn std::error::Error + 'static)) -> i32 {
     }
     #[cfg(target_os = "linux")]
     if let Some(error) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
+        return error.code;
+    }
+    #[cfg(target_os = "linux")]
+    if let Some(error) = error.downcast_ref::<dnsmasq_rs::startup::PidStartError>() {
         return error.code;
     }
     if let Some(error) = error.downcast_ref::<SilentStartupError>() {
@@ -624,6 +637,8 @@ fn run(args: &[OsString]) -> Result<(), Box<dyn std::error::Error>> {
         if let Err(error) = &result {
             if let Some(log) = error.downcast_ref::<dnsmasq_rs::logging::LogStartError>() {
                 startup.fail_log(log.errno(), log.argument());
+            } else if let Some(pid) = error.downcast_ref::<dnsmasq_rs::startup::PidStartError>() {
+                startup.fail_pid(pid.errno(), pid.argument());
             } else if let Some(tftp) =
                 error.downcast_ref::<dnsmasq_rs::config::tftp::RootAccessError>()
             {
@@ -1142,7 +1157,7 @@ fn run_inner(
             emit_early(
                 &mut early_logger,
                 Priority::Critical,
-                error.message.as_bytes(),
+                &error.message_bytes(),
             );
             emit_early(&mut early_logger, Priority::Critical, b"FAILED to start up");
         }
