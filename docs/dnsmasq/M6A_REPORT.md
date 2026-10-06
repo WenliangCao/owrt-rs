@@ -83,8 +83,8 @@ TCP三profile均按精确C/R的每连接100-query上限复用并重连。CPU包�
 
 | profile | C/R3/Rs有效轮数（分析快照） | 成功/错答/timeout/transport完整计数 | RSS/PSS峰median[min,max]、FD/thread/child | 额外合同与归因 |
 | --- | --- | --- | --- | --- |
-| udp-hit | 1/5/1/5/1/5 | pending | pending | 4096实际命中、测量上游0 |
-| udp-miss | 1/5/1/5/1/5 | pending | pending | 唯一名、上游requests/replies对账 |
+| udp-hit | 1/1/1（目标5） | pending | pending | 4096实际命中、测量上游0 |
+| udp-miss | 1/1/1（目标5） | pending | pending | 唯一名、上游requests/replies对账 |
 | dns-mixed | 0/5/0/5/0/5 | pending | pending | 130A/65AAAA/37CNAME/24TXT bank、实际4hit/1miss及余数 |
 | upstream-fault | 0/5/0/5/0/5 | pending | pending | 故障预期timeout与恢复后异常分开；恢复时间 |
 | tcp-local | 0/5/0/5/0/5 | pending | pending | 100-query reconnect数；parent/family及child CPU |
