@@ -2,9 +2,9 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M5普通合同清零；统一回归发现loop启动探测早于DNSbind，重开1项；168项已关闭、1部分、0未实现、剩余1。今晚步骤1曾清零，步骤2自动收尾正在执行；本轮不停，最终报告完成后才请用户决定体积。
+- 当前里程碑：M5统一回归修复；发现loop启动探测早于DNSbind，重开1项；168项已关闭、1部分、0未实现、剩余1。今晚步骤1曾清零，步骤2自动收尾正在执行；本轮不停，最终报告完成后才请用户决定体积。
 - 刚关闭：重开的`bind-interfaces`/`bind-dynamic` DHCP设备caller已fresh完整配对；bee4cb50／4b69be1e…8c2ed（1,925,160B），27 required全部执行、0差异、195负控全拒绝。实际pidfd_getfd/getsockopt确认67/4011 SO_BINDTODEVICE、alias realname/ghost6/negative gates/启动missing后不重选/relay跳main且PXE绑/删除重建同FD/quiet下只warn一次。4 calibration/成功运行全SHA+metadata核验清远端，失败夹具保留；169清零。
-- 当前代码：首轮冻结源码12b3ecfac9e764d0820a912f15056318546374d3，ELF80a7213277fd8e71ca1687ea63007493c327460ae86acc3d2ae8159d7107dc1c，1,929,256B（M4+769,976）。refs/candidates/dnsmasq/M5-final-20261006永久保留；706库＋10main实际通过，20ignored不计。最终44族/68命令首轮已有23族完整通过，11族红，10族尚未完成，失败未作为通过；正在修复后冻结新候选。
+- 当前代码：首轮冻结源码12b3ecfac9e764d0820a912f15056318546374d3，ELF80a7213277fd8e71ca1687ea63007493c327460ae86acc3d2ae8159d7107dc1c，1,929,256B（M4+769,976）。refs/candidates/dnsmasq/M5-final-20261006永久保留；706库＋10main实际通过，20ignored不计。最终44族/68命令首轮已有23族完整通过，12族红，9族尚未执行，失败未作为通过；正在修复后冻结新候选。
 - 下一步：首轮已定位长AF_UNIX路径夹具、ARP tracer参数漏合、CLI旧plan字段；日志stdio已a3ef6372修ready后采样，helper已67c3b128按镜像对称startup门补正；loop startup探测-before-bind/两TTL/relay待实测因果，DHCP masked-MAC错误文案局部补正。M2七DNS及四DHCPprofile实际通过，旧生命周期缺拓扑而红；830e1951接actual_config_network后C/R完整生命周期诊断通过（init/HUP/UCI/odhcpd/stop），新freeze完整阶段仍须fresh。三个instrumented fuzz已build，实际3×1800s尚未运行。修复后在新冻结同一ELF逐族fresh复跑，再mixed/full-cache各300s、ENOSPC/EMFILE、APK生命周期、M5_REPORT；M6仅草案，不跑正式性能。所有失败与复跑见[首轮失败记录](audits/20261006/FINAL_REPLAY_FAILURES.md)，报告完成才请用户决定最终体积。
 - 阻塞点：无须用户决定。oracle现场可用27GB（87%）；除endpoint本地归档门外无遗留daemon/controller。Endpoint syntax/service均已真实本地SHA+metadata核验prune/plain恢复，经中转sudo安装proof后门与191/191行audit通过。原冻结source/tools保持不变；修复进入main与新freeze。loop startup真实缺口已重开，其他普通168项维持闭合；不得将首轮失败当收尾通过。[体积归因](M5_SIZE_ATTRIBUTION.md)继续补最终map与缩减方案，不套用M4特许；物理路由器未触碰。
 - 活跃分工：后续子代理不指定model/reasoning_effort/fork_turns，默认全量继承。edns_resume负责8个DNS族及endpoint真实归档门、loop/cache诊断；endpoints_resume负责9个矩阵/本地记录族与M2生命周期；logging_resume负责10个日志/CLI/helper/UBus族和夹具修复；tftp_closeout负责17个TFTP/DHCP族和relay诊断。root整合公共产品文件、最终freeze/controller、资源/压力/APK和账本。当前任务与未提交工作保留，退役树删除前保留durable refs；用户docs/prompts保持原样。
