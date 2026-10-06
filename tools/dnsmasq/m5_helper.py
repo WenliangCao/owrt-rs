@@ -175,7 +175,7 @@ class Side:
         self.xid = 0; self.raw = []; self.stages = []; self.descendants = set()
         self.support = []
         self.start_epoch = time.time()
-        self.init_dns_latency = None
+        self.init_startup_barrier = None
 
     def start_hotplug(self):
         # Real image ubusd + procd register hotplug.dhcp; neither is mocked.
@@ -216,22 +216,43 @@ class Side:
             self.start_hotplug()
         self.log = (self.out / f'{self.side}-{self.name}.log').open('wb')
         args = ['--no-daemon' if self.debug else '--keep-in-foreground', '--conf-file=' + self.inside + '/config', *self.cli_flags]
+        started = time.monotonic()
         self.process = subprocess.Popen(command(self.root, self.side, *args),
                                         env=self.env, stdout=self.log, stderr=self.log,
                                         start_new_session=True)
         if self.name == 'slow-init':
             wait(lambda: (self.events / 'init-sleeping').exists(), 'init script sleeping')
-            if self.side == 'rust':
-                started = time.monotonic()
-                wait(self.dns, 'DNS advances during init', timeout=.8)
-                self.init_dns_latency = time.monotonic() - started
-                if (self.events / 'init-finished').exists():
-                    raise AssertionError('DNS did not advance until init completed')
+            # C lease_init waits for the init producer before DNS sockets/PID
+            # creation. Require that same startup barrier on both binaries.
+            barrier = self.init_startup_barrier = {
+                'init_sleeping_at': time.monotonic() - started, 'observations': []}
+            probe = time.monotonic()
+            while time.monotonic() - probe < .8:
+                sample = {'at': time.monotonic() - started,
+                          'pid_file': (self.folder / 'pid').exists(),
+                          'init_finished': (self.events / 'init-finished').exists(),
+                          'dns_answer': False}
+                barrier['observations'].append(sample)
+                if sample['pid_file'] or sample['init_finished']:
+                    raise AssertionError('startup state advanced during init barrier')
+                try:
+                    sample['dns'] = self.dns()
+                    sample['dns_answer'] = True
+                except (socket.timeout, ConnectionRefusedError) as error:
+                    sample['dns_error'] = type(error).__name__
+                if sample['dns_answer']:
+                    raise AssertionError('DNS answered before init completed')
+            barrier['probe_seconds'] = time.monotonic() - probe
+            wait(lambda: (self.events / 'init-finished').exists(), 'init script finished')
+            barrier['init_finished_at'] = time.monotonic() - started
         def ready():
             if self.process.poll() is not None:
                 raise AssertionError(f'{self.side}/{self.name} exited at startup: {self.process.returncode}')
             return self.dns()
-        wait(ready, 'DNS startup')
+        answer = wait(ready, 'DNS startup')
+        if self.init_startup_barrier is not None:
+            self.init_startup_barrier['dns_ready_at'] = time.monotonic() - started
+            self.init_startup_barrier['dns_after_init'] = answer
         self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.client.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, b'lo\0')
@@ -558,7 +579,6 @@ def run_case(root, side, out, case):
         runner.start()
         if case in ('readonly', 'slow-init'):
             runner.stage('restored-old', 2)
-            if case == 'slow-init': result['init_dns_latency'] = runner.init_dns_latency
         address = runner.dora()
         if case == 'helper-death':
             runner.stage('add-before-helper-death', 1)
@@ -620,6 +640,7 @@ def run_case(root, side, out, case):
         result['stages'] = runner.stages
         result['cleanup'] = runner.stop()
         expected_cleanup = {'forced': False, 'exit': {'unknown-user': 1, 'init-exit': 17, 'init-capacity': 5}.get(case, 0), 'remaining': [], 'pid_removed': True}
+        if case == 'slow-init': result['init_startup_barrier'] = runner.init_startup_barrier
         if result['cleanup'] != expected_cleanup:
             result['status'] = 'failed'
         write_json(out / f'{side}-{case}.json', result)
@@ -645,6 +666,18 @@ def compare(rows, expected_cases=None):
             cleanup = row.get('cleanup')
             if cleanup != {'forced': False, 'exit': expected_exit, 'remaining': [], 'pid_removed': True}:
                 errors.append(f'{case}: missing or failed cleanup')
+            if case == 'slow-init':
+                barrier = row.get('init_startup_barrier') or {}
+                samples = barrier.get('observations', [])
+                if (barrier.get('probe_seconds', 0) < .8 or not samples
+                        or any(sample.get('dns_answer') is not False or sample.get('pid_file') is not False
+                               or sample.get('init_finished') is not False for sample in samples)
+                        or barrier.get('init_finished_at', 0) - barrier.get('init_sleeping_at', 0) < 1.8
+                        or barrier.get('dns_ready_at', 0) < barrier.get('init_finished_at', 0)
+                        or not barrier.get('dns_after_init')):
+                    errors.append(f'{case}: missing or failed init startup barrier')
+        if case == 'slow-init' and (c.get('init_startup_barrier') or {}).get('dns_after_init') != (rust.get('init_startup_barrier') or {}).get('dns_after_init'):
+            errors.append(f'{case}: DNS after init differs')
         for field in ('stages', 'cleanup', 'dns_after_script', 'hotplug_events', 'startup_exit'):
             if c.get(field) != rust.get(field): errors.append(f'{case}: {field} differ')
     return errors
@@ -687,6 +720,15 @@ def controls(rows):
             row.pop('cleanup', None)
     startup_detected = bool(compare(startup, expected)) if any(row['case'] in ('unknown-user', 'init-exit', 'init-capacity') for row in rows) else True
     extra = {}
+    if any(row['case'] == 'slow-init' for row in rows):
+        changed = copy.deepcopy(rows)
+        for row in changed:
+            if row['case'] == 'slow-init': row.pop('init_startup_barrier', None)
+        extra['missing-init-barrier-both-sides'] = bool(compare(changed, expected))
+        for name, field in [('premature-init-DNS', 'dns_answer'), ('premature-init-PID', 'pid_file')]:
+            changed = copy.deepcopy(rows)
+            next(row for row in changed if row['side'] == 'rust' and row['case'] == 'slow-init')['init_startup_barrier']['observations'][0][field] = True
+            extra[name] = bool(compare(changed, expected))
     if any(row['case'] in SHUTDOWN_CASES for row in rows):
         for name, field, value in [('delayed-parent', 'parent_seconds', 9), ('script-before-parent', 'first_script_done_at', -1), ('helper-failure', 'helper_status', 5)]:
             changed = copy.deepcopy(rows)
