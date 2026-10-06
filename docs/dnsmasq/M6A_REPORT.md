@@ -55,6 +55,14 @@ TCP三profile均按精确C/R的每连接100-query上限复用并重连。CPU包�
 
 首轮UDP hit和miss的R3/Rs出现约42–45 ms的成功响应p50/p95，同时正确吞吐较低，实际在途上限导致大量scheduled未发。这是必须保留并排查的观测，不从单轮给出冻结规则要求的五轮收益判定，也不在M6a修改产品。首轮C udp-hit closed-loop负载器为92.64%单核，已标generator-limited；不得把146,537.5 QPS称为独立证明的daemon最大容量。
 
+### UDP 主循环瓶颈（M6b 第一优先级）
+
+用户在正式测量进行中定位了一个应优先修复、再重测的产品瓶颈。冻结源码的主循环在 [`main.rs:3282–3289`](../../components/dnsmasq/src/main.rs#L3282) 对每个监听器每轮只调用一次 `step_udp(index)`；`step_udp` 的实现位于 [`main.rs:3470`](../../components/dnsmasq/src/main.rs#L3470)。同一轮随后经过 `wait_for_files()`（[`main.rs:1794`](../../components/dnsmasq/src/main.rs#L1794)），其 poll fd 集合只追加文件、hosts、route、DHCP provider 等 fd（[`main.rs:3185–3200`](../../components/dnsmasq/src/main.rs#L3185)），没有网络 socket；非 Linux 路径还固定 `park_timeout(Duration::from_millis(2))`（[`main.rs:3202–3203`](../../components/dnsmasq/src/main.rs#L3202)）。`step_udp` 的每次接收另分配 65,536 字节缓冲，相关调用链和候选残差已列入[内存归因审计](audits/M6A_MEMORY_ATTRIBUTION.md)。
+
+首轮正式 R3 udp-hit 的独立分析给出了与该模型一致的数量级：steady 正确完成 41,869／90s = **465.211 QPS**，saturation 为 13,988／30s = **466.267 QPS**；R3 p50 分别 41.909 ms／42.841 ms，Rs 对应 41.979 ms／42.889 ms。以每轮每监听器最多处理一个 UDP 包计，465.211 QPS 需要至少约465.2个有效处理轮／秒；2 ms 固定等待给出的理论上限是500轮／秒，观测利用率约93.0%，与约465 QPS相符。当前冻结 ELF 没有主循环轮次计数器，因此“轮／秒”是由正确完成数和单包／轮上限得到的下界／一致性核对，而不是插桩直接计数；M6b修复后必须加入不改变调度语义的轮次、每轮收包数和wait原因计数，再以实际计数复核。每轮只收一个包也解释了为何队列中已有多个报文时吞吐仍不会批量增长。
+
+该瓶颈同时存在于 opt3 和 s，首轮两者都被约465 QPS／42 ms等待上限主导；因此在修复前，udp-hit／udp-miss 的 opt3 对 s CPU、延迟和吞吐对比不具备切换意义。本报告保留首轮数值作为“瓶颈下观察”，不把它们分类为 s 有收益或变差。M6b 第一优先级是：在保持 C/Rs 配置、负载、计时和判定阈值不变的前提下，让网络可读事件参与等待、一次处理可用的多个UDP包，并复用接收缓冲；修复后必须重新冻结产品、完成受影响的 UDP profile 全部五轮，再恢复 opt3／s 比较。M6a不实施该修复。
+
 ## 九个profile的完整五轮汇总表位
 
 下面每个数字格最终为`median [min,max]`，三组分别按各自5轮统计，并保留R3/C、Rs/C、Rs/R3同轮配对判断。当前格均pending，首轮原值只在上一表；不拿一个值重复填成5轮中位数或范围。
@@ -156,7 +164,7 @@ M5的已知3524/1660 KiB RSS差有历史守恒账：总差1864 KiB＝匿名差12
 
 | 候选 | 当前依据 | 机制与待证明收益 |
 | --- | --- | --- |
-| 网络poll/定时器唤醒路径 | 首轮R3/Rs hit/miss均约42–45 ms成功延迟，daemon CPU仍远未满核；须核对全部正式轮及原始时间分布 | 排查固定等待、就绪事件与upstream/UDP批处理；预期降低服务等待，具体根因和收益pending |
+| **UDP主循环批处理、网络fd等待与65,536B接收缓冲复用（第一优先级）** | 正式首轮R3 hit 465.211／466.267 QPS、p50 41.909／42.841 ms；main.rs:3282–3289每监听器每轮一次step_udp，wait_for_files:3185–3203不等网络fd且非Linux固定2ms；R3/Rs均受同一上限，比较暂不具切换意义 | 让网络可读事件参与等待、每轮排空可用UDP包并复用接收缓冲；修复后以主循环轮次／每轮收包计数、QPS、p50/p95、CPU/正确请求和RSS重测，才判绝对收益。 |
 | TCP缓存视图/代际共享 | 静态936 KiB/cache snapshot/活连接及每100 query重连；正式TCP CPU/PSS尚未完成 | 保持accept-time视图与child隔离，减少反复复制metadata；以实际clone/fork CPU和PSS差决定优先级 |
 | canonical name、单元素Vec和bucket存储 | 同4096 A requested-byte账：Rust1400.039 KiB、C548 KiB；额外存储集中在index/Arc/双名字 | 更紧凑记录链接/共享name及small-payload存储；实际allocator残差仍未知，不能承诺全部852 KiB可回收 |
 | DHCP租约与DNS发布副本 | Rust232 B本体和BTree/DNS名称索引较C160 B list额外分配；正式DHCP CPU/cycle、PSSpending | 依据实际规模和查找/更新CPU再选表示，不为省内存提前退回线性扫描 |
