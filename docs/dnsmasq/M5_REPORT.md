@@ -1,6 +1,6 @@
 # M5 收尾报告
 
-**草稿，2026-10-06。** 169项普通合同已关闭、剩余0；最终同ELF44功能族全部正式PASS，包括logging完整329场景。Linux706＋10、两次完整M2、三入口fuzz、两项五分钟资源窗口与ENOSPC／EMFILE已通过。APK已实际构建并绑定最终ELF，ELF/APK均超原预算；包生命周期待补真实结果，当前不宣布M5收尾完成或体积已获接受。物理路由器未操作；M6只保留[协议草稿](M6_PROTOCOL_DRAFT.md)，没有正式性能窗口。
+**收尾报告，2026-10-06。** 169项普通合同已关闭、剩余0；最终同ELF44功能族全部正式PASS，包括logging完整329场景。Linux706＋10、两次完整M2、三入口fuzz、两项五分钟资源窗口、ENOSPC／EMFILE及真实APK生命周期已通过。APK已实际构建并绑定最终ELF；ELF/APK均超原预算，体积决定仍待用户确认。物理路由器未操作；M6只保留[协议草稿](M6_PROTOCOL_DRAFT.md)，没有正式性能窗口。
 
 ## 交付身份与验收进度
 
@@ -19,7 +19,9 @@
 | 满缓存资源 | inner实际300s／controller356.807s，双方4096条live A及首尾命中证明，accepted true、failures[]。[实际满缓存与负控][full-resource] |
 | ENOSPC／EMFILE | PASS，C/R规范化观察完全相同、failures[]；leaf122.063s／controller122.165s，300s是每侧deadline。[压力receipt][pressure]、[故障、恢复与清理][pressure-leaf] |
 | APK | 实际产物1,065,071B／SHA `bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa`，payload等于最终37f85ELF，identity_verified/recipe_restored均true；**ELF/APK预算均失败，待用户体积决定**。[构建与预算manifest][package]、[执行controller][package-controller] |
-| 包生命周期 | **待root补真实安装/升级/卸载/回滚/变体互斥及init激活结果；未记通过** |
+| 包生命周期 | PASS；8个真实APK事务阶段、stock脚本启用、配置保留及进程ELF/DNS健康核验；两个variant的solver模拟拒绝共存，4次显式init restart激活替换后的ELF；cleanup errors/children均空。[实际leaf][lifecycle]、[controller2.465s/exit0][lifecycle-controller] |
+
+[最终summary][summary]实际完成8个顶层phase：families、fuzz-build、fuzz、M2、resources、pressure、package、lifecycle，全部artifact/功能资格passed true，44个family receipt齐全、missing_phases[]，functional_validation_passed=true。package资格只代表产物生成与身份核验，size_targets的ELF/APK均false；size_acceptance仍为pending-user-after-report，physical_router与m6_performance_executed均false。
 
 ## 44族逐项结果
 
@@ -100,7 +102,11 @@ M5 Rust空载RSS2,024KiB、填满3,460、命中验证后3,524，满缓存Q4同�
 
 ENOSPC在双方tmpfs实际填满16,384B，仍收到`127.0.0.15`的offer及ACK、满盘时没有durable lease，释放空间后分别60.046／60.042s恢复1条lease。EMFILE在双方实际施加FD压力，恢复后的DNS reply ID为`3201`、长度47B；规范化C/R观察完全相同。双方各场景退出后daemon/pid均无残留、lease行0、exit0。[实际故障与恢复][pressure-leaf]、[最终压力receipt][pressure]和[归档核验][pressure-verification]保存原始观察；leaf总122.063s，controller122.165s，参数300s只是每侧deadline，没有额外五分钟压力暴露的主张。
 
-`dnsmasq-2.93-r2.apk`使用已验收的冻结ELF作为payload；不再次codegen/strip，SDK原recipe在构建后恢复，产物身份核验为true。[实际构建manifest][package]的status为failed、`failure_boundary=size-target`：1,929,256B ELF超过1,000,000B预算，1,065,071B APK超过700,000B预算。build returncode1只来自这两个预算检查；controller passed true只表示真实、可审查、身份正确的产物已生成，不能解释为预算通过或体积已被接受。生命周期结果仍待补齐。
+`dnsmasq-2.93-r2.apk`使用已验收的冻结ELF作为payload；不再次codegen/strip，SDK原recipe在构建后恢复，产物身份核验为true。[实际构建manifest][package]的status为failed、`failure_boundary=size-target`：1,929,256B ELF超过1,000,000B预算，1,065,071B APK超过700,000B预算。build returncode1只来自这两个预算检查；controller passed true只表示真实、可审查、身份正确的产物已生成，不能解释为预算通过或体积已被接受。
+
+[包生命周期leaf][lifecycle] SHA256 `8c3d0c223e9b88ad2e7aa1c0dc4839f66346747902feb6d81d1200f0d11cd813`实际执行stock→candidate升级、candidate重装、卸载、fresh安装、为回滚移除、移除后stock回滚、为降级再次升级、直接stock降级8阶段；stock脚本真实启用，在隔离镜像net/mount/pid namespace运行。安装阶段观察包数据库、payload、用户/组、init链接、修改过配置的SHA/mode/uid/gid、实际procd/ujail/daemon ELF以及DNS应答；卸载后package/ELF均不存在且保留用户配置。`dnsmasq-dhcpv6`／`dnsmasq-full`使用各自真实APK做`apk add --simulate`的solver互斥检查，依赖只供模拟，未声称运行这两个variant。镜像postinst语义是init start；stock重装控制保留原PID，对替换ELF的4个事务显式执行init restart并核对新ELF/DNS，未声称APK自动restart。cleanup errors及remaining_children均空、unmount exit0；短controller runtime2.465s是这些真实事务的实测时间。
+
+包构建完整归档SHA `be85c1b1573965e654ea8db510f3a0ea3e911d8e7783592afaf279244a8b0e92`，[275路径／208文件核验][package-verification]通过，并实际读取本地APK核对完整SHA与1,065,071B。生命周期归档SHA `c5266c104362d3bb6ef6f2fb199f7113648297e6f4caf23bd8c6e629482b4de8`，[167路径／104文件核验][lifecycle-verification]通过；两者均核对全SHA、类型、mode、uid/gid、nanosecond mtime、link/device及全部xattr，归档leaf与首次回拷leaf字节一致。
 
 [功能族体积归因](M5_SIZE_ATTRIBUTION.md)保留固定路径连续构建、首尾同字节控制及失败矩阵；混合阶段/共享泛型/链接布局不能冒称纯单族增量。下面是同次最终[link.map归属][size-map]的当前执行区存储：2,561输入sections覆盖1,674,984B，220B未归因；它不是+769,976B新增成本的因果拆分。
 
@@ -126,16 +132,18 @@ ENOSPC在双方tmpfs实际填满16,384B，仍收到`127.0.0.15`的offer及ACK、
 | opt-level s样本 | 1,613,864 | 315,392 | 仅同源size sample；尚未功能/资源/APK验收或M6，须重新冻结并验证 |
 | opt-level z样本 | 1,503,272 | 425,984 | 同上；CPU/尾延迟影响未测，不能保证速度保持 |
 
-M4的体积特许只属于M4 ELF；M5未自行接受新的ELF超标。原预算ELF1,000,000/APK700,000字节仍必须如实报告；s/z样本也都超过原ELF预算，APK压缩体积尚未测，不能保证满足700,000B。**待root填完生命周期后提交终版，才请用户决定接受opt3体积，或选择s/z并承担重冻结/功能资源包复测及后续M6测量成本。**
+M4的体积特许只属于M4 ELF；M5未自行接受新的ELF超标。原预算ELF1,000,000/APK700,000字节仍必须如实报告；s/z样本也都超过原ELF预算，APK压缩体积尚未测，不能保证满足700,000B。
+
+**需要用户决定：是否接受最终opt3的ELF1,929,256B与APK1,065,071B。** 接受则保留本次已验收身份，之后按冻结方案进入M6；不接受可先选s（ELF省315,392B）或z（省425,984B），代价是新ELF、完整功能/资源/压力/APK生命周期复测和未知CPU/尾延迟影响，M6也必须使用新冻结身份。保持全部169项合同的源码缩减仍可另做，但目前没有更多已证明行为不变的净节省或工期承诺。这里停止正式性能窗口，等待决定；本报告不将体积候选当作已验收替代品。
 
 ## 失败与重跑记录
 
 完整失败链见[FINAL_REPLAY_FAILURES](audits/20261006/FINAL_REPLAY_FAILURES.md)，原12b3、dc1b首轮与各tools revision的红/未执行数据不覆盖。主要产品修复是masked-MAC错误文案和实际bind-before-loop-probe启动race；夹具修复涵盖长Unix path、helper init/ready边界、queued TCP、scope/资格元数据、ARP map资产、PXE时钟字段、relay DAD与跨FD真实kernel序、cache实际整秒phase。没有删除case、放宽wire/count或把基础设施异常归为已通过。
 
-logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重传前返回；有界等实际第二个相同request再释放唯一reply的三模式diagnostic已过，随后[全329正式复跑][logging-final]完整PASS，不用诊断替代整族资格。最终logging归档SHA `be4f23357acf6b655f1974ca06802b9de2daa54354aa65b929097c7a362a3da1`，[5,583路径／4,559文件完整核验][logging-verification]通过后远端raw已prune。资源[attempt1][resources-rejected-1]因诊断负载污染在8.3005s被门拒绝，[attempt2][resources-rejected-2]因外部worker残留在采样前拒绝；按精确PGID清理后[attempt3][resources]完整PASS。压力[首轮][pressure-missing-namespace]因缺失`run_isolated`在0.0930s退出，[第二轮][pressure-born-race]因guard把自身新生子进程误当外部污染在5.0567s拒绝；9684修复own/foreign namespace资格及阳性/负控后[实际重跑][pressure]完整PASS。上述失败保留原receipt与执行边界，不记作产品通过。[APK首轮][package-controller]controller31.005s实际生成正确产物，build return1为显式预算失败；没有修改预算或删除失败。生命周期失败与复跑仍待实测补齐。
+logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重传前返回；有界等实际第二个相同request再释放唯一reply的三模式diagnostic已过，随后[全329正式复跑][logging-final]完整PASS，不用诊断替代整族资格。最终logging归档SHA `be4f23357acf6b655f1974ca06802b9de2daa54354aa65b929097c7a362a3da1`，[5,583路径／4,559文件完整核验][logging-verification]通过后远端raw已prune。资源[attempt1][resources-rejected-1]因诊断负载污染在8.3005s被门拒绝，[attempt2][resources-rejected-2]因外部worker残留在采样前拒绝；按精确PGID清理后[attempt3][resources]完整PASS。压力[首轮][pressure-missing-namespace]因缺失`run_isolated`在0.0930s退出，[第二轮][pressure-born-race]因guard把自身新生子进程误当外部污染在5.0567s拒绝；9684修复own/foreign namespace资格及阳性/负控后[实际重跑][pressure]完整PASS。上述失败保留原receipt与执行边界，不记作产品通过。[APK首轮][package-controller]controller31.005s实际生成正确产物，build return1为显式预算失败；没有修改预算或删除失败。[生命周期首轮][lifecycle-controller]完整通过，无产品修复或第二轮。
 
 [identity]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/final-identity.json
-[completed]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-6d572edf9ff0/completed.json
+[completed]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/completed.json
 [tests]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-tests/plain/build.json
 [tests-run]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/tests-run.log
 [fixture]: ../../private/dnsmasq-rewrite/evidence/M5/final-9684-logging/gate/identity.json
@@ -161,5 +169,10 @@ logging[原329失败及诊断][logging]只剩fastretry固定reply在C真实重�
 [pressure-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-final/local-verification.json
 [pressure-missing-namespace]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-missing-namespace/plain/result.json
 [pressure-born-race]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-pressure-born-race/plain/result.json
-[package]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/package-manifest.json
+[package]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-package-final/plain/build/manifest.json
 [package-controller]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/package-controller-attempt-1.log
+[package-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-package-final/local-verification.json
+[lifecycle]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-lifecycle-final/plain/apk/result.json
+[lifecycle-controller]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/lifecycle-controller-attempt-1.log
+[lifecycle-verification]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/archive-lifecycle-final/local-verification.json
+[summary]: ../../private/dnsmasq-rewrite/evidence/M5/final-20261006/dc1b740d7973/fixture-9684b010256f/summary.json
