@@ -627,10 +627,10 @@ def schedule(spec,port,upstream,folder,root):
         fields=dict(spec,**overrides)
         wire=query(target,0x5200+step,fields.get('kind',1),fields.get('flags',0x100),fields.get('cls',1),fields.get('do',False),
                    fields.get('opts',b''),fields.get('opt_ttl',0),fields.get('signed',False),fields.get('extra',False),fields.get('size',1232))
-        started=time.monotonic_ns();reply=exchange(port,wire,tcp,connection);completed=time.monotonic_ns()
+        wall_started=time.time_ns();started=time.monotonic_ns();reply=exchange(port,wire,tcp,connection);completed=time.monotonic_ns();wall_completed=time.time_ns()
         (folder/(label+'.query')).write_bytes(wire)
         if reply is not None:(folder/(label+'.reply')).write_bytes(reply)
-        observations.append({'label':label,'query':normalized(wire),'reply':normalized(reply),'elapsed_seconds':(completed-started)/1e9,'sent_monotonic_ns':started,'completed_monotonic_ns':completed})
+        observations.append({'label':label,'query':normalized(wire),'reply':normalized(reply),'elapsed_seconds':(completed-started)/1e9,'sent_monotonic_ns':started,'completed_monotonic_ns':completed,'sent_realtime_ns':wall_started,'completed_realtime_ns':wall_completed})
         if spec.get('metrics'):observations[-1]['metrics']=cache_metrics(label)
     action=spec.get('action')
     if action=='cname':
@@ -1039,8 +1039,8 @@ def dhcp_caller_guard(c,r):
                 early=next(v for v in row['observations'] if v['label']=='lease-first')
                 late=next(v for v in row['observations'] if v['label']=='lease-after-wait')
                 if late['sent_monotonic_ns']-early['completed_monotonic_ns']<3_200_000_000:return False
-        a=[{k:copy.deepcopy(v) for k,v in row.items() if k not in ('elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns')} for row in left['observations']]
-        b=[{k:copy.deepcopy(v) for k,v in row.items() if k not in ('elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns')} for row in right['observations']]
+        a=[{k:copy.deepcopy(v) for k,v in row.items() if k not in CLOCK_KEYS} for row in left['observations']]
+        b=[{k:copy.deepcopy(v) for k,v in row.items() if k not in CLOCK_KEYS} for row in right['observations']]
         if label=='tcp-existing-lease-ttl':
             first=[]
             for rows in [a,b]:
@@ -1091,8 +1091,33 @@ def qualify_dhcp_caller(args):
 
 DEFERRED_EXTREME_CASES=set()
 STARTUP_REJECTION_CASES={'forward-wrapped-negative-runtime','forward-wrapped-minus-two-runtime'}
-CLOCK_KEYS={'elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns'}
+CLOCK_KEYS={'elapsed_seconds','sent_monotonic_ns','completed_monotonic_ns','sent_realtime_ns','completed_realtime_ns'}
 REVERSE_ORDER_CASES={'ptr-multiple-targets','ptr-reverse-bucket-order','round-reverse-default','round-reverse-disabled'}
+IMMEDIATE_PTR_PHASE_CASES={'ptr-tcp-child-import','round-reverse-disabled'}
+
+
+def immediate_ptr_phase(row, observation):
+    # Only these two immediate PTR replays use this integer-second witness.
+    # The exact configured TTL600 and each row's wall/monotonic intervals
+    # determine its possible remaining TTL; unrelated RR clocks stay exact.
+    if row['case'] not in IMMEDIATE_PTR_PHASE_CASES or observation['label']=='query-0':return False
+    seed=next((value for value in row['observations'] if value['label']=='query-0'),None)
+    if not seed:return False
+    keys=['sent_monotonic_ns','completed_monotonic_ns','sent_realtime_ns','completed_realtime_ns']
+    if any(not isinstance(value.get(key),int) for value in [seed,observation] for key in keys):return False
+    if any(value['completed_realtime_ns']<value['sent_realtime_ns'] or value['completed_monotonic_ns']<value['sent_monotonic_ns'] for value in [seed,observation]):return False
+    if any(abs((value['completed_realtime_ns']-value['sent_realtime_ns'])-(value['completed_monotonic_ns']-value['sent_monotonic_ns']))>5_000_000 for value in [seed,observation]):return False
+    if observation['sent_monotonic_ns']<seed['completed_monotonic_ns'] or observation['sent_realtime_ns']<seed['completed_realtime_ns']:return False
+    wall=observation['completed_realtime_ns']-seed['sent_realtime_ns']
+    mono=observation['completed_monotonic_ns']-seed['sent_monotonic_ns']
+    if not 0<=mono<900_000_000 or abs(wall-mono)>5_000_000:return False
+    initial=[rr for rr in seed['reply'].get('records',[]) if rr['section']=='answer']
+    current=[rr for rr in observation['reply'].get('records',[]) if rr['section']=='answer']
+    if not initial or len(initial)!=len(current) or any(rr['type']!=12 or rr['ttl']!=600 for rr in initial):return False
+    earliest=seed['sent_realtime_ns']//1_000_000_000;latest=seed['completed_realtime_ns']//1_000_000_000
+    before=observation['sent_realtime_ns']//1_000_000_000;after=observation['completed_realtime_ns']//1_000_000_000
+    allowed={600+insert-now for insert in range(earliest,latest+1) for now in range(before,after+1)}&{599,600}
+    return all(rr['type']==12 and rr['ttl'] in allowed for rr in current)
 
 
 def startup_rejection_guard(row):
@@ -1139,6 +1164,9 @@ def canonical_observations(row,reverse_order=False):
                   for obs in row['observations']]
     labels={obs['label']:obs for obs in row['observations']}
     for obs in observations:
+        if immediate_ptr_phase(row,labels[obs['label']]):
+            for rr in obs['reply'].get('records',[]):
+                if rr['section']=='answer':rr['ttl']='fresh600-verified-integer-clock-phase'
         # A newly refreshed TTL600 RR may lose one whole second between the
         # actual receive/insert and this real100ms client followup. Only this
         # explicit stage/configured TTL is admitted; staleTTL0 remains exact.
