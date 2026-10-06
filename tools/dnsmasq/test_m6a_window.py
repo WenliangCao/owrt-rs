@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Fixture negative controls; actual rootfs qualification uses Linux pilots."""
+import json
+from pathlib import Path
+import struct
+import tempfile
+from types import SimpleNamespace
+import unittest
+from unittest.mock import patch
+
+import m6a_window as window
+from dns_service_probe import query
+
+
+class FrozenInputs(unittest.TestCase):
+    def test_mixed_bank_counts_and_cname_labels(self):
+        counts = {"a": 0, "aaaa": 0, "cname": 0, "txt": 0}
+        for index in range(256):
+            host, kind = window.bank_question(index, True)
+            key = "cname" if host.startswith("cname-") else {1: "a", 28: "aaaa", 16: "txt"}[kind]
+            counts[key] += 1
+            reply = window.answer(query(host, kind, index))
+            self.assertTrue(window.correct_answer(host, kind, index, reply))
+        self.assertEqual(counts, {"a": 130, "aaaa": 65, "cname": 37, "txt": 24})
+
+    def test_negative_controls_wrong_id_address_ttl_and_question(self):
+        host = "q0000.m6a.test"
+        original = window.answer(query(host, ident=17))
+        for changed in (original[:1] + b"\x12" + original[2:],
+                        original[:-1] + b"\x02",
+                        original[:12] + b"\x05other" + original[18:]):
+            try:
+                valid = window.correct_answer(host, 1, 17, changed)
+            except (ValueError, IndexError, struct.error):
+                valid = False
+            self.assertFalse(valid)
+        zero_ttl = bytearray(original)
+        _, end = window.read_name(original, 12)
+        struct.pack_into("!I", zero_ttl, end + 4 + 6, 0)
+        self.assertFalse(window.correct_answer(host, 1, 17, bytes(zero_ttl)))
+
+    def test_common_config_and_fixed_dhcp_identities(self):
+        for scenario in ("hit", "miss", "mixed", "fault", "tcp", "dhcp", "reload"):
+            config = window.config_for(scenario)
+            for line in ("cache-size=4096", "local-ttl=3600", "dns-forward-max=1024",
+                         "cache-rr=TXT", "no-poll", "no-0x20-encode", "group=root"):
+                self.assertIn(line + "\n", config)
+        dhcp = window.config_for("dhcp")
+        self.assertIn("127.255.255.255,3600s\n", dhcp)
+        self.assertEqual(dhcp.count("dhcp-host="), 20)
+        self.assertIn("dhcp-host=02:00:00:6a:00:13,127.0.0.29\n", dhcp)
+
+    def test_tcp_local_does_not_need_an_upstream_answer(self):
+        config = window.config_for("tcp", "local")
+        self.assertIn("address=/localbank.m6a.test/192.0.2.1\n", config)
+
+    def test_epoch_boundaries_are_immutable(self):
+        epoch = {"measurement_start_ns": 2_000_000_000, "measurement_end_ns": 122_000_000_000}
+        args = SimpleNamespace(scenario="hit", saturation_seconds=30)
+        self.assertEqual(window.boundaries_for(args, epoch), [
+            ("measurement-start", 2_000_000_000), ("saturation-start", 92_000_000_000),
+            ("measurement-end", 122_000_000_000)])
+        args = SimpleNamespace(scenario="fault", saturation_seconds=0, fault_start=30, fault_end=60)
+        self.assertEqual(window.boundaries_for(args, epoch), [
+            ("measurement-start", 2_000_000_000), ("fault-start", 32_000_000_000),
+            ("fault-end", 62_000_000_000), ("measurement-end", 122_000_000_000)])
+
+    def test_cgroup_is_required_and_does_not_silently_fallback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(window, "CGROUP_PATH", root):
+                (root / "cpu.stat").write_text("usage_usec 150\nuser_usec 100\nsystem_usec 50\n")
+                value = window.cgroup_cpu()
+                self.assertEqual(value["usage_usec"], 150)
+                (root / "cpu.stat").write_text("user_usec 100\nsystem_usec 50\n")
+                with self.assertRaisesRegex(RuntimeError, "usage_usec"):
+                    window.cgroup_cpu()
+
+    def test_evidence_save_preserves_actual_newlines(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "value.json"
+            window.save(path, {"value": "a\nb"})
+            self.assertEqual(json.loads(path.read_text()), {"value": "a\nb"})
+            self.assertFalse(path.with_suffix(".json.new").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()
