@@ -387,6 +387,14 @@ TCP三profile均按精确C/R的每连接100-query上限复用并重连。CPU包�
 | dhcp-lease | steady | 0/5/5/3 | 0/5/5/3 | 2/0/8/3 |
 | reload-concurrent | steady | 0/6/4/3 | 0/6/4/3 | 2/0/8/3 |
 
+
+### 主要指标逐项分类与绝对代价
+
+下表按每个 profile/phase 和三组对照列出 QPS、CPU/正确、p95、RSS、PSS 的机械分类及候选−参考 median 绝对差；完整 min/max、W、relative delta 和错误计数见最终对照CSV。
+
+| profile / phase | 对照 | QPS | CPUµs/正确 | p95µs | RSS KiB | PSS KiB |
+| --- | --- | --- | --- | --- | --- | --- |
+
 机械分类不是把每个 profile 概括成单一“更快”。UDP hit/miss 的 R3/Rs 都受到冻结 ELF 单次 `step_udp` 路径限制；Linux等待来源和批处理上限仍需M6b计数确认，因此机器表中的 Rs/R3 分类保留以保证可审计，但 UDP opt3-vs-s CPU/延迟/吞吐比较在该诊断完成并按同协议重测前不具备切换意义。该限制不篡改原始数据。
 
 DHCP 正确吞吐均为20 cycle/s；release 是无应答发送，最终租约文件在daemon仍运行时收敛为空。upstream-fault 的 fault 段 timeout 是预期上游静默，before-fault/recovery 的错误与延迟独立保留。reload 全5轮DNS/TFTP均有完整计数，并逐次核验11次 host 发布；发布延迟是10 ms探针和约5 ms controller loop下的观测上界。
