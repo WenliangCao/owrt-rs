@@ -118,6 +118,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--target", default="aarch64-unknown-linux-musl")
     parser.add_argument("--c-reference", type=Path)
+    parser.add_argument("--names", choices=["m5", "m6a"], default="m5")
     args = parser.parse_args()
     repository, out = args.repository.resolve(), args.out.resolve()
     out.mkdir(parents=True, exist_ok=False)
@@ -162,7 +163,10 @@ def main():
     if args.c_reference:
         result["c_reference"] = c_layout(args.c_reference.resolve(), out)
     cache = out / "components/dnsmasq/src/dns/cache.rs"
-    cache.write_text(cache.read_text() + CAPACITY_DIAGNOSTIC)
+    diagnostic_source = CAPACITY_DIAGNOSTIC
+    if args.names == "m6a":
+        diagnostic_source = diagnostic_source.replace("c{index:04x}.cache.test", "q{index:04x}.m6a.test")
+    cache.write_text(cache.read_text() + diagnostic_source)
     wire = out / "components/dnsmasq/src/dns/wire.rs"
     wire.write_text(wire.read_text() + "\nimpl Name { pub fn m6_diagnostic_capacity(&self) -> usize { self.0.capacity() } }\n")
     example = out / "components/dnsmasq/examples/m6_capacities.rs"
@@ -203,6 +207,7 @@ fn main() {
         native = subprocess.run(capacity_command, cwd=out, stdout=subprocess.PIPE, stderr=log, text=True, check=True)
     diagnostic = json.loads(native.stdout)
     result["cache_capacities"] = diagnostic["capacities"]
+    result["cache_name_family"] = args.names
     result["hashmap_requested_bytes"] = diagnostic["hashmap_requested_bytes"]
     result["cache_capacity_method"] = "native diagnostic copy, same 64-bit compiler; capacity behavior only, not measured target CPU/RSS"
     result["capacity_command"] = capacity_command
