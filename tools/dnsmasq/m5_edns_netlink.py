@@ -29,7 +29,7 @@ def fixture(sequence, pid, length, interface=2, done=True):
     return packet
 
 
-def trace(pid, output, mode, length, interface):
+def trace(pid, output, mode, length, interface, packet_builder=None):
     if platform.machine() != 'aarch64':
         raise RuntimeError('netlink ptrace ABI pinned to AArch64 image')
     class Iovec(ctypes.Structure):
@@ -52,6 +52,7 @@ def trace(pid, output, mode, length, interface):
     memory = None
     request = None
     active = None
+    message_address = None
     def read(address, size):
         data = os.pread(memory, size, address)
         if len(data) != size:
@@ -84,6 +85,7 @@ def trace(pid, output, mode, length, interface):
             regs()
             if info[0] == 1:
                 active = None
+                message_address = None
                 if registers[8] == 206 and registers[2] >= 16:
                     sent = read(registers[1], min(registers[2], 28))
                     if struct.unpack_from('=H', sent, 4)[0] == 30:
@@ -93,6 +95,7 @@ def trace(pid, output, mode, length, interface):
                     if registers[8] == 207:
                         active = (int(registers[1]), int(registers[2]), int(registers[3]))
                     else:
+                        message_address = int(registers[1])
                         msg = read(registers[1], 32)
                         iov = read(struct.unpack_from('=Q', msg, 16)[0], 16)
                         active = (*struct.unpack('=QQ', iov), int(registers[2]))
@@ -100,18 +103,32 @@ def trace(pid, output, mode, length, interface):
                 returned = ctypes.c_longlong(registers[0]).value
                 buffer, capacity, flags = active
                 report['receives'].append({'result': returned, 'flags': flags, 'capacity': capacity})
+                if returned >= 16 and flags & 2 and packet_builder and message_address is not None:
+                    # Large controlled ARP snapshots exercise C's real dynamic
+                    # receive workspace: its peek advertises the fixture's
+                    # full size, then C actually allocates that workspace.
+                    original = read(buffer, min(returned, capacity))
+                    original_pid = struct.unpack_from('=I', original, 12)[0]
+                    planned = packet_builder(request[1], original_pid, length, interface)
+                    if len(planned) > capacity:
+                        msgflags = struct.unpack('=i', read(message_address + 48, 4))[0]
+                        write(message_address + 48, struct.pack('=i', msgflags | 32))
+                        registers[0] = len(planned)
+                        regs(write=True)
+                        report['workspace_request'] = {'old_capacity': capacity, 'requested': len(planned), 'peek_result': returned}
                 if returned > 0 and not flags & 2:  # C first peeks; replace only consumed datagram.
                     original = read(buffer, min(returned, capacity))
                     report['original_wire'] = original.hex()
                     original_pid = struct.unpack_from('=I', original, 12)[0]
-                    packet = fixture(request[1], original_pid, length, interface)
+                    build_packet = packet_builder or fixture
+                    packet = build_packet(request[1], original_pid, length, interface)
                     if mode == 'error':
                         packet = struct.pack('=IHHIIi', 20, 2, 2, request[1], original_pid, -errno.EIO)
                     elif mode == 'partial-error':
-                        packet = fixture(request[1], original_pid, length, interface, done=False)
+                        packet = build_packet(request[1], original_pid, length, interface, done=False)
                         packet += struct.pack('=IHHIIi', 20, 2, 2, request[1], original_pid, -errno.EIO)
                     elif mode == 'hold':
-                        packet = fixture(request[1], original_pid, length, interface, done=False)
+                        packet = build_packet(request[1], original_pid, length, interface, done=False)
                     if mode in ('error', 'partial-error'):
                         packet += struct.pack('=IHHIIi', 20, 3, 2, request[1], original_pid, 0)
                     if len(packet) > capacity:
