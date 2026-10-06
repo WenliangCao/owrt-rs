@@ -454,6 +454,9 @@ def compare(expected, actual, scenario):
         # C-reference non-vacuity guards are derived from source call paths.
         if 'c_expect' in probe:
             wanted = probe['c_expect'].get(transport, 'response')
+            if wanted == 'timeout' and scenario.get('require_upstream_reply_for_timeout'):
+                if not any(event.get('transport') == transport and event.get('wire') and event.get('reply_wire') for event in row['upstream']):
+                    failures.append({'phase': 'c-calibration', 'id': row['id'], 'missing_actual_upstream_reply': row})
             if (row['response'] is None) != (wanted == 'timeout'):
                 failures.append({'phase': 'c-calibration', 'id': row['id'], 'expected': wanted, 'c': row})
             if 'upstream_count' in probe['c_expect'] and len(row['upstream']) != probe['c_expect']['upstream_count']:

@@ -2027,7 +2027,7 @@
           "name": "forward.test",
           "type": 1,
           "c_expect": {
-            "udp": "response",
+            "udp": "timeout",
             "tcp": "response"
           }
         }
@@ -2035,7 +2035,9 @@
       "hosts": "",
       "expected_test_exit": 0,
       "strict_upstream_wire": true,
-      "upstream_host": "::1"
+      "upstream_host": "::1",
+      "require_upstream_reply_for_timeout": true,
+      "reference_behavior": "util.c:360-373 sockaddr_isequal compares global IPv6 scope1 with received scope0; both image C and Rust drop UDP reply, TCP returns the same valid A reply."
     },
     {
       "id": "local-source-gap",

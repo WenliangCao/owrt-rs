@@ -35,10 +35,13 @@ def dependencies(spec, records):
         if path.suffix not in ['.py', '.sh']: continue
         source = path.read_text()
         for other in re.findall(r'[A-Za-z0-9_/-]+\.(?:py|json|sh|rs|c)\b', source):
-            candidate = Path(other).name
-            if candidate in spec['tools'] and candidate not in found: pending.add(candidate)
+            matches = {name for name in spec['tools'] if name == other or Path(name).name == Path(other).name}
+            pending.update(matches - found)
         if path.suffix == '.py':
             tree = ast.parse(source)
+            image_command = any(isinstance(node, ast.ImportFrom) and node.module == 'm2_rootfs'
+                and any(alias.name == 'command' and alias.asname in [None, 'command'] for alias in node.names) for node in ast.walk(tree))
+            image_command &= not any(isinstance(node, (ast.FunctionDef, ast.ClassDef)) and node.name == 'command' for node in ast.walk(tree))
             # Unknown dynamic imports/helper launchers cannot certify a narrow
             # closure. Conservatively require the entire original tool set.
             for node in ast.walk(tree):
@@ -46,8 +49,11 @@ def dependencies(spec, records):
                     dynamic_import = isinstance(node.func, ast.Name) and node.func.id == '__import__'
                     dynamic_import |= isinstance(node.func, ast.Attribute) and node.func.attr == 'import_module'
                     launcher = isinstance(node.func, ast.Attribute) and node.func.attr in ['Popen', 'run', 'check_output', 'check_call']
+                    native_image = image_command and node.args and isinstance(node.args[0], ast.Call) and isinstance(node.args[0].func, ast.Name) and node.args[0].func.id == 'command'
+                    native_network = node.args and isinstance(node.args[0], (ast.List, ast.Tuple)) and node.args[0].elts and isinstance(node.args[0].elts[0], ast.Constant) and node.args[0].elts[0].value == 'ip'
                     uncertain_launcher = launcher and (not node.args or not isinstance(node.args[0], (ast.List, ast.Tuple))
                         or any(not isinstance(value, ast.Constant) for value in node.args[0].elts))
+                    uncertain_launcher &= not (native_image or native_network)
                     if ((dynamic_import and (not node.args or not isinstance(node.args[0], ast.Constant))) or uncertain_launcher):
                         raise ValueError('dynamic helper dependency requires fresh replay')
             for node in ast.walk(tree):
