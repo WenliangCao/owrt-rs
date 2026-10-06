@@ -141,10 +141,38 @@ def correct_answer(host: str, kind: int, ident: int, packet: bytes):
     expected = semantics(answer(query(host, kind, ident)))
     def records_without_ttl(value):
         return [{k: v for k, v in record.items() if k != "ttl"} for record in value["records"]]
-    return (result["id"] == ident and result["flags"] & 0x800f == 0x8000
+    return (result["id"] == ident and result["flags"] & 0x820f == 0x8000
             and result["questions"] == [[host, kind, 1]]
             and records_without_ttl(result) == records_without_ttl(expected)
-            and all(0 < row["ttl"] <= TTL for row in result["records"]))
+            and all(0 < row["ttl"] <= TTL for row in result["records"])
+            and complete_dns_wire(packet))
+
+
+def complete_dns_wire(packet):
+    counts = struct.unpack_from("!6H", packet)[2:]
+    position = 12
+    for _ in range(counts[0]):
+        _, position = read_name(packet, position)
+        position += 4
+    for _ in range(sum(counts[1:])):
+        _, position = read_name(packet, position)
+        size = struct.unpack_from("!H", packet, position + 8)[0]
+        position += 10 + size
+    return position == len(packet)
+
+
+def correct_reload_reply(packet, ident, address):
+    parsed = semantics(packet)
+    host = f"reload-proof.{PREFIX}"
+    return (parsed["id"] == ident and parsed["questions"] == [[host, 1, 1]]
+            and parsed["flags"] & 0x820f == 0x8000 and len(parsed["records"]) == 1
+            and parsed["records"][0]["section"] == "answer"
+            and parsed["records"][0]["name"] == host
+            and parsed["records"][0]["class"] == 1
+            and parsed["records"][0]["type"] == 1
+            and parsed["records"][0]["data"] == address
+            and 0 < parsed["records"][0]["ttl"] <= TTL
+            and complete_dns_wire(packet))
 
 
 def bank_question(index, mixed):
@@ -462,15 +490,14 @@ def run_load(args, daemon, root, upstream):
                         packet = reload_socket.recv(65535)
                     except BlockingIOError:
                         break
-                    parsed = semantics(packet)
                     row = pending_reload["row"]
-                    if (parsed["id"] == pending_reload["ident"]
-                            and parsed["questions"] == [[f"reload-proof.{PREFIX}", 1, 1]]
-                            and parsed["flags"] & 0x800f == 0x8000
-                            and len(parsed["records"]) == 1
-                            and parsed["records"][0]["type"] == 1
-                            and parsed["records"][0]["data"] == row["host_address"]
-                            and 0 < parsed["records"][0]["ttl"] <= TTL):
+                    row.setdefault("observed_replies", []).append(packet.hex())
+                    try:
+                        valid = correct_reload_reply(packet, pending_reload["ident"], row["host_address"])
+                    except (ValueError, IndexError, struct.error) as error:
+                        row.setdefault("malformed_probes", []).append(repr(error))
+                        valid = False
+                    if valid:
                         received = time.monotonic_ns()
                         row.update({"published_monotonic_ns": received,
                                     "publication_seconds": (received - row["signal_monotonic_ns"]) / 1e9,
@@ -546,7 +573,11 @@ def run_load(args, daemon, root, upstream):
                             "sample_count_passed": len(measured) >= max(1, int(args.duration) - 2),
                             "service_cpu_affinity_passed": all(
                                 node["affinity"] == [args.cpu_daemon] for row in measured
-                                for node in [row["parent"], *row["children"]])},
+                                for node in [row["parent"], *row["children"]]),
+                            "worker_cpu_affinity_passed": all(
+                                row[label].get("affinity") == [cpu] for row in measured
+                                for label, cpu in (("loadgen", args.cpu_load), ("upstream", args.cpu_upstream), ("tftp", args.cpu_load))
+                                if label in row and not row[label].get("exited_during_sample"))},
                 "peaks": {key: max((row["tree"][key] for row in measured), default=0)
                           for key in ("rss_kib", "pss_kib", "fd_count", "thread_count", "child_processes")},
                 "parent_peaks": {key: max((row["parent"][key] for row in measured), default=0)

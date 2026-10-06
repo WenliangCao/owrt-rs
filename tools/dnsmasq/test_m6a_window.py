@@ -29,6 +29,8 @@ class FrozenInputs(unittest.TestCase):
         original = window.answer(query(host, ident=17))
         for changed in (original[:1] + b"\x12" + original[2:],
                         original[:-1] + b"\x02",
+                        original + b"trailing",
+                        original[:2] + bytes([original[2] | 2]) + original[3:],
                         original[:12] + b"\x05other" + original[18:]):
             try:
                 valid = window.correct_answer(host, 1, 17, changed)
@@ -39,6 +41,22 @@ class FrozenInputs(unittest.TestCase):
         _, end = window.read_name(original, 12)
         struct.pack_into("!I", zero_ttl, end + 4 + 6, 0)
         self.assertFalse(window.correct_answer(host, 1, 17, bytes(zero_ttl)))
+
+    def test_reload_probe_rejects_wrong_class_owner_section_and_tc(self):
+        host = "reload-proof.m6a.test"
+        original = window.answer(query(host, ident=23))[:-1] + b"\x0b"
+        self.assertTrue(window.correct_reload_reply(original, 23, "192.0.2.11"))
+        _, question_end = window.read_name(original, 12)
+        answer_start = question_end + 4
+        wrong_class = bytearray(original)
+        struct.pack_into("!H", wrong_class, answer_start + 4, 3)
+        wrong_section = bytearray(original)
+        struct.pack_into("!HH", wrong_section, 6, 0, 1)
+        wrong_owner = original[:answer_start] + window.name("other.m6a.test") + original[answer_start + 2:]
+        for changed in (bytes(wrong_class), bytes(wrong_section), wrong_owner,
+                        original[:2] + bytes([original[2] | 2]) + original[3:],
+                        original + b"trailing"):
+            self.assertFalse(window.correct_reload_reply(changed, 23, "192.0.2.11"))
 
     def test_common_config_and_fixed_dhcp_identities(self):
         for scenario in ("hit", "miss", "mixed", "fault", "tcp", "dhcp", "reload"):
