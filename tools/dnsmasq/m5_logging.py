@@ -22,7 +22,7 @@ import subprocess
 import time
 
 from dns_service_probe import answer as ordinary_upstream_answer, exact_read, name as wire_name, query, read_name, rr, semantics
-from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
+from m2_rootfs import bind_unix_socket, STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 
 DEPENDENCIES = ['dns_service_probe.py', 'm2_rootfs.py', 'run_isolated.sh',
                 'm5_logging_requirements.json']
@@ -755,7 +755,7 @@ class Receiver:
             path = image_path(root, '/dev/log', follow_leaf=False)
             path.unlink(missing_ok=True)
             self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM if kind == 'stream' else socket.SOCK_DGRAM)
-            self.listener.bind(str(path))
+            bind_unix_socket(self.listener, path)
             path.chmod(0o777)
             if kind == 'stream':
                 self.listener.listen(1)

@@ -20,6 +20,22 @@ import tempfile
 STOCK_SHA256 = '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87'
 
 
+def bind_unix_socket(endpoint, path):
+    """Bind the same Linux directory entry when its absolute path exceeds107 bytes."""
+    path = Path(path)
+    raw = os.fsencode(path)
+    if len(raw) <= 107:
+        endpoint.bind(str(path))
+        return
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC
+    directory = os.open(path.parent, flags)
+    try:
+        short = b'/proc/self/fd/' + str(directory).encode() + b'/' + os.fsencode(path.name)
+        endpoint.bind(short)
+    finally:
+        os.close(directory)
+
+
 def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
