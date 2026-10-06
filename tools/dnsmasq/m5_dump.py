@@ -556,6 +556,8 @@ def fifo_pressure(args, root, spec):
                     client.sendto(b'\0\4\0\1',peer)
                 except socket.timeout:tftp_health=False
             assert dns_health==tftp_health==(args.side=='rust'),'services progress with undrained dump'
+            save(folder/'pressure-state.json',dict(wchan=wchan,accepted_queries=len(requests),answered_queries=len(replies),
+                                                  dns_health=dns_health,tftp_health=tftp_health,pipe_capacity=fcntl.fcntl(reader,fcntl.F_GETPIPE_SZ)))
             os.kill(process.pid,signal.SIGTERM);time.sleep(.1)
             exited_without_drain=process.poll() is not None
             assert exited_without_drain==(args.side=='rust'),'signal progress follows same owner boundary'
