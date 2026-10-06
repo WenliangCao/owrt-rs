@@ -105,6 +105,7 @@ pub trait OutcomeProvider {
         _reply: Reply,
         _output: &[u8],
         _omitted_options: &[u8],
+        _option_warnings: &[super::logging::OptionWarning],
     ) {
     }
 
@@ -856,7 +857,8 @@ where
     let mut fixed_boot_fields = [None, None];
     let selection = provider.selected_options(&outcome);
     let mut option_next_server = None;
-    let configured = encode_filtered_options_with_pxe(
+    let mut option_warnings = Vec::new();
+    let configured = encode_filtered_options_with_pxe_notices(
         dispatch.packet,
         outcome.reply,
         network.map(|network| network.next_server),
@@ -867,6 +869,7 @@ where
         &mut fixed_boot_fields,
         &mut option_next_server,
         &provider.pxe_encoding(),
+        &mut option_warnings,
     );
     let boot_next_server = if matches!(outcome.reply, Reply::Nak { .. }) {
         None
@@ -975,6 +978,7 @@ where
         outcome.reply,
         &buffer[..encoding.len],
         &encoding.omitted_options,
+        &option_warnings,
     );
     restore_relay_source(&dispatch, buffer);
     let mut destination = match destination_with_ports(
@@ -1107,6 +1111,35 @@ pub fn encode_filtered_options_with_pxe(
     next_server: &mut Option<Ipv4Addr>,
     pxe: &PxeEncoding<'_>,
 ) -> Vec<(u8, Vec<u8>)> {
+    encode_filtered_options_with_pxe_notices(
+        packet,
+        reply,
+        local,
+        configured,
+        selection,
+        present,
+        has_boot,
+        fixed_boot_fields,
+        next_server,
+        pxe,
+        &mut Vec::new(),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn encode_filtered_options_with_pxe_notices(
+    packet: super::packet::Packet<'_>,
+    reply: Reply,
+    local: Option<Ipv4Addr>,
+    configured: &[DhcpOption],
+    selection: &crate::config::dhcp::FilteredOptions<'_>,
+    present: &mut [bool; 256],
+    has_boot: bool,
+    fixed_boot_fields: &mut [Option<Vec<u8>>; 2],
+    next_server: &mut Option<Ipv4Addr>,
+    pxe: &PxeEncoding<'_>,
+    notices: &mut Vec<super::logging::OptionWarning>,
+) -> Vec<(u8, Vec<u8>)> {
     use crate::config::dhcp::Encapsulation;
     let mut values = Vec::new();
     if matches!(reply, Reply::Nak { .. } | Reply::Ignore) {
@@ -1115,9 +1148,13 @@ pub fn encode_filtered_options_with_pxe(
     let bootp = matches!(reply, Reply::Bootp { .. });
     let leasequery = packet.message_type() == 10;
     let null_term = !bootp && !leasequery && broken_string_option(packet);
-    for _ in 0..selection.duplicate_warnings {
-        eprintln!("dnsmasq-rs: Ignoring duplicate dhcp-option");
-    }
+    notices.extend(
+        selection
+            .duplicate_codes
+            .iter()
+            .copied()
+            .map(super::logging::OptionWarning::Duplicate),
+    );
     for &index in &selection.selected {
         let option = &configured[index];
         present[usize::from(option.code)] = true;
@@ -1211,7 +1248,7 @@ pub fn encode_filtered_options_with_pxe(
                 data.extend_from_slice(&value);
             }
             if data.len() > 250 {
-                eprintln!("dnsmasq-rs: cannot send RFC3925 option: too many options for enterprise number {number}");
+                notices.push(super::logging::OptionWarning::EnterpriseTooLarge(number));
             } else {
                 let mut payload = number.to_be_bytes().to_vec();
                 payload.push(data.len() as u8);
@@ -1258,7 +1295,18 @@ pub fn encode_pxe_options(
     selection: &crate::config::dhcp::FilteredOptions<'_>,
     pxe: &PxeEncoding<'_>,
 ) -> Vec<(u8, Vec<u8>)> {
-    encode_filtered_options_with_pxe(
+    encode_pxe_options_notices(packet, local, configured, selection, pxe, &mut Vec::new())
+}
+
+pub fn encode_pxe_options_notices(
+    packet: super::packet::Packet<'_>,
+    local: Ipv4Addr,
+    configured: &[DhcpOption],
+    selection: &crate::config::dhcp::FilteredOptions<'_>,
+    pxe: &PxeEncoding<'_>,
+    notices: &mut Vec<super::logging::OptionWarning>,
+) -> Vec<(u8, Vec<u8>)> {
+    encode_filtered_options_with_pxe_notices(
         packet,
         Reply::Inform {
             lease_time: None,
@@ -1273,6 +1321,7 @@ pub fn encode_pxe_options(
         &mut [None, None],
         &mut None,
         pxe,
+        notices,
     )
 }
 

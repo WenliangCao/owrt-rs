@@ -675,6 +675,7 @@ pub struct FilteredOptions<'a> {
     pub selected: Vec<usize>,
     pub tags: Vec<&'a [u8]>,
     pub duplicate_warnings: usize,
+    pub duplicate_codes: Vec<u8>,
 }
 
 /// Options are in reverse declaration order; tag-if rules are in declaration
@@ -717,6 +718,7 @@ pub fn option_filter<'a>(
         }
     }
     let mut duplicate_warnings = 0;
+    let mut duplicate_codes = Vec::new();
     for (index, option) in options.iter().enumerate() {
         if eligible(option) && !selected[index] && option.tags.is_unconditional() {
             if let Some((_, other)) = options
@@ -726,6 +728,7 @@ pub fn option_filter<'a>(
             {
                 if other.tags.is_unconditional() {
                     duplicate_warnings += 1;
+                    duplicate_codes.push(option.code);
                 }
             } else {
                 selected[index] = true;
@@ -749,6 +752,7 @@ pub fn option_filter<'a>(
             .collect(),
         tags,
         duplicate_warnings,
+        duplicate_codes,
     }
 }
 
