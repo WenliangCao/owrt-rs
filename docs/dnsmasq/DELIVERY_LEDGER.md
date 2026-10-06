@@ -49,6 +49,9 @@
 | 失败的部分邻居发布 | `netlink.c:211–225/327–329`在NLMSG_ERROR前已回调；`arp.c:42–100/154–175`保留部分filter_mac结果并不检查完整枚举成功。 | 只有完整、有效的dump才发布新邻居代际。 | 部分错误数据不作为客户端身份依据；同注入stream，C完整与缺邻居两独立阳性对照，错误/未完成generation不发布。 |
 | 邻居dump未结束时的进展与退出 | `arp.c:154–164`同步查MAC，`netlink.c:114–133/198–225`阻塞recvmsg并等待DONE。三个已定位case使C父owner停滞。 | 有界非阻塞lookup，pending期间DNS/DHCP/TFTP继续，缺失结果按有界fallback处理并正常退出。 | 不复制未结束dump造成的永久停滞；相同无DONE payload/type流、C健康timeout/强制结束与Rust实际健康/正常收尾严格守卫。 |
 | 巨型SOA canonical RDATA超过u16 | `dnsmasq.h:350`为unsigned short，`rfc1035.c:1016/1038/1052`扩大名字后65710窄化为174，`:2326–2327`按窄化值回放。实际首次有效65498B TCP之后C输出malformed468B缓存响应。 | `canonical_rdata`拒绝超u16缓存提取，合法首响应完整转发，后续重新询问上游并完整返回。 | 不生成损坏的DNS报文。首C/两Rust全payload、C精确174B canonical前缀/468B回放、599/600TTL、C1/Rust2真实上游与8负控全部严格；[fresh极端处置](audits/20261006/CACHE_EXTREME_DISPOSITION.md)。 |
+| 负signed IPv6 prefix | `option.c:2679–2697`、`domain.c:264–279`把溢出prefix折叠到负int；`util.c:524–533`将负比较长度转换为size_t，可能越界读地址。 | domain/synth负IPv6 prefix在配置边界明确拒绝。 | 不进入C未定义内存路径；3实际Rust语法精准拒绝、静态C调用链，正常wrap0和IPv4折叠实际配对；[极端处置](audits/20261006/ENDPOINT_EXTREME_DISPOSITION.md)。 |
+| 不可编码的SYN PTR目标 | `domain.c:153–209`派生64/86字节label或256B wire target，`rfc1035.c:1992–2000/1600–1608`、`util.c:294–324`不检查DNS界限，实际返回损坏PTR。 | 按wire Name规则验证，不能表示的目标不发PTR，按正常路由转发；已修原Rust伪造root PTR。 | 不生成损坏DNS或虚假root PTR；合法label63/name253、真实上下游NX阳性/传输/健康及33负控严格。 |
+| dump FIFO压力与退出待写 | `dump.c:70–76/291–295`同步写阻塞，4096B满pipe下C在第58query停滞，并等待drain才能服务/退出。 | 队列上限256；400查询和DNS/TFTP健康保持，满后报failed to write packet dump，TERM不阻塞并丢未写队列。 | 单owner不得因dump消费者停读而停止网络或退出；C58完整PCAP及blocking阳性、Rust57已写/256pending/88overlimit精确守卫与8负控，不把队列丢弃当零差异。 |
 
 ## 当前状态与退出条件
 
