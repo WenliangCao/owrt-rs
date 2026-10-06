@@ -336,7 +336,8 @@ static void receive_dns(struct client *c,uint64_t time) {
   if (c->rx_len<2) return;
   size_t length=read16(c->rx);
   if (length<12 || c->rx_len>length+2) {
-    if (c->busy) completion(c,WRONG,time); stopping=1; return;
+    if (c->busy) completion(c,WRONG,time);
+    stopping=1; return;
   }
   if (c->rx_len==length+2) {
     if (!c->busy) { counts[c->phase].stale++; c->rx_len=0; return; }
