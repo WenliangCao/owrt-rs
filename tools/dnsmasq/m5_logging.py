@@ -32,6 +32,7 @@ FACILITIES = {'kern': 0, 'user': 8, 'mail': 16, 'daemon': 24, 'auth': 32,
               'local2': 144, 'local3': 152, 'local4': 160, 'local5': 168,
               'local6': 176, 'local7': 184, 'mark': 192}
 RUST_VERSION_IDENTITY = '; dnsmasq-rs 0.1.0 (Rust implementation)'
+RETRY_BARRIER_SECONDS = 2
 BASE = ['--no-hosts', '--no-resolv', '--bind-interfaces', '--no-0x20-encode',
         '--listen-address=127.0.0.1', '--port=15353', '--group=root',
         '--pid-file=', '--host-record=ready.logging,192.0.2.1']
@@ -1047,8 +1048,13 @@ def identity_sequence(transport, calibrate, sticky_probe=None, fresh=False):
 
 class QueryUpstream:
     """Fixed-address UDP/TCP fixture; retain each actual request and response."""
-    def __init__(self, refresh_reply=False):
+    def __init__(self, refresh_reply=False, retry_barrier=False):
         self.refresh_reply = refresh_reply
+        self.retry_barrier = retry_barrier
+        self.held_retry = None
+        self.retry_requests = 0
+        self.released_on_request = None
+        self.retry_released = threading.Event()
         self.sockets, self.clients, self.wire, self.errors = [], {}, [], []
         self.pending = []
         self.stale_seen = set()
@@ -1105,7 +1111,14 @@ class QueryUpstream:
             ready, _, _ = select.select(self.sockets + list(self.clients), [], [], .005)
             due = [item for item in self.pending if item[0] <= time.monotonic()]
             self.pending = [item for item in self.pending if item not in due]
-            for _, endpoint, peer, response in due: endpoint.sendto(response, peer)
+            for _, endpoint, peer, response, record in due:
+                endpoint.sendto(response, peer)
+                record['response_sent_monotonic_ns'] = time.monotonic_ns()
+            if self.held_retry and self.released_on_request is None:
+                if time.monotonic_ns() - self.held_retry[3]['received_monotonic_ns'] > RETRY_BARRIER_SECONDS * 1_000_000_000:
+                    self.errors.append('fast retry upstream witness timed out')
+                    self.stopped.set()
+                    continue
             for endpoint in ready:
                 try:
                     if endpoint in self.clients:
@@ -1124,12 +1137,34 @@ class QueryUpstream:
                         client, _ = endpoint.accept(); client.settimeout(.5); self.clients[client] = bytearray()
                     else:
                         request, peer = endpoint.recvfrom(65535)
+                        received = time.monotonic_ns()
                         response = self.response(request)
-                        self.wire.append({'transport': 'udp', 'request': request.hex(), 'reply': None if response is None else response.hex(), 'server': list(endpoint.getsockname())})
+                        record = {'transport': 'udp', 'request': request.hex(), 'reply': None if response is None else response.hex(),
+                                  'server': list(endpoint.getsockname()), 'peer': list(peer),
+                                  'received_monotonic_ns': received, 'response_sent_monotonic_ns': None}
+                        self.wire.append(record)
                         if response is None: continue
                         if read_name(request, 12)[0] == 'delay.forward.test':
-                            self.pending.append((time.monotonic() + .12, endpoint, peer, response))
-                        else: endpoint.sendto(response, peer)
+                            if self.retry_barrier:
+                                record['reply'] = None
+                                self.retry_requests += 1
+                                if self.retry_requests == 1:
+                                    self.held_retry = (endpoint, peer, response, record)
+                                elif self.retry_requests == 2:
+                                    first_endpoint, first_peer, first_response, first = self.held_retry
+                                    if record['request'] != first['request'] or peer != first_peer or endpoint is not first_endpoint:
+                                        raise AssertionError('fast retry wire/peer changed')
+                                    first['response_send_started_monotonic_ns'] = time.monotonic_ns()
+                                    first_endpoint.sendto(first_response, first_peer)
+                                    first['reply'] = first_response.hex()
+                                    first['response_sent_monotonic_ns'] = time.monotonic_ns()
+                                    self.released_on_request = self.retry_requests
+                                    self.retry_released.set()
+                            else:
+                                self.pending.append((time.monotonic() + .12, endpoint, peer, response, record))
+                        else:
+                            endpoint.sendto(response, peer)
+                            record['response_sent_monotonic_ns'] = time.monotonic_ns()
                 except Exception as error:
                     self.errors.append(repr(error))
                     self.stopped.set()
@@ -1138,6 +1173,8 @@ class QueryUpstream:
         self.stopped.set(); self.thread.join(1)
         if self.thread.is_alive(): raise AssertionError('query fixture thread leaked')
         for endpoint in self.sockets + list(self.clients): endpoint.close()
+        if self.held_retry and self.released_on_request is None:
+            self.errors.append('fast retry reply was never released by an actual retry')
         if self.errors: raise AssertionError(('query fixture failure', self.errors))
 
 
@@ -1145,11 +1182,13 @@ def query_transaction_probe(kind):
     trace, rows = [], []
     clients = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]
     clients[0].bind(('127.0.0.1', 16505)); clients[0].settimeout(1)
+    if kind == 'fastretry': clients[0].settimeout(RETRY_BARRIER_SECONDS + .5)
     if kind == 'coalesce':
         clients.append(socket.socket(socket.AF_INET, socket.SOCK_DGRAM))
         clients[1].bind(('127.0.0.1', 16506)); clients[1].settimeout(1)
     try:
         first = query_packet('delay.forward.test', 1, 0x7601)
+        sent = time.monotonic_ns()
         clients[0].sendto(first, ('127.0.0.1', 15353))
         if kind == 'coalesce':
             second = query_packet('delay.forward.test', 1, 0x7602)
@@ -1159,12 +1198,17 @@ def query_transaction_probe(kind):
             clients[0].sendto(first, ('127.0.0.1', 15353))
         for index, client in enumerate(clients):
             response = client.recv(65535)
+            received = time.monotonic_ns()
             request = first if index == 0 else second
             if response[:2] != request[:2]: raise AssertionError('transaction recipient ID changed')
             rows.append({'transport': 'udp', 'response': semantics(response)})
             trace.append({'transport': 'udp', 'request': request.hex(), 'reply': response.hex(), 'client': list(client.getsockname())})
+            if kind == 'fastretry': trace[-1].update(send_count=1, sent_monotonic_ns=sent, received_monotonic_ns=received)
+        cached_sent = time.monotonic_ns()
         answer, raw = exchange('delay.forward.test', 1, port=16507, timeout=1)
         rows.append({'transport': 'udp-cached', 'response': answer});trace.append(dict(raw, transport='udp-cached'))
+        if kind == 'fastretry': trace[-1].update(send_count=1, client=['127.0.0.1', 16507],
+            sent_monotonic_ns=cached_sent, received_monotonic_ns=time.monotonic_ns())
     finally:
         for client in clients: client.close()
     return rows, trace
@@ -1307,7 +1351,8 @@ def run(root, side, case, out):
     (folder / 'config').write_bytes(bytes.fromhex(case['config_bytes']) if 'config_bytes' in case else case.get('config', '').encode())
     for name, text in case.get('setup_files', {}).items():
         (folder / name).write_text(text)
-    query_upstream = QueryUpstream(case.get('query_refresh_reply', False)) if case.get('query_upstream') else None
+    query_upstream = QueryUpstream(case.get('query_refresh_reply', False),
+        retry_barrier=case.get('query_transaction_probe') == 'fastretry') if case.get('query_upstream') else None
     blocker = None
     tcp_upstream = None
     if case.get('tcp_rotate'):
@@ -1542,6 +1587,15 @@ def run(root, side, case, out):
                     if case.get('query_transaction_probe'):
                         rows, raw = query_transaction_probe(case['query_transaction_probe'])
                         observed['dns'].extend(rows); trace['dns'].extend(raw)
+                        if case['query_transaction_probe'] == 'fastretry':
+                            if not query_upstream.retry_released.wait(.5):
+                                raise AssertionError('fast retry release witness missing')
+                            observed['fast_retry_witness'] = {'client_queries': raw,
+                                'upstream': [packet for packet in query_upstream.wire
+                                             if read_name(bytes.fromhex(packet['request']), 12)[0] == 'delay.forward.test'],
+                                'released_on_request': query_upstream.released_on_request,
+                                'upstream_requests': query_upstream.retry_requests,
+                                'deadline_seconds': RETRY_BARRIER_SECONDS + .5}
                 if case.get('chaos'):
                     for name in ['version.bind', 'authors.bind', 'copyright.bind', 'cachesize.bind',
                                  'insertions.bind', 'evictions.bind', 'hits.bind', 'misses.bind', 'servers.bind']:
@@ -1581,8 +1635,17 @@ def run(root, side, case, out):
             if tcp_upstream:
                 tcp_upstream.close()
             if query_upstream:
-                query_upstream.close()
-                save(out / 'upstream-wire.json', query_upstream.wire)
+                try:
+                    query_upstream.close()
+                finally:
+                    save(out / 'upstream-wire.json', query_upstream.wire)
+                    if case.get('query_transaction_probe') == 'fastretry':
+                        witness = observed.setdefault('fast_retry_witness', {})
+                        witness.update(upstream=[packet for packet in query_upstream.wire
+                            if read_name(bytes.fromhex(packet['request']), 12)[0] == 'delay.forward.test'],
+                            upstream_requests=query_upstream.retry_requests,
+                            released_on_request=query_upstream.released_on_request)
+                        save(out / 'fast-retry-witness.json', witness)
             trace['duration'] = time.monotonic() - start
             trace['stream_tail'] = receiver.pending.hex()
             save(out / 'trace.json', trace)
@@ -2148,6 +2211,37 @@ def run_daemon(root, side, case, out):
     return observed
 
 
+def fast_retry_witness_errors(row):
+    witness = row.get('fast_retry_witness') or {}
+    clients, upstream = witness.get('client_queries', []), witness.get('upstream', [])
+    if len(clients) != 2 or len(upstream) != 2 or witness.get('upstream_requests') != 2 or witness.get('released_on_request') != 2:
+        return ['missing exact client/initial-forward/first-retry inventory']
+    first, cached = clients; initial, retry = upstream
+    if (first.get('send_count') != 1 or cached.get('send_count') != 1
+            or first.get('transport') != 'udp' or cached.get('transport') != 'udp-cached'
+            or witness.get('deadline_seconds') != RETRY_BARRIER_SECONDS + .5
+            or first.get('client') != ['127.0.0.1', 16505] or cached.get('client') != ['127.0.0.1', 16507]
+            or bytes.fromhex(first['request'])[:2] != bytes.fromhex(first['reply'])[:2]
+            or bytes.fromhex(cached['request'])[:2] != bytes.fromhex(cached['reply'])[:2]
+            or initial['request'] != retry['request'] or initial['server'] != retry['server']
+            or initial['peer'] != retry['peer'] or initial['transport'] != 'udp' or retry['transport'] != 'udp'
+            or initial.get('reply') is None or retry.get('reply') is not None
+            or retry.get('response_sent_monotonic_ns') is not None):
+        return ['client resent or upstream retry wire/endpoint/response count changed']
+    times = [first.get('sent_monotonic_ns'), initial.get('received_monotonic_ns'),
+             retry.get('received_monotonic_ns'), initial.get('response_send_started_monotonic_ns'),
+             initial.get('response_sent_monotonic_ns'), first.get('received_monotonic_ns'),
+             cached.get('sent_monotonic_ns'), cached.get('received_monotonic_ns')]
+    if any(type(value) is not int or value <= 0 for value in times): return ['missing actual monotonic timestamps']
+    sent, received, retried, reply_started, reply_completed, answered, cache_sent, cache_answered = times
+    if (not sent <= received <= retried <= reply_started <= reply_completed
+            or not reply_started <= answered <= cache_sent <= cache_answered
+            or retried - received > RETRY_BARRIER_SECONDS * 1_000_000_000
+            or cache_answered - sent > (RETRY_BARRIER_SECONDS + .5) * 1_000_000_000):
+        return ['reply preceded actual retry or transaction exceeded its bounded deadline']
+    return []
+
+
 def compare(reference, candidate, case, reference_only=False):
     failures = []
     expected_ready = case.get('expect_ready', case['kind'] == 'run' and case.get('exit', 0) == 0)
@@ -2484,6 +2578,13 @@ def compare(reference, candidate, case, reference_only=False):
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
+    if case.get('query_transaction_probe') == 'fastretry':
+        for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
+            failures.extend({'kind': 'actual-fast-retry-witness', 'side': side, 'error': error}
+                            for error in fast_retry_witness_errors(row))
+        # Each side's real events were checked above; absolute clock values
+        # and the independently allocated upstream DNS IDs are retained raw.
+        left.pop('fast_retry_witness', None); right.pop('fast_retry_witness', None)
     if case.get('blocked_kind') == 'fifo-peer-disconnect':
         for row in [left, right]:
             row.pop('fifo_fds_after_failure', None)
