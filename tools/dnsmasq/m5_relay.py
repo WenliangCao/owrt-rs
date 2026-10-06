@@ -739,6 +739,15 @@ def main(args):
     out=args.out.resolve()
     if out.exists() or "private" not in out.parts:raise SystemExit("fresh --out below private/ required")
     out.mkdir(parents=True)
+    # This IPv4 relay matrix supplies every intended address-generation event.
+    # Automatic link-local DAD would asynchronously clear learned relay state
+    # between otherwise unrelated cases, especially after the link-down guard.
+    generation=Path('/proc/sys/net/ipv6/conf/default/addr_gen_mode')
+    original_generation=generation.read_text().strip()
+    generation.write_text('1\n')  # Linux IN6_ADDR_GEN_MODE_NONE, future fixture links only.
+    save(out/'fixture-network-policy.json',{'namespace':os.readlink('/proc/self/ns/net'),
+         'path':str(generation),'original':original_generation,'configured':generation.read_text().strip(),
+         'scope':'isolated fixture only; keep IPv6 protocol and explicit IPv4 address events'})
     root=prepare(args.image_root,None,out,args.rust)
     sides=["c","rust"] if args.side=="both" else [args.side]
     profiles=[profile for profile in scenarios() if not args.profile or profile["name"] in args.profile]
@@ -753,6 +762,7 @@ def main(args):
             monitor_log=(out/'address-link-events.log').open('wb')
             monitor=subprocess.Popen(['ip','-ts','monitor','address','link'],stdout=monitor_log,stderr=monitor_log,start_new_session=True)
         client=Peer("client0",DOWN,CLIENT);server=Peer("server0",UP,SERVER)
+        assert all(Path('/proc/sys/net/ipv6/conf/'+name+'/addr_gen_mode').read_text().strip()=='1' for name in ['client0','server0']),'controlled relay fixture address generation'
         save(out/"interfaces.json",[{"index":index,"name":name} for index,name in socket.if_nameindex()])
         if not args.profile:
             for kind in ["external-conflict","default-exclusive","bind-interfaces","bind-dynamic"]:
