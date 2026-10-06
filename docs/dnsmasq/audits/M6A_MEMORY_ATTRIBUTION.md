@@ -150,3 +150,51 @@ full smaps还能拆出先前残差中的stack与映射匿名页：
 新名字容量已用本地、无Oracle工作的诊断复制件实测：`memory-layout-05-m6a/layout.json`记录原始Name与canonical key各65,536 B、RDATA16,384 B、索引capacity16,384个usize，HashMap requested401,416 B；snapshot索引capacity4096个usize。复现器加 `--names m6a` 即可重现，不更改被测ELF。
 
 同标签的proc文件不是原子快照。r01 Rs `empty.smaps_rollup`为2032 RSS/568 Anon，但紧邻full smaps逐段总和为2024/560；`measurement-start` rollup为3332/1868，full smaps为3340/1876，观察到8 KiB瞬时差。逐段分布使用该full smaps自己的和，峰值/轮次统计使用原resources/rollup，不能把两次读取拼成同一原子视图或因几KiB变化声称泄漏。正式5轮后再报告其范围和是否持续增长。
+
+## 五轮正式 UDP-hit 内存结果
+
+正式冻结 `freeze-c3402ba6` 的 `state.json` 标记 `formal_valid_windows=135`，manifest SHA 为 `885d7eda6fcec0e7b057682c7798a09dda67a9dfc2300b8d898cfb15c3d50f40`。下面所有15个窗口都来自各自 `.../plain/formal`，不含同目录中被拒绝的pilot或作废attempt。每个单元按 **RSS/PSS/匿名/file KiB**，顺序固定为 `empty | filled | verified | after-drain`；四阶段均保留在归档中的 `.smaps_rollup`，不是用测量峰值替代阶段快照。
+
+| 轮次 | C | Rust opt3 | Rust opt-level s |
+| --- | --- | --- | --- |
+| r01 | 1576/1568/648/920 | 1580/1572/652/920 | 1580/1572/652/920 | 1580/1572/652/920 | 2020/2012/560/1452 | 3456/3448/1868/1580 | 3520/3512/1868/1644 | 3520/3512/1868/1644 | 2032/2024/568/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 |
+| r02 | 1668/1660/652/1008 | 1672/1664/656/1008 | 1672/1664/656/1008 | 1672/1664/656/1008 | 2020/2012/560/1452 | 3456/3448/1868/1580 | 3520/3512/1868/1644 | 3520/3512/1868/1644 | 2024/2016/560/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 |
+| r03 | 1660/1652/652/1000 | 1664/1656/656/1000 | 1664/1656/656/1000 | 1664/1656/656/1000 | 2020/2012/560/1452 | 3456/3448/1868/1580 | 3520/3512/1868/1644 | 3520/3512/1868/1644 | 2024/2016/560/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 |
+| r04 | 1664/1656/648/1008 | 1668/1660/652/1008 | 1668/1660/652/1008 | 1668/1660/652/1008 | 2020/2012/560/1452 | 3456/3448/1868/1580 | 3520/3512/1868/1644 | 3520/3512/1868/1644 | 2024/2016/560/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 |
+| r05 | 1628/1620/648/972 | 1632/1624/652/972 | 1632/1624/652/972 | 1632/1624/652/972 | 2020/2012/560/1452 | 3456/3448/1868/1580 | 3520/3512/1868/1644 | 3520/3512/1868/1644 | 2024/2016/560/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 | 3332/3324/1868/1456 |
+
+Across the five rounds, C filled-to-after-drain adds exactly 4 KiB anonymous and no file in every round. R3 adds 1,308 KiB anonymous from empty to filled in every round, then only r01's verification changes file by 64 KiB; Rs adds 1,300 KiB (r01) or 1,300 KiB (r02–r05, with empty anonymous 560/filled1868) and no post-fill file. The stable Rust anonymous plateau is therefore not evidence that every 65,535-byte receive `Vec` remains live; it is consistent with allocator retention plus cache/index allocations. The 124–132 KiB gap between the 1,400.039 KiB logical m6a cache request budget and the 1,300/1,308 KiB observed anonymous growth is page alignment, pre-existing runtime allocation, and allocator reuse; it is not a proof of reclaimed bytes.
+
+The formal archive also records every answer as correct for this profile and zero upstream requests after cache proof. These memory rows are descriptive inputs to the final M6a analysis; no classification of performance benefit is made here.
+
+## TCP cache/local/miss process-family memory
+
+TCP snapshots must be read as process families. C forks short-lived children (20 at the peak for local/cache; 14–20 for miss), so the parent PSS alone hides the COW pages. Rust has one owner thread and no child process; each 100-query connection is closed/reopened, and `tcp_reconnections` is the load-generator count. `peak-family-PSS / parent-PSS / child-count / threads / FDs / reconnects / after-drain-parent-PSS/RSS` is listed below for every round.
+
+| Profile/group | r01 | r02 | r03 | r04 | r05 |
+| --- | --- | --- | --- | --- | --- |
+| tcp-local C | 4021/481/20/21/627/23655/1660/1668 | 3928/486/20/21/634/23175/1656/1664 | 3979/477/20/21/636/22486/1648/1656 | 4015/458/20/21/634/22317/1660/1668 | 4017/512/20/21/640/21701/1660/1668 |
+| tcp-local R3 | 11336/11336/0/1/30/12180/2148/2156 | 11336/11336/0/1/30/12144/2144/2152 | 11344/11344/0/1/30/12200/2144/2152 | 11344/11344/0/1/30/12140/2640/3100 | 11336/11336/0/1/30/12200/2148/2156 |
+| tcp-local Rs | 11284/11284/0/1/30/12083/2084/2092 | 11284/11284/0/1/30/12040/2088/2096 | 11284/11284/0/1/30/12080/2084/2092 | 11284/11284/0/1/30/12062/2084/2092 | 11284/11284/0/1/30/12063/2096/2096 |
+| tcp-cache C | 8807/619/20/21/637/21478/1664/1672 | 8720/656/20/21/644/21606/1656/1664 | 8136/635/20/21/644/21402/1664/1672 | 8742/658/20/21/637/21725/1664/1672 | 8612/627/20/21/642/21736/1664/1672 |
+| tcp-cache R3 | 24900/24900/0/1/30/11450/15968/15976 | 24908/24908/0/1/30/11480/15968/15976 | 24912/24912/0/1/30/11440/15124/15528 | 24904/24904/0/1/30/11418/18120/18524 | 24908/24908/0/1/30/11456/19360/19368 |
+| tcp-cache Rs | 24720/24720/0/1/30/11320/18324/18332 | 24708/24708/0/1/30/11340/12336/12344 | 24716/24716/0/1/30/11321/18320/18328 | 24712/24712/0/1/30/11319/18776/19180 | 24720/24720/0/1/30/11298/12360/12368 |
+| tcp-miss C | 6282/1652/16/17/355/6634/1652/1660 | 5993/1660/20/21/495/6649/1660/1668 | 6102/1660/17/18/385/6633/1660/1668 | 6047/1660/17/18/385/6611/1660/1668 | 5657/1192/14/15/298/6645/1660/1668 |
+| tcp-miss R3 | 33568/33568/0/1/50/4380/26120/26128 | 33572/33572/0/1/51/4360/26124/26132 | 33576/33576/0/1/50/4380/28156/28164 | 33572/33572/0/1/50/4400/29392/29400 | 33576/33576/0/1/50/4361/29396/29404 |
+| tcp-miss Rs | 33512/33512/0/1/50/4300/29332/29340 | 33512/33512/0/1/50/4300/26852/26860 | 33512/33512/0/1/50/4333/26852/26860 | 33512/33512/0/1/50/4269/28092/28100 | 33508/33508/0/1/50/4320/24368/24376 |
+
+For C, family PSS is the only fair peak comparison: parent PSS is mostly 0.46–1.66 MiB while C children share the inherited image/cache pages and are repeatedly reaped. For Rust, parent/family PSS coincide because there are no children, and after-drain parent PSS remains 12–19 MiB for tcp-cache and 24–29 MiB for tcp-miss in several rounds. This retained post-window state is an observed allocator/cache-view lifetime effect; it cannot be converted into the static 936 KiB-per-view estimate without a heap trace. The family table also explains why summing C RSS (20 copies) would overstate physical memory and why comparing only parent RSS would understate C's transient COW cost.
+
+## DHCP, listener, logging and helper conditional accounting
+
+The five DHCP windows all completed 2,400 correct DORA/renew transactions per group per round. Peak process resources across rounds were C RSS/PSS 1,592–1,680/1,584–1,672 KiB, R3 2,440/2,432 KiB, and Rs 2,124/2,116 KiB; all had one thread, no child and 53/56/56 FDs respectively. The same config uses 20 fixed MAC/CLID hosts, `no-ping`, a 150-lease maximum and a 3,600-second lease; no helper script is configured, so helper allocation is zero in this scenario. These observations do not measure a full DHCP-max or helper backlog.
+
+The reload-concurrent windows configure `addn-hosts`, TFTP and the same cache. Across five rounds C peak RSS/PSS was 1,660–1,676/1,652–1,668 KiB with 15 FDs; R3 2,404/2,396 KiB with 14 FDs; Rs 2,148–2,152/2,144 KiB with 14 FDs. All use one thread and no helper. The logger is configured as `log-facility=-`; its `Logger`/queue structure is therefore present, but no queued log payload was separately attributed by the process snapshots. Listener file descriptors include DNS/TFTP and reload file descriptors; kernel socket buffers are outside the user-space object budget.
+
+The source-size table remains the correct conditional bound: C `dhcp_lease` 160 B versus Rust `Lease` 232 B plus variable Vec payloads; C `log_entry` 1,048 B versus Rust `Logger` 176 B and 40 B queue records plus payload Vec; C listener 64 B versus Rust socket/owner metadata; C helper `script_data` 104 B versus Rust Helper/LeaseDelivery/ExtraData only when a helper is configured. No formal profile here enables a script helper or an unbounded logging queue, so those rows must not be charged to the observed UDP/TCP RSS.
+
+## Final residual and M6b boundary
+
+The UDP formal five-round plateau confirms the major anonymous delta is present after cache fill, but it does not identify individual allocation owners. Full smaps distinguish C's preallocated 548 KiB cache mapping from Rust's multiple anonymous mappings; they cannot identify a Rust mapping as a particular `HashMap`, `Vec`, or allocator arena without heap instrumentation. The remaining candidates are: cache/index requested bytes (measured static accounting), allocator size-class retention and page rounding, the 65,535-byte UDP receive Vec, persistent upstream receive state, forwarding maps, stack, and logging/TFTP/DHCP scratch depending on profile.
+
+Root's final performance analysis identifies a repeated approximately 2 ms loop plus one packet/round and the 65,535-byte new receive buffer as the first M6b root-cause candidates. They are recorded here as measurement-backed candidates only. This M6a work does not change the buffer, loop, allocator, cache representation, fork policy or logging behavior. Any M6b change needs a new freeze and the full 135-window qualification.
