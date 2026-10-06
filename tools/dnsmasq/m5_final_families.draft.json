@@ -662,7 +662,13 @@
             "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
             "rust_sha256": "{elf_sha}",
             "failures": [],
-            "compared": 102
+            "compared": 102,
+            "parser.0.name": "empty-tag",
+            "parser.1.name": "empty-negated",
+            "parser.2.name": "no-fields",
+            "parser.3.name": "hostname",
+            "parser.4.name": "overwide-filename",
+            "parser.5.name": "overwide-servername"
           },
           "inventory": {
             "field": "cases",
@@ -900,7 +906,31 @@
           "result": "{out}/result.json",
           "checks": {
             "passed": true,
-            "failures": []
+            "failures": [],
+            "configuration_differences.0.case": "max-signed-overflow",
+            "configuration_differences.0.runtime_executed": false,
+            "configuration_differences.0.c.exit": 0,
+            "configuration_differences.0.rust.exit": 1,
+            "configuration_differences.1.case": "max-zero-wrap",
+            "configuration_differences.1.runtime_executed": false,
+            "configuration_differences.1.c.exit": 0,
+            "configuration_differences.1.rust.exit": 1,
+            "configuration_differences.2.case": "mtu-signed-overflow",
+            "configuration_differences.2.runtime_executed": false,
+            "configuration_differences.2.c.exit": 0,
+            "configuration_differences.2.rust.exit": 1,
+            "configuration_differences.3.case": "mtu-zero-wrap",
+            "configuration_differences.3.runtime_executed": false,
+            "configuration_differences.3.c.exit": 0,
+            "configuration_differences.3.rust.exit": 1,
+            "configuration_differences.4.case": "port-zero-wrap",
+            "configuration_differences.4.runtime_executed": false,
+            "configuration_differences.4.c.exit": 0,
+            "configuration_differences.4.rust.exit": 1,
+            "configuration_differences.5.case": "port-one-wrap",
+            "configuration_differences.5.runtime_executed": false,
+            "configuration_differences.5.c.exit": 0,
+            "configuration_differences.5.rust.exit": 1
           },
           "inventory": {
             "key": "scenario",
@@ -968,7 +998,15 @@
           ],
           "result": "{out}/result.json",
           "checks": {
-            "qualified": true
+            "qualified": true,
+            "option_results.dumpmask.qualified": true,
+            "option_results.dumpmask.required_count": 36,
+            "option_results.dumpmask.paired_count": 36,
+            "option_results.dumpmask.missing": [],
+            "option_results.dumpfile.qualified": true,
+            "option_results.dumpfile.required_count": 70,
+            "option_results.dumpfile.paired_count": 70,
+            "option_results.dumpfile.missing": []
           }
         }
       ]

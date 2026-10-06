@@ -57,7 +57,7 @@ def file_map(root):
 
 def field(value, name):
     for part in name.split('.'):
-        value = value[part]
+        value = value[int(part)] if isinstance(value, list) else value[part]
     return value
 
 
