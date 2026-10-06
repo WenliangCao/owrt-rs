@@ -154,6 +154,8 @@ def prepare(args):
     require(all(len({step['id'] for step in row['steps']}) == len(row['steps']) for row in families['families']), 'duplicate family step IDs')
     require(all(row['steps'] and all(step.get('result') and step.get('checks') for step in row['steps'])
                 for row in families['families']), 'every family step needs a retained result and explicit completion checks')
+    canonical = source / 'tools/dnsmasq/m5_final_families.draft.json'
+    require(families == json.loads(canonical.read_text()), 'family registry differs from reviewed frozen source')
     require(len(spec['cpus']) == 2 and spec['cpus'][0] != spec['cpus'][1]
             and set(spec['cpus']) <= os.sched_getaffinity(0), 'two available distinct CPU cores required')
     for name in ['deferred_review', 'safety_review']:
@@ -172,6 +174,9 @@ def prepare(args):
     pinned_ubus, ubus_helpers = ubus_assets(spec)
     assets.update(pinned_ubus)
     verify_release_map(spec, build)
+    reference_source = Path(spec.get('bindings', {}).get('reference_source', '')).resolve()
+    require(reference_source.is_dir() and (reference_source / 'option.c').is_file(), 'matching upstream source binding required')
+    source_reference = {'root': str(reference_source), 'files': file_map(reference_source)}
     tools = source / 'tools/dnsmasq'
     spec.update(schema=1, status='prepared-not-executed', source_root=str(source), output=str(out),
                 elf=str(elf), elf_bytes=elf.stat().st_size, assets=assets,
@@ -181,6 +186,7 @@ def prepare(args):
                 sdk_archive_sha256=archive_sha, sdk_files=build_package.sdk_inputs(sdk),
                 family_registry=families, dhcp_profiles=list(plan['profiles']),
                 ubus_helpers=ubus_helpers,
+                reference_source=source_reference,
                 phases=PHASES, physical_router=False, size_acceptance='pending-user-after-report',
                 m4_baseline={'elf_bytes': 1159280, 'full_cache_rss_kib': 2676},
                 resource_seconds=300, fuzz_seconds_per_target=1800)
@@ -300,6 +306,7 @@ def verify_identity(spec):
     require(file_map(Path(spec['image_root'])) == spec['image_files'], 'exact image files changed')
     require(build_package.sdk_inputs(Path(spec['sdk'])) == spec['sdk_files'], 'SDK tools changed')
     require(file_map(Path(spec['ubus_helpers']['root'])) == spec['ubus_helpers']['files'], 'independent UBus helper inputs changed')
+    require(file_map(Path(spec['reference_source']['root'])) == spec['reference_source']['files'], 'matching upstream source changed')
     for path, expected in spec['assets'].items(): require(digest(path) == expected, f'frozen asset changed: {path}')
 
 
@@ -390,6 +397,13 @@ def prerequisite(spec, manifest_sha, completed, phase):
             child = prerequisite(spec, manifest_sha, completed, name)
             require(child['receipt'] == path, 'aggregate points to another family receipt')
     elif phase.startswith('family:'):
+        family = phase.removeprefix('family:')
+        expected = commands(dict(spec, selected_families=[family]), 'families', Path(record['attempt']))
+        observed = record['commands']
+        require(len(observed) == len(expected), 'family completion step count differs')
+        for actual, wanted in zip(observed, expected):
+            require(all(actual.get(key) == value for key, value in wanted.items()),
+                    'completion command differs from frozen family schedule')
         verify_command_results(record['commands'])
     return record
 

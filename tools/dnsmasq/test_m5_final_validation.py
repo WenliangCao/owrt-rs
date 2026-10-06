@@ -92,10 +92,13 @@ class FinalValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary); names = ['a', 'b', 'c', 'd']
             spec = {'output': str(root), 'source_commit': 'b' * 40, 'elf_sha256': 'a' * 64,
-                    'family_registry': {'families': [{'id': name, 'steps': [{'id': 'paired'}]} for name in names]}}
+                    'source_root': '/source', 'image_root': '/image', 'runtime_root': '/runtime', 'elf': '/elf',
+                    'family_registry': {'families': [{'id': name, 'steps': [{'id': 'paired', 'argv': ['/usr/bin/true'],
+                        'result': '{out}/fixture-result.json', 'checks': {'qualified': True}}]} for name in names]}}
             def result(name, passed=True):
                 attempt = root / name; attempt.mkdir(exist_ok=True)
-                output = attempt / 'fixture-result.json'
+                (attempt / name).mkdir(exist_ok=True)
+                output = attempt / name / 'fixture-result.json'
                 final.save(output, {'qualified': passed})
                 return {'phase': 'families', 'passed': passed, 'failures': [], 'attempt': str(attempt),
                         'selected_families': [name],
@@ -103,7 +106,8 @@ class FinalValidationTests(unittest.TestCase):
                         'manifest_sha256': 'c' * 64,
                         'commands': [{'id': name + '-paired', 'family': name, 'passed': passed,
                                       'returncode': 0 if passed else 1, 'result': str(output),
-                                      'result_sha256': final.digest(output), 'checks': {'qualified': True}}]}
+                                      'result_sha256': final.digest(output), 'checks': {'qualified': True},
+                                      'argv': ['/usr/bin/true'], 'timeout_seconds': 3600}]}
             final.publish(spec, 'c' * 64, result('a'))
             completed = json.loads((root / 'completed.json').read_text())
             self.assertIn('family:a', completed); self.assertNotIn('families', completed)
@@ -113,7 +117,7 @@ class FinalValidationTests(unittest.TestCase):
             self.assertTrue(completed['families']['passed'])
             self.assertEqual(len(completed['families']['family_receipts']), 4)
             final.prerequisite(spec, 'c' * 64, completed, 'families')
-            altered = root / 'c/fixture-result.json'
+            altered = root / 'c/c/fixture-result.json'
             final.save(altered, {'qualified': False})
             with self.assertRaises(ValueError): final.prerequisite(spec, 'c' * 64, completed, 'families')
             final.save(altered, {'qualified': True})
