@@ -821,11 +821,6 @@ fn run_inner(
             dnsmasq_rs::dns::upstream::source_sockets::SocketSettings::from_scalar(&runtime.scalar),
             true,
         )?;
-        daemon.check_server_addresses(&dns_local_addresses(
-            &daemon_config,
-            &interface_snapshot.borrow_mut(),
-            runtime.scalar.dns_port,
-        ))?;
         daemon.enable_cache(
             usize::try_from(runtime.scalar.cache_size).unwrap_or(usize::MAX),
             runtime.scalar.min_cache_ttl,
@@ -1108,6 +1103,20 @@ fn run_inner(
             code: 4,
             message: "could not get memory".into(),
         }));
+    }
+    // Bind the receiving listeners before sending initial loop probes. A
+    // returned startup probe can arrive immediately, including before the
+    // owner starts polling. C also binds its listeners before check_servers.
+    {
+        let mut parent = service.borrow_mut();
+        if let Some(daemon) = &mut parent.daemon {
+            daemon.check_server_addresses(&dns_local_addresses(
+                &daemon_config,
+                &interface_snapshot.borrow_mut(),
+                runtime.scalar.dns_port,
+            ))?;
+            parent.local.config = daemon.local_config().clone();
+        }
     }
     #[cfg(target_os = "linux")]
     let capabilities = dnsmasq_rs::startup::network_capabilities(

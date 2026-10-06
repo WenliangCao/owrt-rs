@@ -11,7 +11,7 @@
 | DHCP tags/options | legacy--bad-masked-mac两侧exit1，C通用error、Rust bad hex constant。 | `5f5700ab`仅在DhcpMac caller将parse_hardware失败映射通用error，来源option.c4541–4554；不改共享hex。现有MAC mask/type单元通过，完整syntax/runtime待新ELF。 |
 | helper / helper-shutdown | Rust-only DNS-during-init .8s要求重复失败。 | exact-image C和Rust配对诊断都init期间0DNS/无PID，约2.008s结束后即答复，恢复2old callbacks、正常exit0。C dnsmasq.c300–311/lease.c180–195也先init后socket；`67c3b128`修对称夹具，8负控有效；完整族待新freeze。 |
 | logging foreground-relative-paths | full sequence存了Rust[capture,capture]而Cnull；短路径独立case通过。 | 测试器在ready exchange之前缓存proc_state，Rust可在稍后dup2完成后才答ready；`a3ef6372`改ready之后刷新状态，6配对diagnostic通过，保留原失败。 |
-| loop90 | wrong-type upstream count红；class-any首轮红但最小重复通过。 | 不改/豁免producer；继续trace实际返回包、probe代际与admission。 |
+| loop90 | wrong-type upstream count红；class-any首轮红但最小重复通过。 | 严格owned syscall证明C先UDP/TCPbind后probe，Rustprobe早455μs/4.488ms；barrier后type18两侧实际forward/reply一致。真实启动接线race，dns-loop-detect重开；main初始check移到allbind之后且同步parent.local.config，保留sourcepool预分配，待新ELF完整族复跑。 |
 | cache536 | 仅ptr-tcp-child-import / round-reverse-disabled cached TTL600对599；其它数据与真实upstream1一致。 | 添加实际时钟witness定位整秒相位，不作全局±1；C跨进程PTR hash variation有8独立bank阳性，同进程repeat严格。 |
 | relay174 | ordinary-reply arp-failure首轮C1/R0；选中15重跑转C0/R0，其他latepositive反转。 | 保留原两红；sendmsg/SIOCSARP/实际receive witness后修bounded采样，仍精确包/order/source/dest/count，不按差异放宽。 |
 | M2 | 7DNS＋4DHCPprofile通过；lifecycle-C exit1，Rust lifecycle未执行。 | 确认漏接actual_config_network.py；`830e1951`补br-lan/client/upstream实际namespace拓扑。C3.34s/R9.12s完整init/HUP/UCI/odhcpd/stop诊断通过，full archive002ec15d…f69e的91条metadata/54files核验后prune。新freeze完整M2须fresh。 |
