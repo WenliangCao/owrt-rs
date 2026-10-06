@@ -23,6 +23,7 @@ import pwd
 from pathlib import Path
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tarfile
@@ -379,6 +380,60 @@ def exclusive_busy_processes():
     return busy
 
 
+def process_tree():
+    """Linux PID generation witnesses, including detached child sessions."""
+    rows = {}
+    for path in Path('/proc').glob('[0-9]*/stat'):
+        try:
+            fields = path.read_text().rpartition(')')[2].split()
+            rows[int(path.parent.name)] = {'parent': int(fields[1]), 'starttime': int(fields[19]),
+                                           'state': fields[0]}
+        except (FileNotFoundError, ProcessLookupError, PermissionError): pass
+    return rows
+
+
+def remember_job_processes(process, known):
+    rows = process_tree()
+    owned = {pid for pid, value in known.items()
+             if rows.get(pid, {}).get('starttime') == value['starttime']}
+    if process.pid not in known and process.pid in rows:
+        owned.add(process.pid)
+    while True:
+        added = {pid for pid, value in rows.items() if value['parent'] in owned} - owned
+        if not added: break
+        owned |= added
+    for pid in owned: known[pid] = rows[pid]
+    return {pid: rows[pid] for pid in owned if rows[pid]['state'] != 'Z'}
+
+
+def stop_job_processes(process, known, grace_seconds=5):
+    """Stop only witnessed job PIDs, even after their parent/group exits."""
+    if not sys.platform.startswith('linux'):
+        if process.poll() is None:
+            from m3_soak import stop_process_group
+            stop_process_group(process, grace_seconds)
+        return
+    def stop(sig):
+        active = remember_job_processes(process, known)
+        for pid in reversed(list(active)):
+            try:
+                current = (Path('/proc') / str(pid) / 'stat').read_text().rpartition(')')[2].split()
+                if int(current[19]) == known[pid]['starttime']:
+                    os.kill(pid, sig)
+            except (FileNotFoundError, ProcessLookupError): pass
+    # Capture detached groups before TERM can orphan them.
+    stop(signal.SIGTERM)
+    deadline = time.monotonic() + grace_seconds
+    while remember_job_processes(process, known) and time.monotonic() < deadline:
+        process.poll(); time.sleep(.02)
+    stop(signal.SIGKILL)
+    process.wait(grace_seconds)
+    deadline = time.monotonic() + grace_seconds
+    while remember_job_processes(process, known) and time.monotonic() < deadline:
+        time.sleep(.02)
+    require(not remember_job_processes(process, known), 'job descendants survived cleanup')
+
+
 def publish(spec, manifest_sha, result):
     """Independent family groups publish under one lock without losing phases."""
     root = Path(spec['output'])
@@ -591,8 +646,11 @@ def run(args):
             records.append(record); save(attempt / 'commands.json', records)
             with (attempt / (job['id'] + '.log')).open('wb') as log:
                 process = subprocess.Popen(job['argv'], cwd=spec['source_root'], stdout=log, stderr=log, start_new_session=True)
+                descendants = {}
+                remember_job_processes(process, descendants)
                 try:
                     while process.poll() is None:
+                        remember_job_processes(process, descendants)
                         if lock:
                             busy = exclusive_busy_processes()
                             require(not busy, f'exclusive window contaminated: {busy}')
@@ -600,9 +658,7 @@ def run(args):
                         try: process.wait(timeout=1)
                         except subprocess.TimeoutExpired: pass
                 finally:
-                    if process.poll() is None:
-                        from m3_soak import stop_process_group
-                        stop_process_group(process)
+                    stop_job_processes(process, descendants)
                     record.update(returncode=process.returncode, elapsed_seconds=time.monotonic() - started)
             if phase == 'package':
                 report = json.loads(Path(job['result']).read_text())
