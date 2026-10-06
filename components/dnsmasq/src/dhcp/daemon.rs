@@ -200,6 +200,7 @@ pub struct LocalProvider {
     request_tags: Vec<Vec<u8>>,
     pxe_client: Option<pxe::Client>,
     pxe_generated: Vec<(u8, Vec<u8>)>,
+    pxe_menu_failed: bool,
     direct_pxe: Option<DirectPxeReply>,
     selected: Vec<SelectedContext>,
     interface_policy: InterfacePolicy,
@@ -356,6 +357,7 @@ impl LocalProvider {
             request_tags: Vec::new(),
             pxe_client: None,
             pxe_generated: Vec::new(),
+            pxe_menu_failed: false,
             direct_pxe: None,
             probe,
             probe_error: None,
@@ -619,7 +621,7 @@ impl LocalProvider {
             |name| pxe_host(name, self.dns_port, &mut self.boot_host_lookup),
         )
         .unwrap_or_else(|_| {
-            eprintln!("dnsmasq-rs: PXE menu too large");
+            self.pxe_menu_failed = true;
             Vec::new()
         });
     }
@@ -731,7 +733,11 @@ impl LocalProvider {
                         |name| pxe_host(name, self.dns_port, &mut self.boot_host_lookup),
                     )
                     .unwrap_or_else(|_| {
-                        eprintln!("dnsmasq-rs: PXE menu too large");
+                        self.network_notices.push(crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Error,
+                            b"PXE menu too large".to_vec(),
+                        ));
                         Vec::new()
                     })
                 } else {
@@ -743,13 +749,23 @@ impl LocalProvider {
                     &generated,
                     reply.include_menu,
                 );
-                let options = super::runtime::encode_pxe_options(
+                let mut option_warnings = Vec::new();
+                let options = super::runtime::encode_pxe_options_notices(
                     packet,
                     local,
                     &self.config.options,
                     &selected,
                     &encoding,
+                    &mut option_warnings,
                 );
+                self.network_notices
+                    .extend(option_warnings.into_iter().map(|warning| {
+                        crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Warning,
+                            super::logging::option_warning(warning),
+                        )
+                    }));
                 self.selected_boot = boot;
                 self.message_counters.pxe = self.message_counters.pxe.wrapping_add(1);
                 if let Some(message) = super::logging::packet(
@@ -1670,6 +1686,7 @@ impl LocalProvider {
         self.selected_boot = None;
         self.pxe_client = None;
         self.pxe_generated.clear();
+        self.pxe_menu_failed = false;
         self.direct_pxe = None;
         let received_interface = dispatch.ingress.interface_index;
         let bridge = match self.bridge_ingress(interface_name) {
@@ -2517,35 +2534,57 @@ impl OutcomeProvider for LocalProvider {
         reply: Reply,
         output: &[u8],
         omitted_options: &[u8],
+        option_warnings: &[super::logging::OptionWarning],
     ) {
-        if !self.config.log_dhcp {
-            self.network_notices
-                .extend(omitted_options.iter().map(|code| {
+        // option_filter diagnostics precede do_options' requested list.
+        self.network_notices.extend(
+            option_warnings
+                .iter()
+                .copied()
+                .filter(|warning| matches!(warning, super::logging::OptionWarning::Duplicate(_)))
+                .map(|warning| {
                     crate::logging::LogEvent::new(
                         crate::logging::Service::Dhcp,
                         crate::logging::Priority::Warning,
-                        super::logging::omission(*code),
+                        super::logging::option_warning(warning),
                     )
-                }));
-            return;
+                }),
+        );
+        if self.config.log_dhcp && !matches!(reply, Reply::Nak { .. } | Reply::Bootp { .. }) {
+            if let Some(codes) = request.option(55, 0) {
+                self.network_notices.extend(
+                    super::logging::requested_options(request.transaction_id(), codes)
+                        .into_iter()
+                        .map(|message| {
+                            crate::logging::LogEvent::new(
+                                crate::logging::Service::Dhcp,
+                                crate::logging::Priority::Info,
+                                message,
+                            )
+                        }),
+                );
+            }
         }
-        let xid = request.transaction_id();
-        let mut notices = if matches!(reply, Reply::Nak { .. } | Reply::Bootp { .. }) {
-            Vec::new()
-        } else {
-            request.option(55, 0).map_or_else(Vec::new, |codes| {
-                super::logging::requested_options(xid, codes)
-            })
-        };
-
-        self.network_notices
-            .extend(notices.into_iter().map(|message| {
-                crate::logging::LogEvent::new(
-                    crate::logging::Service::Dhcp,
-                    crate::logging::Priority::Info,
-                    message,
-                )
-            }));
+        self.network_notices.extend(
+            option_warnings
+                .iter()
+                .copied()
+                .filter(|warning| !matches!(warning, super::logging::OptionWarning::Duplicate(_)))
+                .map(|warning| {
+                    crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Warning,
+                        super::logging::option_warning(warning),
+                    )
+                }),
+        );
+        if self.pxe_menu_failed {
+            self.network_notices.push(crate::logging::LogEvent::new(
+                crate::logging::Service::Dhcp,
+                crate::logging::Priority::Error,
+                b"PXE menu too large".to_vec(),
+            ));
+        }
         self.network_notices
             .extend(omitted_options.iter().map(|code| {
                 crate::logging::LogEvent::new(
@@ -2554,18 +2593,20 @@ impl OutcomeProvider for LocalProvider {
                     super::logging::omission(*code),
                 )
             }));
-        self.network_notices
-            .extend(
-                super::logging::reply_details(output)
-                    .into_iter()
-                    .map(|message| {
-                        crate::logging::LogEvent::new(
-                            crate::logging::Service::Dhcp,
-                            crate::logging::Priority::Info,
-                            message,
-                        )
-                    }),
-            );
+        if self.config.log_dhcp {
+            self.network_notices
+                .extend(
+                    super::logging::reply_details(output)
+                        .into_iter()
+                        .map(|message| {
+                            crate::logging::LogEvent::new(
+                                crate::logging::Service::Dhcp,
+                                crate::logging::Priority::Info,
+                                message,
+                            )
+                        }),
+                );
+        }
     }
 
     fn direct_pxe_reply(
@@ -2980,10 +3021,11 @@ impl OutcomeProvider for LocalProvider {
                 message,
             ));
         }
+        let mut option_warnings = Vec::new();
         let mut present = [false; 256];
         let mut values = Vec::new();
         if let Some(context) = reply.context {
-            let configured = super::runtime::encode_filtered_options_with_pxe(
+            let configured = super::runtime::encode_filtered_options_with_pxe_notices(
                 packet,
                 Reply::Inform {
                     context: Some(context),
@@ -2998,6 +3040,7 @@ impl OutcomeProvider for LocalProvider {
                 &mut [None, None],
                 &mut None,
                 &PxeEncoding::ordinary(None, &self.config.pxe.vendors, &[]),
+                &mut option_warnings,
             );
             for (code, address) in [
                 (1, Some(ranges[context].netmask)),
@@ -3074,6 +3117,19 @@ impl OutcomeProvider for LocalProvider {
             output,
         )
         .map_err(|error| RuntimeError::State(format!("leasequery reply: {error:?}")))?;
+        self.network_notices.extend(
+            option_warnings
+                .iter()
+                .copied()
+                .filter(|warning| matches!(warning, super::logging::OptionWarning::Duplicate(_)))
+                .map(|warning| {
+                    crate::logging::LogEvent::new(
+                        crate::logging::Service::Dhcp,
+                        crate::logging::Priority::Warning,
+                        super::logging::option_warning(warning),
+                    )
+                }),
+        );
         if self.config.log_dhcp {
             let mut details = if reply.status == lease_query::Status::Active {
                 packet.option(55, 0).map_or_else(Vec::new, |codes| {
@@ -3090,6 +3146,21 @@ impl OutcomeProvider for LocalProvider {
                         message,
                     )
                 }));
+            self.network_notices.extend(
+                option_warnings
+                    .iter()
+                    .copied()
+                    .filter(|warning| {
+                        !matches!(warning, super::logging::OptionWarning::Duplicate(_))
+                    })
+                    .map(|warning| {
+                        crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Warning,
+                            super::logging::option_warning(warning),
+                        )
+                    }),
+            );
             self.network_notices
                 .extend(encoded.omitted_options.iter().map(|code| {
                     crate::logging::LogEvent::new(
@@ -3109,6 +3180,22 @@ impl OutcomeProvider for LocalProvider {
                 }));
         }
         if !self.config.log_dhcp {
+            self.network_notices.extend(
+                option_warnings
+                    .iter()
+                    .copied()
+                    .filter(|warning| {
+                        !matches!(warning, super::logging::OptionWarning::Duplicate(_))
+                    })
+                    .map(|warning| {
+                        crate::logging::LogEvent::new(
+                            crate::logging::Service::Dhcp,
+                            crate::logging::Priority::Warning,
+                            super::logging::option_warning(warning),
+                        )
+                    }),
+            );
+
             self.network_notices
                 .extend(encoded.omitted_options.iter().map(|code| {
                     crate::logging::LogEvent::new(
@@ -3245,9 +3332,10 @@ impl OutcomeProvider for EventProvider<'_> {
         reply: Reply,
         output: &[u8],
         omitted_options: &[u8],
+        option_warnings: &[super::logging::OptionWarning],
     ) {
         self.provider
-            .record_reply(request, reply, output, omitted_options);
+            .record_reply(request, reply, output, omitted_options, option_warnings);
     }
 
     fn direct_pxe_reply(
