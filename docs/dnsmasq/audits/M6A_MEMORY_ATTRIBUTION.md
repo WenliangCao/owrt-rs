@@ -45,6 +45,12 @@ Rust 的 `dns/cache.rs:227–282` 同样预分配固定 slots，但 record 的 `
 
 Rust的 requested-byte 差为 **888,872 B（868.039 KiB，约217 B/配置slot）**。它不是每次命中产生的驻留增量，也不是全部 ELF/RSS 差。Rust fixed Slot 反而比 C crec 小24 B；主要额外存储在 ArcRecord、分离名字、HashMap 桶和单元素 Vec。
 
+### b85 pilot 名长校准（诊断排除）
+
+M6 b85 pilot 的夹具名字改为 `q%04x.m6a.test`。该字符串是14个ASCII字符；Rust `Name` 的 wire 表示是三个label-length字节、14个字符和一个root终止字节，共 **16 B**（pilot 的 `cache-proof.json`首尾名与 `wire-samples`可核对）。15 B只是不含root的长度字段加字符，不是Vec容量。因而 pilot 名字的原始与canonical backing分别是65,536 B（64 KiB），不是M5名字表的73,728 B；仅按该名字变化，Rust逻辑缓存预算为 **1,433,640 B = 1,400.039 KiB**，比C548 KiB多852.039 KiB。pilot实测 C/R3/Rs 的 full-cache驻留是1632/3520/3332 KiB RSS、1624/3512/3324 KiB PSS；R3与Rs匿名均1868 KiB，R3较Rs多188 KiB file页。该pilot的 `identity.json`明确 `excluded_preflight=true`、时长10 s、仅1轮，因此这里只校准归因方法，**不作为M6a性能结果，也不替代正式5轮**。
+
+名字长度变化不能倒推完整RSS变化：pilot R3与Rs匿名相同，说明这2 B/名字的16 KiB requested差低于4 KiB页/allocator量化；R3/Rs的188 KiB file差属于不同ELF code/data映射和加载触页，不能记到缓存条目。C的cache-full full smaps能看到单一548 KiB匿名映射，与544 KiB `crec`分配加页对齐一致；Rust匿名映射被分成多段，不能仅按匿名段pathname给某一段指定HashMap或Vec。
+
 ## M5 smaps 的守恒账
 
 旧证据来自 M5 同冻结 ELF 的 `archive-resources-final/plain/full-cache-300/{c,rust}/full/proc-snapshots/`；经过真实4096 live A填充、全命中核对、300秒窗口，最后两阶段驻留稳定。它只给 M6a 方法提供历史交叉核对，不能复用成新性能轮次。
