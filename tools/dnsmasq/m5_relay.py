@@ -743,7 +743,7 @@ def main(args):
     sides=["c","rust"] if args.side=="both" else [args.side]
     profiles=[profile for profile in scenarios() if not args.profile or profile["name"] in args.profile]
     save(out/"manifest.json",{"profiles":profiles,"sides":sides,"c_sha256":STOCK_SHA256,"rust_sha256":sha256(args.rust),"elf_bytes":args.rust.stat().st_size,"tool_sha256":sha256(__file__)})
-    rows=[];errors=[];cleanup={};client=server=None;grammar=[];binding=[];monitor=None;monitor_log=None
+    rows=[];errors=[];cleanup={};client=server=None;grammar=[];binding=[];monitor=None;monitor_log=None;monitor_cleanup=None
     grammar_items=[] if args.profile else grammar_cases()
     try:
         for item in grammar_items:
@@ -768,15 +768,16 @@ def main(args):
             if peer is not None:
                 try:cleanup[name]=peer.close()
                 except Exception as error:cleanup[name]={"error":repr(error)}
-        if monitor is not None:cleanup['address-monitor']=stop(monitor)
+        if monitor is not None:monitor_cleanup=stop(monitor)
         if monitor_log is not None:monitor_log.close()
     errors+=evaluate(rows,profiles,sides)+grammar_errors(grammar,grammar_items,sides)
     if not args.profile:errors+=binding_errors(binding,sides)
     for name,result in cleanup.items():
         if result.get("actor_exit")!=0 or "error" in result or result.get("namespace",{}).get("forced"):errors.append(f"{name}: namespace cleanup")
+    if monitor_cleanup and (monitor_cleanup.get('forced') or monitor_cleanup.get('returncode')!=-signal.SIGTERM):errors.append('address monitor cleanup')
     controls=negative_controls(rows,profiles) if len(sides)==2 else {"passed":False,"not_executed":"reference-only run"}
     if len(sides)==2 and not controls["passed"]:errors.append("negative controls")
-    result={"passed":not errors and len(sides)==2,"reference_checks_passed":not errors,"comparison_executed":len(sides)==2,"errors":errors,"rows":rows,"grammar":grammar,"binding":binding,"cleanup":cleanup,"negative_controls":controls,"profiles":len(profiles),"cases":sum(len(profile["cases"]) for profile in profiles)}
+    result={"passed":not errors and len(sides)==2,"reference_checks_passed":not errors,"comparison_executed":len(sides)==2,"errors":errors,"rows":rows,"grammar":grammar,"binding":binding,"cleanup":cleanup,"address_monitor_cleanup":monitor_cleanup,"negative_controls":controls,"profiles":len(profiles),"cases":sum(len(profile["cases"]) for profile in profiles)}
     save(out/"result.json",result)
     print(json.dumps({key:result[key] for key in ["passed","reference_checks_passed","cases","errors"]}))
     return 0 if not errors else 1
