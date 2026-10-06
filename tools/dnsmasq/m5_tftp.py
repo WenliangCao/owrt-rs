@@ -105,6 +105,9 @@ REFERENCE_CHECKLIST = [
      'boundary': 'Bound IPv4 single-port reads uninitialized addra. Undefined reference behavior is excluded, not reproduced or accepted as an expectation.',
      'status': 'excluded-undefined-behavior',
      'prior_witness': 'docs/dnsmasq/TFTP_SINGLE_PORT_PHASE.md; private/dnsmasq-rewrite/tftp-listener-tid-20260930/run-06/'},
+    {'id': 'zero-block-mtu', 'source': 'tftp.c:385-395,930-933,964,976-977,1022',
+     'boundary': 'Configured MTU32/52 negotiates zero block size; C emits repeated empty DATA for a nonempty file. Rust rejects the unusable transfer; both retain healthy owner and release the fixture FD.',
+     'scenarios': ['reference-zero-block-v4', 'reference-zero-block-v6']},
 ]
 
 
@@ -142,7 +145,31 @@ def reference_scenarios():
     cases.append(dict(name='reference-root-parent-component', config=base,
                       reference_difference='parent-component',
                       requests=[{'filename': '..safe/../boot.bin'}]))
+    for version,v6,mtu in [('v4',False,32),('v6',True,52)]:
+        cases.append(dict(name='reference-zero-block-'+version,config=base+'tftp-mtu='+str(mtu)+'\n',
+                          reference_difference='zero-block',fixture_fds=True,
+                          requests=[{'zero_block':True,'v6':v6}]))
     return cases
+
+
+def zero_block(item, out):
+    target=(V6_SERVER if item.get('v6') else SERVER,69)
+    with socket.socket(socket.AF_INET6 if item.get('v6') else socket.AF_INET,socket.SOCK_DGRAM) as endpoint:
+        endpoint.settimeout(2);request=read_request({'filename':'boot.bin','options':{'blksize':'512'}})
+        (out/'request.bin').write_bytes(request);endpoint.sendto(request,target)
+        packet,peer=endpoint.recvfrom(2048);packets=[packet.hex()];(out/'reply-0.bin').write_bytes(packet)
+        assert peer[0]==target[0] and peer[1]!=69,'dedicated zero-block source'
+        if packet[:2]==b'\0\5':
+            expected=b'\0\5\0\4unsupported request from '+(V6_CLIENT if item.get('v6') else CLIENT['address']).encode()+b'\0'
+            assert packet==expected,'exact bounded zero-block refusal wire'
+            return dict(kind='zero-block-refusal',packets=packets,source='dedicated')
+        assert packet==b'\0\6blksize\x000\0','C zero-block OACK'
+        for block in [1,2]:
+            endpoint.sendto(struct.pack('!HH',4,block-1),peer)
+            packet,current=endpoint.recvfrom(2048);assert current==peer and packet==struct.pack('!HH',3,block),'C nonempty file makes no progress'
+            packets.append(packet.hex());(out/('reply-'+str(block)+'.bin')).write_bytes(packet)
+        endpoint.sendto(b'\0\5\0\0bounded-zero-block-abort\0',peer)
+        return dict(kind='zero-block-stalled',packets=packets,source='dedicated')
 
 
 def replacement(item, out):
@@ -197,6 +224,12 @@ def reference_pair(c, rust, scenario):
             if result.get('fixture_fds_before') != [] or result.get('fixture_fds_after') != remainder:
                 return False
         return True
+    if scenario['reference_difference']=='zero-block':
+        peer=V6_CLIENT if scenario['requests'][0].get('v6') else CLIENT['address']
+        error=(b'\0\5\0\4unsupported request from '+peer.encode()+b'\0').hex()
+        return (c.get('requests')==[dict(kind='zero-block-stalled',packets=[b'\0\6blksize\x000\0'.hex(),b'\0\3\0\1'.hex(),b'\0\3\0\2'.hex()],source='dedicated')]
+                and rust.get('requests')==[dict(kind='zero-block-refusal',packets=[error],source='dedicated')]
+                and all(row.get('fixture_fds_before')==[] and row.get('fixture_fds_after')==[] for row in [c,rust]))
     data = REFERENCE_FILES['boot.bin']
     return (c.get('requests') == [{'kind': 'data', 'bytes': len(data),
                                  'sha256': hashlib.sha256(data).hexdigest(),
@@ -212,7 +245,7 @@ def reference_controls(c, rust, scenario):
             if name == 'missing-requests': negative.pop('requests', None)
             elif name == 'wrong-payload': negative['requests'] = [{'kind': 'corrupt'}]
             elif name in ('wrong-fds', 'missing-fds'):
-                if scenario['reference_difference'] != 'single-replacement': continue
+                if scenario['reference_difference'] not in ['single-replacement','zero-block']: continue
                 if name == 'wrong-fds': negative['fixture_fds_after'] = ['unexpected-fd']
                 else: negative.pop('fixture_fds_after', None)
             elif name == 'missing-client-cleanup': negative.pop('client_cleanup', None)
@@ -371,6 +404,8 @@ def client(args):
     try:
         if item.get('replacement'):
             result = replacement(item, args.out)
+        elif item.get('zero_block'):
+            result = zero_block(item, args.out)
         elif 'capacity' in item:
             result = capacity(item, args.out)
         elif item.get('corpus'):
