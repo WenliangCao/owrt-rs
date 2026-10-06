@@ -389,13 +389,18 @@ def network_probe(spec):
     return result
 
 
+def network_scheduling(probe, transport):
+    return probe.get('tcp_scheduling', probe.get('scheduling')) if transport == 'tcp' else probe.get('scheduling')
+
+
 def observe_local_service(port, probe, ident, transport, topology):
     import json
     import sys
     from pathlib import Path
+    scheduling = network_scheduling(probe, transport)
     spec = {'destination': probe['destination'], 'source': probe.get('source'),
             'port': port, 'transport': transport, 'ident': ident,
-            'send_dns': probe.get('scheduling') != 'idle', 'queued': probe.get('scheduling') == 'queued'}
+            'send_dns': scheduling != 'idle', 'queued': scheduling == 'queued'}
     queued_bytes = None
     if spec['queued']:
         result, queued_bytes = queued_network_probe(topology, spec)
@@ -407,7 +412,7 @@ def observe_local_service(port, probe, ident, transport, topology):
     # Preserve and compare reset versus EOF; the controlled queued-byte probe
     # exposed shutdown(Both) as a real difference even with data pending.
     raw_errno = result['errno']
-    if probe.get('scheduling'):
+    if scheduling:
         result['termination'] = 'reset' if raw_errno == 104 else ('EOF' if result['status'] == 'closed' and raw_errno is None else result['status'])
         result['queued_rx_bytes'] = queued_bytes
     return {'id': probe['id'] + ':' + transport, 'response': result, 'upstream': [],
@@ -423,6 +428,7 @@ def local_service_guards(rows, scenario):
     for row in rows:
         probe_id, transport = row['id'].rsplit(':', 1)
         probe = probes[probe_id]
+        scheduling = network_scheduling(probe, transport)
         actual = row['response']
         expected = probe.get('admission', {}).get(transport)
         if expected == 'reply':
@@ -434,9 +440,9 @@ def local_service_guards(rows, scenario):
             failures.append({'id': row['id'], 'expected_accepted_then_closed': actual})
         elif expected == 'no-listener' and actual['status'] != 'refused':
             failures.append({'id': row['id'], 'expected_no_listener': actual})
-        if probe.get('scheduling') and actual.get('termination') != ('reset' if probe['scheduling'] == 'queued' else 'EOF'):
+        if scheduling and actual.get('termination') != ('reset' if scheduling == 'queued' else 'EOF'):
             failures.append({'id': row['id'], 'wrong_termination_boundary': actual})
-        if probe.get('scheduling') == 'queued' and (actual.get('errno') != 104 or (actual.get('queued_rx_bytes') or 0) < len(question_packet('admission.matrix.test', 0)) + 2):
+        if scheduling == 'queued' and (actual.get('errno') != 104 or (actual.get('queued_rx_bytes') or 0) < len(question_packet('admission.matrix.test', 0)) + 2):
             failures.append({'id': row['id'], 'missing_queued_reset_proof': actual})
         if probe.get('source') and actual['source_address'] not in (None, probe['source']):
             failures.append({'id': row['id'], 'wrong_source': actual['source_address']})
