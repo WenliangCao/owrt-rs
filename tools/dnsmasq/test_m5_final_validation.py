@@ -29,6 +29,17 @@ class FinalValidationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 final.check_result(path, {'qualified': True}, {'field': 'cases', 'key': 'id', 'ids': ['a', 'b']})
 
+    def test_release_map_uses_actual_build_receipt_and_rejects_an_old_path(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); path = root / 'link.map'; path.write_bytes(b'link evidence')
+            spec = {'build_json': str(root / 'build.json'), 'bindings': {'link_map': str(path)}}
+            build = {'link_map': {'path': 'link.map', 'sha256': final.digest(path)}}
+            final.verify_release_map(spec, build)
+            with self.assertRaises(ValueError): final.verify_release_map(spec, {'artifacts': []})
+            old = root / 'old'; old.mkdir(); (old / 'link.map').write_bytes(path.read_bytes())
+            spec['bindings']['link_map'] = str(old / 'link.map')
+            with self.assertRaises(ValueError): final.verify_release_map(spec, build)
+
     def test_only_reviewable_size_failure_continues(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary); (root / 'candidate.apk').write_bytes(b'reviewable fixture')

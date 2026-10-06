@@ -116,6 +116,13 @@ def ubus_assets(spec):
     return assets, {'root': str(native / 'deps'), 'files': file_map(native / 'deps'), 'reference': reference}
 
 
+def verify_release_map(spec, build):
+    path = Path(spec.get('bindings', {}).get('link_map', '')).resolve()
+    require(path == Path(spec['build_json']).resolve().parent / 'link.map'
+            and build.get('link_map') == {'path': 'link.map', 'sha256': digest(path)},
+            'link map must belong to this exact release build')
+
+
 def prepare(args):
     require(sys.flags.optimize == 0 and not os.environ.get('PYTHONOPTIMIZE'), 'assertion-enabled Python required by original drivers')
     spec = json.loads(args.inputs.read_text())
@@ -164,10 +171,7 @@ def prepare(args):
         if Path(path).is_file(): assets[str(Path(path).resolve())] = digest(path)
     pinned_ubus, ubus_helpers = ubus_assets(spec)
     assets.update(pinned_ubus)
-    link_map = Path(spec.get('bindings', {}).get('link_map', '')).resolve()
-    require(link_map == Path(spec['build_json']).resolve().parent / 'link.map'
-            and any(row['path'] == 'link.map' and row['sha256'] == digest(link_map)
-                    for row in build['artifacts']), 'link map must belong to this exact release build')
+    verify_release_map(spec, build)
     tools = source / 'tools/dnsmasq'
     spec.update(schema=1, status='prepared-not-executed', source_root=str(source), output=str(out),
                 elf=str(elf), elf_bytes=elf.stat().st_size, assets=assets,
