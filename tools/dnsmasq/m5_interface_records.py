@@ -1292,6 +1292,30 @@ def controls():
         ('missing-hosts-read-fd',lambda x:x['interface_states'][-1].update(read_fds=[])),
         ('missing-hosts-consumed-prefix',lambda x:x['interface_states'][-1]['fault'].update(reads=[{'result':-errno.EIO,'injected':True}]))]:
         bad=copy.deepcopy(stream);change(bad);assert witness_errors(bad,'c',case);found.append(label)
+    case={'id':'synth-extreme-control','actions':[files.probe('reverse','7.2.0.192.in-addr.arpa',type=12)],'invalid_synth_target':'p'*64+'.test'}
+    target=case['invalid_synth_target'];data=b'\x40'+b'p'*64+b'\x04test\0'
+    reference=copy.deepcopy(base);actual=copy.deepcopy(base)
+    for observed in (reference,actual):observed.update(syntax={'exit':0},exit=0,cleanup={'live_pids':[],'pid_file':False},rows=[])
+    for n,transport in enumerate(('udp','tcp')):
+        request=files.query(case['actions'][0],0x4000+n)
+        common={'id':'reverse:'+transport,'request':request.hex(),'cache':False,'error':None}
+        bad=request[:2]+struct.pack('!5H',0x8580,1,1,0,0)+request[12:]+b'\xc0\x0c'+struct.pack('!HHIH',12,1,0,len(data))+data
+        reference['rows'].append(dict(common,reply=bad.hex(),response=None,parse_error='invalid label',upstreams=[{'server':'127.0.0.2','events':[]}]))
+        nx=request[:2]+struct.pack('!5H',0x8183,1,0,0,0)+request[12:]
+        actual['rows'].append(dict(common,reply=nx.hex(),response=files.semantics(nx),upstreams=[{'server':'127.0.0.2','events':[{'name':'7.2.0.192.in-addr.arpa','type':12,'transport':transport}]}]))
+    assert not compare_service(reference,actual,case)[0]
+    for label,side,change in [
+        ('synth-wrong-c-wire','c',lambda row:row.update(reply=row['reply'][:-2]+'ff')),
+        ('synth-fabricated-root-ptr','rust',lambda row:row['response']['records'].append({'type':12,'data':''})),
+        ('synth-missing-real-upstream','rust',lambda row:row['upstreams'][0]['events'].clear()),
+        ('synth-wrong-upstream-source','rust',lambda row:row['upstreams'][0].update(server='127.0.0.3')),
+        ('synth-wrong-question','rust',lambda row:row['response']['questions'][0].__setitem__(0,'wrong.test')),
+        ('synth-missing-transport','rust',lambda row:None)]:
+        left=copy.deepcopy(reference);right=copy.deepcopy(actual)
+        if label=='synth-missing-transport':right['rows'].pop()
+        else:change((left if side=='c' else right)['rows'][0])
+        assert compare_service(left,right,case)[0],label
+        found.append(label)
     return found
 
 
@@ -1317,7 +1341,8 @@ def compare_service(left,right,case):
             if c_row.get('error') is not None or c_row.get('reply')!=expected.hex() or any(u['events'] for u in c_row['upstreams']):
                 return [{'phase':'synth-extreme','side':'c','id':c_row['id'],'error':'exact malformed synthesized wire differs'}],[]
             answer=r_row.get('response');events=[e for u in r_row['upstreams'] for e in u['events']]
-            if r_row.get('error') is not None or r_row.get('parse_error') is not None or not answer or answer['flags']!=0x8183 or answer['records'] or len(events)!=1:
+            nx=request[:2]+struct.pack('!5H',0x8183,1,0,0,0)+request[12:]
+            if r_row.get('request')!=c_row['request'] or r_row.get('reply')!=nx.hex() or r_row.get('error') is not None or r_row.get('parse_error') is not None or not answer or answer['flags']!=0x8183 or answer['records'] or len(events)!=1 or any(u['events'] for u in r_row['upstreams'] if u['server']!='127.0.0.2'):
                 return [{'phase':'synth-extreme','side':'rust','id':r_row['id'],'error':'safe NXDOMAIN fallback and actual upstream missing'}],[]
             if answer['questions']!=files.semantics(request)['questions'] or events[0]['name']!=answer['questions'][0][0] or events[0]['type']!=12:
                 return [{'phase':'synth-extreme','side':'rust','id':r_row['id'],'error':'question or actual upstream identity changed'}],[]
@@ -1535,6 +1560,9 @@ def main():
                 else:
                     row['failures'],differences=compare_service(observed['c'],observed['rust'],case)
                     report['reference_differences'].extend(dict(case=case['id'],**difference) for difference in differences)
+            elif case.get('rust_only'):
+                expected={'exit':1,'stdout':'','stderr':'\ndnsmasq: bad prefix length at line 6 of /m2/interface-records.conf\n'}
+                if endpoints.normal(observed['rust'])!=expected:row['failures'].append('negative IPv6 prefix was not explicitly rejected')
             row['sides']={side:({'exit':data['exit']} if args.mode=='syntax' else {'startup':data['startup'],'rows':len(data['rows']),'cleanup':data['cleanup']}) for side,data in observed.items()}
         except Exception as error:
             row['failures'].append({'phase':'infrastructure','error':repr(error)})
