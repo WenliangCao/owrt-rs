@@ -290,7 +290,7 @@ def commands(spec, phase, output):
             '--duration-seconds', str(seconds), '--out', str(path)], str(path / 'result.json'), {'accepted': True}, seconds + 240)
     elif phase == 'pressure':
         path = output / 'enospc-emfile'
-        job('enospc-emfile', [py, tools + '/m3_soak.py', 'pressure', *image_elf,
+        job('enospc-emfile', isolated + [tools + '/m3_soak.py', 'pressure', *image_elf,
             '--scenario', 'enospc', '--scenario', 'emfile', '--duration-seconds', '300',
             '--timeout-seconds', '3600', '--out', str(path)], str(path / 'result.json'), {'accepted': True}, 3620)
     elif phase == 'package':
