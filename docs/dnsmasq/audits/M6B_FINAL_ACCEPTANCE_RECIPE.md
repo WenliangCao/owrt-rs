@@ -16,7 +16,7 @@
 | 两个最终审查 | `deferred_review/safety_review`各自source_commit等于最终commit，complete=true、ordinary_unresolved=[]；重新审查本轮产品，不只替换旧JSON的commit |
 | 镜像／运行配置 | `image_root`精确OpenWrt 25.12.5 rootfs；`runtime_root`原运行root；captured配置 `var/etc/dnsmasq.conf.cfg01411c` SHA须等于 `dhcp_plan.source_config_sha256`；完整4个DHCP profiles |
 | UBus | bindings的`ubus_image_runner/ubus_image_identity`为精确镜像runner及五个镜像文件；`ubus_reference_build/ubus_native_c_sha=bba5…`只供native helper，不作为行为C。实际匹配source另填`bindings.reference_source` |
-| 包资产 | `sdk/stock_apk`、2个`variant_apks`、5个`variant_dependency_apks`；prepare核验pinned SDK archive/工具与所有SHA；示例旧路径仅作待核对位置 |
+| 包资产 | `sdk/stock_apk`、2个`variant_apks`、5个`variant_dependency_apks`；M6b `package_release=3`，`previous_package`为已接受M5 r2的原APK/ELF/source完整固定身份；prepare锁原APK SHA，不重建旧包 |
 | 性能守卫 | `perf_guard_plan` schema1、frozen=true、非空basis；3个caps必须正有限数：udp_p50_max_ns≤1,000,000、idle_cpu_max_seconds、tcp_peak_pss_max_kib；模板仍null不可执行。native_manifest完整SHA、两份helper ELF及其C源必须匹配最终工具树 |
 | CPU／体积 | `cpus=[0,1]`用于旧资源pair的独立C/R核；perfguard固定daemon/upstream/load/controller=0/1/2/3。budget保持原1,000,000B ELF／700,000B APK；记录原始size失败，M5既有接受与M6b增量最终决定分开 |
 
@@ -34,6 +34,7 @@ M6B_SOURCE_ARCHIVE=/home/ubuntu/M6B-FINAL/source.tar
 M6B_FINAL_COMMIT=FULL_FINAL_40_HEX_COMMIT
 M6B_FINAL_EPOCH=FINAL_COMMIT_UNIX_TIMESTAMP
 M6B_GUARD_PLAN=/home/ubuntu/M6B-FINAL/private/perf-guard.json
+M6B_M5_APK=/home/ubuntu/M6B-FINAL/private/accepted-m5/dnsmasq-2.93-r2.apk
 M6B_INPUTS=/home/ubuntu/M6B-FINAL/private/inputs.json
 M6B_OUTPUT="$M6B_SOURCE/private/m6b-final"
 M6B_TOOLS="$M6B_SOURCE/tools/dnsmasq"
@@ -48,10 +49,10 @@ env -u DNSMASQ_M6B_WAKE_METRICS ORACLE_BUILD_FEATURES= \
 
 # guard/reviews应已由root真实填写；这里只生成输入，未伪造审查或caps。
 python3 - "$M6B_SOURCE" "$M6B_RELEASE" "$M6B_FINAL_COMMIT" \
-  "$M6B_FINAL_EPOCH" "$M6B_GUARD_PLAN" "$M6B_SOURCE_ARCHIVE" "$M6B_INPUTS" <<'PY'
+  "$M6B_FINAL_EPOCH" "$M6B_GUARD_PLAN" "$M6B_SOURCE_ARCHIVE" "$M6B_INPUTS" "$M6B_M5_APK" <<'PY'
 import hashlib, json, pathlib, shutil, sys
 source, release = map(pathlib.Path, sys.argv[1:3])
-commit, epoch, guard, archive, output = sys.argv[3:]
+commit, epoch, guard, archive, output, m5_apk = sys.argv[3:]
 spec = json.loads((source / 'tools/dnsmasq/m5_final_inputs.example.json').read_text())
 private = release.parent
 family = private / 'family-replay.json'
@@ -64,7 +65,11 @@ spec.update(validation_mode='m6b', source_root=str(source), source_commit=commit
     elf_sha256=hashlib.sha256(elf.read_bytes()).hexdigest(), build_json=str(release / 'build.json'),
     source_archive=archive, budget=str(source / 'tools/dnsmasq/m5_final_budget.json'),
     family_plan=str(family), deferred_review=str(private / 'deferred-review.json'),
-    safety_review=str(private / 'safety-review.json'), perf_guard_plan=guard, cpus=[0,1])
+    safety_review=str(private / 'safety-review.json'), perf_guard_plan=guard, cpus=[0,1], package_release='3',
+    previous_package={'path': m5_apk, 'package_id': '2.93-r2',
+        'apk_sha256': 'bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa',
+        'elf_sha256': '37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b',
+        'source_commit': 'dc1b740d7973838e2ae7f098d0726b0484e55074'})
 spec['bindings']['link_map'] = str(release / 'link.map')
 # 示例的image/runtime/SDK/M2/APK/UBus路径必须由root在此核实或修正。
 with pathlib.Path(output).open('x') as stream:
@@ -96,7 +101,7 @@ python3 "$M6B_TOOLS/m5_final_validation.py" summary --manifest "$M6B_MANIFEST"
 | resources | `m3_soak.py pair` mixed-300；`cache_full_resource.py pair` full-cache-300 | 两组各实际≥300s、1Hz/20client、correct accounting/cleanup；满载先跑4095负控，再4096逐名live A证明，上游禁答且无额外upstream；initial/final occupancy均过；报告RSS空/填满/全扫描/Q4 median与增长，accepted只是采集和cleanup，不自动认定内存收益 |
 | pressure | `run_isolated.sh → m3_soak.py pressure --scenario enospc --scenario emfile --duration-seconds 300 --timeout-seconds 3600` | 每scenario×C/R实际错误触发、恢复与清理，normalize比较equal；300是每侧deadline，不写“暴露300s” |
 | package | `runuser -u ubuntu → build_package.py --frozen-elf --freeze-manifest …` | APK usr/sbin/dnsmasq SHA等于已验收ELF；postprocess none，不重新codegen/strip；SDK recipe恢复；artifact SHA/bytes/payload/metadata正确。只size-target失败可保留artifact继续生命周期，budget failure原样报告 |
-| lifecycle | `run_isolated.sh → m4_package_lifecycle.py`，实际安装路径被执行 | stock r1→candidate r2真实upgrade（同版force-reinstall另列）、fresh install/account、uninstall/config保留、remove后stock rollback、direct downgrade；candidate ELF SHA准确；post-upgrade脚本与stock一致；两个variant solver互斥及五deps，只模拟不安装variants |
+| lifecycle | `run_isolated.sh → m4_package_lifecycle.py`，实际安装路径被执行 | stock r1→candidate r3及接受过M5 r2→r3真实upgrade（同版force-reinstall另列）、fresh install/account、uninstall/config保留、remove后stock/M5 rollback、direct stock/M5 downgrade；candidate ELF SHA准确；post-upgrade脚本与stock一致；两个variant solver互斥及五deps，只模拟不安装variants |
 | summary/报告 | summary.json、M6B_FUNCTIONAL_REPORT.draft.md | seven required missing_phases=[]、functional_validation_passed=true；另外人工合并正式135／A硬门／新route&wake证据、每项前后/C分类、M6a更正、s代价、所有失败/重跑、体积/RSS与未解差距到M6B_REPORT.md；未经M7不称生产验收 |
 
 资源pair是C/R各用不同核、各fresh namespace并行的旧资源合同，**不是正式M6吞吐比较**；load与controller继承该侧核。perfguard／正式测量才用四角色不相交核。正式、guard、资源和压力期间Oracle不并行build/test/fuzz；exclusive-window只检测已知进程，仍需root协调。guard自己持共享Cargo锁，外层不重复锁；资源/压力由外层持锁。
@@ -115,7 +120,7 @@ python3 "$M6B_TOOLS/m5_final_validation.py" summary --manifest "$M6B_MANIFEST"
 - prepare/guard原来只强feature-off，可能误把s当最终功能ELF。工具提交 **0594a930** 已加opt3硬门；prepare只针对mode=m6b，M5原policy不变；guard同时绑定release/feature/opt/SHA/bytes。两个最小本地负控实际通过：s/z/int3/null/diagnostics拒绝，M5旧policy保持，guard错误SHA/size拒绝。证据 `E/M6B/final-opt3-tool-guard-0594a930/manifest.json` SHA `853889d394f8b371831d5f786b1dc299a7b08463d9c764d8c397e4fd226bee5c`。没有Oracle执行资格。
 - `perf_guard_inputs.example.json`仍未冻结且三个caps为null；不能为了prepare通过填臆测数字。root用实际修后基线／A／最终数据冻结basis、native manifest与caps；保护线不是正式收益阈值，guard失败不能挑最快窗口替换。
 - UBus `bba5…`是native helper硬绑定；**行为C仍097a…**。若旧helper路径失效，须重新生成/冻结相同合同的helper资产，不能改reference为nativeC；不得移除五个image文件核验。
-- package仍固定r2，实际生命周期验证的是stock r1→本轮candidate r2与回滚；**不证明M5 r2→M6b同版r2是升级**。若未来要宣称该交付路径，需要单独版本策略决定和真实验证；本配方不改包版本。
+- 已补独立tool-only r3版本与旧M5资产绑定：M5默认r2合同保留，M6b使用r3、原stock8阶段＋接受过M5升级/回滚6阶段。完整SHA、接口、执行配方和未执行边界见[M6B APK升级范围](M6B_APK_RELEASE_UPGRADE.md)；不能继续把M5 r2→M6b同版r2称upgrade。
 - 固定预算／`size_acceptance=pending-user-after-report`仍是机械分类，不能覆盖用户已接受的M5历史，也不能偷偷接受M6b新增体积；保留size-target失败、完整reviewable APK并让用户在M6B报告后决定增量。`summary.m6_performance_executed=false`描述这个功能控制器范围，正式135证据另行汇总。
 - canonical44族中的dns-files route case原本不证明saved UDP resend。新的basic poll/no-poll、已写wake actor和方案A S1–S8补门须以最终身份单列重放/绑定，不把旧44族通过冒称这些新增caller已过；后续新边界保持独立open，不反向扩大第1包收尾点。
 
