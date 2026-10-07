@@ -130,6 +130,7 @@ def traced_start(argv, case, side, stdout, stderr, report_path):
                     if address and ((target_fd is None and address['groups'] == 0x550)
                                     or target_fd == args[0]):
                         inject = target_fd is None
+                        if inject: report['elf_sha256'] = sha256(Path(f'/proc/{pid}/exe'))
                         target_fd = args[0]
                         pending = {'syscall': number, 'fd': args[0], **address, 'sockaddr': wire.hex(),
                                    'entered_monotonic_ns': time.monotonic_ns(), 'injected': inject}
@@ -177,10 +178,20 @@ def health(port=15353):
     return {'query': packet.hex(), 'reply': reply.hex(), 'peer': list(peer)}
 
 
+def check_cleanup(case, cleanup):
+    expected = 5 if case == 'membership-einval' else 0
+    if not cleanup or cleanup['forced'] or cleanup['returncode'] != expected:
+        raise ValueError('membership lifecycle return differs from expected ' + str(expected))
+    return True
+
+
 def side_run(args):
     if os.geteuid() != 0 or os.environ.get('DNSMASQ_TEST_ISOLATED') != '1':
         raise RuntimeError('root in run_isolated.sh required')
     args.out.mkdir(parents=True, exist_ok=False)
+    if sha256(args.image_root / 'usr/sbin/dnsmasq') != STOCK_SHA256:
+        raise ValueError('exact image C identity differs')
+    expected_elf = STOCK_SHA256 if args.side == 'c' else sha256(args.rust_binary)
     root = prepare(args.image_root, None, args.out / 'filesystem', args.rust_binary)
     rows, failures = [], []
     config = ('port=15353\nno-hosts\nno-resolv\nuser=root\ngroup=root\nlisten-address=127.0.0.1\n'
@@ -192,6 +203,7 @@ def side_run(args):
             with (out / 'stdout').open('wb') as stdout, (out / 'stderr').open('wb') as stderr:
                 process, trace = traced_start(command(root, args.side, '-k', '-C', '/m2/membership.conf'),
                                              case, args.side, stdout, stderr, out / 'trace.json')
+                if trace.get('elf_sha256') != expected_elf: raise ValueError('actual syscall subject ELF differs')
                 if case == 'membership-einval':
                     process.wait(3)
                     if process.returncode != 5: raise ValueError('netlink EINVAL startup must exit5')
@@ -213,7 +225,9 @@ def side_run(args):
         finally:
             cleanup = fixture.stop(process) if process else None
             save(out / 'cleanup.json', cleanup)
-            if cleanup and cleanup['forced']: failures.append({'case': case, 'forced_cleanup': cleanup})
+            if cleanup:
+                try: check_cleanup(case, cleanup)
+                except ValueError as error: failures.append({'case': case, 'cleanup': cleanup, 'error': str(error)})
             (root / 'm2/pid').unlink(missing_ok=True)
     report = {'side': args.side, 'rows': rows, 'failures': failures,
               'passed': not failures and [row['case'] for row in rows] == list(CASES),

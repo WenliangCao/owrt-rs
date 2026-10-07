@@ -42,6 +42,15 @@ class MembershipReceipts(unittest.TestCase):
             with self.subTest(label=label), self.assertRaises(ValueError):
                 fault.check_trace(report, 'membership-eperm')
 
+    def test_health_cannot_hide_a_later_crash_or_forced_cleanup(self):
+        self.assertTrue(fault.check_cleanup('membership-eperm', {'returncode': 0, 'forced': False}))
+        self.assertTrue(fault.check_cleanup('membership-einval', {'returncode': 5, 'forced': False}))
+        for case, result in [('membership-eperm', 5), ('membership-eperm', -11), ('membership-einval', 0)]:
+            with self.subTest(case=case, result=result), self.assertRaises(ValueError):
+                fault.check_cleanup(case, {'returncode': result, 'forced': False})
+        with self.assertRaises(ValueError):
+            fault.check_cleanup('membership-eperm', {'returncode': 0, 'forced': True})
+
     def test_einval_must_not_fall_back_or_claim_eperm_result(self):
         report = self.valid(); report['events'] = report['events'][:1]
         report['events'][0]['result'] = -errno.EINVAL
