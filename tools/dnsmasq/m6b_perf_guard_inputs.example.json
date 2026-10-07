@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "frozen": false,
+  "basis": null,
+  "thresholds": {
+    "udp_p50_max_ns": null,
+    "idle_cpu_max_seconds": null,
+    "tcp_peak_pss_max_kib": null
+  },
+  "native_manifest": {
+    "path": "/home/ubuntu/FROZEN_MEASUREMENT/private/manifest.json",
+    "sha256": "FULL_FROZEN_NATIVE_MANIFEST_SHA256"
+  }
+}

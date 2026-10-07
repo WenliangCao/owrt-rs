@@ -14,19 +14,19 @@ import m5_final_validation as final
 
 class ValidationModeTests(unittest.TestCase):
     def test_m5_default_still_requires_both_real_fuzz_phases(self):
-        completed = {name: {'passed': True} for name in final.M6B_PHASES}
+        completed = {name: {'passed': True} for name in final.M6B_PHASES if name != 'perf-guard'}
         self.assertEqual(final.required_phases({}), final.PHASES)
         self.assertEqual(final.phase_prerequisites({}, 'package'), final.PHASES[:6])
         status = final.completion_status({}, completed)
         self.assertEqual(status['missing_phases'], ['fuzz-build', 'fuzz'])
         self.assertEqual(status['excluded_phases'], {})
 
-    def test_m6b_requires_six_real_phases_without_fabricating_fuzz_pass(self):
+    def test_m6b_requires_real_guard_and_six_functional_phases_without_fabricating_fuzz_pass(self):
         spec = {'validation_mode': 'm6b', 'phases': list(final.M6B_PHASES)}
         completed = {name: {'passed': True} for name in final.M6B_PHASES}
         status = final.completion_status(spec, completed)
         self.assertEqual(status['missing_phases'], [])
-        self.assertEqual(final.phase_prerequisites(spec, 'package'), ['families', 'm2', 'resources', 'pressure'])
+        self.assertEqual(final.phase_prerequisites(spec, 'package'), ['families', 'm2', 'perf-guard', 'resources', 'pressure'])
         self.assertEqual(final.phase_prerequisites(spec, 'lifecycle'), final.M6B_PHASES[:-1])
         self.assertEqual(set(status['excluded_phases']), {'fuzz-build', 'fuzz'})
         self.assertTrue(all(row['status'] == 'excluded-not-required' and row['passed'] is None

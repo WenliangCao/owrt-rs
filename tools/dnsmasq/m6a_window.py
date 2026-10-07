@@ -603,6 +603,51 @@ def fill_and_prove(out: Path, count: int, disable: bool, upstream_pid: int, daem
         endpoint.close()
 
 
+def guard_tcp_hold(pid: int, out: Path):
+    """Prove 20 live cache-hit TCP owners before a regression PSS sample."""
+    before = process_tree(pid)
+    sockets, replies = [], []
+    evidence = {"clients": 20, "before": before, "replies": replies, "complete": False}
+    save(out / "tcp-hold-20.json", evidence)
+    def exact(endpoint, length):
+        result = bytearray()
+        while len(result) < length:
+            block = endpoint.recv(length - len(result))
+            if not block:
+                raise RuntimeError("TCP guard EOF before complete reply")
+            result.extend(block)
+        return bytes(result)
+    try:
+        for index in range(20):
+            endpoint = socket.create_connection(("127.0.0.1", PORT), timeout=2)
+            sockets.append(endpoint)
+            host, kind = bank_question(index, False)
+            packet = query(host, kind, 0x7000 + index)
+            endpoint.sendall(struct.pack("!H", len(packet)) + packet)
+            length = struct.unpack("!H", exact(endpoint, 2))[0]
+            reply = exact(endpoint, length)
+            valid = correct_answer(host, kind, 0x7000 + index, reply)
+            replies.append({"client": index, "correct": valid, "query": packet.hex(), "reply": reply.hex()})
+            save(out / "tcp-hold-20.json", evidence)
+            if not valid:
+                raise RuntimeError("TCP guard incorrect cache answer")
+        held = snapshot(pid, out, "tcp-held-20")
+        if held["tree"]["child_processes"] or held["tree"]["fd_count"] != before["tree"]["fd_count"] + 20:
+            raise RuntimeError("TCP guard failed to prove exactly 20 daemon-owned sockets")
+        evidence.update(held=held, complete=True)
+        save(out / "tcp-hold-20.json", evidence)
+        return evidence
+    except Exception as error:
+        evidence["error"] = {"type": type(error).__name__, "message": str(error)}
+        save(out / "tcp-hold-20.json", evidence)
+        raise
+    finally:
+        for endpoint in sockets:
+            endpoint.close()
+        barrier = wait_for_drain(pid, before["tree"]["fd_count"], timeout=5)
+        save(out / "tcp-hold-drain.json", barrier)
+
+
 def config_for(scenario: str, tcp_profile="hit"):
     common = ("no-resolv\nno-hosts\nno-poll\nno-0x20-encode\nuser=root\ngroup=root\nbind-interfaces\ninterface=lo\n"
               "listen-address=127.0.0.1\n"
@@ -1073,6 +1118,7 @@ def run_window(args):
                 "drain_sample_seconds": args.drain_sample_seconds,
                 "wake_metrics": args.wake_metrics, "perf_record": args.perf_record,
                 "strace_summary": args.strace_summary,
+                "perf_guard_tcp_hold": args.perf_guard_tcp_hold,
                 "diagnostic_trace_scope": "warmup + measurement + stable drain; excluded diagnostic"}
     save(args.output / "identity.json", identity)
     daemon = upstream = None
@@ -1146,6 +1192,9 @@ def run_window(args):
             fill_and_prove(args.output, args.cache_names, False, upstream.pid, daemon.pid, mixed=True)
         elif args.scenario == "reload":
             fill_and_prove(args.output, args.cache_names, False, upstream.pid, daemon.pid)
+        if args.perf_guard_tcp_hold:
+            result["tcp_hold_20"] = guard_tcp_hold(daemon.pid, args.output)
+            save(args.output / "tcp-hold-20.json", result["tcp_hold_20"])
         result["measurement"] = run_load(args, daemon, root, upstream)
         result["accepted"] = all(result["measurement"]["quality"].values())
         counters = result["measurement"]["load"]["measurement"]
@@ -1267,6 +1316,8 @@ def main():
                         help="no-load daemon CPU interval (M6b formal uses 60)")
     parser.add_argument("--drain-timeout-seconds", type=float, default=5.0)
     parser.add_argument("--drain-sample-seconds", default="0,1,5,60")
+    parser.add_argument("--perf-guard-tcp-hold", action="store_true",
+                        help="regression guard: sample 20 proved cache-hit TCP connections")
     parser.add_argument("--wake-metrics", action="store_true",
                         help="require/read DNSMASQ_M6B_WAKE_METRICS sidecar telemetry")
     parser.add_argument("--perf-record", action="store_true",
@@ -1281,6 +1332,9 @@ def main():
         args.seed = 0x4d364100 + args.round
     if any(getattr(args, key) is None for key in ("implementation", "rust", "image_root", "loadgen", "upstream")):
         parser.error("implementation, rust, image-root, loadgen and upstream are required")
+    if args.perf_guard_tcp_hold and (not args.preflight or args.scenario != "tcp"
+            or args.tcp_profile != "hit" or args.implementation == "c"):
+        parser.error("TCP hold guard requires preflight Rust cache-hit TCP")
     if args.wake_metrics and not args.preflight:
         parser.error("wake instrumentation requires --preflight and a separate diagnostic companion")
     if (args.perf_record or args.strace_summary) and not args.preflight:
