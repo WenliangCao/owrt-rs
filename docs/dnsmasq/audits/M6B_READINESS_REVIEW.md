@@ -74,3 +74,5 @@ TFTP实际全族fresh重跑已通过（276.383s）：30普通、5故意reference
 ARP后续全族service-03未通过：78个C观察，Rust只有dhcp-scriptuser-applied在health UDP回答后立即数FD时19→20。独立同ELF fd-probe-01捕获额外fd19=/proc/26/net/if_inet6，50ms和1s后完整集合回到原19个；它来自health后进行的同步接口snapshot，不是持久泄漏。原守卫未确认owner排空，测试器将以完整FD集合持续稳定作边界，永久泄漏和同数量换FD负控不得放行；未fresh重跑前ARP仍失败。service-03全证据SHA+metadata本地核验后远端prune，archive SHA `f108d6e8d0b864e7cc8dc2774b75c985952ea4e5f3066dc20cb74fd021a00557`。
 
 service-04新冻结工具在同4816/9acc ELF上fresh过完整ARP族（452.119s、result SHA f6210364896acbc3b766f111080246c0fb741e1a7b890ef7fbd00fd32d5afcf0）和DHCP reply-delay（33.019s、066898b40d65b8f68021e8ebc798eb4573c7cb5a7d8cadaf363f0f2b3135308a）。FD工具cd4ca634对C/R完全同规则，保留完整identity连续稳定、每次样本/race和6个永久泄漏/替换/PID复用负控；没有放宽FD数量或默许原失败。DNS文件/UBus/cache及helper收尾仍在执行。
+
+同4816/9acc产品完整cache族已fresh通过：两侧536cases/512required、八次独立C reverse补充、完整qualify以及lease/TCP caller守卫，comparison SHA `7430029d30b501521e99814b1178beee730074a05abfda31019122ca932d02a1`，caller SHA `e24b540b70323daeb08cb79d301b2236bb8393e7345e6f06f5c5531020722529`。未复用旧M5cache结果；DNS-files/UBus/helper收尾待完成。
