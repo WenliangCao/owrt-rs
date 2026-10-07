@@ -240,7 +240,7 @@ def attempt_argv(planned, number, kind):
     return argv
 
 
-def pilot_and_scope(planned, directory, record, behavior_failed=False):
+def pilot_and_scope(planned, directory, record, behavior_failed=False, plan=None):
     pilot = directory.parent / "pilot/result.json"
     if record.get("pilot_passed") is not True or arithmetic.sha256(pilot) != record.get("pilot_result_sha256"):
         raise arithmetic.EvidenceError("pilot was not passed and bound before formal window")
@@ -248,13 +248,21 @@ def pilot_and_scope(planned, directory, record, behavior_failed=False):
     profile = next(p for p in PROFILES if p[0] == planned["profile"])
     pilot_behavior = (suite.pilot_behavior(report, profile) if planned["group"] == "A" else
                       bool(report.get("measurement", {}).get("load", {}).get("measurement", {}).get("correct")))
-    if (not report.get("measurement_valid") or not pilot_behavior
+    method = bool(report.get("measurement_valid"))
+    if not method:
+        # Only a complete independent pilot analysis may reinterpret the old
+        # accepted flag; a quality boolean alone is insufficient.
+        if plan is None:
+            raise arithmetic.EvidenceError("rejected pilot requires complete independent raw verification")
+        row, _ = assess_pilot(plan, planned, pilot.parent, record)
+        method = row["methodology_valid"]
+    if (not method or not pilot_behavior
             or report["identity"].get("expected_elf_sha256") != planned["expected_elf_sha256"]
             or report["identity"].get("argv") != attempt_argv(planned, record["attempt"], "pilot")[3:]):
         raise arithmetic.EvidenceError("pilot methodology, behavior or invocation differs")
     for kind in ("pilot", "formal"):
         execution = record[kind + "_command"]
-        returns = (0, 1) if kind == "formal" and behavior_failed else (0,)
+        returns = (0, 1) if (kind == "formal" and behavior_failed or kind == "pilot" and not report.get("measurement_valid")) else (0,)
         if (execution["argv"] != attempt_argv(planned, record["attempt"], kind)
                 or execution["returncode"] not in returns or execution.get("foreign_load")
                 or execution["finished_ns"] <= execution["started_ns"]):
@@ -263,16 +271,17 @@ def pilot_and_scope(planned, directory, record, behavior_failed=False):
         raise arithmetic.EvidenceError("pilot did not finish before formal window")
 
 
-def window_identity(plan, planned, directory, receipt):
+def window_identity(plan, planned, directory, receipt, phase="formal"):
     result = read(directory / "result.json")
     identity = result["identity"]
     expected = {"implementation": planned["runner_implementation"], "scenario": "tcp",
                 "tcp_profile": {"tcp-local": "local", "tcp-cache": "hit", "tcp-miss": "miss"}[planned["profile"]],
                 "round": planned["round"], "expected_elf_sha256": planned["expected_elf_sha256"],
-                "protocol_sha256": plan["protocol_sha256"], "warmup_seconds": 30, "duration_seconds": 120,
-                "saturation_seconds": 30, "rate": 10000, "clients": 20,
-                "idle_cpu_seconds": 60, "drain_sample_seconds": [0, 1, 5, 60],
-                "excluded_preflight": False, "wake_metrics": False, "perf_record": False,
+                "protocol_sha256": plan["protocol_sha256"], "warmup_seconds": 2 if phase == "pilot" else 30,
+                "duration_seconds": 10 if phase == "pilot" else 120,
+                "saturation_seconds": 3 if phase == "pilot" else 30, "rate": 10000, "clients": 20,
+                "idle_cpu_seconds": 5 if phase == "pilot" else 60, "drain_sample_seconds": [0, 1, 5, 60],
+                "excluded_preflight": phase == "pilot", "wake_metrics": False, "perf_record": False,
                 "strace_summary": False, "cpus": {"daemon": 0, "upstream": 1, "loadgen": 2, "control": 3},
                 "seed": 0x4d364100 + planned["round"],
                 "runner_sha256": plan["common"]["tools_files"]["m6a_window.py"],
@@ -282,12 +291,12 @@ def window_identity(plan, planned, directory, receipt):
         raise arithmetic.EvidenceError("formal identity differs from planned group/window")
     # The runner's identity does not expose every workload flag (cache-names,
     # timeout, and TCP stream limits), so also retain its exact invocation.
-    if identity.get("argv") != attempt_argv(planned, receipt["attempt"], "formal")[3:]:
+    if identity.get("argv") != attempt_argv(planned, receipt["attempt"], phase)[3:]:
         raise arithmetic.EvidenceError("runner invocation differs from planned native workload")
     if (receipt.get("group") != planned["group"] or receipt.get("source_commit") != planned["source_commit"]
             or receipt.get("elf_sha256") != planned["expected_elf_sha256"]
             or receipt.get("protocol_sha256") != plan["protocol_sha256"]
-            or receipt.get("formal_result_sha256") != arithmetic.sha256(directory / "result.json")):
+            or receipt.get(phase + "_result_sha256") != arithmetic.sha256(directory / "result.json")):
         raise arithmetic.EvidenceError("receipt lost independent source/group/ELF binding")
     if (directory / "config").read_text() != plan["configs"][planned["profile"]]:
         raise arithmetic.EvidenceError("formal configuration changed")
@@ -379,6 +388,46 @@ def terminal_attempts(root, job, planned, records, plan):
     return failed
 
 
+def assess_raw(plan, planned, directory, record, phase="formal"):
+    """Shared raw-method/behavior split, including legacy acceptance failures."""
+    result = window_identity(plan, planned, directory, record, phase)
+    observed = raw_behavior_failures(result)
+    row = arithmetic.analyze_window(directory)
+    row.update(group=planned["group"], job_id=planned["job_id"], attempt=record["attempt"],
+               source_commit=planned["source_commit"], elf_sha256=planned["expected_elf_sha256"])
+    # The old accepted flag also includes product cleanup/wire checks.
+    quality = result["measurement"].get("quality", {})
+    if (not row["methodology_valid"] and observed and QUALITY_KEYS <= quality.keys() and all(quality.values())
+            and not row["analysis_errors"]):
+        row["methodology_valid"] = True
+        row["runner_acceptance_failed_on_behavior"] = observed
+    if not row["methodology_valid"] or row["analysis_errors"]:
+        raise arithmetic.EvidenceError("raw-window methodology invalid: " + repr(row["analysis_errors"]))
+    return result, row, observed
+
+
+def assess_pilot(plan, planned, directory, record):
+    result, row, observed = assess_raw(plan, planned, directory, record, "pilot")
+    profile = next(p for p in PROFILES if p[0] == planned["profile"])
+    if not row["load_counters"]["measurement"]["correct"]:
+        raise arithmetic.EvidenceError("pilot has no correct measured requests")
+    row["behavior_failures"] = observed + drain_failures(result, planned["group"])
+    return row, suite.pilot_behavior(result, profile)
+
+
+def assess_formal(plan, planned, directory, record):
+    """Shared pre-archive assessment for the adapter and offline raw analyzer."""
+    result, row, observed = assess_raw(plan, planned, directory, record)
+    behavior = list(observed) + drain_failures(result, planned["group"])
+    row["idle_cpu"] = idle_check(result)
+    if (result.get("error") or result.get("cleanup_error") or result.get("cgroup_cleanup_error")
+            or result["cleanup"]["forced_kill"] or result["cleanup"]["returncode"] != 0
+            or result["cgroup_cleanup"].get("remaining_pids") or not result["cgroup_cleanup"].get("removed")):
+        behavior.append("daemon cleanup/lifecycle failure")
+    row["behavior_failures"] = behavior
+    return row, observed
+
+
 def analyze(plan_path, root):
     plan = read(plan_path)
     validate_plan(plan)
@@ -420,33 +469,12 @@ def analyze(plan_path, root):
                 raise arithmetic.EvidenceError("selected raw formal evidence unavailable")
             raw = read(directory / "result.json")
             observed_behavior = raw_behavior_failures(raw)
-            pilot_and_scope(expected, directory, record, bool(observed_behavior))
+            pilot_and_scope(expected, directory, record, bool(observed_behavior), plan)
             if previous_finished is not None and record["pilot_command"]["started_ns"] < previous_finished:
                 raise arithmetic.EvidenceError("actual windows overlapped or ignored frozen interleaved order")
             previous_finished = record["formal_command"]["finished_ns"]
-            result = window_identity(plan, expected, directory, record)
-            row = arithmetic.analyze_window(directory)
-            row.update(group=expected["group"], job_id=job, attempt=number,
-                       source_commit=expected["source_commit"], elf_sha256=expected["expected_elf_sha256"])
-            # The old accepted flag also includes product cleanup/wire checks.
-            # Full raw arithmetic and explicit sampler quality can still verify
-            # its CPU observation; retain the acceptance failure as terminal.
-            quality = result["measurement"].get("quality", {})
-            if (not row["methodology_valid"] and observed_behavior and QUALITY_KEYS <= quality.keys() and all(quality.values())
-                    and not row["analysis_errors"]):
-                row["methodology_valid"] = True
-                row["runner_acceptance_failed_on_behavior"] = observed_behavior
-            if not row["methodology_valid"] or row["analysis_errors"]:
-                raise arithmetic.EvidenceError("raw-window methodology invalid: " + repr(row["analysis_errors"]))
-            behavior = list(observed_behavior)
-            behavior += drain_failures(result, expected["group"])
-            row["idle_cpu"] = idle_check(result)
-            if (result.get("error") or result.get("cleanup_error") or result.get("cgroup_cleanup_error")
-                    or result["cleanup"]["forced_kill"] or result["cleanup"]["returncode"] != 0
-                    or result["cgroup_cleanup"].get("remaining_pids") or not result["cgroup_cleanup"].get("removed")):
-                behavior.append("daemon cleanup/lifecycle failure")
-            row["behavior_failures"] = behavior
-            additional = [reason for reason in behavior if reason not in observed_behavior]
+            row, observed_behavior = assess_formal(plan, expected, directory, record)
+            additional = [reason for reason in row["behavior_failures"] if reason not in observed_behavior]
             if additional:
                 failures.append({"job_id": job, "group": expected["group"], "kind": "behavior", "reasons": additional,
                                  "hard_failure": hard_behavior(expected["group"], additional)})

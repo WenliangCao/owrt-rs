@@ -228,7 +228,7 @@ def command_for(spec, profile, group, round_no, output, pilot):
     if pilot:cmd+=['--preflight','--fault-start','3','--fault-end','6','--reload-period','3']
     return cmd
 
-def execute(cmd, path, state, state_path):
+def execute(cmd, path, state, state_path, process_observer=None):
     record={'argv':cmd,'started_ns':time.time_ns(),'returncode':None,'foreign_load':[]}
     record['host_cpu_before']=Path('/proc/stat').read_text()
     record['host_load_before']=Path('/proc/loadavg').read_text()
@@ -237,8 +237,10 @@ def execute(cmd, path, state, state_path):
         proc=subprocess.Popen(cmd,stdout=log,stderr=log,start_new_session=True)
         last=0
         try:
+            if process_observer:process_observer(proc)
             while proc.poll() is None:
                 if time.monotonic()-last>=1:
+                    if process_observer:process_observer(proc)
                     busy=foreign_load();last=time.monotonic()
                     if busy:
                         record['foreign_load']=busy;raise RuntimeError('exclusive window contaminated')
@@ -246,15 +248,18 @@ def execute(cmd, path, state, state_path):
                 try:proc.wait(timeout=.2)
                 except subprocess.TimeoutExpired:pass
         finally:
-            if proc.poll() is None:
-                os.killpg(proc.pid,signal.SIGTERM)
-                try:proc.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    os.killpg(proc.pid,signal.SIGKILL);proc.wait(timeout=5)
-            record.update(returncode=proc.returncode,finished_ns=time.time_ns())
-            record['host_cpu_after']=Path('/proc/stat').read_text()
-            record['host_load_after']=Path('/proc/loadavg').read_text()
-            save(path.with_suffix('.command.json'),record)
+            try:
+                if process_observer:process_observer(proc)
+            finally:
+                if proc.poll() is None:
+                    os.killpg(proc.pid,signal.SIGTERM)
+                    try:proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        os.killpg(proc.pid,signal.SIGKILL);proc.wait(timeout=5)
+                record.update(returncode=proc.returncode,finished_ns=time.time_ns())
+                record['host_cpu_after']=Path('/proc/stat').read_text()
+                record['host_load_after']=Path('/proc/loadavg').read_text()
+                save(path.with_suffix('.command.json'),record)
     return record
 
 def pilot_behavior(report, profile):
