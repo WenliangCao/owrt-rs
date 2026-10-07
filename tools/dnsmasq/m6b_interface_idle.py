@@ -127,6 +127,8 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--side', choices=('c', 'rust', 'both'), default='both')
     args = parser.parse_args()
+    args.out = args.out.resolve()
+    if 'private' not in args.out.parts: raise ValueError('fresh private evidence required')
     if args.side != 'both': return side(args)
     args.out.mkdir(parents=True, exist_ok=False)
     reports, exits = {}, {}
