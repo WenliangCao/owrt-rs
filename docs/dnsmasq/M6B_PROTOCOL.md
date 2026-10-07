@@ -42,7 +42,7 @@ Rust 没有 C 的 TCP 子进程，排空不能用 child count==0 作为充分条
 
 顺序固定为：精确 C primitive/视图隔离门（含故意漏 detach、共享 LRU、CNAME 顺序错误负控）→服务合同门（父 UDP 新数据不可见、同连接自写可见、后连接可见、TTL/reload/lease/writeback/stale/EDNS）→资源和生命周期门（慢读写、RST/半帧、上游 EOF、日志 FIFO、TERM、100-query）→新增压力（20/上限连接、空/半满/4096、随机多 RR、100-query 重连、150s idle pin、父 churn、冲突和 interleaved reload/lease）→同一最终 ELF 的正式 135 窗口。
 
-TCP 硬门：S1–S8 零新增差异、错误/FD leak=0；TCP 每正确请求 CPU 相对当前 M6a opt3 **不得劣化超过5%**，且必须保持相对镜像 C 的 CPU 优势（设计文档的硬门）；TCP 吞吐和 p95 不得回退超过5%。20 连接 cache 目标 PSS 4–7 MiB、miss 8–16 MiB、断连 3–6 MiB 是目标范围而非承诺，必须同时报告 0/1/5/15/60 秒排空值、live requested bytes、父/子 family PSS、reconnect 和未知 allocator 余量。方案 A 达不到 TCP CPU 硬门或任一语义门，保留失败证据并停止，不拼接 B/C 或不同实验的最好结果。
+TCP 硬门：S1–S8 零新增差异、错误/FD leak=0；TCP 每正确请求 CPU 相对就绪分派修复后的新 `R3_new` 基线 **不得劣化超过5%**，且必须低于相同配置的新镜像 `C_new`（上方用户授权修订；M6a旧约20µs不作现门槛）；TCP 吞吐和 p95 不得回退超过5%。20 连接 cache 目标 PSS 4–7 MiB、miss 8–16 MiB、断连 3–6 MiB 是目标范围而非承诺，必须同时报告 0/1/5/15/60 秒排空值、live requested bytes、父/子 family PSS、reconnect 和未知 allocator 余量。方案 A 达不到 TCP CPU 硬门或任一语义门，保留失败证据并停止，不拼接 B/C 或不同实验的最好结果。
 
 ## 第 3 项及以后
 
