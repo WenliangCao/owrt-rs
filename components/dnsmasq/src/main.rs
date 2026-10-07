@@ -2091,6 +2091,8 @@ struct SinglePoll {
     ready_fds: Vec<i32>,
     #[cfg(target_os = "linux")]
     upstream_ready: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    dhcp_ready: bool,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2897,6 +2899,8 @@ impl SinglePoll {
             ready_fds: Vec::new(),
             #[cfg(target_os = "linux")]
             upstream_ready: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            dhcp_ready: false,
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3581,9 +3585,13 @@ impl SinglePoll {
                 });
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let dhcp_fd_start = fds.len();
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(dhcp) = &self.dhcp {
                 dhcp.listener.append_poll_fds(&mut fds);
             }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let dhcp_fd_end = fds.len();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(helper) = &self.helper {
                 for (fd, events) in helper.poll_fds() {
@@ -3667,6 +3675,12 @@ impl SinglePoll {
             self.upstream_ready = fds[upstream_fd_start..upstream_fd_end]
                 .iter()
                 .any(|fd| fd.revents != 0);
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            {
+                self.dhcp_ready = fds[dhcp_fd_start..dhcp_fd_end]
+                    .iter()
+                    .any(|fd| fd.revents != 0);
+            }
             self.poll_fds = fds;
             if ready != 0 {
                 self.drain_signal_wake();
@@ -5263,6 +5277,22 @@ impl SinglePoll {
         if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.dhcp_reload_in_progress() {
             return;
         }
+        if !self.dhcp_ready {
+            let input_pending = self
+                .dhcp
+                .as_ref()
+                .is_some_and(|dhcp| dhcp.listener.has_input().unwrap_or(false));
+            let maintenance_due = self
+                .dhcp
+                .as_ref()
+                .and_then(|dhcp| dhcp.provider.as_ref())
+                .and_then(|provider| provider.try_borrow().ok()?.next_maintenance())
+                .is_some_and(|deadline| deadline <= Instant::now());
+            if !input_pending && !maintenance_due {
+                return;
+            }
+        }
+        self.dhcp_ready = false;
         let Some(mut dhcp) = self.dhcp.take() else {
             return;
         };
