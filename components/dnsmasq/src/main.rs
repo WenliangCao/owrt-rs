@@ -3573,7 +3573,10 @@ impl SinglePoll {
             // The normal owner waits on network and file descriptors in one
             // set.  `step` still performs bounded nonblocking work after the
             // wait returns; readiness is deliberately not consumed here.
-            for listener in &self.listeners {
+            // Pending startup input/interface work cannot consume new DNS requests.
+            // Keep their sockets queued until the same admission gate can run.
+            let dns_admission_ready = !self.files_initializing() && !self.interface_work_pending();
+            for listener in self.listeners.iter().filter(|_| dns_admission_ready) {
                 if let Some(udp) = &listener.udp {
                     fds.push(PollFd {
                         fd: udp.as_raw_fd(),
@@ -5080,7 +5083,10 @@ impl SinglePoll {
                 });
             }
         }
-        for listener in &self.listeners {
+        // Pending startup input/interface work cannot consume new DNS requests.
+        // Keep their sockets queued until the same admission gate can run.
+        let dns_admission_ready = !self.files_initializing() && !self.interface_work_pending();
+        for listener in self.listeners.iter().filter(|_| dns_admission_ready) {
             if let Some(udp) = &listener.udp {
                 fds.push(PollFd {
                     fd: udp.as_raw_fd(),
@@ -6251,6 +6257,53 @@ mod tests {
         assert!(owner.dns_files.as_ref().unwrap().has_work());
         owner.hosts_read.take();
         assert!(owner.dns_file_work_runnable(), "finishing hosts makes the saved request runnable");
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn startup_fifo_keeps_blocked_dns_off_both_wait_sets_without_dropping_it() {
+        use std::os::fd::AsRawFd;
+        let path = std::env::temp_dir().join(format!("ready-startup-fifo-{}", std::process::id()));
+        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_poll = true;
+        config.bind_interfaces = true;
+        config.resolv_files = vec![path.clone()];
+        let mut owner = test_owner(config.clone(), None);
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
+        owner.step_dns_files();
+        assert!(owner.files_initializing());
+        assert!(!owner.dns_file_work_runnable(), "the opened FIFO waits for input");
+        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        let query = test_dns_query();
+        peer.send_to(&query, udp.local_addr().unwrap()).unwrap();
+        let tcp = TcpListener::bind(udp.local_addr().unwrap()).unwrap();
+        tcp.set_nonblocking(true).unwrap();
+        let tcp_fd = tcp.as_raw_fd();
+        let mut tcp_peer = TcpStream::connect(tcp.local_addr().unwrap()).unwrap();
+        let frame = encode_tcp_frame(&query).unwrap();
+        tcp_peer.write_all(&frame).unwrap();
+        owner.add_listener(SocketToken(1), Some(Arc::clone(&udp)), Some(tcp));
+        owner.wait_for_files().unwrap();
+        assert!(!owner.poll_fds.iter().any(|fd| fd.fd == udp.as_raw_fd()),
+            "a queued but unprocessable DNS packet must not spin normal poll");
+        assert!(!owner.poll_fds.iter().any(|fd| fd.fd == tcp_fd),
+            "a pending but unprocessable TCP accept also cannot spin poll");
+        assert!(!owner.wait_during_probe(None, Duration::from_millis(25), Default::default()).unwrap(),
+            "blocked DNS readiness must not consume the probe wait");
+        let mut packet = [0; 1232];
+        let queued = udp.receive(&mut packet).unwrap().unwrap();
+        assert_eq!(&packet[..queued.len], query.as_slice(), "the original DNS input stays queued");
+        assert!(owner.clients.is_empty(), "probe cannot admit a premature TCP snapshot");
+        let (mut queued_tcp, _) = owner.listeners[0].tcp.as_ref().unwrap().accept().unwrap();
+        let mut queued_frame = vec![0; frame.len()];
+        queued_tcp.read_exact(&mut queued_frame).unwrap();
+        assert_eq!(queued_frame, frame, "the original TCP request also stays queued");
         drop(owner);
         std::fs::remove_file(path).unwrap();
     }
