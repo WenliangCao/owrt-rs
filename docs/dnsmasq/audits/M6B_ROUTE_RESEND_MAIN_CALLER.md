@@ -19,3 +19,5 @@ TFTP只失效saved UDP，不复制C `void *srv_save` 的server/transfer别名。
 本机macOS AArch64/Rust1.98.1实际 `cargo test --bin dnsmasq-rs route_resend_owner`：**5 passed，0 failed/ignored**。Darwin没有Linux route actor，host测试以真实owner UDP/TCP/HUP消费者后调用库resend观察真实UDP状态；Linux编译使用实际 `apply_network_events` 和owner poll。`cargo check --tests --target aarch64-unknown-linux-musl`通过；此处没有运行Linux、netlink或镜像C。
 
 本地完整stdout/stderr保存在本worktree `private/evidence/route-main-caller/`。a01初版测试编译因误用wire Question别名及collector方法名失败，修正测试后host与Linux类型检查分别fresh重跑通过；a01日志保留，不归为产品缺陷。root须在新的统一ELF上跑实际Linux tests、基本route/已有clear caller及受影响镜像门，不能导入旧3e/7bdb通过身份。
+
+提交 `b22a02a7` 后另跑本机完整binary单元范围：**20 passed，0 failed/ignored**，无新增代码或场景。中央证据为 `E/M6B/route-resend-main-b22a02a7-local/`：5个完整日志包含a01 host/Linux编译失败、最终5例host、Linux类型检查及完整20例host。原worktree目录保留；[逐文件清单](../../../private/dnsmasq-rewrite/evidence/M6B/route-resend-main-b22a02a7-local/manifest.json) SHA256 `51fda72f7ef186f96099f8e46bcd04fbc40fdf8d75991e42ab456fc17174f499`，源/副本逐文件字节数和SHA全部相等，verification.json已重新核验。它们只绑定本地组合源码b22a02a7（临时库31d2abc6/原8183902d），不替代root合入后的新Linux候选资格。
