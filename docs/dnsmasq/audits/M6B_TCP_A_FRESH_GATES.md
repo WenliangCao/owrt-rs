@@ -61,19 +61,19 @@ sudo -n python3 "$M6B_TOOLS/m5_final_validation.py" run --manifest "$M6B_A_FUNCT
   --family m5_dns_endpoints --family m5_interface_records --family logging-all-scopes
 
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_accept_snapshot.py" run \
-  --side c --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/accept-c"
+  --side c --source-commit "$M6B_A_COMMIT" --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/accept-c"
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_accept_snapshot.py" run \
-  --side rust --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/accept-a"
+  --side rust --source-commit "$M6B_A_COMMIT" --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/accept-a"
 python3 "$M6B_TOOLS/m6b_tcp_accept_snapshot.py" compare \
-  --expected-rust-sha "$M6B_A_SHA" --c "$M6B_A_OUT/accept-c" --rust "$M6B_A_OUT/accept-a" --out "$M6B_A_OUT/accept-comparison.json"
+  --source-commit "$M6B_A_COMMIT" --expected-rust-sha "$M6B_A_SHA" --c "$M6B_A_OUT/accept-c" --rust "$M6B_A_OUT/accept-a" --out "$M6B_A_OUT/accept-comparison.json"
 
 python3 "$M6B_TOOLS/m6b_tcp_pressure.py" plan --out "$M6B_A_OUT/pressure-plan.json"
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_pressure.py" run \
-  --side c --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/pressure-c"
+  --side c --source-commit "$M6B_A_COMMIT" --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/pressure-c"
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_pressure.py" run \
-  --side rust --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/pressure-a"
+  --side rust --source-commit "$M6B_A_COMMIT" --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/pressure-a"
 python3 "$M6B_TOOLS/m6b_tcp_pressure.py" compare \
-  --expected-rust-sha "$M6B_A_SHA" --c "$M6B_A_OUT/pressure-c" --rust "$M6B_A_OUT/pressure-a" --out "$M6B_A_OUT/pressure-public-comparison.json"
+  --source-commit "$M6B_A_COMMIT" --expected-rust-sha "$M6B_A_SHA" --c "$M6B_A_OUT/pressure-c" --rust "$M6B_A_OUT/pressure-a" --out "$M6B_A_OUT/pressure-public-comparison.json"
 
 # 待内部balance实际闭合，prerequisites必须全绑定同A product source/ELF；不会自动授资格。
 python3 "$M6B_TOOLS/m6b_tcp_cpu_gate.py" plan --inputs "$M6B_A_CPU_INPUTS" \
