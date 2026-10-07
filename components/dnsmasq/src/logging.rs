@@ -300,6 +300,20 @@ impl Logger {
         (!context.queue.is_empty() && context.connection_good && fd >= 0).then_some(fd)
     }
 
+    pub fn tcp_retry_deadline(&self, context: &TcpLogContext) -> Option<Instant> {
+        matches!(context.destination, Destination::WaitingFile)
+            .then_some(context.fifo_retry_at).flatten()
+    }
+
+    pub fn tcp_finished(&self, context: &TcpLogContext) -> bool {
+        (context.queue.is_empty() || !context.connection_good) && self.echo_queue.is_empty()
+    }
+
+    pub fn retry_deadline(&self) -> Option<Instant> {
+        matches!(self.destination, Destination::WaitingFile)
+            .then_some(self.fifo_retry_at).flatten()
+    }
+
     fn exchange_tcp_context(&mut self, context: &mut TcpLogContext) {
         std::mem::swap(&mut self.destination, &mut context.destination);
         std::mem::swap(&mut self.fifo_retry_at, &mut context.fifo_retry_at);
