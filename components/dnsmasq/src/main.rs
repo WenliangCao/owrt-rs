@@ -2085,7 +2085,6 @@ struct SinglePoll {
     signal_wake_write: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
     poll_fds: Vec<owrt_ubus::sys::PollFd>,
-    #[cfg(target_os = "linux")]
     ubus_ready: bool,
     #[cfg(target_os = "linux")]
     ready_fds: Vec<i32>,
@@ -2897,7 +2896,6 @@ impl SinglePoll {
             signal_wake_write: None,
             #[cfg(target_os = "linux")]
             poll_fds: Vec::new(),
-            #[cfg(target_os = "linux")]
             ubus_ready: false,
             #[cfg(target_os = "linux")]
             ready_fds: Vec::new(),
@@ -5612,7 +5610,7 @@ impl SinglePoll {
                 })
         });
         if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
-        for event in events {
+            for event in events {
                 if let Some(event) = event.log_event(quiet_not_found) {
                     logger.emit(event);
                 }
@@ -5621,6 +5619,8 @@ impl SinglePoll {
         if self.helper.as_ref().is_none_or(Helper::is_finished) {
             while listener.pop_completion().is_some() {}
         }
+        self.tftp_next_due = (listener.active_transfers() != 0)
+            .then_some(now_instant + Duration::from_millis(250));
     }
 }
 
@@ -5671,14 +5671,10 @@ fn report_dhcp_maintenance(
                     Priority::Error,
                     b"failed to parse lease database cleanly".to_vec(),
                 ));
-                }
             }
         }
-        self.tftp_next_due = listener
-            .active_transfers()
-            .ne(&0)
-            .then_some(now_instant + Duration::from_millis(250));
     }
+}
 
 #[cfg(test)]
 fn validate_probe_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Error> {
