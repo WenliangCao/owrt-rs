@@ -2,13 +2,13 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6a只测量已完成；135/135正式窗口、9 profile×3组×5轮全部方法有效，终版[M6A_REPORT](M6A_REPORT.md)已提交（final-analysis formal_complete=true；机械分类独立复核通过）。产品仍dc1b740d／opt3 37f85d22（1,929,256B），Rs为同源opt-level s性能对照；不改产品、不启动M6b。性能只代表Oracle构建机，物理路由器未碰。
-- 刚关闭：M5体积决定已解决；Oracle4核/affinity0..3/cgroup2可写已核对，仍约24.5GiB、无物理路由器操作。新的原生UDP/TCP/DHCP负载器、单核原生上游、cgroup窗口/归档恢复/离线分析器及静态内存账已提交。LinuxC DHCP retry200/200cycle、0错误/超时、lease末态空；原错误端口pilot和GCC严格编译错误保留。29个本地人工/解析/计量守卫通过，不冒称正式性能。
-- 当前代码：M5产品源码dc1b740d7973838e2ae7f098d0726b0484e55074、ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b；C097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87。同源s新构建8427b9ab9718e3645137db4670ef3afcb8d983a2b88bb997127224de39988a2a、1,613,864B；新TCP修订manifest885d7eda6fcec0e7b057682c7798a09dda67a9dfc2300b8d898cfb15c3d50f40绑定实际M5 source_files/build报告/协议/全工具/native SHA，产品代码不修改。169项仍全关闭。
-- 下一步：协议51d1ba62已在任何性能试跑前提交；s和freeze-c3402ba6已准备，ROOT=/home/ubuntu/dnsmasq-m6a-20261006/freeze-c3402ba6，MANIFEST=$ROOT/private/manifest.json，STATE=$ROOT/private/state.json。当前suite正式结束、本地archive watcher完成135窗口，每个finished window先本地完整SHA+metadata核验再prune并恢复gate。全部pilot通过后同manifest已完成9profile（7场景族、TCP3profile）×C/R3/Rs×5交错有效轮次，共135正式窗口。每个正式窗口预热30s、计量120s，CPU0daemon/1upstream/2load/3sample、daemon独立cgroupCPU含TCPchild。正式窗口持共享构建锁并排除所有外部build/test/fuzz，子代理只本地读源码/写报告。
-- 阻塞点：无须用户决定。b85全27组合短试跑前12已过且归档；tcp-local C在1969正确warmup后正常100-query上限EOF，原loadgen误中断，已374e19df按C/R相同合同接100-query重连。协议b6c6fb99附注只澄清连接寿命，不改rate/时长/顺序/阈值。新freeze-tcp前12pilot通过，tcp C重连时snapshot已消失child smaps的ESRCH竞态已c340修工具，freeze-c340剩15组合pilot进行中，一次udp-miss-r3疑似foreign报告保留来源未确认、同manifest两次fresh重跑都通过；正式135/135全部完成并本地fullSHA+metadata归档，STATE.status=complete，全部9profile×3组×5轮齐；final-analysis formal_complete=true，最终终版报告已写入完整机器表、分类、内存归因和M6b候选，原失败见[audits/M6A_FAILURES](audits/M6A_FAILURES.md)。实际错答/timeout保留为行为结果、不计正确吞吐；只有方法/环境/采样/清理错误作废，原证据保留。阈值/时长/顺序在协议中事先固定，不能看结果改。正式计量已结束，最终分析、内存归因、报告和独立数据审查均完成；现在停等用户决定M6b，性能不外推路由器。
-- 活跃分工：root独占protocol/ledger、native upstream、suite/analyzer、Oracle构建和窗口；m6a_runner独占window驱动；m6a_loadgen交原生负载器；m6a_memory只本地内存结构归因；m6a_review只本地方案/工具/结果审查。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间全部子代理禁止Oracle工作。用户docs/prompts原样。
-- 续接注意：本轮只从账本恢复；M5原始身份/报告/行为差异保留。M6a终版报告已绑定final-analysis SHA1f7184f9c…、windows CSV bacf0264…、comparisons CSV fa5c5893…、state SHA1c6b74ad…，不重跑M5或把s当功能验收。M6a原始证据统一private/dnsmasq-rewrite/evidence/M6a；静态布局诊断既有M6A目录有独立SHA，后续报告显式链接不混计。每批回拷全SHA+metadata核验再清Oracle raw/overlay并恢复原JSON/log；产品artifact与用户文件不丢。
+- 当前里程碑：M6a已完成；135/135正式窗口、9 profile×3组×5轮全部方法有效，终版[M6A_REPORT](M6A_REPORT.md)已提交。进入M6b第0步：测量器已加入Rust排空合同、0/1/5/60秒样本、60秒idle CPU与wake telemetry接口；[M6B协议](M6B_PROTOCOL.md)已冻结，产品代码尚未改。性能仅代表Oracle构建机，物理路由器未碰。
+- 刚关闭：M6a final-analysis formal_complete=true、135/135身份/归档/清理门独立复核通过；M6a内存终版归因[a1e4d45e](audits/M6A_MEMORY_ATTRIBUTION.md)已合入；M6b第0步测量器修正和测试13项通过（commit7324ebbe/ba7e7c4e）。M6a UDP约465QPS/42ms线索已写报告：单包step、65535B缓冲是静态已证，Linux等待来源留作M6b计数诊断。
+- 当前代码：M5产品源码dc1b740d7973838e2ae7f098d0726b0484e55074、ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b；C097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87；M6a s8427b9ab9718e3645137db4670ef3afcb8d983a2b88bb997127224de39988a2a。TCP方案A只读计划[M6B_TCP_PLAN](audits/M6B_TCP_PLAN.md)已提交；UDP只读计划[M6B_UDP_PLAN](audits/M6B_UDP_PLAN.md)已提交。产品仍保持M5身份。
+- 下一步：先以M6B协议5c8dcf27和修正测量器完成UDP pilot计数（loop/poll/wait/packet batch/allocation）与idle CPU，然后冻结新的测量/产品候选manifest。之后独立worktree实施TCP方案A，依S1-S8 primitive→service→resource→pressure gates；UDP修复和TCP A不得拼接部分最佳实验。每个产品候选完成M5受影响族、M2、资源/压力/APK生命周期与9×3×5正式M6b复测；s只作性能对照，给出是否值得切换结论。
+- 阻塞点：无须用户决定；第0步已完成测量修正和协议冻结，等待产品候选。任何M6b失败保留原始证据并停止该候选，不改阈值、不把失败实验混入通过结果。
+- 活跃分工：root整合协议/ledger、UDP产品、M6b suite/build/回归/报告；m6b_measure维护修正测量器；m6b_udp_audit实施UDP产品修复；m6b_tcp_design实施TCP方案A；m6a_review只读审计M6b gates。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间禁止并行build/test/fuzz，用户docs/prompts原样。
+- 续接注意：M6a原始证据与M6A_REPORT不改；M6b新证据统一private/dnsmasq-rewrite/evidence/M6b。任何opt3/s切换必须新freeze和完整资格，不能用M6a机械UDP分类下结论。169项和M5行为差异基线必须在最终候选重新核对。
 
 ## 工作规则
 
