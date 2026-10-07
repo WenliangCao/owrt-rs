@@ -48,6 +48,8 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
+#[cfg(target_os = "linux")]
+use std::os::fd::{AsRawFd, OwnedFd};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use std::os::unix::ffi::OsStringExt;
 use std::path::Path;
@@ -64,9 +66,33 @@ static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
+#[cfg(target_os = "linux")]
+static SIGNAL_WAKE_WRITE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
 const UDP_PACKETS_PER_TURN: usize = 16;
+
+#[cfg(target_os = "linux")]
+unsafe extern "C" {
+    fn read(fd: i32, buffer: *mut u8, length: usize) -> isize;
+    fn write(fd: i32, buffer: *const u8, length: usize) -> isize;
+}
+
+#[cfg(target_os = "linux")]
+fn wake_signal_waiter() {
+    let fd = SIGNAL_WAKE_WRITE.load(Ordering::Relaxed);
+    if fd >= 0 {
+        let byte = [1u8; 1];
+        // SAFETY: the handler writes one byte from a live stack buffer to the
+        // process-owned nonblocking pipe; write(2) is async-signal-safe.
+        unsafe {
+            let _ = write(fd, byte.as_ptr(), 1);
+        }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn wake_signal_waiter() {}
 
 fn now_seconds() -> i64 {
     SystemTime::now()
@@ -76,6 +102,7 @@ fn now_seconds() -> i64 {
 
 extern "C" fn request_stop(_signal: i32) {
     STOP_REQUESTED.store(true, Ordering::Release);
+    wake_signal_waiter();
 }
 
 extern "C" fn request_reload(_signal: i32) {
@@ -84,12 +111,14 @@ extern "C" fn request_reload(_signal: i32) {
     let _ = RELOAD_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
+    wake_signal_waiter();
 }
 
 extern "C" fn request_log_reopen(_signal: i32) {
     let _ = LOG_REOPEN_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
+    wake_signal_waiter();
 }
 
 extern "C" fn request_interrupt(_signal: i32) {
@@ -101,6 +130,7 @@ extern "C" fn request_interrupt(_signal: i32) {
         // PID cleanup is specific to SIGTERM and must not run on this path.
         unsafe { _exit(5) }
     }
+    wake_signal_waiter();
     // The nodhcpv6/no-DNSSEC C variant has no EVENT_TIME work in normal mode.
 }
 
@@ -790,6 +820,13 @@ fn run_inner(
     );
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
+    #[cfg(target_os = "linux")]
+    let signal_wake = owrt_ubus::sys::pipe().ok();
+    #[cfg(target_os = "linux")]
+    if let Some((_, write_end)) = &signal_wake {
+        let _ = owrt_ubus::sys::set_nonblocking(write_end.as_raw_fd());
+        SIGNAL_WAKE_WRITE.store(write_end.as_raw_fd(), Ordering::Release);
+    }
     DEBUG_MODE.store(runtime.process.debug, Ordering::Relaxed);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_interrupt);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
@@ -1341,6 +1378,12 @@ fn run_inner(
         poll_listeners,
     );
     #[cfg(target_os = "linux")]
+    if let Some((read_end, write_end)) = signal_wake {
+        let _ = owrt_ubus::sys::set_nonblocking(read_end.as_raw_fd());
+        poll.signal_wake_read = Some(read_end);
+        poll.signal_wake_write = Some(write_end);
+    }
+    #[cfg(target_os = "linux")]
     {
         poll.dump = dump;
         poll.query_logging = runtime.logging.queries;
@@ -1795,6 +1838,8 @@ fn run_inner(
         }
         poll.wait_for_files()?;
     }
+    #[cfg(target_os = "linux")]
+    SIGNAL_WAKE_WRITE.store(-1, Ordering::Release);
     poll.m6b.write()?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(neighbors) = &mut poll.neighbors {
@@ -2040,6 +2085,10 @@ struct SinglePoll {
     edns_max: u16,
     m6b: M6bDiagnostics,
     udp_buffer: Vec<u8>,
+    #[cfg(target_os = "linux")]
+    signal_wake_read: Option<OwnedFd>,
+    #[cfg(target_os = "linux")]
+    signal_wake_write: Option<OwnedFd>,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2762,6 +2811,10 @@ impl SinglePoll {
             edns_max,
             m6b: M6bDiagnostics::new(listener_count),
             udp_buffer: vec![0; 65_535],
+            #[cfg(target_os = "linux")]
+            signal_wake_read: None,
+            #[cfg(target_os = "linux")]
+            signal_wake_write: None,
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3355,6 +3408,13 @@ impl SinglePoll {
             use std::os::fd::AsRawFd;
             let mut fds = Vec::new();
             self.append_file_fds(&mut fds, true);
+            if let Some(signal) = &self.signal_wake_read {
+                fds.push(PollFd {
+                    fd: signal.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            }
             let now = Instant::now();
             let mut deadline = now + Duration::from_secs(3600);
 
@@ -3476,6 +3536,12 @@ impl SinglePoll {
             if runnable || self.full_reload_pending {
                 deadline = now;
             }
+            // A failed wake-pipe allocation must not make TERM/HUP sleep for
+            // the one-hour no-timer sentinel. This is only an error fallback;
+            // the normal path is woken by the pipe and uses the real deadline.
+            if self.signal_wake_read.is_none() {
+                deadline = deadline.min(now + Duration::from_millis(100));
+            }
             let timeout = deadline
                 .saturating_duration_since(Instant::now())
                 .as_nanos()
@@ -3483,11 +3549,30 @@ impl SinglePoll {
                 .min(i32::MAX as u128) as i32;
             let started = Instant::now();
             let ready = owrt_ubus::sys::poll_fds(&mut fds, timeout)?;
+            if ready != 0 {
+                self.drain_signal_wake();
+            }
             self.m6b.record_wait(timeout, ready, started.elapsed())?;
         }
         #[cfg(not(target_os = "linux"))]
         thread::park_timeout(Duration::from_millis(2));
         Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    fn drain_signal_wake(&self) {
+        let Some(signal) = &self.signal_wake_read else {
+            return;
+        };
+        let mut buffer = [0u8; 64];
+        loop {
+            // SAFETY: the fd is an owned nonblocking pipe read end and the
+            // stack buffer bounds the kernel write.
+            let read = unsafe { read(signal.as_raw_fd(), buffer.as_mut_ptr(), buffer.len()) };
+            if read <= 0 || read < buffer.len() as isize {
+                break;
+            }
+        }
     }
 
     fn add_listener(
