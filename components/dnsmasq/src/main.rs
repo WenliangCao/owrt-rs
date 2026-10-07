@@ -7020,6 +7020,99 @@ mod tests {
         assert_eq!(client.input_offset, client.input.len());
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn real_tcp_read_budget_tail_resumes_through_normal_and_probe_owner() {
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+        let mut owner = test_owner(config, None);
+        let mut peer = add_test_tcp(&mut owner);
+        let frame = encode_tcp_frame(&test_dns_query()).unwrap();
+        let pipeline = frame.repeat(9);
+        peer.write_all(&pipeline).unwrap();
+
+        owner.wait_for_files().unwrap();
+        owner.step_tcp_clients();
+        assert_eq!(owner.clients[0].queries, 4, "eight read/write steps serve four frames");
+        assert!(matches!(owner.clients[0].phase, TcpClientPhase::Reading));
+        assert_eq!(owner.clients[0].input.len(), pipeline.len());
+        assert!(owner.clients[0].input_offset < owner.clients[0].input.len());
+        let mut byte = [0];
+        assert_eq!(owner.clients[0].stream.as_ref().unwrap().peek(&mut byte).unwrap_err().kind(),
+            io::ErrorKind::WouldBlock, "no new kernel read event can authorize the tail");
+
+        let started = Instant::now();
+        owner.wait_for_files().unwrap();
+        assert!(started.elapsed() < Duration::from_millis(50));
+        assert!(owner.ready_fds.is_empty());
+        assert_eq!(owner.clients[0].ready_events, 0);
+        assert!(owner.tcp_client_ready(0));
+        owner.step_tcp_clients();
+        assert_eq!(owner.clients[0].queries, 8);
+
+        let started = Instant::now();
+        assert!(owner.wait_during_probe(None, Duration::from_millis(200), Default::default()).unwrap());
+        assert!(started.elapsed() < Duration::from_millis(50));
+        assert_eq!(owner.clients[0].ready_events, 0);
+        assert_eq!(owner.clients[0].queries, 9);
+        assert_eq!(owner.clients[0].input_offset, owner.clients[0].input.len());
+        for _ in 0..9 {
+            let mut size = [0; 2];
+            peer.read_exact(&mut size).unwrap();
+            let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
+            peer.read_exact(&mut answer).unwrap();
+            assert!(answer.ends_with(&[192, 0, 2, 7]));
+            assert_eq!(dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap().rcode(), 0);
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn real_tcp_transport_budget_tail_resumes_through_normal_and_probe_owner() {
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_resolv = true;
+        // Each real source-bind attempt fails before connect. The first client
+        // step starts and resumes transport once (128 attempts), leaving a
+        // second 64-step tail for normal poll and one attempt for probe poll.
+        for port in 10000..10193 {
+            let line = format!("server=127.0.0.1#{port}@m6b-no-if-64");
+            config.apply(&lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+        }
+        let mut owner = test_owner(config, None);
+        let mut peer = add_test_tcp(&mut owner);
+        peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap()).unwrap();
+        owner.wait_for_files().unwrap();
+        owner.step_tcp_clients();
+        let assert_yield = |owner: &SinglePoll| {
+            let TcpClientPhase::Forwarding { wait, .. } = &owner.clients[0].phase
+                else { panic!("real transport must still have failed servers to visit"); };
+            assert_eq!(wait.fd, -1);
+            assert_eq!(wait.events, 0);
+            assert!(wait.deadline <= Instant::now());
+        };
+        assert_yield(&owner);
+        let started = Instant::now();
+        owner.wait_for_files().unwrap();
+        assert!(started.elapsed() < Duration::from_millis(50));
+        assert!(owner.ready_fds.is_empty());
+        assert_eq!(owner.clients[0].ready_events, 0);
+        assert!(owner.tcp_client_ready(0));
+        owner.step_tcp_clients();
+        assert_yield(&owner);
+        let started = Instant::now();
+        assert!(owner.wait_during_probe(None, Duration::from_millis(200), Default::default()).unwrap());
+        assert!(started.elapsed() < Duration::from_millis(50));
+        assert_eq!(owner.clients[0].queries, 1);
+        assert!(matches!(owner.clients[0].phase, TcpClientPhase::Reading));
+        let mut size = [0; 2];
+        peer.read_exact(&mut size).unwrap();
+        let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
+        peer.read_exact(&mut answer).unwrap();
+        assert_eq!(dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap().rcode(), 2);
+    }
+
     #[cfg(target_os = "linux")]
     #[test]
     fn tcp_idle_deadline_and_completed_client_run_without_fd_readiness() {

@@ -66,6 +66,33 @@ fn transport(addresses: &[SocketAddr]) -> TcpUpstream {
 }
 
 #[test]
+fn immediate_source_bind_failures_yield_after_real_transport_budget() {
+    let addresses: Vec<_> = (10000..10065)
+        .map(|port| SocketAddr::from(([127, 0, 0, 1], port)))
+        .collect();
+    let mut upstream = transport(&addresses);
+    // A syntactically valid, absent interface fails the real bind path before
+    // connect. This exercises 65 kernel-backed attempts without a mock wait
+    // or a reachable network endpoint (Darwin rejects interface binding).
+    upstream.set_source_bindings(&addresses.iter().enumerate().map(|(index, address)| {
+        let mut source = SourceSpec::wildcard(*address, 0);
+        source.interface = b"m6b-no-if-64".to_vec();
+        (ServerId(index as u64 + 1), source)
+    }).collect());
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let TcpProgress::Pending(wait) = upstream.start(GroupId(1), &query(7), deadline).unwrap()
+        else { panic!("64 attempts must yield before the 65th server"); };
+    assert_eq!(wait.fd, -1);
+    assert_eq!(wait.events, 0);
+    assert!(wait.deadline <= Instant::now());
+    assert_eq!(upstream.socket_count(), 0);
+    assert_eq!(upstream.take_connection_failures().len(), 64);
+    assert!(matches!(upstream.step(), Err(TcpError::NoReply)));
+    assert_eq!(upstream.take_connection_failures().len(), 1);
+    assert_eq!(upstream.socket_count(), 0);
+}
+
+#[test]
 fn successful_queries_share_connection_and_rcode_does_not_trigger_retry() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let mut transport = transport(&[listener.local_addr().unwrap()]);
