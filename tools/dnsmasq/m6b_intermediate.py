@@ -20,10 +20,45 @@ def save(path, value):
     temporary.replace(path)
 
 
+def command_for(spec, profile, group, output, diagnostic=None):
+    """Construct either the normal intermediate window or excluded trace run."""
+    command = suite.command_for(spec, profile, group, 1, output, bool(diagnostic))
+    # Trace evidence is a separate experiment, never a source of formal CPU or
+    # latency comparisons.  The fixed short workload is warmup 2s + load 15s,
+    # followed by the same stable drain; no 60s retention sampling is traced.
+    command = [arg for arg in command if arg != "--wake-metrics"]
+    if diagnostic:
+        replacements = {"--warmup": "2", "--duration": "15", "--saturation-seconds": "0",
+                        "--idle-seconds": "0", "--drain-sample-seconds": "0"}
+        for flag, value in replacements.items():
+            command[command.index(flag) + 1] = value
+        command.append("--perf-record" if diagnostic == "perf" else "--strace-summary")
+    return command
+
+
+def resume_archive_gate(spec, private, state, state_path):
+    """Finish the old copy/verify/prune barrier before making a fresh attempt."""
+    pending = state.get("archive_gate")
+    if not pending:
+        return
+    window = state["windows"][pending["job_id"]]
+    record = next(row for row in window["attempts"] if row["attempt"] == pending["attempt"])
+    attempt = private / "runs" / record["job_id"] / f"attempt-{record['attempt']}"
+    suite.archive_gate(spec, attempt, record, state, state_path)
+    if record["methodology_valid"]:
+        window["valid_attempt"] = record["attempt"]
+    counter = "diagnostic_valid_windows" if state.get("diagnostic") else "formal_valid_windows"
+    state[counter] = sum(w["valid_attempt"] is not None for w in state["windows"].values())
+    save(state_path, state)
+
+
 def run(args):
     manifest = args.manifest.resolve()
     spec = json.loads(manifest.read_text())
     suite.verify(spec, manifest)
+    controller = suite.verify_controller(spec, __file__)
+    diagnostic = getattr(args, "diagnostic", None)
+    suite.check_instrumentation(spec, formal=not bool(diagnostic))
     private = Path(spec["root"]) / "private"
     state_path = private / "state.json"
     state = json.loads(state_path.read_text()) if state_path.exists() else {
@@ -38,11 +73,16 @@ def run(args):
         raise ValueError("state belongs to another freeze")
     if state.get("expected_windows") != 27:
         raise ValueError("intermediate state must expect exactly 27 windows")
+    if state.get("windows") and state.get("diagnostic") != diagnostic:
+        raise ValueError("cannot mix diagnostic and normal windows in one freeze/state")
+    state["diagnostic"] = diagnostic
     os.sched_setaffinity(0, {3})
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
     state["controller_pid"] = os.getpid()
+    state["controller_identity"] = controller
     state["status"] = "running"
     save(state_path, state)
+    resume_archive_gate(spec, private, state, state_path)
 
     for profile in suite.PROFILES:
         for group in suite.ORDERS[0]:
@@ -70,6 +110,9 @@ def run(args):
                 "methodology_valid": False,
                 "pilot_only": False,
                 "intermediate_one_round": True,
+                "diagnostic": diagnostic,
+                "excluded_from_formal_performance": bool(diagnostic),
+                "controller_identity": controller,
                 "failures": [],
             }
             state["current_job"] = job
@@ -83,14 +126,10 @@ def run(args):
                     if suite.foreign_load():
                         raise RuntimeError("other build/test active before window")
                     suite.verify(spec, manifest)
-                    command = suite.command_for(
-                        spec, profile, group, 1, attempt / "formal", False
-                    )
-                    # The pilot already owns the diagnostic wake counters.  A
-                    # formal one-round window only needs the normal result and
-                    # latency evidence; retaining every poll wait sample would
-                    # make a busy 120-second window multi-gigabytes.
-                    command = [arg for arg in command if arg != "--wake-metrics"]
+                    suite.verify_controller(spec, __file__)
+                    if suite.sha256(manifest) != state["manifest_sha256"]:
+                        raise ValueError("manifest changed during intermediate suite")
+                    command = command_for(spec, profile, group, attempt / "formal", diagnostic)
                     record["formal_command"] = suite.execute(
                         command, attempt / "formal.log", state, state_path
                     )
@@ -110,9 +149,8 @@ def run(args):
             suite.archive_gate(spec, attempt, record, state, state_path)
             if record["methodology_valid"]:
                 window["valid_attempt"] = number
-                state["formal_valid_windows"] = sum(
-                    w["valid_attempt"] is not None for w in state["windows"].values()
-                )
+                counter = "diagnostic_valid_windows" if diagnostic else "formal_valid_windows"
+                state[counter] = sum(w["valid_attempt"] is not None for w in state["windows"].values())
             state["status"] = "running" if not record["failures"] else "failed-tools-or-environment"
             save(state_path, state)
             print(json.dumps({"job": job,
@@ -121,7 +159,7 @@ def run(args):
             if record["failures"]:
                 return 1
 
-    state["status"] = "complete"
+    state["status"] = "diagnostics-complete" if diagnostic else "complete"
     save(state_path, state)
     return 0
 
@@ -129,6 +167,8 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--diagnostic", choices=("perf", "strace"),
+                        help="excluded 2s warmup + 15s diagnostic workload, separate fresh freeze required")
     return run(parser.parse_args())
 
 

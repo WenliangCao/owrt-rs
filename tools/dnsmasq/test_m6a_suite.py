@@ -114,7 +114,7 @@ class ResumeContract(unittest.TestCase):
             private.mkdir()
             target = private / "target"
             target.mkdir()
-            spec = {"root": str(root), "image_root": "/unused-image",
+            spec = {"root": str(root), "image_root": "/unused-image", "source_commit": suite.PRODUCT,
                     "protocol": str(root / "protocol"), "protocol_sha256": "frozen-protocol",
                     "groups": {"c": {"elf": "/unused-c", "sha256": suite.STOCK_SHA256},
                                "r3": {"elf": "/unused-r3", "sha256": suite.R3}},

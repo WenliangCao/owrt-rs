@@ -12,6 +12,7 @@ import errno
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import socket
@@ -376,6 +377,146 @@ def summarize_wake_telemetry(samples):
                                   "p99": percentile(.99), "max": max(waits) if waits else None}}
 
 
+def parse_strace(path: Path):
+    """Count completed raw calls and errno, including split resumed calls.
+
+    ``strace -c`` errors are only aggregate failures and cannot distinguish
+    EAGAIN.  ``-C`` retains raw returns as well as the native summary.  Only
+    completed raw returns count; an unfinished call is counted when resumed.
+    """
+    calls, errors, errno_counts = {}, {}, {}
+    unfinished, resumed = 0, 0
+    pattern = re.compile(r"^\s*(?:(?:\[pid\s+\d+\]|\d+)\s+)?\d+\.\d+\s+"
+                         r"(?:(\w+)\(|<\.\.\. (\w+) resumed>)")
+    with path.open() as stream:
+        for line in stream:
+            match = pattern.match(line)
+            if match is None:
+                continue
+            syscall = match.group(1) or match.group(2)
+            if "<unfinished ...>" in line:
+                unfinished += 1
+                continue
+            if match.group(2):
+                resumed += 1
+            if " = " not in line:
+                continue
+            calls[syscall] = calls.get(syscall, 0) + 1
+            failure = re.search(r" = -1 ([A-Z][A-Z0-9_]+)(?:\s|$)", line)
+            if failure:
+                code = failure.group(1)
+                errors[syscall] = errors.get(syscall, 0) + 1
+                errno_counts.setdefault(syscall, {})[code] = errno_counts.get(syscall, {}).get(code, 0) + 1
+    return {"completed_calls": sum(calls.values()), "calls": calls,
+            "errors": errors, "errno": errno_counts,
+            "eagain_calls": sum(row.get("EAGAIN", 0) for row in errno_counts.values()),
+            "unfinished_lines": unfinished, "resumed_lines": resumed,
+            "unresolved_unfinished_calls": max(0, unfinished - resumed),
+            "resumed_from_before_attach": max(0, resumed - unfinished)}
+
+
+def syscall_accounting(trace, load):
+    """Match full attached-workload syscalls to all completed correct work."""
+    correct = load["warmup"]["correct"] + load["measurement"]["correct"]
+    return {"scope": "warmup + measurement + post-load stable drain",
+            "denominator": "all correct load-generator requests/cycles while attached; warmup + measurement, including cross-window completions",
+            "correct_requests": correct,
+            "warmup_correct": load["warmup"]["correct"],
+            "measurement_correct": load["measurement"]["correct"],
+            "calls_per_correct_request": trace["completed_calls"] / correct if correct else None,
+            "syscalls_per_correct_request": {name: count / correct if correct else None
+                                             for name, count in trace["calls"].items()},
+            "eagain_per_correct_request": trace["eagain_calls"] / correct if correct else None,
+            "errno_per_correct_request": {name: {code: count / correct if correct else None
+                                                  for code, count in row.items()}
+                                          for name, row in trace["errno"].items()},
+            "note": "diagnostic amortized syscall cost, including idle/drain calls and failed work; never a 15-second formal-window rate or untraced performance result"}
+
+
+class DiagnosticCapture:
+    """Attach before any load and detach immediately after the drain barrier."""
+    def __init__(self, args, pid):
+        self.args, self.pid = args, pid
+        self.processes, self.streams = {}, {}
+        self.record = {"enabled": bool(args.perf_record or args.strace_summary),
+                       "scope": "after idle CPU and cache fill; before load launch through stable drain",
+                       "cpu": args.cpu_control, "started": {}, "stopped": {}}
+
+    def start(self):
+        commands = {}
+        if self.args.perf_record:
+            commands["perf"] = ["perf", "record", "-F", "997", "--call-graph", "dwarf",
+                                "-p", str(self.pid), "-o", str(self.args.output / "perf.data")]
+        if self.args.strace_summary:
+            commands["strace"] = ["strace", "-f", "-C", "-ttt", "-T", "-s", "0",
+                                  "-o", str(self.args.output / "strace-syscalls.log"), "-p", str(self.pid)]
+        for kind, command_line in commands.items():
+            command_line = ["taskset", "-c", str(self.args.cpu_control), *command_line]
+            save(self.args.output / (kind + "-command.json"), command_line)
+            stream = (self.args.output / (kind + ".log")).open("xb")
+            self.streams[kind] = stream
+            self.processes[kind] = subprocess.Popen(command_line, stdout=stream, stderr=stream)
+            launched_ns = time.monotonic_ns()
+            deadline = time.monotonic() + 5
+            if kind == "strace":
+                while True:
+                    status = (Path("/proc") / str(self.pid) / "status").read_text()
+                    if re.search(r"TracerPid:\s+[1-9]", status):
+                        break
+                    if self.processes[kind].poll() is not None or time.monotonic() >= deadline:
+                        raise RuntimeError("strace failed to attach before load")
+                    time.sleep(.01)
+            else:
+                time.sleep(.2)
+                if self.processes[kind].poll() is not None:
+                    raise RuntimeError("perf exited before load")
+            self.record["started"][kind] = {"launch_monotonic_ns": launched_ns,
+                                            "ready_monotonic_ns": time.monotonic_ns(),
+                                            "ready_wall_ns": time.time_ns()}
+        save(self.args.output / "diagnostic-scope.json", self.record)
+
+    def stop(self):
+        for kind, process in self.processes.items():
+            if kind in self.record["stopped"]:
+                continue
+            stopping_ns = time.monotonic_ns()
+            forced = False
+            exited_before_stop = process.poll() is not None
+            if not exited_before_stop:
+                process.send_signal(signal.SIGINT)
+                try:
+                    process.wait(10)
+                except subprocess.TimeoutExpired:
+                    forced = True
+                    process.kill()
+                    process.wait(5)
+            self.record["stopped"][kind] = {"signal_monotonic_ns": stopping_ns,
+                                           "completed_monotonic_ns": time.monotonic_ns(),
+                                           "returncode": process.returncode, "forced_kill": forced,
+                                           "exited_before_stop": exited_before_stop}
+            self.streams[kind].close()
+        for stream in self.streams.values():
+            if not stream.closed:
+                stream.close()
+        save(self.args.output / "diagnostic-scope.json", self.record)
+        return self.record
+
+    def summary(self, load):
+        result = self.stop()
+        result["scope_complete"] = all(
+            start["ready_monotonic_ns"] <= load["warmup_start_ns"]
+            and result["stopped"][kind]["signal_monotonic_ns"] >= load["run_end_ns"]
+            and not result["stopped"][kind]["exited_before_stop"]
+            for kind, start in result["started"].items())
+        if "strace" in result["stopped"]:
+            raw = self.args.output / "strace-syscalls.log"
+            trace = parse_strace(raw)
+            result["strace"] = {"raw_path": str(raw), "raw_sha256": sha256(raw),
+                                "counts": trace, "accounting": syscall_accounting(trace, load)}
+        save(self.args.output / "diagnostic-scope.json", result)
+        return result
+
+
 def correct_answer(host: str, kind: int, ident: int, packet: bytes):
     result = semantics(packet)
     expected = semantics(answer(query(host, kind, ident)))
@@ -647,7 +788,16 @@ def run_load(args, daemon, root, upstream):
     initial = snapshot(daemon.pid, args.output, "before-warmup")
     idle_fd_count = initial["tree"]["fd_count"]
     idle_cpu = measure_idle_cpu(daemon.pid, args.output, args.idle_seconds)
-    process = subprocess.Popen(command_line, stdout=log, stderr=log)
+    diagnostics = DiagnosticCapture(args, daemon.pid)
+    try:
+        diagnostics.start()
+        diagnostics.record["load_launch_monotonic_ns"] = time.monotonic_ns()
+        process = subprocess.Popen(command_line, stdout=log, stderr=log)
+    except Exception:
+        diagnostics.stop()
+        log.close()
+        resource_stream.close()
+        raise
     resources, points, reloads, wake_samples = [], {}, [], []
     wake_path = root / "m6a/wake-metrics.json" if args.wake_metrics else None
     peak_pss, next_sample = 0, 0
@@ -665,6 +815,7 @@ def run_load(args, daemon, root, upstream):
     max_controller_gap_ns = 0
     try:
         epoch = read_json_ready(args.output / "epoch.json", 5, process)
+        diagnostics.record["load_epoch"] = epoch
         if args.scenario == "reload":
             tftp_log = (args.output / "tftp-worker.log").open("wb")
             tftp_command = ["taskset", "-c", str(args.cpu_load), sys.executable, __file__,
@@ -799,6 +950,7 @@ def run_load(args, daemon, root, upstream):
         load = json.loads((args.output / "load.json").read_text())
         if load.get("interrupted") or load.get("output_failed"):
             raise RuntimeError("load generator reports interrupted or incomplete evidence")
+        diagnostic_summary = diagnostics.summary(load)
         segments = {}
         ordered = [(label, points[label]) for label, _ in boundaries]
         ticks_per_second = os.sysconf("SC_CLK_TCK")
@@ -820,6 +972,7 @@ def run_load(args, daemon, root, upstream):
                 "cpu_load_finished": load_finished, "cpu_after_drain": final,
                 "drain_barrier": barrier, "drain_samples": drain_samples,
                 "idle_cpu": idle_cpu, "wake_counters": wake_summary,
+                "diagnostics": diagnostic_summary,
                 "cpu_resolution_seconds": 1 / ticks_per_second,
                 "measurement_cpu_seconds": (points["measurement-end"]["cgroup_cpu"]["usage_usec"] -
                                             points["measurement-start"]["cgroup_cpu"]["usage_usec"]) / 1e6,
@@ -846,12 +999,19 @@ def run_load(args, daemon, root, upstream):
                                 if label in row and not row[label].get("exited_during_sample")),
                             "drain_barrier_passed": barrier["observations"][-1]["stable_samples"] >= barrier["stable_samples_required"],
                             "wake_metrics_passed": (not args.wake_metrics or args.implementation == "c"
-                                                     or wake_summary["available"])},
+                                                     or wake_summary["available"]),
+                            "diagnostic_scope_passed": diagnostic_summary["scope_complete"],
+                            "diagnostic_tools_passed": all(not row["forced_kill"] and not row["exited_before_stop"]
+                                                           and row["returncode"] == 0
+                                                           for row in diagnostic_summary["stopped"].values()),
+                            "diagnostic_raw_calls_passed": (not args.strace_summary or
+                                                           diagnostic_summary["strace"]["counts"]["completed_calls"] > 0)},
                 "peaks": {key: max((row["tree"][key] for row in measured), default=0)
                           for key in ("rss_kib", "pss_kib", "fd_count", "thread_count", "child_processes")},
                 "parent_peaks": {key: max((row["parent"][key] for row in measured), default=0)
                                  for key in ("rss_kib", "pss_kib", "hwm_kib", "fd_count", "thread_count")}}
     finally:
+        diagnostics.stop()
         if tftp is not None and tftp.poll() is None:
             tftp.terminate()
             try:
@@ -905,12 +1065,12 @@ def run_window(args):
                 "rate": args.rate, "clients": args.clients, "kernel": os.uname().release,
                 "idle_cpu_seconds": args.idle_seconds,
                 "drain_sample_seconds": args.drain_sample_seconds,
-                "wake_metrics": args.wake_metrics, "perf_record": args.perf_record}
+                "wake_metrics": args.wake_metrics, "perf_record": args.perf_record,
+                "strace_summary": args.strace_summary,
+                "diagnostic_trace_scope": "warmup + measurement + stable drain; excluded diagnostic"}
     save(args.output / "identity.json", identity)
     daemon = upstream = None
     daemon_log = upstream_log = None
-    perf_process = perf_log = None
-    strace_process = strace_log = None
     result = {"accepted": False, "identity": identity}
     try:
         root = prepare(args.image_root, None, args.output / "filesystem", args.rust)
@@ -980,20 +1140,6 @@ def run_window(args):
             fill_and_prove(args.output, args.cache_names, False, upstream.pid, daemon.pid, mixed=True)
         elif args.scenario == "reload":
             fill_and_prove(args.output, args.cache_names, False, upstream.pid, daemon.pid)
-        if args.perf_record:
-            perf_command = ["perf", "record", "-F", "997", "--call-graph", "dwarf",
-                            "-p", str(daemon.pid), "-o", str(args.output / "perf.data")]
-            save(args.output / "perf-command.json", perf_command)
-            perf_log = (args.output / "perf.log").open("wb")
-            perf_process = subprocess.Popen(perf_command, stdout=perf_log, stderr=perf_log)
-            time.sleep(0.2)
-        if args.strace_summary:
-            strace_command = ["strace", "-f", "-c", "-o", str(args.output / "strace-summary.txt"),
-                              "-p", str(daemon.pid)]
-            save(args.output / "strace-command.json", strace_command)
-            strace_log = (args.output / "strace.log").open("wb")
-            strace_process = subprocess.Popen(strace_command, stdout=strace_log, stderr=strace_log)
-            time.sleep(0.2)
         result["measurement"] = run_load(args, daemon, root, upstream)
         result["accepted"] = all(result["measurement"]["quality"].values())
         counters = result["measurement"]["load"]["measurement"]
@@ -1018,28 +1164,6 @@ def run_window(args):
     except Exception as error:
         result["error"] = {"type": type(error).__name__, "message": str(error)}
     finally:
-        if perf_process is not None:
-            try:
-                if perf_process.poll() is None:
-                    perf_process.send_signal(signal.SIGINT)
-                    perf_process.wait(10)
-                result["perf_record"] = {"returncode": perf_process.returncode,
-                                         "path": str(args.output / "perf.data")}
-            except Exception as error:
-                result["perf_record_error"] = repr(error)
-        if perf_log is not None:
-            perf_log.close()
-        if strace_process is not None:
-            try:
-                if strace_process.poll() is None:
-                    strace_process.send_signal(signal.SIGINT)
-                    strace_process.wait(10)
-                result["strace_summary"] = {"returncode": strace_process.returncode,
-                                            "path": str(args.output / "strace-summary.txt")}
-            except Exception as error:
-                result["strace_error"] = repr(error)
-        if strace_log is not None:
-            strace_log.close()
         if daemon is not None:
             try:
                 result["cpu_before_termination"] = cgroup_cpu()
@@ -1140,9 +1264,9 @@ def main():
     parser.add_argument("--wake-metrics", action="store_true",
                         help="require/read DNSMASQ_M6B_WAKE_METRICS sidecar telemetry")
     parser.add_argument("--perf-record", action="store_true",
-                        help="diagnostic only: record daemon perf samples during run_load")
+                        help="excluded diagnostic: perf samples over warmup + load + drain")
     parser.add_argument("--strace-summary", action="store_true",
-                        help="diagnostic only: attach strace -f -c to the daemon during run_load")
+                        help="excluded diagnostic: strace raw + summary over warmup + load + drain")
     args = parser.parse_args()
     args.drain_sample_seconds = parse_drain_sample_seconds(args.drain_sample_seconds)
     if args.tftp_worker:
@@ -1151,6 +1275,12 @@ def main():
         args.seed = 0x4d364100 + args.round
     if any(getattr(args, key) is None for key in ("implementation", "rust", "image_root", "loadgen", "upstream")):
         parser.error("implementation, rust, image-root, loadgen and upstream are required")
+    if args.wake_metrics and not args.preflight:
+        parser.error("wake instrumentation requires --preflight and a separate diagnostic companion")
+    if (args.perf_record or args.strace_summary) and not args.preflight:
+        parser.error("perf/strace tracing requires --preflight; never trace formal performance windows")
+    if args.perf_record and args.strace_summary:
+        parser.error("perf and strace must run in separate diagnostic windows")
     if not args.preflight and (args.warmup != 30 or args.duration != 120 or args.round < 1 or args.protocol is None):
         parser.error("formal windows require protocol, round>=1, warmup30 and duration120")
     return run_window(args)
