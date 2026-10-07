@@ -2,12 +2,12 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6b 第1b系统调用归因/就绪分派修复；UDP-only 27/27一轮窗口已归档校验。TCP方案A仍在独立 `m6b/tcp-scheme-a` 分支，未通过服务/资源/压力/CPU门，未合入 main。物理路由器未碰。
+- 当前里程碑：M6b 第1b就绪分派修复的Linux单元门已完成，进入真实服务和性能复测；UDP-only 27/27一轮窗口已归档校验。TCP方案A仍在独立 `m6b/tcp-scheme-a` 分支，未通过服务/资源/压力/CPU门，未合入 main。物理路由器未碰。
 - 刚关闭：d52d5cac 第1b UBus/metrics gating、PollFd backing复用与logger pending gate只带来小收益：steady TCP local 45.679µs（C27.434）、UDP hit23.639µs（原24.533）、reload48.261µs（原51.022）；归档E/M6B/oneb-baseline-d52d5cac。`strace -f -c`已确认非就绪socket错误调用很大：TCP recvfrom270,231/438,379、reload recvmsg68,742/85,913、DHCP accept4全部89,760失败；scope包括warmup及drain，不能以15s正确数作为精确每请求分母。新trace scope工具待独立分支修正。
-- 当前代码：main产品7396663d（211ab618 socket fd gate、12cbadce upstream gate、18429868 DHCP gate、856fee48 TFTP gate及7396663d编译修正），feature-off opt3 SHA225496bfe411b16a97f94e310ad00e71509a3998e5c7aeb8ea168ebb888b6596、1,937,448B。此候选存在静态审查已发现的timer/probe/log-drain/pendingMAC缺口，**未冻结、未通过、不得作为方案A新基线**。d52 opt3 SHA2ef2360a…、1,933,352B与s f6ef8f01…、1,622,056B保留。
+- 当前代码：main产品4f7a221b（含完整readiness续步d21a58f3、关闭dump地址gate99256dc8、禁用UBus/队列gate4f7a221b），feature-off opt3 SHA170092638323beb380274d5fa709131bff835ab7c3ed6cf86a538b1b062fb096、1,941,544B。Oracle707库/18main测试实际通过；s正在构建。旧7396663d和各缺口候选只保留失败/诊断证据，不作为新基线。最新工具da66df75明确formal feature-off、trace scope与raw errno，协议修订a6be3935；下一步fresh新tooling freeze诊断。
 - 下一步：先修精确fd/revents分派和全部内部runnable/timer路径，UDP dump关闭时不调用getsockname；复测syscall/EAGAIN和不插桩CPU、UDP/TCP/DHCP/TFTP/reload语义及生命周期。再冻结不含A的新R3基线，用同配置C和新R3评估A增量（u_A≤1.05×u_R3_new，保持相对同窗C优势；旧M6a20µs不能作门槛）。方案A依primitive→service→resource/lifecycle→pressure→CPU门通过后才合main；最终仅一次9×3×5全量测量和M5/M2/资源/压力/APK验收。
 - 剩余项数：10个M6b工作包（syscall/readiness修复、新基线/UDP关闭、TCP A、缓存/租约候选评估、性能保护门、最终freeze/135窗口、M5/M2、资源/压力、APK、报告/清理）。169选项仍闭合；最终候选不得新增行为差异。
-- 阻塞点：不需用户决定；需修upstream deadline、TCP deadline/network_done日志回收、DHCP probe内部poll的readiness、TFTP pendingMAC和DHCP地址dump续步。它们是继续实施的工作，不是停下理由。
+- 阻塞点：不需用户决定；readiness七类缺口已修并实际Linux测试通过，真实镜像C fastretry/TCP/UBus/DHCP probe/TFTP/dump合同和fresh syscall/CPU基线待跑。它们是继续实施的工作，不是停下理由。
 - 活跃分工：root整合/Oracle独占窗口/证据/账本；m6b_1b_audit独立worktree修readiness语义缺口；m6b_measure独立修trace scope/errno计数；m6b_udp_dump独立去除关闭dump时的地址syscall；m6b_tcp_design分支保留方案A。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；Oracle正式窗口禁止并行build/test/fuzz。
 - 测量调整：用户2026-10-07取消中间候选135窗口，已跑1个有效C窗口与中止Rust窗口归档；中间改27一轮、已完成且全归档，本地state SHA bf6b75e3…，analysis27/27。完整135仅最终候选一次。首个误启用wake明细的中间R3窗口膨胀为result2.5GB/wake2GB，已作废，重复派生数组未完整归档，仅留原始SHA、结果摘要和sidecar；这是证据保全缺口，必须在报告明确，不当通过证据。后续不启用逐次明细，短pilot保留wake计数。所有后续失败必须先完整归档校验后清理。
 - 续接注意：E=`private/dnsmasq-rewrite/evidence/`；M6A和M5旧证据及用户docs/prompts原样。M5/M6a已退役任务在`worktree-retirement-20261007/m5-m6a/manifest.json`保全，active M6b保持；/private/tmp空m6b-cache-gate-1已移除，git worktree prune dry-run无失效记录。diag feature交付关闭、环境变量一致为DNSMASQ_M6B_WAKE_METRICS。
