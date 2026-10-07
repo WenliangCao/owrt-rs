@@ -3,6 +3,7 @@
 状态：工具和方案准备；**未访问 Oracle、未执行性能窗口、未给方案 A 授予资格**。
 本文件补充 [M6b 协议](../M6B_PROTOCOL.md) 和 [TCP 设计](../M6B_TCP_MEMORY_DESIGN.md)，不修改其数值阈值。
 工具为 [m6b_tcp_cpu_gate.py](../../../tools/dnsmasq/m6b_tcp_cpu_gate.py)，只有 `plan` 和 `analyze`，没有执行入口。
+独立执行适配器为 [m6b_tcp_cpu_run.py](../../../tools/dnsmasq/m6b_tcp_cpu_run.py)；本次只增加工具，未启动 Oracle 窗口。
 
 ## 被测身份和前置门
 
@@ -82,7 +83,7 @@ source freeze 采用共同工具的 `source_commit/source_root/source_files`。p
 ```sh
 python3 tools/dnsmasq/m6b_tcp_cpu_gate.py plan \
   --inputs private/tcp-a-cpu/inputs.json \
-  --output-root /home/ubuntu/…/private/tcp-a-cpu \
+  --output-root /home/ubuntu/…/private \
   --output private/tcp-a-cpu/plan.json
 ```
 
@@ -101,6 +102,27 @@ python3 tools/dnsmasq/m6b_tcp_cpu_gate.py analyze \
 
 输出包含全部窗口、六组 profile/phase 预算、A/C 与 A/R3_new 的原始五轮值/W/绝对和相对代价、逐组成功/错误计数、idle CPU、失败/全部尝试/missing jobs，以及 `qualified/unproven/failed/incomplete`。文件不覆盖旧实验。资格只描述 Oracle 构建机；不触碰物理路由器。
 
+## 串行执行适配器
+
+Root 必须先用现有 `m6a_suite.py prepare --m6b` 准备新的 **CPU 专用 common freeze**，其完整 tools map 要包含 gate、adapter、共享 suite/window 和 PID 清理工具的当前 SHA。旧 baseline `79…` 工具 manifest 不能运行新增适配器；不能临时修改旧冻结目录或跳过工具树核验。两份 R3_new/A 产品 ELF 可以复用已核验的冻结产物，不因准备新工具而改产品。
+
+计划 `output_root` 必须等于 `common.root/private`；执行器没有额外 root/controller/results 层级。初次运行只接受没有 windows/events 的 `prepared` common state，先原字节保存为 `common-state-before-cpu.json` 并记 SHA，再建立 plan-bound 45-window state。非空/另一计划的状态不能替换。适配器只接受一个 `--plan`，没有场景/组过滤、临时参数覆盖或选最快重跑入口。
+
+```sh
+sudo -n python3 "$COMMON/tools/dnsmasq/m6b_tcp_cpu_run.py" \
+  --plan "$COMMON/private/plan.json"
+```
+
+另在本地运行现有 `m6a_archive_watch.py --remote-root "$COMMON" --local-root "$LOCAL"`，拷贝核验完整 archive SHA/元数据后回传 proof。Root 同时把 plan.json 原字节/SHA 放到本地；watcher 本身不替代 plan 的身份。每个尝试包括失败和取消的尝试，都要先经过同一 pack → 本地全量验证 → prune/恢复后置门，才能进入下一窗口。watcher 无需修改。
+
+适配器持全程 `.cpu-controller.lock`，第二个控制器在读取/清理活跃 journal 前失败；pilot/formal 再持唯一共享 Cargo build lock。每次开始及前后检查 common、协议、整个工具树、两组 source/build/feature-off opt3 ELF、原生负载器和 A prerequisites 的完整 SHA。命令仍由冻结 schedule 生成；C、R3_new、A 各自写独立源码/ELF binding，不复用 common.source_commit 代表 A。
+
+`suite.execute` 只增加可选 process-observer；既有调用不变。观察器使用 `m5_final_validation.remember_job_processes/stop_job_processes` 的 PID/starttime 见证，记录 `pilot/formal.process-witness.json`，在 namespace/session 根退出后仍只清理已见证的自有代际，不碰 foreign sibling。原始 command/result sidecar 先恢复并独立验证：如果崩溃发生在完整有效 formal 之后、state 尚未记账，恢复原尝试并选它；完整真实失败仍是失败，不能误称方法无效后跑较快的 attempt-2。
+
+SIGINT/SIGTERM 在任何资产 IO 前明确安装，即使 nohup 继承 SIGINT_IGN 也覆盖。handler 只设置粘性的取消请求并写独立 `cancellation-request.json`；不会在 Popen 与 protected observer 绑定之间抛异常，也不会重入主 journal writer。保护区内完成进程见证后检查请求，执行器按既有清理退出；归档/验证期间的请求等待当前 gate 完成后停止。取消不再启动下一窗，重启同一取消状态也不会继续。取消和行为硬门使用既有 `partial-complete`，分别保存 `stop_reason=cancelled/behavior-budget`；控制器退出 130/143 或 1。这里 watcher 的完成仅表示归档完成，不表示性能资格通过。
+
+普通基线错误保留且不终止 A 的正确比较；A 的普通错误/FD 泄漏以及所有组真正强杀/异常退出立即在本尝试归档后停止。方法无效尝试停止控制器，保留证据后才允许环境修正后的 fresh attempt。CPU/p95/吞吐五轮预算仍由本地离线 analyzer 计算，不在远端拼接结果或提前宣布 A 合格。
+
 ## 离线验证
 
-16 项 CPU 门测试和共同 analyze/window/suite 回归 **49/49 通过**；独立只读复核无阻塞缺陷。覆盖 5% 边界、严格低于 C、cgroup 单次计量、A/Rs 误标、feature-on/s 错用、缺少前置门/窗口、污染后清理、真正强杀、错误答案、基线 pilot/receipt 错误、FD/child-only 排空、实际交错顺序、generator-limited、部分质量字段和选较快重跑等负控。全部为离线工具验证，不代表 A 性能预算已通过。
+16 项 CPU 门、12 项执行适配器模拟和共同 analyze/window/suite 回归 **61/61 通过**。覆盖 5% 边界、严格低于 C、cgroup 单次计量、A/Rs 误标、feature-on/s 错用、缺少前置门/窗口、污染后清理、真正强杀、错误答案、基线 pilot/receipt 错误、FD/child-only 排空、实际交错顺序、generator-limited、部分质量字段和选较快重跑等负控；适配器另覆盖完整 45 窗口次序、先归档后下一窗、第二控制器互斥、崩溃后完整结果/硬失败恢复、Popen 取消间隙、继承 SIGINT_IGN、活跃/归档取消、取消状态不续跑及旧 manifest 拒绝。最初只读审查发现的四个恢复/取消缺口已按这些负控修正；终版适配器没有执行 Oracle 资格，不把模拟或旧工具复核当作实机通过。
