@@ -5,6 +5,9 @@
 //! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
+#[cfg(feature = "m6b-diagnostics")]
+mod old_loop_diagnostics;
+
 use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
@@ -1793,6 +1796,8 @@ fn run_inner(
         }
         poll.wait_for_files()?;
     }
+    #[cfg(feature = "m6b-diagnostics")]
+    poll.diagnostics.borrow_mut().write()?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(neighbors) = &mut poll.neighbors {
         neighbors.discard_script_changes();
@@ -2023,6 +2028,8 @@ fn domain_interface_snapshot(
 /// Shared callback state uses Rc/RefCell. Borrows end before socket waits;
 /// DHCP probe callbacks use try_borrow_mut when the provider is already active.
 struct SinglePoll {
+    #[cfg(feature = "m6b-diagnostics")]
+    diagnostics: RefCell<old_loop_diagnostics::Counters>,
     query_logging: dnsmasq_rs::config::logging::QueryLogging,
     listeners: Vec<PollListener>,
     clients: Vec<PollTcpClient>,
@@ -2581,6 +2588,8 @@ impl SinglePoll {
         >,
     ) -> Self {
         Self {
+            #[cfg(feature = "m6b-diagnostics")]
+            diagnostics: RefCell::new(old_loop_diagnostics::Counters::new()),
             query_logging: Default::default(),
             listeners: listeners
                 .into_iter()
@@ -3197,7 +3206,25 @@ impl SinglePoll {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 runnable |= provider.borrow_mut().files_runnable();
             }
-            owrt_ubus::sys::poll_fds(&mut fds, if runnable { 0 } else { 2 })?;
+            #[cfg(feature = "m6b-diagnostics")]
+            let diagnostic_started = Instant::now();
+            let ready = owrt_ubus::sys::poll_fds(&mut fds, if runnable { 0 } else { 2 })?;
+            #[cfg(feature = "m6b-diagnostics")]
+            let diagnostic_elapsed = diagnostic_started.elapsed();
+            #[cfg(feature = "m6b-diagnostics")]
+            {
+                use std::os::fd::AsRawFd;
+                let udp_fds = self.listeners.iter().filter_map(|listener| listener.udp.as_ref())
+                    .filter(|socket| fds.iter().any(|fd| fd.fd == socket.as_raw_fd())).count();
+                let tcp_fds = self.listeners.iter().filter_map(|listener| listener.tcp.as_ref())
+                    .filter(|socket| fds.iter().any(|fd| fd.fd == socket.as_raw_fd())).count();
+                let mut counters = self.diagnostics.borrow_mut();
+                counters.wait_files(if runnable { 0 } else { 2 }, ready,
+                    diagnostic_elapsed, fds.len(), udp_fds, tcp_fds);
+                counters.maybe_write()?;
+            }
+            #[cfg(not(feature = "m6b-diagnostics"))]
+            let _ = ready;
         }
         #[cfg(not(target_os = "linux"))]
         thread::park_timeout(Duration::from_millis(2));
@@ -3239,6 +3266,8 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        #[cfg(feature = "m6b-diagnostics")]
+        self.diagnostics.borrow_mut().loop_start();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(dhcp) = &mut self.dhcp {
             dhcp.listener.retry_device_binding();
@@ -3297,6 +3326,8 @@ impl SinglePoll {
         self.step_tftp();
         #[cfg(target_os = "linux")]
         self.log_dns_diagnostics();
+        #[cfg(feature = "m6b-diagnostics")]
+        self.diagnostics.borrow_mut().loop_finish();
     }
 
     #[cfg(target_os = "linux")]
@@ -3468,6 +3499,8 @@ impl SinglePoll {
     }
 
     fn step_udp(&mut self, index: usize) {
+        #[cfg(feature = "m6b-diagnostics")]
+        { self.diagnostics.borrow_mut().listener(index).step_udp_calls += 1; }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if self.interface_work_pending() {
             return;
@@ -3480,7 +3513,27 @@ impl SinglePoll {
         };
         let token = self.listeners[index].token;
         let mut query = vec![0; 65_535];
-        let incoming = match udp.receive(&mut query) {
+        #[cfg(feature = "m6b-diagnostics")]
+        {
+            let mut counters = self.diagnostics.borrow_mut();
+            let listener = counters.listener(index);
+            listener.alloc_count += 1;
+            listener.alloc_bytes += query.len() as u64;
+            listener.receive_attempts += 1;
+        }
+        let receive_result = udp.receive(&mut query);
+        #[cfg(feature = "m6b-diagnostics")]
+        {
+            let mut counters = self.diagnostics.borrow_mut();
+            match &receive_result {
+                Ok(Some(packet)) => counters.packet(index, packet.len),
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock =>
+                    counters.listener(index).would_block += 1,
+                Err(_) => counters.listener(index).receive_errors += 1,
+                Ok(None) => counters.listener(index).empty_receives += 1,
+            }
+        }
+        let incoming = match receive_result {
             Ok(Some(incoming)) if incoming.len <= usize::from(self.edns_max) => incoming,
             Ok(_) => {
                 self.poll_udp_completions();
@@ -4373,7 +4426,11 @@ impl SinglePoll {
             .as_nanos()
             .div_ceil(1_000_000)
             .min(i32::MAX as u128) as i32;
+        #[cfg(feature = "m6b-diagnostics")]
+        let diagnostic_started = Instant::now();
         let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
+        #[cfg(feature = "m6b-diagnostics")]
+        self.diagnostics.borrow_mut().probe_wait(diagnostic_started.elapsed());
         self.step_interface_collector();
         // C's delay_dhcp does not consume inotify/route events. They remain
         // queued until the outer owner can apply all reload effects together.
@@ -4906,7 +4963,11 @@ impl SinglePoll {
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
         }
+        #[cfg(feature = "m6b-diagnostics")]
+        let diagnostic_started = Instant::now();
         self.arp_awake |= owrt_ubus::sys::poll_fds(&mut fds, 0).is_ok_and(|ready| ready != 0);
+        #[cfg(feature = "m6b-diagnostics")]
+        self.diagnostics.borrow_mut().arp_wait(diagnostic_started.elapsed());
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
