@@ -46,3 +46,19 @@
 下一步先完成完整readiness/runnable/timer合同，精确C功能/生命周期回归，再重测syscall和不插桩CPU。方案A以此后新freeze的R3/C作为对照，原M6a约20µs不再作为当前门槛。
 
 原始证据：`private/dnsmasq-rewrite/evidence/M6B/oneb-baseline-d52d5cac`、`syscall-1b2-d52d5cac`、`syscall-1b2-211ab618`、`syscall-1b2b-12cbadce`；机械汇总`syscall-first-pass-analysis.json` SHA `53950eb692a1bbdeaf3bd85bb057214ee0f01af93cde67d405fc9d2e54756605`。失败、scope限制和后续结果在最终M6B报告一并保留。
+
+## 完整就绪分派的fresh诊断
+
+6f3bed3d feature-off opt3在独立诊断freeze中完成27/27，manifest `009c5f1c…`，分析SHA `64fa89b42e5b9dec45e3cf15b2925166c0dff4225c8d92dc08b6deddc9085c55`。原始strace保留errno和unfinished/resumed；scope为预热、负载、稳定排空，分母为两段correct总数。formal=0，不能据此报告未插桩CPU收益。
+
+| calls/正确请求 | C | R3 | R3 EAGAIN/正确请求 |
+| --- | ---: | ---: | ---: |
+| UDP hit | 3.000 | 2.214 | 0.082 |
+| TCP local | 3.519 | 2.372 | 0 |
+| TCP cache | 3.518 | 2.401 | 0 |
+| reload | 3.559 | 5.036 | 1.019 |
+| DHCP cycle | 81.176 | 317.012 | 0 |
+
+TCP已消除扫描未就绪socket的EAGAIN。reload剩余主要是UDP fd6每个有界batch末尾探空，另有少量TFTP探空；不能当作继续扫描全部fd。DHCP额外实际ioctl/接口枚举还需独立归因。C TCP miss诊断57次普通timeout，fault三组各60预期timeout均保留。
+
+精确镜像C服务门service-01发现真实续步缺陷：30普通TFTP中完成脚本少第二回调和最终ACK超时回调，普通wire、5reference及6安全syntax均正常，整族仍失败。原因是TFTP在helper step之后生成逻辑completion，最终transfer释放后既无网络fd事件、也无helper pending writer；统一deadline等待未将该队列标为runnable，可能睡1h。修复和fresh回归后才允许冻结新性能基线。失败全证据归档 `E/M6B/full-archives/service-6f-01/`（archive SHA e0832546…）。

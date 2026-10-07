@@ -2,13 +2,13 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6b 第1b就绪分派修复的Linux单元门已完成，进入真实服务和性能复测；UDP-only 27/27一轮窗口已归档校验。TCP方案A仍在独立 `m6b/tcp-scheme-a` 分支，未通过服务/资源/压力/CPU门，未合入 main。物理路由器未碰。
-- 刚关闭：d52d5cac 第1b UBus/metrics gating、PollFd backing复用与logger pending gate只带来小收益：steady TCP local 45.679µs（C27.434）、UDP hit23.639µs（原24.533）、reload48.261µs（原51.022）；归档E/M6B/oneb-baseline-d52d5cac。`strace -f -c`已确认非就绪socket错误调用很大：TCP recvfrom270,231/438,379、reload recvmsg68,742/85,913、DHCP accept4全部89,760失败；scope包括warmup及drain，不能以15s正确数作为精确每请求分母。新trace scope工具待独立分支修正。
-- 当前代码：main产品6f3bed3d（完整socket/timer续步、dump关闭地址gate、按具体signal/route/inotify fd读取），feature-off opt3 SHA5fe806fef0c07714f9674a7d768f4f57aab4ab6ad57a1f323177a51e429d97a7、1,941,544B；s SHA8ca7071cd01b5ed7914caa1d56288d3f82aba39c3653950b7ca7de3d988a1fb5、1,626,152B。Oracle709库/18main测试实际通过。新diag-6f3bed3d fresh manifest009c5f1c…在独占Oracle跑27短诊断窗口；最终formal与诊断严格分离。旧缺口候选仅保留失败证据。
-- 下一步：先修精确fd/revents分派和全部内部runnable/timer路径，UDP dump关闭时不调用getsockname；复测syscall/EAGAIN和不插桩CPU、UDP/TCP/DHCP/TFTP/reload语义及生命周期。再冻结不含A的新R3基线，用同配置C和新R3评估A增量（u_A≤1.05×u_R3_new，保持相对同窗C优势；旧M6a20µs不能作门槛）。方案A依primitive→service→resource/lifecycle→pressure→CPU门通过后才合main；最终仅一次9×3×5全量测量和M5/M2/资源/压力/APK验收。
+- 当前里程碑：M6b 第1b完整fd就绪分派候选6f3bed3d进入精确镜像C服务回归；27/27 syscall诊断完成并全归档。TCP方案A仍在独立 `m6b/tcp-a-ready` 分支，未通过服务/资源/压力/CPU门，未合入 main。物理路由器未碰。
+- 刚关闭：新trace scope工具与受控detach/50s fault诊断已实际执行；diag-6f3bed3d 27/27有效诊断（formal=0），syscall-analysis SHA64fa89b4…，scope为warmup+load+稳定排空，分母包含两段correct。C/R3 calls/正确请求：UDP hit3.000/2.214、TCP local3.519/2.372、TCP cache3.518/2.401、reload3.559/5.036、DHCP81.176/317.012；两TCP场景Rust EAGAIN为0，reload剩余主要是有界UDP batch末尾探空，DHCP额外ioctl/接口枚举待归因。未插桩CPU尚未跑，诊断不作性能资格。
+- 当前代码：main产品6f3bed3d（socket/timer续步、dump关闭地址gate、具体signal/route/inotify fd读取），feature-off opt3 SHA5fe806fef0c07714f9674a7d768f4f57aab4ab6ad57a1f323177a51e429d97a7、1,941,544B；s SHA8ca7071cd01b5ed7914caa1d56288d3f82aba39c3653950b7ca7de3d988a1fb5、1,626,152B。Oracle709库/18main测试实际通过。服务门service-01中option_matrix_next通过；TFTP30普通/5reference/6syntax实际执行但未通过，不能称闭合。
+- 下一步：先修TFTP完成事件留在listener队列时未使helper runnable的续步缺口（最后transfer释放后可能睡1h），保留service-01失败完整归档并fresh重跑。完成同ELF服务门后跑不插桩新CPU/UDP/TCP/DHCP/idle基线。方案A依primitive→真实service→resource/lifecycle→pressure→CPU门通过后才合main；A相对新R3不得劣化>5%且低于同窗C，不能沿用M6a20µs或重复累计C child CPU。最终仅一次9×3×5全量与M5/M2/资源/压力/APK验收。
 - 剩余项数：10个M6b工作包（syscall/readiness修复、新基线/UDP关闭、TCP A、缓存/租约候选评估、性能保护门、最终freeze/135窗口、M5/M2、资源/压力、APK、报告/清理）。169选项仍闭合；最终候选不得新增行为差异。
-- 阻塞点：不需用户决定；socket和文件readiness门已过Linux测试，真实镜像C服务门和fresh syscall/CPU基线待跑。短fault pilot因C/Rust40s lazy forward reclamation在结束时保留pending FD而失败；原短失败完整归档，ae894517将fault pilot/diag recovery负载延到50s（formal120s不改），不修改产品的C合同。它们是继续实施的工作，不是停下理由。
-- 活跃分工：root整合/Oracle独占诊断/服务门/性能窗口/账本；m6b_measure独立准备M6b最终功能验收工具模式（不伪造fuzz资格）；m6b_tcp_design独立基于新readiness基线重建A分支并补实际布局/原语证据。m6b_1b_audit与m6b_udp_dump已交付。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；Oracle正式窗口禁止并行build/test/fuzz。
+- 阻塞点：不需用户决定；TFTP completion-script-once Rust少第二IPv6回调、final-ack-timeout-script-once Rust无回调，wire及5条reference均通过；正在修helper逻辑队列唤醒。它们是继续实施的工作，不是停下理由。诊断C TCP miss57普通timeout、fault各组60预期timeout均保留，不称全部回答零错误。
+- 活跃分工：root整合/Oracle独占服务门/性能窗口/账本；m6b_measure独立性能保护门工具；m6b_tcp_design独立A compact Slot16B（4096 snapshot65KiB/3alloc）布局/原语与真实服务补门；m6b_helper_audit独立helper续步审计/补丁。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；Oracle正式窗口禁止并行build/test/fuzz。
 - 测量调整：用户2026-10-07取消中间候选135窗口，已跑1个有效C窗口与中止Rust窗口归档；中间改27一轮、已完成且全归档，本地state SHA bf6b75e3…，analysis27/27。完整135仅最终候选一次。首个误启用wake明细的中间R3窗口膨胀为result2.5GB/wake2GB，已作废，重复派生数组未完整归档，仅留原始SHA、结果摘要和sidecar；这是证据保全缺口，必须在报告明确，不当通过证据。后续不启用逐次明细，短pilot保留wake计数。所有后续失败必须先完整归档校验后清理。
 - 续接注意：E=`private/dnsmasq-rewrite/evidence/`；M6A和M5旧证据及用户docs/prompts原样。M5/M6a已退役任务在`worktree-retirement-20261007/m5-m6a/manifest.json`保全；14个archive tags已核对（同目录archive-tags.json），active M6b保持；/private/tmp空m6b-cache-gate-1已移除，git worktree prune dry-run无失效记录。diag feature交付关闭、环境变量一致为DNSMASQ_M6B_WAKE_METRICS。
 
