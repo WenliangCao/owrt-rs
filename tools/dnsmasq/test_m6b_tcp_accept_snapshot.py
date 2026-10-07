@@ -25,6 +25,72 @@ def row(mode):
 
 
 class AcceptSnapshotGuard(unittest.TestCase):
+    def test_child_eviction_parent_counter_is_counted_once(self):
+        value = row('learn')
+        value['case'] = 'm6b-child-eviction-parent-counters'
+        labels = ['seed-before-accept', 'accept-before-first-query', 'child-first-query',
+                  'parent-pipe-barrier', 'parent-after-child', 'child-private-repeat', 'next-view']
+        value['observations'] = []
+        for n, label in enumerate(labels):
+            observation = {'label': label, 'sent_monotonic_ns': 100 + n * 10, 'completed_monotonic_ns': 101 + n * 10,
+                           'metrics': {'tcp_connections': 1, 'dns_cache_inserted': 1 if n == 0 else 2,
+                                       'dns_cache_live_freed': 0 if n == 0 else 1, 'dns_queries_forwarded': 1}}
+            if label != 'accept-before-first-query':
+                address = '198.51.100.7' if n == 0 else '198.51.100.99' if 'barrier' in label else '198.51.100.8'
+                observation['reply'] = {'records': [{'section': 'answer', 'type': 1, 'data': address}]}
+            value['observations'].append(observation)
+        self.assertTrue(gate.valid_row(value, gate.driver.STOCK_SHA256))
+        for key, wrong in [('dns_cache_inserted', 3), ('dns_cache_live_freed', 2), ('dns_queries_forwarded', 2)]:
+            bad = copy.deepcopy(value)
+            bad['observations'][3]['metrics'][key] = wrong
+            self.assertFalse(gate.valid_row(bad, gate.driver.STOCK_SHA256))
+
+    def test_later_connection_completes_before_held_earlier_connection(self):
+        value = row('learn')
+        value['case'] = 'm6b-cross-connection-progress'
+        labels = ['accept-before-first-query', 'second-completes-first', 'parent-pipe-barrier-b', 'parent-sees-second',
+                  'first-completes-later', 'parent-pipe-barrier-a', 'parent-sees-first', 'first-private-repeat', 'second-private-repeat']
+        value['upstream'] = [{'transport': 'tcp'}, {'transport': 'tcp'}]
+        value['observations'] = []
+        for n, label in enumerate(labels):
+            before, after = (100, 101) if n == 0 else (150, 231) if n == 4 else (190 + n * 10, 191 + n * 10)
+            observation = {'label': label, 'sent_monotonic_ns': before, 'completed_monotonic_ns': after,
+                           'metrics': {'tcp_connections': 1 if n == 0 else 2,
+                                       'dns_cache_inserted': 1 if n < 5 else 2, 'dns_cache_live_freed': 0}}
+            if n:
+                address = '198.51.100.99' if 'barrier' in label else '198.51.100.22' if label in ['second-completes-first', 'parent-sees-second', 'second-private-repeat'] else '198.51.100.21'
+                observation['reply'] = {'records': [{'section': 'answer', 'type': 1, 'data': address}]}
+            value['observations'].append(observation)
+        self.assertTrue(gate.valid_row(value, gate.driver.STOCK_SHA256))
+        bad = copy.deepcopy(value)
+        bad['observations'][1]['completed_monotonic_ns'] = 240
+        self.assertFalse(gate.valid_row(bad, gate.driver.STOCK_SHA256), 'global accept ordering stalls second')
+
+    def test_failed_parent_prefix_requires_removal_without_commit_and_child_privacy(self):
+        target = 'target.failed-prefix.cache.test'
+        answers = [None, [(1, '198.51.100.9')], [(1, '198.51.100.7')],
+                   [(5, target), (1, '198.51.100.8')], [(1, '198.51.100.99')],
+                   [(1, '198.51.100.9')], [(1, '198.51.100.10')], [(5, target), (1, '198.51.100.8')]]
+        labels = ['accept-before-first-query', 'parent-local-after-hup', 'parent-mutation', 'child-first-query',
+                  'parent-pipe-barrier', 'parent-local-preserved', 'parent-removed-prefix-misses', 'child-private-repeat']
+        value = {'case': 'm6b-parent-import-failed-prefix', 'identity': {'sha256': gate.driver.STOCK_SHA256},
+                 'exit': 0, 'upstream_errors': [], 'upstream': [{'transport': t} for t in ['udp', 'tcp', 'udp']],
+                 'observations': [{'label': label, 'sent_monotonic_ns': 100 + n * 10,
+                                   'completed_monotonic_ns': 101 + n * 10,
+                                   'metrics': {'tcp_connections': 1, 'dns_cache_inserted': 2 if n >= 6 else 1,
+                                               'dns_cache_live_freed': 0},
+                                   **({'reply': {'records': [{'section': 'answer', 'type': t, 'data': d}
+                                                            for t, d in answers[n]]}} if answers[n] else {})}
+                                  for n, label in enumerate(labels)]}
+        self.assertTrue(gate.valid_row(value, gate.driver.STOCK_SHA256))
+        for index, field, wrong in [(4, 'dns_cache_inserted', 2), (6, 'dns_cache_inserted', 1), (4, 'dns_cache_live_freed', 1)]:
+            bad = copy.deepcopy(value)
+            bad['observations'][index]['metrics'][field] = wrong
+            self.assertFalse(gate.valid_row(bad, gate.driver.STOCK_SHA256))
+        bad = copy.deepcopy(value)
+        bad['observations'][6]['reply']['records'][0]['data'] = '198.51.100.7'
+        self.assertFalse(gate.valid_row(bad, gate.driver.STOCK_SHA256), 'rollback wrongly preserved old target')
+
     def test_accept_and_upstream_witnesses_are_required_for_both_modes(self):
         for mode in ['learn', 'replace']:
             with self.subTest(mode=mode):
