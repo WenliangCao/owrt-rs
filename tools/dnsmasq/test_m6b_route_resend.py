@@ -257,7 +257,7 @@ def clear_fixture(folder, spec, unwanted_resend=False):
         (folder / 'action-hosts').write_text(action['hosts_after'])
         (folder / 'action-before.daemon.log').write_text('read /m2/caller.hosts - 1 names\n')
         (folder / 'action-after.daemon.log').write_text('read /m2/caller.hosts - 1 names\nread /m2/caller.hosts - 2 names\n')
-    if spec['action'] in ['bound-tcp', 'debug-tcp']:
+    if spec['action'] == 'bound-tcp':
         snapshots = []
         for index in range(3):
             value = {'tcp_connections': 0, 'dns_queries_forwarded': 1}
@@ -267,8 +267,34 @@ def clear_fixture(folder, spec, unwanted_resend=False):
     config = (f'port=53000\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={gate.driver.LISTEN}\n'
         'server=127.0.0.2#50000\ncache-size=0\nno-0x20-encode\n'
         'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
-        'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n' + spec['config'] + '\nenable-ubus=cache-metrics\n')
+        'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n' + spec['config'] + '\n'
+        + ('enable-ubus=cache-metrics\n' if spec['metrics'] else ''))
     (folder / 'config').write_text(config)
+    if spec['action'] == 'debug-tcp':
+        for label in ['before', 'after']:
+            (folder / (label + '.metrics.stdout')).unlink()
+            witness.pop(label + '_metrics')
+        for label, raw in [('before', b'startup\n'), ('after', b'startup\ndnsmasq[24]: forwarded route.resend.test to 127.0.0.2#50000\n')]:
+            (folder / (label + '.forward.log')).write_bytes(raw)
+            value = {'forward_actions': len(gate.forwarded_messages(raw)), 'messages': gate.forwarded_messages(raw)}
+            gate.save_json(folder / (label + '.forward.json'), value); witness[label + '_forward_log'] = value
+        held = dict(witness['idle_fds'], **{'4': 'socket:[1001]'})
+        action.update(held_fds=held, server_eof=True, shutdown_write_monotonic_ns=2_150_000_000, eof_monotonic_ns=2_180_000_000)
+        gate.save_json(folder / 'action-held-before.fds.json', [
+            {'monotonic_ns': 2_010_000_000 + index * 20_000_000, 'fds': held} for index in range(3)])
+        raw_tcp = ('sl local_address rem_address st queues timers retr uid timeout inode\n'
+            '0: 010200C0:CF08 110200C0:CB21 01 00000000:00000000 00:00000000 00000000 0 0 4242\n')
+        fds = dict(held, **{'5': 'socket:[4242]'})
+        live = {'monotonic_ns': 2_140_000_000, 'fds': fds, 'raw_tcp': raw_tcp,
+                'rows': gate.tcp_rows(raw_tcp, fds, action['client_source'], action['destination'])}
+        gate.save_json(folder / 'action-debug-tcp-live.json', live)
+        gate.save_json(folder / 'action-debug-tcp-live-samples.json', [
+            dict(live, monotonic_ns=2_100_000_000 + index * 20_000_000) for index in range(3)])
+        gate.save_json(folder / 'action-debug-tcp-samples.json', [
+            {'monotonic_ns': 2_200_000_000 + index * 20_000_000, 'fds': held,
+             'raw_tcp': 'sl local_address rem_address st queues timers retr uid timeout inode\n', 'rows': []}
+            for index in range(3)])
+        (folder / 'action-tcp-eof').write_bytes(b'')
     witness['action'] = action
     gate.save_json(folder / 'action-witness.json', action); gate.save_json(folder / 'caller-witness.json', witness)
     return witness, row
@@ -287,6 +313,61 @@ class RouteClearTests(unittest.TestCase):
                 self.assertEqual(result['upstream_packets'], spec['expected_upstream_packets'])
                 with self.assertRaisesRegex(ValueError, 'unfrozen'):
                     gate.validate_case(folder, row, 'x' * 64)
+
+    def test_only_debug_disables_ubus_and_keeps_frozen_real_counter_guards(self):
+        debug = next(spec for spec in gate.CLEAR_CASES if spec['action'] == 'debug-tcp')
+        self.assertFalse(debug['metrics']); self.assertEqual(debug['config'], 'log-queries')
+        self.assertTrue(all(spec['metrics'] for spec in gate.CLEAR_CASES if spec is not debug))
+        self.assertTrue(all(spec['metrics'] for spec in gate.CASES))
+        self.assertEqual(gate.PLAN['expected_forward_actions'], 1)
+        self.assertEqual(gate.CLEAR_PLAN['debug_tcp_observation']['expected_forward_actions'], 1)
+
+    def test_debug_log_and_socket_eof_negatives_cannot_bypass_counters_or_fd_recovery(self):
+        spec = next(row for row in gate.CLEAR_CASES if row['action'] == 'debug-tcp')
+        for kind in ['reenable-ubus', 'no-log-queries', 'extra-forward', 'wrong-upstream', 'fake-log-count',
+                     'not-append-only', 'eof-extra', 'no-eof', 'wrong-live-tuple', 'fake-live-state',
+                     'live-fd-swap', 'live-no-spacing', 'closed-fd-leak', 'closed-no-spacing',
+                     'early-eof', 'fake-debug-metrics', 'idle-fd-swap']:
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as name:
+                folder = Path(name); witness, row = clear_fixture(folder, spec)
+                action = witness['action']
+                if kind in ['reenable-ubus', 'no-log-queries']:
+                    path = folder / 'config'
+                    path.write_text(path.read_text() + 'enable-ubus=cache-metrics\n' if kind == 'reenable-ubus'
+                                    else path.read_text().replace('log-queries\n', ''))
+                elif kind in ['extra-forward', 'wrong-upstream', 'not-append-only']:
+                    path = folder / 'after.forward.log'; data = path.read_bytes()
+                    if kind == 'extra-forward': data += b'dnsmasq[24]: forwarded route.resend.test to 127.0.0.2#50000\n'
+                    elif kind == 'wrong-upstream': data = data.replace(b'#50000', b'#50001')
+                    else: data = data.replace(b'startup\n', b'different start\n')
+                    path.write_bytes(data)
+                elif kind == 'fake-log-count': witness['after_forward_log']['forward_actions'] = 0
+                elif kind == 'eof-extra': (folder / 'action-tcp-eof').write_bytes(b'x')
+                elif kind == 'no-eof': action['server_eof'] = False
+                elif kind == 'early-eof': action['eof_monotonic_ns'] = action['shutdown_write_monotonic_ns'] - 1
+                elif kind == 'fake-debug-metrics': gate.save_json(folder / 'after.metrics.stdout', {'tcp_connections': 0, 'dns_queries_forwarded': 1})
+                elif kind == 'idle-fd-swap':
+                    samples = json.loads((folder / 'after.fds.json').read_text())
+                    for item in samples: item['fds']['3'] = 'socket:[9999]'
+                    gate.save_json(folder / 'after.fds.json', samples)
+                elif kind.startswith('live') or kind in ['wrong-live-tuple', 'fake-live-state']:
+                    live = json.loads((folder / 'action-debug-tcp-live.json').read_text())
+                    samples = json.loads((folder / 'action-debug-tcp-live-samples.json').read_text())
+                    if kind == 'wrong-live-tuple': live['raw_tcp'] = live['raw_tcp'].replace('110200C0:CB21', '110200C0:CB22')
+                    elif kind == 'fake-live-state': live['rows'][0]['state'] = 6
+                    elif kind == 'live-fd-swap': live['fds']['3'] = 'socket:[9999]'
+                    else:
+                        for item in samples: item['monotonic_ns'] = live['monotonic_ns']
+                    gate.save_json(folder / 'action-debug-tcp-live.json', live)
+                    gate.save_json(folder / 'action-debug-tcp-live-samples.json', samples)
+                else:
+                    samples = json.loads((folder / 'action-debug-tcp-samples.json').read_text())
+                    for item in samples:
+                        if kind == 'closed-fd-leak': item['fds']['5'] = 'socket:[4242]'
+                        else: item['monotonic_ns'] = samples[0]['monotonic_ns']
+                    gate.save_json(folder / 'action-debug-tcp-samples.json', samples)
+                gate.save_json(folder / 'action-witness.json', action); gate.save_json(folder / 'caller-witness.json', witness)
+                with self.assertRaises(ValueError): gate.validate_clear_case(folder, row, 'x' * 64)
 
     def test_unwanted_resend_is_defect_not_false_clear_pass(self):
         for spec in gate.CLEAR_CASES:
