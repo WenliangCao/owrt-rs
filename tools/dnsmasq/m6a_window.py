@@ -905,10 +905,11 @@ def run_window(args):
                 "rate": args.rate, "clients": args.clients, "kernel": os.uname().release,
                 "idle_cpu_seconds": args.idle_seconds,
                 "drain_sample_seconds": args.drain_sample_seconds,
-                "wake_metrics": args.wake_metrics}
+                "wake_metrics": args.wake_metrics, "perf_record": args.perf_record}
     save(args.output / "identity.json", identity)
     daemon = upstream = None
     daemon_log = upstream_log = None
+    perf_process = perf_log = None
     result = {"accepted": False, "identity": identity}
     try:
         root = prepare(args.image_root, None, args.output / "filesystem", args.rust)
@@ -978,6 +979,13 @@ def run_window(args):
             fill_and_prove(args.output, args.cache_names, False, upstream.pid, daemon.pid, mixed=True)
         elif args.scenario == "reload":
             fill_and_prove(args.output, args.cache_names, False, upstream.pid, daemon.pid)
+        if args.perf_record:
+            perf_command = ["perf", "record", "-F", "997", "--call-graph", "dwarf",
+                            "-p", str(daemon.pid), "-o", str(args.output / "perf.data")]
+            save(args.output / "perf-command.json", perf_command)
+            perf_log = (args.output / "perf.log").open("wb")
+            perf_process = subprocess.Popen(perf_command, stdout=perf_log, stderr=perf_log)
+            time.sleep(0.2)
         result["measurement"] = run_load(args, daemon, root, upstream)
         result["accepted"] = all(result["measurement"]["quality"].values())
         counters = result["measurement"]["load"]["measurement"]
@@ -1002,6 +1010,17 @@ def run_window(args):
     except Exception as error:
         result["error"] = {"type": type(error).__name__, "message": str(error)}
     finally:
+        if perf_process is not None:
+            try:
+                if perf_process.poll() is None:
+                    perf_process.send_signal(signal.SIGINT)
+                    perf_process.wait(10)
+                result["perf_record"] = {"returncode": perf_process.returncode,
+                                         "path": str(args.output / "perf.data")}
+            except Exception as error:
+                result["perf_record_error"] = repr(error)
+        if perf_log is not None:
+            perf_log.close()
         if daemon is not None:
             try:
                 result["cpu_before_termination"] = cgroup_cpu()
@@ -1101,6 +1120,8 @@ def main():
     parser.add_argument("--drain-sample-seconds", default="0,1,5,60")
     parser.add_argument("--wake-metrics", action="store_true",
                         help="require/read DNSMASQ_M6B_WAKE_METRICS sidecar telemetry")
+    parser.add_argument("--perf-record", action="store_true",
+                        help="diagnostic only: record daemon perf samples during run_load")
     args = parser.parse_args()
     args.drain_sample_seconds = parse_drain_sample_seconds(args.drain_sample_seconds)
     if args.tftp_worker:
