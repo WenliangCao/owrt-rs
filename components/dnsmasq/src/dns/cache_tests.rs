@@ -1,6 +1,68 @@
 use super::*;
 
 #[test]
+fn tcp_retained_view_keeps_negative_reverse_lease_and_rotation_private() {
+    let mut parent = Cache::new(16, Policy::default());
+    parent.start_insert();
+    let negative = parent.insert(Record {
+        name: Name::from_ascii("negative.snapshot.test").unwrap(),
+        kind: Kind::NxDomain, negative: true, data: Vec::new(),
+    }, 100, 60).unwrap();
+    parent.set_negative_authority(negative, Name::from_ascii("old.authority.test").unwrap());
+    parent.insert(Record {
+        name: Name::from_ascii("reverse.snapshot.test").unwrap(),
+        kind: Kind::ReverseIpv4, negative: false, data: vec![192, 0, 2, 17],
+    }, 100, 60).unwrap();
+    let alias = parent.insert(record("lease-alias.snapshot.test", Kind::Cname, 0), 100, 60).unwrap();
+    let lease = parent.local_target(Name::from_ascii("lease.snapshot.test").unwrap(), true);
+    assert!(parent.set_local_cname_target(alias, lease));
+    parent.insert(record("rrset.snapshot.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    parent.insert(record("rrset.snapshot.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    assert!(parent.commit());
+    let name = Name::from_ascii("rrset.snapshot.test").unwrap();
+    let before_order = parent.names_for(&name.canonical_wire()).unwrap().clone();
+    let mut child = parent.snapshot();
+
+    assert!(child.set_negative_authority(negative, Name::from_ascii("new.authority.test").unwrap()));
+    assert_eq!(parent.get(negative).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("old.authority.test").unwrap());
+    assert_eq!(child.get(negative).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("new.authority.test").unwrap());
+    child.lookup(&name, &[Kind::Ipv4], 100, true);
+    assert_eq!(parent.names_for(&name.canonical_wire()).unwrap(), &before_order);
+    assert_ne!(child.names_for(&name.canonical_wire()).unwrap(), &before_order);
+    assert!(child.lookup_reverse("192.0.2.17".parse().unwrap(), 160).is_empty());
+    assert_eq!(parent.lookup_reverse("192.0.2.17".parse().unwrap(), 100).len(), 1);
+    child.first_lease_entry();
+    assert!(lookup(&mut child, "lease-alias.snapshot.test", Kind::Cname, 100).is_empty());
+    assert_eq!(parent.lookup(&Name::from_ascii("lease-alias.snapshot.test").unwrap(), &[Kind::Cname], 100, false).len(), 1);
+    child.clear();
+    assert!(child.get(negative).is_none());
+    assert!(parent.get(negative).is_some());
+    check_ownership(&parent);
+    check_ownership(&child);
+}
+
+#[test]
+fn tcp_snapshot_clear_is_private_at_zero_small_and_large_capacity() {
+    for capacity in [0, 1, 150, 4096] {
+        let mut parent = Cache::new(capacity, Policy::default());
+        parent.start_insert();
+        let inserted = parent.insert(record("capacity.snapshot.test", Kind::Ipv4, 7), 100, 60);
+        if capacity == 0 {
+            assert_eq!(inserted, Err(InsertError::Full));
+        } else {
+            assert!(inserted.is_ok());
+            assert!(parent.commit());
+        }
+        let mut child = parent.snapshot();
+        child.clear();
+        assert_eq!(lookup(&mut parent, "capacity.snapshot.test", Kind::Ipv4, 100), if capacity == 0 { Vec::new() } else { vec![7] });
+        assert!(lookup(&mut child, "capacity.snapshot.test", Kind::Ipv4, 100).is_empty());
+        check_ownership(&parent);
+        check_ownership(&child);
+    }
+}
+
+#[test]
 fn tcp_snapshot_content_and_name_roots_detach_only_on_mutation() {
     let name = Name::from_ascii("shared-root.test").unwrap();
     let mut parent = Cache::new(128, Policy::default());
