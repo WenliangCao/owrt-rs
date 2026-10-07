@@ -54,6 +54,11 @@ OWNERSHIP_LIST = sorted("/" + path for path in REPLACEMENT_FILES | {
 })
 
 
+def package_id(release=PACKAGE_RELEASE):
+    require(release in ('2', '3'), 'package release must be 2 or 3')
+    return f'{PACKAGE_VERSION}-r{release}'
+
+
 def sha(path):
     value = hashlib.sha256()
     with path.open("rb") as stream:
@@ -117,7 +122,7 @@ def sdk_inputs(sdk):
     return {str(path.relative_to(sdk)): sha(path) for path in paths}
 
 
-def verify_freeze(freeze, source_files, sdk, source_commit, epoch, expected_elf_sha256):
+def verify_freeze(freeze, source_files, sdk, source_commit, epoch, expected_elf_sha256, package_release=PACKAGE_RELEASE):
     """Bind a previously validated ELF to product, packaging and SDK inputs.
 
     source_commit identifies the product used for the ELF. source_files also
@@ -128,6 +133,8 @@ def verify_freeze(freeze, source_files, sdk, source_commit, epoch, expected_elf_
     require(freeze.get("schema") == 1 and freeze.get("frozen") is True,
             "freeze manifest must have schema 1 and frozen=true")
     require(not freeze.get("pending"), "freeze manifest still has pending validation")
+    require(freeze.get("package_release", PACKAGE_RELEASE) == package_release,
+            "freeze manifest package release differs from --package-release")
     require(freeze.get("source_commit") == source_commit,
             "freeze manifest product commit differs from --source-commit")
     require(str(freeze.get("source_date_epoch")) == str(epoch),
@@ -205,11 +212,12 @@ def audit_payload(payload):
     return found
 
 
-def audit_metadata(metadata):
+def audit_metadata(metadata, package_release=PACKAGE_RELEASE):
     """Check replacement identity without treating adbdump text as authority."""
+    identity = package_id(package_release)
     required = {
         "name": PACKAGE,
-        "version": PACKAGE_ID,
+        "version": identity,
         "arch": ARCH,
     }
     for field, expected in required.items():
@@ -226,9 +234,9 @@ def audit_metadata(metadata):
     for script in ("post-install", "pre-deinstall", "post-upgrade"):
         require(re.search(rf"^  {script}: \|$", metadata, re.MULTILINE),
                 f"APK metadata misses {script} script")
-    return {"name": PACKAGE, "version": PACKAGE_ID,
+    return {"name": PACKAGE, "version": identity,
             "arch": ARCH, "provides": ["dnsmasq-any"],
-            "replacement": "same package name dnsmasq, newer release 2.93-r2",
+            "replacement": f"same package name dnsmasq, newer release {identity}",
             "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
             "depends": ["libc", "libubus20251202"]}
 
@@ -323,7 +331,9 @@ def audit_build(args, out, report):
     report["rust_channel"] = channel
     report["source_date_epoch"] = env["SOURCE_DATE_EPOCH"]
     build, output = out / "package-build", out / "sdk-output"
-    make_vars = ["V=s", "-j1",
+    report["package_release"] = args.package_release
+    report["package_id"] = package_id(args.package_release)
+    make_vars = ["V=s", "-j1", f"V1_PACKAGE_RELEASE={args.package_release}",
                  f"OWRT_COMPONENTS_SOURCE={source / 'components'}",
                  f"OWRT_DNSMASQ_BUILD_DIR={build}", f"OWRT_DNSMASQ_OUTPUT_DIR={output}"]
     if args.frozen_elf:
@@ -331,7 +341,7 @@ def audit_build(args, out, report):
         manifest = args.freeze_manifest.resolve()
         manifest_digest = sha(manifest)
         freeze = json.loads(manifest.read_text())
-        verify_freeze(freeze, source_hashes, report["sdk"], args.source_commit, epoch, args.expected_elf_sha256)
+        verify_freeze(freeze, source_hashes, report["sdk"], args.source_commit, epoch, args.expected_elf_sha256, args.package_release)
         require(frozen_elf.is_file() and sha(frozen_elf) == args.expected_elf_sha256,
                 "frozen ELF input does not match its validated identity")
         copied_elf = out / "frozen-dnsmasq"
@@ -375,7 +385,7 @@ def audit_build(args, out, report):
                     if args.frozen_elf:
                         require(sha(build / "frozen-dnsmasq") == args.expected_elf_sha256,
                                 "SDK prepare changed frozen ELF")
-    artifact = output / f"packages/{ARCH}/base/{PACKAGE}-{PACKAGE_VERSION}-r{PACKAGE_RELEASE}.apk"
+    artifact = output / f"packages/{ARCH}/base/{PACKAGE}-{package_id(args.package_release)}.apk"
     candidates = list(output.rglob(f"{PACKAGE}-*.apk"))
     require(candidates == [artifact], f"expected exactly the current package artifact; found {candidates}")
     shutil.copy2(artifact, out / artifact.name)
@@ -390,7 +400,7 @@ def audit_build(args, out, report):
     require("INTERP" not in elf_text and "(NEEDED)" not in elf_text,
             "M4 package ELF must be static (no interpreter or needed shared libraries)")
     metadata = run([str(apk), "adbdump", str(artifact)], out / "apk-metadata.log")
-    report["apk_metadata"] = audit_metadata(metadata)
+    report["apk_metadata"] = audit_metadata(metadata, args.package_release)
     require(inputs(ROOT) == source_hashes, "source changed while building; artifact is not current")
     if args.frozen_elf:
         require(sha(out / "frozen-dnsmasq") == args.expected_elf_sha256,
@@ -411,6 +421,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sdk", type=Path)
     parser.add_argument("out", type=Path)
+    parser.add_argument("--package-release", choices=["2", "3"], default=PACKAGE_RELEASE,
+                        help="APK release; default 2 preserves M5, M6b uses 3")
     parser.add_argument("--budget", type=Path, required=True,
                         help="frozen JSON with elf_max_bytes/apk_max_bytes")
     parser.add_argument("--source-commit", help="original commit of a copied source snapshot")
