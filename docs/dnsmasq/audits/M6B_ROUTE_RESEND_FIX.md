@@ -21,3 +21,5 @@
 | TFTP shared scratch | 库只暴露invalidate API；main实际OACK/DATA/read-error construction及120s非final get_block对应TimedOut清，闲/最终ACK/错TID不清 | 独立caller按C精确路径补门；TFTP `void *srv_save` alias UB仅source-only，不制造危险期待 |
 
 新增11个真实transport tests＋2个daemon tests实际host13/13通过；AArch64 Linux `--tests`类型检查通过但未实际Linux运行。初版tests的QueryLogging字段误写proto导致compile失败，改为enabled＋Default；首轮daemon local配置host-record经cache-authority给Cached，错误预期Local失败（12/13过），换TXT真正Local入口后13/13通过。失败不改产品/不放宽Local|Cached，后续记录保全收据。main仍需caller补丁与root fresh镜像/统一Linux资格，本提交不是整族通过。
+
+产品提交8183902d后，实际host完整upstream scope53/53、daemon scope46通过/3ignored，最新AArch64 Linux `--tests` cross-check通过。stdout/stderr、四个库/测试源码输入和初版失败的明确派生记录已保全到 `E/M6B/route-resend-8183902d-local/`，逐文件manifest SHA `4dcf8320b1085711c68d54f8a6ace53105b1beb611d8c525b926b67a54b34770`。这些仍不是Oracle/Linux实际tests或镜像caller通过。root已合库为30d8ca91，基本caller及已写测试先收第1包，扩展矩阵独立推进不阻塞新基线/A。
