@@ -4,36 +4,95 @@ use super::*;
 fn tcp_retained_view_keeps_negative_reverse_lease_and_rotation_private() {
     let mut parent = Cache::new(16, Policy::default());
     parent.start_insert();
-    let negative = parent.insert(Record {
-        name: Name::from_ascii("negative.snapshot.test").unwrap(),
-        kind: Kind::NxDomain, negative: true, data: Vec::new(),
-    }, 100, 60).unwrap();
+    let negative = parent
+        .insert(
+            Record {
+                name: Name::from_ascii("negative.snapshot.test").unwrap(),
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            },
+            100,
+            60,
+        )
+        .unwrap();
     parent.set_negative_authority(negative, Name::from_ascii("old.authority.test").unwrap());
-    parent.insert(Record {
-        name: Name::from_ascii("reverse.snapshot.test").unwrap(),
-        kind: Kind::ReverseIpv4, negative: false, data: vec![192, 0, 2, 17],
-    }, 100, 60).unwrap();
-    let alias = parent.insert(record("lease-alias.snapshot.test", Kind::Cname, 0), 100, 60).unwrap();
+    parent
+        .insert(
+            Record {
+                name: Name::from_ascii("reverse.snapshot.test").unwrap(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 17],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    let alias = parent
+        .insert(record("lease-alias.snapshot.test", Kind::Cname, 0), 100, 60)
+        .unwrap();
     let lease = parent.local_target(Name::from_ascii("lease.snapshot.test").unwrap(), true);
     assert!(parent.set_local_cname_target(alias, lease));
-    parent.insert(record("rrset.snapshot.test", Kind::Ipv4, 1), 100, 60).unwrap();
-    parent.insert(record("rrset.snapshot.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    parent
+        .insert(record("rrset.snapshot.test", Kind::Ipv4, 1), 100, 60)
+        .unwrap();
+    parent
+        .insert(record("rrset.snapshot.test", Kind::Ipv4, 2), 100, 60)
+        .unwrap();
     assert!(parent.commit());
     let name = Name::from_ascii("rrset.snapshot.test").unwrap();
     let before_order = parent.names_for(&name.canonical_wire()).unwrap().clone();
     let mut child = parent.snapshot();
 
     assert!(child.set_negative_authority(negative, Name::from_ascii("new.authority.test").unwrap()));
-    assert_eq!(parent.get(negative).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("old.authority.test").unwrap());
-    assert_eq!(child.get(negative).unwrap().negative_authority_name().unwrap(), &Name::from_ascii("new.authority.test").unwrap());
+    assert_eq!(
+        parent
+            .get(negative)
+            .unwrap()
+            .negative_authority_name()
+            .unwrap(),
+        &Name::from_ascii("old.authority.test").unwrap()
+    );
+    assert_eq!(
+        child
+            .get(negative)
+            .unwrap()
+            .negative_authority_name()
+            .unwrap(),
+        &Name::from_ascii("new.authority.test").unwrap()
+    );
     child.lookup(&name, &[Kind::Ipv4], 100, true);
-    assert_eq!(parent.names_for(&name.canonical_wire()).unwrap(), &before_order);
-    assert_ne!(child.names_for(&name.canonical_wire()).unwrap(), &before_order);
-    assert!(child.lookup_reverse("192.0.2.17".parse().unwrap(), 160).is_empty());
-    assert_eq!(parent.lookup_reverse("192.0.2.17".parse().unwrap(), 100).len(), 1);
+    assert_eq!(
+        parent.names_for(&name.canonical_wire()).unwrap(),
+        &before_order
+    );
+    assert_ne!(
+        child.names_for(&name.canonical_wire()).unwrap(),
+        &before_order
+    );
+    assert!(child
+        .lookup_reverse("192.0.2.17".parse().unwrap(), 160)
+        .is_empty());
+    assert_eq!(
+        parent
+            .lookup_reverse("192.0.2.17".parse().unwrap(), 100)
+            .len(),
+        1
+    );
     child.first_lease_entry();
     assert!(lookup(&mut child, "lease-alias.snapshot.test", Kind::Cname, 100).is_empty());
-    assert_eq!(parent.lookup(&Name::from_ascii("lease-alias.snapshot.test").unwrap(), &[Kind::Cname], 100, false).len(), 1);
+    assert_eq!(
+        parent
+            .lookup(
+                &Name::from_ascii("lease-alias.snapshot.test").unwrap(),
+                &[Kind::Cname],
+                100,
+                false
+            )
+            .len(),
+        1
+    );
     child.clear();
     assert!(child.get(negative).is_none());
     assert!(parent.get(negative).is_some());
@@ -55,11 +114,24 @@ fn tcp_snapshot_clear_is_private_at_zero_small_and_large_capacity() {
         }
         let mut child = parent.snapshot();
         child.clear();
-        assert_eq!(lookup(&mut parent, "capacity.snapshot.test", Kind::Ipv4, 100), if capacity == 0 { Vec::new() } else { vec![7] });
+        assert_eq!(
+            lookup(&mut parent, "capacity.snapshot.test", Kind::Ipv4, 100),
+            if capacity == 0 { Vec::new() } else { vec![7] }
+        );
         assert!(lookup(&mut child, "capacity.snapshot.test", Kind::Ipv4, 100).is_empty());
         check_ownership(&parent);
         check_ownership(&child);
     }
+}
+
+#[test]
+fn compact_slot_links_preserve_zero_absence_and_production_capacity_limit() {
+    assert_eq!(slot_index(None), None);
+    for index in [0, 1, 149, 4095, 4_999_999, u32::MAX as usize - 1] {
+        assert_eq!(slot_index(Some(slot_link(index))), Some(index));
+    }
+    assert_eq!(std::mem::size_of::<Option<NonZeroU32>>(), 4);
+    assert_eq!(std::mem::size_of::<Slot>(), 16);
 }
 
 #[test]
@@ -95,7 +167,10 @@ fn tcp_snapshot_content_and_name_roots_detach_only_on_mutation() {
     assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
     assert!(child.commit());
     assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
-    assert_eq!(lookup(&mut parent, "shared-root.test", Kind::Ipv4, 100), [1]);
+    assert_eq!(
+        lookup(&mut parent, "shared-root.test", Kind::Ipv4, 100),
+        [1]
+    );
     assert_eq!(lookup(&mut child, "shared-root.test", Kind::Ipv4, 100), [2]);
 }
 
@@ -278,10 +353,10 @@ fn check_ownership(cache: &Cache) {
     while let Some(index) = at {
         assert!(linked.insert(index), "cycle or duplicated slot");
         let slot = &cache.slots[index];
-        assert_eq!(slot.prev, previous);
+        assert_eq!(slot_index(slot.prev), previous);
         assert!(cache.entry(index).is_none_or(|entry| entry.committed));
         previous = at;
-        at = slot.next;
+        at = slot_index(slot.next);
     }
     assert_eq!(previous, cache.tail);
     for &slot in &cache.pending {
@@ -294,10 +369,10 @@ fn check_ownership(cache: &Cache) {
         for (name, indices) in shard.iter() {
             assert!(!indices.is_empty());
             for &slot in indices {
-            assert!(indexed.insert(slot));
-            let entry = cache.entry(slot).unwrap();
-            assert!(entry.committed);
-            assert_eq!(entry.record.name.canonical_wire().as_slice(), name.as_ref());
+                assert!(indexed.insert(slot));
+                let entry = cache.entry(slot).unwrap();
+                assert!(entry.committed);
+                assert_eq!(entry.record.name.canonical_wire().as_slice(), name.as_ref());
             }
         }
     }
@@ -306,7 +381,8 @@ fn check_ownership(cache: &Cache) {
         cache
             .slots
             .iter()
-            .filter(|slot| cache.entry(slot.block * CONTENT_BLOCK_SLOTS + slot.offset).is_some_and(|entry| entry.committed))
+            .enumerate()
+            .filter(|(index, _)| cache.entry(*index).is_some_and(|entry| entry.committed))
             .count()
     );
 }
