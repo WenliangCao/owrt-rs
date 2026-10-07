@@ -138,6 +138,12 @@ impl NeighborCache {
         }
     }
 
+    /// Only an in-flight dump owns an independent timeout. C's90s freshness
+    /// check and cached-negative expiry stay driven by service/query activity.
+    pub fn active_dump_deadline(&self) -> Option<u64> {
+        self.dump.as_ref().map(|dump| dump.deadline)
+    }
+
     pub fn enable_script_arp(&mut self, enabled: bool) {
         self.script_arp = enabled;
         if !enabled {
@@ -704,6 +710,35 @@ mod tests {
             old_records: Vec::new(),
             script_arp: false,
         }
+    }
+
+    #[test]
+    fn active_dump_timeout_clears_waiters_without_any_receive_event() {
+        let mut cache = cache_without_network();
+        let address = "192.0.2.17".parse().unwrap();
+        cache.waiting.insert((address, 0));
+        cache.edns_waiting.insert(address, EdnsWaiter::Pending);
+        cache.dump = Some(Dump { sequence: 1, deadline: 102,
+            entries: BTreeMap::new(), edns: Vec::new() });
+        assert_eq!(cache.active_dump_deadline(), Some(102));
+        // The expiration check precedes recvfrom; no fd event or new query
+        // is needed to abandon a dump missing NLMSG_DONE.
+        assert_eq!(cache.step(102).unwrap_err().kind(), io::ErrorKind::TimedOut);
+        assert_eq!(cache.active_dump_deadline(), None);
+        assert!(cache.waiting.is_empty());
+        assert!(cache.edns_waiting.is_empty());
+        assert_eq!(cache.query_edns(address, true, 102), EdnsMacLookup::Ready(None));
+    }
+
+    #[test]
+    fn idle_arp_freshness_and_negative_entries_do_not_schedule_a_timer() {
+        let mut cache = cache_without_network();
+        cache.enable_script_arp(true);
+        cache.refreshed = Some(1);
+        cache.negative.insert(("192.0.2.17".parse().unwrap(), 0), 100);
+        assert_eq!(cache.active_dump_deadline(), None);
+        cache.refresh_script_arp(200, false).unwrap();
+        assert_eq!(cache.active_dump_deadline(), None);
     }
     #[test]
     fn dump_failure_does_not_make_expired_positive_entries_fresh() {

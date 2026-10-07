@@ -101,6 +101,12 @@ fn now_seconds() -> i64 {
         .map_or(0, |time| time.as_secs() as i64)
 }
 
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+fn neighbor_poll_deadline(epoch_seconds: u64, now: Instant, realtime: Duration) -> Instant {
+    let remaining = Duration::from_secs(epoch_seconds).saturating_sub(realtime);
+    now.checked_add(remaining).unwrap_or(now)
+}
+
 extern "C" fn request_stop(_signal: i32) {
     STOP_REQUESTED.store(true, Ordering::Release);
     wake_signal_waiter();
@@ -3716,6 +3722,10 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(neighbors) = &self.neighbors {
                 neighbors.append_poll_fds(&mut fds);
+                if let Some(due) = neighbors.active_dump_deadline() {
+                    deadline = deadline.min(neighbor_poll_deadline(due, now,
+                        SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default()));
+                }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let neighbors_fd_end = fds.len();
@@ -3975,8 +3985,12 @@ impl SinglePoll {
         #[cfg(not(target_os = "linux"))]
         self.poll_udp_completions();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.neighbors_ready {
+        if self.neighbors_ready || self.neighbors.as_ref()
+            .and_then(NeighborCache::active_dump_deadline)
+            .is_some_and(|due| due <= now_seconds() as u64)
+        {
             // MAC waiters consume the completed snapshot in this same wake.
+            self.neighbors_ready = true;
             self.advance_neighbors();
         }
         self.step_tcp_clients();
@@ -5192,6 +5206,10 @@ impl SinglePoll {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
+            if let Some(due) = neighbors.active_dump_deadline() {
+                deadline = deadline.min(neighbor_poll_deadline(due, Instant::now(),
+                    SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default()));
+            }
         }
         let neighbors_fd_end = fds.len();
         if let Some(collector) = &self.interface_collector {
@@ -5220,7 +5238,9 @@ impl SinglePoll {
         self.tftp_ready = fds[tftp_fd_start..tftp_fd_end].iter()
             .any(|fd| fd.revents != 0);
         self.neighbors_ready = fds[neighbors_fd_start..neighbors_fd_end].iter()
-            .any(|fd| fd.revents != 0);
+            .any(|fd| fd.revents != 0)
+            || self.neighbors.as_ref().and_then(NeighborCache::active_dump_deadline)
+                .is_some_and(|due| due <= now_seconds() as u64);
         self.step_interface_collector();
         // C's delay_dhcp does not consume inotify/route events. They remain
         // queued until the outer owner can apply all reload effects together.
@@ -6218,6 +6238,17 @@ mod tests {
                 query: test_dns_query(), deadline: Instant::now() + Duration::from_secs(3),
             });
         }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn neighbor_deadline_keeps_fractional_epoch_and_expired_dump_immediate() {
+        let now = Instant::now();
+        // Both normal and probe owners use this same active-dump projection.
+        // A coarse two-second epoch bound must not acquire an extra second.
+        assert_eq!(neighbor_poll_deadline(102, now, Duration::from_millis(100_750)) - now,
+            Duration::from_millis(1250));
+        assert_eq!(neighbor_poll_deadline(102, now, Duration::from_millis(102_250)), now);
     }
 
     #[test]
