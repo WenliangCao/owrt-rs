@@ -54,7 +54,7 @@ cp "$ROOT/private/build-opts/build.json" "$EVIDENCE/builds/build-opts.json"
 ```sh
 mkdir -p "$SOURCE/private/evidence/M6B/tcp-a-20261007/primitive"
 python3 "$SOURCE/tools/dnsmasq/dns_cache_diff.py" \
-  --rustc /home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-musl/bin/rustc \
+  --rustc /home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/bin/rustc \
   --rust-source-root "$SOURCE" \
   --output "$SOURCE/private/evidence/M6B/tcp-a-20261007/primitive/cache"
 ```
