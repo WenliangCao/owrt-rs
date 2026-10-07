@@ -2188,6 +2188,11 @@ struct M6bDiagnostics {
     wait_timeout_zero: u64,
     wait_timeout_two_ms: u64,
     wait_ready: u64,
+    wait_network: u64,
+    wait_file: u64,
+    wait_timer: u64,
+    wait_runnable: u64,
+    wait_signal: u64,
     wait_ns: u128,
     wait_durations_ns: Vec<u64>,
     listeners: Vec<M6bListenerCounters>,
@@ -2210,6 +2215,11 @@ impl M6bDiagnostics {
             wait_timeout_zero: 0,
             wait_timeout_two_ms: 0,
             wait_ready: 0,
+            wait_network: 0,
+            wait_file: 0,
+            wait_timer: 0,
+            wait_runnable: 0,
+            wait_signal: 0,
             wait_ns: 0,
             wait_durations_ns: Vec::new(),
             listeners: (0..listener_count)
@@ -2232,7 +2242,15 @@ impl M6bDiagnostics {
         &mut self.listeners[index]
     }
 
-    fn record_wait(&mut self, timeout: i32, ready: usize, elapsed: Duration) -> io::Result<()> {
+    fn record_wait(
+        &mut self,
+        timeout: i32,
+        ready: usize,
+        elapsed: Duration,
+        network_ready: bool,
+        file_ready: bool,
+        signal_ready: bool,
+    ) -> io::Result<()> {
         if !self.enabled() {
             return Ok(());
         }
@@ -2249,8 +2267,21 @@ impl M6bDiagnostics {
         }
         if timeout == 0 {
             self.wait_timeout_zero += 1;
+            self.wait_runnable += 1;
         } else if timeout == 2 {
             self.wait_timeout_two_ms += 1;
+        }
+        if network_ready {
+            self.wait_network += 1;
+        }
+        if file_ready {
+            self.wait_file += 1;
+        }
+        if ready == 0 && timeout != 0 {
+            self.wait_timer += 1;
+        }
+        if signal_ready {
+            self.wait_signal += 1;
         }
         if self.last_write.elapsed() >= Duration::from_millis(500) {
             self.write_snapshot()?;
@@ -2281,11 +2312,16 @@ impl M6bDiagnostics {
         }
         write!(
             output,
-            "],\"wait_reasons\":{{\"files_timeout_0\":{},\"files_timeout_2ms\":{},\"ready\":{},\"poll_ready\":{}}},\"udp_listeners\":[",
+            "],\"wait_reasons\":{{\"files_timeout_0\":{},\"files_timeout_2ms\":{},\"ready\":{},\"poll_ready\":{},\"network\":{},\"file\":{},\"timer\":{},\"runnable\":{},\"signal\":{}}},\"udp_listeners\":[",
             self.wait_timeout_zero,
             self.wait_timeout_two_ms,
             self.wait_ready,
             self.poll_ready,
+            self.wait_network,
+            self.wait_file,
+            self.wait_timer,
+            self.wait_runnable,
+            self.wait_signal,
         )?;
         for (index, listener) in self.listeners.iter().enumerate() {
             if index != 0 {
@@ -3444,13 +3480,17 @@ impl SinglePoll {
             use std::os::fd::AsRawFd;
             let mut fds = Vec::new();
             self.append_file_fds(&mut fds, true);
+            let file_fd_count = fds.len();
+            let mut signal_fd_index = None;
             if let Some(signal) = &self.signal_wake_read {
+                signal_fd_index = Some(fds.len());
                 fds.push(PollFd {
                     fd: signal.as_raw_fd(),
                     events: POLLIN,
                     revents: 0,
                 });
             }
+            let network_fd_start = fds.len();
             let now = Instant::now();
             let mut deadline = now + Duration::from_secs(3600);
 
@@ -3585,10 +3625,22 @@ impl SinglePoll {
                 .min(i32::MAX as u128) as i32;
             let started = Instant::now();
             let ready = owrt_ubus::sys::poll_fds(&mut fds, timeout)?;
+            let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
+            let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
+            let signal_ready = signal_fd_index
+                .and_then(|index| fds.get(index))
+                .is_some_and(|fd| fd.revents != 0);
             if ready != 0 {
                 self.drain_signal_wake();
             }
-            self.m6b.record_wait(timeout, ready, started.elapsed())?;
+            self.m6b.record_wait(
+                timeout,
+                ready,
+                started.elapsed(),
+                network_ready,
+                file_ready,
+                signal_ready,
+            )?;
         }
         #[cfg(not(target_os = "linux"))]
         thread::park_timeout(Duration::from_millis(2));
