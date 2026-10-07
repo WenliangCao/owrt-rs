@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -24,6 +25,7 @@ DEFAULT_WORK = ROOT / "private/dnsmasq-rewrite/local-answer-diff"
 DEFAULT_SOURCES = ROOT / "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src"
 REFERENCE_COPTS = ["-DHAVE_UBUS", "-DHAVE_POLL_H", "-DNO_DHCP6", "-DNO_AUTH", "-DNO_IPSET", "-DNO_ID"]
 REFERENCE_CONFIG_SHA256 = "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da"
+M6B_NATIVE_REFERENCE_SHA256 = "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
 
 
 def sha256(path: Path) -> str:
@@ -70,7 +72,153 @@ def rename_main(build: Path, work: Path) -> Path:
     return target
 
 
-def build_oracle(reference_build: Path, work: Path) -> Path:
+def c_input_identity(paths: list[Path]) -> dict[str, object]:
+    return {str(path.absolute()): {"resolved_path": str(path.resolve()),
+                                 "bytes": path.stat().st_size, "sha256": sha256(path)}
+            for path in sorted(set(paths)) if path.is_file()}
+
+
+def c_elf_identity(path: Path) -> dict[str, object]:
+    with path.open("rb") as stream:
+        header = stream.read(64)
+    if len(header) != 64 or header[:6] != b"\x7fELF\x02\x01":
+        raise ValueError(f"C primitive requires ELF64 little-endian: {path}")
+    return {"path": str(path.resolve()), "bytes": path.stat().st_size,
+            "sha256": sha256(path), "class": 64, "endianness": "little",
+            "machine": struct.unpack_from("<H", header, 18)[0]}
+
+
+def c_build_command(work: Path, label: str, argv: list[str], *, input_data=None):
+    failure = None
+    try:
+        run = subprocess.run(argv, input=input_data, capture_output=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        failure = {"kind": type(error).__name__, "message": str(error)}
+        stdout = getattr(error, "stdout", None) or b""
+        stderr = getattr(error, "stderr", None) or str(error).encode()
+        run = subprocess.CompletedProcess(argv, -1, stdout, stderr)
+    stdout, stderr = label + ".stdout", label + ".stderr"
+    (work / stdout).write_bytes(run.stdout)
+    (work / stderr).write_bytes(run.stderr)
+    record = {"argv": argv, "exit": run.returncode, "stdout": stdout, "stderr": stderr,
+              "command_file": label + ".command.json",
+              "stdout_sha256": sha256(work / stdout), "stderr_sha256": sha256(work / stderr)}
+    if failure is not None:
+        record["failure"] = failure
+    (work / (label + ".command.json")).write_text(json.dumps(record, indent=2) + "\n")
+    return run, record
+
+
+def compile_c_oracle(command: list[str], work: Path, build: Path, source: Path,
+                     objects: list[Path], deps: Path, abi_flags: list[str],
+                     *, expected_machine: int | None = None,
+                     expected_native_sha: str | None = None) -> dict[str, object]:
+    """Fresh driver compile/link receipts; the native reference objects are reused."""
+    compiler_entry = Path(shutil.which(command[0]) or command[0]).absolute()
+    compiler = compiler_entry.resolve()
+    headers = sorted((deps.parent / "include").rglob("*.h"))
+    sources = sorted(path for path in build.rglob("*") if path.suffix in {".c", ".h"} and path.is_file())
+    libraries = sorted(path for path in deps.rglob("*") if path.is_file())
+    generated = sorted(work.glob("*.inc"))
+    original_main = build / "dnsmasq.o"
+    paths = [source, compiler_entry, compiler, original_main, *objects, *sources, *headers, *libraries, *generated]
+    native_daemon = build / "dnsmasq"
+    if expected_native_sha is not None and (not native_daemon.is_file() or sha256(native_daemon) != expected_native_sha):
+        raise ValueError("pinned native reference daemon identity differs; this is not the image daemon")
+    if expected_native_sha is not None:
+        for library in ["ubus", "ubox"]:
+            if not any((deps / ("lib" + library + suffix)).is_file() for suffix in [".so", ".a"]):
+                raise ValueError("explicit native reference dependency required: " + library)
+    if native_daemon.is_file():
+        paths.append(native_daemon)
+    before = c_input_identity(paths)
+    (work / "c-build-inputs-before.json").write_text(json.dumps(before, indent=2) + "\n")
+    receipt = {"schema": 1, "kind": "native-c-primitive-build", "status": "preparing",
+               "reference_build": str(build.resolve()), "compiler": str(compiler),
+               "compiler_entry": str(compiler_entry), "compiler_argv0": command[0],
+               "compiler_sha256": sha256(compiler), "compiler_probes": [],
+               "variant": {"copts": REFERENCE_COPTS, "config_h_sha256": sha256(build / "config.h"),
+                           "abi_flags": abi_flags, "expected_elf_machine": expected_machine,
+                           "expected_native_sha256": expected_native_sha},
+               "driver": c_input_identity([source]), "sources_and_headers": c_input_identity([*sources, *headers]),
+               "objects": c_input_identity(objects), "libraries": c_input_identity(libraries),
+               "reference_main_object": c_input_identity([original_main]),
+               "generated_includes": c_input_identity(generated), "input_identity": before,
+               "native_reference_objects_reused": True, "full_c_objects_rebuilt": False,
+               "native_reference_daemon": c_elf_identity(native_daemon) if native_daemon.is_file() else None,
+               "tool_sha256": sha256(Path(__file__)), "image_daemon_qualification": False,
+               "scope": "fresh primitive driver compile/link against reused native reference objects; not image daemon 097a9e21",
+               "library_scope": "explicit reference deps libraries; system linker/runtime files not exhaustively inventoried"}
+    sidecar = work / "c-build-receipt.json"
+    sidecar.write_text(json.dumps(receipt, indent=2) + "\n")
+    for label, flags in [("version", ["--version"]), ("machine", ["-dumpmachine"]),
+                         ("macros", [*abi_flags, "-dM", "-E", "-x", "c", "-"])]:
+        run, row = c_build_command(work, "c-compiler-" + label, [command[0], *flags], input_data=b"")
+        receipt["compiler_probes"].append(row)
+        receipt["status"] = "compiler-failed" if run.returncode else "compiler-probed"
+        sidecar.write_text(json.dumps(receipt, indent=2) + "\n")
+        run.check_returncode()
+    run, row = c_build_command(work, "c-build", command)
+    receipt["compile_link"] = row
+    after = c_input_identity(paths)
+    (work / "c-build-inputs-after.json").write_text(json.dumps(after, indent=2) + "\n")
+    receipt["status"] = "build-failed" if run.returncode else "built"
+    receipt["inputs_unchanged"] = before == after
+    sidecar.write_text(json.dumps(receipt, indent=2) + "\n")
+    run.check_returncode()
+    if before != after:
+        raise ValueError("C primitive inputs changed during compile/link")
+    binary = Path(command[command.index("-o") + 1])
+    receipt["artifact"] = c_elf_identity(binary)
+    machine = receipt["artifact"]["machine"]
+    if expected_machine is not None and machine != expected_machine:
+        receipt["status"] = "abi-failed"
+        sidecar.write_text(json.dumps(receipt, indent=2) + "\n")
+        raise ValueError("C primitive ELF machine differs")
+    if (any(c_elf_identity(path)["machine"] != machine for path in objects)
+            or (native_daemon.is_file() and receipt["native_reference_daemon"]["machine"] != machine)):
+        receipt["status"] = "abi-failed"
+        sidecar.write_text(json.dumps(receipt, indent=2) + "\n")
+        raise ValueError("C primitive object ELF machine differs")
+    receipt["status"] = "built-inputs-and-abi-verified"
+    sidecar.write_text(json.dumps(receipt, indent=2) + "\n")
+    return receipt
+
+
+def verify_c_build(work: Path, binary: Path) -> dict[str, object]:
+    sidecar = work / "c-build-receipt.json"
+    receipt = json.loads(sidecar.read_text())
+    inputs = receipt["input_identity"]
+    variant = receipt["variant"]
+    expected_machine = variant["expected_elf_machine"]
+    expected_native_sha = variant["expected_native_sha256"]
+    if (receipt.get("schema") != 1 or receipt.get("kind") != "native-c-primitive-build"
+            or receipt.get("status") != "built-inputs-and-abi-verified"
+            or receipt.get("tool_sha256") != sha256(Path(__file__))
+            or len(receipt.get("compiler_probes", [])) != 3
+            or c_input_identity([Path(name) for name in inputs]) != inputs
+            or receipt["artifact"] != c_elf_identity(binary)
+            or variant["config_h_sha256"] != REFERENCE_CONFIG_SHA256
+            or variant["copts"] != REFERENCE_COPTS
+            or (expected_machine is not None and expected_machine != receipt["artifact"]["machine"])
+            or (expected_native_sha is not None and expected_native_sha != receipt["native_reference_daemon"]["sha256"])):
+        raise ValueError("C primitive source/compiler/object/library/ELF binding changed")
+    for name in ["c-build-inputs-before.json", "c-build-inputs-after.json"]:
+        if json.loads((work / name).read_text()) != inputs:
+            raise ValueError("C primitive compilation-input witness differs")
+    for row in [receipt["compile_link"], *receipt["compiler_probes"]]:
+        if (row["exit"] != 0 or sha256(work / row["stdout"]) != row["stdout_sha256"]
+                or sha256(work / row["stderr"]) != row["stderr_sha256"]
+                or json.loads((work / row["command_file"]).read_text()) != row):
+            raise ValueError("C primitive compile/compiler observations differ")
+    return {"receipt": sidecar.name, "receipt_sha256": sha256(sidecar),
+            "binary_sha256": receipt["artifact"]["sha256"], "elf_machine": receipt["artifact"]["machine"],
+            "native_reference_objects_reused": True, "full_c_objects_rebuilt": False,
+            "image_daemon_qualification": False, "scope": receipt["scope"]}
+
+
+def build_oracle(reference_build: Path, work: Path, *, expected_machine: int | None = None,
+                 expected_native_sha: str | None = None) -> Path:
     build = reference_build / "dnsmasq"
     # build_reference.sh nests objects under dnsmasq/. Existing audited native
     # builds predate that wrapper and place the same objects at their root.
@@ -101,7 +249,8 @@ def build_oracle(reference_build: Path, work: Path) -> Path:
     if deps.exists():
         command.extend([f"-L{deps}", f"-Wl,-rpath,{deps}", "-lubus", "-lubox"])
     command.extend(["-o", str(binary)])
-    subprocess.run(command, check=True)
+    compile_c_oracle(command, work, build, source, objects, deps, flags,
+                     expected_machine=expected_machine, expected_native_sha=expected_native_sha)
     return binary
 
 

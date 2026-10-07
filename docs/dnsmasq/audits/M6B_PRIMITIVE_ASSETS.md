@@ -19,6 +19,14 @@ policy/EDNS原driver需要daemon私有API，不能伪造外部Shim或拿产品EL
 
 匹配C仍从验证过的exact-source/native object/header recipe生成小primitive。它们不是SHA097镜像daemon。`cache_policy_service_diff.py`本来就接受产品--rust且不编译Rust，此次不改、不把四examples塞给服务；真服务继续canonical镜像rootfs driver。answer/transfer/partial/reverse copied ignored-libtest由另一个独立adapter负责。
 
+## C primitive build sidecar（工具准备，未运行）
+
+policy/EDNS经`local_answer_diff.build_oracle`、lease经同模块`compile_c_oracle`写`c-build-receipt.json`。三组显式要求ELF64 little-endian AArch64（machine183），并pin原生参考daemon SHA `bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431`；该原生构建不是镜像daemon `097a9e21…`，不可替代镜像服务合同。旧非M6 caller的expected_machine/expected_native_sha默认None，不强加此特定原生构建身份。
+
+sidecar记录实际解析的cc可执行文件路径/SHA、`--version`、`-dumpmachine`、携带同一预处理flags的`-dM -E -x c -`输出；所有命令保存argv、退出状态及完整stdout/stderr（包括编译失败、exec失败和超时）。源/headers、driver、生成inc、链接的对象、原始dnsmasq.o、显式deps库目录和native base ELF逐文件记录SHA、bytes、解析后路径，并在compile/link前后重核。保留既有config.h身份/COPTS variant检查；产物和链接对象的ELF ABI核验后才能写built资格。三个case输出格式不变，summary新增sidecar SHA绑定；执行完再核C输入、compiler/compile原始观测和ELF未改变。
+
+对象来源明确为`native_reference_objects_reused=true`、`full_c_objects_rebuilt=false`：fresh仅指本次driver compile/link；lease driver因包含cache.c而在本次translation unit编译该源码，其余对象复用。显式`deps/lib`目录库有SHA清单；系统linker/runtime文件不声称穷尽归因。当前仍未生成、构建或执行这些工具；不得把sidecar代码提交当成C资格。
+
 窗口结束后的计划CLI（本次均未执行）：
 
 ```sh
