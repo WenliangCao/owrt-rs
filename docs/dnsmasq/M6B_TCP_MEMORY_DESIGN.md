@@ -210,7 +210,7 @@ M6a 的 CPU 数字保留为历史测量，不能继续作为方案 A 的 C 对�
 Oracle 的第1b perf debug companion（同源、非交付 ELF）与中间矩阵结果已经
 把 `SinglePoll::step*`、`wait_for_files`/`poll_fds`、logger flush 和循环内
 metrics/UBus 调用列为新的归因候选。方案 A 的 CPU 硬门暂停到第1b
-`d52d5cac` 完成短基线后再冻结。冻结时使用同一配置、同一镜像 C、同一
+readiness/helper修复后的无A `4816b19f` 完成新基线后再冻结（d52d5cac仅历史小收益，不能作为现对照）。冻结时使用同一配置、同一镜像 C、同一
 CPU/正确回答分母，定义
 `u=daemon cgroup CPU usec/correct replies`（cgroup已含TCP子进程，不重复加child CPU；proc父子合计仅作交叉核验），并要求：
 
