@@ -2,6 +2,16 @@
 
 2026-10-07 冻结。M6b 先修正测量合同，再冻结本协议；产品改动必须在本文件提交后进行。M6a 的原始数据和报告不改，所有 M6b 结果与 M6a 身份分开保存。性能结论只代表同一 Oracle 构建机，不外推到物理路由器。
 
+## 用户授权修订（2026-10-07）
+
+中间候选只跑一轮9场景×3组（27窗口），连同独立短pilot做机制归因；没有五轮波动证据时不作显著收益判定。UDP-only旧135已停止并保存已跑/中止窗口，27窗口已完成。完整135只在方案A通过全部前置门、合入后的最终候选执行一次。
+
+第1b优先于方案A：先采perf、再统计原始syscall/errno，证实多余EAGAIN后修按fd/revents分派。必须保留每个socket的读写/error/hangup和内部buffer、timer、probe、MAC/file续步；不能以readiness跳过到期或关闭回收。关闭dump时无地址查询。新基线冻结前方案A CPU门暂停，M6a约20µs不再作为当前对照。
+
+方案A增量门使用同配置的新feature-off `R3_new`、独立分支A和镜像C，`u=daemon cgroup CPU usec/正确完成请求`（cgroup已经包含C子进程，**不得再加一次child CPU**；proc父子合计只作交叉核验）。要求`median(u_A)≤1.05×median(u_R3_new)`且`median(u_A)<median(u_C_new)`，吞吐/p95不回退超过5%；全部原语/语义/资源门保持。正式W及4/5方向分类阈值不变。
+
+正式产品窗口不启用diagnostics feature、wake sidecar、perf或strace；身份和build features由manifest校验。loop/poll/wait/batch/allocation只在同源独立短诊断companion测量，保留独立SHA，C不具备的counter标为未测。`strace -f -C`保留原始errno、unfinished/resumed和明确warmup＋load＋stable drain范围，分母为这个范围的全部正确完成请求；诊断计数不代替未插桩CPU/延迟。见[trace合同](audits/M6B_TRACE_CONTRACT.md)。
+
 ## 身份、顺序和共同资格
 
 基线是 M6a 的 C `097a9e21…cab87`、Rust opt3 `37f85d22…7f7b`（源码 `dc1b740d`）和同源 opt-s `8427b9ab…88a2a`。每个候选产品先生成新的 source/ELF/build manifest；C、候选 opt3、候选 s 在同一精确镜像 rootfs、同一 SDK 和同一 4 核 Oracle 中运行。所有新证据置于 `private/dnsmasq-rewrite/evidence/M6b/`，每次窗口保留命令、identity、原始 latency/lag/wire、smaps、cgroup CPU、FD、清理、archive manifest 和本地 SHA/metadata verification。
