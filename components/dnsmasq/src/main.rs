@@ -45,6 +45,7 @@ use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::cell::RefCell;
 use std::ffi::OsString;
+#[cfg(feature = "m6b-diagnostics")]
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
@@ -2156,8 +2157,8 @@ struct PollListener {
     tcp: Option<TcpListener>,
 }
 
-/// Optional M6b event-loop counters.  The sidecar is enabled only when
-/// `DNSMASQ_M6B_COUNTERS` names an output file, so normal service runs do not
+/// Optional M6b event-loop counters. The sidecar is compiled only with the
+/// `m6b-diagnostics` feature and enabled when `DNSMASQ_M6B_WAKE_METRICS` names an output file, so normal service runs do not
 /// pay for formatting or file I/O.  Counters are intentionally local to the
 /// single poll owner; no mutex or background sampler is needed.
 #[derive(Default)]
@@ -2174,6 +2175,7 @@ struct M6bListenerCounters {
     budget_yields: u64,
 }
 
+#[cfg(feature = "m6b-diagnostics")]
 struct M6bDiagnostics {
     path: Option<std::path::PathBuf>,
     origin: Instant,
@@ -2191,6 +2193,7 @@ struct M6bDiagnostics {
     listeners: Vec<M6bListenerCounters>,
 }
 
+#[cfg(feature = "m6b-diagnostics")]
 impl M6bDiagnostics {
     fn new(listener_count: usize) -> Self {
         let now = Instant::now();
@@ -2218,6 +2221,8 @@ impl M6bDiagnostics {
     fn enabled(&self) -> bool {
         self.path.is_some()
     }
+
+    fn record_loop(&mut self) { self.loop_rounds += 1; }
 
     fn listener_mut(&mut self, index: usize) -> &mut M6bListenerCounters {
         if index >= self.listeners.len() {
@@ -2312,6 +2317,37 @@ impl M6bDiagnostics {
         }
         Ok(())
     }
+}
+
+#[cfg(not(feature = "m6b-diagnostics"))]
+struct M6bDiagnostics {
+    disabled_listener: M6bListenerCounters,
+}
+
+#[cfg(not(feature = "m6b-diagnostics"))]
+impl M6bDiagnostics {
+    fn new(_listener_count: usize) -> Self {
+        Self { disabled_listener: M6bListenerCounters::default() }
+    }
+
+    #[inline]
+    fn enabled(&self) -> bool { false }
+
+    #[inline]
+    fn record_loop(&mut self) {}
+
+    #[inline]
+    fn listener_mut(&mut self, _index: usize) -> &mut M6bListenerCounters {
+        &mut self.disabled_listener
+    }
+
+    #[inline]
+    fn record_wait(&mut self, _timeout: i32, _ready: usize, _elapsed: Duration) -> io::Result<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn write(&mut self) -> io::Result<()> { Ok(()) }
 }
 
 // Both EDNS queues are advanced by the existing owner. The UDP queue retains
@@ -3610,9 +3646,7 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
-        if self.m6b.enabled() {
-            self.m6b.loop_rounds += 1;
-        }
+        self.m6b.record_loop();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(dhcp) = &mut self.dhcp {
             dhcp.listener.retry_device_binding();
