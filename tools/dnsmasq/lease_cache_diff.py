@@ -31,10 +31,14 @@ def build_c(args, out):
     objects = sorted(p for p in obj.glob("*.o") if p.name not in {"cache.o", "dnsmasq.o"})
     deps = args.reference_build / "deps/lib"
     c = out / "oracle"
-    subprocess.run(["cc", *local_answer_diff.REFERENCE_COPTS, "-O2", "-Wall", "-Wextra", "-Werror",
-                    f"-I{obj}", f"-I{args.reference_build / 'deps/include'}",
-                    str(Path(__file__).with_name("lease_cache_driver.c")), *map(str, objects), str(renamed),
-                    f"-L{deps}", f"-Wl,-rpath,{deps}", "-lubus", "-lubox", "-o", str(c)], check=True)
+    flags=[*local_answer_diff.REFERENCE_COPTS,"-O2","-Wall","-Wextra","-Werror",
+           f"-I{obj}",f"-I{args.reference_build / 'deps/include'}"]
+    driver=Path(__file__).with_name("lease_cache_driver.c")
+    command=["cc",*flags,str(driver),*map(str,objects),str(renamed),
+             f"-L{deps}",f"-Wl,-rpath,{deps}","-lubus","-lubox","-o",str(c)]
+    local_answer_diff.compile_c_oracle(command,out,obj,driver,[*objects,renamed],deps,flags,
+                                      expected_machine=183,expected_native_sha=local_answer_diff.M6B_NATIVE_REFERENCE_SHA256)
+    args.c_binding=local_answer_diff.verify_c_build(out,c)
     return c
 
 
@@ -99,7 +103,7 @@ def main():
     else: raise AssertionError("count calibration")
     c, rust = build(args, out)
     report = {"reference_cache_sha256": CACHE_SHA, "c_sha256": digest(c), "rust_sha256": digest(rust),
-              "rust_binding":args.rust_binding,"image_daemon_qualification":False,
+              "rust_binding":args.rust_binding,"c_build":args.c_binding,"image_daemon_qualification":False,
               "calibration": {"equal": 1, "negative_ttl_and_count": 2, "c_insert_hit_selective_delete": 1}, "cases": [], "failures": [],
               "scope": "actual cache_add_dhcp_entry/cache_find_by_name effects on dynamic entries; synthetic local blockers via actual cache_hash; no reverse cache or full daemon/answer_request equivalence"}
     for no_round in [False, True]:
@@ -133,6 +137,8 @@ def main():
     report["mismatches"] = sum(len(row["mismatches"]) for row in report["cases"])
     if assets.validate(args, 'm6b-cache-lease') != args.rust_binding:
         raise ValueError('Rust primitive binding changed during run')
+    if local_answer_diff.verify_c_build(out,c) != args.c_binding:
+        raise ValueError('C primitive build binding changed during run')
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({key: value for key, value in report.items() if key != "cases"}))
     return int(bool(report["failures"]))
