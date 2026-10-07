@@ -12,6 +12,71 @@ from unittest.mock import patch
 import m5_final_validation as final
 
 
+class ValidationModeTests(unittest.TestCase):
+    def test_m5_default_still_requires_both_real_fuzz_phases(self):
+        completed = {name: {'passed': True} for name in final.M6B_PHASES}
+        self.assertEqual(final.required_phases({}), final.PHASES)
+        self.assertEqual(final.phase_prerequisites({}, 'package'), final.PHASES[:6])
+        status = final.completion_status({}, completed)
+        self.assertEqual(status['missing_phases'], ['fuzz-build', 'fuzz'])
+        self.assertEqual(status['excluded_phases'], {})
+
+    def test_m6b_requires_six_real_phases_without_fabricating_fuzz_pass(self):
+        spec = {'validation_mode': 'm6b', 'phases': list(final.M6B_PHASES)}
+        completed = {name: {'passed': True} for name in final.M6B_PHASES}
+        status = final.completion_status(spec, completed)
+        self.assertEqual(status['missing_phases'], [])
+        self.assertEqual(final.phase_prerequisites(spec, 'package'), ['families', 'm2', 'resources', 'pressure'])
+        self.assertEqual(final.phase_prerequisites(spec, 'lifecycle'), final.M6B_PHASES[:-1])
+        self.assertEqual(set(status['excluded_phases']), {'fuzz-build', 'fuzz'})
+        self.assertTrue(all(row['status'] == 'excluded-not-required' and row['passed'] is None
+                            for row in status['excluded_phases'].values()))
+        self.assertNotIn('fuzz', completed)
+        completed['pressure']['passed'] = False
+        self.assertEqual(final.completion_status(spec, completed)['missing_phases'], ['pressure'])
+        completed['pressure']['passed'] = 'yes'
+        self.assertEqual(final.completion_status(spec, completed)['missing_phases'], ['pressure'])
+
+    def test_manifest_cannot_select_a_smaller_phase_subset_or_execute_excluded_fuzz(self):
+        for spec in ({'validation_mode': 'other'}, {'phases': final.M6B_PHASES},
+                     {'validation_mode': 'm6b', 'phases': ['families', 'package']}):
+            with self.subTest(spec=spec), self.assertRaises(ValueError):
+                final.required_phases(spec)
+        with self.assertRaisesRegex(ValueError, 'excluded-not-required'):
+            final.phase_prerequisites({'validation_mode': 'm6b'}, 'fuzz')
+        self.assertEqual(final.phase_prerequisites({'validation_mode': 'm6b'}, 'full-cache-600'), ['resources'])
+
+    def test_m6b_run_rejects_fuzz_before_creating_any_attempt(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            spec = {'validation_mode': 'm6b', 'output': str(root), 'family_registry': {'families': []}}
+            manifest = root / 'identity.json'; final.save(manifest, spec)
+            args = final.argparse.Namespace(manifest=manifest, phase='fuzz', attempt=1, exclusive_window=False)
+            with patch.object(final, 'verify_identity'), patch.object(final.os, 'geteuid', return_value=0):
+                with self.assertRaisesRegex(ValueError, 'excluded-not-required'):
+                    final.run(args)
+            self.assertFalse((root / 'runs').exists())
+            self.assertFalse((root / 'completed.json').exists())
+
+    def test_m6b_summary_labels_exclusions_and_still_reports_missing_real_phases(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            spec = {'validation_mode': 'm6b', 'output': str(root), 'source_commit': 'b' * 40,
+                    'elf_sha256': 'a' * 64, 'elf_bytes': 1929256}
+            manifest = root / 'identity.json'; final.save(manifest, spec)
+            final.save(root / 'completed.json', {})
+            with patch.object(final, 'verify_identity'), contextlib.redirect_stdout(io.StringIO()):
+                self.assertTrue(final.summary(final.argparse.Namespace(manifest=manifest)))
+            result = json.loads((root / 'summary.json').read_text())
+            self.assertFalse(result['functional_validation_passed'])
+            self.assertEqual(result['missing_phases'], final.M6B_PHASES)
+            self.assertEqual(result['excluded_phases']['fuzz']['status'], 'excluded-not-required')
+            self.assertIsNone(result['excluded_phases']['fuzz']['passed'])
+            self.assertEqual(result['phases'], {})
+            self.assertTrue((root / 'M6B_FUNCTIONAL_REPORT.draft.md').exists())
+            self.assertFalse((root / 'M5_REPORT.draft.md').exists())
+
+
 class FinalValidationTests(unittest.TestCase):
     def test_input_example_has_two_variants_and_five_dependencies(self):
         spec = json.loads(Path(final.__file__).with_name('m5_final_inputs.example.json').read_text())
