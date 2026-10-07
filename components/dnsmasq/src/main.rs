@@ -3629,6 +3629,10 @@ impl SinglePoll {
                 deadline = deadline.min(client.deadline);
                 if !client.mac_ready && !client.mac_deferred {
                     deadline = deadline.min(client.mac_deadline);
+                    // DNS bytes already queued on the downstream cannot
+                    // advance an accept-time MAC lookup. Polling that unread
+                    // socket would wake continuously while its dump waits.
+                    continue;
                 }
                 let (fd, events) = match &client.phase {
                     TcpClientPhase::Reading => {
@@ -4910,8 +4914,7 @@ impl SinglePoll {
         #[cfg(not(target_pointer_width = "64"))]
         let neighbor_ready = false;
         if !client.mac_ready && !client.mac_deferred {
-            return now >= client.mac_deadline || neighbor_ready
-                || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN);
+            return now >= client.mac_deadline || neighbor_ready;
         }
         match &client.phase {
             TcpClientPhase::Reading => client.input_offset < client.input.len()
@@ -5157,6 +5160,7 @@ impl SinglePoll {
             deadline = deadline.min(client.deadline);
             if !client.mac_ready && !client.mac_deferred {
                 deadline = deadline.min(client.mac_deadline);
+                continue;
             }
             let (fd, events) = match &client.phase {
                 TcpClientPhase::Reading => {
@@ -6287,6 +6291,36 @@ mod tests {
         assert!(!owner.edns_udp_runnable);
         owner.step_edns_udp_with_lookup(|_, _| ClientMacLookup::Pending);
         assert!(!owner.edns_udp_runnable);
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn accepted_mac_wait_does_not_busy_poll_queued_dns_before_snapshot_ready() {
+        use owrt_ubus::sys::POLLIN;
+        use std::os::fd::AsRawFd;
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let mut peer = add_test_tcp(&mut owner);
+        peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap()).unwrap();
+        owner.clients[0].mac_ready = false;
+        owner.clients[0].mac_deferred = false;
+        owner.clients[0].mac_deadline = Instant::now() + Duration::from_secs(3);
+        owner.clients[0].ready_events = POLLIN;
+        assert!(!owner.tcp_client_ready(0), "unread DNS cannot resolve a pending MAC");
+        let stream_fd = owner.clients[0].stream.as_ref().unwrap().as_raw_fd();
+        let started = Instant::now();
+        owner.wait_for_files().unwrap();
+        assert!(started.elapsed() >= Duration::from_millis(50),
+            "without a signal pipe this fixture uses100ms fallback, not the queued socket");
+        assert!(!owner.poll_fds.iter().any(|fd| fd.fd == stream_fd));
+        assert_eq!(owner.clients[0].ready_events, 0);
+        owner.neighbors_ready = true;
+        assert!(owner.tcp_client_ready(0), "dump completion authorizes the MAC resume");
+        owner.step_tcp_clients();
+        assert!(owner.clients[0].mac_ready);
+        assert!(owner.clients[0].input.is_empty(), "MAC wake does not invent read readiness");
+        owner.neighbors_ready = false;
+        owner.wait_for_files().unwrap();
+        assert!(owner.tcp_client_ready(0), "now the real queued DNS socket becomes readable");
     }
 
     fn test_dns_query() -> Vec<u8> {
