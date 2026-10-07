@@ -12,6 +12,10 @@ use std::net::IpAddr;
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
+#[path = "cache_name_index.rs"]
+mod name_index;
+use name_index::SlotIndices;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Ipv4,
@@ -250,7 +254,7 @@ struct ContentBlock {
     entries: Box<[Option<Entry>]>,
 }
 
-type NameIndex = HashMap<Arc<[u8]>, Vec<usize>>;
+type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
 
 const CONTENT_BLOCK_SLOTS: usize = 64;
 const NAME_SHARDS: usize = 64;
@@ -291,21 +295,21 @@ impl Cache {
     }
 
     fn key_shard(key: &[u8]) -> usize {
-        // Stable FNV-1a selection keeps a snapshot and its parent on the same
-        // shard without exposing HashMap's randomized hasher as an API.
+        // Stable high FNV-1a bits select the 64 owner roots independently of
+        // HashMap's randomized bucket hasher, as the scheme-A contract specifies.
         let mut hash = 0xcbf29ce484222325u64;
         for byte in key {
             hash ^= u64::from(*byte);
             hash = hash.wrapping_mul(0x100000001b3);
         }
-        (hash as usize) & (NAME_SHARDS - 1)
+        (hash >> (64 - NAME_SHARDS.ilog2())) as usize
     }
 
-    fn names_for(&self, key: &[u8]) -> Option<&Vec<usize>> {
+    fn names_for(&self, key: &[u8]) -> Option<&SlotIndices> {
         self.names[Self::key_shard(key)].get(key)
     }
 
-    fn names_for_mut(&mut self, key: &[u8]) -> Option<&mut Vec<usize>> {
+    fn names_for_mut(&mut self, key: &[u8]) -> Option<&mut SlotIndices> {
         Arc::make_mut(&mut self.names[Self::key_shard(key)]).get_mut(key)
     }
 
@@ -643,7 +647,7 @@ impl Cache {
                 }
             }
         } else if let Some(indices) = self.names_for(&key).cloned() {
-            for slot in indices {
+            for &slot in indices.iter() {
                 let entry = self.entry(slot).unwrap();
                 if record.kind.conflicts(entry.record.kind) {
                     if entry.referenced {
@@ -684,7 +688,7 @@ impl Cache {
                 let victims = if victim_kind.is_reverse() {
                     self.reverse_chain.clone()
                 } else {
-                    self.names_for(&victim_key).cloned().unwrap_or_default()
+                    self.names_for(&victim_key).map(|indices| indices.to_vec()).unwrap_or_default()
                 };
                 for victim in victims {
                     let entry = self.entry(victim).unwrap();
@@ -1006,7 +1010,8 @@ impl Cache {
     ) -> Vec<EntryId> {
         let key = name.canonical_wire();
         let mut found = Vec::new();
-        for slot in self.names_for(&key).cloned().unwrap_or_default() {
+        let indices = self.names_for(&key).cloned().unwrap_or_default();
+        for &slot in indices.iter() {
             if self.invalid(slot, now) {
                 self.remove(slot);
             } else if kinds
@@ -1018,15 +1023,13 @@ impl Cache {
                 found.push(slot);
             }
         }
+        // The iteration snapshot must not force an otherwise unique Many
+        // list to detach for a round-robin rotation after the lookup.
+        drop(indices);
         if round_robin && found.len() > 1 {
             // Move subsequent matching entries before the first match, leaving
             // unrelated kinds in their positions relative to that first match.
-            let entries = self.names_for_mut(&key).unwrap();
-            for &slot in &found[1..] {
-                entries.retain(|index| *index != slot);
-            }
-            let at = entries.iter().position(|index| *index == found[0]).unwrap();
-            entries.splice(at..at, found[1..].iter().copied());
+            self.names_for_mut(&key).unwrap().rotate_matches(&found);
         }
         found.into_iter().rev().map(|slot| self.id(slot)).collect()
     }
@@ -1100,7 +1103,7 @@ impl Cache {
         self.reverse_chain.retain(|&entry| entry != slot);
         let key = self.entry(slot).unwrap().record.name.canonical_wire();
         let indices = self.names_for_mut(&key).unwrap();
-        indices.retain(|index| *index != slot);
+        indices.remove(slot);
         if indices.is_empty() {
             self.names_shard_mut(&key).remove(key.as_slice());
         }

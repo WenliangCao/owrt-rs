@@ -2,6 +2,8 @@
 
 2026-10-07。本文件是执行准备，不是通过收据。本地仅读码/准备patch/报告，Oracle正式27baseline独占。当前A产品状态 `5f3d42b48de395fc64b511687144ffa50e989913`，基点已冻结无A `70097c66`；A未main、未有fresh原语/服务/资源/压力/CPU资格。旧 `3a64b45d` 的21/22,571与65KiB均保留历史、不复用。
 
+2026-10-08补注：5f/b73是已保全的Vec-index原型，后续按原设计§4强耦合补齐One inline/Many Arc<Vec>与高位shard，见[Index helper取舍](M6B_TCP_A_INDEX_HELPER.md)。下面SHA表准确绑定5f组件与旧layout脚本，是重建入口历史；执行前必须重新冻结完成helper/companion的最终A source/tool SHA，不用该表冒充新source资格，先跑全部fresh门。
+
 ## 产品边界与身份
 
 从70097独立重放A存储bffb1127、view/COW测试f5d12d17/3c12c538、compact c5d9a3a9，以及S8 2ef80a05/02934ed1。5f3d42b4将新route/MAC/HUP/8-step/64-step tests的DNS字段改入`dns_work`；外层poll_slot/ready_events/log_context不移动。重放S8时拒绝旧accept-MAC下游POLLIN回退，normal/probe继续等MAC deadline/neighbor，正常buffer/log完成沿用新runnable guard。两次initial check失败为旧test字段（host cache_debug、Linux HUP service），不是产品功能失败；只做机械字段迁移，最终fresh check尚未执行。旧A tip def78581和证据保全于`archive/m6b/tcp-a-4816-def78581`。

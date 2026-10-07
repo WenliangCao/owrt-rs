@@ -14,6 +14,10 @@ from pathlib import Path
 
 
 PROBE = r'''
+fn m6b_index_heap_indices(indices: &SlotIndices) -> usize {
+    match indices { SlotIndices::Many(values) => values.capacity(), _ => 0 }
+}
+
 pub fn m6b_a_probe(start: fn(), finish: fn() -> (i64, usize)) -> String {
     let mut parent = Cache::new(4096, Policy::default());
     for index in 0..4096u32 {
@@ -30,7 +34,7 @@ pub fn m6b_a_probe(start: fn(), finish: fn() -> (i64, usize)) -> String {
     let cloned = finish();
     let shard_lengths: Vec<_> = parent.names.iter().map(|s| s.len()).collect();
     let shard_capacities: Vec<_> = parent.names.iter().map(|s| s.capacity()).collect();
-    let index_capacities: usize = parent.names.iter().flat_map(|s| s.values()).map(Vec::capacity).sum();
+    let index_capacities: usize = parent.names.iter().flat_map(|s| s.values()).map(m6b_index_heap_indices).sum();
     let key_bytes: usize = parent.names.iter().flat_map(|s| s.keys()).map(|s| s.len()).sum();
     start();
     let hit = child.lookup(&Name::from_ascii("q0000.m6a.test").unwrap(), &[Kind::Ipv4], 100, false);
@@ -41,7 +45,7 @@ pub fn m6b_a_probe(start: fn(), finish: fn() -> (i64, usize)) -> String {
     start();
     for shard in &mut child.names { Arc::make_mut(shard); }
     let detached_names = finish();
-    let detached_index_capacities: usize = child.names.iter().flat_map(|s| s.values()).map(Vec::capacity).sum();
+    let detached_index_capacities: usize = child.names.iter().flat_map(|s| s.values()).map(m6b_index_heap_indices).sum();
     start();
     for block in &mut child.content { Arc::make_mut(block); }
     let detached_content = finish();
@@ -52,7 +56,53 @@ pub fn m6b_a_probe(start: fn(), finish: fn() -> (i64, usize)) -> String {
     start();
     drop(child);
     let drop_scope = finish();
-    format!("{{\"capacity\":4096,\"owner_slots_requested_bytes\":{owner_bytes},\"root_vectors_requested_bytes\":{root_bytes},\"snapshot_net_requested_bytes\":{},\"snapshot_allocations\":{},\"ordinary_hit_net_requested_bytes\":{},\"ordinary_hit_allocations\":{},\"all_index_detach_net_requested_bytes\":{},\"all_index_detach_allocations\":{},\"all_content_detach_net_requested_bytes\":{},\"all_content_detach_allocations\":{},\"child_drop_net_requested_bytes\":{},\"child_drop_allocations\":{},\"parent_singleton_index_capacity_sum\":{index_capacities},\"detached_singleton_index_capacity_sum\":{detached_index_capacities},\"shared_key_payload_bytes\":{key_bytes},\"shard_lengths\":{lengths},\"shard_capacities\":{capacities}}}",
+    start();
+    let mut single = SlotIndices::default();
+    single.push(7);
+    let singleton_scope = finish();
+    start();
+    single.push(9);
+    let one_to_many = finish();
+    let many: SlotIndices = [7, 2, 9, 5].into_iter().collect();
+    start();
+    let mut inherited = many.clone();
+    let many_clone = finish();
+    start();
+    inherited.rotate_matches(&[7, 9, 5]);
+    let many_rotation = finish();
+    assert_eq!(&*many, &[7, 2, 9, 5]);
+    assert_eq!(&*inherited, &[9, 5, 7, 2]);
+    start();
+    inherited.rotate_matches(&[9, 5, 7]);
+    let unique_rotation = finish();
+    start();
+    inherited.remove(5);
+    let many_remove = finish();
+    let mut growth = Vec::new();
+    for size in [2usize, 3, 64, 1024] {
+        let mut value = SlotIndices::default();
+        start();
+        for slot in 0..size { value.push(slot); }
+        let build = finish();
+        start();
+        let mut copy = value.clone();
+        let shared_clone = finish();
+        start();
+        copy.push(size);
+        let shared_push = finish();
+        start();
+        copy.remove(size);
+        let unique_remove = finish();
+        growth.push(format!("{{\"rrset\":{size},\"build_bytes\":{},\"build_allocations\":{},\"clone_bytes\":{},\"clone_allocations\":{},\"shared_push_bytes\":{},\"shared_push_allocations\":{},\"unique_remove_bytes\":{},\"unique_remove_allocations\":{},\"result_capacity\":{}}}",
+            build.0, build.1, shared_clone.0, shared_clone.1, shared_push.0, shared_push.1,
+            unique_remove.0, unique_remove.1, m6b_index_heap_indices(&copy)));
+    }
+    let growth = growth.join(",");
+    let helper = format!("{{\"singleton_bytes\":{},\"singleton_allocations\":{},\"one_to_many_bytes\":{},\"one_to_many_allocations\":{},\"many_clone_bytes\":{},\"many_clone_allocations\":{},\"many_first_rotation_bytes\":{},\"many_first_rotation_allocations\":{},\"many_unique_rotation_bytes\":{},\"many_unique_rotation_allocations\":{},\"many_remove_net_bytes\":{},\"many_remove_allocations\":{}}}",
+        singleton_scope.0, singleton_scope.1, one_to_many.0, one_to_many.1,
+        many_clone.0, many_clone.1, many_rotation.0, many_rotation.1,
+        unique_rotation.0, unique_rotation.1, many_remove.0, many_remove.1);
+    format!("{{\"capacity\":4096,\"owner_slots_requested_bytes\":{owner_bytes},\"root_vectors_requested_bytes\":{root_bytes},\"snapshot_net_requested_bytes\":{},\"snapshot_allocations\":{},\"ordinary_hit_net_requested_bytes\":{},\"ordinary_hit_allocations\":{},\"all_index_detach_net_requested_bytes\":{},\"all_index_detach_allocations\":{},\"all_content_detach_net_requested_bytes\":{},\"all_content_detach_allocations\":{},\"child_drop_net_requested_bytes\":{},\"child_drop_allocations\":{},\"parent_index_heap_indices\":{index_capacities},\"detached_index_heap_indices\":{detached_index_capacities},\"shared_key_payload_bytes\":{key_bytes},\"shard_lengths\":{lengths},\"shard_capacities\":{capacities},\"ordered_index_helper_scopes\":{helper},\"many_growth_scopes\":[{growth}]}}",
             cloned.0, cloned.1, hit_scope.0, hit_scope.1,
             detached_names.0, detached_names.1, detached_content.0, detached_content.1,
             drop_scope.0, drop_scope.1)
@@ -77,6 +127,25 @@ unsafe impl GlobalAlloc for Meter {
             ALLOCS.fetch_add(1, Ordering::Relaxed);
         }
         ptr
+    }
+    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
+        // SAFETY: forward the valid GlobalAlloc layout to System unchanged.
+        let ptr = unsafe { System.alloc_zeroed(layout) };
+        if !ptr.is_null() && ACTIVE.load(Ordering::Relaxed) {
+            BYTES.fetch_add(layout.size() as isize, Ordering::Relaxed);
+            ALLOCS.fetch_add(1, Ordering::Relaxed);
+        }
+        ptr
+    }
+    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
+        // SAFETY: caller supplies the live System allocation/original layout
+        // and valid new size. Failed realloc retains its original ownership.
+        let resized = unsafe { System.realloc(ptr, layout, new_size) };
+        if !resized.is_null() && ACTIVE.load(Ordering::Relaxed) {
+            BYTES.fetch_add(new_size as isize - layout.size() as isize, Ordering::Relaxed);
+            ALLOCS.fetch_add(1, Ordering::Relaxed);
+        }
+        resized
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         if ACTIVE.load(Ordering::Relaxed) {
@@ -132,8 +201,11 @@ def main():
             inputs[name] = hashlib.sha256(value).hexdigest()
     cache = source / 'components/dnsmasq/src/dns/cache.rs'
     text = cache.read_text()
-    for name in ['Slot', 'Entry', 'Record', 'ContentBlock', 'Cache']:
-        text += f'\n#[used]\n#[no_mangle]\npub static M6B_A_SIZE_{name}: [u8; std::mem::size_of::<{name}>()] = [0; std::mem::size_of::<{name}>()];\n'
+    types = {'Slot': 'Slot', 'Entry': 'Entry', 'Record': 'Record', 'ContentBlock': 'ContentBlock',
+             'Cache': 'Cache', 'SlotIndices': 'SlotIndices', 'NameIndex': 'NameIndex',
+             'NameIndexEntry': '(Arc<[u8]>, SlotIndices)'}
+    for name, expression in types.items():
+        text += f'\n#[used]\n#[no_mangle]\npub static M6B_A_SIZE_{name}: [u8; std::mem::size_of::<{expression}>()] = [0; std::mem::size_of::<{expression}>()];\n'
     cache.write_text(text)
     manifest = source / 'components/dnsmasq/Cargo.toml'
     target_dir = out / 'target'
@@ -143,7 +215,7 @@ def main():
         raise RuntimeError(f'expected one LLVM IR, got {irs}')
     ir = irs[0].read_text()
     sizes = {}
-    for name in ['Slot', 'Entry', 'Record', 'ContentBlock', 'Cache']:
+    for name in types:
         values = re.findall(r'^@M6B_A_SIZE_' + name + r' = .*?\[(\d+) x i8\]', ir, re.MULTILINE)
         if len(values) != 1:
             raise RuntimeError('missing layout ' + name)

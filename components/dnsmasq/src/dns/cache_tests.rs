@@ -1,6 +1,74 @@
 use super::*;
 
 #[test]
+fn real_mixed_rrset_rotation_keeps_unique_many_allocation_and_snapshot_order() {
+    let mut parent = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("mixed.index.test").unwrap();
+    let key = name.canonical_wire();
+    parent.start_insert();
+    for (kind, value) in [(Kind::Ipv4, 1), (Kind::Ipv6, 2), (Kind::Generic(16), 3),
+                          (Kind::Ipv4, 4), (Kind::Generic(15), 5)] {
+        parent.insert(record("mixed.index.test", kind, value), 100, 60).unwrap();
+    }
+    assert!(parent.commit());
+    let SlotIndices::Many(indices) = parent.names_for(&key).unwrap() else { panic!() };
+    let unique = indices.as_ptr();
+    parent.lookup(&name, &[Kind::Ipv4], 100, true);
+    let SlotIndices::Many(indices) = parent.names_for(&key).unwrap() else { panic!() };
+    assert_eq!(indices.as_ptr(), unique, "lookup's temporary snapshot must be gone before unique rotation");
+    let order = |cache: &Cache| cache.names_for(&key).unwrap().iter()
+        .map(|&slot| cache.entry(slot).unwrap().record.data[0]).collect::<Vec<_>>();
+    assert_eq!(order(&parent), [5, 1, 4, 3, 2]);
+    let mut child = parent.snapshot();
+    child.lookup(&name, &[Kind::Generic(16)], 100, true);
+    assert_eq!(order(&parent), [5, 1, 4, 3, 2]);
+    assert_eq!(order(&child), [3, 5, 1, 4, 2]);
+    check_ownership(&parent);
+    check_ownership(&child);
+}
+
+#[test]
+fn shard_detach_shares_many_indices_until_order_write_and_keeps_canonical_key_alive() {
+    let mut parent = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("shared.rrset.test").unwrap();
+    let key = name.canonical_wire();
+    let shard = Cache::key_shard(&key);
+    parent.start_insert();
+    parent.insert(record("shared.rrset.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    parent.insert(record("shared.rrset.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    assert!(parent.commit());
+    let parent_key = parent.names[shard].keys().find(|old| old.as_ref() == key.as_slice()).unwrap();
+    // Only the immutable key has a Weak observer. Content/index root weak
+    // references would change Arc::make_mut's detach behavior.
+    let key_lifetime = Arc::downgrade(parent_key);
+    let parent_key = parent_key.as_ptr();
+    let mut child = parent.snapshot();
+    // Write another name in this shard so the map detaches while its existing
+    // multi-record value must still share the immutable ordered index slice.
+    let other = (0..4096).map(|i| format!("neighbor-{i}.test")).find(|text| {
+        Cache::key_shard(&Name::from_ascii(text).unwrap().canonical_wire()) == shard
+    }).unwrap();
+    child.start_insert();
+    child.insert(record(&other, Kind::Ipv4, 3), 100, 60).unwrap();
+    assert!(child.commit());
+    let (SlotIndices::Many(parent_indices), SlotIndices::Many(child_indices)) =
+        (parent.names_for(&key).unwrap(), child.names_for(&key).unwrap()) else { panic!() };
+    assert!(Arc::ptr_eq(parent_indices, child_indices));
+    assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+    let old_order = parent_indices.to_vec();
+    child.lookup(&name, &[Kind::Ipv4], 100, true);
+    assert_eq!(&**parent.names_for(&key).unwrap(), old_order.as_slice());
+    assert_ne!(&**child.names_for(&key).unwrap(), old_order.as_slice());
+    parent.clear();
+    let child_key = child.names[shard].keys().find(|old| old.as_ref() == key.as_slice()).unwrap().as_ptr();
+    assert_eq!(child_key, parent_key, "detached map retains the canonical key payload");
+    assert_eq!(child.lookup(&name, &[Kind::Ipv4], 100, false).len(), 2);
+    assert!(key_lifetime.upgrade().is_some());
+    drop(child);
+    assert!(key_lifetime.upgrade().is_none(), "last view must release its canonical key");
+}
+
+#[test]
 fn tcp_retained_view_keeps_negative_reverse_lease_and_rotation_private() {
     let mut parent = Cache::new(16, Policy::default());
     parent.start_insert();
