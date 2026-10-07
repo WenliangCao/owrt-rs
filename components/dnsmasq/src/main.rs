@@ -107,6 +107,15 @@ fn neighbor_poll_deadline(epoch_seconds: u64, now: Instant, realtime: Duration) 
     now.checked_add(remaining).unwrap_or(now)
 }
 
+#[cfg(target_os = "linux")]
+fn owner_poll_timeout(deadline: Instant, now: Instant, runnable: bool) -> i32 {
+    if runnable {
+        return 0;
+    }
+    deadline.saturating_duration_since(now).as_nanos()
+        .div_ceil(1_000_000).min(i32::MAX as u128) as i32
+}
+
 extern "C" fn request_stop(_signal: i32) {
     STOP_REQUESTED.store(true, Ordering::Release);
     wake_signal_waiter();
@@ -3577,6 +3586,13 @@ impl SinglePoll {
             let network_fd_start = fds.len();
             let now = Instant::now();
             let mut deadline = now + Duration::from_secs(3600);
+            // Logical work can be queued after its consumer's turn. Do not
+            // depend on a pipe byte surviving until the next wait: counters
+            // and queues are the authority, fd readiness is only the wakeup.
+            let mut runnable = STOP_REQUESTED.load(Ordering::Acquire)
+                || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0
+                || (RELOAD_REQUESTED.load(Ordering::Acquire) != 0
+                    && !self.reload_in_progress());
 
             // The normal owner waits on network and file descriptors in one
             // set.  `step` still performs bounded nonblocking work after the
@@ -3623,7 +3639,7 @@ impl SinglePoll {
                         deadline = deadline.min(due);
                     }
                     if client.network_done && logger.tcp_finished(context) {
-                        deadline = now;
+                        runnable = true;
                     }
                 }
                 if client.network_done {
@@ -3640,7 +3656,7 @@ impl SinglePoll {
                 let (fd, events) = match &client.phase {
                     TcpClientPhase::Reading => {
                         if client.input_offset < client.input.len() {
-                            deadline = now;
+                            runnable = true;
                         }
                         (
                             client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
@@ -3669,6 +3685,10 @@ impl SinglePoll {
             }
             let mut ubus_fd_index = None;
             if let Some(ubus) = &self.parent_events.borrow().ubus {
+                // A synchronous doctor call may have read a complete method
+                // into Connection's pending queue while awaiting its reply.
+                // The kernel socket can now be empty, but that method is ready.
+                runnable |= ubus.has_pending();
                 ubus_fd_index = Some(fds.len());
                 fds.push(PollFd {
                     fd: ubus.as_raw_fd(),
@@ -3707,6 +3727,7 @@ impl SinglePoll {
                     }
                 }
                 if let Some(due) = self.helper_next_due(now) {
+                    runnable |= due <= now;
                     deadline = deadline.min(due);
                 }
             }
@@ -3740,10 +3761,10 @@ impl SinglePoll {
                     deadline = deadline.min(limit);
                 }
                 if collector.runnable() {
-                    deadline = now;
+                    runnable = true;
                 }
             }
-            let mut runnable = self.dns_file_work_runnable()
+            runnable |= self.dns_file_work_runnable()
                 || (self.edns_udp_runnable && !self.interface_work_pending())
                 || self
                     .hosts_read
@@ -3754,9 +3775,7 @@ impl SinglePoll {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 runnable |= provider.borrow_mut().files_runnable();
             }
-            if runnable || self.full_reload_pending {
-                deadline = now;
-            }
+            runnable |= self.full_reload_pending;
             // A failed wake-pipe allocation must not make TERM/HUP sleep for
             // the one-hour no-timer sentinel. This is only an error fallback;
             // the normal path is woken by the pipe and uses the real deadline.
@@ -3768,11 +3787,8 @@ impl SinglePoll {
                     deadline = deadline.min(due);
                 }
             }
-            let timeout = deadline
-                .saturating_duration_since(Instant::now())
-                .as_nanos()
-                .div_ceil(1_000_000)
-                .min(i32::MAX as u128) as i32;
+            let timeout = owner_poll_timeout(deadline, Instant::now(), runnable);
+            debug_assert!(!runnable || timeout == 0);
             let started = Instant::now();
             let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
             let ready = match poll_result {
@@ -6217,6 +6233,40 @@ mod tests {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             None,
         )
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn owner_runnable_overrides_a_future_timer_and_preserves_timer_rounding() {
+        let now = Instant::now();
+        assert_eq!(owner_poll_timeout(now + Duration::from_secs(3600), now, true), 0);
+        assert_eq!(owner_poll_timeout(now + Duration::from_nanos(1), now, false), 1);
+        assert_eq!(owner_poll_timeout(now, now, false), 0);
+        assert_eq!(owner_poll_timeout(now + Duration::from_secs(u32::MAX as u64), now, false), i32::MAX);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn delivered_signal_counters_wake_even_without_a_pipe_byte() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        assert!(owner.signal_wake_read.is_none());
+        for event in 0..3 {
+            let before = match event {
+                0 => usize::from(STOP_REQUESTED.swap(true, Ordering::AcqRel)),
+                1 => LOG_REOPEN_REQUESTED.swap(1, Ordering::AcqRel),
+                _ => RELOAD_REQUESTED.swap(1, Ordering::AcqRel),
+            };
+            let started = Instant::now();
+            let result = owner.wait_for_files();
+            match event {
+                0 => STOP_REQUESTED.store(before != 0, Ordering::Release),
+                1 => LOG_REOPEN_REQUESTED.store(before, Ordering::Release),
+                _ => RELOAD_REQUESTED.store(before, Ordering::Release),
+            }
+            result.unwrap();
+            assert!(started.elapsed() < Duration::from_millis(50),
+                "logical signals cannot wait for the 100ms fallback");
+        }
     }
 
     fn add_test_tcp(owner: &mut SinglePoll) -> TcpStream {

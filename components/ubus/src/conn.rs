@@ -1999,6 +1999,27 @@ mod tests {
     }
 
     #[test]
+    fn complete_pending_method_is_runnable_with_an_empty_kernel_socket() {
+        let (mut sender, mut receiver) = pair();
+        let mut message = BlobBuf::new();
+        message.put_string(attr::METHOD, "get_metrics");
+        sender.send(Header { ty: ty::INVOKE, seq: 7, peer: 9 }, &mut message, None).unwrap();
+        // A doctor request consumes a nonmatching method while waiting for its
+        // own response and parks it in this same queue.
+        let method = receiver.recv().unwrap();
+        receiver.pending.push_back(method);
+        let mut fd = [sys::PollFd {
+            fd: receiver.as_raw_fd(), events: sys::POLLIN, revents: 0,
+        }];
+        assert_eq!(sys::poll_fds(&mut fd, 0).unwrap(), 0);
+        assert!(receiver.has_pending(), "owner must wake without a new socket event");
+        let Some(Incoming::Invoke(method)) = receiver.incoming_if_started().unwrap()
+            else { panic!("pending method") };
+        assert_eq!(method.seq, 7);
+        assert!(!receiver.has_pending(), "empty queues must return to fd waiting");
+    }
+
+    #[test]
     fn started_receive_finishes_fragmented_frame_and_owns_its_fd() {
         let (mut sender, mut receiver) = pair();
         let (passed, mut observer) = UnixStream::pair().unwrap();
