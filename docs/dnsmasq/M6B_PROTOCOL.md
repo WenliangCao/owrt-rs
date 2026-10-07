@@ -8,6 +8,8 @@
 
 用户随后取消旧M5 `df99d1f9` 只加计数构建的补测。修复前的等待来源以读码和系统调用统计为证据，未做旧版本计数实测；旧低速准备及中止记录保留、不计为根因计数资格。计数诊断仅使用修后同源独立companion，Oracle时间优先用于服务回归、无A新基线和方案A。
 
+第1包收尾点按用户追加授权固定为：路由重发修复并通过fresh镜像C，跑完已写好的唤醒测试，立即冻结无方案A新版本，执行27窗新CPU基线并开始方案A各门。后续新发现的唤醒问题独立并行修复，在最终冻结前合入复测，不扩大第1包、也不继续阻塞基线或方案A。方案A仍须全部门通过才能进主线。
+
 第1b优先于方案A：先采perf、再统计原始syscall/errno，证实多余EAGAIN后修按fd/revents分派。必须保留每个socket的读写/error/hangup和内部buffer、timer、probe、MAC/file续步；不能以readiness跳过到期或关闭回收。关闭dump时无地址查询。新基线冻结前方案A CPU门暂停，M6a约20µs不再作为当前对照。
 
 方案A增量门使用同配置的新feature-off `R3_new`、独立分支A和镜像C，`u=daemon cgroup CPU usec/正确完成请求`（cgroup已经包含C子进程，**不得再加一次child CPU**；proc父子合计只作交叉核验）。要求`median(u_A)≤1.05×median(u_R3_new)`且`median(u_A)<median(u_C_new)`，吞吐/p95不回退超过5%；全部原语/语义/资源门保持。正式W及4/5方向分类阈值不变。
