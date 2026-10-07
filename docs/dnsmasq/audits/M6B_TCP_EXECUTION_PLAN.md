@@ -33,7 +33,7 @@ ssh oracle "mkdir -p '$ROOT' && tar -xzf /home/ubuntu/m6b-tcp-a-source.tar.gz -C
 构建必须串行持有共享 Cargo target/build lock，且输出目录全新；每个 `build.json` 和 ELF SHA 归档到 `$EVIDENCE/builds/`：
 
 ```sh
-mkdir -p "$ROOT/private/build-opt3" "$ROOT/private/build-opts"
+mkdir -p "$ROOT/private" "$EVIDENCE/builds"
 ORACLE_BUILD_LINK_MAP=1 sh "$SOURCE/tools/dnsmasq/oracle_build.sh" \
   "$SOURCE" "$ROOT/private/build-opt3" release
 ORACLE_BUILD_OPT_LEVEL=s ORACLE_BUILD_LINK_MAP=1 \
