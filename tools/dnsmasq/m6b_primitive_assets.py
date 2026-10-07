@@ -203,6 +203,15 @@ def prepare(args):
     policy = policy.replace(old, 'pub fn m6b_cache_policy_main()')
     policy = policy.replace('question_name:question.name,', 'question_name:question.name.clone(),')
     policy = policy.replace('UncheckedReply{packet,truncated:', 'UncheckedReply{packet,upstream_name:question.name,truncated:')
+    old_reply = ('let rcode=daemon.process_completed_reply(&mut reply,now,None,&mut None).unwrap();\n'
+                 '   daemon.recipient_packet(&reply,&recipient,rcode).unwrap()')
+    if policy.count(old_reply) != 1:
+        raise ValueError('policy completed-reply return anchors changed')
+    policy = policy.replace(old_reply,
+                            'match daemon.process_completed_reply(&mut reply,now,None,&mut None).unwrap(){\n'
+                            '    Some(rcode)=>daemon.recipient_packet(&reply,&recipient,rcode).unwrap().map(|(packet,_)|packet),\n'
+                            '    None=>None\n'
+                            '   }')
     edns = rust_driver(HERE / DRIVERS[1])
     context = 'negative_ttl:daemon.negative_ttl}'
     if edns.count(old) != 1 or edns.count(context) != 1:
@@ -232,7 +241,9 @@ def prepare(args):
                'source_commit': commit, 'source_root': str(source), 'base_source_archive_sha256': digest(archive),
                'base_compile_inputs': base, 'generated_compile_inputs': source_files(source),
                'examples': examples, 'driver_inputs': drivers, 'generator_sha256': digest(Path(__file__)),
-               'narrow_api_adaptations': ['distinct daemon entrypoints', 'UncheckedReply upstream_name', 'CacheContext filter_rr'],
+               'narrow_api_adaptations': ['distinct daemon entrypoints', 'UncheckedReply upstream_name',
+                                         'completed-reply optional rcode and recipient packet projection',
+                                         'CacheContext filter_rr'],
                'product_source_modified': False, 'image_daemon_qualification': False}
     (out / 'source-receipt.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
     print(json.dumps({'source_root': str(source), 'receipt': str(out / 'source-receipt.json'), 'built': False}))

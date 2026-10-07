@@ -5,11 +5,11 @@
 | 静态Cargo example／复制artifact | Rust来源与命令ABI | caller |
 | --- | --- | --- |
 | `m6b-cache-core` | parent `dns_cache_diff.primitive_rust_source()`；actual crate import，无local shim/绝对module path | parent维护core21 bridge |
-| `m6b-cache-policy` | 原RUST_DRIVER，仅在ignored copy改pub入口名、补UncheckedReply.upstream_name；RESET/P/Q frozen clock、wire与真实cache counters | `cache_policy_transaction_diff.py`，显式选择policy而非builder默认edns |
+| `m6b-cache-policy` | 原RUST_DRIVER，仅在ignored copy改pub入口名、补UncheckedReply.upstream_name、适配completed-reply的Option rcode及recipient的(packet, flag)返回；RESET/P/Q frozen clock、wire与真实cache counters | `cache_policy_transaction_diff.py`，显式选择policy而非builder默认edns |
 | `m6b-cache-edns` | 原RUST_DRIVER，ignored daemon模块独立入口，补当前CacheContext.filter_rr；RESET/P/Q、maximum、OPT/stale/EDE | `cache_edns_diff.py` |
 | `m6b-cache-lease` | `lease_cache_probe.rs`实际公开Cache/Publication API；capacity/no-round参数，B/I/L/C/H/D/Q | `lease_cache_diff.py`；新增Reverse枚举仅补编译穷尽，forward-only corpus无reverse期待 |
 
-policy/EDNS原driver需要daemon私有API，不能伪造外部Shim或拿产品ELF冒充probe。prepare从完整commit Git archive生成fresh ignored copy，只追加两个不同pub entrypoint与四个examples；main.rs保持原字节，产品树不改。基础／生成编译输入、完整archive、driver/tool SHA、example SHA/ABI以及三项窄API补正进入source-receipt。
+policy/EDNS原driver需要daemon私有API，不能伪造外部Shim或拿产品ELF冒充probe。prepare从完整commit Git archive生成fresh ignored copy，只追加两个不同pub entrypoint与四个examples；main.rs保持原字节，产品树不改。policy保留真实process_completed_reply返回None的丢包结果；Some(rcode)才调用recipient_packet，并只投影其packet，既不填充默认rcode也不把丢包改成回答。基础／生成编译输入、完整archive、driver/tool SHA、example SHA/ABI以及窄API补正进入source-receipt。
 
 所有Rust构建仅由parent的 `oracle_build.sh SOURCE FRESH_OUTPUT primitive-probes` 完成：唯一共享target、opt3、feature-off，四静态examples全部在锁内build/copy。公共helper的source_files口径与该builder相同：dnsmasq/ubus全部regular component文件（排relative target），以及存在的root Cargo/lock/rust-toolchain/.cargo文件；symlink拒绝。新的NameIndex helper也是component冻结输入。
 
