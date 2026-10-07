@@ -3847,8 +3847,14 @@ impl SinglePoll {
     }
 
     fn process_ubus_if_ready(&mut self) -> io::Result<()> {
-        let retry_due = self.parent_events.borrow().ubus.is_none();
-        if !self.ubus_ready && !retry_due {
+        let pending_or_retry = {
+            let event = self.parent_events.borrow();
+            if event.ubus_name.is_none() {
+                return Ok(());
+            }
+            event.ubus.as_ref().is_none_or(UbusService::has_pending)
+        };
+        if !self.ubus_ready && !pending_or_retry {
             return Ok(());
         }
         let mut event = self
