@@ -486,6 +486,13 @@ impl LocalProvider {
         self.pending_delivery.take()
     }
 
+    /// Only already frozen work is runnable while a hosts reload is pending.
+    /// Checking this must not snapshot the next lease name ahead of publication.
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn has_frozen_script_delivery(&self) -> bool {
+        self.pending_delivery.is_some()
+    }
+
     /// A dead helper is not respawned by C. Stop retaining undeliverable
     /// callbacks while leaving DHCP, lease persistence and DNS usable.
     pub fn disable_script_delivery(&mut self) {
