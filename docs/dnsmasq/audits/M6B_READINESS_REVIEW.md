@@ -68,3 +68,5 @@ Oracle 单一共享 target 构建并实际执行库710通过/20 ignored、入口
 新产品feature-off opt3 SHA `9acccc6068a2734945271b687ca48f35ddfbc96fa1aa91d575af63317aec262b`，1,941,544B；s SHA `781cf6d739c61bf3bb0fc02d7ee332f4bd87d864cb8f61b7fe203bc3ab403b6c`，1,626,152B。E/M6B/helper-ready保存source.tar、build receipts、link map、实际ELF和全部测试日志。本地SHA/尺寸与build receipts相等。
 
 真实镜像C service-03仍在执行，已通过option_matrix_next、helper；未完成族不称通过。service-02控制器漏link_map binding在展开命令前退出，零测试执行，错误日志/原控制器SHA保留后fresh重跑，未覆盖原失败。未插桩基线manifest `79ebd42c…` 已准备但尚未执行；A服务和CPU硬门仍待过。
+
+TFTP实际全族fresh重跑已通过（276.383s）：30普通、5故意reference、6安全syntax，result SHA `bc3b9710dce0aa1edd717c6bef9f42bb689e295eb0afd2a7715518c881278ba0`。两侧completion-script-once均精确2条V4/V6回调，final-ack-timeout-script-once均精确1条回调；各退出/FD/网络清理及负控保持。dump原族也通过。其余服务门继续，整包尚未关闭。
