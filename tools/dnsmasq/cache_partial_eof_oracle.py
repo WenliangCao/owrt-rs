@@ -11,6 +11,7 @@ from pathlib import Path
 import socket
 
 import local_answer_diff as reference
+import c_primitive_receipt
 from cache_transfer_diff import CACHE_SHA, IDENTITY_SHA, NATIVE_SHA, command, save, sha
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -134,9 +135,15 @@ def main():
     assert out.is_relative_to(ROOT / "private") and not out.exists()
     out.mkdir(parents=True)
     save(out / "plan.json", [plan(label) for label in CASES])
+    input_paths = [args.source_identity, args.reference_build / 'dnsmasq',
+                   args.reference_build / 'deps/include', args.reference_build / 'deps/lib',
+                   Path(__file__).with_name('cache_partial_eof_driver.c')]
+    frozen_inputs = c_primitive_receipt.snapshot(input_paths)
+    save(out / 'source-inputs-before.json', frozen_inputs)
     report = {"scope": "C-only native exact-cache partial anonymous-pipe EOF", "checks": [], "failures": [], "cases": []}
     try:
         binary, identity = build(args, out)
+        compilers = [c_primitive_receipt.compiler_probe(out, 'native', 'cc')]
         report["identity"] = identity
         for label in CASES:
             folder = out / label
@@ -154,6 +161,9 @@ def main():
     report["passed"] = sum(check["pass"] for check in report["checks"])
     report["failed"] = sum(not check["pass"] for check in report["checks"]) + len(report["failures"])
     save(out / "result.json", report)
+    if report['failed'] == 0:
+        c_primitive_receipt.freeze(out, 'cache-partial-eof', args.source_identity, frozen_inputs,
+                                   compilers, [out / 'native-oracle'], True)
     print(json.dumps(report))
     return int(bool(report["failed"]))
 

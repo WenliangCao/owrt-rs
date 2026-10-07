@@ -58,6 +58,33 @@ python3 "$M6B_TOOLS/lease_cache_diff.py" \
 
 `M6B_C_PRIMITIVE_BUILD` 是 hash/variant 固定的 matching-source C 原语构建输入，不是镜像 daemon 的资格身份。core、policy、EDNS、lease 都必须实际执行完整 corpus；必要负控的失败输出也保存，不能仅 prepare/build 后写通过。
 
+## fresh transfer / partial-EOF C（同旧 corpus，不能借历史 transcript）
+
+父线程要求两个原语也重新实际编译 C。`cache_transfer_diff.py` 和 `cache_partial_eof_oracle.py` 保持原 case / plan / result / trace 格式，新增 `fresh-c-receipt.json`。收据绑定源码、对象／库 before-after SHA、C 编译 argv、compiler version / target / ABI macros、ELF ABI、完整 corpus / stdout / 负控和原始文件 SHA。native 沿用经过 hash 核对的完整参考对象，cache.c 随 driver fresh 编译；transfer 的 target 非 cache 对象也从 matching C 源码 fresh 编译。primitive 与镜像服务身份仍分开。
+
+```sh
+python3 "$M6B_TOOLS/cache_transfer_diff.py" \
+  --reference-build "$M6B_C_PRIMITIVE_BUILD" --source-identity "$M6B_C_SOURCE_IDENTITY" \
+  --sdk "$M6B_SDK" --target-reference "$M6B_C_TARGET_REFERENCE" --out "$M6B_A_TRANSFER_C"
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/cache_partial_eof_oracle.py" \
+  --reference-build "$M6B_C_PRIMITIVE_BUILD" --source-identity "$M6B_C_SOURCE_IDENTITY" \
+  --out "$M6B_A_PARTIAL_C"
+ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' \
+  sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_LIB_PROBE_BUILD" probe-tests
+python3 "$M6B_TOOLS/cache_transfer_rust_diff.py" \
+  --baseline "$M6B_A_TRANSFER_C" --fresh-c-receipt "$M6B_A_TRANSFER_C/fresh-c-receipt.json" \
+  --rust-test-binary "$M6B_A_LIB_PROBE_BUILD/lib-dnsmasq_rs" \
+  --rust-source-root "$M6B_A_SOURCE" --rust-build-receipt "$M6B_A_LIB_PROBE_BUILD/build.json" \
+  --out "$M6B_A_TRANSFER_COMPARE"
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/cache_partial_eof_rust_diff.py" \
+  --baseline "$M6B_A_PARTIAL_C" --fresh-c-receipt "$M6B_A_PARTIAL_C/fresh-c-receipt.json" \
+  --rust-test-binary "$M6B_A_LIB_PROBE_BUILD/lib-dnsmasq_rs" \
+  --rust-source-root "$M6B_A_SOURCE" --rust-build-receipt "$M6B_A_LIB_PROBE_BUILD/build.json" \
+  --out "$M6B_A_PARTIAL_COMPARE"
+```
+
+旧 PLAN / IDENTITY / STDOUT pins 不删除、不改名；没有 `--fresh-c-receipt` 的历史路径仅为额外回归，不计作本次 fresh C 对照。whole-frame partial sentinel 是已声明的 C-only transport cutpoint，不冒称产品可注入半条 native pipe；`--stream-format` 若使用，须匹配该源中实际 ignored driver 格式。所有失败保留，fresh C receipt 未通过不得继续授资格。
+
 ## 固定执行顺序与尚未覆盖的门
 
 1. frozen A 组件源码与四 bridges 收据 → `primitive-probes` 构建 → 四原语完整差分及原始失败保存。
