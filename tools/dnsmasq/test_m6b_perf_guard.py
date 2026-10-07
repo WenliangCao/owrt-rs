@@ -22,6 +22,18 @@ def write(path, value):
 
 
 class GuardInputs(unittest.TestCase):
+    def test_guard_rejects_s_even_when_elf_and_feature_identity_match(self):
+        product = {'kind': 'release', 'features': '', 'opt_level': '3',
+                   'artifacts': [{'path': 'dnsmasq-rs', 'sha256': SHA, 'bytes': 1234}]}
+        guard.verify_release_build(product, SHA, 1234)
+        variants = [dict(product, opt_level=level) for level in ['s', 'z', 3, None]]
+        variants += [dict(product, features='m6b-diagnostics'), dict(product, kind='tests')]
+        for variant in variants:
+            with self.subTest(variant=variant), self.assertRaises(ValueError):
+                guard.verify_release_build(variant, SHA, 1234)
+        with self.assertRaises(ValueError): guard.verify_release_build(product, 'b'*64, 1234)
+        with self.assertRaises(ValueError): guard.verify_release_build(product, SHA, 1235)
+
     def fixture(self, root):
         tools = root / 'tools'; tools.mkdir()
         native = {'tools_files': {}, 'native': {}}

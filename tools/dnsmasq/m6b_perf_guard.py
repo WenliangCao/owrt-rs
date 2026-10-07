@@ -162,6 +162,13 @@ def classify(observed, thresholds):
             for key in LIMITS}
 
 
+def verify_release_build(build, expected_sha, elf_bytes):
+    require(build.get('kind') == 'release' and build.get('features') == ''
+            and build.get('opt_level') == '3' and any(
+                item['sha256'] == expected_sha and item['path'] == 'dnsmasq-rs' and item['bytes'] == elf_bytes
+                for item in build['artifacts']), 'feature-off opt-level 3 release identity required')
+
+
 def run(args):
     require(os.geteuid() == 0, 'root required for isolated exact-image guard')
     args.out = args.out.resolve()
@@ -180,9 +187,7 @@ def run(args):
         require(sha256(args.elf) == args.expected_elf_sha and sha256(args.image_root / 'usr/sbin/dnsmasq') == STOCK_SHA256,
                 'guard product or exact image C identity changed')
         build = json.loads(args.build_json.read_text())
-        require(build['kind'] == 'release' and build['features'] == '' and any(
-            item['sha256'] == args.expected_elf_sha and item['path'] == 'dnsmasq-rs' and item['bytes'] == args.elf.stat().st_size
-            for item in build['artifacts']), 'feature-off release identity required')
+        verify_release_build(build, args.expected_elf_sha, args.elf.stat().st_size)
         report['build_json_sha256'] = sha256(args.build_json)
         report['opt_level'] = build.get('opt_level')
         os.sched_setaffinity(0, {3})

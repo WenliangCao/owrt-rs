@@ -13,6 +13,17 @@ import m5_final_validation as final
 
 
 class ValidationModeTests(unittest.TestCase):
+    def test_m6b_product_identity_rejects_s_and_instrumentation_but_keeps_m5_policy(self):
+        product = {'features': '', 'opt_level': '3'}
+        final.validate_qualification_build('m6b', product)
+        variants = [{'features': '', 'opt_level': level} for level in ['s', 'z', 3, None]]
+        variants += [{'features': 'm6b-diagnostics', 'opt_level': '3'}, {'opt_level': '3'}]
+        for variant in variants:
+            with self.subTest(variant=variant):
+                with self.assertRaises(ValueError):
+                    final.validate_qualification_build('m6b', variant)
+                final.validate_qualification_build('m5', variant)
+
     def test_m5_default_still_requires_both_real_fuzz_phases(self):
         completed = {name: {'passed': True} for name in final.M6B_PHASES if name != 'perf-guard'}
         self.assertEqual(final.required_phases({}), final.PHASES)

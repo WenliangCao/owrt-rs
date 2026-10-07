@@ -70,6 +70,14 @@ def required_phases(spec):
     return list(phases)
 
 
+def validate_qualification_build(mode, build):
+    # opt-s is a performance comparison group, never the M6b functional ELF.
+    # M5's original build policy is unchanged.
+    if mode == 'm6b':
+        require(build.get('features') == '', 'M6b final qualification requires a feature-off product build')
+        require(build.get('opt_level') == '3', 'M6b final qualification requires opt-level 3')
+
+
 def phase_prerequisites(spec, phase):
     phases = required_phases(spec)
     require(phase in phases or phase == 'full-cache-600', 'phase is excluded-not-required in this validation mode')
@@ -221,8 +229,8 @@ def prepare(args):
     pinned_ubus, ubus_helpers = ubus_assets(spec)
     assets.update(pinned_ubus)
     verify_release_map(spec, build)
+    validate_qualification_build(mode, build)
     if mode == 'm6b':
-        require(build.get('features') == '', 'M6b final qualification requires a feature-off product build')
         from m6b_perf_guard import inputs as guard_inputs
         require(spec.get('perf_guard_plan'), 'M6b requires an explicit frozen performance guard plan')
         _, _, guard_assets = guard_inputs(Path(spec['perf_guard_plan']).resolve(), source / 'tools/dnsmasq')
