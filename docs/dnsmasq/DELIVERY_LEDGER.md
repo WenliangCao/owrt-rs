@@ -2,9 +2,9 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6a已完成；135/135正式窗口、9 profile×3组×5轮全部方法有效，终版[M6A_REPORT](M6A_REPORT.md)已提交。进入M6b第0步：测量器已加入Rust排空合同、0/1/5/60秒样本、60秒idle CPU与wake telemetry接口；[M6B协议](M6B_PROTOCOL.md)已冻结，产品代码尚未改。性能仅代表Oracle构建机，物理路由器未碰。
-- 刚关闭：M6a final-analysis formal_complete=true、135/135身份/归档/清理门独立复核通过；M6a内存终版归因[a1e4d45e](audits/M6A_MEMORY_ATTRIBUTION.md)已合入；M6b第0步测量器修正和测试13项通过（commit7324ebbe/ba7e7c4e）。M6a UDP约465QPS/42ms线索已写报告：单包step、65535B缓冲是静态已证，Linux等待来源留作M6b计数诊断。
-- 当前代码：M5产品源码dc1b740d7973838e2ae7f098d0726b0484e55074、ELF37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b；C097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87；M6a s8427b9ab9718e3645137db4670ef3afcb8d983a2b88bb997127224de39988a2a。TCP方案A只读计划[M6B_TCP_PLAN](audits/M6B_TCP_PLAN.md)已提交；UDP只读计划[M6B_UDP_PLAN](audits/M6B_UDP_PLAN.md)已提交。产品仍保持M5身份。
+- 当前里程碑：M6a已完成；进入M6b。M6B协议已冻结（5c8dcf27），测量器排空/idle/wake修正与测试完成。UDP统一poll/16包预算/65,535B复用、signal wake和TCP方案A storage primitive已合入；最终候选及正式复测尚未完成。性能仅代表Oracle构建机，物理路由器未碰。
+- 刚关闭：M6a final-analysis formal_complete=true、135/135身份/归档/清理门独立复核通过；M6a内存终版归因[a1e4d45e](audits/M6A_MEMORY_ATTRIBUTION.md)已合入；M6b第0步测量器修正和测试13项通过。M6b诊断feature默认关闭，交付构建不启用；M6a UDP约465QPS/42ms线索已写报告，Linux等待来源留作M6b计数诊断。
+- 当前代码：M5基线源码dc1b740d/opt3 37f85d22、C097a9e21和M6a s8427b9a保留；M6b候选为当前main（UDP修复、TCP方案A、默认关闭m6b-diagnostics feature）。最终opt3/s candidate ELF、manifest和正式复测身份尚待Oracle构建。
 - 下一步：先以M6B协议5c8dcf27和修正测量器完成UDP pilot计数（loop/poll/wait/packet batch/allocation）与idle CPU，然后冻结新的测量/产品候选manifest。之后独立worktree实施TCP方案A，依S1-S8 primitive→service→resource→pressure gates；UDP修复和TCP A不得拼接部分最佳实验。每个产品候选完成M5受影响族、M2、资源/压力/APK生命周期与9×3×5正式M6b复测；s只作性能对照，给出是否值得切换结论。
 - 阻塞点：无须用户决定；第0步已完成测量修正和协议冻结，等待产品候选。任何M6b失败保留原始证据并停止该候选，不改阈值、不把失败实验混入通过结果。
 - 活跃分工：root整合协议/ledger、UDP产品、M6b suite/build/回归/报告；m6b_measure维护修正测量器；m6b_udp_audit实施UDP产品修复；m6b_tcp_design实施TCP方案A；m6a_review只读审计M6b gates。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间禁止并行build/test/fuzz，用户docs/prompts原样。

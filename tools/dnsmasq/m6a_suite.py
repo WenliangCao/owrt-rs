@@ -170,7 +170,7 @@ def command_for(spec, profile, group, round_no, output, pilot):
          '--scenario',scenario,'--tcp-profile',tcp,'--round',str(round_no),'--rate',str(rate),
          '--cache-names',str(bank),'--output',str(output),'--warmup','2' if pilot else '30',
          '--duration','10' if pilot else '120','--saturation-seconds',str(3 if pilot and sat else sat),
-         '--seed',str(0x4d364100+round_no), '--idle-seconds','60', '--wake-metrics',
+         '--seed',str(0x4d364100+round_no), '--idle-seconds','5' if pilot else '60', '--wake-metrics',
          '--drain-timeout-seconds','65', '--drain-sample-seconds','0,1,5,60']
     if spec.get('m6b'):
         cmd += ['--allow-rust-identity-change']
