@@ -35,6 +35,7 @@ E = 仓库 ignored `private/dnsmasq-rewrite/evidence/`。原 56 B Slot 原型及
 | 门 | 新证据 | 结果 |
 | --- | --- | --- |
 | full host lib / bin | `local-full-tests-01` | 618 passed / 8 ignored；bin 12 passed。Linux Oracle 单元尚未重跑。 |
+| AArch64 Linux typecheck | `linux-typecheck-01` | default 与 `m6b-diagnostics` 两种 `cargo check --target aarch64-unknown-linux-musl --tests` 均通过；不是实际 Linux tests 运行。 |
 | cache / transfer / view isolation | `cargo test --lib dns::cache` | 49 passed / 1 ignored；capacity、lease、negative、reverse、generation、COW 与 transaction。 |
 | 精确 C extracted primitive | `cache-primitive-01` | **21** 场景、22,571 commands、0 mismatch；summary SHA `c137b35be19ffd3396d3825122250c9243e5fdbb5623ce1b6c58b259ae1480cc`。旧文字的“20 场景”是计数错误。 |
 | safe mutator negative controls | `guards-02` | 5/5 拒绝：detach 丢 inherited content、detach 丢 name index、禁 RRset 轮转、保留过期 reverse、复用 generation。每变体都实际执行 31 tests 后失败，编译失败不计负控通过。 |
