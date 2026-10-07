@@ -94,6 +94,7 @@ fn main() {
                         Kind::Ipv6 => 28,
                         Kind::Cname => 5,
                         Kind::NxDomain => 65536,
+                        Kind::ReverseIpv4 | Kind::ReverseIpv6 => 0, // This forward-only corpus never inserts reverse records.
                         Kind::Generic(t) => t as u32,
                     };
                     let value = if t == 5 { 0 } else { e.record.data[0] };

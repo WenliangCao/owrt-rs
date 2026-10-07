@@ -16,6 +16,7 @@ import cache_edns_diff as builder
 import cache_clipped_diff as clipped
 import local_answer_diff
 import tcp_caller_diff as source
+import m6b_primitive_assets as assets
 
 ROOT = base.ROOT
 C_DRIVER = r'''
@@ -169,7 +170,9 @@ def main():
     parser.add_argument("--cargo",default=shutil.which("cargo") or "cargo")
     parser.add_argument("--c-only",action="store_true")
     parser.add_argument("--inject-error",action="store_true")
-    args=parser.parse_args();out=args.out.resolve();assert out.is_relative_to(ROOT/"private") and not out.exists();out.mkdir(parents=True)
+    assets.add_arguments(parser)
+    args=parser.parse_args();out=args.out.resolve();assert 'private' in out.parts and not out.exists();out.mkdir(parents=True)
+    args.rust_probe_name = 'm6b-cache-policy'
     forward=args.reference_build/"dnsmasq/forward.c";assert base.digest(forward)==source.FORWARD_SHA
     text=forward.read_text();(out/"cache-process-exact.inc").write_text(source.extract(text,"static int domain_no_rebind(")+source.extract(text,"static size_t process_reply("))
     builder.C_DRIVER=C_DRIVER;builder.RUST_DRIVER=RUST_DRIVER;c,rust=builder.build(args,out)
@@ -182,9 +185,11 @@ def main():
         corpus.update(config.read_bytes());corpus.update(data.encode())
         for side,binary in (("c",c),("rust",rust)):
             if binary is None:continue
+            if side == 'rust': assets.unchanged_binary(binary, args.rust_binding)
             run=subprocess.run([str(binary),"-C",str(config)],input=data,text=True,capture_output=True)
             (work/f"{side}.stdout").write_text(run.stdout);(work/f"{side}.stderr").write_text(run.stderr);run.check_returncode()
             observed[side]=run.stdout.splitlines();assert len(observed[side])==len(case["commands"])
+            if side == 'rust': assets.unchanged_binary(binary, args.rust_binding)
         expected=observed["c"];assert expected[0]=="RESET" and expected[1].startswith("P ") and not expected[3].endswith("NONE")
         assert not expected[-1].endswith("NONE"), "recovery must commit after an aborted transaction"
         if case["label"] == "replacement-before-clipped":
@@ -208,11 +213,14 @@ def main():
         failures.extend(mismatches);commands+=len(expected)
         counts.append({"case":case["label"],"commands":len(expected),"mismatches":len(mismatches)})
     report={"cases":counts,"commands":commands,"mismatches":len(failures),"failures":failures,
+            "rust_binding":args.rust_binding,"image_daemon_qualification":False,
             "calibration":{"old_cache_hit":1,"recovery_hit":1,"reference_state_counters":1,"equal":1,"changed_counter":1,"missing_observation":1},
             "injected_error":args.inject_error,"tool_sha256":base.digest(Path(__file__)),"corpus_sha256":corpus.hexdigest(),
             "c_sha256":base.digest(c),"rust_sha256":None if rust is None else base.digest(rust),
             "source_sha256":{**base.HASHES,"forward.c":source.FORWARD_SHA},
             "scope":"frozen process_reply/cache insertion order and side effects with rebind, bogus and static doctor; no dynamic UBus or sockets"}
+    if rust and assets.validate(args, 'm6b-cache-policy') != args.rust_binding:
+        raise ValueError('Rust primitive binding changed during run')
     (out/"result.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps({k:v for k,v in report.items() if k!="failures"}));return int(bool(failures))
 

@@ -15,6 +15,7 @@ import subprocess
 
 import cache_answer_diff as base
 import local_answer_diff
+import m6b_primitive_assets as assets
 
 ROOT = base.ROOT
 C_DRIVER = r'''
@@ -119,22 +120,14 @@ def corpus():
 
 
 def build(args,out):
+    binding = None if args.c_only else assets.validate(args, getattr(args, 'rust_probe_name', 'm6b-cache-edns'))
+    args.rust_binding = binding
     local_answer_diff.validate_reference_variant(args.reference_build / "dnsmasq")
     for file,expected in base.HASHES.items():assert base.digest(args.reference_build / "dnsmasq" / file)==expected
     c_source=out/"driver.c";c_source.write_text(C_DRIVER);local_answer_diff.DRIVER=c_source
     c=local_answer_diff.build_oracle(args.reference_build,out)
     if args.c_only:return c,None
-    source=out/"rust-source"
-    for component in ("dnsmasq","ubus"):
-        shutil.copytree(ROOT/f"components/{component}/src",source/component/"src")
-        shutil.copy2(ROOT/f"components/{component}/Cargo.toml",source/component/"Cargo.toml")
-    shutil.copy2(ROOT/"components/dnsmasq/Cargo.lock",source/"dnsmasq/Cargo.lock")
-    with (source/"dnsmasq/src/dns/daemon.rs").open("a") as stream:stream.write(RUST_DRIVER)
-    binary=source/"dnsmasq/src/bin/cache-edns-probe.rs";binary.parent.mkdir(exist_ok=True)
-    binary.write_text("fn main(){dnsmasq_rs::dns::daemon::cache_edns_probe_main();}\n")
-    with (out/"rust-build.log").open("w") as log:
-        subprocess.run([args.cargo,"build","--frozen","--manifest-path",str(source/"dnsmasq/Cargo.toml"),"--bin","cache-edns-probe","--target-dir",str(out/"target")],stdout=log,stderr=subprocess.STDOUT,check=True)
-    return c,out/"target/debug/cache-edns-probe"
+    return c,assets.copy_binary(args.rust_binary, out / 'rust', binding)
 
 
 def matches(left,right):
@@ -154,8 +147,9 @@ def main():
     parser.add_argument("--cargo",default=shutil.which("cargo") or "cargo")
     parser.add_argument("--c-only",action="store_true")
     parser.add_argument("--inject-error",action="store_true")
+    assets.add_arguments(parser)
     args=parser.parse_args();out=args.out.resolve()
-    assert out.is_relative_to(ROOT/"private") and not out.exists();out.mkdir(parents=True)
+    assert 'private' in out.parts and not out.exists();out.mkdir(parents=True)
     if args.c_only and args.inject_error:parser.error("negative control needs Rust")
     c,rust=build(args,out)
     config=out/"cache.conf";config.write_text("no-hosts\nno-resolv\nno-round-robin\ncache-size=100\nneg-ttl=30\nuse-stale-cache=60\n")
@@ -163,9 +157,11 @@ def main():
     (out/"commands.txt").write_text(data);outputs={}
     for side,binary in [("c",c),("rust",rust)]:
         if binary is None:continue
+        if side == 'rust': assets.unchanged_binary(binary, args.rust_binding)
         result=subprocess.run([str(binary),"-C",str(config)],input=data,text=True,capture_output=True)
         (out/(side+".stdout")).write_text(result.stdout);(out/(side+".stderr")).write_text(result.stderr)
         result.check_returncode();outputs[side]=result.stdout.splitlines();assert len(outputs[side])==len(rows)
+        if side == 'rust': assets.unchanged_binary(binary, args.rust_binding)
     assert len(rows)==155 and outputs["c"][0:2]==["RESET","P"]
     assert sum(line.startswith("T 1 ") for line in outputs["c"])==68
     assert sum(line.endswith("NONE") for line in outputs["c"])==7
@@ -177,10 +173,13 @@ def main():
         outputs["rust"][2]=bad
     failures=[] if not rust else [{"label":label,"c":left,"rust":right} for (label,_),left,right in zip(rows,outputs["c"],outputs["rust"]) if not matches(left,right)]
     report={"commands":len(rows),"queries":sum(command.startswith("Q ") for _,command in rows),"matches":None if not rust else len(rows)-len(failures),"failures":failures,
+            "rust_binding":args.rust_binding,"image_daemon_qualification":False,
             "c_stale":sum(line.startswith("T 1 ") for line in outputs["c"]),"c_misses":sum(line.endswith("NONE") for line in outputs["c"]),
             "tool_sha256":base.digest(Path(__file__)),"corpus_sha256":hashlib.sha256(data.encode()).hexdigest(),
             "c_sha256":base.digest(c),"rust_sha256":base.digest(rust) if rust else None,"source_sha256":base.HASHES,
             "scope":"ordinary empty-OPT cache lookup, frozen-time TTL/stale/EDE3, advertised/configured output limits; no DO/AD/option cache metadata"}
+    if rust and assets.validate(args, 'm6b-cache-edns') != args.rust_binding:
+        raise ValueError('Rust primitive binding changed during run')
     (out/"result.json").write_text(json.dumps(report,indent=2)+"\n");print(json.dumps(report));return int(bool(failures))
 
 
