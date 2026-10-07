@@ -101,12 +101,15 @@ def prepare(args):
     if manifest.exists():raise ValueError('fresh frozen manifest required')
     tools=root/'tools/dnsmasq'; native=private/'native'
     native.mkdir(exist_ok=True)
-    if sha256(args.r3)!=R3 or sha256(args.image_root/'usr/sbin/dnsmasq')!=STOCK_SHA256:
+    if (not args.m6b and sha256(args.r3)!=R3) or sha256(args.image_root/'usr/sbin/dnsmasq')!=STOCK_SHA256:
         raise ValueError('M5 or exact-image identity differs')
     r3_build=json.loads(args.r3_build.read_text());rs_build=json.loads(args.rs_build.read_text())
     frozen=json.loads(args.product_freeze.read_text())
-    if frozen['source_commit']!=PRODUCT or frozen['elf_sha256']!=R3:
+    source_commit = args.source_commit or PRODUCT
+    if not args.m6b and (frozen['source_commit']!=PRODUCT or frozen['elf_sha256']!=R3):
         raise ValueError('M5 product source freeze differs')
+    if frozen['source_commit'] != source_commit:
+        raise ValueError('source commit differs from freeze')
     for build,level,elf in [(r3_build,'3',args.r3),(rs_build,'s',args.rs)]:
         if (build['kind']!='release' or build['opt_level']!=level
                 or build['source']!=frozen['source_root'] or build['cargo_target_dir']!=str(TARGET)
@@ -122,13 +125,14 @@ def prepare(args):
         binary=native/name
         subprocess.run(['cc','-O2','-std=c11','-Wall','-Wextra','-Werror',str(tools/(name+'.c')),
                         '-o',str(binary)],check=True)
-    spec={'schema':1,'source_commit':PRODUCT,'root':str(root),'protocol':str(root/'docs/dnsmasq/M6A_PROTOCOL.md'),
-          'protocol_sha256':sha256(root/'docs/dnsmasq/M6A_PROTOCOL.md'),'tools_files':file_map(tools),
+    protocol_path=root/('docs/dnsmasq/M6B_PROTOCOL.md' if args.m6b else 'docs/dnsmasq/M6A_PROTOCOL.md')
+    spec={'schema':1,'source_commit':source_commit,'m6b':args.m6b,'root':str(root),'protocol':str(protocol_path),
+          'protocol_sha256':sha256(protocol_path),'tools_files':file_map(tools),
           'source_files':frozen['source_files'],'source_root':str(source),
           'product_freeze':{'path':str(args.product_freeze),'sha256':sha256(args.product_freeze)},
           'image_root':str(args.image_root),
           'groups':{'c':{'elf':str(args.image_root/'usr/sbin/dnsmasq'),'sha256':STOCK_SHA256},
-                    'r3':{'elf':str(args.r3),'sha256':R3,'bytes':args.r3.stat().st_size},
+                    'r3':{'elf':str(args.r3),'sha256':sha256(args.r3),'bytes':args.r3.stat().st_size},
                     'rs':{'elf':str(args.rs),'sha256':sha256(args.rs),'bytes':args.rs.stat().st_size}},
           'builds':{'r3':{'path':str(args.r3_build),'sha256':sha256(args.r3_build)},
                     'rs':{'path':str(args.rs_build),'sha256':sha256(args.rs_build)}},
@@ -168,6 +172,8 @@ def command_for(spec, profile, group, round_no, output, pilot):
          '--duration','10' if pilot else '120','--saturation-seconds',str(3 if pilot and sat else sat),
          '--seed',str(0x4d364100+round_no), '--idle-seconds','60', '--wake-metrics',
          '--drain-timeout-seconds','65', '--drain-sample-seconds','0,1,5,60']
+    if spec.get('m6b'):
+        cmd += ['--allow-rust-identity-change']
     if pilot:cmd+=['--preflight','--fault-start','3','--fault-end','6','--reload-period','3']
     return cmd
 
@@ -312,7 +318,7 @@ def run(args):
                 number=len(window['attempts'])+1;attempt=private/'runs'/job/f'attempt-{number}'
                 attempt.mkdir(parents=True,exist_ok=False)
                 record={'job_id':job,'round':round_no,'profile':profile[0],'group':group,
-                        'attempt':number,'manifest_sha256':sha256(manifest),'source_commit':PRODUCT,
+                        'attempt':number,'manifest_sha256':sha256(manifest),'source_commit':spec['source_commit'],
                         'protocol_sha256':spec['protocol_sha256'],'elf_sha256':spec['groups'][group]['sha256'],
                         'methodology_valid':False,'pilot_only':args.pilot_only,'failures':[]}
                 state['current_job']=job;state['current_attempt']=number;state['status']='running'
@@ -361,6 +367,7 @@ def main():
     p=sub.add_parser('prepare');p.add_argument('--root',type=Path,required=True)
     for name in ['r3','rs','r3-build','rs-build','image-root','product-freeze']:
         p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--source-commit');p.add_argument('--m6b',action='store_true')
     p=sub.add_parser('run');p.add_argument('--manifest',type=Path,required=True)
     p.add_argument('--pilot-only',action='store_true');p.add_argument('--profile',action='append');p.add_argument('--group',action='append')
     args=parser.parse_args()
