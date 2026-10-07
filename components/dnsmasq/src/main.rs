@@ -2704,6 +2704,12 @@ impl PollTcpClient {
         mut query: Vec<u8>,
         parent: &Rc<RefCell<ParentDns>>,
     ) -> Result<(), ()> {
+        if self.cache_debug {
+            let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
+            if let Some(daemon) = owner.daemon.as_mut() {
+                daemon.invalidate_udp_resend();
+            }
+        }
         let decoration = dnsmasq_rs::dns::edns_policy::decorate(
             &mut query,
             &self.service.config.edns,
@@ -2883,10 +2889,18 @@ impl PollTcpClient {
                     }
                 }
                 TcpClientPhase::Reading => {
-                    if self.input_offset == self.input.len() {
-                        if !readable {
-                            return Ok(true);
+                    if self.input_offset == self.input.len() && !readable {
+                        return Ok(true);
+                    }
+                    if self.cache_debug {
+                        // forward.c:2465: debug TCP uses the parent's packet
+                        // scratch, even for ignored or incomplete frames.
+                        let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
+                        if let Some(daemon) = owner.daemon.as_mut() {
+                            daemon.invalidate_udp_resend();
                         }
+                    }
+                    if self.input_offset == self.input.len() {
                         // Read readiness belongs to this poll, not to a later
                         // phase reached after a POLLOUT-only wake. Buffered
                         // frames still use the existing eight-step budget.
@@ -3080,6 +3094,8 @@ impl SinglePoll {
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
             let hosts = read_hosts(&self.config, local_ttl);
+            // cache.c:1644: cache_reload borrows the shared packet scratch.
+            daemon.invalidate_udp_resend();
             daemon.reload_hosts(hosts.clone());
             local.hosts = hosts;
             local.leases = Arc::new(daemon.rebuild_lease_names(
@@ -3256,6 +3272,13 @@ impl SinglePoll {
             }
         }
         if events.route {
+            if let Ok(mut parent) = self.service.try_borrow_mut() {
+                if let Some(daemon) = parent.daemon.as_mut() {
+                    // dnsmasq.c:1694-1698: resend precedes resolver reload,
+                    // including no-poll, without admitting another query.
+                    daemon.resend_udp_query();
+                }
+            }
             if let Some(files) = &mut self.dns_files {
                 files.request(ReloadReason::Route);
             }
@@ -4382,6 +4405,14 @@ impl SinglePoll {
         }
     }
 
+    fn invalidate_udp_resend(&mut self) {
+        if let Ok(mut parent) = self.service.try_borrow_mut() {
+            if let Some(daemon) = parent.daemon.as_mut() {
+                daemon.invalidate_udp_resend();
+            }
+        }
+    }
+
     fn step_udp(&mut self, index: usize) -> bool {
         if self.m6b.enabled() {
             self.m6b.listener_mut(index).step_calls += 1;
@@ -4413,13 +4444,22 @@ impl SinglePoll {
             self.m6b.listener_mut(index).receive_attempts += 1;
         }
         let incoming = match udp.receive(&mut self.udp_buffer) {
-            Ok(Some(incoming)) if incoming.len <= usize::from(self.edns_max) => {
+            Ok(Some(incoming)) => {
+                // forward.c:1628 clears before admission/parsing. Clear every
+                // consumed packet, but preserve the newest send across this
+                // batch's speculative final WouldBlock receive.
+                self.invalidate_udp_resend();
+                if incoming.len > usize::from(self.edns_max) {
+                    return false;
+                }
                 if self.m6b.enabled() {
                     self.m6b.listener_mut(index).received_packets += 1;
                 }
                 incoming
             }
-            Ok(_) => {
+            Ok(None) => {
+                // recvmsg succeeded but the datagram/pktinfo was discarded.
+                self.invalidate_udp_resend();
                 return false;
             }
             Err(error)
@@ -4427,7 +4467,6 @@ impl SinglePoll {
                     error.kind(),
                     io::ErrorKind::WouldBlock
                         | io::ErrorKind::TimedOut
-                        | io::ErrorKind::Interrupted
                 ) =>
             {
                 if self.m6b.enabled() {
@@ -4436,6 +4475,9 @@ impl SinglePoll {
                 return false;
             }
             Err(_) => {
+                // Includes EINTR: C has already invalidated its scratch at
+                // the receive_query entry when this actual read fails.
+                self.invalidate_udp_resend();
                 if self.m6b.enabled() {
                     self.m6b.listener_mut(index).receive_errors += 1;
                 }
@@ -4947,6 +4989,9 @@ impl SinglePoll {
         let ingress = if self.config.bind_interfaces || self.config.bind_dynamic {
             None
         } else {
+            // network.c:1030: wildcard TCP pktinfo uses parent packet scratch
+            // before fork. Bound ordinary children keep their private copy.
+            self.invalidate_udp_resend();
             listeners::tcp_interface(&stream, destination.is_ipv6())
         };
         let interfaces = match self.interfaces.try_borrow_mut() {
@@ -6086,6 +6131,31 @@ impl SinglePoll {
                     neighbors.query(address, interface, now)
                 })
         });
+        let packet_overwritten = events.as_ref().is_ok_and(|events| {
+            events.iter().any(|event| {
+                use dnsmasq_rs::tftp_runtime::RuntimeEvent;
+                match event {
+                    RuntimeEvent::Send { id: Some(_), packet, .. } => {
+                        matches!(packet.get(..2), Some([0, 3] | [0, 5] | [0, 6]))
+                    }
+                    // tftp.c:679-684 calls get_block without sending. With a
+                    // saved UDP query, its scratch cannot still be the TFTP
+                    // prefetch; nonfinal/OACK/netascii expiry reconstructs it.
+                    // The octet final-ACK no-write branch is Completed here.
+                    RuntimeEvent::TimedOut { .. } => true,
+                    _ => false,
+                }
+            })
+        });
+        if packet_overwritten {
+            // tftp.c:925/974: OACK/DATA construction borrows packet scratch.
+            // Never reproduce srv_save's unsafe transfer/server pointer alias.
+            if let Ok(mut parent) = self.service.try_borrow_mut() {
+                if let Some(daemon) = parent.daemon.as_mut() {
+                    daemon.invalidate_udp_resend();
+                }
+            }
+        }
         if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
             for event in events {
                 if let Some(event) = event.log_event(quiet_not_found) {
@@ -6391,11 +6461,15 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 }
 
 #[cfg(test)]
+#[path = "main_route_resend_tests.rs"]
+mod route_resend_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use dnsmasq_rs::config::{lex_line, validate_directive};
 
-    fn test_owner(config: DnsConfig, daemon: Option<DnsDaemon>) -> SinglePoll {
+    pub(super) fn test_owner(config: DnsConfig, daemon: Option<DnsDaemon>) -> SinglePoll {
         let local = LocalDnsService::new_with_limits(
             config.clone(), read_hosts(&config, 37), 37, 1232, 1232,
         );
