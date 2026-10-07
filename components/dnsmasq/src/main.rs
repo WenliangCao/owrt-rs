@@ -2378,7 +2378,8 @@ impl M6bDiagnostics {
     }
 
     #[inline]
-    fn record_wait(&mut self, _timeout: i32, _ready: usize, _elapsed: Duration) -> io::Result<()> {
+    fn record_wait(&mut self, _timeout: i32, _ready: usize, _elapsed: Duration,
+                   _network_ready: bool, _file_ready: bool, _signal_ready: bool) -> io::Result<()> {
         Ok(())
     }
 
