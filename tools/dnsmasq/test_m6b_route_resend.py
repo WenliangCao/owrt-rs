@@ -1,0 +1,214 @@
+#!/usr/bin/env python3
+"""Offline negative controls for raw route caller evidence, not image tests."""
+import copy
+import json
+from pathlib import Path
+import socket
+import struct
+import tempfile
+import unittest
+
+import m6b_route_resend as gate
+
+
+def netlink(pid=0, kind=24, table=254, scope=253, route_type=1):
+    header = struct.pack('=IHHII', 36, kind, 0, 0, pid)
+    return (header + bytes([2, 24, 0, 0, table, 2, scope, route_type]) + b'\0' * 4
+            + struct.pack('=HH', 8, 1) + socket.inet_aton('198.18.252.0'))
+
+
+def raw_fixture(folder, resend=True):
+    query = gate.driver.query('route.resend.test', 0x6e01)
+    _, end = gate.driver.read_name(query, 12)
+    reply = (query[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 1)
+             + query[12:end + 4] + gate.driver.rr(1, socket.inet_aton('198.51.100.7'), ttl=600)
+             + gate.driver.rr(41, b'', owner=b'\0', ttl=0, cls=1232))
+    (folder / 'client.query').write_bytes(query); (folder / 'client.reply').write_bytes(reply)
+    source = ['127.0.0.1', 50001]
+    packets = []
+    for index in range(2 if resend else 1):
+        name = f'upstream-{index:03}.query'
+        (folder / name).write_bytes(query)
+        packets.append({'file': name, 'transport': 'udp', 'source': source,
+                        'received_monotonic_ns': 100 + index * 100, 'query': gate.driver.normalized(query)})
+    wire = netlink(); (folder / 'trigger-000.netlink').write_bytes(wire)
+    idle = {'0': '/dev/null', '3': 'socket:[1000]'}
+    value = {'case': gate.CASES[0]['case'], 'plan': gate.PLAN, 'completed': True,
+             'before_trigger': packets[:1], 'held_packets': packets, 'resend_observed': resend,
+             'cleanup_answer': not resend, 'one_client_reply': True, 'trigger_monotonic_ns': 150,
+             'reply_monotonic_ns': 300, 'idle_fds': idle, 'dummy_ipv6': 'disabled',
+             'dns_destination': ['192.0.2.1', 53000], 'reply_source': ['192.0.2.1', 53000],
+             'trigger_netlink': [{'file': 'trigger-000.netlink', 'peer': [0, 64],
+                                 'records': gate.route_records(wire, (0, 64))}]}
+    gate.save_json(folder / 'caller-witness.json', value)
+    gate.save_json(folder / 'upstream-receipts.json', [
+        {'sequence': index, 'transport': 'udp', 'wire': query.hex(), 'received_monotonic_ns': item['received_monotonic_ns']}
+        for index, item in enumerate(packets)])
+    for label, forwarded in [('before', 0), ('after', 1)]:
+        gate.save_json(folder / (label + '.metrics.stdout'), {'tcp_connections': 0, 'dns_queries_forwarded': forwarded})
+        gate.save_json(folder / (label + '.fds.json'), [{'monotonic_ns': n * 20_000_000, 'fds': idle} for n in range(3)])
+    row = {'case': value['case'], 'exit': 0, 'upstream_errors': [], 'identity': {'sha256': 'x' * 64},
+           'upstream': [{'host': 'route.resend.test', 'transport': 'udp', 'wire': query.hex(),
+                         'query': gate.driver.normalized(query)} for _ in packets]}
+    return value, row
+
+
+class RouteWitnessTests(unittest.TestCase):
+    def test_frozen_basic_profiles_and_no_poll(self):
+        self.assertEqual(len(gate.CASES), 2)
+        self.assertEqual([case['config'] for case in gate.CASES], ['', 'no-poll'])
+        self.assertTrue(all(case['capacity'] == 0 and case['metrics'] for case in gate.CASES))
+        self.assertEqual(gate.PLAN['client_retries'], 0)
+        self.assertEqual(gate.PLAN['expected_upstream_packets'], 2)
+
+    def test_kernel_route_predicate_rejects_manual_pid_and_other_events(self):
+        record = gate.route_records(netlink(), (0, 64))[0]
+        self.assertTrue(record['qualifies'])
+        self.assertTrue(gate.controlled_route(record))
+        record['attributes'][0]['data'] = 'c612fb00'
+        self.assertFalse(gate.controlled_route(record), 'unrelated route cannot witness the trigger')
+        for wire, peer in [(netlink(pid=900), (0, 64)), (netlink(), (900, 64)),
+                           (netlink(kind=25), (0, 64)), (netlink(kind=20), (0, 64)),
+                           (netlink(scope=0), (0, 64)), (netlink(route_type=2), (0, 64)),
+                           (netlink(table=100), (0, 64))]:
+            self.assertFalse(gate.route_records(wire, peer)[0]['qualifies'])
+        self.assertTrue(gate.route_records(netlink(table=255), (0, 64))[0]['qualifies'])
+        for clipped in [netlink()[:-1], netlink() + b'x']:
+            with self.assertRaises(ValueError):
+                gate.route_records(clipped, (0, 64))
+
+    def test_raw_repeated_packet_same_source_validates(self):
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name); _, row = raw_fixture(folder)
+            result = gate.validate_case(folder, row, 'x' * 64)
+            self.assertTrue(result['resend_contract_passed'])
+            self.assertEqual(result['forward_actions'], 1)
+
+    def test_missing_resend_preserves_defect_and_cleanup_cannot_pass(self):
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name); witness, row = raw_fixture(folder, resend=False)
+            self.assertFalse(gate.validate_case(folder, row, 'x' * 64)['resend_contract_passed'])
+            witness['cleanup_answer'] = False
+            gate.save_json(folder / 'caller-witness.json', witness)
+            with self.assertRaisesRegex(ValueError, 'cleanup'):
+                gate.validate_case(folder, row, 'x' * 64)
+
+    def test_answer_rejects_changed_flags_owner_class_ttl_or_opt(self):
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name); raw_fixture(folder)
+            query, reply = (folder / 'client.query').read_bytes(), (folder / 'client.reply').read_bytes()
+            _, end = gate.driver.read_name(query, 12)
+            rr_offset = end + 4
+            variants = [reply[:2] + struct.pack('!H', flags) + reply[4:] for flags in [0x8100, 0x8580, 0x81a0]]
+            # Compressed owner2, type2, class2, ttl4, rdlength2, then RDATA.
+            variants += [reply[:rr_offset + 6] + struct.pack('!I', 1) + reply[rr_offset + 10:],
+                         reply[:rr_offset + 4] + struct.pack('!H', 3) + reply[rr_offset + 6:],
+                         reply[:rr_offset] + b'\xc0\x0d' + reply[rr_offset + 2:],
+                         reply[:10] + b'\0\0' + reply[12:-11]]
+            self.assertTrue(gate.correct_answer(query, reply))
+            for bad in variants:
+                self.assertFalse(gate.correct_answer(query, bad))
+
+    def test_refuses_corrupted_evidence_or_nonidentical_resend(self):
+        cases = ['route-wire', 'query-wire', 'new-port', 'new-id', 'third-send', 'missing-upstream',
+                 'early-first', 'early-second', 'wrong-reply-source', 'dad-not-excluded', 'forward-counter',
+                 'extra-reply', 'fd-return', 'fd-no-spacing', 'wrong-client-content',
+                 'wrong-elf', 'missing-completion', 'response-before-trigger', 'unfrozen-plan']
+        for kind in cases:
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as name:
+                folder = Path(name); witness, row = raw_fixture(folder)
+                expects_exception = kind not in ['new-port', 'new-id']
+                if kind == 'route-wire':
+                    (folder / 'trigger-000.netlink').write_bytes(netlink(pid=900))
+                elif kind == 'query-wire':
+                    (folder / 'upstream-001.query').write_bytes(b'bad')
+                elif kind == 'new-port':
+                    witness['held_packets'][1]['source'] = ['127.0.0.1', 50002]
+                elif kind == 'new-id':
+                    path = folder / 'upstream-001.query'
+                    path.write_bytes(b'\x6e\x02' + path.read_bytes()[2:])
+                    row['upstream'][1]['wire'] = path.read_bytes().hex()
+                    receipts = json.loads((folder / 'upstream-receipts.json').read_text())
+                    receipts[1]['wire'] = path.read_bytes().hex()
+                    gate.save_json(folder / 'upstream-receipts.json', receipts)
+                elif kind == 'third-send':
+                    row['upstream'].append(copy.deepcopy(row['upstream'][1]))
+                elif kind == 'missing-upstream':
+                    row['upstream'] = []
+                elif kind in ['early-first', 'early-second']:
+                    index = 0 if kind == 'early-first' else 1
+                    stamp = 250 if index == 0 else 99
+                    witness['held_packets'][index]['received_monotonic_ns'] = stamp
+                    receipts = json.loads((folder / 'upstream-receipts.json').read_text())
+                    receipts[index]['received_monotonic_ns'] = stamp
+                    gate.save_json(folder / 'upstream-receipts.json', receipts)
+                elif kind == 'wrong-reply-source':
+                    witness['reply_source'][1] += 1
+                elif kind == 'dad-not-excluded':
+                    witness['dummy_ipv6'] = 'active'
+                elif kind == 'forward-counter':
+                    gate.save_json(folder / 'after.metrics.stdout', {'tcp_connections': 0, 'dns_queries_forwarded': 2})
+                elif kind == 'extra-reply':
+                    (folder / 'client.extra-reply').write_bytes((folder / 'client.reply').read_bytes())
+                elif kind == 'fd-return':
+                    gate.save_json(folder / 'after.fds.json', [{'monotonic_ns': n * 20_000_000, 'fds': {}} for n in range(3)])
+                elif kind == 'fd-no-spacing':
+                    gate.save_json(folder / 'after.fds.json', [{'monotonic_ns': 0, 'fds': witness['idle_fds']} for _ in range(3)])
+                elif kind == 'wrong-client-content':
+                    path = folder / 'client.reply'; path.write_bytes(path.read_bytes().replace(socket.inet_aton('198.51.100.7'), socket.inet_aton('198.51.100.8')))
+                elif kind == 'wrong-elf':
+                    row['identity']['sha256'] = 'y' * 64
+                elif kind == 'missing-completion':
+                    witness['completed'] = False
+                elif kind == 'response-before-trigger':
+                    witness['reply_monotonic_ns'] = 99
+                elif kind == 'unfrozen-plan':
+                    witness['plan'] = copy.deepcopy(gate.PLAN); witness['plan']['expected_upstream_packets'] = 1
+                gate.save_json(folder / 'caller-witness.json', witness)
+                if expects_exception:
+                    with self.assertRaises(ValueError):
+                        gate.validate_case(folder, row, 'x' * 64)
+                else:
+                    self.assertFalse(gate.validate_case(folder, row, 'x' * 64)['resend_contract_passed'])
+
+    def test_run_validation_binds_dependencies_process_root_and_complete_profiles(self):
+        # Synthetic receipt tests exercise validator rejection only. They are
+        # not actual C execution or running-process identity observations.
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name); (folder / 'drivers').mkdir()
+            tools = {}
+            for filename in gate.TOOLS:
+                source = Path(gate.__file__).with_name(filename)
+                (folder / 'drivers' / filename).write_bytes(source.read_bytes())
+                tools[filename] = gate.driver.sha256(source)
+            rows = []
+            for case in gate.CASES:
+                target = folder / case['case']; target.mkdir()
+                witness, row = raw_fixture(target)
+                witness['case'] = case['case']; row['case'] = case['case']
+                row['identity'] = {'root': '/synthetic/root', 'sha256': gate.driver.STOCK_SHA256}
+                gate.save_json(target / 'caller-witness.json', witness); rows.append(row)
+            report = {'side': 'c', 'c_sha256': gate.driver.STOCK_SHA256, 'rust_sha256': 'x' * 64,
+                      'scenarios': rows, 'failures': []}
+            gate.save_json(folder / 'result.json', report)
+            gate.save_json(folder / 'rootfs-identity.json', {'root': '/synthetic/root', 'rust_sha256': 'x' * 64,
+                                                            'c_sha256': gate.driver.STOCK_SHA256})
+            gate.save_json(folder / 'route-receipt.json', {'plan': gate.PLAN, 'tools': tools, 'tools_unchanged': True})
+            self.assertEqual(len(gate.validate_run(folder, 'c', 'x' * 64)), 2)
+            with self.assertRaisesRegex(ValueError, 'identity'):
+                gate.validate_run(folder, 'c', 'y' * 64)
+            report['scenarios'][0]['identity']['root'] = '/different/root'
+            gate.save_json(folder / 'result.json', report)
+            with self.assertRaisesRegex(ValueError, 'rootfs'):
+                gate.validate_run(folder, 'c', 'x' * 64)
+            report['scenarios'][0]['identity']['root'] = '/synthetic/root'
+            report['scenarios'].pop(); gate.save_json(folder / 'result.json', report)
+            with self.assertRaisesRegex(ValueError, 'incomplete'):
+                gate.validate_run(folder, 'c', 'x' * 64)
+            (folder / 'drivers/m2_rootfs.py').write_text('modified dependency')
+            with self.assertRaisesRegex(ValueError, 'dependency'):
+                gate.validate_run(folder, 'c', 'x' * 64)
+
+
+if __name__ == '__main__':
+    unittest.main()
