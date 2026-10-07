@@ -21,6 +21,43 @@ core C reference 固定为 patched 2.93：`cache.c` SHA `51379b75a3dcc80b629a3d9
 
 这是 native 的**源码／编译 ABI／变体原语对照**，不是运行镜像 C daemon。native `bba5…` 和镜像 `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87` 不得互相替代。generic RR 仅规范跨类型组顺序；单类型 RRset 次序、数据、expiry、negative、reply TTL、stale 精确比较。服务 S1–S8 仍用镜像 C + 同一个 A 产品 ELF。
 
+## 最小可执行路径（正式窗口结束后）
+
+下面变量全部由 root 绑定到冻结输入／fresh private 路径；源码和准备收据可从本机搬至 Oracle，但内容哈希必须相同。`M6B_TOOLS` 是新冻结工具目录，不能从旧 A 树取旧工具覆盖主线 r3。每次输出路径都 fresh。
+
+```sh
+python3 "$M6B_TOOLS/m6b_primitive_assets.py" \
+  --repository "$M6B_MAIN" --source-commit "$M6B_A_COMMIT" --out "$M6B_A_PRIMITIVE_PREP"
+ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' \
+  sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_PRIMITIVE_SOURCE" "$M6B_A_PRIMITIVE_BUILD" primitive-probes
+python3 "$M6B_TOOLS/dns_cache_diff.py" \
+  --rust-binary "$M6B_A_PRIMITIVE_BUILD/m6b-cache-core" \
+  --rust-source-root "$M6B_A_PRIMITIVE_SOURCE" \
+  --rust-source-receipt "$M6B_A_PRIMITIVE_PREP/source-receipt.json" \
+  --rust-build-receipt "$M6B_A_PRIMITIVE_BUILD/build.json" \
+  --reference-source "$M6B_C_REFERENCE_SRC" --output "$M6B_A_CORE_OUT"
+python3 "$M6B_TOOLS/cache_policy_transaction_diff.py" \
+  --rust-binary "$M6B_A_PRIMITIVE_BUILD/m6b-cache-policy" \
+  --rust-source-root "$M6B_A_PRIMITIVE_SOURCE" \
+  --rust-source-receipt "$M6B_A_PRIMITIVE_PREP/source-receipt.json" \
+  --rust-build-receipt "$M6B_A_PRIMITIVE_BUILD/build.json" \
+  --reference-build "$M6B_C_PRIMITIVE_BUILD" --out "$M6B_A_POLICY_OUT"
+python3 "$M6B_TOOLS/cache_edns_diff.py" \
+  --rust-binary "$M6B_A_PRIMITIVE_BUILD/m6b-cache-edns" \
+  --rust-source-root "$M6B_A_PRIMITIVE_SOURCE" \
+  --rust-source-receipt "$M6B_A_PRIMITIVE_PREP/source-receipt.json" \
+  --rust-build-receipt "$M6B_A_PRIMITIVE_BUILD/build.json" \
+  --reference-build "$M6B_C_PRIMITIVE_BUILD" --out "$M6B_A_EDNS_OUT"
+python3 "$M6B_TOOLS/lease_cache_diff.py" \
+  --rust-binary "$M6B_A_PRIMITIVE_BUILD/m6b-cache-lease" \
+  --rust-source-root "$M6B_A_PRIMITIVE_SOURCE" \
+  --rust-source-receipt "$M6B_A_PRIMITIVE_PREP/source-receipt.json" \
+  --rust-build-receipt "$M6B_A_PRIMITIVE_BUILD/build.json" \
+  --reference-build "$M6B_C_PRIMITIVE_BUILD" --output "$M6B_A_LEASE_OUT"
+```
+
+`M6B_C_PRIMITIVE_BUILD` 是 hash/variant 固定的 matching-source C 原语构建输入，不是镜像 daemon 的资格身份。core、policy、EDNS、lease 都必须实际执行完整 corpus；必要负控的失败输出也保存，不能仅 prepare/build 后写通过。
+
 ## 固定执行顺序与尚未覆盖的门
 
 1. frozen A 组件源码与四 bridges 收据 → `primitive-probes` 构建 → 四原语完整差分及原始失败保存。

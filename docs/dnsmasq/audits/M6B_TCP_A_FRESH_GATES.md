@@ -27,7 +27,7 @@
 
 ## 固定顺序
 
-1. **fresh product primitive / isolation。** 本机native精确C extracted原语＋完整host lib/bin、retained-view/transfer/reverse/lease/COW正控与5安全负控；Linux default/diagnostics `--tests` check。诊断layout重新测量32KiB links＋32KiB generations＋roots，不从旧布局表授资格。
+1. **fresh product primitive / isolation。** 精确C extracted原语与copied实际crate bridges按[统一原语入口](M6B_TCP_A_PRIMITIVE_ENTRIES.md)执行；actual lib-test的retained-view/transfer/reverse/lease/COW正控与5安全负控分别冻结source/build receipt。Linux default/diagnostics `--tests` check。诊断layout重新测量32KiB links＋32KiB generations＋roots，不从旧布局表授资格。
 2. **Oracle构建同source product opt3。** baseline结束后，prefixless git archive/PAX commit、fresh源目录，经唯一oracle_build.sh/共享target和锁，保存实际build/ELF/map/input hashes；实际Linux lib/main/ubus tests。feature-off产品而不是diagnostic ELF作为下一层被测对象。
 3. **精确镜像服务合同S1–S8。** 同一个A opt3 ELF跑M5 canonical相关族、补accept-before-first-query/父counter prefix/跨连接完成顺序、route basic/已写clears与新wake tests。旧bba-native九脚本只供定位，不能改名当097镜像C。新source无deferred行为差异，最终169全族仍在main最终freeze重复。
 4. **资源/生命周期。** 同product ELF C/A paired，固定100-query/150s/RST/half-frame/old→fresh EOF/slow-reader/writer、20→30上限、0/150/4096与10批重连。固定0/1/5/15/60排空样本；自己的idle FD身份连续3次归零、G/子进程/线程及PSS/RSS观察。S8日志阻塞时DNSWork回收不提前释放G；actual Linux FIFO/TERM/stale门另绑定。
@@ -39,10 +39,10 @@
 下面都是准备命令，当前未执行。root提供已冻结环境变量，不复用旧out目录。
 
 ```sh
-# native/local：必须从main仓库工具取exact-C SOURCE路径，不从A worktree的空private解析。
-python3 "$M6B_MAIN/tools/dnsmasq/dns_cache_diff.py" \
-  --rustc "$M6B_LOCAL_RUSTC" --rust-source-root "$M6B_A_SOURCE" --output "$M6B_LOCAL_OUT/primitive"
-python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_guards.py" \
+# core/policy/EDNS/lease必须先准备四实际crate bridges，统一primitive-probes锁内copy；
+# 具体收据/命令见M6B_TCP_A_PRIMITIVE_ENTRIES.md，不在Oracle调用direct rustc/cargo。
+# 以下local-native仅本机旧适配器，不能替代copied库和Oracle资格：
+python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_guards.py" --local-native \
   --repository "$M6B_MAIN" --source "$M6B_A_COMMIT" --out "$M6B_LOCAL_OUT/guards"
 python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_layout.py" --local-native \
   --repository "$M6B_MAIN" --source "$M6B_A_COMMIT" --out "$M6B_LOCAL_OUT/layout"
@@ -65,7 +65,7 @@ sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_accept_snaps
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_accept_snapshot.py" run \
   --side rust --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/accept-a"
 python3 "$M6B_TOOLS/m6b_tcp_accept_snapshot.py" compare \
-  --c "$M6B_A_OUT/accept-c" --rust "$M6B_A_OUT/accept-a" --out "$M6B_A_OUT/accept-comparison.json"
+  --expected-rust-sha "$M6B_A_SHA" --c "$M6B_A_OUT/accept-c" --rust "$M6B_A_OUT/accept-a" --out "$M6B_A_OUT/accept-comparison.json"
 
 python3 "$M6B_TOOLS/m6b_tcp_pressure.py" plan --out "$M6B_A_OUT/pressure-plan.json"
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_pressure.py" run \
@@ -73,7 +73,7 @@ sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_pressure.py"
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_pressure.py" run \
   --side rust --image-root "$M6B_IMAGE" --rust "$M6B_A_ELF" --expected-rust-sha "$M6B_A_SHA" --out "$M6B_A_OUT/pressure-a"
 python3 "$M6B_TOOLS/m6b_tcp_pressure.py" compare \
-  --c "$M6B_A_OUT/pressure-c" --rust "$M6B_A_OUT/pressure-a" --out "$M6B_A_OUT/pressure-public-comparison.json"
+  --expected-rust-sha "$M6B_A_SHA" --c "$M6B_A_OUT/pressure-c" --rust "$M6B_A_OUT/pressure-a" --out "$M6B_A_OUT/pressure-public-comparison.json"
 
 # 待内部balance实际闭合，prerequisites必须全绑定同A product source/ELF；不会自动授资格。
 python3 "$M6B_TOOLS/m6b_tcp_cpu_gate.py" plan --inputs "$M6B_A_CPU_INPUTS" \
@@ -84,3 +84,5 @@ python3 "$M6B_TOOLS/m6b_tcp_cpu_gate.py" analyze --plan "$M6B_A_CPU_COMMON/priva
 ```
 
 CPU common-root必须fresh、gate/adapter/suite/cleanup/controllers全部包含新冻结SHA；不能对baseline27的既有state改expected_windows。每attempt全归档、逐SHA/metadata核验后才能下一窗，强制清理/异常保留。sampler/allocator报告只代表构建机；最终merge A之前全部硬门实际通过，CPU失败保留这一个候选证据并停给用户决定，不择优拼接。
+
+2026-10-08入口补正：tool-only依赖批次提供fresh copied primitive／lib-test／supplement接口；本表旧source/tool SHA仍为历史准备身份。执行前用当前工具与最终A源码重新freeze。上面local-native guards不是Oracle负控资格，必须使用每variant的locked build/run收据；原语、public压力、内部余额和CPU仍逐层open，未编译/未跑不能先写passed。

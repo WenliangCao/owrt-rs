@@ -188,7 +188,7 @@ int main(int argc,char **argv) {
         # Explicit local-only legacy mode. The Oracle must use primitive-probes.
         if rustc is None or source_root is None:
             raise ValueError('local-native requires explicit rustc and source root')
-        if any(str(path.resolve()).startswith('/home/ubuntu/') for path in [output, source_root]):
+        if Path('/home/ubuntu/dnsmasq-cargo-target').exists() or any(str(path.resolve()).startswith('/home/ubuntu/') for path in [ROOT,output,source_root]):
             raise ValueError('Oracle primitive builds require oracle_build.sh and copied ELF')
         rust = rust_modules(source_root) + primitive_rust_source().split('\n', 1)[1]
         (output/'driver.rs').write_text(rust)
@@ -249,6 +249,8 @@ def main():
     args=p.parse_args()
     source_root=args.rust_source_root.resolve()
     if args.local_native:
+        if Path('/home/ubuntu/dnsmasq-cargo-target').exists() or any(str(path.resolve()).startswith('/home/ubuntu/') for path in [ROOT,args.output,source_root]):
+            p.error('Oracle requires locked primitive-probes copied ELF; local-native prohibited')
         if not args.rustc or any([args.rust_binary,args.rust_source_receipt,args.rust_build_receipt]):
             p.error('local-native requires rustc and prohibits copied-ELF arguments')
         binding={'qualified':False,'scope':'explicit local-native legacy adapter'}
