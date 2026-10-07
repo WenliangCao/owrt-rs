@@ -5,12 +5,41 @@
 - 当前里程碑：M6b 第1b完整fd就绪分派+helper候选3e1b50b5构建/Linux及DNS文件复测中；4816的TFTP/cache/ARP等已过，DNS-file逻辑续步失败已修；27/27 syscall诊断完成并全归档。性能保护门工具已合入7c22cc85（原1311f07a），阈值未填/未Oracle，不算通过。TCP方案A仍在独立 `m6b/tcp-a-ready` 分支，未通过服务/资源/压力/CPU门，未合入 main。物理路由器未碰。
 - 刚关闭：新trace scope工具与受控detach/50s fault诊断已实际执行；diag-6f3bed3d 27/27有效诊断（formal=0），syscall-analysis SHA64fa89b4…，scope为warmup+load+稳定排空，分母包含两段correct。C/R3 calls/正确请求：UDP hit3.000/2.214、TCP local3.519/2.372、TCP cache3.518/2.401、reload3.559/5.036、DHCP81.176/317.012；两TCP场景Rust EAGAIN为0，reload剩余主要是有界UDP batch末尾探空，DHCP额外ioctl/接口枚举待归因。未插桩CPU尚未跑，诊断不作性能资格。
 - 当前代码：无A产品3e1b50b5b5f1bae08292a8bd558bfc8258a02974，DNSFiles当前逻辑runnable及一致前置门。feature-off opt3 SHA57a995adebdaa87cf54288676f9169f22ea3b5666fd0d3921a6d6de72a21d0ed、1,941,544B；s SHA4f5a0e6d03a759fa22829ebcb889df087668e2b3236a345ab78e3ffe6b516e72、1,626,152B，实际本地SHA/size已核验。Oracle711库/22main通过。service-05 DNS-files107实际场景零失败（result6103896b…）、helper-shutdown通过；UBus leaf实际0fail/350 paired但临时控制器漏reference SHA binding，保留该wrapper失败后fresh service-06用ubus_assets冻结实际镜像runner/identity，已过（5cd6e698…）。TFTP/cache/ARP/DHCP/dump等真实服务证据仍属4816，最终全族必须同ELF重跑。当前另测same-wake HUP+UDP/TCP，未通过前不冻结新CPU基线。
-- 下一步：helper续步已提交4816b19f；实际Linux新增3门和feature-off opt3/s构建已过，正在fresh重跑TFTP全族和剩余服务门。service-01失败已全SHA+metadata本地核验后远端prune。完成同ELF服务门后重新冻结修复后的无A身份，跑不插桩新CPU/UDP/TCP/DHCP/idle基线（旧79ebd42c/4816 formal=0，不作新基线）。方案A依primitive→真实service→resource/lifecycle→pressure→CPU门通过后才合main；A相对新R3不得劣化>5%且低于同窗C，不能沿用M6a20µs或重复累计C child CPU。最终仅一次9×3×5全量与M5/M2/资源/压力/APK验收。
+- 下一步：完成上述全runnable清单/测试及HUP/接口/待发送修复，再统一Linux与同ELF关键镜像门。helper续步已提交4816b19f；实际Linux新增3门和feature-off opt3/s构建已过，正在fresh重跑TFTP全族和剩余服务门。service-01失败已全SHA+metadata本地核验后远端prune。完成同ELF服务门后重新冻结修复后的无A身份，跑不插桩新CPU/UDP/TCP/DHCP/idle基线（旧79ebd42c/4816 formal=0，不作新基线）。方案A依primitive→真实service→resource/lifecycle→pressure→CPU门通过后才合main；A相对新R3不得劣化>5%且低于同窗C，不能沿用M6a20µs或重复累计C child CPU。最终仅一次9×3×5全量与M5/M2/资源/压力/APK验收。
 - 剩余项数：10个M6b工作包（syscall/readiness修复、新基线/UDP关闭、TCP A、缓存/租约候选评估、性能保护门、最终freeze/135窗口、M5/M2、资源/压力、APK、报告/清理）。169选项仍闭合；最终候选不得新增行为差异。
 - 阻塞点：不需用户决定；旧TFTP少回调缺口已在4816实际镜像C全族fresh闭合；ARP dhcp-scriptuser-applied immediate count19→20失败；真实probe extra fd只为/proc/26/net/if_inet6，50ms/1s后完整19FD集合恢复，属同步接口快照采样race，不能静默忽略或只sleep放宽。完整FD身份集合连续3×20ms、最多2s守卫已提交cd4ca634，fresh全ARP及DHCP reply-delay已通过；DNS-files107/542出现21fail，HUP逻辑request在本轮文件step之后加入但不更新saved runnable，poll无fd/timer可睡到下次DNS输入，3e1b50b5已过Linux及DNS-files全族，UBus/helper收尾也已fresh过。还有同wake HUP priority与startup FIFO不可消费DNS兴趣导致poll立即返回两边界，已备独立caller/interest小补丁待实际核对。用户最新取消df99d1f9旧版本计数补测：修复前的等待来源以读码和系统调用统计为证据，未做旧版本计数实测。已取消正在启动的补测，旧低速准备及中止记录保留且不作根因计数资格；Oracle时间用于服务回归/新基线/A。它们是继续实施的工作，不是停下理由。诊断C TCP miss57普通timeout、fault各组60预期timeout均保留，不称全部回答零错误。
-- 活跃分工：root整合/Oracle独占服务门/性能窗口/账本；m6b_measure独立性能保护门工具；m6b_tcp_design独立A compact Slot16B（4096 snapshot65KiB/3alloc）布局/原语与真实服务补门；旧M5计数补测按用户最新指令取消，不再为待验收项；ARP工具修正已交付合入；m6b_helper_audit独立DNS-file逻辑runnable补丁，root整合/Oracle；A服务/资源及CPU工具仍本地准备；DHCP重复接口元数据调用只读归因已提交3e096972，见M6B_DHCP_SYSCALL_GAP。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；Oracle正式窗口禁止并行build/test/fuzz。
+- 活跃分工：root整合/Oracle独占服务门/性能窗口/账本；m6b_measure独立性能保护门工具；m6b_tcp_design独立A compact Slot16B（4096 snapshot65KiB/3alloc）布局/原语与真实服务补门；旧M5计数补测按用户最新指令取消，不再为待验收项；ARP工具修正已交付合入；m6b_helper_audit独立HUP前处理/6caller；m6b_udp_audit独立DHCP文件/packet wake；m6b_measure独立接口事件/期限；TCP代理补owner预算组合测试，root整合/Oracle；A服务/资源及CPU工具仍本地准备；DHCP重复接口元数据调用只读归因已提交3e096972，见M6B_DHCP_SYSCALL_GAP。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；Oracle正式窗口禁止并行build/test/fuzz。
 - 测量调整：用户2026-10-07取消中间候选135窗口，已跑1个有效C窗口与中止Rust窗口归档；中间改27一轮、已完成且全归档，本地state SHA bf6b75e3…，analysis27/27。完整135仅最终候选一次。首个误启用wake明细的中间R3窗口膨胀为result2.5GB/wake2GB，已作废，重复派生数组未完整归档，仅留原始SHA、结果摘要和sidecar；这是证据保全缺口，必须在报告明确，不当通过证据。后续不启用逐次明细，短pilot保留wake计数。所有后续失败必须先完整归档校验后清理。
 - 续接注意：E=`private/dnsmasq-rewrite/evidence/`；M6A和M5旧证据及用户docs/prompts原样。M5/M6a已退役任务在`worktree-retirement-20261007/m5-m6a/manifest.json`保全；14个archive tags已核对（同目录archive-tags.json），M6b已交付8树/分支另先打archive tags再退役，manifest9ae4084f…、8 refs/patch SHA核验，释放约2.37GiB；另4个已合DHCP归因/robustness/helper/perf-guard先archive后退役，second-batch manifest eac301f5…；A活跃工作保留，旧主循环诊断df99已archive后退役（archive/m6b/20261007/cancelled-old-loop-df99d1f9f3d3）；old-loop-failed-01和cancelled-02全SHA+metadata核验后prune，进程/namespace/空cgroup已清理；/private/tmp空m6b-cache-gate-1已移除，git worktree prune dry-run无失效记录。diag feature交付关闭、环境变量一致为DNSMASQ_M6B_WAKE_METRICS。
+
+## M6b 逻辑工作唤醒清单
+
+用户新增全来源审计。下面按生产者→消费资格→poll登记列出，`可运行`指当前确实可以推进；等待FIFO、MAC、接口代际或外部transport的队列不得因非空而空转。通用守卫443f93f6把当前可运行状态直接折叠为timeout0，覆盖已排信号、buffered UBus、TCP内存输入/日志完成、helper、collector与文件队列；不能由该守卫掩盖未登记的来源。新整合代码尚待统一Oracle Linux/镜像运行，以下区分真实通过和仅类型检查。TCP/forward/cache细表见[M6B_TCP_RUNNABLE_AUDIT](audits/M6B_TCP_RUNNABLE_AUDIT.md)。
+
+| 来源与设置处 | 消费/唤醒规则 | 测试与当前资格 |
+| --- | --- | --- |
+| STOP、HUP、SIGUSR2原子计数（request_*） | signal pipe；计数已排时timeout0，HUP被既有reload阻塞时等该作业。HUP须在新DNS/accept前处理 | 新counter无pipe测试待Linux；same-wake实际C43/Rust42失败保留，117171dc有界16轮prephase及6caller待新ELF |
+| full_reload_pending（文件/接口发布） | 本轮DNS前消费；剩余flag timeout0 | 原DNS-files107在3e实过；新的统一前处理门待Linux |
+| DNS-files Init/Signal/Notify/Route、regular job、endpoint lexical队列 | 当前runnable API；regular立即、FIFO/worker等各自fd，后续trigger不能越过等待 | 3e实际711库/22main、107场景零失败；新queuedSignal/heldFIFO门已执行 |
+| hosts目录/文件请求、regular reader | requests或reader.runnable立即，FIFO等reader fd；完成后逐源发布 | held-hosts FIFO真实Linux已过；HUP新regular/1MiB fairness门待Linux |
+| DHCP文件代际、ethers、inotify内部buffer、queued reload | 当前active reader优先，不能由file_reload_pending绕过busyFIFO；接口file输入独立续步 | 新发现pending reload可能0spin，UDP代理修当前runnable及FIFO正负控；未授资格 |
+| DHCP/PXE packet与packet-interface dump | packet可消费才poll其POLLIN；fresh每包dump独立Send/runnable或netlink读fd | 新发现file/HUP/helper/interface阻塞时socket仍ready，正在同消费者gate；每包fresh合同保留 |
+| DHCP deferred reply（OwnerSender EAGAIN/EINTR） | 7bd0f4e3给实际发送socket POLLOUT，排空后取消写兴趣；不能等下个请求 | 新无入包发送/排空不busy测试仅Linux类型检查，待实际运行 |
+| 租约/leasefile alarm与pending_alarms | provider.next_maintenance登记最近到期；文件代际阻塞期间等文件，完成后恢复alarm | 现消费者链已登记；无traffic到期/blocked输入保持alarm测试在补 |
+| helper启动/脚本notice、命令背压、EOF reap | ready可接收且leases/ARP/TFTP/owner pending有工作立即；pipe背压等POLLOUT，EOF未reap仅临时10ms | 4816实际helper/TFTP30+ref5及710/20门通过；同最终ELF仍重跑 |
+| ARP/TFTP/DHCP脚本源队列 | helper.can_enqueue且front事件存在时立即；每turn有界搬运 | TFTP最后ACK/timeout及两条frozen DHCP真实Linux通过，ARP全族实际通过 |
+| active neighbor dump、MAC waiters | dump自身2s绝对截止+fd；到期先解dump/唤醒waiters，不加ARP90周期timer | 198953db新增deadline、1250ms/到期/无recv清理测试待Linux |
+| EDNS UDP<=256 waiter、32 ready预算尾 | 4f83d0a7预算yield后即时续；下一turn全Pending/接口blocked则清runnable，不busy | host33/256混合已执行；owner零wait待Linux/EDNS镜像族 |
+| TCP buffer/8step尾、Writing、fd=-1 upstream yield | buffered完整后续输入立即；半帧等POLLIN；写背压等POLLOUT；fd=-1必须配now deadline | 已有部分Linux门；跨预算/真实transport组合测试正在补，不将getter代替owner链 |
+| TCP150s/100query、accept/debug MAC、stale refresh | 绝对deadline；MAC pending只等neighbor/3s，不poll不可读stream；stale未结束不得释放 | 8709f1da queued输入不busy门待Linux；lifetime/日志FIFO已有实际Linux证据，最终再跑 |
+| UDP forwarding结果、retry/empty-error/loop probes、40s表 | append_poll_fds给fd+各自deadline；自己due/queued结果恢复；C lazy40s需下一admission，不能新造timer | 原无socket 20ms deadline/option matrix实过；queued/no-fd、fastretry/empty-error owner组合在补 |
+| 通用接口collector + pending UDP/TCP/servercheck/files结果 | collector Send/runnable、netlinkfd、deadline；发布同turn恢复各continuation | 原接口collector/UDP-before-probe实证保留；新接口无网络事件链审计中 |
+| 接口快照、bind-dynamic、tentative/DAD与迟绑重试 | 原100ms elapsed检查缺wake；需精确C地址事件与有限pending重试期限，route与addr不能混作resolv重载 | 真实缺口已读码确认；measure代理独立修/补无DNS事件测试，待Oracle |
+| UBus已buffered method/完整frame | 443f93f6当前has_pending即timeout0，kernel socket可以为空；process_ubus仍按ready/pending消费 | conn实际host pending空socket测试已过；真实UBus350paired在3e已过，新owner须同ELF重跑 |
+| UBus absent transport/reconnect、registration fatal | 精确C ubus.c/dnsmasq.c只在下一owner事件重试，外部依赖不是立即可运行；不凭队列非空新增重连timer | 来源读码核对；失败日志只一次、重连/故意C defect原UBus族实过，新ELF重跑 |
+| 父/TCP日志队列、echo、FIFO reopen/retry | output有真实POLLOUT，WaitingFile有retry_deadline；network_done且log完成即逻辑释放，blocked队列不0spin | 原真实LinuxTCP FIFO重试/回收实过，SIGUSR2计数续步新测试待Linux |
+| dump队列与notice | pending写登记POLLOUT；notice在每次网络turn末log_dns_diagnostics消费，空队列无写兴趣 | 4816镜像dump族已过；新统一ELF再过 |
+| startup helper/解析worker退出、shutdown余工作 | helper/lookup IPC含完整message解析；EOF后reap可推进；TERM逐个取消并保留fd直到drain | helper实际init/queued/shutdown实过；RPC cancellation/最终生命周期仍必需 |
 
 ## 工作规则
 
