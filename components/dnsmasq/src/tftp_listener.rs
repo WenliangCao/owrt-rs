@@ -174,6 +174,10 @@ impl<O: FileOpener> TftpListener<O> {
     pub fn active_transfers(&self) -> usize {
         self.runtime.active_len()
     }
+    /// Pending MAC lookups need owner wakeups even before a transfer exists.
+    pub fn has_pending_work(&self) -> bool {
+        self.runtime.active_len() != 0 || !self.pending.is_empty()
+    }
     pub fn needs_mac_lookup(&self) -> bool {
         self.policy
             .as_ref()
@@ -1006,6 +1010,7 @@ mod tests {
             .is_empty());
         assert_eq!(listener.pending.len(), 1);
         assert_eq!(listener.active_transfers(), 0);
+        assert!(listener.has_pending_work(), "MAC waiter still needs owner wakeups");
         let mut bytes = [0; 512];
         assert!(v4.recv_from(&mut bytes).is_err());
         listener

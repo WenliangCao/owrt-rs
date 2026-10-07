@@ -2087,13 +2087,17 @@ struct SinglePoll {
     poll_fds: Vec<owrt_ubus::sys::PollFd>,
     ubus_ready: bool,
     #[cfg(target_os = "linux")]
-    ready_fds: Vec<i32>,
+    ready_fds: Vec<owrt_ubus::sys::PollFd>,
     #[cfg(target_os = "linux")]
     upstream_ready: bool,
+    #[cfg(target_os = "linux")]
+    upstream_next_due: Option<Instant>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     dhcp_ready: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     tftp_ready: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    neighbors_ready: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     tftp_next_due: Option<Instant>,
     probe_metrics: Option<Metrics>,
@@ -2454,6 +2458,10 @@ struct PollTcpClient {
     #[cfg(target_os = "linux")]
     log_context: Option<dnsmasq_rs::logging::TcpLogContext>,
     network_done: bool,
+    #[cfg(target_os = "linux")]
+    poll_slot: Option<usize>,
+    #[cfg(target_os = "linux")]
+    ready_events: i16,
     stream: Option<TcpStream>,
     service: LocalDnsService,
     forward: TcpDnsService,
@@ -2479,6 +2487,12 @@ struct PollTcpClient {
     no_cache: bool,
     stale_query: Option<Vec<u8>>,
     refreshing_stale: bool,
+}
+
+// Error/hangup interests apply to either operation, but POLLOUT alone
+// must never authorize a read after the client completes an answer.
+fn poll_events_match(events: i16, wanted: i16) -> bool {
+    events & (wanted | owrt_ubus::sys::POLLERR | owrt_ubus::sys::POLLHUP | 0x20) != 0
 }
 
 enum TcpClientPhase {
@@ -2712,6 +2726,9 @@ impl PollTcpClient {
         &mut self,
         parent: &Rc<RefCell<ParentDns>>,
         lookup: &mut dyn FnMut(IpAddr, bool) -> ClientMacLookup,
+        mut readable: bool,
+        mut writable: bool,
+        forward_ready: bool,
     ) -> Result<bool, ()> {
         for _ in 0..8 {
             if Instant::now() >= self.deadline || STOP_REQUESTED.load(Ordering::Acquire) {
@@ -2732,8 +2749,13 @@ impl PollTcpClient {
                     self.mac_deferred = false;
                     let query = std::mem::take(query);
                     self.answer_query(query, parent)?;
+                    // A freshly produced answer gets one immediate send turn.
+                    writable = true;
                 }
                 TcpClientPhase::Writing { frame, offset } => {
+                    if !writable {
+                        return Ok(true);
+                    }
                     match self.stream.as_mut().ok_or(())?.write(&frame[*offset..]) {
                         Ok(0) => return Ok(false),
                         Ok(count) => *offset += count,
@@ -2774,15 +2796,8 @@ impl PollTcpClient {
                     }
                 }
                 TcpClientPhase::Forwarding { no_cache, wait } => {
-                    if wait.fd >= 0 && Instant::now() < wait.deadline {
-                        let mut readiness = [owrt_ubus::sys::PollFd {
-                            fd: wait.fd,
-                            events: wait.events,
-                            revents: 0,
-                        }];
-                        if owrt_ubus::sys::poll_fds(&mut readiness, 0).map_err(|_| ())? == 0 {
-                            return Ok(true);
-                        }
+                    if wait.fd >= 0 && Instant::now() < wait.deadline && !forward_ready {
+                        return Ok(true);
                     }
                     let no_cache = *no_cache;
                     match self.run_forward(parent, None, no_cache)? {
@@ -2795,11 +2810,19 @@ impl PollTcpClient {
                                 return Ok(false);
                             }
                             self.queue_answer(parent, packet, false)?;
+                            writable = true;
                         }
                     }
                 }
                 TcpClientPhase::Reading => {
                     if self.input_offset == self.input.len() {
+                        if !readable {
+                            return Ok(true);
+                        }
+                        // Read readiness belongs to this poll, not to a later
+                        // phase reached after a POLLOUT-only wake. Buffered
+                        // frames still use the existing eight-step budget.
+                        readable = false;
                         self.input.resize(4096, 0);
                         self.input_offset = 0;
                         match self.stream.as_mut().ok_or(())?.read(&mut self.input) {
@@ -2843,6 +2866,7 @@ impl PollTcpClient {
                         }
                     }
                     self.answer_query(query, parent)?;
+                    writable = true;
                 }
             }
         }
@@ -2901,10 +2925,14 @@ impl SinglePoll {
             ready_fds: Vec::new(),
             #[cfg(target_os = "linux")]
             upstream_ready: false,
+            #[cfg(target_os = "linux")]
+            upstream_next_due: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             dhcp_ready: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             tftp_ready: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            neighbors_ready: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             tftp_next_due: None,
             probe_metrics: None,
@@ -3543,15 +3571,33 @@ impl SinglePoll {
                 deadline = deadline.min(pending.deadline);
             }
             let upstream_fd_start = fds.len();
-            if let Some(daemon) = &self.service.borrow_mut().daemon {
-                deadline = daemon.append_poll_fds(&mut fds, deadline);
+            let timer_sentinel = now + Duration::from_secs(3600);
+            self.upstream_next_due = self.service.borrow().daemon.as_ref().and_then(|daemon| {
+                let due = daemon.append_poll_fds(&mut fds, timer_sentinel);
+                (due < timer_sentinel).then_some(due)
+            });
+            if let Some(due) = self.upstream_next_due {
+                deadline = deadline.min(due);
             }
             let upstream_fd_end = fds.len();
-            for client in &self.clients {
+            for client in &mut self.clients {
+                client.poll_slot = None;
+                client.ready_events = 0;
+                if let (Some(logger), Some(context)) = (&self.logger, &client.log_context) {
+                    if let Some(due) = logger.tcp_retry_deadline(context) {
+                        deadline = deadline.min(due);
+                    }
+                    if client.network_done && logger.tcp_finished(context) {
+                        deadline = now;
+                    }
+                }
                 if client.network_done {
                     continue;
                 }
                 deadline = deadline.min(client.deadline);
+                if !client.mac_ready && !client.mac_deferred {
+                    deadline = deadline.min(client.mac_deadline);
+                }
                 let (fd, events) = match &client.phase {
                     TcpClientPhase::Reading => {
                         if client.input_offset < client.input.len() {
@@ -3575,6 +3621,7 @@ impl SinglePoll {
                         (wait.fd, wait.events)
                     }
                 };
+                client.poll_slot = Some(fds.len());
                 fds.push(PollFd {
                     fd,
                     events,
@@ -3595,6 +3642,17 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(dhcp) = &self.dhcp {
                 dhcp.listener.append_poll_fds(&mut fds);
+                if let Some(provider) = &dhcp.provider {
+                    let provider = provider.borrow();
+                    // Packet interface dumps share the file owner, but their
+                    // readiness must also resume the DHCP transaction.
+                    provider.append_file_fds(&mut fds);
+                    if !provider.file_work_pending() {
+                        if let Some(due) = provider.next_maintenance() {
+                            deadline = deadline.min(due);
+                        }
+                    }
+                }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let dhcp_fd_end = fds.len();
@@ -3615,16 +3673,20 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(tftp) = &self.tftp {
                 tftp.append_poll_fds(&mut fds);
-                if tftp.active_transfers() != 0 {
-                    deadline = deadline.min(now + Duration::from_millis(250));
+                if tftp.has_pending_work() {
+                    deadline = deadline.min(self.tftp_next_due.unwrap_or(now));
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let tftp_fd_end = fds.len();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let neighbors_fd_start = fds.len();
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(neighbors) = &self.neighbors {
                 neighbors.append_poll_fds(&mut fds);
             }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let neighbors_fd_end = fds.len();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(collector) = &self.interface_collector {
                 collector.append_poll_fds(&mut fds);
@@ -3654,6 +3716,11 @@ impl SinglePoll {
             if self.signal_wake_read.is_none() {
                 deadline = deadline.min(now + Duration::from_millis(100));
             }
+            for logger in self.early_logger.iter().chain(self.logger.iter()) {
+                if let Some(due) = logger.retry_deadline() {
+                    deadline = deadline.min(due);
+                }
+            }
             let timeout = deadline
                 .saturating_duration_since(Instant::now())
                 .as_nanos()
@@ -3680,8 +3747,15 @@ impl SinglePoll {
             self.ready_fds.extend(
                 fds.iter()
                     .filter(|fd| fd.revents != 0)
-                    .map(|fd| fd.fd),
+                    .copied(),
             );
+            // Slots are attached to the actual clients before poll. A newly
+            // accepted connection cannot inherit readiness from a reused fd.
+            for client in &mut self.clients {
+                client.ready_events = client.poll_slot
+                    .and_then(|slot| fds.get(slot))
+                    .map_or(0, |fd| fd.revents);
+            }
             self.upstream_ready = fds[upstream_fd_start..upstream_fd_end]
                 .iter()
                 .any(|fd| fd.revents != 0);
@@ -3691,6 +3765,9 @@ impl SinglePoll {
                     .iter()
                     .any(|fd| fd.revents != 0);
                 self.tftp_ready = fds[tftp_fd_start..tftp_fd_end]
+                    .iter()
+                    .any(|fd| fd.revents != 0);
+                self.neighbors_ready = fds[neighbors_fd_start..neighbors_fd_end]
                     .iter()
                     .any(|fd| fd.revents != 0);
             }
@@ -3726,6 +3803,13 @@ impl SinglePoll {
                 break;
             }
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn fd_ready(&self, fd: i32, wanted: i16) -> bool {
+        let events = self.ready_fds.iter().filter(|ready| ready.fd == fd)
+            .fold(0, |events, ready| events | ready.revents);
+        poll_events_match(events, wanted)
     }
 
     fn add_listener(
@@ -3843,9 +3927,18 @@ impl SinglePoll {
             self.step_tcp_accept(index);
         }
         #[cfg(target_os = "linux")]
-        if self.upstream_ready {
+        if self.upstream_ready
+            || self.upstream_next_due.is_some_and(|due| due <= Instant::now())
+        {
             self.poll_udp_completions();
             self.upstream_ready = false;
+        }
+        #[cfg(not(target_os = "linux"))]
+        self.poll_udp_completions();
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.neighbors_ready {
+            // MAC waiters consume the completed snapshot in this same wake.
+            self.advance_neighbors();
         }
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -4043,7 +4136,7 @@ impl SinglePoll {
             return false;
         };
         #[cfg(target_os = "linux")]
-        if !self.ready_fds.contains(&udp.as_raw_fd()) {
+        if !self.fd_ready(udp.as_raw_fd(), owrt_ubus::sys::POLLIN) {
             return false;
         }
         let token = self.listeners[index].token;
@@ -4563,7 +4656,7 @@ impl SinglePoll {
             return;
         };
         #[cfg(target_os = "linux")]
-        if !self.ready_fds.contains(&tcp.as_raw_fd()) {
+        if !self.fd_ready(tcp.as_raw_fd(), owrt_ubus::sys::POLLIN) {
             return;
         }
         let Ok((stream, peer)) = tcp.accept() else {
@@ -4705,6 +4798,10 @@ impl SinglePoll {
                 })
                 .flatten(),
             network_done: false,
+            #[cfg(target_os = "linux")]
+            poll_slot: None,
+            #[cfg(target_os = "linux")]
+            ready_events: 0,
             stream: Some(stream),
             cache_view,
             cache_negative,
@@ -4737,24 +4834,25 @@ impl SinglePoll {
     fn tcp_client_ready(&self, index: usize) -> bool {
         let client = &self.clients[index];
         let now = Instant::now();
+        if client.network_done || now >= client.deadline {
+            return true;
+        }
+        #[cfg(target_pointer_width = "64")]
+        let neighbor_ready = self.neighbors_ready;
+        #[cfg(not(target_pointer_width = "64"))]
+        let neighbor_ready = false;
+        if !client.mac_ready && !client.mac_deferred {
+            return now >= client.mac_deadline || neighbor_ready
+                || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN);
+        }
         match &client.phase {
-            TcpClientPhase::Reading => {
-                client.input_offset < client.input.len()
-                    || client
-                        .stream
-                        .as_ref()
-                        .is_some_and(|stream| self.ready_fds.contains(&stream.as_raw_fd()))
-            }
-            TcpClientPhase::WaitingMac { .. } => {
-                now >= client.mac_deadline || !self.ready_fds.is_empty()
-            }
-            TcpClientPhase::Forwarding { wait, .. } => {
-                now >= wait.deadline || self.ready_fds.contains(&wait.fd)
-            }
-            TcpClientPhase::Writing { .. } => client
-                .stream
-                .as_ref()
-                .is_some_and(|stream| self.ready_fds.contains(&stream.as_raw_fd())),
+            TcpClientPhase::Reading => client.input_offset < client.input.len()
+                || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN),
+            TcpClientPhase::WaitingMac { .. } => now >= client.mac_deadline || neighbor_ready,
+            TcpClientPhase::Forwarding { wait, .. } => now >= wait.deadline
+                || poll_events_match(client.ready_events, wait.events),
+            TcpClientPhase::Writing { .. } =>
+                poll_events_match(client.ready_events, owrt_ubus::sys::POLLOUT),
         }
     }
 
@@ -4766,7 +4864,10 @@ impl SinglePoll {
                 index += 1;
                 continue;
             }
-            if !self.clients[index].mac_ready && !self.clients[index].mac_deferred {
+            if !self.clients[index].network_done
+                && Instant::now() < self.clients[index].deadline
+                && !self.clients[index].mac_ready && !self.clients[index].mac_deferred
+            {
                 let lookup = if Instant::now() >= self.clients[index].mac_deadline {
                     ClientMacLookup::Ready(None)
                 } else {
@@ -4783,6 +4884,20 @@ impl SinglePoll {
                     }
                 }
             }
+            #[cfg(target_os = "linux")]
+            let (readable, writable, forward_ready) = match &self.clients[index].phase {
+                TcpClientPhase::Forwarding { wait, .. } => (false, false,
+                    poll_events_match(self.clients[index].ready_events, wait.events)),
+                _ => (
+                    poll_events_match(self.clients[index].ready_events, owrt_ubus::sys::POLLIN),
+                    poll_events_match(self.clients[index].ready_events, owrt_ubus::sys::POLLOUT),
+                    false,
+                ),
+            };
+            #[cfg(not(target_os = "linux"))]
+            let (readable, writable, forward_ready) = (true, true, true);
+            #[cfg(target_os = "linux")]
+            let was_network_done = self.clients[index].network_done;
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let result = if self.clients[index].network_done {
                 Ok(false)
@@ -4790,13 +4905,14 @@ impl SinglePoll {
                 let neighbors = &mut self.neighbors;
                 self.clients[index].step(&self.service, &mut |source, lazy| {
                     lookup_edns_mac(neighbors, source, lazy)
-                })
+                }, readable, writable, forward_ready)
             };
             #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
             let result = if self.clients[index].network_done {
                 Ok(false)
             } else {
-                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None))
+                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None),
+                    readable, writable, forward_ready)
             };
             #[cfg(target_os = "linux")]
             if let Some(logger) = &mut self.logger {
@@ -4840,8 +4956,19 @@ impl SinglePoll {
             let logs_done = if let (Some(logger), Some(context)) =
                 (&mut self.logger, &mut self.clients[index].log_context)
             {
-                logger.flush_tcp_ready(context);
-                network_alive || logger.finish_tcp(context)
+                let log_ready = logger.tcp_poll_fd(context).is_some_and(|fd| {
+                    self.ready_fds.iter().any(|ready| ready.fd == fd
+                        && poll_events_match(ready.revents, owrt_ubus::sys::POLLOUT))
+                }) || logger.tcp_retry_deadline(context).is_some_and(|due| due <= Instant::now());
+                // Preserve the first forced finish after network closure.
+                // Later turns retry only actual writable/timer work, while an
+                // empty or failed queue can release its client immediately.
+                if (!was_network_done && !network_alive) || log_ready {
+                    logger.flush_tcp_ready(context);
+                    network_alive || logger.finish_tcp(context)
+                } else {
+                    network_alive || logger.tcp_finished(context)
+                }
             } else {
                 true
             };
@@ -4932,14 +5059,34 @@ impl SinglePoll {
                 }
             }
         }
-        if let Some(daemon) = &self.service.borrow_mut().daemon {
-            deadline = daemon.append_poll_fds(&mut fds, deadline);
+        let upstream_fd_start = fds.len();
+        let timer_sentinel = Instant::now() + Duration::from_secs(3600);
+        self.upstream_next_due = self.service.borrow().daemon.as_ref().and_then(|daemon| {
+            let due = daemon.append_poll_fds(&mut fds, timer_sentinel);
+            (due < timer_sentinel).then_some(due)
+        });
+        if let Some(due) = self.upstream_next_due {
+            deadline = deadline.min(due);
         }
-        for client in &self.clients {
+        let upstream_fd_end = fds.len();
+        for client in &mut self.clients {
+            client.poll_slot = None;
+            client.ready_events = 0;
+            if let (Some(logger), Some(context)) = (&self.logger, &client.log_context) {
+                if let Some(due) = logger.tcp_retry_deadline(context) {
+                    deadline = deadline.min(due);
+                }
+                if client.network_done && logger.tcp_finished(context) {
+                    deadline = Instant::now();
+                }
+            }
             if client.network_done {
                 continue;
             }
             deadline = deadline.min(client.deadline);
+            if !client.mac_ready && !client.mac_deferred {
+                deadline = deadline.min(client.mac_deadline);
+            }
             let (fd, events) = match &client.phase {
                 TcpClientPhase::Reading => {
                     if client.input_offset < client.input.len() {
@@ -4963,19 +5110,27 @@ impl SinglePoll {
                     (wait.fd, wait.events)
                 }
             };
+            client.poll_slot = Some(fds.len());
             fds.push(PollFd {
                 fd,
                 events,
                 revents: 0,
             });
         }
+        let tftp_fd_start = fds.len();
         if let Some(tftp) = &self.tftp {
             tftp.append_poll_fds(&mut fds);
+            if tftp.has_pending_work() {
+                deadline = deadline.min(self.tftp_next_due.unwrap_or_else(Instant::now));
+            }
         }
+        let tftp_fd_end = fds.len();
+        let neighbors_fd_start = fds.len();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(neighbors) = &self.neighbors {
             neighbors.append_poll_fds(&mut fds);
         }
+        let neighbors_fd_end = fds.len();
         if let Some(collector) = &self.interface_collector {
             collector.append_poll_fds(&mut fds);
             if let Some(limit) = collector.deadline() {
@@ -4991,6 +5146,18 @@ impl SinglePoll {
             .div_ceil(1_000_000)
             .min(i32::MAX as u128) as i32;
         let ready = owrt_ubus::sys::poll_fds(&mut fds, millis)?;
+        self.ready_fds.clear();
+        self.ready_fds.extend(fds.iter().filter(|fd| fd.revents != 0).copied());
+        for client in &mut self.clients {
+            client.ready_events = client.poll_slot.and_then(|slot| fds.get(slot))
+                .map_or(0, |fd| fd.revents);
+        }
+        self.upstream_ready = fds[upstream_fd_start..upstream_fd_end].iter()
+            .any(|fd| fd.revents != 0);
+        self.tftp_ready = fds[tftp_fd_start..tftp_fd_end].iter()
+            .any(|fd| fd.revents != 0);
+        self.neighbors_ready = fds[neighbors_fd_start..neighbors_fd_end].iter()
+            .any(|fd| fd.revents != 0);
         self.step_interface_collector();
         // C's delay_dhcp does not consume inotify/route events. They remain
         // queued until the outer owner can apply all reload effects together.
@@ -5001,9 +5168,9 @@ impl SinglePoll {
             self.step_tcp_accept(index);
         }
         self.poll_udp_completions();
-        self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.advance_neighbors();
+        self.step_tcp_clients();
         self.step_edns_udp();
         self.step_tftp();
         // Early DNS/TCP timers or any listener activity must not consume an
@@ -5572,8 +5739,8 @@ impl SinglePoll {
         let active = self
             .tftp
             .as_ref()
-            .is_some_and(|listener| listener.active_transfers() != 0);
-        if !self.tftp_ready
+            .is_some_and(TftpListener::has_pending_work);
+        if !self.tftp_ready && !(active && self.neighbors_ready)
             && !(active && self.tftp_next_due.is_some_and(|deadline| deadline <= now_instant))
         {
             return;
@@ -5619,7 +5786,7 @@ impl SinglePoll {
         if self.helper.as_ref().is_none_or(Helper::is_finished) {
             while listener.pop_completion().is_some() {}
         }
-        self.tftp_next_due = (listener.active_transfers() != 0)
+        self.tftp_next_due = listener.has_pending_work()
             .then_some(now_instant + Duration::from_millis(250));
     }
 }
@@ -5917,6 +6084,205 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 mod tests {
     use super::*;
     use dnsmasq_rs::config::{lex_line, validate_directive};
+
+    fn test_owner(config: DnsConfig, daemon: Option<DnsDaemon>) -> SinglePoll {
+        let local = LocalDnsService::new_with_limits(
+            config.clone(), read_hosts(&config, 37), 37, 1232, 1232,
+        );
+        SinglePoll::new(
+            Rc::new(RefCell::new(ParentDns {
+                local, daemon, query_ids: Default::default(),
+            })),
+            Rc::new(RefCell::new(ParentEvents::new(&UbusConfig::default()).unwrap())),
+            Rc::new(RefCell::new(Vec::new())), config, Vec::new(), 1232, 20, 1232,
+            Vec::new(),
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            None,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            None,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            None,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            None,
+        )
+    }
+
+    fn add_test_tcp(owner: &mut SinglePoll) -> TcpStream {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (stream, address) = listener.accept().unwrap();
+        stream.set_nonblocking(true).unwrap();
+        owner.finish_tcp_accept(PendingInterfaceTcp {
+            query_ids: Default::default(), stream, peer: address, local_network: None,
+            mac: None, mac_ready: true, mac_deferred: false, accept_clock: now_seconds(),
+        });
+        assert_eq!(owner.clients.len(), 1);
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        peer
+    }
+
+    fn test_dns_query() -> Vec<u8> {
+        use dnsmasq_rs::dns::wire::{Name, PacketWriter};
+        let mut writer = PacketWriter::new(7, 0x100, 1232).unwrap();
+        writer.question(&Name::from_ascii("ready.test").unwrap(), 1, 1).unwrap();
+        writer.finish()
+    }
+
+    #[test]
+    fn tcp_polled_write_does_not_consume_unpolled_read() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let mut peer = add_test_tcp(&mut owner);
+        peer.write_all(b"not-yet-readable").unwrap();
+        let client = &mut owner.clients[0];
+        client.phase = TcpClientPhase::Writing { frame: b"answer".to_vec(), offset: 0 };
+        assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
+            false, true, false).unwrap());
+        let mut answer = [0; 6];
+        peer.read_exact(&mut answer).unwrap();
+        assert_eq!(&answer, b"answer");
+        assert!(matches!(client.phase, TcpClientPhase::Reading));
+        assert!(client.input.is_empty());
+        let mut pending = [0; 32];
+        assert_eq!(client.stream.as_ref().unwrap().peek(&mut pending).unwrap(), 16);
+        assert_eq!(&pending[..16], b"not-yet-readable");
+    }
+
+    #[test]
+    fn tcp_buffered_frame_runs_without_socket_readiness_and_sends_new_answer() {
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+        let mut owner = test_owner(config, None);
+        let mut peer = add_test_tcp(&mut owner);
+        let query = test_dns_query();
+        let client = &mut owner.clients[0];
+        client.input = encode_tcp_frame(&query).unwrap();
+        assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
+            false, false, false).unwrap());
+        let mut size = [0; 2];
+        peer.read_exact(&mut size).unwrap();
+        let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
+        peer.read_exact(&mut answer).unwrap();
+        assert!(answer.ends_with(&[192, 0, 2, 7]));
+        assert_eq!(client.queries, 1);
+        assert_eq!(client.input_offset, client.input.len());
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn tcp_idle_deadline_and_completed_client_run_without_fd_readiness() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let _peer = add_test_tcp(&mut owner);
+        owner.clients[0].deadline = Instant::now();
+        owner.step_tcp_clients();
+        assert!(owner.clients.is_empty(), "expired idle client must release its slot");
+        let _peer = add_test_tcp(&mut owner);
+        owner.clients[0].network_done = true;
+        owner.clients[0].stream.take();
+        owner.step_tcp_clients();
+        assert!(owner.clients.is_empty(), "log-complete client must release its slot");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn duplicate_fd_masks_merge_without_authorizing_read_from_write() {
+        use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+        let mut owner = test_owner(DnsConfig::default(), None);
+        owner.ready_fds = vec![
+            PollFd { fd: 42, events: POLLOUT, revents: POLLOUT },
+            PollFd { fd: 42, events: POLLIN, revents: 0 },
+        ];
+        assert!(owner.fd_ready(42, POLLOUT));
+        assert!(!owner.fd_ready(42, POLLIN));
+        owner.ready_fds[1].revents = POLLIN;
+        assert!(owner.fd_ready(42, POLLIN));
+        let _peer = add_test_tcp(&mut owner);
+        assert_eq!(owner.clients[0].ready_events, 0,
+            "accepted client owns no slot from the previous poll");
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn upstream_timeout_wake_advances_without_ready_network_fd() {
+        use dnsmasq_rs::dns::upstream::Lifetime;
+        let server = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        let line = format!("server=127.0.0.1#{}", server.local_addr().unwrap().port());
+        config.apply(&lex_line(line.as_bytes()).unwrap().unwrap()).unwrap();
+        let mut daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions {
+            upstream_lifetime: Lifetime::Fixed(Duration::from_millis(20)),
+            ..Default::default()
+        }).unwrap();
+        assert!(matches!(daemon.forward_udp(&test_dns_query(), ClientRequest {
+            source: "127.0.0.1:53000".parse().unwrap(), destination: "127.0.0.1".parse().unwrap(),
+            interface: 0,
+        }).unwrap(), QueryResult::Forwarded(_)));
+        let mut owner = test_owner(config, Some(daemon));
+        owner.wait_for_files().unwrap();
+        assert!(!owner.upstream_ready);
+        assert!(owner.upstream_next_due.unwrap() <= Instant::now());
+        owner.step().unwrap();
+        assert_eq!(owner.service.borrow().daemon.as_ref().unwrap().pending_count(), 0);
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn probe_poll_dispatches_new_udp_using_its_own_readiness() {
+        let mut config = DnsConfig::default();
+        config.bind_interfaces = true;
+        config.no_hosts = true;
+        config.no_resolv = true;
+        config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+            DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config, Some(daemon));
+        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let address = udp.local_addr().unwrap();
+        owner.add_listener(SocketToken(1), Some(udp), None);
+        let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        client.send_to(&test_dns_query(), address).unwrap();
+        assert!(owner.ready_fds.is_empty());
+        assert!(owner.wait_during_probe(None, Duration::from_millis(50), Default::default()).unwrap());
+        let mut answer = [0; 1232];
+        let (length, _) = client.recv_from(&mut answer).unwrap();
+        assert!(answer[..length].ends_with(&[192, 0, 2, 7]));
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn finished_tcp_log_fifo_retries_without_network_events_and_releases_slot() {
+        use dnsmasq_rs::config::logging::LoggingConfig;
+        use dnsmasq_rs::logging::{LogEvent, Logger, Priority, Service};
+        use std::os::unix::fs::OpenOptionsExt;
+        let path = std::env::temp_dir().join(format!("dnsmasq-ready-log-{}", std::process::id()));
+        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let (logger, _) = Logger::start(&LoggingConfig { file: Some(path.clone()),
+            ..Default::default() }, &Default::default(), None).unwrap();
+        let mut owner = test_owner(DnsConfig::default(), None);
+        owner.logger = Some(logger);
+        let _peer = add_test_tcp(&mut owner);
+        let context = owner.clients[0].log_context.as_mut().unwrap();
+        owner.logger.as_mut().unwrap().emit_tcp(context,
+            LogEvent::new(Service::Dns, Priority::Info, b"pending child log".to_vec()));
+        owner.clients[0].network_done = true;
+        owner.clients[0].stream.take();
+        owner.step_tcp_clients();
+        assert_eq!(owner.clients.len(), 1);
+        let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000)
+            .open(&path).unwrap();
+        owner.wait_for_files().unwrap();
+        owner.step_tcp_clients();
+        assert!(owner.clients.is_empty(), "FIFO timer must drain log and free TCP slot");
+        let mut message = String::new();
+        match reader.read_to_string(&mut message) {
+            Ok(_) => (),
+            Err(error) => assert_eq!(error.kind(), io::ErrorKind::WouldBlock),
+        }
+        assert!(message.contains("pending child log"));
+        std::fs::remove_file(path).unwrap();
+    }
 
     #[test]
     fn udp_turn_budget_is_bounded_for_service_fairness() {
