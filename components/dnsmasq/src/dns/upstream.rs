@@ -241,6 +241,13 @@ struct Transaction {
     sockets: HashMap<ServerId, SocketToken>,
     tokens: Vec<SocketToken>,
 }
+
+#[derive(Clone, Copy)]
+struct SavedUdpQuery {
+    server: ServerId,
+    socket: SocketToken,
+    destination: SocketAddr,
+}
 struct OwnedSocket {
     owners: HashSet<QueryId>,
     probe_refs: usize,
@@ -290,6 +297,10 @@ pub struct UpstreamResolver<R = OsRandom> {
     pool_finger: usize,
     source_diagnostics: VecDeque<SourceSocketDiagnostic>,
     loop_sends: VecDeque<LoopSend>,
+    // C's srv_save/fd_save refer to the last successful send only. This
+    // metadata is not a socket owner, and a token never aliases a reused fd.
+    saved_udp: Option<SavedUdpQuery>,
+    saved_udp_packet: Vec<u8>,
 }
 
 struct LoopSend {
@@ -362,6 +373,8 @@ impl<R: Random> UpstreamResolver<R> {
             pool_finger: 0,
             source_diagnostics: VecDeque::new(),
             loop_sends: VecDeque::new(),
+            saved_udp: None,
+            saved_udp_packet: Vec::new(),
         })
     }
 
@@ -381,6 +394,11 @@ impl<R: Random> UpstreamResolver<R> {
         probes: Vec<super::loop_detect::LoopProbe>,
         startup: bool,
     ) {
+        if !probes.is_empty() {
+            // loop.c:57 generates a probe in daemon->packet, invalidating
+            // the previous ordinary UDP query before attempting its send.
+            self.invalidate_udp_resend();
+        }
         let mut batch_tokens = Vec::new();
         for probe in probes {
             let super::loop_detect::LoopProbe {
@@ -531,6 +549,38 @@ impl<R: Random> UpstreamResolver<R> {
         self.sockets.len()
     }
 
+    /// A real caller has overwritten C's shared DNS packet. Retain only the
+    /// capacity of this one bounded buffer, never a query or socket owner.
+    pub fn invalidate_udp_resend(&mut self) {
+        self.saved_udp = None;
+        self.saved_udp_packet.clear();
+    }
+
+    /// EVENT_NEWROUTE resends only the exact last successful UDP wire on its
+    /// original live socket. It does not create a query, record an ordinary
+    /// forward/log/dump, change retry state, or retain that socket's lifetime.
+    pub fn resend_udp_query(&mut self) {
+        self.resend_udp_query_with_io(UdpSocket::send_to, wait_udp_retry);
+    }
+
+    fn resend_udp_query_with_io(
+        &mut self,
+        mut send: impl FnMut(&UdpSocket, &[u8], SocketAddr) -> io::Result<usize>,
+        wait: impl FnMut() -> io::Result<()>,
+    ) {
+        let Some(saved) = self.saved_udp else { return; };
+        let Some(owned) = self.sockets.get(&saved.socket) else {
+            self.invalidate_udp_resend();
+            return;
+        };
+        // forward.c::server_send ignores terminal send errors. Reuse the
+        // existing exact retry_send contract (including its bounded EAGAIN
+        // nanosleep boundary); do not add an independent owner send queue.
+        let _ = send_udp_with_retry(
+            || send(&owned.socket, &self.saved_udp_packet, saved.destination), wait,
+        );
+    }
+
     /// Borrow readiness interests without waiting or advancing any query.
     /// Used by the service owner while DHCP temporarily owns its state.
     pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>, deadline: Instant) -> Instant {
@@ -585,6 +635,10 @@ impl<R: Random> UpstreamResolver<R> {
         metadata: Option<super::forward_service::QueryMetadata>,
     ) -> Result<Submission, ResolveError> {
         self.run_timers();
+        // Timers may restore an older stash and save its successful retry.
+        // receive_query subsequently restores this new client's packet even
+        // if submission rejects it or answers without a successful send.
+        self.invalidate_udp_resend();
         let submitted = if let Some(metadata) = metadata {
             self.dispatcher.submit_with_metadata(
                 packet,
@@ -737,6 +791,7 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     pub fn clear(&mut self) {
+        self.invalidate_udp_resend();
         let ids: Vec<_> = self.transactions.keys().copied().collect();
         for id in ids {
             self.cancel(id);
@@ -758,6 +813,11 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     pub fn replace_server_groups(&mut self, groups: Vec<ServerGroup>, removed: &[ServerId]) {
+        if self.saved_udp.is_some_and(|saved| removed.contains(&saved.server)) {
+            // server_gone invalidates only the actual retired server record,
+            // not another server or a merely excluded routing rule.
+            self.invalidate_udp_resend();
+        }
         self.dispatcher.replace_groups(groups, removed);
         for owned in self.sockets.values_mut() {
             if owned.origin.is_some_and(|origin| removed.contains(&origin)) {
@@ -867,6 +927,9 @@ impl<R: Random> UpstreamResolver<R> {
             }
         };
         for plan in plans {
+            // fast_retry restores each stash into the shared packet before
+            // forward_query. Only a new successful send establishes a save.
+            self.invalidate_udp_resend();
             match self.send_plan_without_client(plan.id, &plan.packet, &plan.send_plan) {
                 Ok(()) => self.dispatcher.retry_finished(plan.id),
                 Err(error) => {
@@ -1151,6 +1214,9 @@ impl<R: Random> UpstreamResolver<R> {
                 || (owned.persistent
                     && (owned.pinned || self.server_sockets.values().any(|used| used == token)))
         });
+        if self.saved_udp.is_some_and(|saved| !self.sockets.contains_key(&saved.socket)) {
+            self.invalidate_udp_resend();
+        }
     }
 
     fn fail_socket(&mut self, token: SocketToken, message: &str) {
@@ -1163,6 +1229,9 @@ impl<R: Random> UpstreamResolver<R> {
             self.fail(id, io::Error::other(message.to_owned()).into());
         }
         self.sockets.remove(&token);
+        if self.saved_udp.is_some_and(|saved| saved.socket == token) {
+            self.invalidate_udp_resend();
+        }
     }
 
     fn send_plan(
@@ -1241,6 +1310,9 @@ impl<R: Random> UpstreamResolver<R> {
             );
             match result {
                 Ok(length) if length == packet.len() => {
+                    self.saved_udp_packet.clear();
+                    self.saved_udp_packet.extend_from_slice(packet);
+                    self.saved_udp = Some(SavedUdpQuery { server, socket: token, destination: address });
                     let pending = self
                         .dispatcher
                         .table()
@@ -1378,16 +1450,26 @@ impl<R: Random> UpstreamResolver<R> {
             let result = receive(&owned.socket, &mut self.receive_buffer);
             let (length, source) = match result {
                 Ok(result) => {
+                    // Each real datagram replaces C's packet, even when it
+                    // later fails ID/source/question/policy admission.
+                    self.saved_udp = None;
+                    self.saved_udp_packet.clear();
                     empty_poll_error = false;
                     owned.empty_error_retry = None;
                     result
                 }
                 Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
-                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => {
+                    self.saved_udp = None;
+                    self.saved_udp_packet.clear();
+                    continue;
+                }
                 // C reply_query returns before frec lookup on recvfrom error.
                 // End this batch without changing ID, recipients, retry state
                 // or deadline. A later POLLNVAL identifies an unusable FD.
                 Err(_) => {
+                    self.saved_udp = None;
+                    self.saved_udp_packet.clear();
                     empty_poll_error = false;
                     owned.empty_error_retry = None;
                     break;
@@ -1648,6 +1730,10 @@ fn poll_once(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
 #[cfg(test)]
 #[path = "upstream_owner_wake_tests.rs"]
 mod owner_wake_tests;
+
+#[cfg(test)]
+#[path = "upstream_route_resend_tests.rs"]
+mod route_resend_tests;
 
 #[cfg(test)]
 mod tests {

@@ -420,6 +420,18 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.pending_count()
     }
 
+    /// Actual parent callers that overwrite C's shared packet clear the last
+    /// UDP resend. Ordinary TCP child snapshots must not call this method.
+    pub fn invalidate_udp_resend(&mut self) {
+        self.upstream.invalidate_udp_resend();
+    }
+
+    /// Invoke before the route event's resolver publication, matching
+    /// EVENT_NEWROUTE: resend_query followed by poll_resolv.
+    pub fn resend_udp_query(&mut self) {
+        self.upstream.resend_udp_query();
+    }
+
     /// Capture a finite snapshot only at actual C check_servers call sites.
     #[cfg(target_os = "linux")]
     pub fn queue_server_notices(&mut self) {
@@ -718,6 +730,8 @@ impl<R: Random> DnsDaemon<R> {
     }
 
     pub fn reload_hosts(&mut self, hosts: Hosts) {
+        // cache_reload uses daemon->packet as its temporary reverse hash.
+        self.invalidate_udp_resend();
         self.local.hosts = hosts;
         if let Some(cache) = &mut self.cache {
             cache.clear_counted(&mut self.cache_counters);
@@ -813,6 +827,7 @@ impl<R: Random> DnsDaemon<R> {
         query: &[u8],
         client: ClientRequest,
     ) -> Result<QueryResult, DaemonError> {
+        self.invalidate_udp_resend();
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
@@ -838,6 +853,7 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
         now: i64,
     ) -> Result<Option<Vec<u8>>, DaemonError> {
+        self.invalidate_udp_resend();
         Ok(local.handle_udp_with_cache(query, now, self.cache.as_mut())?)
     }
 
@@ -895,6 +911,7 @@ impl<R: Random> DnsDaemon<R> {
         listener: Option<super::forward::SocketToken>,
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
+        self.invalidate_udp_resend();
         let question = super::forward::Question::parse(original)?;
         let now = unix_seconds();
         if !metadata.flags.no_cache
@@ -961,6 +978,7 @@ impl<R: Random> DnsDaemon<R> {
         listener: Option<super::forward::SocketToken>,
         mut local: Option<&mut LocalDnsService>,
     ) -> Result<QueryResult, DaemonError> {
+        self.invalidate_udp_resend();
         if query.len() > self.max_udp {
             return Ok(QueryResult::Dropped);
         }
@@ -1953,6 +1971,10 @@ mod policy_tests;
 #[cfg(test)]
 #[path = "daemon_poll_tests.rs"]
 mod poll_tests;
+
+#[cfg(test)]
+#[path = "daemon_route_resend_tests.rs"]
+mod route_resend_tests;
 
 #[cfg(test)]
 #[path = "daemon_lease_cache_tests.rs"]
