@@ -201,11 +201,30 @@ allocator共同策略：先保留已交付的 `System`/musl mallocng；避免逐
 - **弱耦合：小RDATA内嵌、Record allocation合并。** 当前快照已共享Record，所以给A/AAAA内嵌4/16 B主要节省父/历史载荷及transfer复制的分配，不能再把4096份RDATA乘20当视图收益。先保留Vec，不扩大本次迁移。日后从`cache_engine.rs`的借用packet slice直接构造；先Vec再转inline不能消除原分配。
 - 已有 [TCP_SNAPSHOT_INLINE16_RESULT.md](TCP_SNAPSHOT_INLINE16_RESULT.md)、[TCP_SNAPSHOT_ONE_INDEX_RESULT.md](TCP_SNAPSHOT_ONE_INDEX_RESULT.md) 和 [TCP_SNAPSHOT_COMPOSITION_REVIEW.md](TCP_SNAPSHOT_COMPOSITION_REVIEW.md) 的拒绝/预测分别保留。它们基于更早布局，不能把各自最优数字相加当新方案通过。
 
+## M6b 第1b CPU基线修订
+
+M6a 的 CPU 数字保留为历史测量，不能继续作为方案 A 的 C 对照门。UDP
+主循环修复提高了轮询频率，导致固定轮次工作在 TCP、reload、DHCP 和 UDP
+请求中的占比发生变化；M6a 的约 20 µs/Rust、29 µs/C 只描述旧主循环。
+
+Oracle 的第1b perf debug companion（同源、非交付 ELF）与中间矩阵结果已经
+把 `SinglePoll::step*`、`wait_for_files`/`poll_fds`、logger flush 和循环内
+metrics/UBus 调用列为新的归因候选。方案 A 的 CPU 硬门暂停到第1b
+`d52d5cac` 完成短基线后再冻结。冻结时使用同一配置、同一镜像 C、同一
+CPU/正确回答分母，定义
+`u=(daemon cgroup CPU usec + TCP child CPU usec)/correct replies`，并要求：
+
+* `median(u_A) <= 1.05 × median(u_R3_1b)`；
+* `median(u_A) < median(u_C_1b)`，即保持相对**新** C 基线的 CPU 优势；
+* 吞吐和 p95 不回退超过 5%，S1–S8 零新增差异，错误和 FD 泄漏为零。
+
+在新基线冻结前，不得用 M6a 的 C/R3 数字判定方案 A 通过或失败。
+
 ## 5. 实施步骤与验收门
 
 本节是后续实施依据，不表示本次授权修改产品。
 
-1. **先修测量合同，再冻结实现基线。** 未来runner必须等Rust的client/view/pending-transaction计数归零，或至少FD回到经确认的空闲值并连续稳定；另外固定1s/5s/60s采样，不再把child=0视为Rust drain完成。本轮只记录这个修订需求，不修改工具。随后记录M5源码/ELF、精确C、toolchain/libc、工作负载和layout。先明确预算：S1–S8零新增差异；steady/saturation每正确请求CPU相对R3不劣于5%，吞吐和p95不劣于5%，错误零；小容量150/空缓存不以大缓存收益豁免。性能门提前冻结，失败保留，不事后换中位数或挑重跑。
+1. **先修测量合同，再冻结实现基线。** 未来runner必须等Rust的client/view/pending-transaction计数归零，或至少FD回到经确认的空闲值并连续稳定；另外固定1s/5s/60s采样，不再把child=0视为Rust drain完成。本轮只记录这个修订需求，不修改工具。随后记录M5源码/ELF、精确C、toolchain/libc、工作负载和layout。先完成第1b短基线，再冻结上面的`C_1b/R3_1b` CPU门；S1–S8零新增差异；steady/saturation每正确请求CPU相对R3_1b不劣于5%，吞吐和p95不劣于5%，错误零；小容量150/空缓存不以大缓存收益豁免。性能门提前冻结，失败保留，不事后换中位数或挑重跑。
 2. **在独立worktree做A最小存储原型。** 第一提交只分离LRU与内容访问，不改变wire/提取/事务；逐mutator清单证明detach。随后内容块、索引分片/共享key按可审查单元推进。保留parent无snapshot时的低成本路径；实际尺寸、分配次数、drop余额先于计时检查。没有把实验代码直接搬进main的许可。
 3. **先跑精确C primitive和视图隔离门。** 复用`dns_cache_diff.py`、`cache_policy_transaction_diff.py`、`cache_answer_diff.py`、`cache_reverse_order_*`、`lease_cache_diff.py`、`cache_transfer_*`。必须保持retained snapshot前后全状态、TTL、flags、计数和RR顺序；让故意共享LRU/漏detach/调换CNAME顺序的负控确实失败。覆盖capacity0/1/150/4096及满缓存、长名限额、single/many、A/AAAA/CNAME/negative/SOA/generic/reverse、过期和stale、失败后pending。
 4. **服务合同门。** `dns_tcp_cache_diff.py`：accept后父UDP填充不可见、同连接自写可见、后连接可见、TTL固定；`dns_tcp_reload_diff.py`和DHCP lease publication：旧/新代际；`dns_tcp_writeback_diff.py`：每query即时导回和真实父指标/冲突；`tcp_stale_oracle.py`/`dns_stale_refresh_diff.py`：下游关闭后刷新；`tcp_cd_policy_oracle.py`、`dns_do_cache_diff.py`、EDNS：extract-only、no-cache与源身份；`tcp_upstream_diff.py`/`tcp_caller_diff.py`：选择、复用、失败与超时。实际采用M5最终族driver/fixture，旧单脚本只是覆盖定位。

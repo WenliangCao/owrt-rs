@@ -2,12 +2,13 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6a已完成；进入M6b。M6B协议已冻结（5c8dcf27），测量器排空/idle/wake修正与测试完成。UDP统一poll/16包预算/65,535B复用、signal wake已合入；TCP方案A storage原语暂在`m6b/tcp-scheme-a`独立分支，未进入UDP-only main候选。含A的candidate pilot已作废不混入归因；UDP-only candidate386fa821的135窗口已按用户调整停止，已完成窗口和中止窗口均保留归档。性能仅代表Oracle构建机，物理路由器未碰。
+- 当前里程碑：M6a已完成；进入M6b。M6B协议已冻结（5c8dcf27），测量器排空/idle/wake修正和UDP-only中间矩阵已完成。UDP统一poll/16包预算/65,535B复用、signal wake已合入；第1b固定开销诊断已用Oracle perf debug companion和计数交叉确认，产品修复提交为`d52d5cac`；TCP方案A storage原语暂在`m6b/tcp-scheme-a`独立分支，未进入1b或最终main候选。性能仅代表Oracle构建机，物理路由器未碰。
 - 刚关闭：M6a final-analysis formal_complete=true、135/135身份/归档/清理门独立复核通过；M6a内存终版归因[a1e4d45e](audits/M6A_MEMORY_ATTRIBUTION.md)已合入；M6b第0步测量器修正和测试13项通过。M6b诊断feature默认关闭，交付构建不启用；M6a UDP约465QPS/42ms线索已写报告，Linux等待来源留作M6b计数诊断。
-- 当前代码：M5基线源码dc1b740d/opt3 37f85d22、C097a9e21和M6a s8427b9a保留；UDP-only M6b候选为main@386fa821（仅UDP修复，TCP方案A留在m6b/tcp-scheme-a，默认关闭m6b-diagnostics feature）。UDP-only pilot及已跑正式窗口已归档；中间候选一轮矩阵工具为0d425606（含990d227a的初版），最终合入方案A的ELF、manifest和正式复测身份尚待Oracle构建。
-- 下一步：先按调整后的中间矩阵以每个场景各1轮正式窗口（9场景×3组=27窗口）完成UDP-only归因，配合已有pilot计数尽快释放Oracle；完整9×3×5只在方案A合入后的最终候选上执行一次。随后独立worktree依S1-S8 primitive→service→resource→pressure gates完成TCP方案A；UDP修复和TCP A不得拼接部分最佳实验。最终候选完成M5受影响族、M2、资源/压力/APK生命周期与9×3×5正式M6b复测；s只作性能对照，给出是否值得切换结论。
-- 阻塞点：无须用户决定；第0步已完成测量修正和协议冻结，等待产品候选。任何M6b失败保留原始证据并停止该候选，不改阈值、不把失败实验混入通过结果。
+- 当前代码：M5基线源码dc1b740d/opt3 37f85d22、C097a9e21和M6a s8427b9a保留；1b候选为main@d52d5cac（仅UDP修复加UBus/metrics gating、PollFd backing reuse和logger dirty gating，默认关闭m6b-diagnostics feature）；TCP方案A留在m6b/tcp-scheme-a。UDP-only pilot、135窗口中止证据和27个一轮中间窗口已归档；中间矩阵工具为0d425606；最终合入方案A的ELF、manifest和正式复测身份尚待Oracle构建。
+- 下一步：先在d52d5cac上构建feature-off opt3/s并做短基线，复跑UDP hit、TCP local/cache、reload、DHCP的CPU/延迟/正确性门，确认1b没有行为回退；以该新opt3和同一镜像C重新冻结TCP CPU对照基线，再在独立worktree依S1-S8 primitive→service→resource→pressure gates完成方案A。方案A不得引用M6a的20µs或旧C 29µs门槛；硬门改为同一1b配置下`u_A <= 1.05*u_R3_1b`且`u_A < u_C_1b`，并保留吞吐/p95/错误/FD门。最终候选完成M5受影响族、M2、资源/压力/APK生命周期与9×3×5正式M6b复测；s只作性能对照，给出是否值得切换结论。
+- 阻塞点：无须用户决定；第1b修复后的短基线和新C/R3对照尚待Oracle完成，方案A CPU门在此之前暂停。任何M6b失败保留原始证据并停止该候选，不改阈值、不把失败实验混入通过结果。
 - 测量调整（2026-10-07）：UDP-only完整135窗口在1个有效窗口和1个中止窗口后停止；中间候选改跑固定顺序的27个一轮正式窗口，配合pilot计数完成归因，避免在TCP方案A验收前占用Oracle。中止窗口的SIGTERM/部分输出仍归档并标为无效，不进入最终分类。中间正式窗口不启用逐次唤醒明细（pilot已保存loop/poll/wait/batch/allocation计数）；首个误启用窗口产生的多GB诊断输出已保留摘要、SHA和失败记录后清理，避免污染后续窗口。
+- 第1b归因（2026-10-07）：短perf窗口使用同源debug companion（非交付ELF），`perf record -F997 --call-graph dwarf` 零丢样本；符号报告在UDP/TCP/reload/DHCP均显示`SinglePoll::step*`、`wait_for_files`/`owrt_ubus::sys::poll_fds`和logger flush路径，静态行号核对为main loop 1603、metrics/process_ubus 1837/3733、`wait_for_files` 3477、fd Vec 3482、`step_udp`/`process_udp` 4148/4161、completion 4389/4394。初步结论支持固定轮次开销候选；准确收益须由d52d5cac短基线测量，不把perf采样百分比当最终CPU门。
 - 活跃分工：root整合协议/ledger、UDP产品、M6b suite/build/回归/报告；m6b_measure维护修正测量器；m6b_udp_audit实施UDP产品修复；m6b_tcp_design实施TCP方案A；m6a_review只读审计M6b gates。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间禁止并行build/test/fuzz，用户docs/prompts原样。
 - 续接注意：M6a原始证据与M6A_REPORT不改；M6b新证据统一private/dnsmasq-rewrite/evidence/M6b。已完成的M5/M6a worktree及分支已按private/dnsmasq-rewrite/worktree-retirement-20261007/m5-m6a/manifest.json保全durable refs、dirty补丁、untracked文件与必要ignored evidence后移除；用户docs/prompts和M6b活跃worktree保留。任何opt3/s切换必须新freeze和完整资格，不能用M6a机械UDP分类下结论。169项和M5行为差异基线必须在最终候选重新核对。
 
