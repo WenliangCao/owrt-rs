@@ -232,6 +232,11 @@ impl<O: FileOpener> TftpListener<O> {
     pub fn pending_listener_addresses(&self) -> &[SocketAddr] {
         &self.pending_bind
     }
+    /// Any DNS/TFTP transport success sets C's shared iface->done latch.
+    pub fn finish_shared_listener_attempt(&mut self, mut address: SocketAddr) {
+        address.set_port(69);
+        self.pending_bind.retain(|pending| *pending != address);
+    }
     /// A common owner key can carry the DNS port (including disabled port 0).
     pub fn has_listener(&self, mut address: SocketAddr) -> bool {
         address.set_port(69);
@@ -246,6 +251,9 @@ impl<O: FileOpener> TftpListener<O> {
         policy.interfaces = interfaces.to_vec();
         let dynamic = policy.dns.bind_dynamic;
         if dynamic {
+            self.pending_bind = policy.addresses().into_iter()
+                .filter(|address| policy.tentative(*address))
+                .collect();
             let addresses = self.listener_addresses();
             for server in &mut self.servers {
                 server.accepting = server.persistent_unowned || addresses.contains(&server.address);
