@@ -6781,12 +6781,12 @@ mod tests {
         let mut owner = test_owner(DnsConfig::default(), None);
         let mut peer = add_test_tcp(&mut owner);
         peer.write_all(&encode_tcp_frame(&test_dns_query()).unwrap()).unwrap();
-        owner.clients[0].mac_ready = false;
-        owner.clients[0].mac_deferred = false;
-        owner.clients[0].mac_deadline = Instant::now() + Duration::from_secs(3);
+        owner.clients[0].dns_work.as_mut().unwrap().mac_ready = false;
+        owner.clients[0].dns_work.as_mut().unwrap().mac_deferred = false;
+        owner.clients[0].dns_work.as_mut().unwrap().mac_deadline = Instant::now() + Duration::from_secs(3);
         owner.clients[0].ready_events = POLLIN;
         assert!(!owner.tcp_client_ready(0), "unread DNS cannot resolve a pending MAC");
-        let stream_fd = owner.clients[0].stream.as_ref().unwrap().as_raw_fd();
+        let stream_fd = owner.clients[0].dns_work.as_ref().unwrap().stream.as_ref().unwrap().as_raw_fd();
         let started = Instant::now();
         owner.wait_for_files().unwrap();
         assert!(started.elapsed() >= Duration::from_millis(50),
@@ -6796,8 +6796,8 @@ mod tests {
         owner.neighbors_ready = true;
         assert!(owner.tcp_client_ready(0), "dump completion authorizes the MAC resume");
         owner.step_tcp_clients();
-        assert!(owner.clients[0].mac_ready);
-        assert!(owner.clients[0].input.is_empty(), "MAC wake does not invent read readiness");
+        assert!(owner.clients[0].dns_work.as_ref().unwrap().mac_ready);
+        assert!(owner.clients[0].dns_work.as_ref().unwrap().input.is_empty(), "MAC wake does not invent read readiness");
         owner.neighbors_ready = false;
         owner.wait_for_files().unwrap();
         assert!(owner.tcp_client_ready(0), "now the real queued DNS socket becomes readable");
@@ -7087,8 +7087,8 @@ mod tests {
             assert!(contains(&owner.service.borrow().local.config, "127.0.0.3"));
             assert!(!contains(&owner.service.borrow().local.config, "127.0.0.2"));
             let _peer = add_test_tcp(&mut owner);
-            assert!(contains(&owner.clients[0].service.config, "127.0.0.3"));
-            assert!(!contains(&owner.clients[0].service.config, "127.0.0.2"));
+            assert!(contains(&owner.clients[0].dns_work.as_ref().unwrap().service.config, "127.0.0.3"));
+            assert!(!contains(&owner.clients[0].dns_work.as_ref().unwrap().service.config, "127.0.0.2"));
             drop(owner);
             std::fs::remove_file(path).unwrap();
         }
@@ -7410,12 +7410,12 @@ mod tests {
 
         owner.wait_for_files().unwrap();
         owner.step_tcp_clients();
-        assert_eq!(owner.clients[0].queries, 4, "eight read/write steps serve four frames");
-        assert!(matches!(owner.clients[0].phase, TcpClientPhase::Reading));
-        assert_eq!(owner.clients[0].input.len(), pipeline.len());
-        assert!(owner.clients[0].input_offset < owner.clients[0].input.len());
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 4, "eight read/write steps serve four frames");
+        assert!(matches!(owner.clients[0].dns_work.as_ref().unwrap().phase, TcpClientPhase::Reading));
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().input.len(), pipeline.len());
+        assert!(owner.clients[0].dns_work.as_ref().unwrap().input_offset < owner.clients[0].dns_work.as_ref().unwrap().input.len());
         let mut byte = [0];
-        assert_eq!(owner.clients[0].stream.as_ref().unwrap().peek(&mut byte).unwrap_err().kind(),
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().stream.as_ref().unwrap().peek(&mut byte).unwrap_err().kind(),
             io::ErrorKind::WouldBlock, "no new kernel read event can authorize the tail");
 
         let started = Instant::now();
@@ -7425,14 +7425,14 @@ mod tests {
         assert_eq!(owner.clients[0].ready_events, 0);
         assert!(owner.tcp_client_ready(0));
         owner.step_tcp_clients();
-        assert_eq!(owner.clients[0].queries, 8);
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 8);
 
         let started = Instant::now();
         assert!(owner.wait_during_probe(None, Duration::from_millis(200), Default::default()).unwrap());
         assert!(started.elapsed() < Duration::from_millis(50));
         assert_eq!(owner.clients[0].ready_events, 0);
-        assert_eq!(owner.clients[0].queries, 9);
-        assert_eq!(owner.clients[0].input_offset, owner.clients[0].input.len());
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 9);
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().input_offset, owner.clients[0].dns_work.as_ref().unwrap().input.len());
         for _ in 0..9 {
             let mut size = [0; 2];
             peer.read_exact(&mut size).unwrap();
@@ -7462,7 +7462,7 @@ mod tests {
         owner.wait_for_files().unwrap();
         owner.step_tcp_clients();
         let assert_yield = |owner: &SinglePoll| {
-            let TcpClientPhase::Forwarding { wait, .. } = &owner.clients[0].phase
+            let TcpClientPhase::Forwarding { wait, .. } = &owner.clients[0].dns_work.as_ref().unwrap().phase
                 else { panic!("real transport must still have failed servers to visit"); };
             assert_eq!(wait.fd, -1);
             assert_eq!(wait.events, 0);
@@ -7480,8 +7480,8 @@ mod tests {
         let started = Instant::now();
         assert!(owner.wait_during_probe(None, Duration::from_millis(200), Default::default()).unwrap());
         assert!(started.elapsed() < Duration::from_millis(50));
-        assert_eq!(owner.clients[0].queries, 1);
-        assert!(matches!(owner.clients[0].phase, TcpClientPhase::Reading));
+        assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 1);
+        assert!(matches!(owner.clients[0].dns_work.as_ref().unwrap().phase, TcpClientPhase::Reading));
         let mut size = [0; 2];
         peer.read_exact(&mut size).unwrap();
         let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
