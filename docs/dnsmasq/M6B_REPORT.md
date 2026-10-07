@@ -153,6 +153,16 @@ DHCP-lease三组单轮方法有效、各2400个正确DORA/renew/release循环、
 
 样本2400不足10000，不报p99。R3较C多193.9279µs/循环（33.33%），较历史第1b1550.191µs明显下降，但不能据跨源码/时点直接作显著分类。Rs较R3多56.2992µs（7.26%）。去除普通周期扫描后idle CPU归零，每packet fresh接口语义保持，剩余CPU差不靠复用陈旧接口或省安全检查掩盖。
 
+Reload-concurrent三组单轮方法有效、各120000个正确DNS回答、无错误/无generator限制，冻结HUP发布及TFTP并发独立守卫过：
+
+| reload-concurrent | 正确QPS | CPU µs/正确请求 | p50 ms | p95 ms | p99 ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| C | 1000.00 | 21.2552 | 0.040481 | 0.071841 | 0.154762 |
+| R3 | 1000.00 | 36.9664 | 0.052760 | 0.090401 | 0.157162 |
+| Rs | 1000.00 | 39.0623 | 0.054040 | 0.093841 | 0.167442 |
+
+R3较C多15.7112µs/请求（73.92%）、p95多0.018560ms；Rs较R3多2.0959µs（5.67%）。这些差距保留，不以低于旧48.261µs的中间候选掩盖相对新C余差。完整无A27窗已结束，逐窗回拷SHA+metadata验证和prune全完成；汇总`E/M6B/baseline-70097c66/no-a-27-analysis.{json,windows.csv,comparisons.csv}`每profile每组三组各1轮，工具标formal_complete=false表示不足最终135五轮，并非此27窗任务未完成。各组case/源/所有attempt不挑选，显著分类仍未证明。
+
 ## TCP方案A及内存
 
 按[M6B_TCP_MEMORY_DESIGN.md](M6B_TCP_MEMORY_DESIGN.md)第5节执行，推荐A仍只在独立worktree。内容块/名字索引分片共享，连接保留私有小型LRU；每个mutator先detach，S1–S8语义及逐query导回不能改变。旧分支的原语/布局数字不冒充新70097基线上fresh资格；新原语、视图隔离、服务、资源/生命周期、压力与CPU门尚未完成。
