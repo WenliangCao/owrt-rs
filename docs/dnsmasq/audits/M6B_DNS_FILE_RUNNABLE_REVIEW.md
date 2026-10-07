@@ -20,7 +20,19 @@ C在`dnsmasq.c:1263–1264`处理signal pipe的`async_event`，之后才在`:130
 2. SIGSTOP并实际观察owner为T；写新A记录192.0.2.43；发送HUP；排队UDP或TCP连接+首query，确认请求位于owner拥有的socket inode的rx queue，确认HUP pending位仍为1。TCP此时尚未accept，区别于合法的重载前既有snapshot。
 3. SIGCONT；严格检查第一回答的新43和之后UDP的新43，保存原始wire、完整parsed响应、状态/queue证明、正确PID/ELF、正常退出和零残留caller。C结果必须先过42→43→43阳性，再判断Rust；所有失败与fixture异常留存，不以sleep替代barrier。
 
-冻结预期：C第一回答43；按现Rust顺序预计42。实测反证须修改解释。工具本地七个ownership/queue/signal/response守卫通过，尚未访问Oracle运行；没有性能资格。主线程先复跑107全族，再运行这两个caller，证实后才独立调整HUP处理位置并回归，避免与32af混合归因。
+冻结预期：C第一回答43；按原Rust顺序预计42。工具本地七个ownership/queue/signal/response守卫通过；主线程先复跑107全族，再实际运行这两个caller，结果见下一节。它们只提供功能与事件顺序资格，没有性能资格。
+
+## HUP优先级的实际定位与独立修复
+
+主线程已在无A `3e1b50b5`、feature-off ELF `57a995adebdaa87cf54288676f9169f22ea3b5666fd0d3921a6d6de72a21d0ed` 上实际运行上述两caller。C的UDP/TCP第一回答均为新43，Rust均为旧42，之后均为新43。T状态、owner ELF、HUP pending和owned socket queue守卫全部通过；仅旧回答与完整响应配对形成4个失败。原始失败由主线程归档到E/M6B/full-archives/same-wake-3e1b-01，不修改成通过。这把同wake顺序从读码风险提升为实际产品缺口。
+
+独立产品提交`f5d9f55f`基于143126cc，未包含监听interests提交90a85a57。原有文件事件步骤保持先后，HUP的fetch_update及完整重载移到网络step之前；`process_reload_before_dns`先刷新hosts/cache，登记Signal，然后最多16轮原有ready文件步骤，让普通小resolv/servers输入走完read、EOF及发布后再处理同wake DNS或接受新TCP snapshot。FIFO或endpoint worker等待fd时立即让出，16轮预算耗尽也让出；不sleep、不无限drain。
+
+每个原reader仍一次最多4096 B；阶段按DHCP文件→DNS文件→hosts的现有顺序推进。重载中的新HUP保留原序列化条件，full_reload_pending的cache/hosts效果也在网络前处理。1MiB regular输入的已有large-progress合同保留：有界预算后仍能服务DNS健康查询，不能用“禁止所有DNS直到任意大文件EOF”抹掉这个实际守卫。
+
+新增三个Linux单元门：排队UDP和TCP都从hosts新43回答；小no-poll resolver及servers-file在新TCP snapshot前分别发布新bank；1MiB regular文件未排空时仍有DNS健康。aarch64-linux-musl类型检查及host原12个main测试通过，新增Linux实际运行由主线程完成，不能把typecheck当运行资格。
+
+工具扩展为6个同wake实际caller，保留原hosts两case身份，并增加resolv/servers各UDP/TCP。源、负载和barrier在结果前固定：cache-size0，单个A问题，普通小文件，已拥有socket的queued input和pending HUP同时存在。hosts期望42→43→43；resolv/servers使用真实两个测试上游，期望11→12→12。仍逐字比较完整parsed响应，并独立检查C阳性、退出、PID和清理；本地九个工具守卫通过，六case的实际结果待主线程统一Oracle执行。
 
 ## 独立风险：暂时不能运行的DNS listener仍登记poll
 

@@ -59,7 +59,7 @@ def same_wake_exchange(root, side, original, port, action, ident, transport, ups
         paused = True
         family.await_predicate(lambda: '\nState:\tT' in Path(f'/proc/{pid}/status').read_text(),
                                'same-wake owner did not stop')
-        family.put(root, 'hosts', '192.0.2.43 samewake.files.test\n', {})
+        family.put(root, action['reload_path'], action['reload_text'], {})
         os.kill(pid, signal.SIGHUP)
         client.settimeout(1)
         client.connect(('127.0.0.1', port))
@@ -100,6 +100,32 @@ def projection(row):
                          if parsed else [], 'error': row.get('error')}
 
 
+def scenarios():
+    definitions = [
+        ('hosts', {'hosts': '192.0.2.42 samewake.files.test\n'}, False,
+         'no-resolv\nbind-interfaces\naddn-hosts=/m2/files/hosts\n', 42, 43,
+         'hosts', '192.0.2.43 samewake.files.test\n'),
+        ('resolv', {'resolv': 'nameserver 127.0.0.2\n'}, True,
+         'bind-interfaces\nno-poll\n', 11, 12,
+         'resolv', 'nameserver 127.0.0.3\n'),
+        ('servers', {'servers': 'server=/samewake.files.test/127.0.0.2\n'}, False,
+         'no-resolv\nbind-interfaces\nservers-file=/m2/files/servers\n', 11, 12,
+         'servers', 'server=/samewake.files.test/127.0.0.3\n'),
+    ]
+    result = []
+    for source, files, default_resolv, config, old, new, path, text in definitions:
+        for transport in ('udp', 'tcp'):
+            ident = 'same-wake-' + ('' if source == 'hosts' else source + '-') + transport
+            result.append({'id': ident, 'source': source, 'checks': ['EVENT_RELOAD before DNS dispatch'],
+                'files': files, 'default_resolv': default_resolv, 'cache_size': 0, 'config': config,
+                'expected_addresses': [old, new, new],
+                'actions': [family.probe('before', 'samewake.files.test', transports=['udp']),
+                            family.probe('same-wake', 'samewake.files.test', transports=[transport],
+                                         same_wake=True, reload_path=path, reload_text=text),
+                            family.probe('after', 'samewake.files.test', transports=['udp'])]})
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--image-root', type=Path)
@@ -118,7 +144,10 @@ def main():
         assert pending_hup('SigPnd:\t0000000000000001\nShdPnd:\t0\n')
         assert not pending_hup('SigPnd:\t0000000000000002\nShdPnd:\t0\n')
         assert projection({'response': {'flags': 0x8000, 'questions': [], 'records': []}})['qr']
-        print(json.dumps({'ownership_queue_signal_and_response_controls': 7, 'passed': True}))
+        cases = scenarios()
+        assert len(cases) == 6 and len({case['id'] for case in cases}) == 6
+        assert all(case['actions'][1]['reload_path'] in case['files'] for case in cases)
+        print(json.dumps({'ownership_queue_signal_response_and_scenario_controls': 9, 'scenarios': 6, 'passed': True}))
         return 0
     if not all((args.image_root, args.rust, args.rust_sha256, args.source_commit, args.output)):
         parser.error('image, candidate identity, source and output required')
@@ -136,14 +165,7 @@ def main():
              for side in ('c', 'rust')}
     family.dump(args.output / 'result.json', report)
     try:
-        for transport in ('udp', 'tcp'):
-            case = {'id': 'same-wake-' + transport, 'checks': ['EVENT_RELOAD before DNS dispatch'],
-                    'files': {'hosts': '192.0.2.42 samewake.files.test\n'},
-                    'default_resolv': False, 'cache_size': 0,
-                    'config': 'no-resolv\nbind-interfaces\naddn-hosts=/m2/files/hosts\n',
-                    'actions': [family.probe('before', 'samewake.files.test', transports=['udp']),
-                                family.probe('same-wake', 'samewake.files.test', transports=[transport], same_wake=True),
-                                family.probe('after', 'samewake.files.test', transports=['udp'])]}
+        for case in scenarios():
             folder = args.output / case['id']; folder.mkdir()
             observed = {}
             for side, root in roots.items():
@@ -158,7 +180,7 @@ def main():
                     row['failures'].append({'phase': 'cleanup', 'side': side})
                 if len(value['rows']) != 3:
                     row['failures'].append({'phase': 'missing-rows', 'side': side, 'rows': len(value['rows'])})
-                expected = [42, 43, 43]
+                expected = case['expected_addresses']
                 for answer, last in zip(value['rows'], expected):
                     actual = projection(answer)
                     wanted = {'rcode': 0, 'qr': True, 'questions': [['samewake.files.test', 1, 1]],
@@ -180,7 +202,7 @@ def main():
         raise
     finally:
         family.exchange = original
-    report['passed'] = len(report['cases']) == 2 and not report['failures']
+    report['passed'] = len(report['cases']) == len(scenarios()) and not report['failures']
     family.dump(args.output / 'result.json', report)
     return 0 if report['passed'] else 1
 
