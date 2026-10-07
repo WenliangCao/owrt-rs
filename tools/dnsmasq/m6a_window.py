@@ -29,6 +29,15 @@ TTL, CAPACITY = 3600, 4096
 PREFIX = "m6a.test"
 CGROUP_PATH = None
 
+# The post-load barrier is deliberately stricter than the old child-only check.
+# Rust owns TCP clients and cache views in the daemon itself, so it has no child
+# process whose exit can stand in for release.  A confirmed idle FD count held
+# for several samples is the portable external drain contract.  M6b formal
+# windows use the fixed 0/1/5/60 second snapshots below.
+DEFAULT_DRAIN_SAMPLE_SECONDS = (0.0, 1.0, 5.0, 60.0)
+DRAIN_STABLE_SAMPLES = 3
+DRAIN_SAMPLE_INTERVAL_SECONDS = 0.02
+
 
 def save(path: Path, value):
     temporary = path.with_suffix(path.suffix + ".new")
@@ -136,6 +145,200 @@ def snapshot(pid: int, out: Path, label: str):
                     raise
     save(directory / f"{label}.json", tree)
     return tree
+
+
+def parse_drain_sample_seconds(value: str | None):
+    """Parse and validate the fixed post-drain sample offsets."""
+    if value is None:
+        return DEFAULT_DRAIN_SAMPLE_SECONDS
+    try:
+        offsets = tuple(float(part.strip()) for part in value.split(",") if part.strip())
+    except ValueError as error:
+        raise ValueError("drain sample offsets must be comma-separated seconds") from error
+    if not offsets or offsets[0] != 0.0 or any(offset < 0 for offset in offsets):
+        raise ValueError("drain samples must start at 0 and be non-negative")
+    if tuple(sorted(set(offsets))) != offsets:
+        raise ValueError("drain samples must be strictly increasing")
+    return offsets
+
+
+def wait_for_drain(pid: int, idle_fd_count: int, timeout: float = 5.0,
+                   stable_samples: int = DRAIN_STABLE_SAMPLES,
+                   interval: float = DRAIN_SAMPLE_INTERVAL_SECONDS):
+    """Wait for children and daemon-owned work to return to a stable idle shape.
+
+    The FD criterion is intentionally observable for both C and Rust.  It is
+    only accepted after ``stable_samples`` consecutive process snapshots with
+    no live descendants and the exact pre-load FD count.  The snapshots are
+    retained as evidence so a later report can show why the barrier passed.
+    """
+    if idle_fd_count < 0 or stable_samples < 1:
+        raise ValueError("invalid drain barrier parameters")
+    started_ns = time.monotonic_ns()
+    deadline = time.monotonic() + timeout
+    stable = 0
+    observations = []
+    while True:
+        now_ns = time.monotonic_ns()
+        row = process_tree(pid)
+        children = row["tree"]["child_processes"]
+        fd_count = row["tree"]["fd_count"]
+        ready = children == 0 and fd_count == idle_fd_count
+        stable = stable + 1 if ready else 0
+        observations.append({"monotonic_ns": now_ns, "elapsed_ns": now_ns - started_ns,
+                             "fd_count": fd_count, "child_processes": children,
+                             "stable_samples": stable, "ready": ready})
+        if stable >= stable_samples:
+            return {"started_monotonic_ns": started_ns,
+                    "completed_monotonic_ns": now_ns,
+                    "elapsed_seconds": (now_ns - started_ns) / 1e9,
+                    "idle_fd_count": idle_fd_count,
+                    "stable_samples_required": stable_samples,
+                    "observations": observations,
+                    "criterion": "no live descendants and daemon FD count equals pre-load idle count"}
+        if time.monotonic() >= deadline:
+            raise TimeoutError(f"daemon did not drain to stable FD count {idle_fd_count}")
+        time.sleep(interval)
+
+
+def capture_drain_samples(pid: int, out: Path, barrier: dict, offsets):
+    """Capture fixed samples relative to the completed drain barrier.
+
+    ``after-drain`` remains an alias for the zero-second sample for compatibility
+    with M6a readers; the explicit map is the authoritative new evidence.
+    """
+    offsets = tuple(offsets)
+    completed_ns = barrier["completed_monotonic_ns"]
+    samples = {}
+    for offset in offsets:
+        target_ns = completed_ns + int(offset * 1e9)
+        while True:
+            remaining_ns = target_ns - time.monotonic_ns()
+            if remaining_ns <= 0:
+                break
+            time.sleep(min(0.05, remaining_ns / 1e9))
+        stem = str(int(offset)) if offset.is_integer() else str(offset).replace(".", "p")
+        label = "after-drain" if offset == 0 else "drain-plus-" + stem
+        snapshot_row = snapshot(pid, out, label)
+        if offset == 0:
+            # Keep an explicit drain-plus-0 copy for fixed-offset consumers.
+            directory = out / "proc-snapshots"
+            for path in directory.glob("after-drain.*"):
+                path.with_name(path.name.replace("after-drain", "drain-plus-0")).write_bytes(path.read_bytes())
+        samples[str(int(offset) if offset.is_integer() else offset)] = {
+            "scheduled_offset_seconds": offset,
+            "scheduled_monotonic_ns": target_ns,
+            "captured_monotonic_ns": time.monotonic_ns(),
+            "snapshot": snapshot_row,
+        }
+    zero = samples.get("0")
+    if zero is not None:
+        samples["after-drain"] = zero
+    save(out / "drain-samples.json", {"barrier": barrier, "samples": samples})
+    return samples
+
+
+def measure_idle_cpu(pid: int, out: Path, seconds: float):
+    """Measure daemon CPU with no load, using cgroup and /proc cross-checks."""
+    if seconds < 0:
+        raise ValueError("idle CPU duration must be non-negative")
+    if seconds == 0:
+        result = {"enabled": False, "duration_seconds": 0.0}
+        save(out / "idle-cpu.json", result)
+        return result
+    started_ns = time.monotonic_ns()
+    before = process_tree(pid)
+    before_cgroup = cgroup_cpu()
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if not alive(pid):
+            raise RuntimeError("daemon exited during idle CPU measurement")
+        time.sleep(min(0.25, max(0.0, deadline - time.monotonic())))
+    ended_ns = time.monotonic_ns()
+    after = process_tree(pid)
+    after_cgroup = cgroup_cpu()
+    elapsed = (ended_ns - started_ns) / 1e9
+    ticks = after["tree"]["cpu_ticks"] - before["tree"]["cpu_ticks"]
+    ticks_per_second = os.sysconf("SC_CLK_TCK")
+    cpu_seconds = (after_cgroup["usage_usec"] - before_cgroup["usage_usec"]) / 1e6
+    result = {"enabled": True, "started_monotonic_ns": started_ns,
+              "ended_monotonic_ns": ended_ns, "elapsed_seconds": elapsed,
+              "requested_seconds": seconds, "cgroup_before": before_cgroup,
+              "cgroup_after": after_cgroup, "proc_before": before,
+              "proc_after": after, "cpu_seconds": cpu_seconds,
+              "proc_cpu_seconds": ticks / ticks_per_second,
+              "cpu_percent": 100.0 * cpu_seconds / elapsed if elapsed else 0.0,
+              "proc_cpu_percent": 100.0 * ticks / ticks_per_second / elapsed if elapsed else 0.0,
+              "clock_ticks_per_second": ticks_per_second,
+              "criterion": "daemon cgroup CPU over a no-load interval"}
+    save(out / "idle-cpu.json", result)
+    return result
+
+
+def _wake_value(values, names):
+    for name in names:
+        if name in values:
+            return values[name]
+    return None
+
+
+def read_wake_telemetry(path: Path):
+    """Read one cumulative wake snapshot from a JSON or JSONL sidecar.
+
+    Product instrumentation may atomically replace JSON or append JSONL.  The
+    canonical fields are ``loop_rounds``, ``poll_calls`` and
+    ``poll_wait_ns``; optional ``wait_durations_ns`` preserves each actual
+    poll wait for attribution without requiring a tracer in the hot path.
+    """
+    try:
+        text = path.read_text()
+    except (FileNotFoundError, OSError):
+        return None
+    values = None
+    for line in reversed(text.splitlines()):
+        if not line.strip():
+            continue
+        try:
+            values = json.loads(line)
+            break
+        except json.JSONDecodeError:
+            continue
+    if not isinstance(values, dict):
+        return None
+    values = values.get("counters", values)
+    loops = _wake_value(values, ("loop_rounds", "loops", "main_loop_rounds"))
+    polls = _wake_value(values, ("poll_calls", "polls", "poll_count"))
+    waits = _wake_value(values, ("poll_wait_ns", "wait_ns", "wait_duration_ns"))
+    if not all(isinstance(value, int) and value >= 0 for value in (loops, polls, waits)):
+        return None
+    durations = values.get("wait_durations_ns", values.get("poll_wait_durations_ns", []))
+    if not isinstance(durations, list) or not all(isinstance(value, int) and value >= 0 for value in durations):
+        durations = []
+    return {"monotonic_ns": values.get("monotonic_ns", time.monotonic_ns()),
+            "loop_rounds": loops, "poll_calls": polls, "poll_wait_ns": waits,
+            "wait_durations_ns": durations}
+
+
+def summarize_wake_telemetry(samples):
+    intervals = []
+    for previous, current in zip(samples, samples[1:]):
+        elapsed = (current["observed_monotonic_ns"] - previous["observed_monotonic_ns"]) / 1e9
+        if elapsed <= 0:
+            continue
+        loops = current["counters"]["loop_rounds"] - previous["counters"]["loop_rounds"]
+        polls = current["counters"]["poll_calls"] - previous["counters"]["poll_calls"]
+        waits = current["counters"]["poll_wait_ns"] - previous["counters"]["poll_wait_ns"]
+        intervals.append({"started_monotonic_ns": previous["observed_monotonic_ns"],
+                          "ended_monotonic_ns": current["observed_monotonic_ns"],
+                          "elapsed_seconds": elapsed, "loop_rounds": loops,
+                          "poll_calls": polls, "poll_wait_ns": waits,
+                          "loop_rounds_per_second": loops / elapsed,
+                          "poll_calls_per_second": polls / elapsed,
+                          "poll_wait_seconds": waits / 1e9,
+                          "poll_wait_average_ns": waits / polls if polls > 0 else None,
+                          "wait_durations_ns": current["counters"].get("wait_durations_ns", [])})
+    return {"available": bool(samples), "samples": samples, "intervals": intervals,
+            "totals": (samples[-1]["counters"] if samples else None)}
 
 
 def correct_answer(host: str, kind: int, ident: int, packet: bytes):
@@ -407,8 +610,11 @@ def run_load(args, daemon, root, upstream):
     log = (args.output / "loadgen.log").open("wb")
     resource_stream = (args.output / "resources.jsonl").open("w")
     initial = snapshot(daemon.pid, args.output, "before-warmup")
+    idle_fd_count = initial["tree"]["fd_count"]
+    idle_cpu = measure_idle_cpu(daemon.pid, args.output, args.idle_seconds)
     process = subprocess.Popen(command_line, stdout=log, stderr=log)
-    resources, points, reloads = [], {}, []
+    resources, points, reloads, wake_samples = [], {}, [], []
+    wake_path = root / "m6a/wake-metrics.json" if args.wake_metrics else None
     peak_pss, next_sample = 0, 0
     next_reload = args.reload_period
     reload_socket = None
@@ -455,6 +661,12 @@ def run_load(args, daemon, root, upstream):
                         row[label] = {"exited_during_sample": True}
                 row["measurement_elapsed_seconds"] = (now_ns - epoch["measurement_start_ns"]) / 1e9
                 resources.append(row)
+                if wake_path is not None:
+                    counters = read_wake_telemetry(wake_path)
+                    if counters is not None:
+                        wake_samples.append({"observed_monotonic_ns": now_ns,
+                                             "measurement_elapsed_seconds": row["measurement_elapsed_seconds"],
+                                             "counters": counters})
                 resource_stream.write(json.dumps(row) + "\n")
                 resource_stream.flush()
                 next_sample = now_ns + 1_000_000_000
@@ -528,18 +740,26 @@ def run_load(args, daemon, root, upstream):
             if not (args.output / "tftp.json").exists():
                 raise RuntimeError("TFTP worker did not produce complete counters")
         load_finished = snapshot(daemon.pid, args.output, "load-finished")
+        if wake_path is not None:
+            counters = read_wake_telemetry(wake_path)
+            if counters is not None:
+                wake_samples.append({"observed_monotonic_ns": time.monotonic_ns(),
+                                     "measurement_elapsed_seconds": args.duration,
+                                     "counters": counters})
         if pending_reload is not None:
             pending_reload["row"]["publication_correct"] = False
             pending_reload["row"]["publication_error"] = "window ended before publication"
         # Linux accumulates a child's CPU into cutime/cstime only when reaped.
-        # Sum live child CPU during sampling, then require connection-close drain.
-        drain_started = time.monotonic()
-        while process_tree(daemon.pid)["tree"]["child_processes"]:
-            if time.monotonic() - drain_started > 5:
-                raise RuntimeError("TCP daemon child did not drain")
-            time.sleep(.01)
-        final = snapshot(daemon.pid, args.output, "after-drain")
+        # Rust has no child to reap, so require the daemon's own FDs to return to
+        # the confirmed pre-load idle value and remain stable before sampling.
+        barrier = wait_for_drain(daemon.pid, idle_fd_count,
+                                 timeout=args.drain_timeout_seconds)
+        drain_samples = capture_drain_samples(
+            daemon.pid, args.output, barrier, args.drain_sample_seconds)
+        final = drain_samples["0"]["snapshot"]
         save(args.output / "resources.json", resources)
+        wake_summary = summarize_wake_telemetry(wake_samples)
+        save(args.output / "wake-counters.json", wake_summary)
         save(args.output / "reloads.json", reloads)
         load = json.loads((args.output / "load.json").read_text())
         if load.get("interrupted") or load.get("output_failed"):
@@ -563,6 +783,8 @@ def run_load(args, daemon, root, upstream):
         return {"epoch": epoch, "load": load, "cpu_before_warmup": initial,
                 "cpu_points": points, "cpu_segments": segments,
                 "cpu_load_finished": load_finished, "cpu_after_drain": final,
+                "drain_barrier": barrier, "drain_samples": drain_samples,
+                "idle_cpu": idle_cpu, "wake_counters": wake_summary,
                 "cpu_resolution_seconds": 1 / ticks_per_second,
                 "measurement_cpu_seconds": (points["measurement-end"]["cgroup_cpu"]["usage_usec"] -
                                             points["measurement-start"]["cgroup_cpu"]["usage_usec"]) / 1e6,
@@ -570,7 +792,9 @@ def run_load(args, daemon, root, upstream):
                                                  points["measurement-start"]["tree"]["cpu_ticks"]) / ticks_per_second,
                 "postwindow_cpu_seconds": (final["tree"]["cpu_ticks"] -
                                           points["measurement-end"]["tree"]["cpu_ticks"]) / ticks_per_second,
-                "drain_seconds": time.monotonic() - drain_started,
+                "drain_seconds": barrier["elapsed_seconds"],
+                "drain_sample_window_seconds": max(args.drain_sample_seconds, default=0.0),
+                "idle_fd_count": idle_fd_count,
                 "max_controller_loop_gap_ns": max_controller_gap_ns,
                 "reload_publication_observation": "upper bound; 10ms probe interval plus recorded controller scheduling gaps",
                 "sample_count": len(measured), "all_sample_count": len(resources),
@@ -584,7 +808,9 @@ def run_load(args, daemon, root, upstream):
                             "worker_cpu_affinity_passed": all(
                                 row[label].get("affinity") == [cpu] for row in measured
                                 for label, cpu in (("loadgen", args.cpu_load), ("upstream", args.cpu_upstream), ("tftp", args.cpu_load))
-                                if label in row and not row[label].get("exited_during_sample"))},
+                                if label in row and not row[label].get("exited_during_sample")),
+                            "drain_barrier_passed": barrier["observations"][-1]["stable_samples"] >= barrier["stable_samples_required"],
+                            "wake_metrics_passed": not args.wake_metrics or wake_summary["available"]},
                 "peaks": {key: max((row["tree"][key] for row in measured), default=0)
                           for key in ("rss_kib", "pss_kib", "fd_count", "thread_count", "child_processes")},
                 "parent_peaks": {key: max((row["parent"][key] for row in measured), default=0)
@@ -640,7 +866,10 @@ def run_window(args):
                 "seed": args.seed, "cpus": {"daemon": args.cpu_daemon, "upstream": args.cpu_upstream,
                                              "loadgen": args.cpu_load, "control": args.cpu_control},
                 "warmup_seconds": args.warmup, "duration_seconds": args.duration,
-                "rate": args.rate, "clients": args.clients, "kernel": os.uname().release}
+                "rate": args.rate, "clients": args.clients, "kernel": os.uname().release,
+                "idle_cpu_seconds": args.idle_seconds,
+                "drain_sample_seconds": args.drain_sample_seconds,
+                "wake_metrics": args.wake_metrics}
     save(args.output / "identity.json", identity)
     daemon = upstream = None
     daemon_log = upstream_log = None
@@ -680,9 +909,14 @@ def run_window(args):
             (str(args.output) + str(time.monotonic_ns())).encode()).hexdigest()[:16]
         CGROUP_PATH = args.cgroup_parent / cg_name
         CGROUP_PATH.mkdir()
+        daemon_environment = os.environ.copy()
+        if args.wake_metrics:
+            # The daemon is chrooted into ``root``; this path resolves to the
+            # host-side ``root/m6a/wake-metrics.json`` read by run_load.
+            daemon_environment["DNSMASQ_M6B_WAKE_METRICS"] = "/m6a/wake-metrics.json"
         daemon = subprocess.Popen(["taskset", "-c", str(args.cpu_daemon),
                                   *command(root, "c" if args.implementation == "c" else "rust", "-k", "-C", "/m6a/config")],
-                                 stdout=daemon_log, stderr=daemon_log)
+                                 stdout=daemon_log, stderr=daemon_log, env=daemon_environment)
         (CGROUP_PATH / "cgroup.procs").write_text(str(daemon.pid))
         save(args.output / "cgroup.json", {"path": str(CGROUP_PATH), "daemon_pid": daemon.pid,
                                            "cpu_initial": cgroup_cpu(),
@@ -823,7 +1057,14 @@ def main():
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--seed", type=int)
     parser.add_argument("--timeout-ms", type=int, default=1000)
+    parser.add_argument("--idle-seconds", type=float, default=0.0,
+                        help="no-load daemon CPU interval (M6b formal uses 60)")
+    parser.add_argument("--drain-timeout-seconds", type=float, default=5.0)
+    parser.add_argument("--drain-sample-seconds", default="0,1,5,60")
+    parser.add_argument("--wake-metrics", action="store_true",
+                        help="require/read DNSMASQ_M6B_WAKE_METRICS sidecar telemetry")
     args = parser.parse_args()
+    args.drain_sample_seconds = parse_drain_sample_seconds(args.drain_sample_seconds)
     if args.tftp_worker:
         return tftp_worker(args)
     if args.seed is None:
