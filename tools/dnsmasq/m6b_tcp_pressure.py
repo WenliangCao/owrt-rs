@@ -17,6 +17,7 @@ import socket
 import struct
 import subprocess
 import time
+import threading
 
 import m5_dns_cache as driver
 
@@ -25,6 +26,9 @@ BIG_TEXT = ','.join('"' + 'x' * 255 + '"' for _ in range(192))
 CASES = [
     {'case': 'm6b-tcp-100-query', 'mode': '100-query', 'capacity': 150, 'config': ''},
     {'case': 'm6b-tcp-half-frame', 'mode': 'half-frame', 'capacity': 150, 'config': ''},
+    {'case': 'm6b-tcp-rst-forward-import', 'mode': 'rst', 'capacity': 150, 'config': ''},
+    {'case': 'm6b-tcp-upstream-eof', 'mode': 'upstream-eof', 'capacity': 150,
+     'config': 'strict-order\nserver=127.0.0.3#15454\nserver=127.0.0.2#@UPSTREAM@'},
     {'case': 'm6b-tcp-slow-write', 'mode': 'slow-write', 'capacity': 150, 'config': ''},
     {'case': 'm6b-tcp-slow-read', 'mode': 'slow-read', 'capacity': 150,
      'config': 'txt-record=large.pressure.test,' + BIG_TEXT},
@@ -76,6 +80,67 @@ def family_sample(pid):
             **{key: sum(r[key] for r in rows) for key in ['threads', 'rss_kib', 'pss_kib', 'anonymous_kib']},
             'fd_count': sum(len(r['fds']) for r in rows),
             'not_observed': ['view_count', 'pinned_root_versions', 'pending_transactions', 'live_requested_bytes']}
+
+
+class EofServers:
+    """One bounded selector thread; close old/fresh primary q2, then fallback."""
+    def __init__(self, port, fallback_port=15454, primary_address='127.0.0.2', fallback_address='127.0.0.3'):
+        self.listeners, self.clients, self.events, self.errors = {}, {}, [], []
+        self.stop = threading.Event()
+        for role, address, number in [('primary', primary_address, port), ('fallback', fallback_address, fallback_port)]:
+            listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                listener.bind((address, number)); listener.listen(); listener.setblocking(False)
+            except Exception:
+                listener.close()
+                for opened in self.listeners:
+                    opened.close()
+                raise
+            self.listeners[listener] = role
+        self.thread = threading.Thread(target=self.run)
+        self.thread.start()
+
+    def run(self):
+        opened = {'primary': 0, 'fallback': 0}
+        while not self.stop.is_set():
+            try:
+                ready, _, _ = select.select([*self.listeners, *self.clients], [], [], .02)
+                for stream in ready:
+                    if stream in self.listeners:
+                        client, _ = stream.accept(); client.setblocking(False)
+                        role = self.listeners[stream]; opened[role] += 1
+                        self.clients[client] = {'role': role, 'ordinal': opened[role], 'bytes': b''}
+                        continue
+                    state = self.clients[stream]
+                    data = stream.recv(65535)
+                    if not data:
+                        self.clients.pop(stream); stream.close(); continue
+                    state['bytes'] += data
+                    while len(state['bytes']) >= 2:
+                        size = struct.unpack('!H', state['bytes'][:2])[0]
+                        if len(state['bytes']) < size + 2:
+                            break
+                        packet, state['bytes'] = state['bytes'][2:size + 2], state['bytes'][size + 2:]
+                        host, end = driver.read_name(packet, 12)
+                        self.events.append({'server': state['role'], 'connection': state['ordinal'],
+                                            'host': host, 'query': driver.normalized(packet), 'wire': packet.hex()})
+                        if state['role'] == 'primary' and host == 'second.pressure.test':
+                            self.clients.pop(stream); stream.close(); break
+                        data = socket.inet_aton('198.51.100.7' if state['role'] == 'primary' else '198.51.100.8')
+                        reply = packet[:2] + struct.pack('!5H', 0x8180, 1, 1, 0, 0) + packet[12:end + 4] + driver.rr(1, data, ttl=600)
+                        stream.sendall(struct.pack('!H', len(reply)) + reply)
+            except Exception as error:
+                self.errors.append(repr(error)); break
+
+    def close(self):
+        self.stop.set(); self.thread.join(3)
+        if self.thread.is_alive():
+            raise AssertionError('EOF fixture thread did not stop')
+        for stream in [*self.clients, *self.listeners]:
+            stream.close()
+        if self.errors:
+            raise AssertionError(('EOF fixture error', self.errors))
 
 
 class Caller:
@@ -146,7 +211,7 @@ class Caller:
             if len(answers) != 1 or answers[0]['type'] != 16 or answers[0]['data'] != wanted:
                 raise AssertionError('large TXT contents differ')
         else:
-            wanted = ['198.51.100.99'] if host == 'health.cache.test' else ['198.51.100.7' if label == 'old-hosts-at-140' else '198.51.100.9'] if host == 'hosts.pressure.test' else ['198.51.100.7', '198.51.100.8'] if 'q' in host.split('.')[0] and host.startswith('b') else ['198.51.100.7']
+            wanted = ['198.51.100.99'] if host == 'health.cache.test' else ['198.51.100.8'] if host == 'second.pressure.test' else ['198.51.100.7' if label == 'old-hosts-at-140' else '198.51.100.9'] if host == 'hosts.pressure.test' else ['198.51.100.7', '198.51.100.8'] if 'q' in host.split('.')[0] and host.startswith('b') else ['198.51.100.7']
             if sorted(r['data'] for r in answers) != sorted(wanted) or any(r['type'] != 1 for r in answers):
                 raise AssertionError('ordinary A contents differ: ' + label)
         if any(not 0 < r['ttl'] <= 600 for r in answers):
@@ -248,6 +313,57 @@ def schedule(spec, port, upstream, folder, root):
             client.sendall(frame[5:])
             reply = driver.exact_read(client, struct.unpack('!H', driver.exact_read(client, 2))[0])
             fixture.capture('slow-write-completed', wire, reply)
+        elif mode == 'rst':
+            host = 'rst.pressure.test'
+            upstream.plan[host] = {'ttl': 600, 'hold': True, 'answers': [{'data': 'c6336407'}]}
+            client = fixture.connect()
+            wire = fixture.request(host)
+            client.sendall(struct.pack('!H', len(wire)) + wire)
+            (folder / 'rst-client.query').write_bytes(wire)
+            until = time.monotonic() + 3
+            while not upstream.held:
+                if time.monotonic() > until:
+                    raise AssertionError('RST in-flight upstream witness not reached')
+                time.sleep(.01)
+            client.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
+            fixture.close(client)
+            fixture.event('rst-before-release', request_reached_upstream=True, downstream_closed=True)
+            fixture.query('parent-during-rst-hold')
+            upstream.plan[host] = {'ttl': 600, 'answers': [{'data': 'c6336407'}]}
+            upstream.release(host)
+            until = time.monotonic() + 3
+            values = []
+            while True:
+                value = fixture.metrics('rst-after-release-' + str(len(values)))
+                values.append(value)
+                (folder / 'rst-import-metric-witness.json').write_text(json.dumps(values, indent=2) + '\n')
+                if value['dns_cache_inserted'] == 1:
+                    if value['dns_cache_live_freed'] != 0:
+                        raise AssertionError('RST import unexpectedly spilled a live record')
+                    fixture.event('rst-imported-before-drop', dns_cache_inserted=1, dns_cache_live_freed=value['dns_cache_live_freed'])
+                    break
+                if time.monotonic() > until:
+                    raise AssertionError('RST discarded the ordinary successful cache import')
+                time.sleep(.01)
+            fixture.query('parent-rst-import-hit', host=host)
+            if [e['transport'] for e in upstream.events] != ['tcp']:
+                raise AssertionError('RST imported answer was not a parent cache hit')
+        elif mode == 'upstream-eof':
+            port_number = upstream.port
+            upstream.close()
+            peer = EofServers(port_number)
+            try:
+                client = fixture.connect()
+                fixture.query('old-connection-seed', client, 'first.pressure.test')
+                fixture.query('old-and-fresh-eof-fallback', client, 'second.pressure.test')
+                wanted = [('primary', 1, 'first.pressure.test'), ('primary', 1, 'second.pressure.test'),
+                          ('primary', 2, 'second.pressure.test'), ('fallback', 1, 'second.pressure.test')]
+                if [(e['server'], e['connection'], e['host']) for e in peer.events] != wanted:
+                    raise AssertionError('actual EOF/reconnect/fallback schedule differs')
+                (folder / 'upstream-eof-events.json').write_text(json.dumps(peer.events, indent=2) + '\n')
+                fixture.query('parent-eof-import-hit', host='second.pressure.test')
+            finally:
+                peer.close()
         elif mode == 'slow-read':
             client = fixture.connect(small_receive=True)
             requests = [fixture.request('large.pressure.test', 16) for _ in range(100)]
