@@ -7292,7 +7292,10 @@ mod tests {
         peer.read_exact(&mut size).unwrap();
         let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
         peer.read_exact(&mut answer).unwrap();
-        assert_eq!(dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap().rcode(), 2);
+        // C tcp_talk exhausts failed local_bind attempts, tcp_request sets
+        // EDE_NETERR, and make_local_answer(flags=0) uses REFUSED, not
+        // SERVFAIL (forward.c:2633/2734; rfc1035.c:1370-1376). No OPT here.
+        assert_eq!(dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap().rcode(), 5);
     }
 
     #[cfg(target_os = "linux")]
