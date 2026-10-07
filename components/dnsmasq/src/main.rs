@@ -6628,7 +6628,12 @@ mod tests {
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
         owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
-        owner.step_dns_files();
+        // Init first publishes its cache/hosts barrier, before opening input.
+        // Advance only genuinely runnable stages to the actual FIFO wait.
+        for _ in 0..16 {
+            if !owner.dns_file_work_runnable() { break; }
+            owner.step_dns_files();
+        }
         assert!(owner.files_initializing());
         assert!(!owner.dns_file_work_runnable(), "the opened FIFO waits for input");
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
