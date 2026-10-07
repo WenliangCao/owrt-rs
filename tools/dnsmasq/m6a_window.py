@@ -162,7 +162,7 @@ def parse_drain_sample_seconds(value: str | None):
     return offsets
 
 
-def wait_for_drain(pid: int, idle_fd_count: int, timeout: float = 5.0,
+def wait_for_drain(pid: int, idle_fd_count: int | None, timeout: float = 5.0,
                    stable_samples: int = DRAIN_STABLE_SAMPLES,
                    interval: float = DRAIN_SAMPLE_INTERVAL_SECONDS):
     """Wait for children and daemon-owned work to return to a stable idle shape.
@@ -172,7 +172,7 @@ def wait_for_drain(pid: int, idle_fd_count: int, timeout: float = 5.0,
     no live descendants and the exact pre-load FD count.  The snapshots are
     retained as evidence so a later report can show why the barrier passed.
     """
-    if idle_fd_count < 0 or stable_samples < 1:
+    if idle_fd_count is not None and idle_fd_count < 0 or stable_samples < 1:
         raise ValueError("invalid drain barrier parameters")
     started_ns = time.monotonic_ns()
     deadline = time.monotonic() + timeout
@@ -183,7 +183,7 @@ def wait_for_drain(pid: int, idle_fd_count: int, timeout: float = 5.0,
         row = process_tree(pid)
         children = row["tree"]["child_processes"]
         fd_count = row["tree"]["fd_count"]
-        ready = children == 0 and fd_count == idle_fd_count
+        ready = children == 0 and (idle_fd_count is None or fd_count == idle_fd_count)
         stable = stable + 1 if ready else 0
         observations.append({"monotonic_ns": now_ns, "elapsed_ns": now_ns - started_ns,
                              "fd_count": fd_count, "child_processes": children,
@@ -195,7 +195,9 @@ def wait_for_drain(pid: int, idle_fd_count: int, timeout: float = 5.0,
                     "idle_fd_count": idle_fd_count,
                     "stable_samples_required": stable_samples,
                     "observations": observations,
-                    "criterion": "no live descendants and daemon FD count equals pre-load idle count"}
+                    "criterion": ("no live descendants and daemon FD count equals pre-load idle count"
+                                  if idle_fd_count is not None else
+                                  "no live descendants and daemon FD count is stable")}
         if time.monotonic() >= deadline:
             raise TimeoutError(f"daemon did not drain to stable FD count {idle_fd_count}")
         time.sleep(interval)
@@ -785,7 +787,7 @@ def run_load(args, daemon, root, upstream):
         # Linux accumulates a child's CPU into cutime/cstime only when reaped.
         # Rust has no child to reap, so require the daemon's own FDs to return to
         # the confirmed pre-load idle value and remain stable before sampling.
-        barrier = wait_for_drain(daemon.pid, idle_fd_count,
+        barrier = wait_for_drain(daemon.pid, idle_fd_count if args.implementation != "c" else None,
                                  timeout=args.drain_timeout_seconds)
         drain_samples = capture_drain_samples(
             daemon.pid, args.output, barrier, args.drain_sample_seconds)
