@@ -2093,6 +2093,10 @@ struct SinglePoll {
     upstream_ready: bool,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     dhcp_ready: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    tftp_ready: bool,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    tftp_next_due: Option<Instant>,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2901,6 +2905,10 @@ impl SinglePoll {
             upstream_ready: false,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             dhcp_ready: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            tftp_ready: false,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            tftp_next_due: None,
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3605,12 +3613,16 @@ impl SinglePoll {
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let tftp_fd_start = fds.len();
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(tftp) = &self.tftp {
                 tftp.append_poll_fds(&mut fds);
                 if tftp.active_transfers() != 0 {
                     deadline = deadline.min(now + Duration::from_millis(250));
                 }
             }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let tftp_fd_end = fds.len();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(neighbors) = &self.neighbors {
                 neighbors.append_poll_fds(&mut fds);
@@ -3678,6 +3690,9 @@ impl SinglePoll {
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             {
                 self.dhcp_ready = fds[dhcp_fd_start..dhcp_fd_end]
+                    .iter()
+                    .any(|fd| fd.revents != 0);
+                self.tftp_ready = fds[tftp_fd_start..tftp_fd_end]
                     .iter()
                     .any(|fd| fd.revents != 0);
             }
@@ -5555,6 +5570,17 @@ impl SinglePoll {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_tftp(&mut self) {
+        let now_instant = Instant::now();
+        let active = self
+            .tftp
+            .as_ref()
+            .is_some_and(|listener| listener.active_transfers() != 0);
+        if !self.tftp_ready
+            && !(active && self.tftp_next_due.is_some_and(|deadline| deadline <= now_instant))
+        {
+            return;
+        }
+        self.tftp_ready = false;
         let Some(listener) = self.tftp.as_mut() else {
             return;
         };
@@ -5586,7 +5612,7 @@ impl SinglePoll {
                 })
         });
         if let (Ok(events), Some(logger)) = (events, self.logger.as_mut()) {
-            for event in events {
+        for event in events {
                 if let Some(event) = event.log_event(quiet_not_found) {
                     logger.emit(event);
                 }
@@ -5645,10 +5671,14 @@ fn report_dhcp_maintenance(
                     Priority::Error,
                     b"failed to parse lease database cleanly".to_vec(),
                 ));
+                }
             }
         }
+        self.tftp_next_due = listener
+            .active_transfers()
+            .ne(&0)
+            .then_some(now_instant + Duration::from_millis(250));
     }
-}
 
 #[cfg(test)]
 fn validate_probe_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), Error> {
