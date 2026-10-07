@@ -72,6 +72,7 @@ static SIGNAL_WAKE_WRITE: std::sync::atomic::AtomicI32 = std::sync::atomic::Atom
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
 const UDP_PACKETS_PER_TURN: usize = 16;
+const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
 
 #[cfg(target_os = "linux")]
 unsafe extern "C" {
@@ -1610,9 +1611,15 @@ fn run_inner(
         poll.step_dns_files();
         #[cfg(target_os = "linux")]
         poll.step_hosts_files();
-        if std::mem::take(&mut poll.full_reload_pending) {
-            poll.reload_data(runtime.scalar.local_ttl)?;
-        }
+        // C handles the signal pipe before check_dns_listeners. A request
+        // ready in this same wake must use the newly published ordinary bank.
+        let signaled = !poll.reload_in_progress()
+            && RELOAD_REQUESTED
+                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                    count.checked_sub(1)
+                })
+                .is_ok();
+        poll.process_reload_before_dns(runtime.scalar.local_ttl, signaled)?;
         poll.step()?;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(error) = poll.helper_init_error.take() {
@@ -1811,22 +1818,6 @@ fn run_inner(
                         bound_listeners.push((address, token));
                         pending_static_dns.retain(|pending| *pending != address);
                     }
-                }
-            }
-        }
-        let signaled = !poll.reload_in_progress()
-            && RELOAD_REQUESTED
-                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
-                    count.checked_sub(1)
-                })
-                .is_ok();
-        let file_reload = std::mem::take(&mut poll.full_reload_pending);
-        if signaled || file_reload {
-            poll.reload_data(runtime.scalar.local_ttl)?;
-            #[cfg(target_os = "linux")]
-            if signaled {
-                if let Some(files) = &mut poll.dns_files {
-                    files.request(ReloadReason::Signal);
                 }
             }
         }
@@ -3045,6 +3036,52 @@ impl SinglePoll {
             }
         }
         Ok(())
+    }
+
+    fn process_reload_before_dns(&mut self, local_ttl: u32, signaled: bool) -> io::Result<()> {
+        let file_reload = std::mem::take(&mut self.full_reload_pending);
+        if !signaled && !file_reload {
+            return Ok(());
+        }
+        self.reload_data(local_ttl)?;
+        #[cfg(target_os = "linux")]
+        {
+            if signaled {
+                if let Some(files) = &mut self.dns_files {
+                    files.request(ReloadReason::Signal);
+                }
+            }
+            // Finish ordinary small inputs before a same-wake UDP request or
+            // TCP snapshot. Each original file step stays bounded to 4096B.
+            // FIFO/worker waits and large inputs yield to all service duties.
+            for _ in 0..RELOAD_FILE_TURNS_PER_EVENT {
+                if !self.reload_file_work_runnable() {
+                    break;
+                }
+                #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+                self.step_dhcp_files();
+                self.step_dns_files();
+                self.step_hosts_files();
+                if std::mem::take(&mut self.full_reload_pending) {
+                    self.reload_data(local_ttl)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    fn reload_file_work_runnable(&self) -> bool {
+        let mut runnable = self.dns_file_work_runnable()
+            || self.hosts_read.as_ref().is_some_and(|reader| reader.runnable())
+            || (self.hosts_read.is_none() && !self.hosts_requests.is_empty());
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+            runnable |= provider.try_borrow().is_ok_and(|provider| {
+                provider.file_work_pending() && provider.files_runnable()
+            });
+        }
+        runnable
     }
 
     fn hosts_work_pending(&self) -> bool {
@@ -6190,6 +6227,134 @@ mod tests {
         let mut writer = PacketWriter::new(7, 0x100, 1232).unwrap();
         writer.question(&Name::from_ascii("ready.test").unwrap(), 1, 1).unwrap();
         writer.finish()
+    }
+
+    #[cfg(target_os = "linux")]
+    fn finish_test_file_init(owner: &mut SinglePoll) {
+        owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
+        for _ in 0..32 {
+            if !owner.dns_files.as_ref().unwrap().has_work() { break; }
+            owner.step_dns_files();
+            owner.step_hosts_files();
+        }
+        assert!(!owner.dns_files.as_ref().unwrap().has_work());
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn hup_same_wake_refreshes_hosts_before_udp_and_new_tcp_snapshot() {
+        let path = std::env::temp_dir().join(format!("hup-hosts-order-{}", std::process::id()));
+        std::fs::write(&path, b"192.0.2.42 ready.test\n").unwrap();
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        config.no_hosts = true;
+        config.bind_interfaces = true;
+        config.addn_hosts = vec![Some(path.clone())];
+        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+            DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config.clone(), Some(daemon));
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let tcp = TcpListener::bind(udp.local_addr().unwrap()).unwrap();
+        tcp.set_nonblocking(true).unwrap();
+        let mut tcp_peer = TcpStream::connect(tcp.local_addr().unwrap()).unwrap();
+        tcp_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let udp_peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        udp_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let query = test_dns_query();
+        udp_peer.send_to(&query, udp.local_addr().unwrap()).unwrap();
+        tcp_peer.write_all(&encode_tcp_frame(&query).unwrap()).unwrap();
+        owner.add_listener(SocketToken(1), Some(udp), Some(tcp));
+        owner.wait_for_files().unwrap();
+        std::fs::write(&path, b"192.0.2.43 ready.test\n").unwrap();
+        // Model the actual signal-pipe event accepted from this same wake,
+        // avoiding test races on the process-global signal counter.
+        owner.process_reload_before_dns(37, true).unwrap();
+        owner.step().unwrap();
+        let mut answer = [0; 1232];
+        let length = udp_peer.recv(&mut answer).unwrap();
+        assert!(answer[..length].ends_with(&[192, 0, 2, 43]));
+        owner.wait_for_files().unwrap();
+        owner.step().unwrap();
+        let mut size = [0; 2];
+        tcp_peer.read_exact(&mut size).unwrap();
+        let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
+        tcp_peer.read_exact(&mut answer).unwrap();
+        assert!(answer.ends_with(&[192, 0, 2, 43]), "new accept must snapshot the new hosts bank");
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn hup_publishes_small_resolver_and_server_inputs_before_tcp_accept() {
+        use dnsmasq_rs::config::dns::{RuleTarget, ServerHost};
+        for resolver in [true, false] {
+            let path = std::env::temp_dir().join(format!("hup-bank-order-{}-{resolver}", std::process::id()));
+            let text = |address| if resolver { format!("nameserver {address}\n") }
+                else { format!("server=/ready.test/{address}\n") };
+            std::fs::write(&path, text("127.0.0.2")).unwrap();
+            let mut config = DnsConfig::default();
+            config.no_hosts = true;
+            config.bind_interfaces = true;
+            config.no_resolv = !resolver;
+            config.no_poll = resolver;
+            if resolver { config.resolv_files = vec![path.clone()]; }
+            else { config.servers_file = Some(path.clone()); }
+            let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+            let mut owner = test_owner(config.clone(), Some(daemon));
+            owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+            finish_test_file_init(&mut owner);
+            let contains = |config: &DnsConfig, address: &str| config.rules.iter().any(|rule| {
+                matches!(&rule.target, RuleTarget::Upstream(endpoint)
+                    if endpoint.host == ServerHost::Address(address.parse().unwrap()))
+            });
+            assert!(contains(&owner.service.borrow().local.config, "127.0.0.2"));
+            std::fs::write(&path, text("127.0.0.3")).unwrap();
+            owner.process_reload_before_dns(37, true).unwrap();
+            assert!(!owner.dns_files.as_ref().unwrap().has_work());
+            assert!(contains(&owner.service.borrow().local.config, "127.0.0.3"));
+            assert!(!contains(&owner.service.borrow().local.config, "127.0.0.2"));
+            let _peer = add_test_tcp(&mut owner);
+            assert!(contains(&owner.clients[0].service.config, "127.0.0.3"));
+            assert!(!contains(&owner.clients[0].service.config, "127.0.0.2"));
+            drop(owner);
+            std::fs::remove_file(path).unwrap();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn hup_large_regular_input_yields_before_dns_health_service() {
+        let path = std::env::temp_dir().join(format!("hup-large-order-{}", std::process::id()));
+        std::fs::write(&path, b"nameserver 127.0.0.2\n").unwrap();
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_poll = true;
+        config.bind_interfaces = true;
+        config.resolv_files = vec![path.clone()];
+        config.apply(&lex_line(b"host-record=ready.test,192.0.2.99").unwrap().unwrap()).unwrap();
+        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+            DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config.clone(), Some(daemon));
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        finish_test_file_init(&mut owner);
+        std::fs::write(&path, format!("{}nameserver 127.0.0.3\n", "# padding\n".repeat(128 * 1024))).unwrap();
+        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        peer.send_to(&test_dns_query(), udp.local_addr().unwrap()).unwrap();
+        owner.add_listener(SocketToken(1), Some(udp), None);
+        owner.wait_for_files().unwrap();
+        owner.process_reload_before_dns(37, true).unwrap();
+        assert!(owner.dns_files.as_ref().unwrap().has_work(), "prephase must not drain an unbounded large file");
+        owner.step().unwrap();
+        let mut answer = [0; 1232];
+        let length = peer.recv(&mut answer).unwrap();
+        assert!(answer[..length].ends_with(&[192, 0, 2, 99]));
+        assert!(owner.dns_files.as_ref().unwrap().has_work(), "DNS remains healthy during the pending file generation");
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
     }
 
     #[cfg(target_os = "linux")]
