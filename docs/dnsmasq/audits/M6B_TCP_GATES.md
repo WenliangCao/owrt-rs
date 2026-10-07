@@ -11,6 +11,9 @@
 | typed transfer | `cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dns::cache::transfer_tests` | 3 passed、1 ignored（历史 exact-C probe 需要 Oracle/reference build）。 |
 | cache engine | `cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dns::cache_engine::tests` | 9 passed、0 failed。 |
 | daemon/TCP callers | `cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dns::daemon::tests` | 17 passed、0 failed。 |
+| framing/service | `cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dns::service::tests`; `... dns::tcp_service::tests`（分别运行） | TCP framing 11 passed；TCP service 6 passed。 |
+| upstream lifecycle | `cargo test --manifest-path components/dnsmasq/Cargo.toml --lib dns::tcp_upstream::tests`; `... dns::upstream::tests`（分别运行） | TCP upstream 7 passed；UDP/upstream owner 35 passed。 |
+| binary lifecycle unit | `cargo test --manifest-path components/dnsmasq/Cargo.toml --bin dnsmasq-rs` | 9 passed；未涉及真实 install/upgrade/rollback。 |
 | 精确 C primitive | `dns_cache_diff.py`，ASAN/UBSAN | 20 scenarios、22,571 commands、0 mismatches；summary SHA `c137b35be19ffd3396d3825122250c9243e5fdbb5623ce1b6c58b259ae1480cc`。只覆盖 dynamic forward transitions，不冒称 TCP IPC/reverse/packet extraction。 |
 
 ## S1–S8 静态审查定位
@@ -36,6 +39,8 @@ dns_tcp_accept_failure_diff.py
 ```
 
 `dns_tcp_cache_diff` 覆盖 accept snapshot、父 UDP 更新不可见、同连接写入可见、后连接可见和固定 TTL；reload/writeback 覆盖代际、即时导回、冲突和 counters；stale/DO/EDNS 覆盖 refresh、CD/AD/no-cache 与身份；daemon/ingress/capacity/accept-failure 覆盖 framing、100-query、队列恢复、EMFILE 和 listener survival。每次保留 C-first 原始输出、Rust 输出、命令、ELF/source SHA、错误回答和 cleanup JSON。
+
+这些脚本不能在当前 macOS worktree 直接替代镜像门：它们需要 Linux `run_isolated.sh`、镜像 rootfs、精确 C reference build、AArch64 ELF 和 namespace/cgroup。依赖满足前状态统一记为 **not run**，不将历史 C/R3 结果导入 Scheme A 资格。
 
 资源/生命周期门需新增 20/上限连接、空/半满/4096、大缓存、随机多 RR、100-query reconnect、150 秒 idle snapshot＋父 churn、冲突与 reload/lease interleave；记录 client/view/pinned-root/transaction、FD/thread/child、live requested bytes、PSS/Anonymous，以及负载结束后 0/1/5/15/60 秒。排空必须满足计数归零或确认 idle FD 集合连续稳定。
 
