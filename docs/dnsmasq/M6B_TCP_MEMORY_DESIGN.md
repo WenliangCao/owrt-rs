@@ -212,7 +212,7 @@ Oracle 的第1b perf debug companion（同源、非交付 ELF）与中间矩阵�
 metrics/UBus 调用列为新的归因候选。方案 A 的 CPU 硬门暂停到第1b
 `d52d5cac` 完成短基线后再冻结。冻结时使用同一配置、同一镜像 C、同一
 CPU/正确回答分母，定义
-`u=(daemon cgroup CPU usec + TCP child CPU usec)/correct replies`，并要求：
+`u=daemon cgroup CPU usec/correct replies`（cgroup已含TCP子进程，不重复加child CPU；proc父子合计仅作交叉核验），并要求：
 
 * `median(u_A) <= 1.05 × median(u_R3_1b)`；
 * `median(u_A) < median(u_C_1b)`，即保持相对**新** C 基线的 CPU 优势；
