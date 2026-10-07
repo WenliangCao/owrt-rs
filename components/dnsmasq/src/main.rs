@@ -2069,6 +2069,7 @@ struct SinglePoll {
     listeners: Vec<PollListener>,
     clients: Vec<PollTcpClient>,
     pending_edns_udp: Vec<PendingEdnsUdp>,
+    edns_udp_runnable: bool,
     service: Rc<RefCell<ParentDns>>,
     parent_events: Rc<RefCell<ParentEvents>>,
     interfaces: Rc<RefCell<Vec<DnsInterface>>>,
@@ -2904,6 +2905,7 @@ impl SinglePoll {
                 .collect(),
             clients: Vec::new(),
             pending_edns_udp: Vec::new(),
+            edns_udp_runnable: false,
             service,
             parent_events,
             interfaces,
@@ -3725,6 +3727,7 @@ impl SinglePoll {
                 }
             }
             let mut runnable = self.dns_file_work_runnable()
+                || (self.edns_udp_runnable && !self.interface_work_pending())
                 || self
                     .hosts_read
                     .as_ref()
@@ -4319,6 +4322,17 @@ impl SinglePoll {
     }
 
     fn step_edns_udp(&mut self) {
+        self.step_edns_udp_with_lookup(|owner, source| owner.edns_mac(source, true));
+    }
+
+    fn step_edns_udp_with_lookup(
+        &mut self,
+        mut lookup_mac: impl FnMut(&mut Self, IpAddr) -> ClientMacLookup,
+    ) {
+        // A previous budget yield requests one new turn. Clear it before
+        // scanning so a tail consisting only of unresolved MACs waits on its
+        // dump/timeout instead of spinning.
+        self.edns_udp_runnable = false;
         let mut index = 0;
         let mut progressed = 0;
         while index < self.pending_edns_udp.len() && progressed < 32 {
@@ -4329,7 +4343,7 @@ impl SinglePoll {
             let lookup = if Instant::now() >= self.pending_edns_udp[index].deadline {
                 ClientMacLookup::Ready(None)
             } else {
-                self.edns_mac(source, true)
+                lookup_mac(self, source)
             };
             let ClientMacLookup::Ready(mac) = lookup else {
                 index += 1;
@@ -4354,6 +4368,7 @@ impl SinglePoll {
             }
             progressed += 1;
         }
+        self.edns_udp_runnable = progressed == 32 && !self.pending_edns_udp.is_empty();
     }
 
     fn process_udp(
@@ -5046,6 +5061,9 @@ impl SinglePoll {
         self.step_interface_collector();
         let full_deadline = Instant::now() + timeout;
         let mut deadline = full_deadline;
+        if self.edns_udp_runnable && !self.interface_work_pending() {
+            deadline = Instant::now();
+        }
         let mut fds = vec![PollFd {
             fd: icmp.map_or(-1, |socket| socket.as_raw_fd()),
             events: POLLIN,
@@ -6183,6 +6201,61 @@ mod tests {
         assert_eq!(owner.clients.len(), 1);
         peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
         peer
+    }
+
+    fn park_edns_waiters(owner: &mut SinglePoll, count: usize) {
+        for index in 0..count {
+            owner.pending_edns_udp.push(PendingEdnsUdp {
+                query_context: Default::default(), listener: SocketToken(99),
+                client: ClientRequest { source: SocketAddr::from(([192, 0, 2, index as u8], 5300)),
+                    destination: "192.0.2.1".parse().unwrap(), interface: 0 },
+                query: test_dns_query(), deadline: Instant::now() + Duration::from_secs(3),
+            });
+        }
+    }
+
+    #[test]
+    fn edns_budget_tail_is_logical_work_without_another_neighbor_event() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        park_edns_waiters(&mut owner, 33);
+        owner.step_edns_udp_with_lookup(|_, _| ClientMacLookup::Ready(None));
+        assert_eq!(owner.pending_edns_udp.len(), 1);
+        assert!(owner.edns_udp_runnable);
+        #[cfg(target_os = "linux")]
+        {
+            assert!(owner.ready_fds.is_empty());
+            let started = Instant::now();
+            owner.wait_for_files().unwrap();
+            assert!(started.elapsed() < Duration::from_millis(100),
+                "a ready budget tail must not sleep to its three-second fallback");
+        }
+        owner.step_edns_udp_with_lookup(|_, _| ClientMacLookup::Ready(None));
+        assert!(owner.pending_edns_udp.is_empty());
+        assert!(!owner.edns_udp_runnable);
+    }
+
+    #[test]
+    fn edns_mixed_pending_queue_drains_ready_tail_then_stops_spinning() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        park_edns_waiters(&mut owner, MAX_EDNS_UDP_WAITERS);
+        let ready = |_: &mut SinglePoll, source: IpAddr| {
+            if matches!(source, IpAddr::V4(address) if address.octets()[3] % 2 == 0) {
+                ClientMacLookup::Ready(None)
+            } else {
+                ClientMacLookup::Pending
+            }
+        };
+        for remaining in [224, 192, 160, 128] {
+            owner.step_edns_udp_with_lookup(ready);
+            assert_eq!(owner.pending_edns_udp.len(), remaining);
+            assert!(owner.edns_udp_runnable);
+        }
+        // One bounded recheck establishes that the rest still needs its dump.
+        owner.step_edns_udp_with_lookup(ready);
+        assert_eq!(owner.pending_edns_udp.len(), 128);
+        assert!(!owner.edns_udp_runnable);
+        owner.step_edns_udp_with_lookup(|_, _| ClientMacLookup::Pending);
+        assert!(!owner.edns_udp_runnable);
     }
 
     fn test_dns_query() -> Vec<u8> {
