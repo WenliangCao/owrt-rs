@@ -8,7 +8,7 @@
 - 下一步：先以M6B协议5c8dcf27和修正测量器完成UDP pilot计数（loop/poll/wait/packet batch/allocation）与idle CPU，然后冻结新的测量/产品候选manifest。之后独立worktree实施TCP方案A，依S1-S8 primitive→service→resource→pressure gates；UDP修复和TCP A不得拼接部分最佳实验。每个产品候选完成M5受影响族、M2、资源/压力/APK生命周期与9×3×5正式M6b复测；s只作性能对照，给出是否值得切换结论。
 - 阻塞点：无须用户决定；第0步已完成测量修正和协议冻结，等待产品候选。任何M6b失败保留原始证据并停止该候选，不改阈值、不把失败实验混入通过结果。
 - 活跃分工：root整合协议/ledger、UDP产品、M6b suite/build/回归/报告；m6b_measure维护修正测量器；m6b_udp_audit实施UDP产品修复；m6b_tcp_design实施TCP方案A；m6a_review只读审计M6b gates。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间禁止并行build/test/fuzz，用户docs/prompts原样。
-- 续接注意：M6a原始证据与M6A_REPORT不改；M6b新证据统一private/dnsmasq-rewrite/evidence/M6b。任何opt3/s切换必须新freeze和完整资格，不能用M6a机械UDP分类下结论。169项和M5行为差异基线必须在最终候选重新核对。
+- 续接注意：M6a原始证据与M6A_REPORT不改；M6b新证据统一private/dnsmasq-rewrite/evidence/M6b。已完成的M5/M6a worktree及分支已按private/dnsmasq-rewrite/worktree-retirement-20261007/m5-m6a/manifest.json保全durable refs、dirty补丁、untracked文件与必要ignored evidence后移除；用户docs/prompts和M6b活跃worktree保留。任何opt3/s切换必须新freeze和完整资格，不能用M6a机械UDP分类下结论。169项和M5行为差异基线必须在最终候选重新核对。
 
 ## 工作规则
 
