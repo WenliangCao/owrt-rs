@@ -334,8 +334,14 @@ mod linux {
                 // SAFETY: the constant name is terminated. A gid fallback is
                 // queried only when the first lookup returned a null pointer.
                 // Returned group storage is copied before another libc lookup.
-                let group = unsafe { getgrnam(c"dip".as_ptr()).as_ref() }
-                    .or_else(|| user_gid.and_then(|gid| unsafe { getgrgid(gid).as_ref() }));
+                let group = unsafe { getgrnam(c"dip".as_ptr()).as_ref() }.or_else(|| {
+                    user_gid.and_then(|gid| {
+                        // SAFETY: this fallback passes a scalar gid to libc;
+                        // the returned record is copied below before another
+                        // group lookup can invalidate its storage.
+                        unsafe { getgrgid(gid).as_ref() }
+                    })
+                });
                 match group {
                     Some(group) => (
                         Some(group.gid),
