@@ -107,12 +107,18 @@ if [ "$build_kind" = probe-tests ] || [ "$build_kind" = primitive-probes ]; then
             }
         done
     fi
-    python3 - "$source_dir" "$output_dir" <<'PY'
+    python3 - "$source_dir" "$output_dir" "$build_kind" <<'PY'
 import hashlib, json, pathlib, sys
-source, out = map(pathlib.Path, sys.argv[1:])
+source, out = map(pathlib.Path, sys.argv[1:3])
 files = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
          for part in ('dnsmasq', 'ubus') for p in sorted((source / 'components' / part).rglob('*'))
          if p.is_file() and 'target' not in p.relative_to(source).parts}
+if sys.argv[3] == 'primitive-probes':
+    extra = [source / name for name in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml')]
+    extra += sorted((source / '.cargo').rglob('*'))
+    for path in extra:
+        if path.is_file():
+            files[str(path.relative_to(source))] = hashlib.sha256(path.read_bytes()).hexdigest()
 (out / 'probe-source-before.json').write_text(json.dumps(files, sort_keys=True) + '\n')
 PY
 fi
@@ -205,6 +211,12 @@ if kind in ('probe-tests', 'primitive-probes'):
     files = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
              for part in ('dnsmasq', 'ubus') for p in sorted((source / 'components' / part).rglob('*'))
              if p.is_file() and 'target' not in p.relative_to(source).parts}
+    if kind == 'primitive-probes':
+        extra = [source / name for name in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml')]
+        extra += sorted((source / '.cargo').rglob('*'))
+        for path in extra:
+            if path.is_file():
+                files[str(path.relative_to(source))] = hashlib.sha256(path.read_bytes()).hexdigest()
     if files != json.loads(before.read_text()):
         raise RuntimeError('diagnostic source changed during locked build')
     report['source_files'] = files
