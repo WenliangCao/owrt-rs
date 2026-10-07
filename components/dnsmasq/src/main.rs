@@ -2448,6 +2448,20 @@ fn lookup_edns_mac(
 }
 
 struct PollTcpClient {
+    // A log-blocked C worker still holds G/the connection limit. Its DNS work
+    // has already ended: keep only the accepted log destination and poll slot.
+    #[cfg(target_os = "linux")]
+    log_context: Option<dnsmasq_rs::logging::TcpLogContext>,
+    #[cfg(target_os = "linux")]
+    poll_slot: Option<usize>,
+    #[cfg(target_os = "linux")]
+    ready_events: i16,
+    // Inline Option avoids another allocation/indirection on every accept.
+    // Taking it drops the complete cache/local/forward/framing ownership set.
+    dns_work: Option<TcpDnsWork>,
+}
+
+struct TcpDnsWork {
     query_ids: dnsmasq_rs::query_logging::QueryIds,
     query_context: dnsmasq_rs::query_logging::QueryContext,
     query_events: Vec<(
@@ -2455,13 +2469,6 @@ struct PollTcpClient {
         dnsmasq_rs::query_logging::QueryEvent,
     )>,
     peer: SocketAddr,
-    #[cfg(target_os = "linux")]
-    log_context: Option<dnsmasq_rs::logging::TcpLogContext>,
-    network_done: bool,
-    #[cfg(target_os = "linux")]
-    poll_slot: Option<usize>,
-    #[cfg(target_os = "linux")]
-    ready_events: i16,
     stream: Option<TcpStream>,
     service: LocalDnsService,
     forward: TcpDnsService,
@@ -2502,7 +2509,7 @@ enum TcpClientPhase {
     Writing { frame: Vec<u8>, offset: usize },
 }
 
-impl PollTcpClient {
+impl TcpDnsWork {
     fn start_query(&mut self, query: &[u8], parent: &Rc<RefCell<ParentDns>>) -> Result<(), ()> {
         self.query_context = if self.cache_debug {
             parent
@@ -3593,33 +3600,31 @@ impl SinglePoll {
                     if let Some(due) = logger.tcp_retry_deadline(context) {
                         deadline = deadline.min(due);
                     }
-                    if client.network_done && logger.tcp_finished(context) {
+                    if client.dns_work.is_none() && logger.tcp_finished(context) {
                         deadline = now;
                     }
                 }
-                if client.network_done {
-                    continue;
+                let Some(work) = &client.dns_work else { continue };
+                deadline = deadline.min(work.deadline);
+                if !work.mac_ready && !work.mac_deferred {
+                    deadline = deadline.min(work.mac_deadline);
                 }
-                deadline = deadline.min(client.deadline);
-                if !client.mac_ready && !client.mac_deferred {
-                    deadline = deadline.min(client.mac_deadline);
-                }
-                let (fd, events) = match &client.phase {
+                let (fd, events) = match &work.phase {
                     TcpClientPhase::Reading => {
-                        if client.input_offset < client.input.len() {
+                        if work.input_offset < work.input.len() {
                             deadline = now;
                         }
                         (
-                            client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                            work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
                             POLLIN,
                         )
                     }
                     TcpClientPhase::WaitingMac { .. } => {
-                        deadline = deadline.min(client.mac_deadline);
+                        deadline = deadline.min(work.mac_deadline);
                         (-1, 0)
                     }
                     TcpClientPhase::Writing { .. } => (
-                        client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                        work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
                         POLLOUT,
                     ),
                     TcpClientPhase::Forwarding { wait, .. } => {
@@ -4806,10 +4811,6 @@ impl SinglePoll {
             event.tcp_active = event.tcp_active.saturating_add(1);
         }
         self.clients.push(PollTcpClient {
-            query_ids,
-            query_context: Default::default(),
-            query_events: Vec::new(),
-            peer,
             #[cfg(target_os = "linux")]
             log_context: (!cache_debug)
                 .then(|| {
@@ -4818,36 +4819,41 @@ impl SinglePoll {
                         .map(dnsmasq_rs::logging::Logger::tcp_context)
                 })
                 .flatten(),
-            network_done: false,
             #[cfg(target_os = "linux")]
             poll_slot: None,
             #[cfg(target_os = "linux")]
             ready_events: 0,
-            stream: Some(stream),
-            cache_view,
-            cache_negative,
-            cache_negative_ttl,
-            cache_debug,
-            accept_clock,
-            cache_counters: Default::default(),
-            no_cache: false,
-            stale_query: None,
-            refreshing_stale: false,
-            service: snapshot,
-            forward,
-            framer: TcpFramer::with_max_frame(self.packet_limit),
-            deadline: Instant::now() + Duration::from_secs(150),
-            queries: 0,
-            input: Vec::new(),
-            input_offset: 0,
-            phase: TcpClientPhase::Reading,
-            source: peer.ip(),
-            mac,
-            mac_ready,
-            mac_deferred,
-            mac_deadline: Instant::now() + Duration::from_secs(3),
-            packet_limit: self.packet_limit,
-            parent_cache_activity: false,
+            dns_work: Some(TcpDnsWork {
+                query_ids,
+                query_context: Default::default(),
+                query_events: Vec::new(),
+                peer,
+                stream: Some(stream),
+                cache_view,
+                cache_negative,
+                cache_negative_ttl,
+                cache_debug,
+                accept_clock,
+                cache_counters: Default::default(),
+                no_cache: false,
+                stale_query: None,
+                refreshing_stale: false,
+                service: snapshot,
+                forward,
+                framer: TcpFramer::with_max_frame(self.packet_limit),
+                deadline: Instant::now() + Duration::from_secs(150),
+                queries: 0,
+                input: Vec::new(),
+                input_offset: 0,
+                phase: TcpClientPhase::Reading,
+                source: peer.ip(),
+                mac,
+                mac_ready,
+                mac_deferred,
+                mac_deadline: Instant::now() + Duration::from_secs(3),
+                packet_limit: self.packet_limit,
+                parent_cache_activity: false,
+            }),
         });
     }
 
@@ -4855,21 +4861,22 @@ impl SinglePoll {
     fn tcp_client_ready(&self, index: usize) -> bool {
         let client = &self.clients[index];
         let now = Instant::now();
-        if client.network_done || now >= client.deadline {
+        let Some(work) = &client.dns_work else { return true };
+        if now >= work.deadline {
             return true;
         }
         #[cfg(target_pointer_width = "64")]
         let neighbor_ready = self.neighbors_ready;
         #[cfg(not(target_pointer_width = "64"))]
         let neighbor_ready = false;
-        if !client.mac_ready && !client.mac_deferred {
-            return now >= client.mac_deadline || neighbor_ready
+        if !work.mac_ready && !work.mac_deferred {
+            return now >= work.mac_deadline || neighbor_ready
                 || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN);
         }
-        match &client.phase {
-            TcpClientPhase::Reading => client.input_offset < client.input.len()
+        match &work.phase {
+            TcpClientPhase::Reading => work.input_offset < work.input.len()
                 || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN),
-            TcpClientPhase::WaitingMac { .. } => now >= client.mac_deadline || neighbor_ready,
+            TcpClientPhase::WaitingMac { .. } => now >= work.mac_deadline || neighbor_ready,
             TcpClientPhase::Forwarding { wait, .. } => now >= wait.deadline
                 || poll_events_match(client.ready_events, wait.events),
             TcpClientPhase::Writing { .. } =>
@@ -4885,30 +4892,31 @@ impl SinglePoll {
                 index += 1;
                 continue;
             }
-            if !self.clients[index].network_done
-                && Instant::now() < self.clients[index].deadline
-                && !self.clients[index].mac_ready && !self.clients[index].mac_deferred
-            {
-                let lookup = if Instant::now() >= self.clients[index].mac_deadline {
-                    ClientMacLookup::Ready(None)
-                } else {
-                    self.edns_mac(self.clients[index].source, true)
-                };
-                match lookup {
-                    ClientMacLookup::Ready(mac) => {
-                        self.clients[index].mac = mac;
-                        self.clients[index].mac_ready = true;
-                    }
-                    ClientMacLookup::Pending => {
-                        index += 1;
-                        continue;
+            if let Some(work) = &self.clients[index].dns_work {
+                if Instant::now() < work.deadline && !work.mac_ready && !work.mac_deferred {
+                    let lookup = if Instant::now() >= work.mac_deadline {
+                        ClientMacLookup::Ready(None)
+                    } else {
+                        self.edns_mac(work.source, true)
+                    };
+                    match lookup {
+                        ClientMacLookup::Ready(mac) => {
+                            if let Some(work) = &mut self.clients[index].dns_work {
+                                work.mac = mac;
+                                work.mac_ready = true;
+                            }
+                        }
+                        ClientMacLookup::Pending => {
+                            index += 1;
+                            continue;
+                        }
                     }
                 }
             }
             #[cfg(target_os = "linux")]
-            let (readable, writable, forward_ready) = match &self.clients[index].phase {
-                TcpClientPhase::Forwarding { wait, .. } => (false, false,
-                    poll_events_match(self.clients[index].ready_events, wait.events)),
+            let (readable, writable, forward_ready) = match &self.clients[index].dns_work {
+                Some(TcpDnsWork { phase: TcpClientPhase::Forwarding { wait, .. }, .. }) =>
+                    (false, false, poll_events_match(self.clients[index].ready_events, wait.events)),
                 _ => (
                     poll_events_match(self.clients[index].ready_events, owrt_ubus::sys::POLLIN),
                     poll_events_match(self.clients[index].ready_events, owrt_ubus::sys::POLLOUT),
@@ -4918,60 +4926,72 @@ impl SinglePoll {
             #[cfg(not(target_os = "linux"))]
             let (readable, writable, forward_ready) = (true, true, true);
             #[cfg(target_os = "linux")]
-            let was_network_done = self.clients[index].network_done;
+            let was_network_done = self.clients[index].dns_work.is_none();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let result = if self.clients[index].network_done {
-                Ok(false)
-            } else {
+            let result = if let Some(work) = &mut self.clients[index].dns_work {
                 let neighbors = &mut self.neighbors;
-                self.clients[index].step(&self.service, &mut |source, lazy| {
+                work.step(&self.service, &mut |source, lazy| {
                     lookup_edns_mac(neighbors, source, lazy)
                 }, readable, writable, forward_ready)
+            } else {
+                Ok(false)
             };
             #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-            let result = if self.clients[index].network_done {
-                Ok(false)
-            } else {
-                self.clients[index].step(&self.service, &mut |_, _| ClientMacLookup::Ready(None),
+            let result = if let Some(work) = &mut self.clients[index].dns_work {
+                work.step(&self.service, &mut |_, _| ClientMacLookup::Ready(None),
                     readable, writable, forward_ready)
+            } else {
+                Ok(false)
             };
             #[cfg(target_os = "linux")]
-            if let Some(logger) = &mut self.logger {
-                use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
-                for (query_context, event) in std::mem::take(&mut self.clients[index].query_events)
-                {
-                    if let Some(event) = dnsmasq_rs::logging::query::format(
-                        self.query_logging,
-                        query_context,
-                        &event,
-                    ) {
-                        if let Some(context) = &mut self.clients[index].log_context {
+            {
+                let client = &mut self.clients[index];
+                if let (Some(logger), Some(work)) = (&mut self.logger, &mut client.dns_work) {
+                    use dnsmasq_rs::logging::{address_text, LogEvent, Priority, Service};
+                    // An error/cancellation can leave producer events behind
+                    // before run_forward reaches its normal collection point.
+                    // Transfer them too before releasing the producer owners.
+                    work.collect_local_query_events();
+                    work.query_events.extend(work.forward.take_query_events().into_iter()
+                        .map(|event| (work.query_context, event)));
+                    for (query_context, event) in std::mem::take(&mut work.query_events)
+                    {
+                        if let Some(event) = dnsmasq_rs::logging::query::format(
+                            self.query_logging,
+                            query_context,
+                            &event,
+                        ) {
+                            if let Some(context) = &mut client.log_context {
+                                logger.emit_tcp(context, event);
+                            } else {
+                                logger.emit(event);
+                            }
+                        }
+                    }
+                    for address in work.forward.take_connection_failures() {
+                        let mut message = b"TCP connection failed to ".to_vec();
+                        message.extend_from_slice(&address_text(address));
+                        message.extend_from_slice(format!("#{}", address.port()).as_bytes());
+                        let event = LogEvent::new(Service::Debug, Priority::Debug, message);
+                        if let Some(context) = &mut client.log_context {
                             logger.emit_tcp(context, event);
                         } else {
                             logger.emit(event);
                         }
                     }
                 }
-                for address in self.clients[index].forward.take_connection_failures() {
-                    let mut message = b"TCP connection failed to ".to_vec();
-                    message.extend_from_slice(&address_text(address));
-                    message.extend_from_slice(format!("#{}", address.port()).as_bytes());
-                    let event = LogEvent::new(Service::Debug, Priority::Debug, message);
-                    if let Some(context) = &mut self.clients[index].log_context {
-                        logger.emit_tcp(context, event);
-                    } else {
-                        logger.emit(event);
-                    }
-                }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            {
-                self.arp_awake |= std::mem::take(&mut self.clients[index].parent_cache_activity);
+            if let Some(work) = &mut self.clients[index].dns_work {
+                self.arp_awake |= std::mem::take(&mut work.parent_cache_activity);
             }
             let network_alive = result.unwrap_or(false);
-            if !network_alive && !self.clients[index].network_done {
-                self.clients[index].network_done = true;
-                self.clients[index].stream.take();
+            if !network_alive {
+                // All producer events/warnings have reached their accepted log
+                // context. Normal work, stale refresh, failure or cancellation
+                // has now ended; release every DNS-owned field together before
+                // waiting for a blocked FIFO to let the client slot/G finish.
+                self.clients[index].dns_work.take();
             }
             #[cfg(target_os = "linux")]
             let logs_done = if let (Some(logger), Some(context)) =
@@ -5097,33 +5117,31 @@ impl SinglePoll {
                 if let Some(due) = logger.tcp_retry_deadline(context) {
                     deadline = deadline.min(due);
                 }
-                if client.network_done && logger.tcp_finished(context) {
+                if client.dns_work.is_none() && logger.tcp_finished(context) {
                     deadline = Instant::now();
                 }
             }
-            if client.network_done {
-                continue;
+            let Some(work) = &client.dns_work else { continue };
+            deadline = deadline.min(work.deadline);
+            if !work.mac_ready && !work.mac_deferred {
+                deadline = deadline.min(work.mac_deadline);
             }
-            deadline = deadline.min(client.deadline);
-            if !client.mac_ready && !client.mac_deferred {
-                deadline = deadline.min(client.mac_deadline);
-            }
-            let (fd, events) = match &client.phase {
+            let (fd, events) = match &work.phase {
                 TcpClientPhase::Reading => {
-                    if client.input_offset < client.input.len() {
+                    if work.input_offset < work.input.len() {
                         deadline = Instant::now();
                     }
                     (
-                        client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                        work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
                         POLLIN,
                     )
                 }
                 TcpClientPhase::WaitingMac { .. } => {
-                    deadline = deadline.min(client.mac_deadline);
+                    deadline = deadline.min(work.mac_deadline);
                     (-1, 0)
                 }
                 TcpClientPhase::Writing { .. } => (
-                    client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                    work.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
                     POLLOUT,
                 ),
                 TcpClientPhase::Forwarding { wait, .. } => {
@@ -6292,7 +6310,7 @@ mod tests {
         let mut owner = test_owner(DnsConfig::default(), None);
         let mut peer = add_test_tcp(&mut owner);
         peer.write_all(b"not-yet-readable").unwrap();
-        let client = &mut owner.clients[0];
+        let client = owner.clients[0].dns_work.as_mut().unwrap();
         client.phase = TcpClientPhase::Writing { frame: b"answer".to_vec(), offset: 0 };
         assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
             false, true, false).unwrap());
@@ -6314,7 +6332,7 @@ mod tests {
         let mut owner = test_owner(config, None);
         let mut peer = add_test_tcp(&mut owner);
         let query = test_dns_query();
-        let client = &mut owner.clients[0];
+        let client = owner.clients[0].dns_work.as_mut().unwrap();
         client.input = encode_tcp_frame(&query).unwrap();
         assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
             false, false, false).unwrap());
@@ -6332,12 +6350,11 @@ mod tests {
     fn tcp_idle_deadline_and_completed_client_run_without_fd_readiness() {
         let mut owner = test_owner(DnsConfig::default(), None);
         let _peer = add_test_tcp(&mut owner);
-        owner.clients[0].deadline = Instant::now();
+        owner.clients[0].dns_work.as_mut().unwrap().deadline = Instant::now();
         owner.step_tcp_clients();
         assert!(owner.clients.is_empty(), "expired idle client must release its slot");
         let _peer = add_test_tcp(&mut owner);
-        owner.clients[0].network_done = true;
-        owner.clients[0].stream.take();
+        owner.clients[0].dns_work.take();
         owner.step_tcp_clients();
         assert!(owner.clients.is_empty(), "log-complete client must release its slot");
     }
@@ -6425,15 +6442,32 @@ mod tests {
         let context = owner.clients[0].log_context.as_mut().unwrap();
         owner.logger.as_mut().unwrap().emit_tcp(context,
             LogEvent::new(Service::Dns, Priority::Info, b"pending child log".to_vec()));
-        owner.clients[0].network_done = true;
-        owner.clients[0].stream.take();
+        let (lease_root, interface_root) = {
+            let work = owner.clients[0].dns_work.as_mut().unwrap();
+            // Each accepted owner has independent DNS allocations as well as
+            // two shared publication roots; none belongs to the log context.
+            work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096,
+                Default::default()));
+            work.input = vec![0; 65_535];
+            work.framer.push_frame(&[0xff, 0xff, 1]).unwrap();
+            work.mac = Some(vec![7; 1024]);
+            work.stale_query = Some(vec![0; 1232]);
+            work.deadline = Instant::now();
+            (Arc::downgrade(&work.service.leases), Arc::downgrade(&work.service.interfaces))
+        };
         owner.step_tcp_clients();
         assert_eq!(owner.clients.len(), 1);
+        assert_eq!(owner.parent_events.borrow().tcp_active, 1, "G still holds its slot");
+        assert!(owner.clients[0].dns_work.is_none(), "all DNS allocations are released together");
+        assert_eq!(lease_root.strong_count(), 1, "only the parent's lease root remains");
+        assert_eq!(interface_root.strong_count(), 1, "only the parent's interface root remains");
+        assert!(owner.clients[0].log_context.is_some());
         let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000)
             .open(&path).unwrap();
         owner.wait_for_files().unwrap();
         owner.step_tcp_clients();
         assert!(owner.clients.is_empty(), "FIFO timer must drain log and free TCP slot");
+        assert_eq!(owner.parent_events.borrow().tcp_active, 0);
         let mut message = String::new();
         match reader.read_to_string(&mut message) {
             Ok(_) => (),
@@ -6441,6 +6475,147 @@ mod tests {
         }
         assert!(message.contains("pending child log"));
         std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn tcp_closed_downstream_keeps_pending_stale_work_until_refresh_completes() {
+        let upstream = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = upstream.local_addr().unwrap();
+        let (query_sender, query_receiver) = std::sync::mpsc::channel();
+        let (reply_sender, reply_receiver) = std::sync::mpsc::channel();
+        let (closed_sender, closed_receiver) = std::sync::mpsc::channel();
+        let server = std::thread::spawn(move || {
+            upstream.set_nonblocking(true).unwrap();
+            let due = Instant::now() + Duration::from_secs(3);
+            let mut stream = loop {
+                match upstream.accept() {
+                    Ok((stream, _)) => break stream,
+                    Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+                        assert!(Instant::now() < due);
+                        std::thread::sleep(Duration::from_millis(1));
+                    }
+                    Err(error) => panic!("{error}"),
+                }
+            };
+            stream.set_nonblocking(false).unwrap();
+            stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            let mut length = [0; 2];
+            stream.read_exact(&mut length).unwrap();
+            let mut query = vec![0; usize::from(u16::from_be_bytes(length))];
+            stream.read_exact(&mut query).unwrap();
+            query_sender.send(query.clone()).unwrap();
+            reply_receiver.recv_timeout(Duration::from_secs(3)).unwrap();
+            query[2..4].copy_from_slice(&0x8180u16.to_be_bytes());
+            stream.write_all(&encode_tcp_frame(&query).unwrap()).unwrap();
+            let mut byte = [0];
+            closed_sender.send(stream.read(&mut byte).unwrap()).unwrap();
+        });
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_resolv = true;
+        config.apply(&lex_line(format!("server=127.0.0.1#{}", address.port())
+            .as_bytes()).unwrap().unwrap()).unwrap();
+        let mut owner = test_owner(config, None);
+        #[cfg(target_os = "linux")]
+        let log_path = {
+            use dnsmasq_rs::config::logging::LoggingConfig;
+            use dnsmasq_rs::logging::Logger;
+            let path = std::env::temp_dir().join(format!("dnsmasq-stale-log-{}", std::process::id()));
+            assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+            let (logger, _) = Logger::start(&LoggingConfig { file: Some(path.clone()),
+                ..Default::default() }, &Default::default(), None).unwrap();
+            owner.logger = Some(logger);
+            owner.query_logging.enabled = true;
+            path
+        };
+        let mut peer = add_test_tcp(&mut owner);
+        let query = test_dns_query();
+        let lease_root = {
+            let work = owner.clients[0].dns_work.as_mut().unwrap();
+            work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096, Default::default()));
+            work.stale_query = Some(query.clone());
+            work.phase = TcpClientPhase::Writing {
+                frame: encode_tcp_frame(&query).unwrap(), offset: 0,
+            };
+            work.queries = 1;
+            work.query_events.push((work.query_context,
+                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer).unwrap()));
+            work.query_events.push((work.query_context,
+                dnsmasq_rs::query_logging::QueryEvent::warning(b"stale-work warning before release".to_vec())));
+            Arc::downgrade(&work.service.leases)
+        };
+        // Test readiness drives nonblocking I/O. The real owner poll is covered
+        // separately; this test controls exactly when the upstream may reply.
+        let drive = |owner: &mut SinglePoll| {
+            #[cfg(target_os = "linux")]
+            for client in &mut owner.clients {
+                client.ready_events = owrt_ubus::sys::POLLIN | owrt_ubus::sys::POLLOUT;
+            }
+            owner.step_tcp_clients();
+        };
+        let due = Instant::now() + Duration::from_secs(3);
+        loop {
+            drive(&mut owner);
+            match query_receiver.try_recv() {
+                Ok(received) => { assert_eq!(received, query); break; }
+                Err(std::sync::mpsc::TryRecvError::Empty) => {
+                    assert!(Instant::now() < due);
+                    std::thread::sleep(Duration::from_millis(1));
+                }
+                Err(error) => panic!("{error}"),
+            }
+        }
+        let mut frame = vec![0; query.len() + 2];
+        peer.read_exact(&mut frame).unwrap();
+        assert_eq!(frame, encode_tcp_frame(&query).unwrap());
+        assert_eq!(peer.read(&mut [0]).unwrap(), 0, "downstream is already closed");
+        let work = owner.clients[0].dns_work.as_ref().unwrap();
+        assert!(work.stream.is_none());
+        assert!(work.refreshing_stale);
+        assert!(matches!(work.phase, TcpClientPhase::Forwarding { .. }));
+        assert_eq!(lease_root.strong_count(), 2, "pending refresh still pins the accepted view");
+        assert_eq!(owner.parent_events.borrow().tcp_active, 1);
+        for _ in 0..8 { drive(&mut owner); }
+        assert!(owner.clients[0].dns_work.is_some(), "pending upstream must not release early");
+        reply_sender.send(()).unwrap();
+        while owner.clients.first().is_some_and(|client| client.dns_work.is_some()) {
+            assert!(Instant::now() < due);
+            drive(&mut owner);
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        assert_eq!(lease_root.strong_count(), 1);
+        #[cfg(not(target_os = "linux"))]
+        assert_eq!(owner.parent_events.borrow().tcp_active, 0);
+        #[cfg(target_os = "linux")]
+        {
+            assert_eq!(owner.clients.len(), 1, "G remains held while accepted logs are blocked");
+            assert_eq!(owner.parent_events.borrow().tcp_active, 1);
+            assert!(owner.clients[0].dns_work.is_none());
+            assert!(owner.clients[0].log_context.is_some());
+        }
+        assert_eq!(closed_receiver.recv_timeout(Duration::from_secs(3)).unwrap(), 0,
+            "persistent upstream also closes when DNS work ends");
+        server.join().unwrap();
+        #[cfg(target_os = "linux")]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000)
+                .open(&log_path).unwrap();
+            while !owner.clients.is_empty() {
+                assert!(Instant::now() < due);
+                owner.wait_for_files().unwrap();
+                owner.step_tcp_clients();
+            }
+            assert_eq!(owner.parent_events.borrow().tcp_active, 0);
+            let mut messages = String::new();
+            if let Err(error) = reader.read_to_string(&mut messages) {
+                assert_eq!(error.kind(), io::ErrorKind::WouldBlock);
+            }
+            assert!(messages.contains("query[A] ready.test"));
+            assert!(messages.contains("stale-work warning before release"));
+            assert!(messages.contains("forwarded ready.test"));
+            std::fs::remove_file(log_path).unwrap();
+        }
     }
 
     #[test]
