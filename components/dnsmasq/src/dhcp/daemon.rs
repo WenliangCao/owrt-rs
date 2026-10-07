@@ -189,7 +189,6 @@ pub struct LocalProvider {
     inline_options: Vec<crate::config::dhcp::DhcpOption>,
     file_reload_pending: bool,
     file_init_ready: bool,
-    file_runnable: bool,
     file_scripts_pending: bool,
     reserved: Vec<Ipv4Addr>,
     domains: NameDomains,
@@ -343,7 +342,6 @@ impl LocalProvider {
             inline_options: config.options.clone(),
             file_reload_pending: false,
             file_init_ready: true,
-            file_runnable: false,
             file_scripts_pending: false,
             reserved: config
                 .hosts
@@ -976,7 +974,6 @@ impl LocalProvider {
         files.begin_reload(&self.ethers.file_bank_base(&self.config.hosts));
         self.file_owner = Some(files);
         self.file_init_ready = false;
-        self.file_runnable = true;
         Ok(())
     }
 
@@ -991,25 +988,45 @@ impl LocalProvider {
     }
 
     pub fn files_runnable(&self) -> bool {
-        self.file_reload_pending
-            || self.file_runnable
-            || (!self.file_work_pending()
-                && self
-                    .interface_owner
-                    .as_ref()
-                    .is_some_and(|owner| owner.runnable()))
+        // Match step_files priority: active ethers and bank input must finish
+        // before a queued reload or buffered directory event can run.
+        if let Some(reader) = &self.ethers_read {
+            return reader.runnable();
+        }
+        let Some(files) = &self.file_owner else {
+            return false;
+        };
+        if files.busy() {
+            return files.runnable();
+        }
+        self.file_reload_pending || files.runnable()
     }
 
     pub fn append_file_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        if !self.file_work_pending() {
-            if let Some(owner) = &self.interface_owner {
-                owner.append_poll_fds(fds);
-            }
-        }
         if let Some(reader) = &self.ethers_read {
             reader.append_poll_fds(fds);
         } else if let Some(files) = &self.file_owner {
             files.append_poll_fds(fds);
+        }
+    }
+
+    /// An in-progress per-packet dump has its own wait source. The main owner
+    /// enables it only when the packet consumer's higher priority gates allow
+    /// progress; an unread DHCP socket does not authorize an early receive.
+    pub fn packet_interfaces_pending(&self) -> bool {
+        self.interface_owner.as_ref().is_some_and(|owner| owner.busy())
+    }
+
+    pub fn packet_interfaces_runnable(&self) -> bool {
+        !self.file_work_pending()
+            && self.interface_owner.as_ref().is_some_and(|owner| owner.runnable())
+    }
+
+    pub fn append_packet_interface_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        if !self.file_work_pending() {
+            if let Some(owner) = &self.interface_owner {
+                owner.append_poll_fds(fds);
+            }
         }
     }
 
@@ -1036,7 +1053,6 @@ impl LocalProvider {
         }
         if let Some(reader) = &mut self.ethers_read {
             let done = reader.step();
-            self.file_runnable = reader.runnable();
             if !done {
                 return None;
             }
@@ -1061,7 +1077,6 @@ impl LocalProvider {
             self.file_reload_pending = false;
         }
         let step = files.step_with_watch_readiness(&self.config.hosts, watch_ready);
-        self.file_runnable = step.runnable;
         for diagnostic in step.diagnostics {
             eprintln!("dnsmasq-rs: {diagnostic}");
         }
@@ -1084,7 +1099,6 @@ impl LocalProvider {
         if update.replacement && self.config.read_ethers {
             match self.ethers.begin_read(Path::new("/etc/ethers")) {
                 Ok(reader) => {
-                    self.file_runnable = reader.runnable();
                     self.ethers_read = Some(reader);
                     return None;
                 }
@@ -3517,6 +3531,155 @@ fn generated_hostname(
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    struct RunnableFilesFixture(std::path::PathBuf);
+
+    impl RunnableFilesFixture {
+        fn new(label: &str) -> Self {
+            let path = std::env::temp_dir().join(format!("dhcp-runnable-{label}-{}-{}",
+                std::process::id(), SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos()));
+            std::fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+
+        fn fifo(&self) -> std::path::PathBuf {
+            let path = self.0.join("input");
+            assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+            path
+        }
+
+        fn provider(&self, option_file: Option<&Path>) -> LocalProvider {
+            LocalProvider::new(DhcpConfig {
+                no_ping: true, lease_read_only: true,
+                option_files: option_file.map(|path| vec![path.as_os_str().as_encoded_bytes().to_vec()]).unwrap_or_default(),
+                ..Default::default()
+            }, Vec::new(), 0, || false).unwrap()
+        }
+    }
+
+    impl Drop for RunnableFilesFixture {
+        fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+    }
+
+    #[test]
+    fn queued_reload_waits_behind_active_fifo_then_restarts_after_publication() {
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+        let fixture = RunnableFilesFixture::new("bank");
+        let fifo = fixture.fifo();
+        let mut provider = fixture.provider(Some(&fifo));
+        provider.start_file_owner().unwrap();
+        for _ in 0..16 {
+            if !provider.files_runnable() { break; }
+            assert!(provider.step_files_with_watch_readiness(epoch_seconds(), false).is_none());
+        }
+        assert!(provider.file_work_pending());
+        assert!(!provider.files_runnable());
+        provider.reload_data_files(epoch_seconds());
+        for _ in 0..3 {
+            assert!(!provider.files_runnable(), "queued reload cannot run ahead of its FIFO");
+            assert!(provider.step_files_with_watch_readiness(epoch_seconds(), false).is_none());
+        }
+        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+        writer.write_all(b"option:domain-name,first\n").unwrap();
+        provider.step_files_with_watch_readiness(epoch_seconds(), false);
+        assert!(!provider.files_runnable(), "a held writer still requires EOF before bank publication");
+        drop(writer);
+        let first = (0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false));
+        assert!(first.is_some());
+        assert!(provider.files_runnable(), "the saved reload now has a real next turn");
+        for _ in 0..16 {
+            if !provider.files_runnable() { break; }
+            provider.step_files_with_watch_readiness(epoch_seconds(), false);
+        }
+        assert!(!provider.files_runnable());
+        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+        writer.write_all(b"option:domain-name,second\n").unwrap();
+        drop(writer);
+        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        assert!(!provider.file_work_pending());
+        assert!(!provider.files_runnable());
+        assert_eq!(provider.config.options.len(), 1);
+        assert_eq!(provider.config.options[0].value,
+            crate::config::dhcp::OptionValue::String(b"second".to_vec()));
+    }
+
+    #[test]
+    fn active_ethers_fifo_has_priority_over_queued_bank_reload() {
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+        let fixture = RunnableFilesFixture::new("ethers");
+        let fifo = fixture.fifo();
+        let mut provider = fixture.provider(None);
+        provider.start_file_owner().unwrap();
+        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        provider.ethers_read = Some(provider.ethers.begin_read(&fifo).unwrap());
+        provider.reload_data_files(epoch_seconds());
+        assert!(!provider.files_runnable());
+        assert!(provider.step_files_with_watch_readiness(epoch_seconds(), false).is_none());
+        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+        writer.write_all(b"02:00:00:00:00:01 192.0.2.10\n").unwrap();
+        drop(writer);
+        assert!((0..4).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        assert!(provider.files_runnable(), "ethers published before starting the queued bank");
+        assert_eq!(provider.config.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
+        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(epoch_seconds(), false)).is_some());
+        assert!(!provider.files_runnable());
+        assert_eq!(provider.config.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
+    }
+
+    #[test]
+    fn fresh_packet_interface_dump_is_separate_from_file_runnable() {
+        let fixture = RunnableFilesFixture::new("interfaces");
+        let mut provider = fixture.provider(None);
+        provider.start_interface_owner().unwrap();
+        assert!(!provider.prepare_packet_interfaces().unwrap());
+        assert!(provider.packet_interfaces_pending());
+        assert!(!provider.files_runnable());
+        let mut fds = Vec::new();
+        provider.append_file_fds(&mut fds);
+        assert!(fds.is_empty());
+        provider.append_packet_interface_fds(&mut fds);
+        assert_eq!(fds.len(), 1);
+        assert!((0..64).any(|_| {
+            owrt_ubus::sys::poll_fds(&mut fds, 100).unwrap();
+            provider.prepare_packet_interfaces().unwrap()
+        }));
+        assert!(!provider.packet_interfaces_pending());
+        assert!(!provider.packet_interfaces_runnable());
+        assert!(!provider.packet_addresses().unwrap().is_empty());
+        provider.finish_packet_interfaces();
+        assert!(provider.packet_addresses().is_err(), "one packet cannot lend its snapshot to the next");
+        assert!(!provider.prepare_packet_interfaces().unwrap(), "the next packet starts a new dump");
+        assert!(provider.packet_interfaces_pending());
+    }
+
+    #[test]
+    fn due_lease_alarm_prunes_without_packet_and_waits_behind_file_work() {
+        let fixture = RunnableFilesFixture::new("alarm");
+        let mut provider = fixture.provider(None);
+        let now = epoch_seconds();
+        provider.initialize(now);
+        let address = "192.0.2.10".parse().unwrap();
+        provider.leases.allocate(address, ClientIdentity {
+            hardware_type: 1, hardware_address: vec![2, 0, 0, 0, 0, 1], client_id: None,
+        }).unwrap();
+        provider.leases.set_expires(address, 1, now).unwrap();
+        provider.maintain(now, Vec::new(), false);
+        assert!(provider.next_maintenance().is_some());
+        provider.alarm_deadline = Some(Instant::now());
+        provider.start_file_owner().unwrap();
+        assert!(provider.tick(now + 1).is_none(), "expiry cannot pass an unpublished file generation");
+        assert!(provider.leases.get(address).is_some());
+        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(now + 1, false)).is_some());
+        let report = provider.tick(now + 1).unwrap();
+        assert_eq!(report.removed.len(), 1);
+        assert_eq!(report.removed[0].address, address);
+        assert_eq!(provider.lease_counters().pruned4, 1);
+        assert!(provider.leases.get(address).is_none());
+        while provider.tick(now + 1).is_some() {}
+        assert!(provider.next_maintenance().is_none());
+    }
 
     #[test]
     fn generated_name_uses_extended_hardware_and_c_truncation_separator() {
