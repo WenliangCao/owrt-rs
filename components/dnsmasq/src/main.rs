@@ -1613,7 +1613,7 @@ fn run_inner(
         if std::mem::take(&mut poll.full_reload_pending) {
             poll.reload_data(runtime.scalar.local_ttl)?;
         }
-        poll.step();
+        poll.step()?;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(error) = poll.helper_init_error.take() {
             if !startup.active() {
@@ -1829,13 +1829,6 @@ fn run_inner(
                     files.request(ReloadReason::Signal);
                 }
             }
-        }
-        {
-            let mut event = parent_events
-                .try_borrow_mut()
-                .map_err(|_| io::Error::other("parent event already borrowed"))?;
-            let metrics = poll.metrics(&event);
-            event.process_ubus(&metrics);
         }
         poll.wait_for_files()?;
     }
@@ -2090,6 +2083,10 @@ struct SinglePoll {
     signal_wake_read: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
     signal_wake_write: Option<OwnedFd>,
+    #[cfg(target_os = "linux")]
+    poll_fds: Vec<owrt_ubus::sys::PollFd>,
+    #[cfg(target_os = "linux")]
+    ubus_ready: bool,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2888,6 +2885,10 @@ impl SinglePoll {
             signal_wake_read: None,
             #[cfg(target_os = "linux")]
             signal_wake_write: None,
+            #[cfg(target_os = "linux")]
+            poll_fds: Vec::new(),
+            #[cfg(target_os = "linux")]
+            ubus_ready: false,
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3479,7 +3480,11 @@ impl SinglePoll {
         {
             use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
             use std::os::fd::AsRawFd;
-            let mut fds = Vec::new();
+            // Keep the descriptor backing allocation across turns.  The set
+            // is still rebuilt when topology or readiness changes, but the
+            // hot path no longer allocates a fresh Vec every poll.
+            let mut fds = std::mem::take(&mut self.poll_fds);
+            fds.clear();
             self.append_file_fds(&mut fds, true);
             let file_fd_count = fds.len();
             let mut signal_fd_index = None;
@@ -3556,7 +3561,9 @@ impl SinglePoll {
                     revents: 0,
                 });
             }
+            let mut ubus_fd_index = None;
             if let Some(ubus) = &self.parent_events.borrow().ubus {
+                ubus_fd_index = Some(fds.len());
                 fds.push(PollFd {
                     fd: ubus.as_raw_fd(),
                     events: POLLIN,
@@ -3625,12 +3632,17 @@ impl SinglePoll {
                 .div_ceil(1_000_000)
                 .min(i32::MAX as u128) as i32;
             let started = Instant::now();
-            let ready = owrt_ubus::sys::poll_fds(&mut fds, timeout)?;
+            let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
+            let ready = poll_result?;
             let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
             let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
             let signal_ready = signal_fd_index
                 .and_then(|index| fds.get(index))
                 .is_some_and(|fd| fd.revents != 0);
+            self.ubus_ready = ubus_fd_index
+                .and_then(|index| fds.get(index))
+                .is_some_and(|fd| fd.revents != 0);
+            self.poll_fds = fds;
             if ready != 0 {
                 self.drain_signal_wake();
             }
@@ -3698,8 +3710,24 @@ impl SinglePoll {
         metrics
     }
 
-    fn step(&mut self) {
+    fn process_ubus_if_ready(&mut self) -> io::Result<()> {
+        let retry_due = self.parent_events.borrow().ubus.is_none();
+        if !self.ubus_ready && !retry_due {
+            return Ok(());
+        }
+        let mut event = self
+            .parent_events
+            .try_borrow_mut()
+            .map_err(|_| io::Error::other("parent event already borrowed"))?;
+        let metrics = self.metrics(&event);
+        event.process_ubus(&metrics);
+        self.ubus_ready = false;
+        Ok(())
+    }
+
+    fn step(&mut self) -> io::Result<()> {
         self.m6b.record_loop();
+        self.process_ubus_if_ready()?;
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(dhcp) = &mut self.dhcp {
             dhcp.listener.retry_device_binding();
@@ -3713,7 +3741,9 @@ impl SinglePoll {
         self.step_interface_collector();
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.early_logger {
-            logger.flush_ready();
+            if logger.has_pending() {
+                logger.flush_ready();
+            }
         }
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.logger {
@@ -3725,15 +3755,12 @@ impl SinglePoll {
             {
                 let _ = logger.reopen();
             }
-            logger.flush_ready();
+            if logger.has_pending() {
+                logger.flush_ready();
+            }
         }
         // C drains subscription/metrics requests before processing DHCP.
         // This also applies to port=0, where no DNS listener can drain UBus.
-        {
-            let mut event = self.parent_events.borrow_mut();
-            let metrics = self.metrics(&event);
-            event.process_ubus(&metrics);
-        }
         #[cfg(target_os = "linux")]
         if let Some(logger) = &mut self.logger {
             for notice in self.parent_events.borrow_mut().ubus_notices.drain(..) {
@@ -3774,6 +3801,7 @@ impl SinglePoll {
         self.step_tftp();
         #[cfg(target_os = "linux")]
         self.log_dns_diagnostics();
+        Ok(())
     }
 
     #[cfg(target_os = "linux")]
@@ -4173,9 +4201,6 @@ impl SinglePoll {
             daemon.forward_counters(),
             event.local_answered,
         );
-        if self.probe_metrics.is_none() {
-            event.process_ubus(&metrics);
-        }
         if let Ok(interfaces) = self.interfaces.try_borrow_mut() {
             local.local_network = listeners::local_network(&interfaces, client.destination);
         }
@@ -4406,9 +4431,6 @@ impl SinglePoll {
             daemon.forward_counters(),
             event.local_answered,
         );
-        if self.probe_metrics.is_none() {
-            event.process_ubus(&metrics);
-        }
         let responses = if event
             .ubus
             .as_ref()

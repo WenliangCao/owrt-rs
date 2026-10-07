@@ -547,6 +547,18 @@ impl Logger {
         )
     }
 
+    /// Whether this logger has work that can make progress in the owner turn.
+    /// Waiting FIFO destinations remain eligible so their retry timer is
+    /// preserved even though they do not yet expose a writable fd.
+    pub fn has_pending(&self) -> bool {
+        !self.queue.is_empty()
+            || !self.echo_queue.is_empty()
+            || (matches!(self.destination, Destination::WaitingFile)
+                && self
+                    .fifo_retry_at
+                    .is_some_and(|deadline| Instant::now() >= deadline))
+    }
+
     /// Safe both after readiness and once per owner step: every write is
     /// nonblocking and a finite budget bounds short-write/EINTR/reconnect work.
     pub fn flush_ready(&mut self) {
