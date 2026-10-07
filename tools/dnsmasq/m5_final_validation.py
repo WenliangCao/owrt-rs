@@ -37,7 +37,7 @@ from m2_rootfs import STOCK_SHA256
 
 TARGET = Path('/home/ubuntu/dnsmasq-cargo-target')
 PHASES = ['families', 'm2', 'fuzz-build', 'fuzz', 'resources', 'pressure', 'package', 'lifecycle']
-M6B_PHASES = ['families', 'm2', 'resources', 'pressure', 'package', 'lifecycle']
+M6B_PHASES = ['families', 'm2', 'perf-guard', 'resources', 'pressure', 'package', 'lifecycle']
 DNS = ['udp-cache', 'expiry', 'tcp', 'failure-recovery', 'strict-order', 'all-servers', 'representative-mix']
 FUZZ = ['dns_wire', 'dhcp_packet', 'config_line']
 FUZZ_SECONDS = 1800
@@ -221,6 +221,12 @@ def prepare(args):
     pinned_ubus, ubus_helpers = ubus_assets(spec)
     assets.update(pinned_ubus)
     verify_release_map(spec, build)
+    if mode == 'm6b':
+        require(build.get('features') == '', 'M6b final qualification requires a feature-off product build')
+        from m6b_perf_guard import inputs as guard_inputs
+        require(spec.get('perf_guard_plan'), 'M6b requires an explicit frozen performance guard plan')
+        _, _, guard_assets = guard_inputs(Path(spec['perf_guard_plan']).resolve(), source / 'tools/dnsmasq')
+        assets.update(guard_assets)
     reference_source = Path(spec.get('bindings', {}).get('reference_source', '')).resolve()
     require(reference_source.is_dir() and (reference_source / 'option.c').is_file(), 'matching upstream source binding required')
     source_reference = {'root': str(reference_source), 'files': file_map(reference_source)}
@@ -303,6 +309,15 @@ def commands(spec, phase, output):
                 '--output', str(output / ('lifecycle-' + side + '-network')), '--',
                 py, tools + '/m2_lifecycle.py', *image_elf,
                 '--implementation', side, '--output', str(path)], str(path / 'result.json'), {'passed': True})
+    elif phase == 'perf-guard':
+        require(spec.get('validation_mode') == 'm6b' and spec.get('perf_guard_plan'), 'M6b frozen guard plan required')
+        path = output / 'cache-guard'
+        job('performance-regression-guard', [py, tools + '/m6b_perf_guard.py',
+            '--inputs', spec['perf_guard_plan'], '--expected-plan-sha', digest(Path(spec['perf_guard_plan'])),
+            '--elf', spec['elf'], '--expected-elf-sha', spec['elf_sha256'], '--build-json', spec['build_json'],
+            '--source-commit', spec['source_commit'], '--image-root', spec['image_root'], '--out', str(path)],
+            str(path / 'result.json'), {'passed': True, 'source_commit': spec['source_commit'],
+                'elf_sha256': spec['elf_sha256'], 'plan_sha256': digest(Path(spec['perf_guard_plan']))}, 420)
     elif phase == 'fuzz-build':
         job('native-fuzz-build', ['runuser', '-u', 'ubuntu', '--', 'sh', tools + '/oracle_build.sh', spec['source_root'],
             str(output / 'build'), 'fuzz'], str(output / 'build/build.json'), {'kind': 'fuzz'}, 3600)
@@ -659,6 +674,9 @@ def run(args):
         account = pwd.getpwnam('ubuntu'); os.chown(attempt, account.pw_uid, account.pw_gid)
     records = []; failures = []; lock = None; identity_verified = False
     try:
+        if phase == 'perf-guard':
+            require(args.exclusive_window, 'root must coordinate an exclusive load-free guard window')
+            os.sched_setaffinity(0, {3})
         if phase in ['resources', 'full-cache-600', 'pressure']:
             require(args.exclusive_window, 'root must coordinate an exclusive load-free window')
             lock = (TARGET / '.dnsmasq-build.lock').open('a'); fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -790,7 +808,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__); sub = parser.add_subparsers(dest='action', required=True)
     prep = sub.add_parser('prepare'); prep.add_argument('--inputs', type=Path, required=True); prep.add_argument('--out', type=Path, required=True)
     execute = sub.add_parser('run'); execute.add_argument('--manifest', type=Path, required=True)
-    execute.add_argument('--phase', choices=PHASES + ['full-cache-600'], required=True); execute.add_argument('--attempt', type=int, default=1)
+    execute.add_argument('--phase', choices=PHASES + ['perf-guard', 'full-cache-600'], required=True); execute.add_argument('--attempt', type=int, default=1)
     execute.add_argument('--exclusive-window', action='store_true')
     execute.add_argument('--family', action='append', help='independent fresh family group; repeat for several families')
     report = sub.add_parser('summary'); report.add_argument('--manifest', type=Path, required=True)
