@@ -86,6 +86,11 @@ def run(args):
                     command = suite.command_for(
                         spec, profile, group, 1, attempt / "formal", False
                     )
+                    # The pilot already owns the diagnostic wake counters.  A
+                    # formal one-round window only needs the normal result and
+                    # latency evidence; retaining every poll wait sample would
+                    # make a busy 120-second window multi-gigabytes.
+                    command = [arg for arg in command if arg != "--wake-metrics"]
                     record["formal_command"] = suite.execute(
                         command, attempt / "formal.log", state, state_path
                     )
