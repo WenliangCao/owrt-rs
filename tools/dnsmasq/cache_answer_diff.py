@@ -19,6 +19,7 @@ import struct
 import subprocess
 
 import local_answer_diff
+import rust_lib_probe
 from local_answer_diff import dns_semantics
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +30,7 @@ HASHES = {
     'dnsmasq.h': '318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228',
 }
 CONFIG = 'no-hosts\nno-resolv\ncache-size=150\nneg-ttl=30\n'
+TEST = 'dns::daemon::cache_tests::exact_c_oracle_driver'
 
 
 def digest(path: Path) -> str:
@@ -143,8 +145,16 @@ def main():
     parser.add_argument('--cargo', default='cargo')
     parser.add_argument('--with-metrics', action='store_true')
     parser.add_argument('--inject-counter-mismatch', action='store_true')
+    rust_lib_probe.add_arguments(parser)
     args = parser.parse_args()
     out = args.output.resolve()
+    probe = binding = None
+    source_root = ROOT
+    if not args.build_reference:
+        try:
+            probe, source_root, binding = rust_lib_probe.selection(args, ROOT, out)
+        except ValueError as error:
+            parser.error(str(error))
     if not out.is_relative_to((ROOT / 'private').resolve()):
         parser.error('raw packets, logs and binaries must stay under ignored private/')
     if out.exists():
@@ -189,20 +199,24 @@ def main():
     (out / 'cases.json').write_text(json.dumps(rows, indent=2) + '\n')
     commands = {
         'c': shlex.split(args.oracle_command),
-        'rust': [args.cargo, 'test', '--manifest-path', str(ROOT / 'components/dnsmasq/Cargo.toml'),
-                 '--lib', 'dns::daemon::cache_tests::exact_c_oracle_driver', '--', '--ignored', '--nocapture'],
+        'rust': (rust_lib_probe.argv(probe, TEST) if probe else
+                 [args.cargo, '+1.98.1', 'test', '--manifest-path', str(source_root / 'components/dnsmasq/Cargo.toml'),
+                  '--lib', TEST, '--', '--ignored', '--exact', '--nocapture', '--test-threads=1']),
     }
     observed = {}
     for label, command in commands.items():
+        rust_lib_probe.recheck(binding)
         env = {**os.environ, 'DNSMASQ_CACHE_ORACLE_INPUT': str(source)}
         run = subprocess.run(command, input=text, text=True, capture_output=True, env=env)
         (out / f'{label}.stdout').write_text(run.stdout)
         (out / f'{label}.stderr').write_text(run.stderr)
         if run.returncode:
             raise RuntimeError(f'{label} exited {run.returncode}; see {out}/{label}.stderr')
-        observed[label] = run.stdout.splitlines() if label == 'c' else [line.removeprefix('CACHE_ORACLE ') for line in run.stdout.splitlines() if line.startswith('CACHE_ORACLE ')]
+        observed[label] = run.stdout.splitlines() if label == 'c' else [line.removeprefix('CACHE_ORACLE ')
+            for line in rust_lib_probe.records(run.stdout, TEST, 'CACHE_ORACLE ')]
         assert len(observed[label]) == len(rows), f'{label} output count differs'
         calibration(observed[label])
+        rust_lib_probe.recheck(binding)
     if args.with_metrics:
         assert observed['c'][1] == 'M 0 0', 'initial counter reset failed'
         assert observed['c'][5] == 'M 1 0', 'committed record counter calibration failed'
@@ -230,7 +244,9 @@ def main():
                                   'misses': values.count('NONE'), 'insert_events': values.count('P'),
                                   'reset_events': values.count('RESET')} for side, values in observed.items()},
                'tool_sha256': digest(Path(__file__)),
-               'rust_source_sha256': {name: digest(ROOT / 'components/dnsmasq/src/dns' / name) for name in ['daemon.rs', 'daemon_cache_tests.rs', 'cache_engine.rs', 'cache.rs', 'cache_reply.rs', 'wire.rs']},
+               'rust_source_sha256': {name: digest(source_root / 'components/dnsmasq/src/dns' / name) for name in ['daemon.rs', 'daemon_cache_tests.rs', 'cache_engine.rs', 'cache.rs', 'cache_reply.rs', 'wire.rs']},
+               'rust_probe': binding, 'rust_command': commands['rust'], 'rust_test': TEST,
+               'c_reference_scope': 'socket-free exact-source C driver; not stock image 097a9e21 ELF',
                'normalization': 'DNS compression and ASCII name case only; exact IDs, flags, TTLs, RDATA, section/record order, hit/miss and event order',
                'scope': 'socket-free extract_addresses/answer_request CNAME/SOA/negative cache subset; not daemon transport or performance acceptance'}
     (out / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
