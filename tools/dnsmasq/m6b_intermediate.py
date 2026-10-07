@@ -134,6 +134,18 @@ def run(args):
                     suite.verify_controller(spec, __file__)
                     if suite.sha256(manifest) != state["manifest_sha256"]:
                         raise ValueError("manifest changed during intermediate suite")
+                    if not diagnostic:
+                        pilot = suite.command_for(spec, profile, group, 1, attempt / "pilot", True)
+                        record["pilot_command"] = suite.execute(
+                            pilot, attempt / "pilot.log", state, state_path
+                        )
+                        if record["pilot_command"]["returncode"] != 0:
+                            raise RuntimeError("pilot command failed; formal window not started")
+                        pilot_result = json.loads((attempt / "pilot/result.json").read_text())
+                        record["pilot_result_sha256"] = suite.sha256(attempt / "pilot/result.json")
+                        if not pilot_result.get("measurement_valid") or not suite.pilot_behavior(pilot_result, profile):
+                            raise RuntimeError("pilot methodology/behavior failed; formal window not started")
+                        record["pilot_passed"] = True
                     command = command_for(spec, profile, group, attempt / "formal", diagnostic)
                     record["formal_command"] = suite.execute(
                         command, attempt / "formal.log", state, state_path
