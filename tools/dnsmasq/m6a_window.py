@@ -337,8 +337,20 @@ def summarize_wake_telemetry(samples):
                           "poll_wait_seconds": waits / 1e9,
                           "poll_wait_average_ns": waits / polls if polls > 0 else None,
                           "wait_durations_ns": current["counters"].get("wait_durations_ns", [])})
+    waits = []
+    for sample in samples:
+        waits.extend(sample["counters"].get("wait_durations_ns", []))
+    waits.sort()
+    def percentile(fraction):
+        if not waits:
+            return None
+        index=max(0, min(len(waits)-1, int((len(waits)-1)*fraction + 0.999999)))
+        return waits[index]
     return {"available": bool(samples), "samples": samples, "intervals": intervals,
-            "totals": (samples[-1]["counters"] if samples else None)}
+            "totals": (samples[-1]["counters"] if samples else None),
+            "wait_duration_ns": {"count": len(waits), "min": min(waits) if waits else None,
+                                  "p50": percentile(.50), "p95": percentile(.95),
+                                  "p99": percentile(.99), "max": max(waits) if waits else None}}
 
 
 def correct_answer(host: str, kind: int, ident: int, packet: bytes):
