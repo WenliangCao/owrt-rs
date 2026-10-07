@@ -213,7 +213,7 @@ def main():
         failures.extend(mismatches);commands+=len(expected)
         counts.append({"case":case["label"],"commands":len(expected),"mismatches":len(mismatches)})
     report={"cases":counts,"commands":commands,"mismatches":len(failures),"failures":failures,
-            "rust_binding":args.rust_binding,"image_daemon_qualification":False,
+            "rust_binding":args.rust_binding,"c_build":args.c_binding,"image_daemon_qualification":False,
             "calibration":{"old_cache_hit":1,"recovery_hit":1,"reference_state_counters":1,"equal":1,"changed_counter":1,"missing_observation":1},
             "injected_error":args.inject_error,"tool_sha256":base.digest(Path(__file__)),"corpus_sha256":corpus.hexdigest(),
             "c_sha256":base.digest(c),"rust_sha256":None if rust is None else base.digest(rust),
@@ -221,6 +221,8 @@ def main():
             "scope":"frozen process_reply/cache insertion order and side effects with rebind, bogus and static doctor; no dynamic UBus or sockets"}
     if rust and assets.validate(args, 'm6b-cache-policy') != args.rust_binding:
         raise ValueError('Rust primitive binding changed during run')
+    if local_answer_diff.verify_c_build(out,c) != args.c_binding:
+        raise ValueError('C primitive build binding changed during run')
     (out/"result.json").write_text(json.dumps(report,indent=2)+"\n")
     print(json.dumps({k:v for k,v in report.items() if k!="failures"}));return int(bool(failures))
 

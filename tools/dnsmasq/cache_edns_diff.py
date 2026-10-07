@@ -125,7 +125,9 @@ def build(args,out):
     local_answer_diff.validate_reference_variant(args.reference_build / "dnsmasq")
     for file,expected in base.HASHES.items():assert base.digest(args.reference_build / "dnsmasq" / file)==expected
     c_source=out/"driver.c";c_source.write_text(C_DRIVER);local_answer_diff.DRIVER=c_source
-    c=local_answer_diff.build_oracle(args.reference_build,out)
+    c=local_answer_diff.build_oracle(args.reference_build,out,expected_machine=183,
+                                   expected_native_sha=local_answer_diff.M6B_NATIVE_REFERENCE_SHA256)
+    args.c_binding=local_answer_diff.verify_c_build(out,c)
     if args.c_only:return c,None
     return c,assets.copy_binary(args.rust_binary, out / 'rust', binding)
 
@@ -173,13 +175,15 @@ def main():
         outputs["rust"][2]=bad
     failures=[] if not rust else [{"label":label,"c":left,"rust":right} for (label,_),left,right in zip(rows,outputs["c"],outputs["rust"]) if not matches(left,right)]
     report={"commands":len(rows),"queries":sum(command.startswith("Q ") for _,command in rows),"matches":None if not rust else len(rows)-len(failures),"failures":failures,
-            "rust_binding":args.rust_binding,"image_daemon_qualification":False,
+            "rust_binding":args.rust_binding,"c_build":args.c_binding,"image_daemon_qualification":False,
             "c_stale":sum(line.startswith("T 1 ") for line in outputs["c"]),"c_misses":sum(line.endswith("NONE") for line in outputs["c"]),
             "tool_sha256":base.digest(Path(__file__)),"corpus_sha256":hashlib.sha256(data.encode()).hexdigest(),
             "c_sha256":base.digest(c),"rust_sha256":base.digest(rust) if rust else None,"source_sha256":base.HASHES,
             "scope":"ordinary empty-OPT cache lookup, frozen-time TTL/stale/EDE3, advertised/configured output limits; no DO/AD/option cache metadata"}
     if rust and assets.validate(args, 'm6b-cache-edns') != args.rust_binding:
         raise ValueError('Rust primitive binding changed during run')
+    if local_answer_diff.verify_c_build(out,c) != args.c_binding:
+        raise ValueError('C primitive build binding changed during run')
     (out/"result.json").write_text(json.dumps(report,indent=2)+"\n");print(json.dumps(report));return int(bool(failures))
 
 
