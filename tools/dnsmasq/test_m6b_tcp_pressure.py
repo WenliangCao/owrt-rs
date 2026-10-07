@@ -15,6 +15,30 @@ def answer(wire, address='198.51.100.99', flags=0x8580):
 
 
 class ResourceWitnesses(unittest.TestCase):
+    def test_controlled_eof_fixture_closes_old_and_fresh_before_fallback(self):
+        peers = gate.EofServers(0, fallback_port=0, primary_address='127.0.0.1', fallback_address='127.0.0.1')
+        ports = {role: endpoint.getsockname()[1] for endpoint, role in peers.listeners.items()}
+        try:
+            with socket.create_connection(('127.0.0.1', ports['primary']), timeout=2) as client:
+                wire = gate.driver.query('first.pressure.test', 1)
+                client.sendall(struct.pack('!H', len(wire)) + wire)
+                reply = gate.driver.exact_read(client, struct.unpack('!H', gate.driver.exact_read(client, 2))[0])
+                self.assertEqual(gate.driver.normalized(reply)['records'][0]['data'], '198.51.100.7')
+                wire = gate.driver.query('second.pressure.test', 2)
+                client.sendall(struct.pack('!H', len(wire)) + wire)
+                self.assertEqual(client.recv(1), b'')
+            with socket.create_connection(('127.0.0.1', ports['primary']), timeout=2) as client:
+                client.sendall(struct.pack('!H', len(wire)) + wire)
+                self.assertEqual(client.recv(1), b'')
+            with socket.create_connection(('127.0.0.1', ports['fallback']), timeout=2) as client:
+                client.sendall(struct.pack('!H', len(wire)) + wire)
+                reply = gate.driver.exact_read(client, struct.unpack('!H', gate.driver.exact_read(client, 2))[0])
+                self.assertEqual(gate.driver.normalized(reply)['records'][0]['data'], '198.51.100.8')
+            self.assertEqual([(e['server'], e['connection']) for e in peers.events],
+                             [('primary', 1), ('primary', 1), ('primary', 2), ('fallback', 1)])
+        finally:
+            peers.close()
+
     def test_plan_keeps_small_empty_large_and_ten_reconnect_batches(self):
         cases = {c['case']: c for c in gate.CASES}
         self.assertEqual(len(cases), len(gate.CASES))

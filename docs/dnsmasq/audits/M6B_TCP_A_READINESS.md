@@ -83,3 +83,9 @@ python3 "$TOOLS/m6b_tcp_accept_snapshot.py" compare \
 CPU 增量门基于 root 将冻结的 **新无 A readiness R3**，不能用旧 M6a 20 µs 替代。每窗 `u = daemon cgroup usage_usec / correct replies`；cgroup **已经包括 C 子进程 CPU，绝不再相加 child CPU**。按最新版 M6B_PROTOCOL 修订，A 满足 `median(u_A) <= 1.05 × median(u_R3_new)`，并保持 `median(u_A) < median(u_C_new)`（同新配置的镜像 C）；吞吐/p95不得退 >5%，errors/FD leaks=0、S1–S8零新增差异。proc child CPU只作 component accounting交叉检查。CPU/服务/资源/压力门均未测，不称通过；失败保留所有同候选结果，不拼不同 revision 的最好窗口。
 
 本轮只操作本地独立 worktree；root 独占 Oracle 诊断。物理路由器未访问。
+
+## 压力工具 EOF / RST 补证准备（未实际镜像运行）
+
+`m6b_tcp_pressure.py` 新增两项固定 profile：普通TCP query上游hold期间下游RST，释放正确answer后核对父I=1/L=0及UDP cache hit；同一真实上游连接先成功，再旧连接EOF→一次新连接EOF→fallback成功，保留connection ordinal和query wire。使用原精确M5 image driver/process identity，未以native C冒充镜像。连同原九项现在共11项；固定排空0/1/5/15/60s、自己的稳定idle FD和child/TCP gauge门仍保留，内部view/root/live余额仍not-observed/qualified=false，不假称压力资格。
+
+本地Python工具测试3/3通过，py_compile与diff-check通过，原始stdout/stderr与工具字节保全在 `E/M6B/tcp-pressure-tool-eof-rst/`，manifest SHA `4de719fee2f5b57eaa17158271c612923f8a1497cee44198e9e206a62730d01d`。首轮EOF fixture测试在macOS bind127.0.0.2报errno49并暴露init异常未close；修正host测试只使用127.0.0.1不同临时port，同时补init清理。失败是前次工具输出的派生record，receipt明确该来源；没有补造原始失败文件。实际Linux/镜像C仍待root，尤其strict-order重复default server与显式primary/fallback选择须以真实events预检，RST也尚无实际镜像counter资格。
