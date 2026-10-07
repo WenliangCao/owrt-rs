@@ -89,10 +89,10 @@ case ${ORACLE_BUILD_OPT_LEVEL:-3} in
     3|s|z) export CARGO_PROFILE_RELEASE_OPT_LEVEL=${ORACLE_BUILD_OPT_LEVEL:-3} ;;
     *) echo 'ORACLE_BUILD_OPT_LEVEL must be 3, s or z' >&2; exit 2;;
 esac
-feature_args=()
+feature_args=""
 if [ -n "${ORACLE_BUILD_FEATURES:-}" ]; then
     case "$ORACLE_BUILD_FEATURES" in
-        m6b-diagnostics) feature_args+=(--features "$ORACLE_BUILD_FEATURES") ;;
+        m6b-diagnostics) feature_args="--features $ORACLE_BUILD_FEATURES" ;;
         *) echo 'ORACLE_BUILD_FEATURES contains an unsupported feature' >&2; exit 2 ;;
     esac
 fi
@@ -111,7 +111,7 @@ else
 fi
 if [ "$build_kind" = release ]; then
     "$cargo" +1.98.1 build --release --frozen --target aarch64-unknown-linux-musl \
-        --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --bin dnsmasq-rs "${feature_args[@]}" \
+        --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --bin dnsmasq-rs $feature_args \
         >"$output_dir/build.stdout" 2>"$output_dir/build.log"
     cp "$CARGO_TARGET_DIR/aarch64-unknown-linux-musl/release/dnsmasq-rs" "$output_dir/dnsmasq-rs"
 elif [ "$build_kind" = tests ]; then

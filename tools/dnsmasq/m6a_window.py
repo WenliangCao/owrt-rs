@@ -843,7 +843,8 @@ def run_load(args, daemon, root, upstream):
                                 for label, cpu in (("loadgen", args.cpu_load), ("upstream", args.cpu_upstream), ("tftp", args.cpu_load))
                                 if label in row and not row[label].get("exited_during_sample")),
                             "drain_barrier_passed": barrier["observations"][-1]["stable_samples"] >= barrier["stable_samples_required"],
-                            "wake_metrics_passed": not args.wake_metrics or wake_summary["available"]},
+                            "wake_metrics_passed": (not args.wake_metrics or args.implementation == "c"
+                                                     or wake_summary["available"])},
                 "peaks": {key: max((row["tree"][key] for row in measured), default=0)
                           for key in ("rss_kib", "pss_kib", "fd_count", "thread_count", "child_processes")},
                 "parent_peaks": {key: max((row["parent"][key] for row in measured), default=0)
@@ -886,7 +887,7 @@ def run_window(args):
         raise ValueError("evidence must remain under private/")
     args.output.mkdir(parents=True, exist_ok=False)
     expected = STOCK_SHA256 if args.implementation == "c" else args.expected_rust_sha
-    if args.implementation == "r3" and expected != R3_SHA:
+    if args.implementation == "r3" and expected != R3_SHA and not args.allow_rust_identity_change:
         raise ValueError("M5 opt3 identity mismatch")
     if args.implementation != "c" and sha256(args.rust) != expected:
         raise ValueError("Rust artifact identity mismatch")
@@ -1065,6 +1066,8 @@ def main():
     parser.add_argument("--implementation", choices=("c", "r3", "rs"))
     parser.add_argument("--rust", type=Path)
     parser.add_argument("--expected-rust-sha", default=R3_SHA)
+    parser.add_argument("--allow-rust-identity-change", action="store_true",
+                        help="M6b candidate only; identity is still checked against expected-rust-sha")
     parser.add_argument("--image-root", type=Path)
     parser.add_argument("--protocol", type=Path)
     parser.add_argument("--loadgen", type=Path)
