@@ -3633,7 +3633,13 @@ impl SinglePoll {
                 .min(i32::MAX as u128) as i32;
             let started = Instant::now();
             let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
-            let ready = poll_result?;
+            let ready = match poll_result {
+                Ok(ready) => ready,
+                Err(error) => {
+                    self.poll_fds = fds;
+                    return Err(error);
+                }
+            };
             let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
             let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
             let signal_ready = signal_fd_index
