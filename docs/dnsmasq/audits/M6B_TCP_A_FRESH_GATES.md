@@ -44,10 +44,11 @@ python3 "$M6B_MAIN/tools/dnsmasq/dns_cache_diff.py" \
   --rustc "$M6B_LOCAL_RUSTC" --rust-source-root "$M6B_A_SOURCE" --output "$M6B_LOCAL_OUT/primitive"
 python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_guards.py" \
   --repository "$M6B_MAIN" --source "$M6B_A_COMMIT" --out "$M6B_LOCAL_OUT/guards"
-python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_layout.py" \
+python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_layout.py" --local-native \
   --repository "$M6B_MAIN" --source "$M6B_A_COMMIT" --out "$M6B_LOCAL_OUT/layout"
 
 # guards/layout的private target-dir仅用于本机诊断，不能在Oracle绕过唯一共享target。
+# Oracle实际target改用[M6B_TCP_A_TARGET_PROBE.md]的prepare/build/run/collect；此处local-native不能在Oracle运行。
 ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_BUILD" tests
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" "$M6B_A_BUILD/lib-dnsmasq_rs" --test-threads=1
 sudo -n sh "$M6B_TOOLS/run_isolated.sh" "$M6B_A_BUILD/bin-dnsmasq-rs" --test-threads=1
