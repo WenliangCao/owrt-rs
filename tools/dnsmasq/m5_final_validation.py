@@ -34,6 +34,7 @@ import time
 import build_package
 from dns_udp_refusal_diff import TARGET_FILES, verify_reference
 from m2_rootfs import STOCK_SHA256
+from m4_package_lifecycle import M5_BASELINE
 
 TARGET = Path('/home/ubuntu/dnsmasq-cargo-target')
 PHASES = ['families', 'm2', 'fuzz-build', 'fuzz', 'resources', 'pressure', 'package', 'lifecycle']
@@ -76,6 +77,20 @@ def validate_qualification_build(mode, build):
     if mode == 'm6b':
         require(build.get('features') == '', 'M6b final qualification requires a feature-off product build')
         require(build.get('opt_level') == '3', 'M6b final qualification requires opt-level 3')
+
+
+def package_inputs(mode, spec):
+    release = '3' if mode == 'm6b' else '2'
+    require(spec.get('package_release', release) == release, 'milestone package release differs')
+    if mode != 'm6b':
+        require(not spec.get('previous_package'), 'M5 keeps the original stock lifecycle scope')
+        return release, None
+    previous = spec.get('previous_package', {})
+    require({key: previous.get(key) for key in M5_BASELINE} == M5_BASELINE,
+            'M6b requires the accepted M5 r2 package/ELF/source identity')
+    path = Path(previous.get('path', '')).resolve()
+    require(path.is_file() and digest(path) == M5_BASELINE['apk_sha256'], 'accepted M5 APK bytes differ')
+    return release, dict(M5_BASELINE, path=str(path))
 
 
 def phase_prerequisites(spec, phase):
@@ -140,12 +155,15 @@ def verify_command_results(records):
         check_result(result, record['checks'], record.get('inventory'))
 
 
-def package_artifact(report, returncode, expected_sha, manifest):
+def package_artifact(report, returncode, expected_sha, manifest, package_release="2"):
     size_only = report.get('status') == 'failed' and report.get('failure_boundary') == 'size-target' \
         and report.get('artifact_identity_verified') is True
     require(report.get('sdk_recipe_restored') is True, 'SDK recipe was not restored')
     require(returncode == 0 or size_only, 'package failed outside size target')
     require(report['elf']['sha256'] == expected_sha, 'APK payload ELF differs')
+    if package_release == '3':
+        require(report.get('package_release') == '3' and report.get('apk_metadata', {}).get('version') == '2.93-r3',
+                'M6b APK release differs from frozen r3')
     path = manifest.parent / report['artifact']['name']
     require(digest(path) == report['artifact']['sha256'], 'reviewable APK artifact changed')
     return {'size_acceptance': 'pending-user-after-report' if size_only else 'target-met', 'artifact': str(path)}
@@ -200,6 +218,7 @@ def prepare(args):
             'new ELF cannot reuse M4 acceptance or invent an exception')
     require(len(spec['variant_apks']) == 2 and len(spec['variant_dependency_apks']) == 5,
             'both actual variants and their five frozen solver dependencies required')
+    package_release, previous_package = package_inputs(mode, spec)
     families = json.loads(Path(spec['family_plan']).read_text())
     require(families['schema'] == 1 and families['complete'] is True and families['families'],
             'complete reviewed family replay registry required')
@@ -224,6 +243,8 @@ def prepare(args):
     assets = {str(Path(spec[name]).resolve()): digest(Path(spec[name])) for name in
               ['build_json', 'dhcp_plan', 'budget', 'family_plan', 'deferred_review', 'safety_review', 'stock_apk']}
     assets.update({str(Path(path).resolve()): digest(Path(path)) for path in spec['variant_apks'] + spec['variant_dependency_apks']})
+    if previous_package:
+        assets[previous_package['path']] = previous_package['apk_sha256']
     for path in spec.get('bindings', {}).values():
         if Path(path).is_file(): assets[str(Path(path).resolve())] = digest(path)
     pinned_ubus, ubus_helpers = ubus_assets(spec)
@@ -249,6 +270,7 @@ def prepare(args):
                 ubus_helpers=ubus_helpers,
                 reference_source=source_reference,
                 validation_mode=mode, phases=phases, physical_router=False, size_acceptance='pending-user-after-report',
+                package_release=package_release, previous_package=previous_package,
                 m4_baseline={'elf_bytes': 1159280, 'full_cache_rss_kib': 2676},
                 resource_seconds=300, fuzz_seconds_per_target=1800 if mode == 'm5' else None)
     archive = Path(spec['source_archive']).resolve()
@@ -285,6 +307,7 @@ def expand(value, values):
 def commands(spec, phase, output):
     values = context(spec, output)
     py, tools = values['python'], values['tools']
+    package_release = spec.get('package_release', '3' if spec.get('validation_mode') == 'm6b' else '2')
     isolated = ['sh', tools + '/run_isolated.sh', py]
     image_elf = ['--image-root', spec['image_root'], '--rust-binary', spec['elf']]
     jobs = []
@@ -359,17 +382,35 @@ def commands(spec, phase, output):
             '--frozen-elf', spec['elf'], '--freeze-manifest', str(Path(spec['output']) / 'package-freeze.json'),
             '--source-commit', spec['source_commit'], '--source-date-epoch', str(spec['source_date_epoch']),
             '--expected-source-digest', hashlib.sha256(json.dumps(spec['source_files'], sort_keys=True,
-                separators=(',', ':')).encode()).hexdigest(), '--expected-elf-sha256', spec['elf_sha256']],
+                separators=(',', ':')).encode()).hexdigest(), '--expected-elf-sha256', spec['elf_sha256'], '--package-release', package_release],
             str(path / 'manifest.json'), timeout=1800)
     elif phase == 'lifecycle':
-        artifact = spec.get('package_artifact', str(Path(spec['output']) / 'runs/package/attempt-1/build/dnsmasq-2.93-r2.apk'))
+        artifact = spec.get('package_artifact', str(Path(spec['output']) / f'runs/package/attempt-1/build/dnsmasq-2.93-r{package_release}.apk'))
         path = output / 'apk'
         argv = isolated + [tools + '/m4_package_lifecycle.py', '--rootfs', spec['image_root'],
             '--stock-apk', spec['stock_apk'], '--candidate-apk', artifact, '--out', str(path),
-            '--candidate-elf-sha256', spec['elf_sha256'], '--source-commit', spec['source_commit']]
+            '--candidate-elf-sha256', spec['elf_sha256'], '--source-commit', spec['source_commit'],
+            '--package-release', package_release]
         for flag, name in [('variant-apk', 'variant_apks'), ('variant-dependency-apk', 'variant_dependency_apks')]:
             for value in spec[name]: argv += ['--' + flag, value]
-        job('apk-lifecycle', argv, str(path / 'result.json'), {'status': 'passed'}, 600)
+        checks = {'status': 'passed'}
+        if spec.get('validation_mode') == 'm6b':
+            previous = spec['previous_package']
+            argv += ['--previous-apk', previous['path'], '--previous-apk-sha256', previous['apk_sha256'],
+                     '--previous-elf-sha256', previous['elf_sha256'], '--previous-source-commit', previous['source_commit']]
+            checks.update({'candidate_package_id': '2.93-r3', 'previous_upgrade.passed': True,
+                           'previous_upgrade.apk_sha256': previous['apk_sha256'],
+                           'previous_upgrade.elf_sha256': previous['elf_sha256'],
+                           'previous_upgrade.source_commit': previous['source_commit']})
+        job('apk-lifecycle', argv, str(path / 'result.json'), checks, 900 if package_release == '3' else 600)
+        if spec.get('validation_mode') == 'm6b':
+            previous_stages = ['stock-to-m5-baseline', 'm5-to-candidate-upgrade', 'direct-m5-downgrade',
+                'm5-to-candidate-for-removal', 'candidate-remove-for-m5-rollback', 'm5-rollback-after-removal']
+            jobs[-1]['checks']['previous_upgrade.stages'] = previous_stages
+            jobs[-1]['inventory'] = {'field': 'stages', 'key': 'name', 'ids': [
+                'stock-to-candidate-upgrade', 'candidate-reinstall', 'candidate-uninstall',
+                'candidate-fresh-install', 'candidate-remove-for-rollback', 'stock-rollback-after-removal',
+                'candidate-upgrade-for-downgrade', 'direct-stock-downgrade', *previous_stages]}
     return jobs
 
 
@@ -693,6 +734,7 @@ def run(args):
         if phase == 'package':
             freeze = {key: spec[key] for key in ['source_commit', 'source_date_epoch', 'source_files', 'sdk_archive_sha256', 'sdk_files']}
             freeze.update(schema=1, frozen=True, pending=[], rust_elf_sha256=spec['elf_sha256'],
+                package_release=spec.get('package_release', '2'),
                 postprocess={'mode': 'none', 'input_sha256': spec['elf_sha256'], 'output_sha256': spec['elf_sha256'],
                              'reason': 'package exact validated oracle_build.sh stripped ELF without further codegen/stripping'})
             save(root / 'package-freeze.json', freeze)
@@ -723,7 +765,7 @@ def run(args):
                     record.update(returncode=process.returncode, elapsed_seconds=time.monotonic() - started)
             if phase == 'package':
                 report = json.loads(Path(job['result']).read_text())
-                record.update(package_artifact(report, process.returncode, spec['elf_sha256'], Path(job['result'])))
+                record.update(package_artifact(report, process.returncode, spec['elf_sha256'], Path(job['result']), spec.get('package_release', '2')))
             else:
                 require(process.returncode == 0, f'{job["id"]} exited {process.returncode}')
                 if job['result']:
@@ -785,6 +827,15 @@ def summary(args):
         cache = json.loads(path.read_text()); rss = cache['differences']['full_window_rss_q4']
         report['full_cache_rss'] = {**rss, 'rust_delta_from_m4_kib': rss['rust_kib'] - 2676,
                                     'scope': '4096 proven live dynamic A entries, fixed short names, actual 300-second window'}
+    report['package_release'] = spec.get('package_release', '3' if spec.get('validation_mode') == 'm6b' else '2')
+    report['expected_package_id'] = build_package.package_id(report['package_release'])
+    report['previous_package'] = spec.get('previous_package')
+    if completed.get('lifecycle', {}).get('passed'):
+        lifecycle = json.loads(Path(completed['lifecycle']['commands'][0]['result']).read_text())
+        report['package_lifecycle'] = {'status': lifecycle['status'],
+            'candidate_package_id': lifecycle.get('candidate_package_id', report['expected_package_id']),
+            'previous_upgrade': lifecycle.get('previous_upgrade'),
+            'stages': [stage['name'] for stage in lifecycle['stages']]}
     if completed.get('package', {}).get('passed'):
         package = json.loads(Path(completed['package']['commands'][0]['result']).read_text())
         report['apk'] = package['artifact']; report['size_targets'] = package['budget_checks']

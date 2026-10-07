@@ -18,13 +18,37 @@ import socket
 import subprocess
 import time
 
-from build_package import PACKAGE_ID, PAYLOAD_FILES, audit_metadata, audit_payload
+from build_package import PACKAGE_ID, PAYLOAD_FILES, audit_metadata, audit_payload, package_id
 from dns_service_probe import query, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, sha256
 
 ROOT = Path(__file__).resolve().parents[2]
 PRIVATE = ROOT / "private"
 CONFIG_FILES = ("etc/config/dhcp", "etc/dnsmasq.conf", "etc/dnsmasq.d/m4-user.conf")
+# Accepted M5 bytes from M5_REPORT/archive-package-final, never rebuilt.
+M5_BASELINE = {
+    "package_id": "2.93-r2",
+    "apk_sha256": "bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa",
+    "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+    "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+}
+
+
+def previous_inputs(args):
+    fields = [args.previous_apk, args.previous_apk_sha256,
+              args.previous_elf_sha256, args.previous_source_commit]
+    if not any(fields):
+        require(args.package_release == "2", "r3 lifecycle requires the accepted M5 r2 baseline")
+        return None
+    require(all(fields) and args.package_release == "3", "M5 baseline requires all identities and candidate r3")
+    expected = {"package_id": "2.93-r2", "apk_sha256": args.previous_apk_sha256,
+                "elf_sha256": args.previous_elf_sha256, "source_commit": args.previous_source_commit}
+    require(expected == M5_BASELINE, "previous package is not the accepted frozen M5 r2 identity")
+    path = args.previous_apk.resolve()
+    require(path.is_file() and sha256(path) == expected["apk_sha256"], "accepted M5 APK bytes differ")
+    return dict(expected, path=str(path))
+
+
 MIGRATION_FILES = {
     "etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
     "etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
@@ -79,7 +103,7 @@ def database(root):
 
 
 def assert_database(packages, expected_version, baseline):
-    expected = baseline["dnsmasq"]["files"] if expected_version != PACKAGE_ID else sorted(PAYLOAD_FILES)
+    expected = baseline["dnsmasq"]["files"] if expected_version == "2.93-r1" else sorted(PAYLOAD_FILES)
     require(packages.get("dnsmasq", {}).get("version") == expected_version,
             f"wrong dnsmasq version: {packages.get('dnsmasq')}")
     require(packages["dnsmasq"]["files"] == expected, "dnsmasq file ownership list changed")
@@ -380,8 +404,34 @@ class Scenario:
         return {"errors": errors, "remaining_children": sorted(remaining)}
 
 
+def previous_upgrade_chain(case, args, baseline, candidate_files, previous_files, configs, report):
+    """Real r2->r3 add, direct r3->r2 downgrade and removal rollback."""
+    identity = report["previous_package"]
+    result = dict(identity, passed=False, candidate_package_id=package_id(args.package_release), stages=[])
+    report["previous_upgrade"] = result
+    steps = [
+        ("stock-to-m5-baseline", "/m4/previous.apk", identity["elf_sha256"], identity["package_id"], previous_files),
+        ("m5-to-candidate-upgrade", "/m4/candidate.apk", args.candidate_elf_sha256, package_id(args.package_release), candidate_files),
+        ("direct-m5-downgrade", "/m4/previous.apk", identity["elf_sha256"], identity["package_id"], previous_files),
+        ("m5-to-candidate-for-removal", "/m4/candidate.apk", args.candidate_elf_sha256, package_id(args.package_release), candidate_files),
+    ]
+    for label, apk, elf_sha, version, files in steps:
+        case.apk(["add", apk], label)  # No force-reinstall can masquerade as upgrade.
+        case.activate_after_transaction(label)
+        case.capture(label, elf_sha, version, baseline, files, configs)
+        result["stages"].append(label)
+    case.remove("candidate-remove-for-m5-rollback", configs)
+    result["stages"].append("candidate-remove-for-m5-rollback")
+    case.apk(["add", "/m4/previous.apk"], "m5-rollback-after-removal")
+    case.capture("m5-rollback-after-removal", identity["elf_sha256"], identity["package_id"],
+                 baseline, previous_files, configs)
+    result["stages"].append("m5-rollback-after-removal")
+    result["passed"] = True
+
+
 def execute(args, root, out, report):
     case = Scenario(root, out, report)
+    candidate_id = package_id(args.package_release)
     report["cleanup"] = {"status": "pending"}
     try:
         baseline = database(root)
@@ -393,7 +443,7 @@ def execute(args, root, out, report):
         for source, name in ((args.stock_apk, "stock.apk"), (args.candidate_apk, "candidate.apk")):
             shutil.copy2(source, root / "m4" / name)
         metadata = case.apk(["adbdump", "/m4/candidate.apk"], "candidate-metadata")
-        report["candidate_metadata"] = audit_metadata(metadata["stdout"])
+        report["candidate_metadata"] = audit_metadata(metadata["stdout"], args.package_release)
         stock_metadata = case.apk(["adbdump", "/m4/stock.apk"], "stock-metadata")
         def upgrade_script(text):
             match = re.search(r"^  post-upgrade: \|\n(.*?)(?=^  [a-z]|^#|\Z)", text,
@@ -417,6 +467,22 @@ def execute(args, root, out, report):
         # UID declaration, config declarations, hotplug, and ujail invocation.
         for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list"}:
             require(candidate_files[path] == stock_files[path], f"candidate changed stock ancillary contract: {path}")
+        previous_files = None
+        if report.get("previous_package"):
+            shutil.copy2(args.previous_apk, root / "m4/previous.apk")
+            previous_metadata = case.apk(["adbdump", "/m4/previous.apk"], "m5-metadata")
+            report["previous_metadata"] = audit_metadata(previous_metadata["stdout"], "2")
+            require(upgrade_script(previous_metadata["stdout"]) == report["post_upgrade_scripts"]["stock"],
+                    "M5 post-upgrade script differs from stock")
+            (root / "m4/previous-payload").mkdir()
+            case.apk(["extract", "--destination", "/m4/previous-payload", "/m4/previous.apk"], "extract-m5-payload")
+            previous_payload = root / "m4/previous-payload"
+            report["previous_payload_hashes"] = audit_payload(previous_payload)
+            previous_files = file_state(previous_payload, PAYLOAD_FILES)
+            require(previous_files["usr/sbin/dnsmasq"]["sha256"] == M5_BASELINE["elf_sha256"],
+                    "M5 APK payload is not the accepted ELF")
+            for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list"}:
+                require(previous_files[path] == stock_files[path], f"M5 changed stock ancillary contract: {path}")
         image_path(root, "etc/config/dhcp").write_text(DHCP_CONFIG)
         for path in CONFIG_FILES[1:]:
             image_path(root, path).write_text("# M4 modified user file; preserve this exact content.\n")
@@ -435,11 +501,11 @@ def execute(args, root, out, report):
         # force-reinstall is measured separately and never called an upgrade.
         case.apk(["add", "/m4/candidate.apk"], "stock-to-candidate-upgrade")
         case.activate_after_transaction("stock-to-candidate-upgrade")
-        case.capture("stock-to-candidate-upgrade", args.candidate_elf_sha256, PACKAGE_ID,
+        case.capture("stock-to-candidate-upgrade", args.candidate_elf_sha256, candidate_id,
                      baseline, candidate_files, configs)
         case.apk(["add", "--force-reinstall", "/m4/candidate.apk"], "candidate-reinstall")
         case.activate_after_transaction("candidate-reinstall")
-        case.capture("candidate-reinstall", args.candidate_elf_sha256, PACKAGE_ID,
+        case.capture("candidate-reinstall", args.candidate_elf_sha256, candidate_id,
                      baseline, candidate_files, configs)
         case.remove("candidate-uninstall", configs)
         # Emulate first installation's missing account after uninstall. The
@@ -449,19 +515,21 @@ def execute(args, root, out, report):
             target.write_text("".join(line for line in target.read_text().splitlines(True)
                                       if not line.startswith("dnsmasq:")))
         case.apk(["add", "/m4/candidate.apk"], "candidate-fresh-install")
-        case.capture("candidate-fresh-install", args.candidate_elf_sha256, PACKAGE_ID,
+        case.capture("candidate-fresh-install", args.candidate_elf_sha256, candidate_id,
                      baseline, candidate_files, configs)
         case.remove("candidate-remove-for-rollback", configs)
         case.apk(["add", "/m4/stock.apk"], "stock-rollback-after-removal")
         case.capture("stock-rollback-after-removal", STOCK_SHA256, "2.93-r1", baseline, stock_files, configs)
         case.apk(["add", "/m4/candidate.apk"], "candidate-upgrade-for-downgrade")
         case.activate_after_transaction("candidate-upgrade-for-downgrade")
-        case.capture("candidate-upgrade-for-downgrade", args.candidate_elf_sha256, PACKAGE_ID,
+        case.capture("candidate-upgrade-for-downgrade", args.candidate_elf_sha256, candidate_id,
                      baseline, candidate_files, configs)
         case.variants(args.variant_apk, args.variant_dependency_apk)
         case.apk(["add", "/m4/stock.apk"], "direct-stock-downgrade")
         case.activate_after_transaction("direct-stock-downgrade")
         case.capture("direct-stock-downgrade", STOCK_SHA256, "2.93-r1", baseline, stock_files, configs)
+        if previous_files is not None:
+            previous_upgrade_chain(case, args, baseline, candidate_files, previous_files, configs, report)
         report["status"] = "passed"
     finally:
         report["cleanup"] = case.cleanup()
@@ -477,6 +545,11 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--candidate-elf-sha256", required=True)
     parser.add_argument("--source-commit", required=True)
+    parser.add_argument("--package-release", choices=["2", "3"], default="2")
+    parser.add_argument("--previous-apk", type=Path, help="accepted M5 r2 bytes, never rebuild")
+    parser.add_argument("--previous-apk-sha256")
+    parser.add_argument("--previous-elf-sha256")
+    parser.add_argument("--previous-source-commit")
     parser.add_argument("--variant-apk", type=Path, action="append", default=[],
                         help="actual stock dnsmasq-dhcpv6/full APK; repeat for both solver tests")
     parser.add_argument("--variant-dependency-apk", type=Path, action="append", default=[],
@@ -499,9 +572,15 @@ def main():
         parser.error("variant APK fixtures must exist")
     if args.variant_dependency_apk and not args.variant_apk:
         parser.error("variant dependency fixtures require --variant-apk")
+    try:
+        previous = previous_inputs(args)
+    except (OSError, RuntimeError) as error:
+        parser.error(str(error))
     out.mkdir(parents=True)
     root = out / "rootfs-stage/rootfs"
     report = {"status": "failed", "source_commit": args.source_commit,
+              "candidate_package_id": package_id(args.package_release), "package_release": args.package_release,
+              "previous_package": previous,
               "runner_files": {name: sha256(Path(__file__).with_name(name)) for name in
                                ("m4_package_lifecycle.py", "build_package.py", "m2_rootfs.py", "dns_service_probe.py")},
               "stock_elf_sha256": STOCK_SHA256, "candidate_elf_sha256": args.candidate_elf_sha256,
