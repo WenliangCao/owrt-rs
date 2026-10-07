@@ -44,10 +44,14 @@ class MeasurementCorrections(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "wake.jsonl"
             path.write_text(json.dumps({"loop_rounds": 12, "poll_calls": 4,
-                                        "poll_wait_ns": 800, "wait_durations_ns": [100, 700]}) + "\n")
+                                        "poll_wait_ns": 800, "wait_durations_ns": [100, 700],
+                                        "wait_reasons": {"network": 2, "timer": 1},
+                                        "udp_listeners": {"dns": {"steps": 3, "packets": 2}}}) + "\n")
             first = window.read_wake_telemetry(path)
             path.write_text(path.read_text() + json.dumps({"loop_rounds": 22, "poll_calls": 9,
-                                                             "poll_wait_ns": 1900}) + "\n")
+                                                             "poll_wait_ns": 1900,
+                                                             "wait_reasons": {"network": 7, "timer": 2},
+                                                             "wait_durations_ns": [200, 600, 800]}) + "\n")
             second = window.read_wake_telemetry(path)
         self.assertEqual(first["loop_rounds"], 12)
         summary = window.summarize_wake_telemetry([
@@ -57,6 +61,8 @@ class MeasurementCorrections(unittest.TestCase):
         self.assertEqual(summary["intervals"][0]["loop_rounds_per_second"], 10.0)
         self.assertEqual(summary["intervals"][0]["poll_calls"], 5)
         self.assertEqual(summary["intervals"][0]["poll_wait_ns"], 1100)
+        self.assertEqual(summary["intervals"][0]["poll_wait_stats_ns"]["p95_ns"], 800)
+        self.assertEqual(summary["intervals"][0]["wait_reasons"], {"network": 5, "timer": 1})
 
 
 class FrozenInputs(unittest.TestCase):

@@ -314,9 +314,42 @@ def read_wake_telemetry(path: Path):
     durations = values.get("wait_durations_ns", values.get("poll_wait_durations_ns", []))
     if not isinstance(durations, list) or not all(isinstance(value, int) and value >= 0 for value in durations):
         durations = []
+    reasons = values.get("wait_reasons", {})
+    if not isinstance(reasons, dict):
+        reasons = {}
+    listeners = values.get("udp_listeners", values.get("udp", {}))
+    if not isinstance(listeners, (dict, list)):
+        listeners = {}
     return {"monotonic_ns": values.get("monotonic_ns", time.monotonic_ns()),
             "loop_rounds": loops, "poll_calls": polls, "poll_wait_ns": waits,
-            "wait_durations_ns": durations}
+            "wait_durations_ns": durations, "wait_reasons": reasons,
+            "udp_listeners": listeners}
+
+
+def _mapping_delta(current, previous):
+    if not isinstance(current, dict) or not isinstance(previous, dict):
+        return current
+    result = {}
+    for key in set(current) | set(previous):
+        now, before = current.get(key), previous.get(key, 0)
+        if isinstance(now, int) and isinstance(before, int):
+            result[key] = now - before
+        else:
+            result[key] = now
+    return result
+
+
+def _wait_duration_stats(values):
+    values = sorted(value for value in values if isinstance(value, int) and value >= 0)
+    if not values:
+        return {"count": 0, "min_ns": None, "p50_ns": None, "p95_ns": None,
+                "p99_ns": None, "max_ns": None}
+    def nearest_rank(fraction):
+        index = max(0, min(len(values) - 1, int((len(values) * fraction + 0.999999999) - 1)))
+        return values[index]
+    return {"count": len(values), "min_ns": values[0],
+            "p50_ns": nearest_rank(0.50), "p95_ns": nearest_rank(0.95),
+            "p99_ns": nearest_rank(0.99), "max_ns": values[-1]}
 
 
 def summarize_wake_telemetry(samples):
@@ -328,6 +361,7 @@ def summarize_wake_telemetry(samples):
         loops = current["counters"]["loop_rounds"] - previous["counters"]["loop_rounds"]
         polls = current["counters"]["poll_calls"] - previous["counters"]["poll_calls"]
         waits = current["counters"]["poll_wait_ns"] - previous["counters"]["poll_wait_ns"]
+        durations = current["counters"].get("wait_durations_ns", [])
         intervals.append({"started_monotonic_ns": previous["observed_monotonic_ns"],
                           "ended_monotonic_ns": current["observed_monotonic_ns"],
                           "elapsed_seconds": elapsed, "loop_rounds": loops,
@@ -336,7 +370,11 @@ def summarize_wake_telemetry(samples):
                           "poll_calls_per_second": polls / elapsed,
                           "poll_wait_seconds": waits / 1e9,
                           "poll_wait_average_ns": waits / polls if polls > 0 else None,
-                          "wait_durations_ns": current["counters"].get("wait_durations_ns", [])})
+                          "poll_wait_stats_ns": _wait_duration_stats(durations),
+                          "wait_durations_ns": durations,
+                          "wait_reasons": _mapping_delta(current["counters"].get("wait_reasons", {}),
+                                                         previous["counters"].get("wait_reasons", {})),
+                          "udp_listeners": current["counters"].get("udp_listeners", {})})
     return {"available": bool(samples), "samples": samples, "intervals": intervals,
             "totals": (samples[-1]["counters"] if samples else None)}
 
