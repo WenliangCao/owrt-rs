@@ -3658,21 +3658,22 @@ impl SinglePoll {
         let listeners = self.listeners.len();
         let mut udp_budget = UDP_PACKETS_PER_TURN;
         for index in 0..listeners {
-            if udp_budget == 0 {
-                break;
-            }
-            let mut batch = 0;
-            while udp_budget != 0 && self.step_udp(index) {
-                udp_budget -= 1;
-                batch += 1;
-            }
-            if self.m6b.enabled() {
-                let counters = self.m6b.listener_mut(index);
-                counters.max_batch = counters.max_batch.max(batch);
-                if udp_budget == 0 {
-                    counters.budget_yields += 1;
+            if udp_budget != 0 {
+                let mut batch = 0;
+                while udp_budget != 0 && self.step_udp(index) {
+                    udp_budget -= 1;
+                    batch += 1;
+                }
+                if self.m6b.enabled() {
+                    let counters = self.m6b.listener_mut(index);
+                    counters.max_batch = counters.max_batch.max(batch);
+                    if udp_budget == 0 {
+                        counters.budget_yields += 1;
+                    }
                 }
             }
+            // TCP admission remains one bounded turn per listener even when
+            // a preceding UDP listener consumed the packet budget.
             self.step_tcp_accept(index);
         }
         self.poll_udp_completions();
