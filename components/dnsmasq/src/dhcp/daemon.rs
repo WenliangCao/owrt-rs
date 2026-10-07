@@ -1006,9 +1006,17 @@ impl LocalProvider {
         }
     }
 
+    pub fn file_watch_fd(&self) -> Option<std::os::fd::RawFd> {
+        self.file_owner.as_ref().and_then(super::files_runtime::DhcpFiles::watch_fd)
+    }
+
     /// At most one file/directory/event turn; packets and helper work run
     /// between these turns. During ICMP waits this method is never entered.
     pub fn step_files(&mut self, now: i64) -> Option<MaintenanceReport> {
+        self.step_files_with_watch_readiness(now, true)
+    }
+
+    pub fn step_files_with_watch_readiness(&mut self, now: i64, watch_ready: bool) -> Option<MaintenanceReport> {
         if self.file_work_pending()
             && self
                 .interface_owner
@@ -1045,7 +1053,7 @@ impl LocalProvider {
             files.begin_reload(&self.ethers.file_bank_base(&self.config.hosts));
             self.file_reload_pending = false;
         }
-        let step = files.step(&self.config.hosts);
+        let step = files.step_with_watch_readiness(&self.config.hosts, watch_ready);
         self.file_runnable = step.runnable;
         for diagnostic in step.diagnostics {
             eprintln!("dnsmasq-rs: {diagnostic}");

@@ -310,6 +310,11 @@ impl DnsFiles {
         }
     }
 
+    /// The single owner must gate only this watch's read, not its queued jobs.
+    pub fn watch_fd(&self) -> Option<std::os::fd::RawFd> {
+        self.watch.as_ref().map(FileWatch::raw_fd)
+    }
+
     pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>) {
         if let Some(lookup) = &self.endpoint_lookup {
             lookup.append_poll_fds(fds);
@@ -441,6 +446,12 @@ impl DnsFiles {
     }
 
     pub fn step(&mut self) -> FileStep {
+        self.step_with_watch_readiness(true)
+    }
+
+    /// Continue queued triggers, files and endpoint lookups every owner turn,
+    /// but consume inotify only after this exact watch descriptor is ready.
+    pub fn step_with_watch_readiness(&mut self, watch_ready: bool) -> FileStep {
         let mut result = FileStep::default();
         if self.endpoint_update.is_some() {
             if let Some(lookup) = &mut self.endpoint_lookup {
@@ -503,7 +514,7 @@ impl DnsFiles {
             return result;
         }
         let mut watch_more = false;
-        if let Some(watch) = &mut self.watch {
+        if let Some(watch) = self.watch.as_mut().filter(|_| watch_ready) {
             match watch.read_events() {
                 Ok(true) => self.notify_seen = true,
                 Ok(false) => {}
@@ -772,6 +783,41 @@ mod tests {
                 format!("illegal option at line 3 of {}", path.display()),
             ]
         );
+    }
+
+    #[test]
+    fn unrelated_ready_fd_does_not_consume_inotify_but_explicit_reload_still_runs() {
+        let dir = Directory::new();
+        let config = dir.config();
+        let path = &config.resolv_files[0];
+        fs::write(path, b"nameserver 192.0.2.1\n").unwrap();
+        let mut files = DnsFiles::new(&config, true, true).unwrap();
+        files.request(ReloadReason::Init);
+        // Init and regular-file work require no watch notification.
+        let mut initial = Vec::new();
+        for _ in 0..100 {
+            initial.extend(files.step_with_watch_readiness(false).update);
+            if !files.has_work() { break; }
+        }
+        assert_eq!(initial.len(), 1);
+        fs::write(path, b"nameserver 192.0.2.2\n").unwrap();
+        for _ in 0..3 {
+            let step = files.step_with_watch_readiness(false);
+            assert!(step.update.is_none() && !step.runnable);
+        }
+        assert!(files.watch.as_ref().unwrap().pending().unwrap(),
+            "unrelated ready descriptors must leave this watch's bytes queued");
+        let (updates, _) = drain(&mut files);
+        assert_eq!(updates.len(), 1);
+        assert_eq!(updates[0].rows[0].address, Some("192.0.2.2:53".parse().unwrap()));
+
+        // A no-poll SIGHUP must still advance with no inotify readiness.
+        let mut config = config;
+        config.no_poll = true;
+        let mut files = DnsFiles::new(&config, true, false).unwrap();
+        files.request(ReloadReason::Signal);
+        let update = (0..100).find_map(|_| files.step_with_watch_readiness(false).update).unwrap();
+        assert_eq!(update.rows[0].address, Some("192.0.2.2:53".parse().unwrap()));
     }
 
     #[test]

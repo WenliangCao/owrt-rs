@@ -3135,19 +3135,22 @@ impl SinglePoll {
         {
             return;
         }
+        let route_ready = self.route_watch.as_ref().is_some_and(|watch| {
+            self.fd_ready(watch.raw_fd(), owrt_ubus::sys::POLLIN)
+        });
+        let watch_ready = self.dns_files.as_ref().and_then(DnsFiles::watch_fd)
+            .is_some_and(|fd| self.fd_ready(fd, owrt_ubus::sys::POLLIN));
         let Some(files) = &mut self.dns_files else {
             return;
         };
-        if self
-            .route_watch
-            .as_mut()
+        if route_ready && self.route_watch.as_mut()
             .is_some_and(|watch| watch.read_events().unwrap_or(false))
         {
             files.request(ReloadReason::Route);
             self.retry_bound_listeners = true;
         }
         let was_initializing = files.initializing();
-        let step = files.step();
+        let step = files.step_with_watch_readiness(watch_ready);
         let initial_finished = was_initializing && !files.initializing();
         self.files_runnable = step.runnable;
         let checks_servers = step.update.is_some()
@@ -3455,7 +3458,10 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp_files(&mut self) {
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
-            if let Some(report) = provider.borrow_mut().step_files(now_seconds()) {
+            let mut provider = provider.borrow_mut();
+            let watch_ready = provider.file_watch_fd()
+                .is_some_and(|fd| self.fd_ready(fd, owrt_ubus::sys::POLLIN));
+            if let Some(report) = provider.step_files_with_watch_readiness(now_seconds(), watch_ready) {
                 report_dhcp_maintenance(&report, self.logger.as_mut());
             }
         }
@@ -3772,7 +3778,7 @@ impl SinglePoll {
                     .any(|fd| fd.revents != 0);
             }
             self.poll_fds = fds;
-            if ready != 0 {
+            if signal_ready {
                 self.drain_signal_wake();
             }
             self.m6b.record_wait(

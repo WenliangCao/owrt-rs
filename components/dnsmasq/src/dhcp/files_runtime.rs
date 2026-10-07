@@ -267,6 +267,10 @@ impl DhcpFiles {
         self.generation.is_some()
     }
 
+    pub fn watch_fd(&self) -> Option<std::os::fd::RawFd> {
+        self.watch.as_ref().map(DirectoryWatch::raw_fd)
+    }
+
     pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>) {
         if !self.busy() {
             if let Some(watch) = &self.watch {
@@ -326,6 +330,12 @@ impl DhcpFiles {
     /// Call again only after applying any returned update. This snapshots the
     /// caller's current host bank before each individual live file is parsed.
     pub fn step(&mut self, current_hosts: &[HostConfig]) -> FileStep {
+        self.step_with_watch_readiness(current_hosts, true)
+    }
+
+    /// Buffered watch events and active file generations remain runnable
+    /// independently of the kernel descriptor's next POLLIN notification.
+    pub fn step_with_watch_readiness(&mut self, current_hosts: &[HostConfig], watch_ready: bool) -> FileStep {
         let mut result = FileStep::default();
         if let Some(job) = &mut self.job {
             if job.step(self.generation.as_mut().unwrap(), &mut result.diagnostics) {
@@ -414,7 +424,7 @@ impl DhcpFiles {
                 }
                 Phase::Idle => {
                     if let Some(watch) = &mut self.watch {
-                        match watch.step() {
+                        match watch.step_with_readiness(watch_ready) {
                             Ok(WatchStep::File(kind, path)) => {
                                 self.phase = Phase::Live;
                                 self.generation = Some(Generation::new(current_hosts, false));
@@ -750,6 +760,29 @@ mod tests {
         owner.begin_reload(&[]);
         let (update, _) = complete(&mut owner, &[]);
         assert_eq!(update.hosts.len(), 1);
+    }
+
+    #[test]
+    fn watch_input_waits_for_its_fd_but_buffered_events_continue_without_readiness() {
+        let directory = Directory::new();
+        fs::create_dir(directory.path("live")).unwrap();
+        let mut owner = DhcpFiles::new(&[], &[], &[DynamicFileDirectory {
+            kind: DynamicFileKind::Hosts, path: directory.bytes("live"),
+        }]).unwrap();
+        owner.begin_reload(&[]);
+        let initial = (0..100).find_map(|_| owner.step_with_watch_readiness(&[], false).update).unwrap();
+        assert!(initial.hosts.is_empty());
+        fs::write(directory.path("live/host"), b"02:00:00:00:00:01,192.0.2.10\n").unwrap();
+        for _ in 0..3 {
+            let step = owner.step_with_watch_readiness(&[], false);
+            assert!(step.update.is_none() && !step.runnable);
+        }
+        // The first readable turn buffers a kernel batch; subsequent events
+        // must finish even after its fd no longer reports POLLIN.
+        assert!(owner.step_with_watch_readiness(&[], true).runnable);
+        let update = (0..100).find_map(|_| owner.step_with_watch_readiness(&[], false).update).unwrap();
+        assert_eq!(update.hosts.len(), 1);
+        assert_eq!(update.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
     }
 
     #[test]

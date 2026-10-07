@@ -81,6 +81,10 @@ impl RouteWatch {
         })
     }
 
+    pub fn raw_fd(&self) -> RawFd {
+        self.fd.as_raw_fd()
+    }
+
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
         fds.push(owrt_ubus::sys::PollFd {
             fd: self.fd.as_raw_fd(),
