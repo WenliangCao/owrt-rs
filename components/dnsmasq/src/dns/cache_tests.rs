@@ -180,24 +180,26 @@ fn check_ownership(cache: &Cache) {
         assert!(linked.insert(index), "cycle or duplicated slot");
         let slot = &cache.slots[index];
         assert_eq!(slot.prev, previous);
-        assert!(slot.entry.as_ref().is_none_or(|entry| entry.committed));
+        assert!(cache.entry(index).is_none_or(|entry| entry.committed));
         previous = at;
         at = slot.next;
     }
     assert_eq!(previous, cache.tail);
     for &slot in &cache.pending {
         assert!(linked.insert(slot));
-        assert!(!cache.slots[slot].entry.as_ref().unwrap().committed);
+        assert!(!cache.entry(slot).unwrap().committed);
     }
     assert_eq!(linked.len(), cache.slots.len());
     let mut indexed = HashSet::new();
-    for (name, indices) in &cache.names {
-        assert!(!indices.is_empty());
-        for &slot in indices {
+    for shard in &cache.names {
+        for (name, indices) in shard.iter() {
+            assert!(!indices.is_empty());
+            for &slot in indices {
             assert!(indexed.insert(slot));
-            let entry = cache.slots[slot].entry.as_ref().unwrap();
+            let entry = cache.entry(slot).unwrap();
             assert!(entry.committed);
-            assert_eq!(&entry.record.name.canonical_wire(), name);
+            assert_eq!(entry.record.name.canonical_wire().as_slice(), name.as_ref());
+            }
         }
     }
     assert_eq!(
@@ -205,7 +207,7 @@ fn check_ownership(cache: &Cache) {
         cache
             .slots
             .iter()
-            .filter(|slot| slot.entry.as_ref().is_some_and(|entry| entry.committed))
+            .filter(|slot| cache.entry(slot.block * CONTENT_BLOCK_SLOTS + slot.offset).is_some_and(|entry| entry.committed))
             .count()
     );
 }
@@ -335,7 +337,7 @@ fn local_insert_failure_aborts_pending_batch_without_restoring_removed_records()
     assert!(cache.get(pending).is_none());
     assert!(cache.insert_against_local(90, true).is_ok());
     assert!(cache.commit());
-    assert!(cache.names.is_empty());
+    assert!(cache.names.iter().all(|shard| shard.is_empty()));
     check_ownership(&cache);
 }
 
