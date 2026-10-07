@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import random
+import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,12 +39,34 @@ def rust_modules(root):
             + '#[path=' + json.dumps(str(root / 'components/dnsmasq/src/dns/cache.rs')) + '] mod cache;\n')
 
 
-def build(output, rustc, source_root=None):
-    hashes = {file: hashlib.sha256((SOURCE/file).read_bytes()).hexdigest() for file in EXPECTED_SOURCE}
+def primitive_rust_source():
+    """Actual-crate example source for the locked, frozen primitive bridge."""
+    return 'use dnsmasq_rs::dns::{cache, wire};\n' + r'''
+use std::io::{self,BufRead}; use cache::*;
+fn kind(t:u32)->Kind {match t {1=>Kind::Ipv4,28=>Kind::Ipv6,5=>Kind::Cname,65536=>Kind::NxDomain,_=>Kind::Generic(t as u16)}}
+fn main() {
+ let a:Vec<i64>=std::env::args().skip(1).map(|s|s.parse().unwrap()).collect();
+ let policy=Policy{min_ttl:a[1] as u64,max_ttl:a[2] as u64,stale:match a[3]{-1=>StalePolicy::Forever,0=>StalePolicy::Disabled,v=>StalePolicy::Seconds(v as u32)},max_reply_ttl:a[4] as u64};
+ let mut cache=Cache::new(a[0] as usize,policy); let mut ids=Vec::new();
+ for line in io::stdin().lock().lines() {let line=line.unwrap();let w:Vec<_>=line.split_whitespace().collect();let n=|i:usize| w[i].parse::<u32>().unwrap();
+ match w[0] {
+ "B"=>{cache.start_insert();println!("B");},
+ "C"=>println!("C {}",u8::from(cache.commit())),
+ "I"=>{let id=cache.insert(Record{name:wire::Name::from_ascii(w[1]).unwrap(),kind:kind(n(2)),negative:n(5)!=0,data:vec![n(4) as u8]},w[6].parse().unwrap(),n(3));println!("I {}",u8::from(id.is_ok()));ids.push(id.ok());},
+ "L"=>{let ok=match (ids[n(1) as usize],ids[n(2) as usize]){(Some(a),Some(b))=>cache.set_cname_target(a,b),_=>false};println!("L {}",u8::from(ok));},
+ "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::ReverseIpv4|Kind::ReverseIpv6=>0,Kind::Generic(t)=>t as u32};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
+ }
+}
+'''
+
+
+def build(output, rustc=None, source_root=None, *, rust_binary=None, reference_source=None, cc="cc"):
+    reference_source = reference_source or SOURCE
+    hashes = {file: hashlib.sha256((reference_source/file).read_bytes()).hexdigest() for file in EXPECTED_SOURCE}
     if hashes != EXPECTED_SOURCE:
         raise RuntimeError('reference source identity differs from the verified patched 2.93 tree')
-    source = (SOURCE / 'cache.c').read_text()
-    header = (SOURCE / 'dnsmasq.h').read_text()
+    source = (reference_source / 'cache.c').read_text()
+    header = (reference_source / 'dnsmasq.h').read_text()
     preamble = r'''
 #include <stdio.h>
 #include <stdlib.h>
@@ -148,30 +171,42 @@ int main(int argc,char **argv) {
 }
 '''
     (output/'oracle.c').write_text(preamble)
-    rust = rust_modules(source_root or ROOT) + r'''
-use std::io::{self,BufRead}; use cache::*;
-fn kind(t:u32)->Kind {match t {1=>Kind::Ipv4,28=>Kind::Ipv6,5=>Kind::Cname,65536=>Kind::NxDomain,_=>Kind::Generic(t as u16)}}
-fn main() {
- let a:Vec<i64>=std::env::args().skip(1).map(|s|s.parse().unwrap()).collect();
- let policy=Policy{min_ttl:a[1] as u64,max_ttl:a[2] as u64,stale:match a[3]{-1=>StalePolicy::Forever,0=>StalePolicy::Disabled,v=>StalePolicy::Seconds(v as u32)},max_reply_ttl:a[4] as u64};
- let mut cache=Cache::new(a[0] as usize,policy); let mut ids=Vec::new();
- for line in io::stdin().lock().lines() {let line=line.unwrap();let w:Vec<_>=line.split_whitespace().collect();let n=|i:usize| w[i].parse::<u32>().unwrap();
- match w[0] {
- "B"=>{cache.start_insert();println!("B");},
- "C"=>println!("C {}",u8::from(cache.commit())),
- "I"=>{let id=cache.insert(Record{name:wire::Name::from_ascii(w[1]).unwrap(),kind:kind(n(2)),negative:n(5)!=0,data:vec![n(4) as u8]},w[6].parse().unwrap(),n(3));println!("I {}",u8::from(id.is_ok()));ids.push(id.ok());},
- "L"=>{let ok=match (ids[n(1) as usize],ids[n(2) as usize]){(Some(a),Some(b))=>cache.set_cname_target(a,b),_=>false};println!("L {}",u8::from(ok));},
- "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::ReverseIpv4|Kind::ReverseIpv6=>0,Kind::Generic(t)=>t as u32};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
- }
-}
-'''
-    # The standalone primitive probe does not run lease publication, but the
-    # cache now implements its production trait. Copy only those declarations;
-    # no snapshot behavior or expected outputs are substituted by this adapter.
-    (output/'driver.rs').write_text(rust)
-    subprocess.run(['cc','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all',str(output/'oracle.c'),'-o',str(output/'oracle')],check=True)
-    subprocess.run([rustc,'--edition=2021','-A','dead_code',str(output/'driver.rs'),'-o',str(output/'driver')],check=True)
-    return hashes
+    c_flags = ['-O1', '-g', '-fsanitize=address,undefined', '-fno-sanitize-recover=all']
+    c_argv = [cc, *c_flags, str(output/'oracle.c'), '-o', str(output/'oracle')]
+    run = subprocess.run(c_argv, capture_output=True)
+    (output/'c-build.stdout').write_bytes(run.stdout)
+    (output/'c-build.stderr').write_bytes(run.stderr)
+    run.check_returncode()
+    version = subprocess.run([cc, '--version'], check=True, capture_output=True)
+    abi = subprocess.run([cc, '-dM', '-E', '-'], input=b'', check=True, capture_output=True)
+    (output/'c-compiler-version').write_bytes(version.stdout)
+    (output/'c-compiler-macros').write_bytes(abi.stdout)
+    if rust_binary is not None:
+        shutil.copy2(rust_binary, output/'driver')
+        rust_mode = 'locked actual-crate primitive example'
+    else:
+        # Explicit local-only legacy mode. The Oracle must use primitive-probes.
+        if rustc is None or source_root is None:
+            raise ValueError('local-native requires explicit rustc and source root')
+        if any(str(path.resolve()).startswith('/home/ubuntu/') for path in [output, source_root]):
+            raise ValueError('Oracle primitive builds require oracle_build.sh and copied ELF')
+        rust = rust_modules(source_root) + primitive_rust_source().split('\n', 1)[1]
+        (output/'driver.rs').write_text(rust)
+        subprocess.run([rustc, '--edition=2021', '-A', 'dead_code', str(output/'driver.rs'), '-o', str(output/'driver')], check=True)
+        rust_mode = 'explicit local-native standalone legacy adapter; no Oracle qualification'
+    metadata = {
+        'source_sha256': hashes,
+        'reference_scope': 'hash-pinned extracted C cache functions; native source/ABI comparison, not image daemon ELF',
+        'c_argv': c_argv,
+        'c_harness_sha256': hashlib.sha256((output/'oracle.c').read_bytes()).hexdigest(),
+        'c_binary_sha256': hashlib.sha256((output/'oracle').read_bytes()).hexdigest(),
+        'c_compiler_version_sha256': hashlib.sha256(version.stdout).hexdigest(),
+        'c_compiler_macros_sha256': hashlib.sha256(abi.stdout).hexdigest(),
+        'rust_mode': rust_mode,
+        'rust_binary_sha256': hashlib.sha256((output/'driver').read_bytes()).hexdigest(),
+    }
+    (output/'primitive-build.json').write_text(json.dumps(metadata, indent=2)+'\n')
+    return metadata
 
 
 def scenarios():
@@ -201,17 +236,45 @@ def scenarios():
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--rustc',required=True);p.add_argument('--output',type=Path,default=ROOT/'private/dnsmasq-rs/cache/differential')
-    p.add_argument('--rust-source-root',type=Path,help='explicit frozen Rust source root; C reference remains hash-pinned')
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--output',type=Path,default=ROOT/'private/dnsmasq-rs/cache/differential')
+    p.add_argument('--rust-source-root',type=Path,required=True,help='explicit frozen Rust source root')
+    p.add_argument('--rust-binary',type=Path,help='immutable copied m6b-cache-core example')
+    p.add_argument('--rust-source-receipt',type=Path)
+    p.add_argument('--rust-build-receipt',type=Path)
+    p.add_argument('--reference-source',type=Path,default=SOURCE,help='hash-pinned matching C src directory')
+    p.add_argument('--c-compiler',default='cc')
+    p.add_argument('--local-native',action='store_true',help='explicit legacy local adapter; no Oracle qualification')
+    p.add_argument('--rustc',help='only used with --local-native')
     args=p.parse_args()
-    out=args.output.resolve();assert out.is_relative_to((ROOT/'private').resolve());out.mkdir(parents=True,exist_ok=True)
-    hashes=build(out,args.rustc,args.rust_source_root.resolve() if args.rust_source_root else None);results=[];errors=[];order_variations=[]
+    source_root=args.rust_source_root.resolve()
+    if args.local_native:
+        if not args.rustc or any([args.rust_binary,args.rust_source_receipt,args.rust_build_receipt]):
+            p.error('local-native requires rustc and prohibits copied-ELF arguments')
+        binding={'qualified':False,'scope':'explicit local-native legacy adapter'}
+    else:
+        if not all([args.rust_binary,args.rust_source_receipt,args.rust_build_receipt]) or args.rustc:
+            p.error('copied ELF, source receipt and build receipt required; rustc prohibited')
+        from m6b_primitive_assets import validate_binary
+        binding=validate_binary(args.rust_binary,source_root,args.rust_source_receipt,args.rust_build_receipt,'m6b-cache-core')
+    out=args.output.resolve()
+    if 'private' not in out.parts or out.exists():
+        p.error('fresh private output required')
+    out.mkdir(parents=True)
+    (out/'rust-binding.json').write_text(json.dumps(binding,indent=2)+'\n')
+    metadata=build(out,args.rustc,source_root,rust_binary=args.rust_binary,
+                   reference_source=args.reference_source.resolve(),cc=args.c_compiler)
+    if not args.local_native and metadata['rust_binary_sha256'] != binding['binary_sha256']:
+        raise ValueError('copied primitive ELF changed after binding validation')
+    results=[];errors=[];order_variations=[]
     for name,config,commands in scenarios():
         inputs='\n'.join(commands)+'\n';(out/f'{name}.input').write_text(inputs);observed={}
         for binary in ['oracle','driver']:
-            run=subprocess.run([str(out/binary),*map(str,config)],input=inputs,text=True,capture_output=True)
+            run=subprocess.run([str(out/binary),*map(str,config)],input=inputs,text=True,capture_output=True,timeout=120)
             (out/f'{name}.{binary}.stdout').write_text(run.stdout);(out/f'{name}.{binary}.stderr').write_text(run.stderr)
-            if run.returncode:raise RuntimeError(f'{name}/{binary}: exit {run.returncode}')
+            if run.returncode:
+                (out/'failure.json').write_text(json.dumps({'scenario':name,'binary':binary,'exit':run.returncode,'passed':False},indent=2)+'\n')
+                raise RuntimeError(f'{name}/{binary}: exit {run.returncode}')
             observed[binary]=run.stdout.splitlines();assert len(observed[binary])==len(commands)
             if name == 'calibration':
                 expected=['B','I 1','C 1','Q 1:7:0:102:2:0','Q','B','I 0','C 0','B','I 1','L 0','C 1','Q']
@@ -230,9 +293,12 @@ def main():
             else: mismatch.append(item)
         errors.extend({'scenario':name,**item} for item in mismatch)
         results.append({'scenario':name,'config':config,'commands':len(commands),'mismatches':len(mismatch),'input_sha256':hashlib.sha256(inputs.encode()).hexdigest()})
+    if any(hashlib.sha256((out/binary).read_bytes()).hexdigest() != metadata[key]
+           for binary,key in [('oracle','c_binary_sha256'),('driver','rust_binary_sha256')]):
+        raise ValueError('primitive executable changed while scenarios ran')
     (out/'mismatches.json').write_text(json.dumps(errors,indent=2)+'\n')
     (out/'cross-type-order-variations.json').write_text(json.dumps(order_variations,indent=2)+'\n')
-    summary={'source_sha256':hashes,'scenarios':results,'commands':sum(r['commands'] for r in results),'mismatches':len(errors),'cross_type_order_variations':len(order_variations),'normalization':'Only relative order across generic RR types is grouped; ordering within each type, data, expiry, negative status, reply TTL and stale flag compare exactly. C answer_request filters by actual rrtype.','scope':'dynamic forward-cache transitions; no packet extraction, local records, reverse, TCP IPC, allocation failure or performance evidence','sanitizers':True}
+    summary={'source_sha256':metadata['source_sha256'],'primitive_build':metadata,'rust_binding':binding,'scenarios':results,'commands':sum(r['commands'] for r in results),'mismatches':len(errors),'cross_type_order_variations':len(order_variations),'normalization':'Only relative order across generic RR types is grouped; ordering within each type, data, expiry, negative status, reply TTL and stale flag compare exactly. C answer_request filters by actual rrtype.','scope':'dynamic forward-cache transitions; no packet extraction, local records, reverse, TCP IPC, allocation failure or performance evidence','sanitizers':True,'image_daemon_qualification':False}
     (out/'summary.json').write_text(json.dumps(summary,indent=2)+'\n');print(json.dumps(summary,indent=2));return bool(errors)
 
 if __name__=='__main__': raise SystemExit(main())

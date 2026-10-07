@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build an immutable source snapshot; all Oracle DNS builds share one cache.
-# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests|probe-tests|fuzz]
+# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests|probe-tests|primitive-probes|fuzz]
 set -eu
 [ "$#" -ge 2 ] && [ "$#" -le 3 ] || exit 2
 source_dir=$(realpath "$1")
@@ -10,7 +10,7 @@ case "$output_dir" in /home/ubuntu/*/private/*) ;; *) echo 'private output requi
 [ ! -e "$output_dir" ] || { echo 'fresh output required' >&2; exit 2; }
 [ -f "$source_dir/components/dnsmasq/Cargo.toml" ] || exit 2
 case "$source_dir" in *' '*) echo 'source path contains whitespace' >&2; exit 2;; esac
-case "$build_kind" in release|tests|ubus-tests|probe-tests|fuzz) ;; *) exit 2;; esac
+case "$build_kind" in release|tests|ubus-tests|probe-tests|primitive-probes|fuzz) ;; *) exit 2;; esac
 package_name=dnsmasq-rs
 manifest_path="$source_dir/components/dnsmasq/Cargo.toml"
 if [ "$build_kind" = ubus-tests ]; then
@@ -96,10 +96,17 @@ if [ -n "${ORACLE_BUILD_FEATURES:-}" ]; then
         *) echo 'ORACLE_BUILD_FEATURES contains an unsupported feature' >&2; exit 2 ;;
     esac
 fi
-if [ "$build_kind" = probe-tests ]; then
+if [ "$build_kind" = probe-tests ] || [ "$build_kind" = primitive-probes ]; then
     [ "$CARGO_PROFILE_RELEASE_OPT_LEVEL" = 3 ] && [ -z "$feature_args" ] || {
-        echo 'probe-tests requires opt3 and feature-off' >&2; exit 2;
+        echo 'primitive/probe builds require opt3 and feature-off' >&2; exit 2;
     }
+    if [ "$build_kind" = primitive-probes ]; then
+        for probe_name in m6b-cache-core m6b-cache-policy m6b-cache-edns m6b-cache-lease; do
+            [ -f "$source_dir/components/dnsmasq/examples/$probe_name.rs" ] || {
+                echo 'all four allowlisted primitive examples must be prepared' >&2; exit 2;
+            }
+        done
+    fi
     python3 - "$source_dir" "$output_dir" <<'PY'
 import hashlib, json, pathlib, sys
 source, out = map(pathlib.Path, sys.argv[1:])
@@ -113,7 +120,7 @@ cargo=/home/ubuntu/.cargo/bin/cargo
 # Git archives preserve historical mtimes. Reusing a fixed source path can
 # otherwise make Cargo accept stale package artifacts after the input changes.
 # Keep dependency caches, but invalidate this package inside the copy lock.
-if [ "$build_kind" = release ] || [ "$build_kind" = probe-tests ]; then
+if [ "$build_kind" = release ] || [ "$build_kind" = probe-tests ] || [ "$build_kind" = primitive-probes ]; then
     "$cargo" +1.98.1 clean --manifest-path "$manifest_path" \
         --package "$package_name" --target aarch64-unknown-linux-musl --release \
         >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
@@ -131,6 +138,14 @@ elif [ "$build_kind" = tests ]; then
     "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --lib --bin dnsmasq-rs \
         --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
+elif [ "$build_kind" = primitive-probes ]; then
+    # Four source-bound actual-crate bridges. No main product or harness runs;
+    # only the allowlisted example binaries are copied under the shared lock.
+    "$cargo" +1.98.1 build --release --frozen --target aarch64-unknown-linux-musl \
+        --manifest-path "$manifest_path" \
+        --example m6b-cache-core --example m6b-cache-policy \
+        --example m6b-cache-edns --example m6b-cache-lease --message-format=json \
+        >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 elif [ "$build_kind" = probe-tests ]; then
     # Diagnostic-only ignored lib tests use the same release settings, target,
     # copy lock and source invalidation. Nothing executes inside this build.
@@ -160,19 +175,38 @@ if kind in ('tests', 'ubus-tests', 'probe-tests'):
     expected = 2 if kind == 'tests' else 1
     if len(artifacts) != expected:
         raise RuntimeError(f'expected {expected} test executable(s)')
+if kind == 'primitive-probes':
+    allowed = {'m6b-cache-core', 'm6b-cache-policy', 'm6b-cache-edns', 'm6b-cache-lease'}
+    seen = set()
+    for line in (out / 'build.stdout').read_text().splitlines():
+        row = json.loads(line)
+        if row.get('reason') != 'compiler-artifact' or not row.get('executable'):
+            continue
+        target = row['target']
+        name = target['name']
+        if target.get('kind') != ['example'] or name not in allowed or row.get('profile', {}).get('test'):
+            raise RuntimeError('unexpected executable in primitive build')
+        if name in seen:
+            raise RuntimeError('duplicate primitive executable')
+        seen.add(name)
+        path = out / name
+        shutil.copy2(row['executable'], path)
+        artifacts.append(path)
+    if seen != allowed:
+        raise RuntimeError('missing allowlisted primitive executable')
 report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['CARGO_TARGET_DIR'],
           'opt_level': os.environ['CARGO_PROFILE_RELEASE_OPT_LEVEL'],
           'features': os.environ.get('ORACLE_BUILD_FEATURES', ''),
           'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [
               {'path': path.name, 'bytes': path.stat().st_size,
                'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in artifacts]}
-if kind == 'probe-tests':
+if kind in ('probe-tests', 'primitive-probes'):
     before = out / 'probe-source-before.json'
     files = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
              for part in ('dnsmasq', 'ubus') for p in sorted((source / 'components' / part).rglob('*'))
              if p.is_file() and 'target' not in p.relative_to(source).parts}
     if files != json.loads(before.read_text()):
-        raise RuntimeError('probe source changed during locked build')
+        raise RuntimeError('diagnostic source changed during locked build')
     report['source_files'] = files
     report['source_before_sha256'] = hashlib.sha256(before.read_bytes()).hexdigest()
     report['diagnostic_only'] = True
