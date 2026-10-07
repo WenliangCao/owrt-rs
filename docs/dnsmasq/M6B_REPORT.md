@@ -1,0 +1,66 @@
+# M6b 修复与优化报告
+
+状态：执行中，尚未完成最终验收。性能结论仅代表 Oracle AArch64 构建机；物理路由器未操作。第1包已经按用户固定收尾点关闭，无方案A新基线正在运行；方案A仍在独立分支，未取得新基线上的验收资格，未合入主线。本文提交不是本轮结束条件。
+
+## 协议与身份
+
+判定使用事前提交的 [M6B_PROTOCOL.md](M6B_PROTOCOL.md)。中间候选只跑9场景×3组×1轮，不能用单轮结果声称显著收益；最终候选仅执行一次9×3×5。方案A增量门另外固定为3个TCP场景×C/无A新opt3/A×5轮，CPU包括C子进程，不能重复加一次child CPU。A每正确请求CPU相对新opt3不劣于5%，且严格低于同配置C；吞吐和p95相对新opt3不劣于5%。任一硬门失败保留证据并按用户要求停止方案A，不拼不同候选最好的结果。
+
+| 对象 | 源码 | ELF SHA256 | 字节 | 资格 |
+| --- | --- | --- | ---: | --- |
+| M6a opt3 | dc1b740d | 37f85d22…7f7b | 1,929,256 | 历史冻结基线，完整数据见M6A_REPORT |
+| 镜像C | 精确OpenWrt 25.12.5 / dnsmasq 2.93 nodhcpv6 | 097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87 | 269,305 | 所有对照使用该镜像rootfs |
+| 第1包无A opt3 | 70097c66 | 34b3b80a39ea619f616f9d003372640d6dc0af35d5941788ae15aa64c07a3050 | 1,949,736 | feature-off，742库/51入口/68UBus实际Linux通过；20 ignored不计 |
+| 第1包无A s | 同70097c66 | b91d3f0ad8ab0759a1c447ed7029035cc2c6561d6a3a7e9e017f8c28c239c62a | 1,630,248 | feature-off，仅性能对照，不作功能验收 |
+| 最终opt3 / s / APK | 尚未冻结 | 未测 | 未测 | 必须绑定同一最终源码及所有门 |
+
+第1包opt3相对M5增加20,480B（1.06%）；s相对该opt3减少319,488B（16.39%）。这些只是体积，不能由此推断CPU代价或建议切换s。正式窗口不启用`m6b-diagnostics`、wake明细、perf或strace；计数诊断有独立companion身份。
+
+新基线manifest为`adea1b55171b355be7c98ad87af03ab2156fdccfebe150ae43979499cd2b70dd`，证据在`private/dnsmasq-rewrite/evidence/M6B/baseline-70097c66/`。CPU0 daemon、CPU1 upstream、CPU2 generator、CPU3 controller；每窗fresh pilot后才正式测量，按C/R3/Rs交错，逐窗完整归档、本地逐文件SHA及元数据验证后才清远端raw。窗口内不运行其他构建、测试或fuzz。
+
+## 第1包机制与归因边界
+
+1. UDP接收缓冲改为owner复用，每轮固定有界批量；网络与文件fd统一等待，按最近实际timer到期计算timeout。包预算保留DHCP/TFTP/TCP/reload的运行机会。Linux旧代码已有网络fd，不能把非Linux的2ms park说成Linux实测根因。用户取消旧M5只加计数版本`df99d1f9`补测：**修复前的等待来源以读码和系统调用统计为证据，未做旧版本计数实测**。
+2. 第1b初次调整metrics/UBus调用和fd backing数组复用效果很小。历史中间TCP CPU为Rust45.679µs、C27.434µs；UDP23.639/11.955、reload48.261/20.610、DHCP1550.191/456.072µs。这些属于旧候选，不是新70097基线。之后按每个fd的revents分派，保留内存已排完整输入、到期timer、错误/HUP、probe及关闭回收的逻辑工作。
+3. readiness修后27个syscall诊断全部归档，scope为warmup+load+稳定排空，分母包括scope内全部正确回答。C/R3 calls/correct：UDP hit3.000/2.214、TCP local3.519/2.372、reload3.559/5.036、DHCP81.176/317.012；两TCP场景Rust EAGAIN为0。诊断有插桩，不能当CPU性能资格。DHCP额外57,120次名字/flags ioctl及14,025次周期snapshot解释诊断差距88.73%，详见[M6B_DHCP_SYSCALL_GAP.md](audits/M6B_DHCP_SYSCALL_GAP.md)。
+4. 主循环变成实际事件等待后，helper队列、DNS文件请求等可能在consumer之后变为可运行。修复直接查询当前可运行状态，不依赖上一轮保存的runnable；可运行时通用poll0守卫，外部FIFO/transport背压仍等待其fd，绝不因队列非空而空转。HUP及普通小文件发布先于同wake的UDP/TCP新admission；大文件、FIFO/worker有界让出。22类来源、setter/consumer/wake及实际测试见[账本唤醒清单](DELIVERY_LEDGER.md#M6b-逻辑工作唤醒清单)。
+5. Linux接口改为独立地址/路由事件，port0仍监视；只有unfinished DAD/迟绑或真实失败登记1秒重试，移除普通100ms全量扫描，保留每个DHCP请求fresh接口合同。ENOBUFS有界续读，不伪造地址/路由/resync；故障工具和后续新发现独立处理，不扩大第1包。
+6. qualified kernel NEWROUTE按精确C先重发最后一次成功UDP，再请求非force resolver检查。保存exact wire、server、单调socket token和destination，仅一个复用Vec；不pin socket、不新建事务，不增加forward/log/dump/fastretry计数。真实UDP消费、本地/拒绝/无效输入、上游消费、HUP、debug/wildcard TCP及明确TFTP scratch构造使save失效；批次末尾额外WouldBlock探空不擦掉本批最新成功send。详见[库合同](audits/M6B_ROUTE_RESEND_FIX.md)和[owner合同](audits/M6B_ROUTE_RESEND_MAIN_CALLER.md)。
+
+路由普通poll/no-poll在70097同ELF fresh镜像C/R均2包，wire/sourceport相同、forward action1、idleFD稳定；原7bdb只有1包的失败完整保留。169项因此复闭，不能把cleanup回答当resend通过。第1包已写唤醒测试全部实际通过；后续新发现独立修复、最终冻结前合入复测。
+
+## TCP方案A及内存
+
+按[M6B_TCP_MEMORY_DESIGN.md](M6B_TCP_MEMORY_DESIGN.md)第5节执行，推荐A仍只在独立worktree。内容块/名字索引分片共享，连接保留私有小型LRU；每个mutator先detach，S1–S8语义及逐query导回不能改变。旧分支的原语/布局数字不冒充新70097基线上fresh资格；新原语、视图隔离、服务、资源/生命周期、压力与CPU门尚未完成。
+
+当前结构模型为4096 snapshot 66,560B（65KiB）、3次分配，20 views约1.27MiB；这是requested结构账，不是整体PSS，不是原先约32KiB的预测。generation仍u64。S8释放DNS状态不提前释放日志占有的slot，不在stale refresh结束前释放视图；不加入额外Box或accept分配。最终须给实际parent/view/content/index/pinned/live requested、峰PSS及0/1/5/15/60秒排空余额。
+
+M6a报告的TCP12–29MiB原“after-drain”值保留原始数据并已加更正：runner当时仅检查C child=0，Rust仍有18–23/36–42 FD，尚未排空。设计复测实际排空后60s PSS约cache3840KiB、miss8660KiB；视图/缓冲已释放，余量含allocator驻留。新测量必须确认计数归零或完整空闲FD集合持续稳定，不能复用这两个诊断值代替最终结果。
+
+## 正式结果与切换s
+
+新基线、A增量及最终135窗口尚在执行/准备中。完整九场景结果、每轮成功/错误、p50/p95及CPU/正确请求、峰RSS/PSS、FD/thread/child、60秒idleCPU及波动分类将由冻结窗口填入。没有五轮证据不作“有收益/无显著差异/变差”结论；错误回答不算吞吐，不能平均掉尾延迟。是否值得切换s尚未有本轮结论。
+
+## 失败、重跑与保全
+
+| 记录 | 结果及处理 | 完整证据 |
+| --- | --- | --- |
+| 原UDP-only135 | 用户改为中间27后停止；已完成C窗与中止Rust窗保留，最终135仅最后候选一次 | E/M6B/formal-udp-only-386fa821 |
+| 首超大wake窗口 | 作废；重复派生数组未完整保留，摘要/原SHA/sidecar保留，不能算通过 | E/M6B/controller-failures/retention-limitations.json |
+| 早期baseline日志/误SHA日志 | 曾覆盖部分日志，有保全缺口，不能隐瞒或当新资格 | 同retention-limitations.json |
+| service-4816 ARP立即FD | extra为瞬时/proc/net/if_inet6；改为完整FD集合3×20ms/最多2秒稳定守卫，fresh ARP过；未只sleep放宽数量 | E/M6B/full-archives/service-4816-03 |
+| service-4816 DNSfiles | 107中21失败；修当前runnable后3e全过，7bdb再次107过 | E/M6B/full-archives/service-4816-04、service-3e1b-05/06、owner-7bdb-runtime |
+| 旧同wake HUP | C新43/Rust旧42；117优先级修复后7bdb六caller全部过 | E/M6B/full-archives/same-wake-3e1b-01、owner-7bdb-runtime |
+| startupFIFO测试fixture | Init首步是cache/hosts barrier，不是opened FIFO；修fixture到真实等待态后实际过，不改产品来迎合断言 | E/M6B/full-archives/wake-linux-7dc3-failed，b16b8d0c… |
+| TCP transport错误断言 | C NoReply→EDE23→flags0 local answer为REFUSED5；修期望后43main全过，不放宽为2或5 | E/M6B/full-archives/owner-linux-2c28-failed，c51b7c33… |
+| route保存缺口 | C2/Rust1真实失败；70097 basic两profile C/R2、forward1/稳定FD复闭 | E/M6B/full-archives/route-resend-7bdb-01，762fb38b…；route-7009-runtime，870c1ead… |
+| route-clears C debug TCP | 前5执行，第6UBus metric Not found。精确C debug非fork也drop父UBus，旧UBUS_CONTRACT_PHASE已记；独立修统计fixture，最终前fresh重跑，不阻塞新基线/A | E/M6B/full-archives/route-7009-runtime；原失败不改为通过 |
+| 被取消旧M5计数 | 准备/中止记录保留、未完成计数实测，不作根因资格，进程/namespace/cgroup清理 | E/M6B/full-archives/old-loop-failed-01、old-loop-cancelled-02及archive tag |
+
+E=`private/dnsmasq-rewrite/evidence/`。所有列出的完整归档按SHA、类型、mode、uid/gid、纳秒mtime、symlink、device/whiteout和xattr核验后才prune。历史保全缺口单独列出，不降低后续标准。诊断scope内C TCP miss57普通timeout及fault各组60预期timeout也保留，不声称所有旧回答零错误。
+
+## 最终验收、差异与待决策
+
+最终固定链为44canonical族/68步骤→M2→perf guard→资源→压力→package→lifecycle；配方与未执行边界见[M6B_FINAL_ACCEPTANCE_RECIPE.md](audits/M6B_FINAL_ACCEPTANCE_RECIPE.md)。perf guard将冻结20客户端UDP p50≤1ms、60秒idleCPU与真实hold20 TCP峰PSS的具体cap/basis；当前cap尚未取得最终实测，不称通过。最终交付强制opt3/feature-off，同一ELF验证所有受影响M5、M2、满4096缓存RSS/300秒资源、ENOSPC/EMFILE与APK安装升级卸载回滚。
+
+既有故意差异见[账本差异总表](DELIVERY_LEDGER.md#与-C-的行为差异)及[M5_BEHAVIOR_DIFFERENCES.md](M5_BEHAVIOR_DIFFERENCES.md)。169项不能有M6b新增差异。最终ELF/APK、满载RSS与M4/M5比较、逐族体积归因和全部fresh资格尚未完成，不能请求体积或M7决定；完成最终报告后再请用户决定是否切换s、是否接受本轮增量及是否进入M7。
