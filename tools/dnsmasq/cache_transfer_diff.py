@@ -14,6 +14,7 @@ from pathlib import Path
 import subprocess
 
 import local_answer_diff as reference
+import c_primitive_receipt
 
 NATIVE_SHA = "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
 CACHE_SHA = "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
@@ -174,7 +175,17 @@ def main():
     out = args.out.resolve()
     assert "private" in out.parts
     out.mkdir(parents=True, exist_ok=False)
+    # Keep source/object/library inputs immutable throughout this fresh C run.
+    input_paths = [args.source_identity, args.reference_build / 'dnsmasq',
+                   args.reference_build / 'deps/include', args.reference_build / 'deps/lib',
+                   args.target_reference, Path(__file__).with_name('cache_transfer_driver.c')]
+    frozen_inputs = c_primitive_receipt.snapshot(input_paths)
+    save(out / 'source-inputs-before.json', frozen_inputs)
     native, target = build(args, out)
+    cc = args.sdk / 'staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc'
+    compilers = [c_primitive_receipt.compiler_probe(out, 'native', 'cc'),
+                 c_primitive_receipt.compiler_probe(out, 'target', cc,
+                     dict(os.environ, STAGING_DIR=str(args.sdk / 'staging_dir')))]
     schedule = cases()
     assert len(schedule) == 36
     save(out / "plan.json", schedule)
@@ -212,6 +223,9 @@ def main():
                              'all_schedules_count_checked': True}
     report['status'] = 'C-baseline-only'
     save(out / 'result.json', report)
+    c_primitive_receipt.freeze(out, 'cache-transfer', args.source_identity, frozen_inputs,
+                               compilers, [out / 'native-oracle', out / 'target-oracle'],
+                               not report['cross_runtime_differences'])
     print(json.dumps({k: report[k] for k in ['status', 'completed_cases', 'observations_per_runtime', 'cross_runtime_differences']}))
 
 
