@@ -2089,6 +2089,8 @@ struct SinglePoll {
     ubus_ready: bool,
     #[cfg(target_os = "linux")]
     ready_fds: Vec<i32>,
+    #[cfg(target_os = "linux")]
+    upstream_ready: bool,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2893,6 +2895,8 @@ impl SinglePoll {
             ubus_ready: false,
             #[cfg(target_os = "linux")]
             ready_fds: Vec::new(),
+            #[cfg(target_os = "linux")]
+            upstream_ready: false,
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3528,9 +3532,11 @@ impl SinglePoll {
             for pending in &self.pending_edns_udp {
                 deadline = deadline.min(pending.deadline);
             }
+            let upstream_fd_start = fds.len();
             if let Some(daemon) = &self.service.borrow_mut().daemon {
                 deadline = daemon.append_poll_fds(&mut fds, deadline);
             }
+            let upstream_fd_end = fds.len();
             for client in &self.clients {
                 if client.network_done {
                     continue;
@@ -3658,6 +3664,9 @@ impl SinglePoll {
                     .filter(|fd| fd.revents != 0)
                     .map(|fd| fd.fd),
             );
+            self.upstream_ready = fds[upstream_fd_start..upstream_fd_end]
+                .iter()
+                .any(|fd| fd.revents != 0);
             self.poll_fds = fds;
             if ready != 0 {
                 self.drain_signal_wake();
@@ -3806,7 +3815,11 @@ impl SinglePoll {
             // a preceding UDP listener consumed the packet budget.
             self.step_tcp_accept(index);
         }
-        self.poll_udp_completions();
+        #[cfg(target_os = "linux")]
+        if self.upstream_ready {
+            self.poll_udp_completions();
+            self.upstream_ready = false;
+        }
         self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_dhcp();
@@ -4026,7 +4039,6 @@ impl SinglePoll {
                 incoming
             }
             Ok(_) => {
-                self.poll_udp_completions();
                 return false;
             }
             Err(error)
@@ -4040,7 +4052,6 @@ impl SinglePoll {
                 if self.m6b.enabled() {
                     self.m6b.listener_mut(index).would_block += 1;
                 }
-                self.poll_udp_completions();
                 return false;
             }
             Err(_) => {
@@ -4063,7 +4074,6 @@ impl SinglePoll {
         );
         drop(interfaces);
         if !admitted {
-            self.poll_udp_completions();
             return true;
         }
         let query = self.udp_buffer[..incoming.len].to_vec();
