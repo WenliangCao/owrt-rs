@@ -3673,6 +3673,9 @@ impl SinglePoll {
                         });
                     }
                 }
+                if let Some(due) = self.helper_next_due(now) {
+                    deadline = deadline.min(due);
+                }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let tftp_fd_start = fds.len();
@@ -5198,6 +5201,31 @@ impl SinglePoll {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn helper_next_due(&self, now: Instant) -> Option<Instant> {
+        let helper = self.helper.as_ref()?;
+        // C moves DHCP/ARP/TFTP source work into its bounded helper buffer
+        // before poll (dnsmasq.c:1177-1194). Our bounded service turn can create
+        // source work after step_helper, so schedule the next turn immediately.
+        // A full pipe or unready/stopping helper is driven only by its fd.
+        if helper.can_enqueue()
+            && (self.pending_delivery.is_some()
+                || self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
+                    .and_then(|provider| provider.try_borrow().ok())
+                    .is_some_and(|provider| provider.has_frozen_script_delivery())
+                || self.neighbors.as_ref()
+                    .is_some_and(|neighbors| neighbors.front_script_change().is_some())
+                || self.tftp.as_ref()
+                    .is_some_and(|tftp| tftp.front_completion().is_some()))
+        {
+            Some(now)
+        } else if helper.needs_reap() {
+            Some(now + Duration::from_millis(10))
+        } else {
+            None
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_helper(&mut self) {
         if self.pending_delivery.is_none() && self.helper_init.is_none() {
             let hosts_pending = self.hosts_work_pending();
@@ -6144,6 +6172,119 @@ mod tests {
         let mut writer = PacketWriter::new(7, 0x100, 1232).unwrap();
         writer.question(&Name::from_ascii("ready.test").unwrap(), 1, 1).unwrap();
         writer.finish()
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn ready_test_helper() -> Helper {
+        let mut helper = Helper::start(HelperConfig {
+            script: "/bin/true".into(), script_user: None, debug: false,
+        }).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !helper.ready() {
+            assert!(Instant::now() < deadline);
+            helper.step().unwrap();
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        helper
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn finish_test_helper(helper: &mut Helper) {
+        helper.begin_shutdown();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !helper.is_finished() {
+            assert!(Instant::now() < deadline);
+            helper.step().unwrap();
+            std::thread::sleep(Duration::from_millis(1));
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn last_tftp_completion_wakes_helper_without_another_packet() {
+        use dnsmasq_rs::tftp_runtime::{RuntimeConfig, RuntimePathPolicy, TransferRuntime};
+        use std::os::unix::ffi::OsStrExt;
+        let root = std::env::temp_dir().join(format!("ready-tftp-helper-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(root.join("boot"), b"last data").unwrap();
+        // Both the explicit final ACK and C's final-ACK timeout leave no
+        // active transfer fd/timer to wake the owner for its callback.
+        for ack in [true, false] {
+            let runtime = TransferRuntime::new(RuntimeConfig {
+                path: RuntimePathPolicy { prefix: Some(root.as_os_str().as_bytes().to_vec()),
+                    lowercase: false }, ..Default::default()
+            }, RealFileOpener::new(0, false));
+            let mut listener = TftpListener::bind("127.0.0.1:0".parse().unwrap(), runtime).unwrap();
+            let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+            peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+            let now = now_seconds() as u64;
+            peer.send_to(b"\0\x01boot\0octet\0", listener.local_addr().unwrap()).unwrap();
+            listener.poll_once(now).unwrap();
+            let mut packet = [0; 1024];
+            let (_, transfer) = peer.recv_from(&mut packet).unwrap();
+            if ack {
+                peer.send_to(&[0, 4, 0, 1], transfer).unwrap();
+                listener.poll_once(now).unwrap();
+            } else {
+                listener.poll_once(now + 122).unwrap();
+            }
+            assert!(!listener.has_pending_work());
+            assert!(listener.front_completion().is_some());
+            let mut owner = test_owner(DnsConfig::default(), None);
+            owner.helper = Some(ready_test_helper());
+            owner.tftp = Some(listener);
+            assert!(owner.ready_fds.is_empty());
+            let clock = Instant::now();
+            assert_eq!(owner.helper_next_due(clock), Some(clock));
+            owner.wait_for_files().unwrap();
+            owner.step_helper();
+            assert!(owner.tftp.as_ref().unwrap().front_completion().is_none());
+            assert_eq!(owner.helper_next_due(clock), None,
+                "drained sources and an idle live helper must not spin");
+            finish_test_helper(owner.helper.as_mut().unwrap());
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn frozen_dhcp_callbacks_resume_after_pipe_capacity_returns() {
+        let path = std::env::temp_dir().join(format!("ready-helper-leases-{}", std::process::id()));
+        std::fs::write(&path, b"0 02:00:00:00:00:01 192.0.2.10 one *\n0 02:00:00:00:00:02 192.0.2.11 two *\n").unwrap();
+        let mut provider = DhcpProvider::new(DhcpConfig {
+            no_ping: true, script: Some(b"/bin/true".to_vec()),
+            lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()),
+            ..Default::default()
+        }, Vec::new(), 0, || false).unwrap();
+        provider.tick(now_seconds()).unwrap();
+        assert!(provider.has_frozen_script_delivery());
+        let mut owner = test_owner(DnsConfig::default(), None);
+        owner.pending_delivery = provider.take_script_delivery();
+        assert!(owner.pending_delivery.is_some());
+        assert!(provider.has_frozen_script_delivery(), "taking one freezes the next callback");
+        owner.dhcp = Some(DhcpService {
+            provider: Some(Rc::new(RefCell::new(provider))),
+            listener: DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(),
+                DhcpListener::Dhcp, &[]).unwrap(), pxe_next: false,
+        });
+        owner.helper = Some(ready_test_helper());
+        let now = Instant::now();
+        assert_eq!(owner.helper_next_due(now), Some(now));
+        assert!(owner.helper.as_mut().unwrap().enqueue(&dnsmasq_rs::helper::Event::Tftp {
+            size: 0, address: "127.0.0.1".parse().unwrap(), filename: b"backpressure".to_vec(),
+        }).unwrap());
+        assert_eq!(owner.helper_next_due(now), None,
+            "occupied command slot waits for POLLOUT instead of spinning");
+        owner.helper.as_mut().unwrap().step().unwrap();
+        owner.step_helper();
+        assert!(owner.pending_delivery.is_none());
+        assert_eq!(owner.helper_next_due(now), Some(now),
+            "the provider's next frozen callback also wakes the owner");
+        owner.step_helper();
+        assert_eq!(owner.helper_next_due(now), None);
+        finish_test_helper(owner.helper.as_mut().unwrap());
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
     }
 
     #[test]

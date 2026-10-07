@@ -315,6 +315,13 @@ impl Helper {
         self.reaped.is_some() && self.eof
     }
 
+    /// Pipe EOF may precede waitpid(WNOHANG) observing the helper's exit.
+    /// Once the pipe is closed the owner needs a bounded recheck, rather than
+    /// waiting for an unrelated network event. Live helpers need no timer.
+    pub fn needs_reap(&self) -> bool {
+        self.eof && self.reaped.is_none()
+    }
+
     /// Bounded work on each service turn. No read, write, or wait can block.
     pub fn step(&mut self) -> io::Result<Vec<Notice>> {
         let mut notices = Vec::new();
@@ -911,6 +918,21 @@ mod tests {
             std::thread::sleep(Duration::from_millis(1));
         }
         notices
+    }
+    #[test]
+    fn only_unreaped_eof_needs_an_owner_recheck() {
+        let (folder, config) = script("exit 0");
+        let mut helper = Helper::start(config).unwrap();
+        until(&mut helper, |helper, _| helper.ready());
+        assert!(!helper.needs_reap(), "live idle helper has no timer");
+        // Model EOF observed just before the child's exit becomes waitable.
+        // step closes both pipes and remains nonblocking until waitpid catches up.
+        helper.eof = true;
+        assert!(helper.needs_reap());
+        until(&mut helper, |helper, _| helper.is_finished());
+        assert!(!helper.needs_reap(), "reaped helper must not keep an idle timer");
+        drop(helper);
+        std::fs::remove_dir_all(folder).unwrap();
     }
     #[test]
     fn initialization_is_streamed_before_ready_without_waiting_in_owner() {
