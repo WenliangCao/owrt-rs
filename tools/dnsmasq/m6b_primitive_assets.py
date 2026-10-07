@@ -25,10 +25,37 @@ ABI = {
     'm6b-cache-lease': 'cache-lease-publication-ascii-v1',
 }
 TARGET = '/home/ubuntu/dnsmasq-cargo-target'
+DRIVERS = ('cache_policy_transaction_diff.py', 'cache_edns_diff.py',
+           'lease_cache_probe.rs', 'dns_cache_diff.py')
 
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def validate_base_archive(receipt, source_receipt):
+    archive = Path(source_receipt).parent / 'base-source.tar'
+    if archive.is_symlink() or digest(archive) != receipt.get('base_source_archive_sha256'):
+        raise ValueError('frozen base source archive changed')
+    files = {}
+    with tarfile.open(archive) as stream:
+        if stream.pax_headers.get('comment') != receipt['source_commit']:
+            raise ValueError('base source archive commit differs')
+        for member in stream:
+            path = Path(member.name)
+            parts = path.parts
+            component = (len(parts) > 2 and parts[:2] in
+                         [('components', 'dnsmasq'), ('components', 'ubus')]
+                         and 'target' not in parts)
+            root_input = ((len(parts) > 1 and parts[0] == '.cargo')
+                          or member.name in ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml'])
+            if (not component and not root_input) or member.isdir():
+                continue
+            if path.is_absolute() or '..' in parts or not member.isfile() or member.name in files:
+                raise ValueError('invalid frozen base compile input: ' + member.name)
+            files[member.name] = hashlib.sha256(stream.extractfile(member).read()).hexdigest()
+    if files != receipt.get('base_compile_inputs'):
+        raise ValueError('base source archive compilation inputs differ')
 
 
 def source_files(root):
@@ -78,7 +105,10 @@ def validate_binary(binary, source_root, source_receipt, build_receipt, probe_na
         raise ValueError('complete frozen primitive source receipt required')
     if receipt.get('generator_sha256') != digest(Path(__file__)):
         raise ValueError('primitive asset generator changed')
-    for name, expected in receipt.get('driver_inputs', {}).items():
+    validate_base_archive(receipt, source_receipt)
+    if set(receipt.get('driver_inputs', {})) != set(DRIVERS):
+        raise ValueError('complete frozen primitive driver inputs required')
+    for name, expected in receipt['driver_inputs'].items():
         if digest(HERE / name) != expected:
             raise ValueError('frozen primitive fixture/driver changed: ' + name)
     actual = source_files(root)
@@ -165,16 +195,15 @@ def prepare(args):
     base = source_files(source)
     if any('components/dnsmasq/examples/' + name + '.rs' in base for name in ABI):
         raise ValueError('base already contains these generated examples')
-    driver_inputs = ['cache_policy_transaction_diff.py', 'cache_edns_diff.py', 'lease_cache_probe.rs', 'dns_cache_diff.py']
-    drivers = {name: digest(HERE / name) for name in driver_inputs}
-    policy = rust_driver(HERE / driver_inputs[0])
+    drivers = {name: digest(HERE / name) for name in DRIVERS}
+    policy = rust_driver(HERE / DRIVERS[0])
     old = 'pub fn cache_edns_probe_main()'
     if policy.count(old) != 1 or policy.count('question_name:question.name,') != 1 or policy.count('UncheckedReply{packet,truncated:') != 1:
         raise ValueError('policy bridge API anchors changed')
     policy = policy.replace(old, 'pub fn m6b_cache_policy_main()')
     policy = policy.replace('question_name:question.name,', 'question_name:question.name.clone(),')
     policy = policy.replace('UncheckedReply{packet,truncated:', 'UncheckedReply{packet,upstream_name:question.name,truncated:')
-    edns = rust_driver(HERE / driver_inputs[1])
+    edns = rust_driver(HERE / DRIVERS[1])
     context = 'negative_ttl:daemon.negative_ttl}'
     if edns.count(old) != 1 or edns.count(context) != 1:
         raise ValueError('EDNS bridge API anchors changed')

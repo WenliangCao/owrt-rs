@@ -13,7 +13,7 @@ policy/EDNS原driver需要daemon私有API，不能伪造外部Shim或拿产品EL
 
 所有Rust构建仅由parent的 `oracle_build.sh SOURCE FRESH_OUTPUT primitive-probes` 完成：唯一共享target、opt3、feature-off，四静态examples全部在锁内build/copy。公共helper的source_files口径与该builder相同：dnsmasq/ubus全部regular component文件（排relative target），以及存在的root Cargo/lock/rust-toolchain/.cargo文件；symlink拒绝。新的NameIndex helper也是component冻结输入。
 
-`validate_binary(binary, source_root, source_receipt, build_receipt, probe_name)`不生成、不编译：核完整source receipt/四example ABI、实际source SHA==generated inputs==build.source_files、sibling probe-source-before.json SHA/map、shared-target build kind/settings、四artifacts exact集合及每个SHA/bytes；所选ELF须64-bit little-endian AArch64。返回binary_sha256、source commit及source/build/example/ABI链供summary记录。原prepare路径可不同于迁移后的Oracle source root，逐文件SHA仍必须相同。
+`validate_binary(binary, source_root, source_receipt, build_receipt, probe_name)`不生成、不编译：核完整source receipt/四example ABI、实际source SHA==generated inputs==build.source_files、sibling probe-source-before.json SHA/map、shared-target build kind/settings、四artifacts exact集合及每个SHA/bytes；所选ELF须64-bit little-endian AArch64。同时重核receipt旁`base-source.tar`的SHA、Git archive comment与source_commit，以及archive内实际编译输入与base_compile_inputs；driver_inputs必须正好四项，删项不能绕过冻结driver检查。返回binary_sha256、source commit及source/build/example/ABI链供summary记录。原prepare路径可不同于迁移后的Oracle source root，逐文件SHA仍必须相同。
 
 三个旧standalone drivers现在必须提供四个copied inputs；Rust资产先validate，再复制到fresh out/rust、复核SHA，每次执行前后查复制ELF，整个run结束重新核冻结绑定。它们不再执行cargo/rustc，不创建target，不复制ROOT组件，不默认编main/无A。旧 `--cargo` 仅为CLI兼容保留，copied路径不调用它；`--c-only`仍可取得匹配源码C primitive参考，但不能写Rust通过。helper为parent core保留显式desktop local-native守卫，已知Oracle目录／共享target环境不得用/tmp绕过；三standalone不提供该自编回退。
 
@@ -26,7 +26,7 @@ python3 "$TOOLS/m6b_primitive_assets.py" --repository "$LOCAL_GIT_REPO" \
   --source-commit "$FINAL_A_COMMIT" --out "$LOCAL_GIT_REPO/private/m6b-primitive-source-01"
 ```
 
-将完整generated source与source-receipt转入fresh Oracle目录；parent core getter45b85ee3及primitive-probes builder必须先整合。共享锁内构建四artifact后，各caller传以下四参数，另照原CLI提供匹配C reference build与fresh private out：
+将完整generated source、source-receipt及同目录base-source.tar一起转入fresh Oracle目录；不得仅搬receipt而丢失原始Git archive。parent core getter45b85ee3及primitive-probes builder必须先整合。共享锁内构建四artifact后，各caller传以下四参数，另照原CLI提供匹配C reference build与fresh private out：
 
 ```sh
 --rust-binary "$PROBE_BUILD/m6b-cache-policy" \
