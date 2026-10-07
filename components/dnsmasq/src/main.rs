@@ -66,6 +66,7 @@ static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
+const UDP_PACKETS_PER_TURN: usize = 16;
 
 fn now_seconds() -> i64 {
     SystemTime::now()
@@ -2038,6 +2039,7 @@ struct SinglePoll {
     tcp_limit: usize,
     edns_max: u16,
     m6b: M6bDiagnostics,
+    udp_buffer: Vec<u8>,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2199,7 +2201,6 @@ impl M6bDiagnostics {
         if self.last_write.elapsed() >= Duration::from_millis(500) {
             self.write_snapshot()?;
             self.last_write = Instant::now();
-            self.wait_durations_ns.clear();
         }
         Ok(())
     }
@@ -2259,7 +2260,6 @@ impl M6bDiagnostics {
     fn write(&mut self) -> io::Result<()> {
         if self.enabled() {
             self.write_snapshot()?;
-            self.wait_durations_ns.clear();
         }
         Ok(())
     }
@@ -2761,6 +2761,7 @@ impl SinglePoll {
             tcp_limit,
             edns_max,
             m6b: M6bDiagnostics::new(listener_count),
+            udp_buffer: vec![0; 65_535],
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3350,8 +3351,118 @@ impl SinglePoll {
     fn wait_for_files(&mut self) -> io::Result<()> {
         #[cfg(target_os = "linux")]
         {
+            use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+            use std::os::fd::AsRawFd;
             let mut fds = Vec::new();
             self.append_file_fds(&mut fds, true);
+            let now = Instant::now();
+            let mut deadline = now + Duration::from_secs(3600);
+
+            // The normal owner waits on network and file descriptors in one
+            // set.  `step` still performs bounded nonblocking work after the
+            // wait returns; readiness is deliberately not consumed here.
+            for listener in &self.listeners {
+                if let Some(udp) = &listener.udp {
+                    fds.push(PollFd {
+                        fd: udp.as_raw_fd(),
+                        events: POLLIN,
+                        revents: 0,
+                    });
+                }
+                if self.clients.len() < self.tcp_limit {
+                    if let Some(tcp) = &listener.tcp {
+                        fds.push(PollFd {
+                            fd: tcp.as_raw_fd(),
+                            events: POLLIN,
+                            revents: 0,
+                        });
+                    }
+                }
+            }
+            for pending in &self.pending_edns_udp {
+                deadline = deadline.min(pending.deadline);
+            }
+            if let Some(daemon) = &self.service.borrow_mut().daemon {
+                deadline = daemon.append_poll_fds(&mut fds, deadline);
+            }
+            for client in &self.clients {
+                if client.network_done {
+                    continue;
+                }
+                deadline = deadline.min(client.deadline);
+                let (fd, events) = match &client.phase {
+                    TcpClientPhase::Reading => {
+                        if client.input_offset < client.input.len() {
+                            deadline = now;
+                        }
+                        (
+                            client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                            POLLIN,
+                        )
+                    }
+                    TcpClientPhase::WaitingMac { .. } => {
+                        deadline = deadline.min(client.mac_deadline);
+                        (-1, 0)
+                    }
+                    TcpClientPhase::Writing { .. } => (
+                        client.stream.as_ref().map_or(-1, AsRawFd::as_raw_fd),
+                        POLLOUT,
+                    ),
+                    TcpClientPhase::Forwarding { wait, .. } => {
+                        deadline = deadline.min(wait.deadline);
+                        (wait.fd, wait.events)
+                    }
+                };
+                fds.push(PollFd {
+                    fd,
+                    events,
+                    revents: 0,
+                });
+            }
+            if let Some(ubus) = &self.parent_events.borrow().ubus {
+                fds.push(PollFd {
+                    fd: ubus.as_raw_fd(),
+                    events: POLLIN,
+                    revents: 0,
+                });
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(dhcp) = &self.dhcp {
+                dhcp.listener.append_poll_fds(&mut fds);
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(helper) = &self.helper {
+                for (fd, events) in helper.poll_fds() {
+                    if fd >= 0 {
+                        fds.push(PollFd {
+                            fd,
+                            events,
+                            revents: 0,
+                        });
+                    }
+                }
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(tftp) = &self.tftp {
+                tftp.append_poll_fds(&mut fds);
+                if tftp.active_transfers() != 0 {
+                    deadline = deadline.min(now + Duration::from_millis(250));
+                }
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(neighbors) = &self.neighbors {
+                neighbors.append_poll_fds(&mut fds);
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(collector) = &self.interface_collector {
+                collector.append_poll_fds(&mut fds);
+                if let Some(limit) = collector.deadline() {
+                    deadline = deadline.min(limit);
+                }
+                if collector.runnable() {
+                    deadline = now;
+                }
+            }
             let mut runnable = self.files_runnable
                 || self
                     .hosts_read
@@ -3362,7 +3473,14 @@ impl SinglePoll {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 runnable |= provider.borrow_mut().files_runnable();
             }
-            let timeout = if runnable { 0 } else { 2 };
+            if runnable || self.full_reload_pending {
+                deadline = now;
+            }
+            let timeout = deadline
+                .saturating_duration_since(Instant::now())
+                .as_nanos()
+                .div_ceil(1_000_000)
+                .min(i32::MAX as u128) as i32;
             let started = Instant::now();
             let ready = owrt_ubus::sys::poll_fds(&mut fds, timeout)?;
             self.m6b.record_wait(timeout, ready, started.elapsed())?;
@@ -3453,8 +3571,23 @@ impl SinglePoll {
         // Bound work per turn.  This keeps a busy UDP socket from starving
         // DHCP, TFTP, reload and TCP admission.
         let listeners = self.listeners.len();
+        let mut udp_budget = UDP_PACKETS_PER_TURN;
         for index in 0..listeners {
-            self.step_udp(index);
+            if udp_budget == 0 {
+                break;
+            }
+            let mut batch = 0;
+            while udp_budget != 0 && self.step_udp(index) {
+                udp_budget -= 1;
+                batch += 1;
+            }
+            if self.m6b.enabled() {
+                let counters = self.m6b.listener_mut(index);
+                counters.max_batch = counters.max_batch.max(batch);
+                if udp_budget == 0 {
+                    counters.budget_yields += 1;
+                }
+            }
             self.step_tcp_accept(index);
         }
         self.poll_udp_completions();
@@ -3638,30 +3771,33 @@ impl SinglePoll {
         }
     }
 
-    fn step_udp(&mut self, index: usize) {
+    fn step_udp(&mut self, index: usize) -> bool {
         if self.m6b.enabled() {
             self.m6b.listener_mut(index).step_calls += 1;
         }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if self.interface_work_pending() {
-            return;
+            return false;
         }
         if self.files_initializing() {
-            return;
+            return false;
         }
         let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
-            return;
+            return false;
         };
         let token = self.listeners[index].token;
-        let mut query = vec![0; 65_535];
         if self.m6b.enabled() {
-            self.m6b.listener_mut(index).buffer_alloc_count += 1;
-            self.m6b.listener_mut(index).buffer_alloc_bytes += query.len() as u64;
+            let counters = self.m6b.listener_mut(index);
+            counters.buffer_reuses += 1;
+            if index == 0 && counters.buffer_alloc_count == 0 {
+                counters.buffer_alloc_count = 1;
+                counters.buffer_alloc_bytes = 65_535;
+            }
         }
         if self.m6b.enabled() {
             self.m6b.listener_mut(index).receive_attempts += 1;
         }
-        let incoming = match udp.receive(&mut query) {
+        let incoming = match udp.receive(&mut self.udp_buffer) {
             Ok(Some(incoming)) if incoming.len <= usize::from(self.edns_max) => {
                 if self.m6b.enabled() {
                     self.m6b.listener_mut(index).received_packets += 1;
@@ -3670,7 +3806,7 @@ impl SinglePoll {
             }
             Ok(_) => {
                 self.poll_udp_completions();
-                return;
+                return false;
             }
             Err(error)
                 if matches!(
@@ -3684,18 +3820,18 @@ impl SinglePoll {
                     self.m6b.listener_mut(index).would_block += 1;
                 }
                 self.poll_udp_completions();
-                return;
+                return false;
             }
             Err(_) => {
                 if self.m6b.enabled() {
                     self.m6b.listener_mut(index).receive_errors += 1;
                 }
-                return;
+                return false;
             }
         };
         let interfaces = match self.interfaces.try_borrow_mut() {
             Ok(interfaces) => interfaces,
-            Err(_) => return,
+            Err(_) => return true,
         };
         let admitted = listeners::admit(
             &self.config,
@@ -3707,15 +3843,15 @@ impl SinglePoll {
         drop(interfaces);
         if !admitted {
             self.poll_udp_completions();
-            return;
+            return true;
         }
-        query.truncate(incoming.len);
+        let query = self.udp_buffer[..incoming.len].to_vec();
         if query.len() < 12 || query[2] & 0x80 != 0 {
-            return;
+            return true;
         }
         let query_context = match self.service.try_borrow_mut() {
             Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
-            Err(_) => return,
+            Err(_) => return true,
         };
         #[cfg(target_os = "linux")]
         if query.len() >= 12 && query[2] & 0x80 == 0 {
@@ -3749,7 +3885,7 @@ impl SinglePoll {
                 if daemon.detect_loop(&query).unwrap_or(false) {
                     local.config = daemon.local_config().clone();
                     self.config = local.config.clone();
-                    return;
+                    return true;
                 }
             }
         }
@@ -3783,6 +3919,7 @@ impl SinglePoll {
             }
             ClientMacLookup::Pending => {} // bounded admission; kernel-style drop
         }
+        true
     }
 
     fn edns_mac(&mut self, source: IpAddr, lazy: bool) -> ClientMacLookup {
@@ -5465,6 +5602,12 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 mod tests {
     use super::*;
     use dnsmasq_rs::config::{lex_line, validate_directive};
+
+    #[test]
+    fn udp_turn_budget_is_bounded_for_service_fairness() {
+        assert!(UDP_PACKETS_PER_TURN > 1);
+        assert!(UDP_PACKETS_PER_TURN <= 64);
+    }
 
     #[test]
     fn startup_status_retains_config_loader_exit_codes() {

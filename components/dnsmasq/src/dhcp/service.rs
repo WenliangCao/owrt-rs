@@ -16,6 +16,8 @@ pub const MAX_DATAGRAM_LEN: usize = 65_507;
 #[cfg(any(test, all(target_os = "linux", target_pointer_width = "64")))]
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+use std::os::fd::AsRawFd;
 
 /// C's DHCP and PXE listeners use separate UDP sockets (dhcp.c:130-133).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -444,6 +446,25 @@ impl SocketListener {
             });
         }
         Ok(owrt_ubus::sys::poll_fds(&mut fds, 0)? != 0)
+    }
+
+    /// Add the DHCP and optional PXE sockets to the main owner's wait set.
+    /// The sockets are nonblocking; packet processing remains bounded by the
+    /// caller's normal DHCP turn and never runs from the poll itself.
+    pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
+        use owrt_ubus::sys::{PollFd, POLLIN};
+        fds.push(PollFd {
+            fd: self.socket.as_raw_fd(),
+            events: POLLIN,
+            revents: 0,
+        });
+        if let Some(socket) = &self.pxe_socket {
+            fds.push(PollFd {
+                fd: socket.as_raw_fd(),
+                events: POLLIN,
+                revents: 0,
+            });
+        }
     }
 
     pub fn has_pxe_listener(&self) -> bool {
