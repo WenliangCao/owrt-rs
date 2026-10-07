@@ -6,6 +6,8 @@
 
 中间候选只跑一轮9场景×3组（27窗口），连同独立短pilot做机制归因；没有五轮波动证据时不作显著收益判定。UDP-only旧135已停止并保存已跑/中止窗口，27窗口已完成。完整135只在方案A通过全部前置门、合入后的最终候选执行一次。
 
+用户随后取消旧M5 `df99d1f9` 只加计数构建的补测。修复前的等待来源以读码和系统调用统计为证据，未做旧版本计数实测；旧低速准备及中止记录保留、不计为根因计数资格。计数诊断仅使用修后同源独立companion，Oracle时间优先用于服务回归、无A新基线和方案A。
+
 第1b优先于方案A：先采perf、再统计原始syscall/errno，证实多余EAGAIN后修按fd/revents分派。必须保留每个socket的读写/error/hangup和内部buffer、timer、probe、MAC/file续步；不能以readiness跳过到期或关闭回收。关闭dump时无地址查询。新基线冻结前方案A CPU门暂停，M6a约20µs不再作为当前对照。
 
 方案A增量门使用同配置的新feature-off `R3_new`、独立分支A和镜像C，`u=daemon cgroup CPU usec/正确完成请求`（cgroup已经包含C子进程，**不得再加一次child CPU**；proc父子合计只作交叉核验）。要求`median(u_A)≤1.05×median(u_R3_new)`且`median(u_A)<median(u_C_new)`，吞吐/p95不回退超过5%；全部原语/语义/资源门保持。正式W及4/5方向分类阈值不变。
@@ -30,7 +32,7 @@ Rust 没有 C 的 TCP 子进程，排空不能用 child count==0 作为充分条
 
 ## 第 1 项：UDP 主循环
 
-先用未修复 opt3 在 M6a 465 QPS／约42 ms p50 的固定 hit 负载采集上面计数，回答每秒主循环、poll、wait 原因和每轮收包。源码已知事实（不等于 Linux 根因已证）是 `main.rs:3282–3289` 每 listener 每轮一次 `step_udp`，`3469–3498` 单次 `recvmsg` 和新 `vec![0; 65,535]`；Linux 网络 fd 路径与文件等待要由计数验证，非 Linux 2 ms park 在 `3202–3203` 单独记录。
+修复前以M6a 465 QPS／约42 ms p50、精确读码和系统调用统计定位，按上方用户修订不再进行旧版计数补测。旧源码的 `main.rs:3282–3289` 每 listener 每轮一次 `step_udp`，`3469–3498` 单次 `recvmsg` 和新 `vec![0; 65,535]`；Linux统一网络fd与非Linux `3202–3203` 的2 ms park分别解释，不能把非Linux等待冒充Linux实测。修后独立companion记录loop/poll/wait/batch，正式feature-off CPU/延迟与诊断分开。
 
 修复候选必须把网络 socket 和文件 fd 放入同一 poll/deadline 体系，空闲按最近 timer 到期等待；每 listener 每轮在固定 packet budget 内批量收包，处理每个包后运行 completion/公平性步骤，并明确让出 DHCP、TFTP、TCP、reload 的上限；接收缓冲复用且不读取未初始化字节。C 的 `check_dns_listeners` 单事件返回和服务公平性是参考边界，不能用无限 drain 饿死其他服务。
 
