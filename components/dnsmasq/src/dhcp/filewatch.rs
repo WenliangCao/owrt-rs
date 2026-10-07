@@ -97,6 +97,10 @@ impl DirectoryWatch {
         self.directories.len()
     }
 
+    pub fn raw_fd(&self) -> std::os::fd::RawFd {
+        self.fd.as_raw_fd()
+    }
+
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
         fds.push(owrt_ubus::sys::PollFd {
             fd: self.fd.as_raw_fd(),
@@ -155,9 +159,14 @@ impl DirectoryWatch {
         self.event.is_some() || self.position < self.length
     }
 
+    #[cfg(test)]
+    pub fn step(&mut self) -> io::Result<WatchStep> {
+        self.step_with_readiness(true)
+    }
+
     /// One buffered event, one directory match, or one <=4096 byte read.
     /// Duplicate declarations sharing a watch descriptor each receive the event.
-    pub fn step(&mut self) -> io::Result<WatchStep> {
+    pub fn step_with_readiness(&mut self, readable: bool) -> io::Result<WatchStep> {
         if let Some(event) = self.event.as_mut() {
             if let Some(directory) = self.directories.get(event.directory) {
                 event.directory += 1;
@@ -181,6 +190,9 @@ impl DirectoryWatch {
             self.position += length;
             self.event = event;
             return Ok(WatchStep::Pending);
+        }
+        if !readable {
+            return Ok(WatchStep::Idle);
         }
         match self.fd.read(&mut self.bytes) {
             Ok(0) => Ok(WatchStep::Idle),
