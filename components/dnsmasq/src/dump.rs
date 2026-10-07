@@ -158,6 +158,13 @@ impl DumpHandle {
         }
         Ok(Self(Some(Rc::new(RefCell::new(writer)))))
     }
+    /// Match dump.c's mask gate before resolving packet socket addresses.
+    pub fn enabled(&self, mask: i32) -> bool {
+        self.0
+            .as_ref()
+            .is_some_and(|writer| writer.borrow().mask & mask != 0)
+    }
+
     pub fn udp(&self, mask: i32, bytes: &[u8], source: SocketAddr, destination: SocketAddr) {
         self.udp_with_context(mask, bytes, source, destination, Default::default());
     }
@@ -334,4 +341,72 @@ fn udp_packet(payload: &[u8], source: SocketAddr, destination: SocketAddr) -> Ve
     let sum = checksum(&pseudo);
     packet[start + 6..start + 8].copy_from_slice(&sum.to_be_bytes());
     packet
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn selected_query_and_reply_masks_preserve_pcap_records() {
+        assert!(!DumpHandle::default().enabled(QUERY | REPLY));
+        let source: SocketAddr = "192.0.2.1:12345".parse().unwrap();
+        let destination: SocketAddr = "192.0.2.2:53".parse().unwrap();
+        for mask in [0, QUERY, REPLY, QUERY | REPLY, -1] {
+            let path = std::env::temp_dir().join(format!(
+                "dnsmasq-dump-mask-{}-{}-{}",
+                std::process::id(),
+                mask,
+                SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            let dump = DumpHandle::open(
+                &DumpConfig {
+                    file: Some(path.clone()),
+                    mask,
+                },
+                1232,
+            )
+            .unwrap();
+            let mut expected = Vec::new();
+            for (kind, payload, from, to) in [
+                (QUERY, b"query".as_slice(), source, destination),
+                (REPLY, b"reply".as_slice(), destination, source),
+            ] {
+                if dump.enabled(kind) {
+                    dump.udp(kind, payload, from, to);
+                }
+                if mask & kind != 0 {
+                    expected.push((payload, from, to));
+                }
+            }
+            drop(dump);
+            let captured = std::fs::read(&path).unwrap();
+            std::fs::remove_file(path).unwrap();
+            assert_eq!(u32::from_ne_bytes(captured[..4].try_into().unwrap()), MAGIC);
+            let mut offset = 24;
+            for (payload, from, to) in expected {
+                let length =
+                    u32::from_ne_bytes(captured[offset + 8..offset + 12].try_into().unwrap())
+                        as usize;
+                assert_eq!(length, 28 + payload.len());
+                let packet = &captured[offset + 16..offset + 16 + length];
+                assert_eq!(&packet[20..22], &from.port().to_be_bytes());
+                assert_eq!(&packet[22..24], &to.port().to_be_bytes());
+                let IpAddr::V4(from) = from.ip() else {
+                    unreachable!()
+                };
+                let IpAddr::V4(to) = to.ip() else {
+                    unreachable!()
+                };
+                assert_eq!(&packet[12..16], &from.octets());
+                assert_eq!(&packet[16..20], &to.octets());
+                assert_eq!(&packet[28..], payload);
+                offset += 16 + length;
+            }
+            assert_eq!(offset, captured.len(), "mask {mask:#x}");
+        }
+    }
 }
