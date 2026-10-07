@@ -7,7 +7,8 @@ for isolated lifecycle testing and never becomes a user size exception.
 
 Fuzz runs three independent instrumented targets concurrently for at least
 1800 real seconds each, totaling at least 90 target-minutes. These are M5
-robustness checks; formal M6 performance is outside this controller.
+robustness checks; explicit M6b functional mode excludes new fuzz windows.
+Formal M6 performance is outside this controller.
 """
 from __future__ import annotations
 
@@ -36,6 +37,7 @@ from m2_rootfs import STOCK_SHA256
 
 TARGET = Path('/home/ubuntu/dnsmasq-cargo-target')
 PHASES = ['families', 'm2', 'fuzz-build', 'fuzz', 'resources', 'pressure', 'package', 'lifecycle']
+M6B_PHASES = ['families', 'm2', 'resources', 'pressure', 'package', 'lifecycle']
 DNS = ['udp-cache', 'expiry', 'tcp', 'failure-recovery', 'strict-order', 'all-servers', 'representative-mix']
 FUZZ = ['dns_wire', 'dhcp_packet', 'config_line']
 FUZZ_SECONDS = 1800
@@ -57,6 +59,36 @@ def digest(path):
 def require(condition, message):
     if not condition:
         raise ValueError(message)
+
+
+def required_phases(spec):
+    """The milestone selects a fixed qualification chain, never a caller subset."""
+    mode = spec.get('validation_mode', 'm5')
+    require(mode in ('m5', 'm6b'), 'validation_mode must be m5 or m6b')
+    phases = M6B_PHASES if mode == 'm6b' else PHASES
+    require(spec.get('phases', phases) == phases, 'manifest phases differ from fixed validation mode')
+    return list(phases)
+
+
+def phase_prerequisites(spec, phase):
+    phases = required_phases(spec)
+    require(phase in phases or phase == 'full-cache-600', 'phase is excluded-not-required in this validation mode')
+    if phase in ('package', 'lifecycle'):
+        return phases[:phases.index(phase)]
+    if phase == 'fuzz':
+        return ['fuzz-build']
+    if phase == 'full-cache-600':
+        return ['resources']
+    return []
+
+
+def completion_status(spec, completed):
+    phases = required_phases(spec)
+    excluded = {phase: {'status': 'excluded-not-required', 'passed': None,
+                        'reason': 'M6b final functional scope does not require new M5 fuzz build/90 target-minute windows'}
+                for phase in PHASES if phase not in phases}
+    return {'required_phases': phases, 'excluded_phases': excluded,
+            'missing_phases': [phase for phase in phases if completed.get(phase, {}).get('passed') is not True]}
 
 
 def file_map(root):
@@ -137,6 +169,8 @@ def verify_release_map(spec, build):
 def prepare(args):
     require(sys.flags.optimize == 0 and not os.environ.get('PYTHONOPTIMIZE'), 'assertion-enabled Python required by original drivers')
     spec = json.loads(args.inputs.read_text())
+    phases = required_phases(spec)
+    mode = spec.get('validation_mode', 'm5')
     source = Path(spec['source_root']).resolve()
     out = args.out.resolve()
     require(out.is_relative_to(source / 'private') and not out.exists(), 'fresh output under frozen source/private required')
@@ -167,6 +201,8 @@ def prepare(args):
                 for row in families['families']), 'every family step needs a retained result and explicit completion checks')
     canonical = source / 'tools/dnsmasq/m5_final_families.draft.json'
     require(families == json.loads(canonical.read_text()), 'family registry differs from reviewed frozen source')
+    if mode == 'm6b':
+        require(len(families['families']) == 44, 'M6b requires all 44 frozen M5 families')
     require(len(spec['cpus']) == 2 and spec['cpus'][0] != spec['cpus'][1]
             and set(spec['cpus']) <= os.sched_getaffinity(0), 'two available distinct CPU cores required')
     for name in ['deferred_review', 'safety_review']:
@@ -198,9 +234,9 @@ def prepare(args):
                 family_registry=families, dhcp_profiles=list(plan['profiles']),
                 ubus_helpers=ubus_helpers,
                 reference_source=source_reference,
-                phases=PHASES, physical_router=False, size_acceptance='pending-user-after-report',
+                validation_mode=mode, phases=phases, physical_router=False, size_acceptance='pending-user-after-report',
                 m4_baseline={'elf_bytes': 1159280, 'full_cache_rss_kib': 2676},
-                resource_seconds=300, fuzz_seconds_per_target=1800)
+                resource_seconds=300, fuzz_seconds_per_target=1800 if mode == 'm5' else None)
     archive = Path(spec['source_archive']).resolve()
     with tarfile.open(archive) as stream:
         require(stream.pax_headers.get('comment') == spec['source_commit'], 'source archive commit differs')
@@ -210,7 +246,7 @@ def prepare(args):
               **{'components/dnsmasq/fuzz/' + name: sha for name, sha in spec['fuzz_inputs'].items()}}
     require(all(archived.get(name) == sha for name, sha in locked.items()), 'final source does not match its exact commit archive')
     spec['assets'][str(archive)] = digest(archive)
-    schedule = {phase: commands(spec, phase, out / 'runs' / phase / 'attempt-1') for phase in PHASES}
+    schedule = {phase: commands(spec, phase, out / 'runs' / phase / 'attempt-1') for phase in phases}
     out.mkdir(parents=True)
     save(out / 'identity.json', spec)
     save(out / 'commands.json', schedule)
@@ -315,6 +351,7 @@ def commands(spec, phase, output):
 
 
 def verify_identity(spec):
+    required_phases(spec)
     require(sys.flags.optimize == 0 and not os.environ.get('PYTHONOPTIMIZE'), 'driver assertions were disabled')
     require(digest(spec['elf']) == spec['elf_sha256'], 'ELF changed after freeze')
     require(build_package.inputs(Path(spec['source_root'])) == spec['source_files'], 'product/packaging source changed')
@@ -607,12 +644,10 @@ def run(args):
     require(len(selected) == len(set(selected)) and set(selected) <= available, 'unknown or duplicate family ID')
     spec['selected_families'] = selected
     completed = json.loads((root / 'completed.json').read_text()) if (root / 'completed.json').exists() else {}
-    if phase == 'fuzz':
-        spec['fuzz_build_directory'] = prerequisite(spec, manifest_sha, completed, 'fuzz-build')['artifact_directory']
-    if phase == 'full-cache-600': prerequisite(spec, manifest_sha, completed, 'resources')
-    if phase in ['package', 'lifecycle']:
-        needed = PHASES[:PHASES.index(phase)]
-        for name in needed: prerequisite(spec, manifest_sha, completed, name)
+    for name in phase_prerequisites(spec, phase):
+        receipt = prerequisite(spec, manifest_sha, completed, name)
+        if name == 'fuzz-build':
+            spec['fuzz_build_directory'] = receipt['artifact_directory']
     folder = root / 'runs' / phase
     if selected:
         selection = hashlib.sha256('\n'.join(sorted(selected)).encode()).hexdigest()[:12]
@@ -706,7 +741,8 @@ def run(args):
 def summary(args):
     spec = json.loads(args.manifest.read_text()); verify_identity(spec)
     root = Path(spec['output']); completed = json.loads((root / 'completed.json').read_text())
-    missing = [phase for phase in PHASES if not completed.get(phase, {}).get('passed')]
+    status = completion_status(spec, completed)
+    missing = status['missing_phases']
     if 'families' not in missing: prerequisite(spec, digest(args.manifest), completed, 'families')
     for phase, record in completed.items():
         require(record['elf_sha256'] == spec['elf_sha256'] and record['source_commit'] == spec['source_commit'], 'phase used another identity')
@@ -714,7 +750,8 @@ def summary(args):
         receipt = Path(record.get('receipt', str(Path(record['attempt']) / 'result.json')))
         require(json.loads(receipt.read_text()) == record, 'completed phase receipt changed')
     report = {'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'], 'elf_bytes': spec['elf_bytes'],
-              'elf_delta_from_m4_bytes': spec['elf_bytes'] - 1159280, 'missing_phases': missing,
+              'validation_mode': spec.get('validation_mode', 'm5'), **status,
+              'elf_delta_from_m4_bytes': spec['elf_bytes'] - 1159280,
               'functional_validation_passed': not missing, 'size_acceptance': 'pending-user-after-report',
               'm6_performance_executed': False, 'physical_router': False, 'phases': completed}
     if completed.get('resources', {}).get('passed'):
@@ -726,18 +763,25 @@ def summary(args):
         package = json.loads(Path(completed['package']['commands'][0]['result']).read_text())
         report['apk'] = package['artifact']; report['size_targets'] = package['budget_checks']
     save(root / 'summary.json', report)
-    text = (f"# M5 最终验收报告草稿\n\n源码 `{spec['source_commit']}`，ELF `{spec['elf_sha256']}`，"
+    mode = spec.get('validation_mode', 'm5')
+    title = 'M6b 功能复验' if mode == 'm6b' else 'M5 最终验收'
+    exclusions = ('M6b 范围未要求新的 fuzz-build/fuzz；两项为 excluded-not-required，不是通过。\n\n'
+                  if mode == 'm6b' else '')
+    performance_scope = ('本控制器只给出 M6b 功能资格；正式性能窗口由独立冻结协议和报告给出。'
+                         if mode == 'm6b' else 'M6 仅准备协议草稿，尚未执行正式性能窗口。')
+    text = (f"# {title}报告草稿\n\n源码 `{spec['source_commit']}`，ELF `{spec['elf_sha256']}`，"
             f"{spec['elf_bytes']:,} 字节；相对 M4 {report['elf_delta_from_m4_bytes']:+,} 字节。\n\n"
             f"完整冻结资格：{'已执行全部阶段' if not missing else '未完成：' + ', '.join(missing)}。"
             "各阶段的原始命令、身份、结果及失败保存在本次 fresh evidence。\n\n"
+            + exclusions +
             "新增 ELF/APK 体积尚待用户在报告后决定；未复用 M4 例外。"
             "APK size-target 失败与生命周期资格分别报告。\n\n"
             "满缓存 RSS 和增长：见 summary.json 的实际 4096 live A 记录结果；"
             "与 M4 2,676 KiB 比较，不将资源收集解释为性能收益。\n\n"
             "补齐人工结论：全部功能族结果、deferred 每项处理/精确 C 位置/理由、"
             "SAFETY 与网络/定时 unwrap/expect/Mutex 审查、资源趋势及失败归因。\n\n"
-            "M6 仅准备协议草稿，尚未执行正式性能窗口。物理路由器未操作；未经 M7 不称生产验收。\n")
-    (root / 'M5_REPORT.draft.md').write_text(text)
+            + performance_scope + "物理路由器未操作；未经 M7 不称生产验收。\n")
+    (root / ('M6B_FUNCTIONAL_REPORT.draft.md' if mode == 'm6b' else 'M5_REPORT.draft.md')).write_text(text)
     print(json.dumps({'functional_validation_passed': not missing, 'missing_phases': missing,
                       'size_acceptance': report['size_acceptance']})); return bool(missing)
 

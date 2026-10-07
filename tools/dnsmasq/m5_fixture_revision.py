@@ -212,5 +212,5 @@ def revise(args):
         spec.update(tools_root=str(root), tools=updated, family_registry=families)
         spec['assets'][str(args.tools_archive.resolve())] = final.digest(args.tools_archive)
     out.mkdir(); (out / 'imports').mkdir(); final.save(out / 'identity.json', spec)
-    final.save(out / 'commands.json', {phase: final.commands(spec, phase, out / 'runs' / phase / 'attempt-1') for phase in final.PHASES})
+    final.save(out / 'commands.json', {phase: final.commands(spec, phase, out / 'runs' / phase / 'attempt-1') for phase in final.required_phases(spec)})
     return import_unchanged(out / 'identity.json')

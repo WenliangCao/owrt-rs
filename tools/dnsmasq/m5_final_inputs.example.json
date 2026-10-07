@@ -1,4 +1,5 @@
 {
+  "validation_mode": "m5",
   "source_root": "/home/ubuntu/M5-FINAL/source",
   "source_commit": "FULL_FINAL_PRODUCT_COMMIT",
   "source_date_epoch": "FINAL_COMMIT_UNIX_TIMESTAMP",
