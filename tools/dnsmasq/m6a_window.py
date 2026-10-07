@@ -433,6 +433,14 @@ def syscall_accounting(trace, load):
             "note": "diagnostic amortized syscall cost, including idle/drain calls and failed work; never a 15-second formal-window rate or untraced performance result"}
 
 
+def diagnostic_tools_finished(summary):
+    # Attach tools are deliberately interrupted after the stable drain. strace
+    # can report that orderly detach as SIGINT rather than a zero exit status.
+    return all(not row["forced_kill"] and not row["exited_before_stop"]
+               and row["returncode"] in (0, -signal.SIGINT, 128 + signal.SIGINT)
+               for row in summary["stopped"].values())
+
+
 class DiagnosticCapture:
     """Attach before any load and detach immediately after the drain barrier."""
     def __init__(self, args, pid):
@@ -1001,9 +1009,7 @@ def run_load(args, daemon, root, upstream):
                             "wake_metrics_passed": (not args.wake_metrics or args.implementation == "c"
                                                      or wake_summary["available"]),
                             "diagnostic_scope_passed": diagnostic_summary["scope_complete"],
-                            "diagnostic_tools_passed": all(not row["forced_kill"] and not row["exited_before_stop"]
-                                                           and row["returncode"] == 0
-                                                           for row in diagnostic_summary["stopped"].values()),
+                            "diagnostic_tools_passed": diagnostic_tools_finished(diagnostic_summary),
                             "diagnostic_raw_calls_passed": (not args.strace_summary or
                                                            diagnostic_summary["strace"]["counts"]["completed_calls"] > 0)},
                 "peaks": {key: max((row["tree"][key] for row in measured), default=0)

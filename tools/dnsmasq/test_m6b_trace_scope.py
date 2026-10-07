@@ -14,6 +14,12 @@ import m6b_intermediate as intermediate
 
 
 class TraceAccounting(unittest.TestCase):
+    def test_controlled_sigint_detach_does_not_hide_failed_or_early_tracer(self):
+        row = {"forced_kill": False, "exited_before_stop": False, "returncode": -signal.SIGINT}
+        self.assertTrue(window.diagnostic_tools_finished({"stopped": {"strace": row}}))
+        for change in ({"returncode": 1}, {"forced_kill": True}, {"exited_before_stop": True}):
+            self.assertFalse(window.diagnostic_tools_finished({"stopped": {"strace": {**row, **change}}}))
+
     def test_full_scope_denominator_includes_warmup_and_cross_window_success(self):
         load = {"warmup": {"correct": 40}, "measurement": {"correct": 100, "correct_in_window": 90}}
         trace = {"completed_calls": 700, "calls": {"recvmsg": 280}, "eagain_calls": 140,
