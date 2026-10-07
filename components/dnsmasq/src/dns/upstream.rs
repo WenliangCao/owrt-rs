@@ -1646,6 +1646,10 @@ fn poll_once(fds: &mut [PollFd], timeout: i32) -> io::Result<usize> {
 }
 
 #[cfg(test)]
+#[path = "upstream_owner_wake_tests.rs"]
+mod owner_wake_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::dns::forward::{Options, Server, ServerGroup};
@@ -1654,7 +1658,7 @@ mod tests {
     use std::sync::mpsc;
     use std::thread;
 
-    struct Counter(u32);
+    pub(super) struct Counter(u32);
     impl Random for Counter {
         fn next_u32(&mut self) -> io::Result<u32> {
             self.0 += 1;
@@ -1662,14 +1666,14 @@ mod tests {
         }
     }
 
-    fn query() -> Vec<u8> {
+    pub(super) fn query() -> Vec<u8> {
         let name = Name::from_ascii("upstream.test").unwrap();
         let mut writer = PacketWriter::new(0x1234, 0x100, 1232).unwrap();
         writer.question(&name, 1, 1).unwrap();
         writer.finish()
     }
 
-    fn client() -> Client {
+    pub(super) fn client() -> Client {
         Client {
             source: "127.0.0.1:53000".parse().unwrap(),
             destination: "127.0.0.1".parse().unwrap(),
@@ -1681,7 +1685,7 @@ mod tests {
         }
     }
 
-    fn response(request: &[u8], flags: u16, answer: bool) -> Vec<u8> {
+    pub(super) fn response(request: &[u8], flags: u16, answer: bool) -> Vec<u8> {
         let header = Header::parse(request).unwrap();
         let name = Name::from_ascii("upstream.test").unwrap();
         let mut writer = PacketWriter::new(header.id, flags, 1232).unwrap();
@@ -2061,7 +2065,7 @@ mod tests {
         worker.join().unwrap();
     }
 
-    fn group(addresses: &[SocketAddr], all_servers: bool) -> ServerGroup {
+    pub(super) fn group(addresses: &[SocketAddr], all_servers: bool) -> ServerGroup {
         ServerGroup::new(
             GroupId(1),
             addresses
@@ -2078,7 +2082,7 @@ mod tests {
         )
     }
 
-    fn transport(
+    pub(super) fn transport(
         group: ServerGroup,
         options: Options,
         timeout: Duration,
@@ -2937,7 +2941,7 @@ mod tests {
         thread.join().unwrap();
     }
 
-    fn pending_receive(
+    pub(super) fn pending_receive(
         lifetime: Lifetime,
     ) -> (UpstreamResolver<Counter>, UdpSocket, QueryId, SocketToken) {
         let server = UdpSocket::bind("127.0.0.1:0").unwrap();

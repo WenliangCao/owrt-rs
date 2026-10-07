@@ -2,6 +2,103 @@ use super::*;
 use crate::config::lex_line;
 use std::net::UdpSocket;
 
+#[test]
+fn owner_fast_retry_deadline_completes_a_real_daemon_query_without_new_client_input() {
+    use owrt_ubus::sys::poll_fds;
+    use std::time::Instant;
+
+    let server = UdpSocket::bind("127.0.0.1:0").unwrap();
+    server
+        .set_read_timeout(Some(Duration::from_secs(1)))
+        .unwrap();
+    let mut config = DnsConfig::default();
+    for line in [
+        "no-resolv".to_string(),
+        format!("server=127.0.0.1#{}", server.local_addr().unwrap().port()),
+    ] {
+        config
+            .apply(&lex_line(line.as_bytes()).unwrap().unwrap())
+            .unwrap();
+    }
+    let mut daemon = DnsDaemon::new(
+        config,
+        Hosts::new(),
+        &[],
+        DaemonOptions {
+            fast_retry: Some(FastRetry {
+                interval_ms: 40,
+                timeout_seconds: 10,
+            }),
+            ..DaemonOptions::default()
+        },
+    )
+    .unwrap();
+    daemon.enable_cache(4, 0, 0, StalePolicy::Disabled);
+    let name = Name::from_ascii("retry-owner.test").unwrap();
+    let mut writer = PacketWriter::new(0x7331, 0x100, 512).unwrap();
+    writer.question(&name, 1, 1).unwrap();
+    assert!(matches!(
+        daemon
+            .handle_udp(
+                &writer.finish(),
+                ClientRequest {
+                    source: "127.0.0.1:39001".parse().unwrap(),
+                    destination: "127.0.0.1".parse().unwrap(),
+                    interface: 1,
+                },
+            )
+            .unwrap(),
+        QueryResult::Forwarded(_)
+    ));
+    let mut packet = [0; 2048];
+    let (length, peer) = server.recv_from(&mut packet).unwrap();
+    let initial = packet[..length].to_vec();
+
+    let mut fds = Vec::new();
+    let before = Instant::now();
+    let due = daemon.append_poll_fds(&mut fds, before + Duration::from_secs(1));
+    assert!(due <= before + Duration::from_millis(45));
+    let left = due.saturating_duration_since(Instant::now());
+    let millis = left
+        .as_millis()
+        .saturating_add(u128::from(!left.subsec_nanos().is_multiple_of(1_000_000)))
+        as i32;
+    assert_eq!(poll_fds(&mut fds, millis).unwrap(), 0);
+    assert!(daemon.poll(Duration::ZERO).unwrap().is_empty());
+    let (length, retried_peer) = server.recv_from(&mut packet).unwrap();
+    assert_eq!(retried_peer, peer);
+    assert_eq!(&packet[..length], initial);
+    assert_eq!(daemon.forward_counters().queries_forwarded, 2);
+
+    let question = WireQuestion::parse(&initial, 12).unwrap();
+    let mut reply = PacketWriter::new(Header::parse(&initial).unwrap().id, 0x8180, 512).unwrap();
+    reply.question(&question.name, 1, 1).unwrap();
+    reply
+        .record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 55])
+        .unwrap();
+    server.send_to(&reply.finish(), peer).unwrap();
+    fds.clear();
+    daemon.append_poll_fds(&mut fds, Instant::now() + Duration::from_secs(1));
+    assert_eq!(poll_fds(&mut fds, 1000).unwrap(), 1);
+    let replies = daemon.poll(Duration::ZERO).unwrap();
+    assert_eq!(replies.len(), 1);
+    let message = Message::parse(&replies[0].packet).unwrap();
+    assert_eq!(message.header.id, 0x7331);
+    assert_eq!(message.header.flags, 0x8180);
+    assert_eq!(
+        message.records(Section::Answer).next().unwrap().rdata,
+        [192, 0, 2, 55]
+    );
+    assert_eq!(daemon.cache_counters().inserted, 1);
+    assert_eq!(daemon.pending_count(), 0);
+    assert_eq!(daemon.upstream.socket_count(), 0);
+    assert_eq!(daemon.poll_failures(), PollFailures::default());
+    fds.clear();
+    let idle = Instant::now() + Duration::from_secs(1);
+    assert_eq!(daemon.append_poll_fds(&mut fds, idle), idle);
+    assert!(fds.is_empty());
+}
+
 /// Admit real transactions and receive both successful responses through the
 /// production transport. The caller then controls only the ordering of an
 /// explicit terminal timeout/release event, avoiding wall-clock races.
