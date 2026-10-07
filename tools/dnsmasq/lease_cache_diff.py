@@ -13,6 +13,7 @@ import shutil
 import subprocess
 
 import local_answer_diff
+import m6b_primitive_assets as assets
 
 ROOT = Path(__file__).resolve().parents[2]
 CACHE_SHA = "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
@@ -38,16 +39,9 @@ def build_c(args, out):
 
 
 def build(args, out):
+    args.rust_binding = assets.validate(args, 'm6b-cache-lease')
     c = build_c(args, out)
-    with (out / "rust-build.log").open("w") as log:
-        subprocess.run([args.cargo, "build", "--manifest-path", str(ROOT / "components/dnsmasq/Cargo.toml"),
-                        "--lib", "--release", "--target-dir", str(out / "target")], stdout=log, stderr=log, check=True)
-    rust = out / "rust"
-    subprocess.run([str(Path(args.cargo).with_name("rustc")), "--edition=2021", "-O", "-Cpanic=abort", "-Clto",
-                    str(Path(__file__).with_name("lease_cache_probe.rs")), "--extern",
-                    f"dnsmasq_rs={out / 'target/release/libdnsmasq_rs.rlib'}", "-L",
-                    f"dependency={out / 'target/release/deps'}", "-o", str(rust)], check=True)
-    return c, rust
+    return c, assets.copy_binary(args.rust_binary, out / 'rust', args.rust_binding)
 
 
 def corpus():
@@ -94,8 +88,9 @@ def main():
     parser.add_argument("--reference-build", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cargo", default=shutil.which("cargo"))
+    assets.add_arguments(parser)
     args = parser.parse_args(); out = args.output.resolve()
-    assert out.is_relative_to(ROOT / "private") and not out.exists()
+    assert 'private' in out.parts and not out.exists()
     args.reference_build = args.reference_build.resolve(); out.mkdir(parents=True)
     assert not mismatches(["Q 1:7:0:190"], ["Q 1:7:0:190"])
     assert mismatches(["Q 1:7:0:190"], ["Q 1:7:0:191"]) == [0]
@@ -104,6 +99,7 @@ def main():
     else: raise AssertionError("count calibration")
     c, rust = build(args, out)
     report = {"reference_cache_sha256": CACHE_SHA, "c_sha256": digest(c), "rust_sha256": digest(rust),
+              "rust_binding":args.rust_binding,"image_daemon_qualification":False,
               "calibration": {"equal": 1, "negative_ttl_and_count": 2, "c_insert_hit_selective_delete": 1}, "cases": [], "failures": [],
               "scope": "actual cache_add_dhcp_entry/cache_find_by_name effects on dynamic entries; synthetic local blockers via actual cache_hash; no reverse cache or full daemon/answer_request equivalence"}
     for no_round in [False, True]:
@@ -114,11 +110,13 @@ def main():
             wire = "\n".join(lines) + "\n"; prefix.with_suffix(".input").write_text(wire)
             results = []
             for side, command in [("c", [str(c), "-C", str(conf)]), ("rust", [str(rust), str(capacity), str(int(no_round))])]:
+                if side == 'rust': assets.unchanged_binary(rust, args.rust_binding)
                 run = subprocess.run(command, input=wire, text=True, capture_output=True)
                 prefix.with_suffix(f".{side}.stdout").write_text(run.stdout)
                 prefix.with_suffix(f".{side}.stderr").write_text(run.stderr)
                 if run.returncode: raise RuntimeError(f"{label} {side} exited {run.returncode}")
                 result = run.stdout.splitlines(); assert len(result) == len(lines), (label, side, "incomplete")
+                if side == 'rust': assets.unchanged_binary(rust, args.rust_binding)
                 results.append(result)
             if index == 0:
                 before = lines.index("Q lease.test 1 100")
@@ -133,6 +131,8 @@ def main():
             if failure: report["failures"].append(row)
     report["planned"] = report["compared"] = sum(row["commands"] for row in report["cases"])
     report["mismatches"] = sum(len(row["mismatches"]) for row in report["cases"])
+    if assets.validate(args, 'm6b-cache-lease') != args.rust_binding:
+        raise ValueError('Rust primitive binding changed during run')
     (out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({key: value for key, value in report.items() if key != "cases"}))
     return int(bool(report["failures"]))
