@@ -4,7 +4,7 @@
 
 ## 结论与推荐
 
-实施状态补注（2026-10-07）：本篇原始数字与方案 A 的 33 KiB/view 是设计研究及模型，不能当成已交付表示。独立 readiness 基线原型先测得 56 B Slot／225 KiB/view，完整证据已归档；设计内 compact revision `285e0947` 保持 u64 generation，使用 checked `Option<NonZeroU32>` links，实际为16 B Slot／65 KiB/view（含私有generation与roots）。name shard detach 仍会复制 singleton Vec，尚未实现本文推荐的 inline-singleton/shared-Many。实际布局、负控、镜像服务缺口见[实施门账](audits/M6B_TCP_A_READINESS.md)。CPU门遵从最新版[M6B_PROTOCOL](M6B_PROTOCOL.md)修订，以新无A readiness R3和同配置C为对照；daemon cgroup已含C子CPU，只计一次。服务/资源/压力/CPU资格尚未完成，A未合入main。
+实施状态补注（2026-10-07）：本篇原始数字与方案 A 的 33 KiB/view 是设计研究及模型，不能当成已交付表示。独立 readiness 基线原型先测得 56 B Slot／225 KiB/view，完整证据已归档；设计内 compact revision `285e0947`（新无A基线4816b19f上重放为`0cf957ac`，fresh门绑定3a64b45d）保持 u64 generation，使用 checked `Option<NonZeroU32>` links，实际为16 B Slot／65 KiB/view（含私有generation与roots）。name shard detach 仍会复制 singleton Vec，尚未实现本文推荐的 inline-singleton/shared-Many。实际布局、负控、镜像服务缺口见[实施门账](audits/M6B_TCP_A_READINESS.md)。CPU门遵从最新版[M6B_PROTOCOL](M6B_PROTOCOL.md)修订，以新无A readiness R3和同配置C为对照；daemon cgroup已含C子CPU，只计一次。服务/资源/压力/CPU资格尚未完成，A未合入main。
 
 1. **峰值的主因是主动复制缓存的可变结构，不是每连接复制全部 DNS 记录。** `Arc<Record>` 共享载荷；槽位、HashMap 桶、规范名 key、每名索引 Vec 均复制。空缓存仍复制 448 KiB 槽位。4096 条 M6a 命中记录的视图为 **958,472 B = 936.008 KiB、8,194 次分配/连接**；miss churn 后为 **1,392,648 B = 1,360.008 KiB**，主要来自名字索引桶翻倍和更长的 key。20 份分别为18.282 / 26.563 MiB，尚未加父缓存、连接对象和 allocator 成本。下文给出目标机插桩与静态账的交叉核对。
 2. **M6a 的 12–29 MiB“after-drain”不是 Rust 已排空后的长期保留量。** runner 只等 C 子进程归零，Rust 无子进程而直接采样；原始 cache/miss 窗口该时刻还剩 18–23 / 36–42 个 FD（空闲10个）。短窗口插桩已证明视图和缓冲全部释放，另有较小的 allocator 驻留；同M6a负载下，原产品在约41–47ms恢复空闲FD，60s PSS为cache **3.75 MiB**、miss **8.46 MiB**；诊断版1s起确认全部view已释放。导入事务同步消费，没有长期导入队列。

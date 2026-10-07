@@ -1,12 +1,14 @@
 # Scheme A：新 readiness 基线上的独立候选
 
-2026-10-07。状态：本地原语和布局证据已完成；镜像服务、资源、压力和 CPU 门未运行，A 不在 main。root 仍在修 UDP-only 基线的 TFTP/helper runnable 和健壮性，实际无 A product commit 尚待给出；届时 A 要以同一基线重建、全门 fresh 重跑，不提前 rebase 或合入。所有内存数字为 requested allocation / 类型布局，不冒称 Oracle PSS 或路由器表现。
+2026-10-07。状态：本地原语和布局证据已完成；镜像服务、资源、压力和 CPU 门未运行，A 不在 main。当前独立分支已基于 root 给出的无 A 产品 `4816b19fdbf6d0b90858b5fb601a923e3cac6c28`（健壮性与 helper runnable 修复）重建，fresh 本地门绑定 `3a64b45d`；该无 A 基线还需 root 的真实服务门确认。若 root 再改产品，A 将同基线重建并全门重跑，不提前合入。所有内存数字为 requested allocation / 类型布局，不冒称 Oracle PSS 或路由器表现。
 
 ## 保存与重建
 
 旧 A 分支 tip `a9f069a4` 保存到 `archive/m6b/tcp-scheme-a-pre-readiness-20261007`，472 个原始证据文件保存在 `E/M6B/tcp-a-pre-readiness-preservation/evidence.tar.gz`，archive SHA `923dfbf6f8a89ed7dcae8574cc7b7df16f54aaca1883efb3f8e11dbc79b135f6`。
 
 新分支 `m6b/tcp-a-ready` 从无 A 的产品 `6f3bed3de272162bf3cbbb0914de4c5367e324fb` 创建，独立 cherry-pick 存储和 COW 视图测试（`65256826`、`7e975ab6`），没有 merge main 后再受旧 revert 抵消。`896d3d73` 补 retained-view 的 negative authority / reverse expiry / lease generation / RRset rotation / clear 与 capacity 0/1/150/4096；`285e0947` 才是 checked compact-link 表示修订。u64 generation 没有缩短。
+
+随后按 root 指定保存 `35e479c5` 为 `archive/m6b/tcp-a-compact-6f3bed3d-20261007`，旧完整证据 10,882 文件留在原 central 目录，逐文件保全 manifest SHA `fb63f7c461cccbb06b57c930805870a867dad383bd387689e2ac0caa32a97936`；不 prune。分支以 `rebase --onto 4816b19f 6f3bed3d` 独立重放 A 提交，没有 merge：当前存储 `1fa8b24f`、compact links `0cf957ac`、retained tests `6c5d3118`，同基线 full-host/Linux typecheck/primitive/负控/布局全部 fresh 重跑，结果位于 `E/M6B/tcp-a-ready-3a64b45d/`。
 
 E = 仓库 ignored `private/dnsmasq-rewrite/evidence/`。原 56 B Slot 原型及全部布局证据另保存到 `archive/m6b/tcp-a-slot56-readiness-20261007`（tip `07aa3f46`）和 `E/M6B/tcp-a-slot56-preservation/`：完整 211 文件 archive SHA `a3f5d5d6480704ea57c8f98f2c10c0f5149e5f22537daaf9fc3697e35091cf92`。不能用其结果替代 compact revision 的资格。
 
@@ -41,6 +43,8 @@ E = 仓库 ignored `private/dnsmasq-rewrite/evidence/`。原 56 B Slot 原型及
 | safe mutator negative controls | `guards-02` | 5/5 拒绝：detach 丢 inherited content、detach 丢 name index、禁 RRset 轮转、保留过期 reverse、复用 generation。每变体都实际执行 31 tests 后失败，编译失败不计负控通过。 |
 
 `guards-01` 的 content 变体生成器写错 Rust 表达式，编译失败而不是执行 tests；整个 receipt 标为 failed，原源码/stdout/stderr 保留。修正生成器后以新目录 `guards-02` fresh 重跑，result SHA `3dbca6037e6541e23fe945cf88440ddcb6536cd2958007782ed46ee0b7b18bcf`。这些变体安全地模拟状态损坏，不注入共享可变 alias/UB，不能冒称已执行“漏 detach 后跨 owner 写内存”的 unsafe 负控。
+
+基于 `4816b19f` 的 `3a64b45d` 新重跑没有继承这些通过收据：host 618/8 ignored＋bin12、Linux default/diagnostics `--tests` 类型检查、C21场景/22,571命令/0差异、5负控均再次通过；layout仍16 B Slot／66,560 B snapshot／3次分配，所有 index/content detach 成本与表相同。新 layout SHA `99ae5b1aa9317f82cb9a757883c2f52903f3747befa36c43f3ed2b18118df1af`、guards SHA `20c38b3a4e951caca9a467dfb85c2be0172b724577a3d7782d080717977aa61d`、full-tests/check命令收据 SHA `87a1671723b2b92d67bfa02cfb786bee8f93efd95bf51281681ef63c6a636b7f`。镜像服務/资源/压力/CPU仍未运行。
 
 ## 真正镜像服务门与未闭合缺口
 
