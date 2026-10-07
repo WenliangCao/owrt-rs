@@ -45,6 +45,7 @@ use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::cell::RefCell;
 use std::ffi::OsString;
+use std::fs::File;
 use std::io::{self, Read, Write};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -1793,6 +1794,7 @@ fn run_inner(
         }
         poll.wait_for_files()?;
     }
+    poll.m6b.write()?;
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     if let Some(neighbors) = &mut poll.neighbors {
         neighbors.discard_script_changes();
@@ -2035,6 +2037,7 @@ struct SinglePoll {
     packet_limit: usize,
     tcp_limit: usize,
     edns_max: u16,
+    m6b: M6bDiagnostics,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2100,6 +2103,166 @@ struct PollListener {
     token: SocketToken,
     udp: Option<Arc<DnsSocket>>,
     tcp: Option<TcpListener>,
+}
+
+/// Optional M6b event-loop counters.  The sidecar is enabled only when
+/// `DNSMASQ_M6B_COUNTERS` names an output file, so normal service runs do not
+/// pay for formatting or file I/O.  Counters are intentionally local to the
+/// single poll owner; no mutex or background sampler is needed.
+#[derive(Default)]
+struct M6bListenerCounters {
+    step_calls: u64,
+    receive_attempts: u64,
+    received_packets: u64,
+    would_block: u64,
+    receive_errors: u64,
+    buffer_alloc_count: u64,
+    buffer_alloc_bytes: u64,
+    buffer_reuses: u64,
+    max_batch: u64,
+    budget_yields: u64,
+}
+
+struct M6bDiagnostics {
+    path: Option<std::path::PathBuf>,
+    origin: Instant,
+    last_write: Instant,
+    loop_rounds: u64,
+    wait_calls: u64,
+    poll_calls: u64,
+    poll_ready: u64,
+    poll_wait_ns: u128,
+    wait_timeout_zero: u64,
+    wait_timeout_two_ms: u64,
+    wait_ready: u64,
+    wait_ns: u128,
+    wait_durations_ns: Vec<u64>,
+    listeners: Vec<M6bListenerCounters>,
+}
+
+impl M6bDiagnostics {
+    fn new(listener_count: usize) -> Self {
+        let now = Instant::now();
+        let path = std::env::var_os("DNSMASQ_M6B_WAKE_METRICS").map(std::path::PathBuf::from);
+        Self {
+            path,
+            origin: now,
+            last_write: now,
+            loop_rounds: 0,
+            wait_calls: 0,
+            poll_calls: 0,
+            poll_ready: 0,
+            poll_wait_ns: 0,
+            wait_timeout_zero: 0,
+            wait_timeout_two_ms: 0,
+            wait_ready: 0,
+            wait_ns: 0,
+            wait_durations_ns: Vec::new(),
+            listeners: (0..listener_count)
+                .map(|_| M6bListenerCounters::default())
+                .collect(),
+        }
+    }
+
+    fn enabled(&self) -> bool {
+        self.path.is_some()
+    }
+
+    fn listener_mut(&mut self, index: usize) -> &mut M6bListenerCounters {
+        if index >= self.listeners.len() {
+            self.listeners
+                .resize_with(index + 1, M6bListenerCounters::default);
+        }
+        &mut self.listeners[index]
+    }
+
+    fn record_wait(&mut self, timeout: i32, ready: usize, elapsed: Duration) -> io::Result<()> {
+        if !self.enabled() {
+            return Ok(());
+        }
+        let elapsed_ns = elapsed.as_nanos();
+        self.wait_calls += 1;
+        self.poll_calls += 1;
+        self.wait_ns += elapsed_ns;
+        self.poll_wait_ns += elapsed_ns;
+        self.wait_durations_ns
+            .push(elapsed_ns.min(u64::MAX as u128) as u64);
+        if ready != 0 {
+            self.wait_ready += 1;
+            self.poll_ready += 1;
+        }
+        if timeout == 0 {
+            self.wait_timeout_zero += 1;
+        } else if timeout == 2 {
+            self.wait_timeout_two_ms += 1;
+        }
+        if self.last_write.elapsed() >= Duration::from_millis(500) {
+            self.write_snapshot()?;
+            self.last_write = Instant::now();
+            self.wait_durations_ns.clear();
+        }
+        Ok(())
+    }
+
+    fn write_snapshot(&self) -> io::Result<()> {
+        let Some(path) = &self.path else {
+            return Ok(());
+        };
+        let temporary = path.with_extension("json.tmp");
+        let mut output = File::create(&temporary)?;
+        write!(
+            output,
+            "{{\"monotonic_ns\":{},\"loop_rounds\":{},\"poll_calls\":{},\"poll_wait_ns\":{},\"wait_durations_ns\":[",
+            self.origin.elapsed().as_nanos(),
+            self.loop_rounds,
+            self.poll_calls,
+            self.poll_wait_ns,
+        )?;
+        for (index, duration) in self.wait_durations_ns.iter().enumerate() {
+            if index != 0 {
+                output.write_all(b",")?;
+            }
+            write!(output, "{duration}")?;
+        }
+        write!(
+            output,
+            "],\"wait_reasons\":{{\"files_timeout_0\":{},\"files_timeout_2ms\":{},\"ready\":{},\"poll_ready\":{}}},\"udp_listeners\":[",
+            self.wait_timeout_zero,
+            self.wait_timeout_two_ms,
+            self.wait_ready,
+            self.poll_ready,
+        )?;
+        for (index, listener) in self.listeners.iter().enumerate() {
+            if index != 0 {
+                output.write_all(b",")?;
+            }
+            write!(
+                output,
+                "{{\"step_udp_calls\":{},\"receive_attempts\":{},\"udp_packets\":{},\"would_block\":{},\"receive_errors\":{},\"alloc_count\":{},\"alloc_bytes\":{},\"reuse_count\":{},\"max_batch\":{},\"budget_yields\":{}}}",
+                listener.step_calls,
+                listener.receive_attempts,
+                listener.received_packets,
+                listener.would_block,
+                listener.receive_errors,
+                listener.buffer_alloc_count,
+                listener.buffer_alloc_bytes,
+                listener.buffer_reuses,
+                listener.max_batch,
+                listener.budget_yields,
+            )?;
+        }
+        output.write_all(b"]}\n")?;
+        output.sync_all()?;
+        std::fs::rename(temporary, path)
+    }
+
+    fn write(&mut self) -> io::Result<()> {
+        if self.enabled() {
+            self.write_snapshot()?;
+            self.wait_durations_ns.clear();
+        }
+        Ok(())
+    }
 }
 
 // Both EDNS queues are advanced by the existing owner. The UDP queue retains
@@ -2580,6 +2743,7 @@ impl SinglePoll {
             NeighborCache,
         >,
     ) -> Self {
+        let listener_count = listeners.len();
         Self {
             query_logging: Default::default(),
             listeners: listeners
@@ -2596,6 +2760,7 @@ impl SinglePoll {
             packet_limit,
             tcp_limit,
             edns_max,
+            m6b: M6bDiagnostics::new(listener_count),
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3182,7 +3347,7 @@ impl SinglePoll {
         }
     }
 
-    fn wait_for_files(&self) -> io::Result<()> {
+    fn wait_for_files(&mut self) -> io::Result<()> {
         #[cfg(target_os = "linux")]
         {
             let mut fds = Vec::new();
@@ -3197,7 +3362,10 @@ impl SinglePoll {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 runnable |= provider.borrow_mut().files_runnable();
             }
-            owrt_ubus::sys::poll_fds(&mut fds, if runnable { 0 } else { 2 })?;
+            let timeout = if runnable { 0 } else { 2 };
+            let started = Instant::now();
+            let ready = owrt_ubus::sys::poll_fds(&mut fds, timeout)?;
+            self.m6b.record_wait(timeout, ready, started.elapsed())?;
         }
         #[cfg(not(target_os = "linux"))]
         thread::park_timeout(Duration::from_millis(2));
@@ -3239,6 +3407,9 @@ impl SinglePoll {
     }
 
     fn step(&mut self) {
+        if self.m6b.enabled() {
+            self.m6b.loop_rounds += 1;
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(dhcp) = &mut self.dhcp {
             dhcp.listener.retry_device_binding();
@@ -3468,6 +3639,9 @@ impl SinglePoll {
     }
 
     fn step_udp(&mut self, index: usize) {
+        if self.m6b.enabled() {
+            self.m6b.listener_mut(index).step_calls += 1;
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if self.interface_work_pending() {
             return;
@@ -3480,8 +3654,20 @@ impl SinglePoll {
         };
         let token = self.listeners[index].token;
         let mut query = vec![0; 65_535];
+        if self.m6b.enabled() {
+            self.m6b.listener_mut(index).buffer_alloc_count += 1;
+            self.m6b.listener_mut(index).buffer_alloc_bytes += query.len() as u64;
+        }
+        if self.m6b.enabled() {
+            self.m6b.listener_mut(index).receive_attempts += 1;
+        }
         let incoming = match udp.receive(&mut query) {
-            Ok(Some(incoming)) if incoming.len <= usize::from(self.edns_max) => incoming,
+            Ok(Some(incoming)) if incoming.len <= usize::from(self.edns_max) => {
+                if self.m6b.enabled() {
+                    self.m6b.listener_mut(index).received_packets += 1;
+                }
+                incoming
+            }
             Ok(_) => {
                 self.poll_udp_completions();
                 return;
@@ -3494,10 +3680,18 @@ impl SinglePoll {
                         | io::ErrorKind::Interrupted
                 ) =>
             {
+                if self.m6b.enabled() {
+                    self.m6b.listener_mut(index).would_block += 1;
+                }
                 self.poll_udp_completions();
                 return;
             }
-            Err(_) => return,
+            Err(_) => {
+                if self.m6b.enabled() {
+                    self.m6b.listener_mut(index).receive_errors += 1;
+                }
+                return;
+            }
         };
         let interfaces = match self.interfaces.try_borrow_mut() {
             Ok(interfaces) => interfaces,
