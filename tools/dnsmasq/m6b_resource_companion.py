@@ -17,6 +17,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TEMPLATES = ['m6b_resource_meter.rs', 'm6b_resource_roots.rs', 'm6b_resource_main.rs']
+CONTROL_ASSETS = ['tools/dnsmasq/oracle_build.sh', 'docs/dnsmasq/M6B_PROTOCOL.md',
+                  'docs/dnsmasq/M6B_TCP_MEMORY_DESIGN.md', 'rust-toolchain.toml']
 
 
 def sha(path):
@@ -37,6 +39,34 @@ def files(root):
         if path.is_file():
             result[str(path.relative_to(root))] = sha(path)
     return result
+
+
+def compilation_files(root):
+    """Bin/lib inputs, independent of unrelated repository docs/examples/fuzz."""
+    result = {}
+    for component in ['dnsmasq', 'ubus']:
+        crate = root / 'components' / component
+        if not (crate / 'Cargo.toml').is_file() or not (crate / 'src').is_dir():
+            raise ValueError('complete product crate required: ' + component)
+        for name in ['Cargo.toml', 'Cargo.lock', 'build.rs']:
+            path = crate / name
+            if path.is_file(): result[str(path.relative_to(root))] = sha(path)
+        for name in ['src', '.cargo']:
+            directory = crate / name
+            if directory.is_dir():
+                result.update({str(directory.relative_to(root) / Path(name)): digest
+                               for name, digest in files(directory).items()})
+    for name in ['Cargo.toml', 'Cargo.lock']:
+        path = root / name
+        if path.is_file(): result[name] = sha(path)
+    if (root / '.cargo').is_dir():
+        result.update({'.cargo/' + name: digest for name, digest in files(root / '.cargo').items()})
+    return result
+
+
+def normalized_flags(record):
+    normalized = record.get('rustflags', '').replace(record['source'], 'FROZEN_SOURCE')
+    return re.sub(r'-Clink-arg=-Wl,-Map(?:=|,)\S+', '-Clink-arg=-Wl,-Map=LINK_MAP', normalized)
 
 
 def prepare(args):
@@ -60,6 +90,7 @@ def prepare(args):
             raise ValueError('Git archive identity differs')
         stream.extractall(source, filter='data')
     original = files(source)
+    compilation = compilation_files(source)
     originals = {name: (source / name).read_text() for name in original if name.endswith('.rs')}
     if any('#[global_allocator]' in value for name, value in originals.items() if name.startswith('components/')):
         raise ValueError('product already declares a global allocator')
@@ -130,6 +161,8 @@ def prepare(args):
     receipt = {'schema': 1, 'status': 'prepared-not-built-not-validated', 'source_commit': commit,
                'source_root': str(source), 'product_elf_sha256': args.product_sha256,
                'product_source_archive_sha256': sha(archive), 'original_source_files': original,
+               'original_compilation_files': compilation,
+               'control_assets': {name: original[name] for name in CONTROL_ASSETS if name in original},
                'diagnostic_source_files': modified, 'changed_files': changed, 'anchors': anchors,
                'patch_sha256': sha(patch), 'generator_sha256': sha(Path(__file__)),
                'templates': {name: sha(HERE / name) for name in TEMPLATES},
@@ -150,11 +183,17 @@ def bind(args):
         raise ValueError('product ELF binding differs')
     product_build = json.loads(args.product_build_json.read_text())
     if (product_build.get('kind') != 'release'
-            or files(Path(product_build['source'])) != receipt['original_source_files']
+            or compilation_files(Path(product_build['source'])) != receipt['original_compilation_files']
             or not any(row.get('sha256') == receipt['product_elf_sha256']
                        and row.get('bytes') == args.product_elf.stat().st_size
                        for row in product_build.get('artifacts', []))):
-        raise ValueError('product build does not bind this same frozen source archive/ELF')
+        raise ValueError('product build does not bind this same frozen compilation inputs/ELF')
+    for name, expected in receipt['control_assets'].items():
+        if sha(source / name) != expected:
+            raise ValueError('frozen tool/protocol asset changed: ' + name)
+        exported = Path(product_build['source']) / name
+        if exported.is_file() and sha(exported) != expected:
+            raise ValueError('product export tool/protocol asset differs: ' + name)
     diagnostic_sha = sha(args.diagnostic_elf)
     if diagnostic_sha == receipt['product_elf_sha256']:
         raise ValueError('diagnostic ELF must be distinct from product')
@@ -167,10 +206,7 @@ def bind(args):
     for key in ['opt_level', 'features', 'cargo_target_dir']:
         if build.get(key) != product_build.get(key):
             raise ValueError('diagnostic/product build settings differ: ' + key)
-    def flags(record):
-        normalized = record.get('rustflags', '').replace(record['source'], 'FROZEN_SOURCE')
-        return re.sub(r'-Clink-arg=-Wl,-Map,\S+', '-Clink-arg=-Wl,-Map,LINK_MAP', normalized)
-    if flags(build) != flags(product_build):
+    if normalized_flags(build) != normalized_flags(product_build):
         raise ValueError('diagnostic/product rustflags differ beyond source/map paths')
     for path, record in [(args.build_json, build), (args.product_build_json, product_build)]:
         mapping = record.get('link_map')

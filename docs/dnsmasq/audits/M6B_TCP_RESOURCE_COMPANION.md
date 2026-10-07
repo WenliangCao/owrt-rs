@@ -6,6 +6,10 @@
 
 `tools/dnsmasq/m6b_resource_companion.py prepare` 从完整commit的Git archive导出fresh ignored copy，只在copy注入。收据保存archive/全部原源码/生成源码SHA、每个窄锚期望与实际计数、完整diagnostic.patch、generator与3个模板SHA；任一锚数量变化直接失败，禁止模糊补丁。`bind`必须绑定同源product build、product ELF、共享target的oracle_build.sh diagnostic build及different ELF SHA，另写新收据，不覆盖准备收据；status仍built-not-validated，不能变成产品功能/CPU/PSS通过。
 
+2026-10-08身份修正：product build只与实际bin/lib编译输入（dnsmasq/ubus的src、Cargo/lock/build.rs及相关.cargo/workspace配置）逐SHA相等，不要求产品export带全repo无关docs/examples/fuzz；原完整archive与工具/协议身份仍单独留存，生成copy的control assets必须匹配，产品export中存在的同名asset也必须匹配。link map路径同时支持oracle_build实际 `-Wl,-Map=PATH` 与逗号形式，只有source/map路径归一化，其它flags严格相等。`test_m6b_resource_companion.py`新增本地负控代码，正式窗口未执行；窗口后先按计划验证Map目录变化能过、额外flags/src/Cargo/config改变会拒绝。
+
+只读刷新A `ed16d15f`（Many Arc与高hash bits）：cache.rs窄根锚仍为new content1、new NameIndex2、content make_mut2、index make_mut2；Many/Record/LocalTarget Arc均不扫描，生成后missing_creation_hooks必须0，不能以helper新增而放宽未知root通过。最终仍绑定运行参数中的明确source commit，准备代码尚未实际生成或测试。
+
 所有内部API只存在于生成copy：
 
 | 数据 | 来源／边界 |
