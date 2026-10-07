@@ -12,6 +12,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import socket
 import signal
@@ -44,10 +45,12 @@ CLEAR_CASES = [
     {'case': 'm6b-route-clear-hup', 'action': 'hup', 'expected_upstream_packets': 1,
      'config': 'addn-hosts=/m2/caller.hosts', 'initial_hosts': '198.51.100.41 hup-one.route.test\n'},
     {'case': 'm6b-route-keep-bound-tcp-private', 'action': 'bound-tcp', 'expected_upstream_packets': 2},
-    {'case': 'm6b-route-clear-debug-tcp-query', 'action': 'debug-tcp', 'expected_upstream_packets': 1, 'debug': True},
+    {'case': 'm6b-route-clear-debug-tcp-query', 'action': 'debug-tcp', 'expected_upstream_packets': 1,
+     'debug': True, 'metrics': False, 'config': 'log-queries'},
 ]
 for _case in CLEAR_CASES:
-    _case.update(capacity=0, metrics=True)
+    _case.update(capacity=0)
+    _case.setdefault('metrics', True)
     _case.setdefault('config', '')
 CLEAR_PLAN = {
     'profiles': CLEAR_CASES, 'scope': 'ordinary shared-packet clear/private TCP retention callers',
@@ -62,6 +65,10 @@ CLEAR_PLAN = {
                         'unmatched-upstream': 'forward.c:1169', 'hup': 'cache.c:1644',
                         'bound-tcp': 'dnsmasq.c:2065/2102-2197; child forward.c:2465',
                         'debug-tcp': 'forward.c:2465'},
+    'debug_tcp_observation': {'ubus': 'disabled on both sides; C debug drops parent UBus',
+        'forward_counter': 'log-queries exact forwarded route.resend.test to configured upstream',
+        'source': 'dnsmasq.c:2187 drop_ubus_listeners; ubus.c:199-208; UBUs reference debug defect',
+        'expected_forward_actions': 1, 'tcp_guard': 'live owned socket, client SHUT_WR/server EOF, exact held/idle FD restoration'},
     'performance_qualification': False,
     'open': ['server-record deletion; distinguish no-poll resolv from servers-file HUP',
              'wildcard accept pktinfo clear', 'two pending only last', 'all-servers last target',
@@ -109,6 +116,81 @@ def health_correct(query, reply):
                 {'section': 'answer', 'name': 'health.cache.test', 'type': 1, 'class': 1,
                  'ttl': 600, 'data': '198.51.100.99'},
                 {'section': 'additional', 'name': '', 'type': 41, 'class': 1232, 'ttl': 0, 'data': ''}])
+
+
+def forwarded_messages(raw):
+    messages = []
+    for line in raw.splitlines():
+        match = re.search(rb'\bforwarded (\S+) to (\S+)\s*$', line)
+        if match:
+            messages.append({'host': match[1].decode('ascii'), 'upstream': match[2].decode('ascii')})
+    return messages
+
+
+def forward_log(root, folder, label):
+    raw = (root / 'm2/cache.log').read_bytes()
+    (folder / (label + '.forward.log')).write_bytes(raw)
+    value = {'forward_actions': len(forwarded_messages(raw)), 'messages': forwarded_messages(raw)}
+    save_json(folder / (label + '.forward.json'), value)
+    return value
+
+
+def tcp_rows(raw, fds, source, destination):
+    owned = {target[8:-1]: number for number, target in fds.items() if target.startswith('socket:[')}
+    def endpoint(value):
+        address, port = value.split(':')
+        return [socket.inet_ntoa(bytes.fromhex(address)[::-1]), int(port, 16)]
+    rows = []
+    for line in raw.splitlines()[1:]:
+        parts = line.split()
+        if len(parts) < 10: raise ValueError('short TCP inventory row')
+        local, peer, inode = endpoint(parts[1]), endpoint(parts[2]), parts[9]
+        if inode in owned and local == destination and peer == source:
+            rows.append({'fd': owned[inode], 'inode': inode, 'local': local, 'peer': peer,
+                         'state': int(parts[3], 16)})
+    return rows
+
+
+def tcp_snapshot(pid, source, destination):
+    fds = fd_set(pid)
+    raw = (Path('/proc') / str(pid) / 'net/tcp').read_text()
+    return {'monotonic_ns': time.monotonic_ns(), 'fds': fds, 'raw_tcp': raw,
+            'rows': tcp_rows(raw, fds, source, destination)}
+
+
+def stable_debug_tcp_live(pid, source, destination, folder, held):
+    samples, deadline = [], time.monotonic() + 2
+    while True:
+        try:
+            snapshot = tcp_snapshot(pid, source, destination)
+        except FileNotFoundError:
+            snapshot = {'monotonic_ns': time.monotonic_ns(), 'fds': None, 'rows': None, 'raw_tcp': ''}
+        samples.append(snapshot); save_json(folder / 'action-debug-tcp-live-samples.json', samples)
+        tail = samples[-3:]
+        if len(tail) == 3 and all(item['fds'] == tail[0]['fds'] and item['rows'] == tail[0]['rows'] for item in tail):
+            rows = snapshot['rows']
+            if rows and len(rows) == 1 and rows[0]['state'] == 1:
+                expected = {**held, rows[0]['fd']: 'socket:[' + rows[0]['inode'] + ']'}
+                if snapshot['fds'] == expected:
+                    save_json(folder / 'action-debug-tcp-live.json', snapshot)
+                    return snapshot
+        if time.monotonic() >= deadline: raise AssertionError('debug TCP established owned FD did not stabilize')
+        time.sleep(.02)
+
+
+def stable_debug_tcp_closed(pid, source, destination, folder, expected):
+    samples, deadline = [], time.monotonic() + 2
+    while True:
+        try:
+            snapshot = tcp_snapshot(pid, source, destination)
+        except FileNotFoundError:
+            snapshot = {'monotonic_ns': time.monotonic_ns(), 'fds': None, 'rows': None, 'raw_tcp': ''}
+        samples.append(snapshot); save_json(folder / 'action-debug-tcp-samples.json', samples)
+        tail = samples[-3:]
+        if len(tail) == 3 and all(item['fds'] == expected and item['rows'] == [] for item in tail):
+            return samples
+        if time.monotonic() >= deadline: raise AssertionError('debug TCP owned socket/FD identities did not drain')
+        time.sleep(.02)
 
 
 def intervene(spec, port, upstream, folder, root, pid, held_client):
@@ -173,6 +255,8 @@ def intervene(spec, port, upstream, folder, root, pid, held_client):
         consumer_barrier(folder, before, 0)
     elif action in ['bound-tcp', 'debug-tcp']:
         packet = driver.query('health.cache.test', 0x6e02); (folder / 'action.query').write_bytes(packet)
+        if action == 'debug-tcp':
+            value['held_fds'] = stable_fds(pid, folder, 'action-held-before')
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
             endpoint.bind((driver.CLIENT, 0)); endpoint.settimeout(2); endpoint.connect((driver.LISTEN, port))
             value['client_source'] = list(endpoint.getsockname()); value['destination'] = list(endpoint.getpeername())
@@ -187,16 +271,26 @@ def intervene(spec, port, upstream, folder, root, pid, held_client):
             reply = exact(struct.unpack('!H', exact(2))[0]); (folder / 'action.reply').write_bytes(reply)
             if not health_correct(packet, reply):
                 raise AssertionError('intervening TCP local answer differs')
-        samples, deadline = [], time.monotonic() + 2
-        while True:
-            snapshot = metric(root, folder, f'action-tcp-{len(samples):03}')
-            samples.append({'monotonic_ns': time.monotonic_ns(), 'metrics': snapshot})
-            save_json(folder / 'action-tcp-samples.json', samples)
-            if len(samples) >= 3 and all(item['metrics']['tcp_connections'] == 0 for item in samples[-3:]):
-                break
-            if time.monotonic() >= deadline:
-                raise AssertionError('TCP action client slot did not drain')
-            time.sleep(.02)
+            if action == 'debug-tcp':
+                stable_debug_tcp_live(pid, value['client_source'], value['destination'], folder, value['held_fds'])
+                value['shutdown_write_monotonic_ns'] = time.monotonic_ns()
+                endpoint.shutdown(socket.SHUT_WR)
+                eof = endpoint.recv(1); (folder / 'action-tcp-eof').write_bytes(eof)
+                if eof != b'': raise AssertionError('debug TCP did not return terminal EOF')
+                value['eof_monotonic_ns'] = time.monotonic_ns(); value['server_eof'] = True
+        if action == 'debug-tcp':
+            stable_debug_tcp_closed(pid, value['client_source'], value['destination'], folder, value['held_fds'])
+        else:
+            samples, deadline = [], time.monotonic() + 2
+            while True:
+                snapshot = metric(root, folder, f'action-tcp-{len(samples):03}')
+                samples.append({'monotonic_ns': time.monotonic_ns(), 'metrics': snapshot})
+                save_json(folder / 'action-tcp-samples.json', samples)
+                if len(samples) >= 3 and all(item['metrics']['tcp_connections'] == 0 for item in samples[-3:]):
+                    break
+                if time.monotonic() >= deadline:
+                    raise AssertionError('TCP action client slot did not drain')
+                time.sleep(.02)
         value['udp_delta'] = 0
         consumer_barrier(folder, before, 0)
     else:
@@ -365,7 +459,10 @@ def schedule(spec, port, upstream, folder, root):
             if reply is None or driver.normalized(reply)['records'][0]['data'] != '198.51.100.99':
                 raise AssertionError('daemon setup barrier failed')
             witness['idle_fds'] = stable_fds(pid, folder, 'before')
-            witness['before_metrics'] = metric(root, folder, 'before')
+            if spec.get('metrics'):
+                witness['before_metrics'] = metric(root, folder, 'before')
+            else:
+                witness['before_forward_log'] = forward_log(root, folder, 'before')
             host = 'route.resend.test'
             upstream.plan[host] = {'hold': True, 'ttl': 600, 'answers': [{'data': 'c6336407'}]}
             query = driver.query(host, 0x6e01)
@@ -423,7 +520,10 @@ def schedule(spec, port, upstream, folder, root):
                 raise AssertionError('more than one client reply')
             except socket.timeout:
                 witness['one_client_reply'] = True
-            witness['after_metrics'] = metric(root, folder, 'after')
+            if spec.get('metrics'):
+                witness['after_metrics'] = metric(root, folder, 'after')
+            else:
+                witness['after_forward_log'] = forward_log(root, folder, 'after')
             witness['final_fds'] = stable_fds(pid, folder, 'after', witness['idle_fds'])
             witness['completed'] = True
             save_json(folder / 'caller-witness.json', witness)
@@ -434,6 +534,70 @@ def schedule(spec, port, upstream, folder, root):
             save_json(folder / 'caller-witness.json', witness)
             if link_created:
                 subprocess.run(['ip', 'link', 'del', 'm6broute'], check=True)
+
+
+def check_debug_forward_logs(folder, witness):
+    config = (folder / 'config').read_text()
+    server = [line for line in config.splitlines() if line.startswith('server=127.0.0.2#')]
+    if len(server) != 1 or not server[0].split('#')[-1].isdigit():
+        raise ValueError('debug forward-log unique upstream absent')
+    target = '127.0.0.2#' + server[0].split('#')[-1]
+    raw = [(folder / (label + '.forward.log')).read_bytes() for label in ['before', 'after']]
+    if not raw[1].startswith(raw[0]): raise ValueError('debug forward log is not the same append-only file')
+    for label, data, count in zip(['before', 'after'], raw, [0, 1]):
+        messages = forwarded_messages(data)
+        value = {'forward_actions': len(messages), 'messages': messages}
+        if (witness.get(label + '_forward_log') != value
+                or json.loads((folder / (label + '.forward.json')).read_text()) != value
+                or len(messages) != count or any(message != {'host': 'route.resend.test', 'upstream': target} for message in messages)):
+            raise ValueError('debug forwarded-log action counter differs from raw messages')
+        if label + '_metrics' in witness or (folder / (label + '.metrics.stdout')).exists():
+            raise ValueError('debug TCP fixture must not pretend released UBus is a counter')
+
+
+def check_debug_tcp(folder, action):
+    live = json.loads((folder / 'action-debug-tcp-live.json').read_text())
+    source, destination, held = action['client_source'], action['destination'], action['held_fds']
+    rows = tcp_rows(live['raw_tcp'], live['fds'], source, destination)
+    if live['rows'] != rows or len(rows) != 1 or rows[0]['state'] != 1:
+        raise ValueError('debug TCP live established owned socket absent')
+    extra = {key: value for key, value in live['fds'].items() if key not in held}
+    if (extra != {rows[0]['fd']: 'socket:[' + rows[0]['inode'] + ']'}
+            or any(live['fds'].get(key) != value for key, value in held.items())):
+        raise ValueError('debug TCP live FD identities differ from held transaction plus one client')
+    if (action.get('server_eof') is not True or (folder / 'action-tcp-eof').read_bytes() != b''
+            or not action['started_monotonic_ns'] <= live['monotonic_ns'] <= action['shutdown_write_monotonic_ns']
+                <= action['eof_monotonic_ns'] <= action['completed_monotonic_ns']):
+        raise ValueError('debug TCP half-close/terminal EOF/order witness absent')
+    live_samples = json.loads((folder / 'action-debug-tcp-live-samples.json').read_text())
+    tail = live_samples[-3:]
+    if len(tail) != 3 or tail[-1] != live or any(item['fds'] != live['fds'] or item['rows'] != rows for item in tail):
+        raise ValueError('debug TCP live socket/FD identities were not stable')
+    for item in live_samples:
+        if item['fds'] is not None and item['rows'] != tcp_rows(item['raw_tcp'], item['fds'], source, destination):
+            raise ValueError('debug TCP live socket report/raw differs')
+    if any(b['monotonic_ns'] - a['monotonic_ns'] < 15_000_000 for a, b in zip(tail, tail[1:])):
+        raise ValueError('debug TCP live observations not separated')
+    anchor = json.loads((folder / 'action-held-before.fds.json').read_text())
+    samples = json.loads((folder / 'action-debug-tcp-samples.json').read_text())
+    for label, observations in [('held-before', anchor), ('closed', samples)]:
+        tail = observations[-3:]
+        if len(tail) != 3 or any(item['fds'] != held for item in tail):
+            raise ValueError('debug TCP exact held FD identities did not stabilize')
+        if any(b['monotonic_ns'] - a['monotonic_ns'] < 15_000_000 for a, b in zip(tail, tail[1:])):
+            raise ValueError('debug TCP stable observations not separated')
+        if label == 'held-before' and any(not action['started_monotonic_ns'] <= item['monotonic_ns'] <= live['monotonic_ns'] for item in observations):
+            raise ValueError('debug held anchor was not captured before the TCP action')
+        if label == 'closed':
+            if any(not action['eof_monotonic_ns'] <= item['monotonic_ns'] <= action['completed_monotonic_ns'] for item in observations):
+                raise ValueError('debug TCP close samples outside actual EOF/action window')
+            for item in observations:
+                if item['fds'] is None: continue
+                actual = tcp_rows(item['raw_tcp'], item['fds'], source, destination)
+                if item['rows'] != actual: raise ValueError('debug TCP socket inventory/raw differs')
+            if any(item['rows'] != [] for item in tail): raise ValueError('debug TCP owned socket did not close')
+    if any(path.name.startswith('action-tcp-') and path.name.endswith('.metrics.stdout') for path in folder.iterdir()):
+        raise ValueError('debug TCP must use actual socket/FD/EOF, not unavailable UBus')
 
 
 def validate_case(folder, row, expected_sha, expected_plan=PLAN):
@@ -488,11 +652,15 @@ def validate_case(folder, row, expected_sha, expected_plan=PLAN):
         raise ValueError('client answer came from a different endpoint')
     if not witness['trigger_monotonic_ns'] <= witness['reply_monotonic_ns']:
         raise ValueError('response preceded route')
-    before, after = [json.loads((folder / f'{label}.metrics.stdout').read_bytes()) for label in ['before', 'after']]
-    if any(value['tcp_connections'] != 0 for value in [before, after]):
-        raise ValueError('unexpected TCP clients')
-    if after['dns_queries_forwarded'] - before['dns_queries_forwarded'] != 1:
-        raise ValueError('resend created an extra forward action')
+    debug_spec = next((spec for spec in CLEAR_CASES if spec['case'] == row['case'] and spec.get('debug')), None)
+    if expected_plan == CLEAR_PLAN and debug_spec:
+        check_debug_forward_logs(folder, witness)
+    else:
+        before, after = [json.loads((folder / f'{label}.metrics.stdout').read_bytes()) for label in ['before', 'after']]
+        if any(value['tcp_connections'] != 0 for value in [before, after]):
+            raise ValueError('unexpected TCP clients')
+        if after['dns_queries_forwarded'] - before['dns_queries_forwarded'] != 1:
+            raise ValueError('resend created an extra forward action')
     for label in ['before', 'after']:
         samples = json.loads((folder / (label + '.fds.json')).read_text())
         tail = samples[-3:]
@@ -520,7 +688,7 @@ def validate_clear_case(folder, row, expected_sha):
     action = json.loads((folder / 'action-witness.json').read_text())
     if witness.get('action') != action or action.get('action') != spec['action']:
         raise ValueError('wrong intervening consumer')
-    for label in ['before', 'after']:
+    for label in ([] if spec.get('debug') else ['before', 'after']):
         raw = json.loads((folder / f'{label}.metrics.stdout').read_bytes())
         if witness.get(label + '_metrics') != {key: raw[key] for key in ['dns_queries_forwarded', 'tcp_connections']}:
             raise ValueError('action parent metrics claim differs from raw output')
@@ -539,7 +707,8 @@ def validate_clear_case(folder, row, expected_sha):
     expected_config = (f'port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={driver.LISTEN}\n'
         f'server=127.0.0.2#{upstream_port}\ncache-size=0\nno-0x20-encode\n'
         'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
-        'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n' + spec['config'] + '\nenable-ubus=cache-metrics\n')
+        'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n' + spec['config'] + '\n'
+        + ('enable-ubus=cache-metrics\n' if spec['metrics'] else ''))
     if config != expected_config:
         raise ValueError('actual private/bound/cache/TTL configuration differs')
     if spec['action'] in ['local-udp', 'invalid-udp', 'bound-tcp', 'debug-tcp']:
@@ -591,7 +760,9 @@ def validate_clear_case(folder, row, expected_sha):
             raise ValueError('HUP input identity differs')
         if action['hosts_after'] != '198.51.100.41 hup-one.route.test\n198.51.100.42 hup-two.route.test\n':
             raise ValueError('HUP marker input changed')
-    if spec['action'] in ['bound-tcp', 'debug-tcp']:
+    if spec['action'] == 'debug-tcp':
+        check_debug_tcp(folder, action)
+    if spec['action'] == 'bound-tcp':
         snapshots = json.loads((folder / 'action-tcp-samples.json').read_text())
         if len(snapshots) < 3 or any(item['metrics']['tcp_connections'] != 0 for item in snapshots[-3:]):
             raise ValueError('TCP private/shared caller did not drain')
