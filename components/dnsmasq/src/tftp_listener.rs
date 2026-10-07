@@ -371,7 +371,13 @@ impl<O: FileOpener> TftpListener<O> {
         }
         let waiting = self.pending.len();
         for _ in 0..waiting {
-            let pending = self.pending.pop_front().unwrap();
+            // `waiting` is a snapshot, but a future queue implementation may
+            // coalesce or drop an entry while dispatching. Treat an empty
+            // queue as drained instead of turning a malformed state into a
+            // daemon panic.
+            let Some(pending) = self.pending.pop_front() else {
+                break;
+            };
             let found = match mac(pending.datagram.peer.ip(), pending.datagram.interface, now) {
                 MacLookup::Ready(found) => found,
                 MacLookup::Pending if now < pending.deadline => {
@@ -720,7 +726,9 @@ impl<O: FileOpener> TftpListener<O> {
                         .ok_or_else(|| io::Error::other("missing TFTP transfer socket"))?,
                 );
             }
-            self.transfers.get(&id).unwrap()
+            self.transfers
+                .get(&id)
+                .ok_or_else(|| io::Error::other("missing TFTP transfer socket"))?
         } else {
             new_socket
                 .as_ref()
@@ -821,7 +829,8 @@ fn interface_mtu(fd: i32, name: &[u8]) -> Option<u32> {
     if unsafe { ioctl(fd, 0x8921, bytes.as_mut_ptr()) } < 0 {
         return None;
     }
-    u32::try_from(i32::from_ne_bytes(bytes[16..20].try_into().unwrap())).ok()
+    let mtu = bytes.get(16..20)?.try_into().ok()?;
+    u32::try_from(i32::from_ne_bytes(mtu)).ok()
 }
 fn bound_interface(policy: &Policy, address: SocketAddr, fd: i32) -> Option<BoundInterface> {
     if !policy.dns.bind_interfaces || policy.dns.bind_dynamic || address.is_ipv6() {
