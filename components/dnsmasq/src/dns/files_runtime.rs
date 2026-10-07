@@ -346,6 +346,19 @@ impl DnsFiles {
             || self.notify_seen
     }
 
+    /// Work queued after the last step still needs an owner turn. A FIFO or
+    /// active endpoint child instead waits on its registered fd; later triggers
+    /// must not turn that backpressure into a zero-timeout polling loop.
+    pub fn runnable(&self) -> bool {
+        if self.endpoint_update.is_some() {
+            return self.endpoint_lookup.as_ref().is_none_or(EndpointLookup::reap_pending);
+        }
+        self.job.as_ref().map_or(
+            !self.requests.is_empty() || !self.triggers.is_empty() || self.notify_seen,
+            |job| !job.wait_readiness,
+        )
+    }
+
     /// The PID/listeners may already exist, as in C, but queued DNS requests
     /// must not receive a transient no-server answer before the initial file
     /// reads finish. Other owner duties can continue while this is true.
@@ -818,6 +831,37 @@ mod tests {
         files.request(ReloadReason::Signal);
         let update = (0..100).find_map(|_| files.step_with_watch_readiness(false).update).unwrap();
         assert_eq!(update.rows[0].address, Some("192.0.2.2:53".parse().unwrap()));
+    }
+
+    #[test]
+    fn queued_signal_runs_but_a_held_fifo_defers_later_triggers() {
+        use std::io::Write;
+        let dir = Directory::new();
+        let path = dir.0.join("servers-fifo");
+        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let mut config = dir.config();
+        config.no_resolv = true;
+        config.servers_file = Some(path.clone());
+        let mut files = DnsFiles::new(&config, true, false).unwrap();
+        assert!(!files.runnable());
+        files.request(ReloadReason::Signal);
+        assert!(files.runnable(), "new logical request has no ready fd yet");
+        let step = files.step_with_watch_readiness(false);
+        assert!(!step.runnable && !files.runnable());
+        assert!(files.has_work());
+        files.request(ReloadReason::Signal);
+        assert!(!files.runnable(), "a later request cannot bypass held FIFO input");
+        let mut writer = OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
+        writer.write_all(b"server=127.0.0.2\n").unwrap();
+        let step = files.step_with_watch_readiness(false);
+        assert!(step.update.is_none() && !files.runnable(), "partial input waits for EOF");
+        drop(writer);
+        let update = (0..8).find_map(|_| files.step_with_watch_readiness(false).update).unwrap();
+        assert!(matches!(&update.rows[0].rule.target,
+            RuleTarget::Upstream(endpoint) if endpoint.host == ServerHost::Address("127.0.0.2".parse().unwrap())));
+        assert!(files.runnable(), "the later trigger survives first publication");
+        files.step_with_watch_readiness(false);
+        assert!(!files.runnable(), "the next FIFO read again waits on its descriptor");
     }
 
     #[test]
