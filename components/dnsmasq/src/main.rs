@@ -3099,6 +3099,15 @@ impl SinglePoll {
         false
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn dhcp_packet_work_allowed(&self) -> bool {
+        !self.interface_work_pending()
+            && self.helper_init.is_none()
+            && self.helper_init_error.is_none()
+            && RELOAD_REQUESTED.load(Ordering::Acquire) == 0
+            && !self.dhcp_reload_in_progress()
+    }
+
     fn files_initializing(&self) -> bool {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if self
@@ -3680,16 +3689,24 @@ impl SinglePoll {
             let dhcp_fd_start = fds.len();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(dhcp) = &self.dhcp {
-                dhcp.listener.append_poll_fds(&mut fds);
-                if let Some(provider) = &dhcp.provider {
+                if self.dhcp_packet_work_allowed() {
+                    let interfaces_pending = dhcp.provider.as_ref()
+                        .is_some_and(|provider| provider.borrow().packet_interfaces_pending());
+                    if !interfaces_pending {
+                        dhcp.listener.append_poll_fds(&mut fds);
+                    }
+                }
+                if let Some(provider) = dhcp.provider.as_ref()
+                    .filter(|_| self.dhcp_packet_work_allowed()) {
                     let provider = provider.borrow();
                     // Packet interface dumps share the file owner, but their
                     // readiness must also resume the DHCP transaction.
-                    provider.append_file_fds(&mut fds);
-                    if !provider.file_work_pending() {
-                        if let Some(due) = provider.next_maintenance() {
-                            deadline = deadline.min(due);
-                        }
+                    provider.append_packet_interface_fds(&mut fds);
+                    if provider.packet_interfaces_runnable() {
+                        deadline = now;
+                    }
+                    if let Some(due) = provider.next_maintenance() {
+                        deadline = deadline.min(due);
                     }
                 }
             }
@@ -5558,15 +5575,9 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_dhcp(&mut self) {
         self.step_helper();
-        if self.interface_work_pending() {
-            return;
-        }
-        if self.helper_init.is_some() || self.helper_init_error.is_some() {
-            return;
-        }
         // EVENT_RELOAD is consumed before DHCP in C. A completed bank is
         // still intermediate when another delivered SIGHUP waits in the queue.
-        if RELOAD_REQUESTED.load(Ordering::Acquire) != 0 || self.dhcp_reload_in_progress() {
+        if !self.dhcp_packet_work_allowed() {
             return;
         }
         if !self.dhcp_ready {
@@ -6334,6 +6345,196 @@ mod tests {
         let mut writer = PacketWriter::new(7, 0x100, 1232).unwrap();
         writer.question(&Name::from_ascii("ready.test").unwrap(), 1, 1).unwrap();
         writer.finish()
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn attach_test_dhcp(owner: &mut SinglePoll, provider: DhcpProvider) -> std::net::UdpSocket {
+        let listener = DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(), DhcpListener::Dhcp, &[]).unwrap();
+        let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        peer.connect(listener.local_addr().unwrap()).unwrap();
+        owner.dhcp = Some(DhcpService { provider: Some(Rc::new(RefCell::new(provider))), listener, pxe_next: false });
+        peer
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn helper_init_keeps_queued_dhcp_and_due_maintenance_off_the_wait_set() {
+        for fatal in [false, true] {
+            let mut owner = test_owner(DnsConfig::default(), None);
+            let provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
+                ..Default::default() }, Vec::new(), 0, || false).unwrap();
+            let peer = attach_test_dhcp(&mut owner, provider);
+            peer.send(b"queued-dhcp").unwrap();
+            if fatal {
+                owner.helper_init_error = Some(dnsmasq_rs::helper::StartError { code: 5, message: "held helper error".into() });
+            } else {
+                owner.helper_init = Some(Default::default());
+            }
+            let started = Instant::now();
+            owner.wait_for_files().unwrap();
+            assert!(started.elapsed() >= Duration::from_millis(25),
+                "neither unread DHCP nor an unprocessable alarm may busy-poll");
+            owner.step_dhcp();
+            assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+            let address = owner.dhcp.as_ref().unwrap().listener.local_addr().unwrap();
+            assert!(!owner.poll_fds.iter().any(|fd| {
+                let mut probe = Vec::new();
+                owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut probe);
+                probe.iter().any(|socket| socket.fd == fd.fd)
+            }));
+            owner.helper_init = None;
+            owner.helper_init_error = None;
+            assert!(owner.dhcp_packet_work_allowed());
+            owner.wait_for_files().unwrap();
+            owner.step_dhcp();
+            assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap(),
+                "the original input becomes consumable after the helper gate opens at {address}");
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn held_dhcp_bank_fifo_does_not_spin_on_queued_packet_and_dns_still_replies() {
+        use std::os::unix::fs::OpenOptionsExt;
+        let path = std::env::temp_dir().join(format!("ready-dhcp-bank-fifo-{}", std::process::id()));
+        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_resolv = true;
+        config.bind_interfaces = true;
+        config.local_service_net = false;
+        config.apply_resolved(&lex_line(b"address=/ready.test/192.0.2.4").unwrap().unwrap()).unwrap();
+        let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config, Some(daemon));
+        let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
+            option_files: vec![path.as_os_str().as_encoded_bytes().to_vec()], ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        provider.start_file_owner().unwrap();
+        for _ in 0..16 {
+            if !provider.files_runnable() { break; }
+            provider.step_files_with_watch_readiness(now_seconds(), false);
+        }
+        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
+        writer.write_all(b"option:domain-name,initial\n").unwrap();
+        drop(writer);
+        assert!((0..16).find_map(|_| provider.step_files_with_watch_readiness(now_seconds(), false)).is_some());
+        assert!(!provider.files_initializing());
+        let held_writer = std::fs::OpenOptions::new().read(true).write(true).custom_flags(0o4000).open(&path).unwrap();
+        provider.reload_data_files(now_seconds());
+        for _ in 0..16 {
+            if !provider.files_runnable() { break; }
+            provider.step_files_with_watch_readiness(now_seconds(), false);
+        }
+        assert!(provider.file_work_pending() && !provider.files_runnable());
+        let peer = attach_test_dhcp(&mut owner, provider);
+        peer.send(b"queued-dhcp").unwrap();
+        let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let dns_peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        dns_peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        dns_peer.send_to(&test_dns_query(), udp.local_addr().unwrap()).unwrap();
+        owner.add_listener(SocketToken(9), Some(udp), None);
+        owner.wait_for_files().unwrap();
+        owner.step().unwrap();
+        let mut answer = [0; 1232];
+        let count = dns_peer.recv(&mut answer).unwrap();
+        assert_eq!(&answer[count-4..count], &[192, 0, 2, 4], "runtime FIFO cannot block ordinary DNS");
+        assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+        let started = Instant::now();
+        owner.wait_for_files().unwrap();
+        assert!(started.elapsed() >= Duration::from_millis(25), "the queued blocked DHCP packet is not readiness");
+        let mut socket_fds = Vec::new();
+        owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
+        assert!(!owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
+            "blocked input must be absent even if scheduler latency masks a spin");
+        drop(held_writer);
+        for _ in 0..16 {
+            owner.wait_for_files().unwrap();
+            owner.step_dhcp_files();
+            if !owner.dhcp_reload_in_progress() { break; }
+        }
+        assert!(!owner.dhcp_reload_in_progress());
+        owner.wait_for_files().unwrap();
+        owner.step_dhcp();
+        assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn pending_packet_snapshot_wakes_from_its_dump_instead_of_unread_dhcp() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
+            ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        provider.initialize(now_seconds());
+        provider.start_interface_owner().unwrap();
+        assert!(!provider.prepare_packet_interfaces().unwrap());
+        let peer = attach_test_dhcp(&mut owner, provider);
+        peer.send(b"queued-dhcp").unwrap();
+        let mut socket_fds = Vec::new();
+        owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
+        owner.wait_for_files().unwrap();
+        assert!(!owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
+            "the packet cannot be consumed before its fresh dump completes");
+        assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+        for _ in 0..16 {
+            owner.step_dhcp();
+            if !owner.dhcp.as_ref().unwrap().listener.has_input().unwrap() { break; }
+            owner.wait_for_files().unwrap();
+        }
+        assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn global_interface_generation_keeps_queued_dhcp_until_its_publication() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
+            ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        let peer = attach_test_dhcp(&mut owner, provider);
+        peer.send(b"queued-dhcp").unwrap();
+        let mut collector = dnsmasq_rs::dns::interface_collect::InterfaceCollector::new().unwrap();
+        collector.begin().unwrap();
+        owner.interface_collector = Some(collector);
+        let mut socket_fds = Vec::new();
+        owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
+        for _ in 0..32 {
+            assert!(!owner.dhcp_packet_work_allowed());
+            owner.wait_for_files().unwrap();
+            assert!(!owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)));
+            owner.step_dhcp();
+            assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+            owner.step_interface_collector();
+            if !owner.interface_work_pending() { break; }
+        }
+        assert!(!owner.interface_work_pending());
+        owner.wait_for_files().unwrap();
+        owner.step_dhcp();
+        assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn lease_alarm_without_network_traffic_expires_and_rewrites_the_lease_file() {
+        let path = std::env::temp_dir().join(format!("ready-dhcp-alarm-{}.leases", std::process::id()));
+        let now = now_seconds();
+        std::fs::write(&path, format!("{} 02:00:00:00:00:01 192.0.2.10 lease-alarm *\n", now+2)).unwrap();
+        let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true,
+            lease_file: Some(path.as_os_str().as_encoded_bytes().to_vec()), ..Default::default() }, Vec::new(), 0, || false).unwrap();
+        provider.initialize(now);
+        assert_eq!(provider.lease_counters().pruned4, 0);
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let _unused_peer = attach_test_dhcp(&mut owner, provider);
+        let deadline = Instant::now() + Duration::from_secs(4);
+        while owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap().borrow().lease_counters().pruned4 == 0 {
+            assert!(Instant::now() < deadline, "expiry must not require a new DHCP request");
+            owner.wait_for_files().unwrap();
+            owner.step_dhcp();
+        }
+        assert!(std::fs::read(&path).unwrap().is_empty());
+        assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+        assert!(owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap().borrow().next_maintenance().is_none());
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
     }
 
     #[cfg(target_os = "linux")]

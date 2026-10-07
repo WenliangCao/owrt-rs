@@ -267,6 +267,15 @@ impl DhcpFiles {
         self.generation.is_some()
     }
 
+    /// Current work the next file turn can actually consume. A queued reload
+    /// or buffered watch event cannot run ahead of an active blocked FIFO.
+    pub fn runnable(&self) -> bool {
+        if let Some(job) = &self.job {
+            return !job.wait_readiness;
+        }
+        self.busy() || self.watch.as_ref().is_some_and(DirectoryWatch::runnable)
+    }
+
     pub fn watch_fd(&self) -> Option<std::os::fd::RawFd> {
         self.watch.as_ref().map(DirectoryWatch::raw_fd)
     }
@@ -445,15 +454,7 @@ impl DhcpFiles {
                 Phase::Live => self.finish(&mut result),
             }
         }
-        result.runnable |= self
-            .job
-            .as_ref()
-            .map_or(self.busy(), |job| !job.wait_readiness);
-        // Watch input waits until the active generation completes. Otherwise a
-        // buffered event must progress even when the kernel fd is no longer ready.
-        if !self.busy() {
-            result.runnable |= self.watch.as_ref().is_some_and(DirectoryWatch::runnable);
-        }
+        result.runnable |= self.runnable();
         result
     }
 
@@ -780,9 +781,31 @@ mod tests {
         // The first readable turn buffers a kernel batch; subsequent events
         // must finish even after its fd no longer reports POLLIN.
         assert!(owner.step_with_watch_readiness(&[], true).runnable);
+        assert!(owner.runnable(), "the kernel batch is now owned logical work");
         let update = (0..100).find_map(|_| owner.step_with_watch_readiness(&[], false).update).unwrap();
         assert_eq!(update.hosts.len(), 1);
         assert_eq!(update.hosts[0].address, Some("192.0.2.10".parse().unwrap()));
+    }
+
+    #[test]
+    fn static_bank_plan_finishes_from_logical_turns_without_watch_or_network_fd() {
+        let directory = Directory::new();
+        fs::write(directory.path("opts"), b"option:domain-name,logical\n").unwrap();
+        let mut owner = DhcpFiles::new(&[], &[directory.bytes("opts")], &[]).unwrap();
+        assert!(!owner.runnable());
+        owner.begin_reload(&[]);
+        let mut update = None;
+        for _ in 0..16 {
+            assert!(owner.runnable(), "the next bounded plan/read turn needs no new event");
+            let mut fds = Vec::new();
+            owner.append_poll_fds(&mut fds);
+            assert!(fds.is_empty());
+            let step = owner.step_with_watch_readiness(&[], false);
+            if step.update.is_some() { update = step.update; break; }
+        }
+        assert_eq!(option_values(&update.unwrap().options), [b"logical".to_vec()]);
+        assert!(!owner.runnable());
+        assert!(!owner.busy());
     }
 
     #[test]
@@ -805,6 +828,7 @@ mod tests {
             }
         }
         assert!(owner.busy());
+        assert!(!owner.runnable());
         assert!(!owner.step(&[]).runnable);
         let mut writer = OpenOptions::new()
             .write(true)
@@ -819,5 +843,6 @@ mod tests {
         let (update, _) = complete(&mut owner, &[]);
         assert_eq!(option_values(&update.options), [b"partial".to_vec()]);
         assert!(!owner.busy());
+        assert!(!owner.runnable());
     }
 }
