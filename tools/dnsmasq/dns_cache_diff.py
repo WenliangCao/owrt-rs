@@ -27,7 +27,13 @@ def rust_modules(root):
         lease_source = lease_path.read_text()
         start = lease_source.rfind('#[derive', 0, lease_source.index('pub enum BlockerKind'))
         lease_api = lease_source[start:lease_source.index('/// Appropriate only')]
-    return ('mod lease_names { use std::net::Ipv4Addr; ' + lease_api + ' }\n'
+    # cache.rs calls this local-only reverse-name predicate.  The primitive
+    # driver does not compile the full local service, so keep the shim
+    # conservative: forward/name scenarios must not accidentally classify an
+    # arbitrary name as reverse. Reverse-cache gates use their dedicated
+    # driver instead.
+    local_shim = 'mod local { pub fn arpa_address(_: &[u8]) -> Option<std::net::IpAddr> { None } }\n'
+    return (local_shim + 'mod lease_names { use std::net::Ipv4Addr; ' + lease_api + ' }\n'
             + '#[path=' + json.dumps(str(root / 'components/dnsmasq/src/dns/wire.rs')) + '] mod wire;\n'
             + '#[path=' + json.dumps(str(root / 'components/dnsmasq/src/dns/cache.rs')) + '] mod cache;\n')
 
@@ -147,7 +153,7 @@ use std::io::{self,BufRead}; use cache::*;
 fn kind(t:u32)->Kind {match t {1=>Kind::Ipv4,28=>Kind::Ipv6,5=>Kind::Cname,65536=>Kind::NxDomain,_=>Kind::Generic(t as u16)}}
 fn main() {
  let a:Vec<i64>=std::env::args().skip(1).map(|s|s.parse().unwrap()).collect();
- let policy=Policy{min_ttl:a[1] as u32,max_ttl:a[2] as u32,stale:match a[3]{-1=>StalePolicy::Forever,0=>StalePolicy::Disabled,v=>StalePolicy::Seconds(v as u32)},max_reply_ttl:a[4] as u32};
+ let policy=Policy{min_ttl:a[1] as u64,max_ttl:a[2] as u64,stale:match a[3]{-1=>StalePolicy::Forever,0=>StalePolicy::Disabled,v=>StalePolicy::Seconds(v as u32)},max_reply_ttl:a[4] as u64};
  let mut cache=Cache::new(a[0] as usize,policy); let mut ids=Vec::new();
  for line in io::stdin().lock().lines() {let line=line.unwrap();let w:Vec<_>=line.split_whitespace().collect();let n=|i:usize| w[i].parse::<u32>().unwrap();
  match w[0] {
@@ -155,7 +161,7 @@ fn main() {
  "C"=>println!("C {}",u8::from(cache.commit())),
  "I"=>{let id=cache.insert(Record{name:wire::Name::from_ascii(w[1]).unwrap(),kind:kind(n(2)),negative:n(5)!=0,data:vec![n(4) as u8]},w[6].parse().unwrap(),n(3));println!("I {}",u8::from(id.is_ok()));ids.push(id.ok());},
  "L"=>{let ok=match (ids[n(1) as usize],ids[n(2) as usize]){(Some(a),Some(b))=>cache.set_cname_target(a,b),_=>false};println!("L {}",u8::from(ok));},
- "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::Generic(t)=>t as u32};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
+ "Q"=>{let now=w[3].parse().unwrap();let found=cache.lookup(&wire::Name::from_ascii(w[1]).unwrap(),&[kind(n(2))],now,n(4)!=0);print!("Q");for id in found {let e=cache.get(id).unwrap();let t=match e.record.kind{Kind::Ipv4=>1,Kind::Ipv6=>28,Kind::Cname=>5,Kind::NxDomain=>65536,Kind::ReverseIpv4|Kind::ReverseIpv6=>0,Kind::Generic(t)=>t as u32};let v=if t==5 {0}else{e.record.data[0]};print!(" {t}:{v}:{}:{}:{}:{}",u8::from(e.record.negative),e.expires,e.reply_ttl(now,policy),u8::from(e.is_stale(now)));}println!();},_=>panic!()}
  }
 }
 '''
