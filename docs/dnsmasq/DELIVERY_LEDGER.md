@@ -7,7 +7,7 @@
 - 当前代码：M5基线源码dc1b740d/opt3 37f85d22、C097a9e21和M6a s8427b9a保留；UDP-only M6b候选为main@386fa821（仅UDP修复，TCP方案A留在m6b/tcp-scheme-a，默认关闭m6b-diagnostics feature）。UDP-only pilot及已跑正式窗口已归档；中间候选一轮矩阵工具为990d227a，最终合入方案A的ELF、manifest和正式复测身份尚待Oracle构建。
 - 下一步：先按调整后的中间矩阵以每个场景各1轮正式窗口（9场景×3组=27窗口）完成UDP-only归因，配合已有pilot计数尽快释放Oracle；完整9×3×5只在方案A合入后的最终候选上执行一次。随后独立worktree依S1-S8 primitive→service→resource→pressure gates完成TCP方案A；UDP修复和TCP A不得拼接部分最佳实验。最终候选完成M5受影响族、M2、资源/压力/APK生命周期与9×3×5正式M6b复测；s只作性能对照，给出是否值得切换结论。
 - 阻塞点：无须用户决定；第0步已完成测量修正和协议冻结，等待产品候选。任何M6b失败保留原始证据并停止该候选，不改阈值、不把失败实验混入通过结果。
-- 测量调整（2026-10-07）：UDP-only完整135窗口在1个有效窗口和1个中止窗口后停止；中间候选改跑固定顺序的27个一轮正式窗口，配合pilot计数完成归因，避免在TCP方案A验收前占用Oracle。中止窗口的SIGTERM/部分输出仍归档并标为无效，不进入最终分类。
+- 测量调整（2026-10-07）：UDP-only完整135窗口在1个有效窗口和1个中止窗口后停止；中间候选改跑固定顺序的27个一轮正式窗口，配合pilot计数完成归因，避免在TCP方案A验收前占用Oracle。中止窗口的SIGTERM/部分输出仍归档并标为无效，不进入最终分类。中间正式窗口不启用逐次唤醒明细（pilot已保存loop/poll/wait/batch/allocation计数）；首个误启用窗口产生的多GB诊断输出已保留摘要、SHA和失败记录后清理，避免污染后续窗口。
 - 活跃分工：root整合协议/ledger、UDP产品、M6b suite/build/回归/报告；m6b_measure维护修正测量器；m6b_udp_audit实施UDP产品修复；m6b_tcp_design实施TCP方案A；m6a_review只读审计M6b gates。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；正式窗口期间禁止并行build/test/fuzz，用户docs/prompts原样。
 - 续接注意：M6a原始证据与M6A_REPORT不改；M6b新证据统一private/dnsmasq-rewrite/evidence/M6b。已完成的M5/M6a worktree及分支已按private/dnsmasq-rewrite/worktree-retirement-20261007/m5-m6a/manifest.json保全durable refs、dirty补丁、untracked文件与必要ignored evidence后移除；用户docs/prompts和M6b活跃worktree保留。任何opt3/s切换必须新freeze和完整资格，不能用M6a机械UDP分类下结论。169项和M5行为差异基线必须在最终候选重新核对。
 
