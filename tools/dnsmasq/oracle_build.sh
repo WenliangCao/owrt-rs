@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build an immutable source snapshot; all Oracle DNS builds share one cache.
-# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests|fuzz]
+# Usage: sh oracle_build.sh SOURCE FRESH_PRIVATE_OUTPUT [release|tests|ubus-tests|probe-tests|fuzz]
 set -eu
 [ "$#" -ge 2 ] && [ "$#" -le 3 ] || exit 2
 source_dir=$(realpath "$1")
@@ -10,7 +10,7 @@ case "$output_dir" in /home/ubuntu/*/private/*) ;; *) echo 'private output requi
 [ ! -e "$output_dir" ] || { echo 'fresh output required' >&2; exit 2; }
 [ -f "$source_dir/components/dnsmasq/Cargo.toml" ] || exit 2
 case "$source_dir" in *' '*) echo 'source path contains whitespace' >&2; exit 2;; esac
-case "$build_kind" in release|tests|ubus-tests|fuzz) ;; *) exit 2;; esac
+case "$build_kind" in release|tests|ubus-tests|probe-tests|fuzz) ;; *) exit 2;; esac
 package_name=dnsmasq-rs
 manifest_path="$source_dir/components/dnsmasq/Cargo.toml"
 if [ "$build_kind" = ubus-tests ]; then
@@ -96,11 +96,24 @@ if [ -n "${ORACLE_BUILD_FEATURES:-}" ]; then
         *) echo 'ORACLE_BUILD_FEATURES contains an unsupported feature' >&2; exit 2 ;;
     esac
 fi
+if [ "$build_kind" = probe-tests ]; then
+    [ "$CARGO_PROFILE_RELEASE_OPT_LEVEL" = 3 ] && [ -z "$feature_args" ] || {
+        echo 'probe-tests requires opt3 and feature-off' >&2; exit 2;
+    }
+    python3 - "$source_dir" "$output_dir" <<'PY'
+import hashlib, json, pathlib, sys
+source, out = map(pathlib.Path, sys.argv[1:])
+files = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
+         for part in ('dnsmasq', 'ubus') for p in sorted((source / 'components' / part).rglob('*'))
+         if p.is_file() and 'target' not in p.relative_to(source).parts}
+(out / 'probe-source-before.json').write_text(json.dumps(files, sort_keys=True) + '\n')
+PY
+fi
 cargo=/home/ubuntu/.cargo/bin/cargo
 # Git archives preserve historical mtimes. Reusing a fixed source path can
 # otherwise make Cargo accept stale package artifacts after the input changes.
 # Keep dependency caches, but invalidate this package inside the copy lock.
-if [ "$build_kind" = release ]; then
+if [ "$build_kind" = release ] || [ "$build_kind" = probe-tests ]; then
     "$cargo" +1.98.1 clean --manifest-path "$manifest_path" \
         --package "$package_name" --target aarch64-unknown-linux-musl --release \
         >"$output_dir/clean.stdout" 2>"$output_dir/clean.log"
@@ -118,6 +131,12 @@ elif [ "$build_kind" = tests ]; then
     "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$source_dir/components/dnsmasq/Cargo.toml" --lib --bin dnsmasq-rs \
         --no-run --message-format=json >"$output_dir/build.stdout" 2>"$output_dir/build.log"
+elif [ "$build_kind" = probe-tests ]; then
+    # Diagnostic-only ignored lib tests use the same release settings, target,
+    # copy lock and source invalidation. Nothing executes inside this build.
+    "$cargo" +1.98.1 test --release --frozen --target aarch64-unknown-linux-musl \
+        --manifest-path "$manifest_path" --lib --no-run --message-format=json \
+        >"$output_dir/build.stdout" 2>"$output_dir/build.log"
 else
     "$cargo" +1.98.1 test --frozen --target aarch64-unknown-linux-musl \
         --manifest-path "$manifest_path" --lib \
@@ -127,7 +146,7 @@ python3 - "$source_dir" "$output_dir" "$build_kind" <<'PY'
 import hashlib, json, os, pathlib, shutil, sys
 source, out, kind = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
 artifacts = [out / 'dnsmasq-rs'] if kind == 'release' else []
-if kind in ('tests', 'ubus-tests'):
+if kind in ('tests', 'ubus-tests', 'probe-tests'):
     for line in (out / 'build.stdout').read_text().splitlines():
         row = json.loads(line)
         if row.get('reason') != 'compiler-artifact' or not row.get('executable'):
@@ -147,6 +166,16 @@ report = {'source': str(source), 'kind': kind, 'cargo_target_dir': os.environ['C
           'rustflags': os.environ['RUSTFLAGS'], 'artifacts': [
               {'path': path.name, 'bytes': path.stat().st_size,
                'sha256': hashlib.sha256(path.read_bytes()).hexdigest()} for path in artifacts]}
+if kind == 'probe-tests':
+    before = out / 'probe-source-before.json'
+    files = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
+             for part in ('dnsmasq', 'ubus') for p in sorted((source / 'components' / part).rglob('*'))
+             if p.is_file() and 'target' not in p.relative_to(source).parts}
+    if files != json.loads(before.read_text()):
+        raise RuntimeError('probe source changed during locked build')
+    report['source_files'] = files
+    report['source_before_sha256'] = hashlib.sha256(before.read_bytes()).hexdigest()
+    report['diagnostic_only'] = True
 if (out / 'link.map').exists():
     report['link_map'] = {'path': 'link.map',
                          'sha256': hashlib.sha256((out / 'link.map').read_bytes()).hexdigest()}
