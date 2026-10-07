@@ -1268,14 +1268,16 @@ impl<R: Random> UpstreamResolver<R> {
                         self.query_events.push((context, event));
                     }
                     #[cfg(target_os = "linux")]
-                    if let Ok(source) = self.sockets[&token].socket.local_addr() {
-                        self.dump.udp_with_context(
-                            crate::dump::UP_QUERY,
-                            packet,
-                            source,
-                            address,
-                            context,
-                        );
+                    if self.dump.enabled(crate::dump::UP_QUERY) {
+                        if let Ok(source) = self.sockets[&token].socket.local_addr() {
+                            self.dump.udp_with_context(
+                                crate::dump::UP_QUERY,
+                                packet,
+                                source,
+                                address,
+                                context,
+                            );
+                        }
                     }
                     self.dispatcher
                         .note_sent(id, server, token, self.milliseconds());
@@ -1450,14 +1452,16 @@ impl<R: Random> UpstreamResolver<R> {
                 continue;
             };
             #[cfg(target_os = "linux")]
-            if let Ok(destination) = self.sockets[&token].socket.local_addr() {
-                self.dump.udp_with_context(
-                    crate::dump::UP_REPLY,
-                    &self.receive_buffer[..length],
-                    source,
-                    destination,
-                    pending.query_context(),
-                );
+            if self.dump.enabled(crate::dump::UP_REPLY) {
+                if let Ok(destination) = self.sockets[&token].socket.local_addr() {
+                    self.dump.udp_with_context(
+                        crate::dump::UP_REPLY,
+                        &self.receive_buffer[..length],
+                        source,
+                        destination,
+                        pending.query_context(),
+                    );
+                }
             }
             // Keep the transaction and its server/retry counters untouched.
             // This must happen after source/ID admission but before

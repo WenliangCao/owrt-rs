@@ -4112,7 +4112,7 @@ impl SinglePoll {
             Err(_) => return true,
         };
         #[cfg(target_os = "linux")]
-        if query.len() >= 12 && query[2] & 0x80 == 0 {
+        if self.dump.enabled(dnsmasq_rs::dump::QUERY) {
             if let Ok(destination) = udp.local_addr() {
                 self.dump.udp_with_context(
                     dnsmasq_rs::dump::QUERY,
@@ -4394,14 +4394,16 @@ impl SinglePoll {
         }
         if let Some((answer, stale)) = answer {
             #[cfg(target_os = "linux")]
-            if let Ok(source) = udp.local_addr() {
-                self.dump.udp_with_context(
-                    dnsmasq_rs::dump::REPLY,
-                    &answer,
-                    source,
-                    client.source,
-                    query_context,
-                );
+            if self.dump.enabled(dnsmasq_rs::dump::REPLY) {
+                if let Ok(source) = udp.local_addr() {
+                    self.dump.udp_with_context(
+                        dnsmasq_rs::dump::REPLY,
+                        &answer,
+                        source,
+                        client.source,
+                        query_context,
+                    );
+                }
             }
             let _ = udp.send(
                 &answer,
@@ -4449,14 +4451,16 @@ impl SinglePoll {
                 .and_then(|listener| listener.udp.as_ref())
             {
                 #[cfg(target_os = "linux")]
-                if let Ok(source) = target.local_addr() {
-                    self.dump.udp_with_context(
-                        dnsmasq_rs::dump::REPLY,
-                        &response.packet,
-                        source,
-                        response.destination,
-                        response.query_context,
-                    );
+                if self.dump.enabled(dnsmasq_rs::dump::REPLY) {
+                    if let Ok(source) = target.local_addr() {
+                        self.dump.udp_with_context(
+                            dnsmasq_rs::dump::REPLY,
+                            &response.packet,
+                            source,
+                            response.destination,
+                            response.query_context,
+                        );
+                    }
                 }
                 let _ = target.send(
                     &response.packet,
@@ -4528,14 +4532,16 @@ impl SinglePoll {
                 .and_then(|target| target.udp.as_ref())
             {
                 #[cfg(target_os = "linux")]
-                if let Ok(source) = target.local_addr() {
-                    self.dump.udp_with_context(
-                        dnsmasq_rs::dump::REPLY,
-                        &response.packet,
-                        source,
-                        response.destination,
-                        response.query_context,
-                    );
+                if self.dump.enabled(dnsmasq_rs::dump::REPLY) {
+                    if let Ok(source) = target.local_addr() {
+                        self.dump.udp_with_context(
+                            dnsmasq_rs::dump::REPLY,
+                            &response.packet,
+                            source,
+                            response.destination,
+                            response.query_context,
+                        );
+                    }
                 }
                 let _ = target.send(
                     &response.packet,
