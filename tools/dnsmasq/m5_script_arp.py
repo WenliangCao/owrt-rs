@@ -809,6 +809,75 @@ def health():
         return endpoint.recv(4096).hex()
 
 
+def descriptor_snapshot(pid, proc_root=Path('/proc')):
+    """Read the full FD identity set; a concurrent open/close is not a sample."""
+    started = time.monotonic_ns()
+    process = proc_root / str(pid)
+    descriptors, races = {}, []
+    starttime = None
+    def identity():
+        stat = (process / 'stat').read_text()
+        return int(stat[stat.rfind(')') + 2:].split()[19])
+    try:
+        starttime = identity()
+        entries = {entry.name for entry in (process / 'fd').iterdir()}
+        for number in sorted(entries, key=int):
+            path = process / 'fd' / number
+            try:
+                target = os.readlink(path)
+                info = path.stat()
+                flags = dict(line.split(':', 1) for line in (process / 'fdinfo' / number).read_text().splitlines() if ':' in line)
+                after = path.stat()
+                if os.readlink(path) != target or (after.st_dev, after.st_ino, after.st_mode) != (info.st_dev, info.st_ino, info.st_mode):
+                    races.append(number + ': identity changed while reading')
+                descriptors[number] = dict(target=target, device=info.st_dev, inode=info.st_ino,
+                                           mode=info.st_mode, flags=flags['flags'].strip(),
+                                           mount_id=flags['mnt_id'].strip())
+            except (OSError, KeyError, ValueError) as error:
+                races.append(number + ': ' + repr(error))
+        if {entry.name for entry in (process / 'fd').iterdir()} != entries:
+            races.append('FD inventory changed while reading')
+        if identity() != starttime:
+            races.append('process identity changed while reading')
+    except (OSError, ValueError, IndexError) as error:
+        races.append(repr(error))
+    return dict(started_monotonic_ns=started, captured_monotonic_ns=time.monotonic_ns(),
+                captured_wall_ns=time.time_ns(), process_starttime_ticks=starttime,
+                descriptors=descriptors, complete=not races, races=races)
+
+
+def stable_descriptors(pid, evidence, expected=None, timeout=2, interval=.02, samples=3):
+    """Require three complete equal FD identities, or exact stable recovery."""
+    if samples < 2 or interval <= 0 or timeout <= 0:
+        raise ValueError('invalid descriptor stability budget')
+    started = time.monotonic()
+    candidate, stable = None, 0
+    receipt = dict(pid=pid, timeout_seconds=timeout, sample_interval_seconds=interval,
+                   required_stable_samples=samples, passed=False, observations=[],
+                   expected=expected, criterion='same full FD identities and process starttime, consecutive complete samples')
+    while True:
+        observed = descriptor_snapshot(pid)
+        current = dict(descriptors=observed['descriptors'], process_starttime_ticks=observed['process_starttime_ticks'])
+        matches = observed['complete'] and (expected is None or current == expected)
+        if matches:
+            stable = stable + 1 if current == candidate else 1
+            candidate = current
+        else:
+            stable, candidate = 0, None
+        observed.update(matches_expected=bool(matches), consecutive_stable_samples=stable,
+                        elapsed_seconds=time.monotonic() - started)
+        receipt['observations'].append(observed)
+        if stable >= samples and observed['elapsed_seconds'] <= timeout:
+            receipt.update(passed=True, stable_identity=current)
+        save(evidence, receipt)
+        if receipt['passed']:
+            return receipt
+        remaining = timeout - (time.monotonic() - started)
+        if remaining <= 0:
+            raise TimeoutError('descriptor recovery: full idle FD identities did not stabilize')
+        time.sleep(min(interval, remaining))
+
+
 def helpers(pid):
     result = []
     for entry in Path('/proc').iterdir():
@@ -1044,14 +1113,17 @@ def run_side(args):
                         assert observed == [['3', 'arp-add', replacement, '192.0.2.19', '0', '0', 'inherited-iface', 'inherited-id']], 'ARP helper did not recover after exec error'
                 owned = helpers(pid)
                 assert len(owned) == (0 if spec.get('no_helper') else 1), 'helper qualification'
-                baseline = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
+                baseline = stable_descriptors(pid, folder / 'descriptor-baseline.json')
                 # A health query can itself seed the MAC negative we need to
                 # fault. Resource cases use their own actual lookup replies.
                 reply = None if spec.get('no_dns') or spec.get('allocation') else health()
                 save(folder / 'helper-identities.json', owned)
-                remaining = len(list(Path('/proc/' + str(pid) + '/fd').iterdir()))
-                save(folder / 'descriptor-health.json', dict(before=baseline, after=remaining))
-                assert baseline == remaining, 'descriptor recovery'
+                recovered = stable_descriptors(pid, folder / 'descriptor-recovery.json',
+                                               expected=baseline['stable_identity'])
+                save(folder / 'descriptor-health.json', dict(
+                    before=len(baseline['stable_identity']['descriptors']),
+                    after=len(recovered['stable_identity']['descriptors']),
+                    baseline=baseline, recovery=recovered, passed=True))
                 if spec.get('descriptors'):
                     descriptors = (root / 'm2/arp-fds').read_bytes()
                     (folder / 'script-descriptors.raw').write_bytes(descriptors)
