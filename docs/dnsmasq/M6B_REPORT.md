@@ -44,9 +44,24 @@
 
 三组均无timeout/wrong/transport error；60秒idle cgroup CPU增量均0。峰RSS/PSS：C1668/1660、R33532/3524、Rs3408/3400KiB；FD11/12/12、线程均1、子进程均0。R3稳态已达到实际施加约10k和亚毫秒目标，但相对C仍多4.2795µs/请求（34.85%）；Rs相对R3多1.3878µs（8.38%），饱和正确QPS低13.52%。这些是绝对代价/单轮归因，尚不能作显著变差或切换s的决定。三组完整源数据、raw latency分析及本地归档proof均在E/M6B/baseline-70097c66。
 
+UDP-miss三组单轮亦方法有效、analysis_errors=[]、无普通错误、无generator限制：
+
+| UDP-miss | 正确QPS | CPU µs/正确请求 | p50 ms | p95 ms | p99 ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| C 稳态 | 9,974.96 | 94.7367 | 0.164402 | 0.321922 | 1.080049 |
+| C 饱和 | 11,792.17 | 84.0422 | 1.671654 | 1.830015 | 2.127817 |
+| R3 稳态 | 9,984.44 | 84.3103 | 0.094121 | 0.146682 | 0.541164 |
+| R3 饱和 | 15,920.40 | 62.0208 | 1.233530 | 1.391292 | 1.594054 |
+| Rs 稳态 | 9,983.80 | 83.3466 | 0.092401 | 0.146281 | 0.558605 |
+| Rs 饱和 | 16,441.90 | 60.0341 | 1.192610 | 1.352891 | 1.494533 |
+
+R3稳态相对C少10.4264µs/请求（11.01%），p50少0.070281ms；Rs相对R3稳态少0.9637µs（1.14%）。与UDP-hit的s代价不同，必须逐场景报告，不能拿一项推断全部路径。仍是单轮归因，显著分类等待最终五轮。
+
 ## TCP方案A及内存
 
 按[M6B_TCP_MEMORY_DESIGN.md](M6B_TCP_MEMORY_DESIGN.md)第5节执行，推荐A仍只在独立worktree。内容块/名字索引分片共享，连接保留私有小型LRU；每个mutator先detach，S1–S8语义及逐query导回不能改变。旧分支的原语/布局数字不冒充新70097基线上fresh资格；新原语、视图隔离、服务、资源/生命周期、压力与CPU门尚未完成。
+
+独立初版5f3d42b4仍使用`HashMap<Arc<[u8]>, Vec<usize>>`，没有已实现的inline/Many共享；旧 all64 shard detach实测368,000B/4,224次分配，包含4096个singleton Vec（32,768B）和64 HashMap backing＋64 shard Arc（335,232B）；content detach296,960B/128分配。设计§4要求的有序Empty/One内联＋Many共享helper与高位shard正在独立补齐，随后重新跑全部fresh门，不把初版或旧测量当最终A资格。
 
 当前结构模型为4096 snapshot 66,560B（65KiB）、3次分配，20 views约1.27MiB；这是requested结构账，不是整体PSS，不是原先约32KiB的预测。generation仍u64。S8释放DNS状态不提前释放日志占有的slot，不在stale refresh结束前释放视图；不加入额外Box或accept分配。最终须给实际parent/view/content/index/pinned/live requested、峰PSS及0/1/5/15/60秒排空余额。
 
