@@ -6538,10 +6538,13 @@ mod tests {
                 frame: encode_tcp_frame(&query).unwrap(), offset: 0,
             };
             work.queries = 1;
-            work.query_events.push((work.query_context,
-                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer).unwrap()));
+            // File/FIFO logging has exactly one buffer, matching C. Keep the
+            // first producer warning; later request/forward events must reach
+            // the logger and count as overflow while the FIFO has no reader.
             work.query_events.push((work.query_context,
                 dnsmasq_rs::query_logging::QueryEvent::warning(b"stale-work warning before release".to_vec())));
+            work.query_events.push((work.query_context,
+                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer).unwrap()));
             Arc::downgrade(&work.service.leases)
         };
         // Test readiness drives nonblocking I/O. The real owner poll is covered
@@ -6611,9 +6614,9 @@ mod tests {
             if let Err(error) = reader.read_to_string(&mut messages) {
                 assert_eq!(error.kind(), io::ErrorKind::WouldBlock);
             }
-            assert!(messages.contains("query[A] ready.test"));
             assert!(messages.contains("stale-work warning before release"));
-            assert!(messages.contains("forwarded ready.test"));
+            assert!(messages.contains("overflow:"));
+            assert!(messages.contains("log entries lost"));
             std::fs::remove_file(log_path).unwrap();
         }
     }
