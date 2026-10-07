@@ -60,3 +60,11 @@ unused/clashing-extern warnings 未改变。不能把上述检查称为 Linux �
 
 上述门尚未由本代理执行；主线程必须保留失败/重跑和新 ELF 身份。性能
 结论仅代表 Oracle 构建机，最终135窗口仍只在最终候选运行。
+
+## 主线程实际 Linux 后验（4816b19f，非最终资格）
+
+Oracle 单一共享 target 构建并实际执行库710通过/20 ignored、入口20通过；另在run_isolated下实际执行三个TFTP ignored tests全部通过，其余17 ignored不计。新增最后ACK/ACK-timeout后helper逻辑completion无需另一个网络包、连续两DHCP frozen callback/背压不空转、EOF到waitpid之间有限回收均已执行。helper修复的C依据是dnsmasq.c:1177–1194 pre-poll搬队列与tftp.c:1029–1043完成排队/释放。
+
+新产品feature-off opt3 SHA `9acccc6068a2734945271b687ca48f35ddfbc96fa1aa91d575af63317aec262b`，1,941,544B；s SHA `781cf6d739c61bf3bb0fc02d7ee332f4bd87d864cb8f61b7fe203bc3ab403b6c`，1,626,152B。E/M6B/helper-ready保存source.tar、build receipts、link map、实际ELF和全部测试日志。本地SHA/尺寸与build receipts相等。
+
+真实镜像C service-03仍在执行，已通过option_matrix_next、helper；未完成族不称通过。service-02控制器漏link_map binding在展开命令前退出，零测试执行，错误日志/原控制器SHA保留后fresh重跑，未覆盖原失败。未插桩基线manifest `79ebd42c…` 已准备但尚未执行；A服务和CPU硬门仍待过。
