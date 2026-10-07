@@ -124,6 +124,13 @@ class InstrumentationManifest(unittest.TestCase):
 
 
 class IntermediateRestart(unittest.TestCase):
+    def test_fault_diagnostic_retains_recovery_admissions_past_c_lazy_lifetime(self):
+        frozen = ["window.py", "--warmup", "2", "--duration", "10", "--preflight",
+                  "--saturation-seconds", "0", "--idle-seconds", "0", "--drain-sample-seconds", "0"]
+        with patch.object(intermediate.suite, "command_for", return_value=frozen):
+            result = intermediate.command_for({}, ("upstream-fault", "fault"), "r3", Path("fresh"), "strace")
+        self.assertEqual(result[result.index("--duration") + 1], "50")
+
     def test_short_trace_command_is_excluded_and_cpu_args_are_preserved(self):
         frozen = ["python3", "window.py", "--warmup", "2", "--duration", "10", "--preflight",
                   "--saturation-seconds", "3", "--idle-seconds", "60", "--drain-sample-seconds", "0,1,5,60",

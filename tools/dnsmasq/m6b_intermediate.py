@@ -30,6 +30,11 @@ def command_for(spec, profile, group, output, diagnostic=None):
     if diagnostic:
         replacements = {"--warmup": "2", "--duration": "15", "--saturation-seconds": "0",
                         "--idle-seconds": "0", "--drain-sample-seconds": "0"}
+        # C and Rust reclaim unanswered ForwardTable entries lazily on a new
+        # admission after the 40-second lifetime. A short fault must retain
+        # enough recovery traffic to release them before the idle FD barrier.
+        if profile and profile[1] == "fault":
+            replacements["--duration"] = "50"
         for flag, value in replacements.items():
             command[command.index(flag) + 1] = value
         command.append("--perf-record" if diagnostic == "perf" else "--strace-summary")
