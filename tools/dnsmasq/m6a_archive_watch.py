@@ -73,7 +73,7 @@ def main():
                     path=dest/'prune.json'
                     if item.get('archive',{}).get('pruned') and not path.exists():
                         copy('oracle:'+str(Path(item['archive']['folder'])/'prune.json'),path)
-            if state['status'] in ['complete','partial-complete','pilots-complete','failed-tools-or-environment']:
+            if state['status'] in ['complete','partial-complete','pilots-complete','diagnostics-complete','failed-tools-or-environment']:
                 print(json.dumps({'status':state['status'],'valid_windows':state['formal_valid_windows']}),flush=True)
                 return 0 if state['status']!='failed-tools-or-environment' else 1
         except subprocess.CalledProcessError as error:
