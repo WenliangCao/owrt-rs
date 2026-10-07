@@ -41,7 +41,8 @@ dns_tcp_accept_failure_diff.py
 
 ## CPU 硬门与失败规则
 
-在同一 9 profile × C/R3/A × 5 轮交错窗口中，TCP 每个正确请求 CPU 相对 M6a opt3 不得增加超过 5%，并保持相对 C 的 CPU 优势；吞吐/p95 不得回退超过 5%，S1–S8 不得出现新增语义差异，错误和 FD 泄漏为零。方案 A 若任一硬门失败，保留全部窗口和失败原因，停止 A，不从 B/C 或不同窗口拼接结果。
+在同一 9 profile × C/R3/A × 5 轮交错窗口中，先对每轮计算
+`u(group,round) = (daemon cgroup CPU usec + TCP child CPU usec) / correct replies`，错误回答不进分母；随后按协议以五轮中位数和轮间波动 `W=(max-min)/median` 比较。A 的硬门是 `median(u_A) <= 1.05 * median(u_R3)`，且 A 相对 C 的 CPU 优势必须仍成立（`median(u_A) < median(u_C)`，否则按设计 CPU 硬门失败）；成对差异还须超过两组较大 W 才分类为有方向差异。吞吐/p95 不得回退超过 5%，S1–S8 不得出现新增语义差异，错误和 FD 泄漏为零。方案 A 若任一硬门失败，保留全部窗口和失败原因，停止 A，不从 B/C 或不同窗口拼接结果。
 
 历史失败：初次直接运行 primitive harness 时缺少 `local` shim 且 driver 使用旧 `Policy` 宽度，编译失败；修复仅限测试 harness 后重跑为上述 0 mismatch。`cache_transfer_rust_diff.py` 的历史 baseline 缺少要求的 `plan.json`，因此未冒称 transfer gate 已通过；应在 Oracle 新建完整 baseline 后执行。
 
