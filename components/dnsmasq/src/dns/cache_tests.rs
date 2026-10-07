@@ -1,6 +1,43 @@
 use super::*;
 
 #[test]
+fn tcp_snapshot_content_and_name_roots_detach_only_on_mutation() {
+    let name = Name::from_ascii("shared-root.test").unwrap();
+    let mut parent = Cache::new(128, Policy::default());
+    parent.start_insert();
+    let old = parent
+        .insert(record("shared-root.test", Kind::Ipv4, 1), 100, 60)
+        .unwrap();
+    assert!(parent.commit());
+
+    let mut child = parent.snapshot();
+    let block = old.slot / CONTENT_BLOCK_SLOTS;
+    assert!(Arc::ptr_eq(&parent.content[block], &child.content[block]));
+    let key = name.canonical_wire();
+    let shard = Cache::key_shard(&key);
+    assert!(Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+
+    // A cache hit only updates the owner's LRU; shared content/index roots
+    // remain shared and the parent cannot observe that promotion.
+    assert_eq!(child.lookup(&name, &[Kind::Ipv4], 100, false).len(), 1);
+    assert!(Arc::ptr_eq(&parent.content[block], &child.content[block]));
+    assert!(Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+
+    // Replacing the record detaches just the touched content block and its
+    // conflicting name shard while the parent keeps its old roots.
+    child.start_insert();
+    child
+        .insert(record("shared-root.test", Kind::Ipv4, 2), 100, 60)
+        .unwrap();
+    assert!(!Arc::ptr_eq(&parent.content[block], &child.content[block]));
+    assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+    assert!(child.commit());
+    assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+    assert_eq!(lookup(&mut parent, "shared-root.test", Kind::Ipv4, 100), [1]);
+    assert_eq!(lookup(&mut child, "shared-root.test", Kind::Ipv4, 100), [2]);
+}
+
+#[test]
 fn tcp_view_isolates_mutation_shares_payload_and_imports_only_child_transaction() {
     let a = Name::from_ascii("a.snapshot.test").unwrap();
     let b = Name::from_ascii("b.snapshot.test").unwrap();
