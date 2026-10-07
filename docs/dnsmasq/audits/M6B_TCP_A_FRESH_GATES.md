@@ -46,8 +46,12 @@ python3 "$M6B_A_SOURCE/tools/dnsmasq/m6b_tcp_a_layout.py" \
   --repository "$M6B_MAIN" --source "$M6B_A_COMMIT" --out "$M6B_LOCAL_OUT/layout"
 
 # guards/layout的private target-dir仅用于本机诊断，不能在Oracle绕过唯一共享target。
-sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_BUILD" tests
-sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_RELEASE" release
+ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_BUILD" tests
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" "$M6B_A_BUILD/lib-dnsmasq_rs" --test-threads=1
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" "$M6B_A_BUILD/bin-dnsmasq-rs" --test-threads=1
+ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_UBUS_BUILD" ubus-tests
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" "$M6B_A_UBUS_BUILD/lib-owrt_ubus" --test-threads=1
+ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' ORACLE_BUILD_LINK_MAP=1 sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_SOURCE" "$M6B_A_RELEASE" release
 
 sudo -n python3 "$M6B_TOOLS/m5_final_validation.py" run --manifest "$M6B_A_FUNCTIONAL_MANIFEST" \
   --phase families --attempt 1 --family m5_dns_cache --family m5_edns --family dns-files \
