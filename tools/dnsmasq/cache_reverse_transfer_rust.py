@@ -12,23 +12,35 @@ from pathlib import Path
 import subprocess
 
 from cache_reverse_transfer_oracle import calibrate, compare, save, sha
+import rust_lib_probe
 
 IDENTITY = '258e62717009ad9e2567aeda2b82dab81dbd68e2c5a04cd0b7fc4e69a435c516'
 PLAN = '2d546b0e47749a2dce5e3863be6136f336155db2dd05c680452f26f7717e468d'
 RESULT = 'd581b6c4690f4ec9ba844cc09303c9a282eb4852243a172efc9deec5f5d7f705'
 TEST = 'dns::cache::reverse_transfer_gate::exact_c_reverse_transfer_probe'
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ['baseline', 'source', 'out']:
+    for name in ['baseline', 'out']:
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--source', type=Path, help='legacy private source copy; copied probes use rust-source-root')
     parser.add_argument('--cargo', default='cargo')
     parser.add_argument('--source-commit', required=True)
     parser.add_argument('--inject-error', action='store_true')
+    rust_lib_probe.add_arguments(parser)
     args = parser.parse_args()
     assert os.environ.get('DNSMASQ_TEST_ISOLATED') == '1'
-    source, base, out = args.source.resolve(), args.baseline.resolve(), args.out.resolve()
+    base, out = args.baseline.resolve(), args.out.resolve()
+    try:
+        probe, source, binding = rust_lib_probe.selection(args, args.source or ROOT, out)
+    except ValueError as error:
+        parser.error(str(error))
+    if probe is None and not args.source:
+        parser.error('--local-native reverse probe requires an explicit --source private copy')
+    if args.source and args.source.resolve() != source:
+        parser.error('--source and frozen --rust-source-root disagree')
     assert 'private' in out.parts and 'private' in source.parts
     out.mkdir(parents=True, exist_ok=False)
     assert sha(base/'identity.json') == IDENTITY and sha(base/'plan.json') == PLAN and sha(base/'result.json') == RESULT
@@ -43,33 +55,45 @@ def main():
                  if p.is_file() and 'target' not in p.parts and (p.suffix == '.rs' or p.name in ['Cargo.toml','Cargo.lock'])}
     adapter = Path(__file__).with_name('cache_reverse_transfer_probe.rs')
     target_adapter = source/'components/dnsmasq/src/dns/cache_reverse_transfer_gate.rs'
-    assert not target_adapter.exists()
-    target_adapter.write_bytes(adapter.read_bytes())
     cache = source/'components/dnsmasq/src/dns/cache.rs'
-    cache.write_text(cache.read_text() + '\n#[cfg(test)]\n#[path = "cache_reverse_transfer_gate.rs"]\nmod reverse_transfer_gate;\n')
+    if probe:
+        if not target_adapter.exists() or sha(target_adapter) != sha(adapter) or 'mod reverse_transfer_gate;' not in cache.read_text():
+            raise ValueError('copied reverse probe requires the exact cfg(test) adapter in its frozen build inputs')
+    else:
+        assert not target_adapter.exists()
+        target_adapter.write_bytes(adapter.read_bytes())
+        cache.write_text(cache.read_text() + '\n#[cfg(test)]\n#[path = "cache_reverse_transfer_gate.rs"]\nmod reverse_transfer_gate;\n')
+        # Only the explicit legacy private-copy mode injects test source.
+        binding['source_files'] = rust_lib_probe.source_files(source)
     report = dict(scope=__doc__, source_commit=args.source_commit, original_source_files=originals,
                   adapter_sha256=sha(adapter), instrumented_cache_sha256=sha(cache), tool_sha256=sha(Path(__file__)),
                   c_identity_sha256=IDENTITY, c_plan_sha256=PLAN, c_result_sha256=RESULT,
+                  rust_probe=binding, rust_test=TEST,
+                  original_source_scope='frozen probe inputs include cfg(test) adapter' if probe else 'legacy private copy before adapter injection',
+                  c_reference_scope='frozen native/target exact-C primitive transcripts; not stock image 097a9e21 ELF',
                   cases=[], ordering_cases=[], failures=[], inject_error=args.inject_error)
-    command = [args.cargo,'+1.98.1','test','--manifest-path',str(source/'components/dnsmasq/Cargo.toml'),'--lib','--no-run','--message-format=json','--target-dir',str(out/'target')]
-    build = subprocess.run(command, text=True, capture_output=True)
-    (out/'build.stdout').write_text(build.stdout); (out/'build.stderr').write_text(build.stderr)
-    save(out/'build-command.json', {'argv':command,'exit':build.returncode})
-    if build.returncode:
-        report['failures'].append('build failed; retained stderr'); save(out/'result.json',report); return 1
-    executables = [Path(d['executable']) for line in build.stdout.splitlines() if (d := json.loads(line)).get('reason') == 'compiler-artifact' and d.get('executable') and d.get('profile',{}).get('test')]
-    assert len(executables) == 1
-    report['probe_sha256'] = sha(executables[0])
+    if probe is None:
+        command = [args.cargo,'+1.98.1','test','--manifest-path',str(source/'components/dnsmasq/Cargo.toml'),'--lib','--no-run','--message-format=json','--target-dir',str(out/'target')]
+        build = subprocess.run(command, text=True, capture_output=True)
+        (out/'build.stdout').write_text(build.stdout); (out/'build.stderr').write_text(build.stderr)
+        save(out/'build-command.json', {'argv':command,'exit':build.returncode})
+        if build.returncode:
+            report['failures'].append('build failed; retained stderr'); save(out/'result.json',report); return 1
+        executables = [Path(d['executable']) for line in build.stdout.splitlines() if (d := json.loads(line)).get('reason') == 'compiler-artifact' and d.get('executable') and d.get('profile',{}).get('test')]
+        assert len(executables) == 1
+        probe = executables[0]
+    report['probe_sha256'] = sha(probe)
     for index, case in enumerate(schedule):
+        rust_lib_probe.recheck(binding)
         env = dict(os.environ, DNSMASQ_REVERSE_TRANSFER_CASE=str(base/case['label']), DNSMASQ_REVERSE_TRANSFER_NOW=str(case['now']))
-        command = [str(executables[0]),TEST,'--ignored','--exact','--nocapture','--test-threads=1']
+        command = rust_lib_probe.argv(probe, TEST)
         run = subprocess.run(command, env=env, text=True, capture_output=True)
         (out/(case['label']+'.stdout')).write_text(run.stdout); (out/(case['label']+'.stderr')).write_text(run.stderr)
         if run.returncode:
             report['failures'].append({'case':case['label'],'exit':run.returncode})
             save(out/'result.json',report)
             return 1
-        actual = [line for line in run.stdout.splitlines() if line.startswith(('P0 ','P1 ','R ','CH ','P2 '))]
+        actual = rust_lib_probe.records(run.stdout, TEST, ('P0 ','P1 ','R ','CH ','P2 '))
         expected = (base/case['label']/'native-0.stdout').read_text().splitlines()
         if args.inject_error and index == 0: expected[-1] += ' altered'
         differences = compare(expected, actual)
@@ -78,6 +102,7 @@ def main():
             row['comparisons_to_all_frozen_runs'] = {f'{label}-{repeat}': compare((base/case['label']/f'{label}-{repeat}.stdout').read_text().splitlines(),actual) for label in ['native','target'] for repeat in range(3)}
             report['ordering_cases'].append(row)
         else: report['cases'].append(row)
+        rust_lib_probe.recheck(binding)
     report['compared'] = sum(r['observations'] for r in report['cases'])
     report['differing_states'] = sum(len(r['differences']) for r in report['cases'])
     report['matched'] = report['compared'] - report['differing_states']
