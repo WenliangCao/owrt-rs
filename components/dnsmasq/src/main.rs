@@ -3227,13 +3227,25 @@ impl SinglePoll {
         self.route_retry_at = None;
         let Some(watch) = &mut self.route_watch else { return; };
         let result = watch.read_events();
+        self.finish_route_read(result, now);
+    }
+
+    #[cfg(target_os = "linux")]
+    fn finish_route_read(&mut self, result: io::Result<NetworkEvents>, now: Instant) {
+        self.route_retry_at = None;
         match result {
             Ok(events) => self.apply_network_events(events),
+            Err(error) if error.raw_os_error() == Some(105) => {
+                // C netlink.c:359–370 continues after ENOBUFS. Yield a bounded
+                // owner turn, then read the remaining messages; overflow is not
+                // an address event, resolver trigger, or snapshot resync.
+                self.route_retry_at = Some(now);
+            }
+            Err(error) if matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted) => {}
             Err(error) => {
-                // Do not spin on a permanently readable failed watch. A bounded
-                // retry also rechecks queued data after ENOBUFS; no full reload.
+                // Other persistent read errors must not spin on POLLERR.
+                // This error-only cooldown still needs its actual fault gate.
                 self.route_retry_at = Some(now + Duration::from_secs(1));
-                if error.raw_os_error() == Some(105) { self.interface_refresh.request(); }
                 if let Some(logger) = &mut self.logger {
                     use dnsmasq_rs::logging::{LogEvent, Priority, Service};
                     logger.emit(LogEvent::new(Service::Dns, Priority::Error,
@@ -6370,6 +6382,26 @@ mod tests {
         assert!(refresh.due(now + Duration::from_secs(1)));
         refresh.complete(now, false);
         assert!(refresh.retry_at.is_none()); assert!(!refresh.requested);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn multicast_enobufs_continues_without_fabricating_any_event() {
+        let mut config = DnsConfig::default(); config.no_hosts = true; config.no_resolv = true;
+        let mut owner = test_owner(config.clone(), None);
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        let now = Instant::now();
+        owner.finish_route_read(Err(io::Error::from_raw_os_error(105)), now);
+        assert_eq!(owner.route_retry_at, Some(now), "next bounded owner turn must continue the drain");
+        assert!(!owner.interface_refresh.requested, "overflow is not NEWADDR");
+        assert!(owner.interface_refresh.retry_at.is_none(), "overflow does not request snapshot resync");
+        assert!(!owner.dns_files.as_ref().unwrap().has_work(), "overflow is not NEWROUTE/full reload");
+        owner.finish_route_read(Err(io::Error::from_raw_os_error(11)), now);
+        assert!(owner.route_retry_at.is_none(), "EAGAIN returns to the real fd wait");
+        owner.finish_route_read(Err(io::Error::from_raw_os_error(5)), now);
+        assert_eq!(owner.route_retry_at, Some(now + Duration::from_secs(1)));
+        assert!(!owner.interface_refresh.requested);
+        assert!(!owner.dns_files.as_ref().unwrap().has_work());
     }
 
     #[cfg(target_os = "linux")]

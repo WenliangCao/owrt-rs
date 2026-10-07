@@ -20,7 +20,8 @@
 | interface records / domain / source index | 枚举时更新当前interface语义，TCP仍保accept-time快照 | changed snapshot请求existing InterfaceCollector | collector fd/runnable/deadline；queued addr不在旧collector完成后抢先admission | publish interface/domain records / source indices，server address check | 需要interface-record、DNS files、TCP accept隔离族fresh门 |
 | malformed / user sender | netlink.c114–144截断拒绝、只接kernel sender | `read_events`验证sockaddr/长度；scanner完整header边界 | 不制造addr/route | 保持旧发布 | parser负控已类型检查；actual接收fault门待root |
 | NLMSG_ERROR | netlink.c382–386，非0日志、ACK0无动作 | `NetworkEvents.errors` | 消费完该datagram，不伪造其它事件 | `netlink returns error`诊断 | errno/ACK0 parser；实际日志对照待root |
-| read error / ENOBUFS | C非阻塞drain，ENOBUFS再次drain（netlink.c359–370） | 当前补丁读错可见，1秒冷却watch；ENOBUFS请求snapshot重同步，不请求Route/full reload | error-only截止，避免永久readable错误spin | 下一次有界read / snapshot | 该error-only退避及重同步尚无实际C资格，必须专项验证；不能写成已通过 |
+| ENOBUFS | C非阻塞drain，ENOBUFS再次drain（netlink.c359–370） | `route_retry_at=now` | 下个有界owner turn继续读取；EAGAIN撤重试回真实fdwait | 不制造addr、route、snapshot resync或full reload，不输出NLMSG_ERROR诊断 | ENOBUFS/EAGAIN误发布actor负控已类型检查，actual fault gate待root |
+| other read error | C multicast读取终止当次drain | 可见错误，error-only 1秒冷却watch | 避免永久POLLERR busy-spin | 下一次有界read | 冷却/诊断尚无actual C资格，必须专项验证，不能写成已通过 |
 | non-Linux fallback | 当前实现无RouteWatch | 原100ms fallback保留 | 非Linux仍原park/scan | 同原consumer | 不将Linux测量外推此平台 |
 
 普通Linux配置没有永久100ms interface scan，也没有人为ARP90秒timer。地址、路由、DAD及接收错误分别有自己的来源与consumer；port0也保留监视能力。snapshot失败保留旧发布，并用仅错误路径的一秒重试，不假装新代际成功。
