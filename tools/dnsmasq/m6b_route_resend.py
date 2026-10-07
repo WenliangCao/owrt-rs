@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import signal
 import struct
 import subprocess
 import time
@@ -32,6 +33,177 @@ PLAN = {'profiles': CASES, 'scope': __doc__, 'kernel_route': '198.18.252.1/24 on
         'expected_forward_actions': 1, 'performance_qualification': False}
 TOOLS = ['m6b_route_resend.py', 'm5_dns_cache.py', 'm5_dns_cache.json',
          'm2_rootfs.py', 'dns_service_probe.py', 'run_isolated.sh']
+
+# The original two basic callers/PLAN remain strict and separately selectable.
+# This independent batch witnesses each intervening consumer without a later
+# UDP health request that could itself erase C's shared saved packet.
+CLEAR_CASES = [
+    {'case': 'm6b-route-clear-local-udp', 'action': 'local-udp', 'expected_upstream_packets': 1},
+    {'case': 'm6b-route-clear-invalid-udp', 'action': 'invalid-udp', 'expected_upstream_packets': 1},
+    {'case': 'm6b-route-clear-unmatched-upstream', 'action': 'unmatched-upstream', 'expected_upstream_packets': 1},
+    {'case': 'm6b-route-clear-hup', 'action': 'hup', 'expected_upstream_packets': 1,
+     'config': 'addn-hosts=/m2/caller.hosts', 'initial_hosts': '198.51.100.41 hup-one.route.test\n'},
+    {'case': 'm6b-route-keep-bound-tcp-private', 'action': 'bound-tcp', 'expected_upstream_packets': 2},
+    {'case': 'm6b-route-clear-debug-tcp-query', 'action': 'debug-tcp', 'expected_upstream_packets': 1, 'debug': True},
+]
+for _case in CLEAR_CASES:
+    _case.update(capacity=0, metrics=True)
+    _case.setdefault('config', '')
+CLEAR_PLAN = {
+    'profiles': CLEAR_CASES, 'scope': 'ordinary shared-packet clear/private TCP retention callers',
+    'kernel_route': PLAN['kernel_route'], 'upstream_hold_seconds': .2,
+    'resend_wait_seconds': 2, 'extra_reply_wait_seconds': .2,
+    'idle_stable_observations': 3, 'idle_interval_seconds': .02, 'idle_deadline_seconds': 2,
+    'action_deadline_seconds': 2, 'consumer_stable_observations': 3, 'consumer_interval_seconds': .02,
+    'consumer_counter': 'isolated /proc/net/snmp Udp InDatagrams',
+    'hup_log_marker': 'read /m2/caller.hosts - 2 names',
+    'dns_clients': 1, 'client_retries': 0, 'expected_forward_actions': 1,
+    'source_contract': {'local-udp': 'forward.c:1628', 'invalid-udp': 'forward.c:1628',
+                        'unmatched-upstream': 'forward.c:1169', 'hup': 'cache.c:1644',
+                        'bound-tcp': 'dnsmasq.c:2065/2102-2197; child forward.c:2465',
+                        'debug-tcp': 'forward.c:2465'},
+    'performance_qualification': False,
+    'open': ['server-record deletion; distinguish no-poll resolv from servers-file HUP',
+             'wildcard accept pktinfo clear', 'two pending only last', 'all-servers last target',
+             'repeated qualifying routes', 'fast-retry clear/re-save', 'loop probe clear'],
+    'source_only': ['TFTP shared void* srv_save non-DNS alias; no unsafe pointer expectations'],
+}
+BATCHES = {'basic': (CASES, PLAN), 'clears': (CLEAR_CASES, CLEAR_PLAN)}
+
+
+def profile_plan(spec):
+    return CLEAR_PLAN if spec in CLEAR_CASES else PLAN
+
+
+def udp_stats():
+    lines = Path('/proc/net/snmp').read_text().splitlines()
+    for index, line in enumerate(lines[:-1]):
+        if line.startswith('Udp:') and lines[index + 1].startswith('Udp:'):
+            names, values = line.split()[1:], lines[index + 1].split()[1:]
+            return {name: int(value) for name, value in zip(names, values)}
+    raise AssertionError('namespace UDP counters unavailable')
+
+
+def consumer_barrier(folder, before, delta):
+    samples, deadline = [], time.monotonic() + 2
+    while True:
+        now = udp_stats()
+        samples.append({'monotonic_ns': time.monotonic_ns(), 'stats': now})
+        save_json(folder / 'action-udp-samples.json', samples)
+        if (now['InDatagrams'] > before['InDatagrams'] + delta
+                or any(now[key] != before[key] for key in ['InErrors', 'RcvbufErrors'])):
+            raise AssertionError('uncontrolled UDP consumption/error in action window')
+        tail = samples[-3:]
+        if len(tail) == 3 and all(row['stats']['InDatagrams'] == before['InDatagrams'] + delta for row in tail):
+            return samples
+        if time.monotonic() >= deadline:
+            raise AssertionError('intervening UDP consumer was not witnessed')
+        time.sleep(.02)
+
+
+def health_correct(query, reply):
+    value = driver.normalized(reply)
+    return (reply[:2] == query[:2] and value['flags'] == 0x8580
+            and value['questions'] == driver.normalized(query)['questions']
+            and value['records'] == [
+                {'section': 'answer', 'name': 'health.cache.test', 'type': 1, 'class': 1,
+                 'ttl': 600, 'data': '198.51.100.99'},
+                {'section': 'additional', 'name': '', 'type': 41, 'class': 1232, 'ttl': 0, 'data': ''}])
+
+
+def intervene(spec, port, upstream, folder, root, pid, held_client):
+    action = spec['action']
+    value = {'action': action, 'started_monotonic_ns': time.monotonic_ns()}
+    before = udp_stats(); save_json(folder / 'action-udp-before.json', before)
+    value['udp_before'] = before
+    if action in ['local-udp', 'invalid-udp']:
+        packet = driver.query('health.cache.test', 0x6e02) if action == 'local-udp' else b'\x00'
+        (folder / 'action.query').write_bytes(packet)
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as endpoint:
+            endpoint.bind((driver.CLIENT, 0)); endpoint.connect((driver.LISTEN, port)); endpoint.settimeout(.2)
+            value['client_source'] = list(endpoint.getsockname()); value['destination'] = list(endpoint.getpeername())
+            endpoint.send(packet)
+            try:
+                reply = endpoint.recv(65535); (folder / 'action.reply').write_bytes(reply)
+                if action != 'local-udp' or not health_correct(packet, reply):
+                    raise AssertionError('intervening local/invalid UDP response differs')
+            except socket.timeout:
+                if action != 'invalid-udp':
+                    raise AssertionError('intervening local UDP did not answer')
+        value['udp_delta'] = 2 if action == 'local-udp' else 1
+        consumer_barrier(folder, before, value['udp_delta'])
+    elif action == 'unmatched-upstream':
+        transport, endpoint, peer, packet = upstream.held[0]
+        if transport != 'udp':
+            raise AssertionError('unmatched reply requires original UDP endpoint')
+        reply = upstream.answer(packet, transport, force=True)
+        reply = (int.from_bytes(reply[:2], 'big') ^ 0x8000).to_bytes(2, 'big') + reply[2:]
+        (folder / 'action.query').write_bytes(packet); (folder / 'action.upstream-packet').write_bytes(reply)
+        value['upstream_source'] = list(endpoint.getsockname()); value['destination'] = list(peer)
+        endpoint.sendto(reply, peer)
+        value['udp_delta'] = 1
+        consumer_barrier(folder, before, 1)
+        held_client.settimeout(.2)
+        try:
+            wrong = held_client.recv(65535); (folder / 'action.unexpected-client-reply').write_bytes(wrong)
+            raise AssertionError('unmatched upstream packet satisfied pending client')
+        except socket.timeout:
+            pass
+        held_client.settimeout(2)
+    elif action == 'hup':
+        hosts = root / 'm2/caller.hosts'
+        value['hosts_before'] = hosts.read_text()
+        value['hosts_after'] = '198.51.100.41 hup-one.route.test\n198.51.100.42 hup-two.route.test\n'
+        log = root / 'm2/cache.log'
+        initial_log = log.read_bytes(); (folder / 'action-before.daemon.log').write_bytes(initial_log)
+        marker = CLEAR_PLAN['hup_log_marker'].encode()
+        if marker in initial_log:
+            raise AssertionError('HUP witness marker already existed')
+        hosts.write_text(value['hosts_after']); (folder / 'action-hosts').write_bytes(hosts.read_bytes())
+        os.kill(pid, signal.SIGHUP)
+        deadline = time.monotonic() + 2
+        while True:
+            output = log.read_bytes(); (folder / 'action-after.daemon.log').write_bytes(output)
+            if output.startswith(initial_log) and marker in output[len(initial_log):]:
+                break
+            if time.monotonic() >= deadline:
+                raise AssertionError('HUP hosts/cache completion log absent')
+            time.sleep(.02)
+        value['udp_delta'] = 0
+        consumer_barrier(folder, before, 0)
+    elif action in ['bound-tcp', 'debug-tcp']:
+        packet = driver.query('health.cache.test', 0x6e02); (folder / 'action.query').write_bytes(packet)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as endpoint:
+            endpoint.bind((driver.CLIENT, 0)); endpoint.settimeout(2); endpoint.connect((driver.LISTEN, port))
+            value['client_source'] = list(endpoint.getsockname()); value['destination'] = list(endpoint.getpeername())
+            endpoint.sendall(struct.pack('!H', len(packet)) + packet)
+            def exact(size):
+                result = b''
+                while len(result) < size:
+                    piece = endpoint.recv(size - len(result))
+                    if not piece: raise AssertionError('short TCP action response')
+                    result += piece
+                return result
+            reply = exact(struct.unpack('!H', exact(2))[0]); (folder / 'action.reply').write_bytes(reply)
+            if not health_correct(packet, reply):
+                raise AssertionError('intervening TCP local answer differs')
+        samples, deadline = [], time.monotonic() + 2
+        while True:
+            snapshot = metric(root, folder, f'action-tcp-{len(samples):03}')
+            samples.append({'monotonic_ns': time.monotonic_ns(), 'metrics': snapshot})
+            save_json(folder / 'action-tcp-samples.json', samples)
+            if len(samples) >= 3 and all(item['metrics']['tcp_connections'] == 0 for item in samples[-3:]):
+                break
+            if time.monotonic() >= deadline:
+                raise AssertionError('TCP action client slot did not drain')
+            time.sleep(.02)
+        value['udp_delta'] = 0
+        consumer_barrier(folder, before, 0)
+    else:
+        raise AssertionError('unfrozen intervening action')
+    value['completed_monotonic_ns'] = time.monotonic_ns()
+    save_json(folder / 'action-witness.json', value)
+    return value
 
 
 class TrackedUpstream(driver.Upstream):
@@ -166,7 +338,7 @@ def correct_answer(query, reply):
 
 def schedule(spec, port, upstream, folder, root):
     pid = int((folder / 'pid').read_text())
-    witness = {'case': spec['case'], 'plan': PLAN, 'resend_observed': False, 'cleanup_answer': False}
+    witness = {'case': spec['case'], 'plan': profile_plan(spec), 'resend_observed': False, 'cleanup_answer': False}
     link_created = False
     with socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, 0) as route, socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
         route.bind((0, 0x40 | 0x400)); route.settimeout(.2)
@@ -209,15 +381,19 @@ def schedule(spec, port, upstream, folder, root):
             if len(first) != 1:
                 raise AssertionError('query retried before route; invalid caller fixture')
             witness['before_trigger'] = first
+            if spec in CLEAR_CASES:
+                witness['action'] = intervene(spec, port, upstream, folder, root, pid, client)
             witness['trigger_monotonic_ns'] = time.monotonic_ns()
             save_json(folder / 'caller-witness.json', witness)
             subprocess.run(['ip', 'addr', 'add', '198.18.252.1/24', 'dev', 'm6broute'], check=True)
             witness['trigger_netlink'] = netlink_drain(route, folder, 'trigger')
             if not any(controlled_route(record) for row in witness['trigger_netlink'] for record in row['records']):
                 raise AssertionError('no qualifying kernel connected-route witness')
+            witness['resend_wait_started_monotonic_ns'] = time.monotonic_ns()
             deadline = time.monotonic() + 2
             while len(upstream.held) < 2 and time.monotonic() < deadline:
                 time.sleep(.005)
+            witness['resend_wait_finished_monotonic_ns'] = time.monotonic_ns()
             witness['held_packets'] = held_packets(upstream, folder)
             witness['resend_observed'] = len(witness['held_packets']) == 2
             save_json(folder / 'caller-witness.json', witness)
@@ -260,14 +436,14 @@ def schedule(spec, port, upstream, folder, root):
                 subprocess.run(['ip', 'link', 'del', 'm6broute'], check=True)
 
 
-def validate_case(folder, row, expected_sha):
+def validate_case(folder, row, expected_sha, expected_plan=PLAN):
     """Recompute claims from raw wire/counters/fd identity, not report flags."""
     if row.get('failure') or row.get('exit') != 0 or row.get('upstream_errors'):
         raise ValueError('caller execution incomplete')
     if row.get('identity', {}).get('sha256') != expected_sha:
         raise ValueError('actual running ELF differs')
     witness = json.loads((folder / 'caller-witness.json').read_text())
-    if witness.get('plan') != PLAN or witness.get('case') != row['case'] or not witness.get('completed'):
+    if witness.get('plan') != expected_plan or witness.get('case') != row['case'] or not witness.get('completed'):
         raise ValueError('unfrozen or incomplete caller')
     queries = witness['held_packets']
     if not queries or len(queries) > 2 or len(witness['before_trigger']) != 1:
@@ -335,11 +511,113 @@ def validate_case(folder, row, expected_sha):
             'client_reply': driver.normalized(reply), 'forward_actions': 1, 'stable_idle_fds': True}
 
 
-def validate_run(folder, side, expected_rust_sha):
+def validate_clear_case(folder, row, expected_sha):
+    result = validate_case(folder, row, expected_sha, CLEAR_PLAN)
+    spec = next((spec for spec in CLEAR_CASES if spec['case'] == row['case']), None)
+    if spec is None:
+        raise ValueError('unknown clear profile')
+    witness = json.loads((folder / 'caller-witness.json').read_text())
+    action = json.loads((folder / 'action-witness.json').read_text())
+    if witness.get('action') != action or action.get('action') != spec['action']:
+        raise ValueError('wrong intervening consumer')
+    for label in ['before', 'after']:
+        raw = json.loads((folder / f'{label}.metrics.stdout').read_bytes())
+        if witness.get(label + '_metrics') != {key: raw[key] for key in ['dns_queries_forwarded', 'tcp_connections']}:
+            raise ValueError('action parent metrics claim differs from raw output')
+    mode = '-d' if spec.get('debug') else '-k'
+    argv = row['identity'].get('cmdline', '').split()
+    if argv[-3:] != [mode, '-C', '/m2/cache.conf'] or ('-d' if mode == '-k' else '-k') in argv:
+        raise ValueError('actual daemon private/debug mode differs')
+    config = (folder / 'config').read_text()
+    server_lines = [line for line in config.splitlines() if line.startswith('server=127.0.0.2#')]
+    if len(server_lines) != 1 or not server_lines[0].split('#')[-1].isdigit():
+        raise ValueError('unique frozen upstream absent')
+    upstream_port = int(server_lines[0].split('#')[-1])
+    if not 0 < upstream_port < 65536:
+        raise ValueError('upstream port differs')
+    port = witness['dns_destination'][1]
+    expected_config = (f'port={port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={driver.LISTEN}\n'
+        f'server=127.0.0.2#{upstream_port}\ncache-size=0\nno-0x20-encode\n'
+        'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
+        'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n' + spec['config'] + '\nenable-ubus=cache-metrics\n')
+    if config != expected_config:
+        raise ValueError('actual private/bound/cache/TTL configuration differs')
+    if spec['action'] in ['local-udp', 'invalid-udp', 'bound-tcp', 'debug-tcp']:
+        if action.get('destination') != witness['dns_destination'] or action.get('client_source', [None])[0] != driver.CLIENT:
+            raise ValueError('intervening client endpoint differs')
+    if spec['action'] == 'unmatched-upstream' and action.get('upstream_source') != ['127.0.0.2', upstream_port]:
+        raise ValueError('unmatched upstream sender differs from configured server')
+    if not witness['held_packets'][0]['received_monotonic_ns'] < action['started_monotonic_ns'] <= action['completed_monotonic_ns'] < witness['trigger_monotonic_ns']:
+        raise ValueError('action did not run strictly between hold and route')
+    before = json.loads((folder / 'action-udp-before.json').read_text())
+    samples = json.loads((folder / 'action-udp-samples.json').read_text())
+    delta = {'local-udp': 2, 'invalid-udp': 1, 'unmatched-upstream': 1,
+             'hup': 0, 'bound-tcp': 0, 'debug-tcp': 0}[spec['action']]
+    if action.get('udp_before') != before or action.get('udp_delta') != delta:
+        raise ValueError('action receive counter claim differs')
+    if (len(samples) < 3 or any(not before['InDatagrams'] <= item['stats']['InDatagrams'] <= before['InDatagrams'] + delta
+            or any(item['stats'][key] != before[key] for key in ['InErrors', 'RcvbufErrors']) for item in samples)):
+        raise ValueError('uncontrolled or missing action receive samples')
+    tail = samples[-3:]
+    if any(item['stats']['InDatagrams'] != before['InDatagrams'] + delta for item in tail):
+        raise ValueError('intervening datagram was not consumed')
+    if any(b['monotonic_ns'] - a['monotonic_ns'] < 15_000_000 for a, b in zip(tail, tail[1:])):
+        raise ValueError('consumer observations not separated')
+    if any(not action['started_monotonic_ns'] <= item['monotonic_ns'] <= action['completed_monotonic_ns'] for item in samples):
+        raise ValueError('consumer observations outside action window')
+    if spec['action'] in ['local-udp', 'bound-tcp', 'debug-tcp']:
+        query, reply = (folder / 'action.query').read_bytes(), (folder / 'action.reply').read_bytes()
+        if driver.normalized(query)['questions'] != [['health.cache.test', 1, 1]] or not health_correct(query, reply):
+            raise ValueError('local/TCP action answer differs')
+    elif spec['action'] == 'invalid-udp':
+        if (folder / 'action.query').read_bytes() != b'\x00' or (folder / 'action.reply').exists():
+            raise ValueError('invalid action was not the frozen silently dropped datagram')
+    elif spec['action'] == 'unmatched-upstream':
+        packet = (folder / 'action.query').read_bytes()
+        response = (folder / 'action.upstream-packet').read_bytes()
+        if packet != (folder / witness['held_packets'][0]['file']).read_bytes() or not correct_answer(packet, packet[:2] + response[2:]):
+            raise ValueError('unmatched packet was not derived from held query')
+        if response[:2] != (int.from_bytes(packet[:2], 'big') ^ 0x8000).to_bytes(2, 'big'):
+            raise ValueError('upstream packet ID matched or differed from frozen unmatched ID')
+        if action.get('destination') != witness['held_packets'][0]['source'] or (folder / 'action.unexpected-client-reply').exists():
+            raise ValueError('unmatched reply destination/client behavior differs')
+    elif spec['action'] == 'hup':
+        initial = (folder / 'action-before.daemon.log').read_bytes()
+        final = (folder / 'action-after.daemon.log').read_bytes()
+        marker = CLEAR_PLAN['hup_log_marker'].encode()
+        if marker in initial or not final.startswith(initial) or marker not in final[len(initial):]:
+            raise ValueError('HUP cache/hosts completion witness absent')
+        if action.get('hosts_before') != spec['initial_hosts'] or (folder / 'action-hosts').read_text() != action.get('hosts_after'):
+            raise ValueError('HUP input identity differs')
+        if action['hosts_after'] != '198.51.100.41 hup-one.route.test\n198.51.100.42 hup-two.route.test\n':
+            raise ValueError('HUP marker input changed')
+    if spec['action'] in ['bound-tcp', 'debug-tcp']:
+        snapshots = json.loads((folder / 'action-tcp-samples.json').read_text())
+        if len(snapshots) < 3 or any(item['metrics']['tcp_connections'] != 0 for item in snapshots[-3:]):
+            raise ValueError('TCP private/shared caller did not drain')
+        for index, item in enumerate(snapshots):
+            raw = json.loads((folder / f'action-tcp-{index:03}.metrics.stdout').read_bytes())
+            if item['metrics'] != {key: raw[key] for key in ['dns_queries_forwarded', 'tcp_connections']}:
+                raise ValueError('TCP action raw metrics differ')
+            if item['metrics']['dns_queries_forwarded'] != witness['before_metrics']['dns_queries_forwarded'] + 1:
+                raise ValueError('TCP local caller created an upstream action')
+    expected = spec['expected_upstream_packets']
+    if expected == 1 and len(witness['held_packets']) == 1:
+        if witness['resend_wait_finished_monotonic_ns'] - witness['resend_wait_started_monotonic_ns'] < 1_900_000_000:
+            raise ValueError('absence of resend observed for too short a window')
+    passed = result['upstream_packets'] == expected and (expected == 1 or result['resend_contract_passed'])
+    return dict(result, caller_contract_passed=passed, expected_upstream_packets=expected,
+                intervening_consumer=spec['action'],
+                action_query=driver.normalized((folder / 'action.query').read_bytes()) if (folder / 'action.query').exists() else None,
+                action_reply=driver.normalized((folder / 'action.reply').read_bytes()) if (folder / 'action.reply').exists() else None)
+
+
+def validate_run(folder, side, expected_rust_sha, batch="basic"):
+    profiles, plan = BATCHES[batch]
     report = json.loads((folder / 'result.json').read_text())
     receipt = json.loads((folder / 'route-receipt.json').read_text())
     root = json.loads((folder / 'rootfs-identity.json').read_text())
-    if (report['side'] != side or report['c_sha256'] != driver.STOCK_SHA256 or receipt['plan'] != PLAN
+    if (report['side'] != side or report['c_sha256'] != driver.STOCK_SHA256 or receipt['plan'] != plan
             or report.get('rust_sha256') != expected_rust_sha or root.get('rust_sha256') != expected_rust_sha
             or root.get('c_sha256') != driver.STOCK_SHA256 or not receipt.get('tools_unchanged')):
         raise ValueError('reference/side/plan identity differs')
@@ -352,8 +630,9 @@ def validate_run(folder, side, expected_rust_sha):
     for row in report['scenarios']:
         if row['case'] in results or row['identity']['root'] != root['root']:
             raise ValueError('duplicate or wrong rootfs caller')
-        results[row['case']] = validate_case(folder / row['case'], row, expected)
-    if set(results) != {case['case'] for case in CASES} or report['failures']:
+        validator = validate_case if batch == 'basic' else validate_clear_case
+        results[row['case']] = validator(folder / row['case'], row, expected)
+    if set(results) != {case['case'] for case in profiles} or report['failures']:
         raise ValueError('incomplete frozen caller set')
     return results
 
@@ -363,23 +642,24 @@ def run(args):
         raise ValueError('candidate SHA differs')
     frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
     tools = {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()}
-    driver.SYNTAX.clear(); driver.SCENARIOS[:] = copy.deepcopy(CASES); driver.schedule = schedule
+    profiles, plan = BATCHES[args.batch]
+    driver.SYNTAX.clear(); driver.SCENARIOS[:] = copy.deepcopy(profiles); driver.schedule = schedule
     driver.Upstream = TrackedUpstream
-    args.only = '^m6b-route-resend-'
+    args.only = '^m6b-route-'
     status = driver.run(args)
     out = args.out.resolve()
     for name in TOOLS:
         (out / 'drivers' / name).write_bytes(frozen[name])
     unchanged = all(driver.sha256(Path(__file__).with_name(name)) == tools[name] for name in TOOLS)
-    save_json(out / 'route-receipt.json', {'plan': PLAN, 'tools': tools, 'run_status': status,
+    save_json(out / 'route-receipt.json', {'plan': plan, 'tools': tools, 'run_status': status,
                                          'tools_unchanged': unchanged, 'scope': __doc__, 'performance_qualification': False})
     if not unchanged:
         raise ValueError('frozen tools changed during execution')
     if status:
         return status
-    results = validate_run(out, args.side, args.expected_rust_sha)
+    results = validate_run(out, args.side, args.expected_rust_sha, args.batch)
     save_json(out / 'route-validation.json', results)
-    passed = all(row['resend_contract_passed'] for row in results.values())
+    passed = all(row.get('caller_contract_passed', row['resend_contract_passed']) for row in results.values())
     print(json.dumps({'side': args.side, 'caller_contract_passed': passed, 'results': results}, indent=2))
     return int(not passed)
 
@@ -388,30 +668,33 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='action', required=True)
     plan = sub.add_parser('plan'); plan.add_argument('--out', type=Path, required=True)
+    plan.add_argument('--batch', choices=BATCHES, default='basic')
     execute = sub.add_parser('run')
     for name in ['image-root', 'rust', 'out']:
         execute.add_argument('--' + name, type=Path, required=True)
     execute.add_argument('--side', choices=['c', 'rust'], required=True)
     execute.add_argument('--expected-rust-sha', required=True)
+    execute.add_argument('--batch', choices=BATCHES, default='basic')
     compare = sub.add_parser('compare')
     for name in ['c', 'rust', 'out']:
         compare.add_argument('--' + name, type=Path, required=True)
     compare.add_argument('--expected-rust-sha', required=True)
+    compare.add_argument('--batch', choices=BATCHES, default='basic')
     args = parser.parse_args()
     if args.action == 'plan':
         with args.out.open('x') as stream:
-            json.dump(PLAN, stream, indent=2); stream.write('\n')
+            json.dump(BATCHES[args.batch][1], stream, indent=2); stream.write('\n')
         return 0
     if args.action == 'run':
         return run(args)
-    left, right = validate_run(args.c, 'c', args.expected_rust_sha), validate_run(args.rust, 'rust', args.expected_rust_sha)
+    left, right = validate_run(args.c, 'c', args.expected_rust_sha, args.batch), validate_run(args.rust, 'rust', args.expected_rust_sha, args.batch)
     roots = [json.loads((folder / 'rootfs-identity.json').read_text()) for folder in [args.c, args.rust]]
     for key in ['image_sha256', 'image_provenance_sha256']:
         if roots[0].get(key) != roots[1].get(key):
             raise ValueError('C/R image provenance differs')
     if roots[0]['filesystem']['base_manifest_sha256'] != roots[1]['filesystem']['base_manifest_sha256']:
         raise ValueError('C/R immutable image base differs')
-    c_valid = all(row['resend_contract_passed'] for row in left.values())
+    c_valid = all(row.get('caller_contract_passed', row['resend_contract_passed']) for row in left.values())
     different = [case for case in left if left[case] != right[case]]
     result = {'c_reference_contract_passed': c_valid, 'differences': different,
               'c': left, 'rust': right, 'caller_contract_passed': c_valid and not different,

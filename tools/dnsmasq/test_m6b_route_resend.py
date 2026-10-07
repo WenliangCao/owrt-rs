@@ -210,5 +210,160 @@ class RouteWitnessTests(unittest.TestCase):
                 gate.validate_run(folder, 'c', 'x' * 64)
 
 
+def clear_fixture(folder, spec, unwanted_resend=False):
+    wanted = spec['expected_upstream_packets'] == 2
+    witness, row = raw_fixture(folder, resend=wanted or unwanted_resend)
+    witness['case'] = spec['case']; witness['plan'] = gate.CLEAR_PLAN; row['case'] = spec['case']
+    row['identity']['cmdline'] = '/usr/sbin/dnsmasq ' + ('-d' if spec.get('debug') else '-k') + ' -C /m2/cache.conf'
+    for index, packet in enumerate(witness['held_packets']):
+        packet['received_monotonic_ns'] = 1_000_000_000 if index == 0 else 5_000_000_000
+    witness.update(trigger_monotonic_ns=4_000_000_000, reply_monotonic_ns=6_400_000_000,
+        resend_wait_started_monotonic_ns=4_200_000_000, resend_wait_finished_monotonic_ns=6_200_000_000,
+        before_metrics={'dns_queries_forwarded': 0, 'tcp_connections': 0},
+        after_metrics={'dns_queries_forwarded': 1, 'tcp_connections': 0})
+    gate.save_json(folder / 'upstream-receipts.json', [
+        {'sequence': index, 'transport': 'udp', 'wire': (folder / packet['file']).read_bytes().hex(),
+         'received_monotonic_ns': packet['received_monotonic_ns']}
+        for index, packet in enumerate(witness['held_packets'])])
+    before = {'InDatagrams': 10, 'InErrors': 0, 'RcvbufErrors': 0}
+    delta = {'local-udp': 2, 'invalid-udp': 1, 'unmatched-upstream': 1,
+             'hup': 0, 'bound-tcp': 0, 'debug-tcp': 0}[spec['action']]
+    action = {'action': spec['action'], 'started_monotonic_ns': 2_000_000_000,
+              'completed_monotonic_ns': 3_000_000_000, 'udp_before': before, 'udp_delta': delta,
+              'client_source': [gate.driver.CLIENT, 52001], 'destination': witness['dns_destination']}
+    gate.save_json(folder / 'action-udp-before.json', before)
+    gate.save_json(folder / 'action-udp-samples.json', [
+        {'monotonic_ns': 2_100_000_000 + index * 20_000_000, 'stats': dict(before, InDatagrams=10+delta)}
+        for index in range(3)])
+    query = gate.driver.query('health.cache.test', 0x6e02)
+    _, end = gate.driver.read_name(query, 12)
+    answer = (query[:2] + struct.pack('!5H', 0x8580, 1, 1, 0, 1) + query[12:end + 4]
+        + gate.driver.rr(1, socket.inet_aton('198.51.100.99'), ttl=600)
+        + gate.driver.rr(41, b'', owner=b'\0', ttl=0, cls=1232))
+    if spec['action'] in ['local-udp', 'bound-tcp', 'debug-tcp']:
+        (folder / 'action.query').write_bytes(query); (folder / 'action.reply').write_bytes(answer)
+    elif spec['action'] == 'invalid-udp':
+        (folder / 'action.query').write_bytes(b'\x00')
+    elif spec['action'] == 'unmatched-upstream':
+        packet = (folder / 'upstream-000.query').read_bytes()
+        reply = (folder / 'client.reply').read_bytes()
+        (folder / 'action.query').write_bytes(packet)
+        (folder / 'action.upstream-packet').write_bytes((int.from_bytes(packet[:2], 'big') ^ 0x8000).to_bytes(2, 'big') + reply[2:])
+        action['upstream_source'] = ['127.0.0.2', 50000]
+        action['destination'] = witness['held_packets'][0]['source']
+    elif spec['action'] == 'hup':
+        action.update(hosts_before=spec['initial_hosts'],
+            hosts_after='198.51.100.41 hup-one.route.test\n198.51.100.42 hup-two.route.test\n')
+        (folder / 'action-hosts').write_text(action['hosts_after'])
+        (folder / 'action-before.daemon.log').write_text('read /m2/caller.hosts - 1 names\n')
+        (folder / 'action-after.daemon.log').write_text('read /m2/caller.hosts - 1 names\nread /m2/caller.hosts - 2 names\n')
+    if spec['action'] in ['bound-tcp', 'debug-tcp']:
+        snapshots = []
+        for index in range(3):
+            value = {'tcp_connections': 0, 'dns_queries_forwarded': 1}
+            gate.save_json(folder / f'action-tcp-{index:03}.metrics.stdout', value)
+            snapshots.append({'monotonic_ns': 2_100_000_000 + index*20_000_000, 'metrics': value})
+        gate.save_json(folder / 'action-tcp-samples.json', snapshots)
+    config = (f'port=53000\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={gate.driver.LISTEN}\n'
+        'server=127.0.0.2#50000\ncache-size=0\nno-0x20-encode\n'
+        'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
+        'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n' + spec['config'] + '\nenable-ubus=cache-metrics\n')
+    (folder / 'config').write_text(config)
+    witness['action'] = action
+    gate.save_json(folder / 'action-witness.json', action); gate.save_json(folder / 'caller-witness.json', witness)
+    return witness, row
+
+
+class RouteClearTests(unittest.TestCase):
+    def test_clear_profiles_validate_all_six_without_weakening_basic(self):
+        self.assertEqual(len(gate.CASES), 2)
+        self.assertEqual(gate.PLAN['expected_upstream_packets'], 2)
+        self.assertEqual(len(gate.CLEAR_CASES), 6)
+        for spec in gate.CLEAR_CASES:
+            with self.subTest(action=spec['action']), tempfile.TemporaryDirectory() as name:
+                folder = Path(name); _, row = clear_fixture(folder, spec)
+                result = gate.validate_clear_case(folder, row, 'x' * 64)
+                self.assertTrue(result['caller_contract_passed'])
+                self.assertEqual(result['upstream_packets'], spec['expected_upstream_packets'])
+                with self.assertRaisesRegex(ValueError, 'unfrozen'):
+                    gate.validate_case(folder, row, 'x' * 64)
+
+    def test_unwanted_resend_is_defect_not_false_clear_pass(self):
+        for spec in gate.CLEAR_CASES:
+            if spec['expected_upstream_packets'] != 1: continue
+            with self.subTest(action=spec['action']), tempfile.TemporaryDirectory() as name:
+                folder = Path(name); _, row = clear_fixture(folder, spec, unwanted_resend=True)
+                self.assertFalse(gate.validate_clear_case(folder, row, 'x' * 64)['caller_contract_passed'])
+
+    def test_clear_negative_controls_reject_missing_consumption_and_wrong_witnesses(self):
+        corruptions = ['no-consumption', 'extra-consumption', 'recv-errors', 'no-spacing', 'late-action', 'wrong-parent-counter', 'wrong-debug',
+            'wrong-bind', 'invalid-replied', 'unmatched-id', 'wrong-upstream-source',
+            'wrong-unmatched-destination', 'hup-not-completed', 'hup-preexisting-marker',
+            'short-absence', 'wrong-tcp-counter', 'wrong-local-answer', 'third-upstream']
+        for kind in corruptions:
+            action_name = ('invalid-udp' if kind == 'invalid-replied' else 'unmatched-upstream' if kind.startswith('unmatched') or kind in ['wrong-upstream-source','wrong-unmatched-destination']
+                else 'hup' if kind.startswith('hup-') else 'bound-tcp' if kind == 'wrong-tcp-counter' else 'local-udp')
+            spec = next(row for row in gate.CLEAR_CASES if row['action'] == action_name)
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as name:
+                folder = Path(name); witness, row = clear_fixture(folder, spec)
+                action = witness['action']
+                if kind in ['no-consumption', 'extra-consumption', 'recv-errors', 'no-spacing']:
+                    samples = json.loads((folder / 'action-udp-samples.json').read_text())
+                    for value in samples:
+                        if kind == 'no-consumption': value['stats']['InDatagrams'] = 10
+                        elif kind == 'extra-consumption': value['stats']['InDatagrams'] += 1
+                        elif kind == 'recv-errors': value['stats']['RcvbufErrors'] += 1
+                        else: value['monotonic_ns'] = samples[0]['monotonic_ns']
+                    gate.save_json(folder / 'action-udp-samples.json', samples)
+                elif kind == 'late-action': action['completed_monotonic_ns'] = 4_100_000_000
+                elif kind == 'wrong-parent-counter': witness['before_metrics']['dns_queries_forwarded'] = 1
+                elif kind == 'wrong-debug': row['identity']['cmdline'] = row['identity']['cmdline'].replace('-k', '-d')
+                elif kind == 'wrong-bind':
+                    path = folder / 'config'; path.write_text(path.read_text().replace('bind-interfaces\n', ''))
+                elif kind == 'invalid-replied': (folder / 'action.reply').write_bytes(b'bad')
+                elif kind == 'unmatched-id':
+                    path = folder / 'action.upstream-packet'; path.write_bytes((folder / 'action.query').read_bytes()[:2] + path.read_bytes()[2:])
+                elif kind == 'wrong-upstream-source': action['upstream_source'][1] += 1
+                elif kind == 'wrong-unmatched-destination': action['destination'] = ['127.0.0.1', 59999]
+                elif kind == 'hup-not-completed': (folder / 'action-after.daemon.log').write_text('no HUP here\n')
+                elif kind == 'hup-preexisting-marker': (folder / 'action-before.daemon.log').write_text(gate.CLEAR_PLAN['hup_log_marker'])
+                elif kind == 'short-absence': witness['resend_wait_finished_monotonic_ns'] = 4_250_000_000
+                elif kind == 'wrong-tcp-counter':
+                    gate.save_json(folder / 'action-tcp-000.metrics.stdout', {'tcp_connections': 0, 'dns_queries_forwarded': 2})
+                elif kind == 'wrong-local-answer':
+                    path = folder / 'action.reply'; path.write_bytes(path.read_bytes().replace(socket.inet_aton('198.51.100.99'), socket.inet_aton('198.51.100.98')))
+                elif kind == 'third-upstream': row['upstream'].append(copy.deepcopy(row['upstream'][0]))
+                gate.save_json(folder / 'action-witness.json', action); gate.save_json(folder / 'caller-witness.json', witness)
+                with self.assertRaises(ValueError): gate.validate_clear_case(folder, row, 'x' * 64)
+
+
+    def test_clear_run_requires_complete_frozen_set_and_batch_identity(self):
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name); (folder / 'drivers').mkdir()
+            tools = {}
+            for filename in gate.TOOLS:
+                source = Path(gate.__file__).with_name(filename)
+                (folder / 'drivers' / filename).write_bytes(source.read_bytes())
+                tools[filename] = gate.driver.sha256(source)
+            rows = []
+            for spec in gate.CLEAR_CASES:
+                target = folder / spec['case']; target.mkdir()
+                _, row = clear_fixture(target, spec)
+                row['identity'].update(root='/synthetic/root', sha256=gate.driver.STOCK_SHA256)
+                rows.append(row)
+            report = {'side': 'c', 'c_sha256': gate.driver.STOCK_SHA256, 'rust_sha256': 'x'*64,
+                      'scenarios': rows, 'failures': []}
+            gate.save_json(folder / 'result.json', report)
+            gate.save_json(folder / 'rootfs-identity.json', {'root': '/synthetic/root', 'rust_sha256': 'x'*64,
+                'c_sha256': gate.driver.STOCK_SHA256})
+            gate.save_json(folder / 'route-receipt.json', {'plan': gate.CLEAR_PLAN, 'tools': tools, 'tools_unchanged': True})
+            self.assertEqual(len(gate.validate_run(folder, 'c', 'x'*64, 'clears')), 6)
+            with self.assertRaisesRegex(ValueError, 'identity'):
+                gate.validate_run(folder, 'c', 'x'*64, 'basic')
+            report['scenarios'].pop(); gate.save_json(folder / 'result.json', report)
+            with self.assertRaisesRegex(ValueError, 'incomplete'):
+                gate.validate_run(folder, 'c', 'x'*64, 'clears')
+
+
 if __name__ == '__main__':
     unittest.main()
