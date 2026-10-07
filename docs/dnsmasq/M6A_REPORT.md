@@ -503,7 +503,9 @@ TCP snapshots must be read as process families. C forks short-lived children (20
 | tcp-miss R3 | 33568/33568/0/1/50/4380/26120/26128 | 33572/33572/0/1/51/4360/26124/26132 | 33576/33576/0/1/50/4380/28156/28164 | 33572/33572/0/1/50/4400/29392/29400 | 33576/33576/0/1/50/4361/29396/29404 |
 | tcp-miss Rs | 33512/33512/0/1/50/4300/29332/29340 | 33512/33512/0/1/50/4300/26852/26860 | 33512/33512/0/1/50/4333/26852/26860 | 33512/33512/0/1/50/4269/28092/28100 | 33508/33508/0/1/50/4320/24368/24376 |
 
-For C, family PSS is the only fair peak comparison: parent PSS is mostly 0.46–1.66 MiB while C children share the inherited image/cache pages and are repeatedly reaped. For Rust, parent/family PSS coincide because there are no children, and after-drain parent PSS remains 12–19 MiB for tcp-cache and 24–29 MiB for tcp-miss in several rounds. This retained post-window state is an observed allocator/cache-view lifetime effect; it cannot be converted into the static 936 KiB-per-view estimate without a heap trace. The family table also explains why summing C RSS (20 copies) would overstate physical memory and why comparing only parent RSS would understate C's transient COW cost.
+For C, family PSS is the only fair peak comparison: parent PSS is mostly 0.46–1.66 MiB while C children share the inherited image/cache pages and are repeatedly reaped. For Rust, parent/family PSS coincide because there are no children, and the original runner's column named after-drain records 12–19 MiB for tcp-cache and 24–29 MiB for tcp-miss in several rounds. The family table also explains why summing C RSS (20 copies) would overstate physical memory and why comparing only parent RSS would understate C's transient COW cost.
+
+M6b更正：上述列的名字不代表Rust实际已排空。原runner只等待C子进程归零，Rust没有子进程，采样时TCP FD仍高于空闲值；表中原始数值保持不变。[TCP内存复测](M6B_TCP_MEMORY_DESIGN.md#13-目标机实验)在原37f85d22 ELF上确认约41–47ms恢复空闲FD，60s PSS为cache3,840 KiB（约3.8 MiB）、miss8,660 KiB（约8.7 MiB）。因此不能把原12–29 MiB列解释为排空后的长期保留；原窗口内CPU、吞吐和峰值数据仍保留。
 
 ## DHCP, listener, logging and helper conditional accounting
 
