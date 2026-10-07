@@ -10,7 +10,7 @@
 - 阻塞点：不需用户决定；旧TFTP少回调缺口已在4816实际镜像C全族fresh闭合；ARP dhcp-scriptuser-applied immediate count19→20失败；真实probe extra fd只为/proc/26/net/if_inet6，50ms/1s后完整19FD集合恢复，属同步接口快照采样race，不能静默忽略或只sleep放宽。完整FD身份集合连续3×20ms、最多2s守卫已提交cd4ca634，正在fresh复跑；其余DHCP/DNS-file/UBus/cache门未执行。用户最新取消df99d1f9旧版本计数补测：修复前的等待来源以读码和系统调用统计为证据，未做旧版本计数实测。已取消正在启动的补测，旧低速准备及中止记录保留且不作根因计数资格；Oracle时间用于服务回归/新基线/A。它们是继续实施的工作，不是停下理由。诊断C TCP miss57普通timeout、fault各组60预期timeout均保留，不称全部回答零错误。
 - 活跃分工：root整合/Oracle独占服务门/性能窗口/账本；m6b_measure独立性能保护门工具；m6b_tcp_design独立A compact Slot16B（4096 snapshot65KiB/3alloc）布局/原语与真实服务补门；旧M5计数补测按用户最新指令取消，不再为待验收项；ARP工具修正已交付合入，root在Oracle跑服务门；DHCP重复接口元数据调用只读归因已提交3e096972，见M6B_DHCP_SYSCALL_GAP。子代理默认全量继承、不指定model/reasoning_effort/fork_turns；Oracle正式窗口禁止并行build/test/fuzz。
 - 测量调整：用户2026-10-07取消中间候选135窗口，已跑1个有效C窗口与中止Rust窗口归档；中间改27一轮、已完成且全归档，本地state SHA bf6b75e3…，analysis27/27。完整135仅最终候选一次。首个误启用wake明细的中间R3窗口膨胀为result2.5GB/wake2GB，已作废，重复派生数组未完整归档，仅留原始SHA、结果摘要和sidecar；这是证据保全缺口，必须在报告明确，不当通过证据。后续不启用逐次明细，短pilot保留wake计数。所有后续失败必须先完整归档校验后清理。
-- 续接注意：E=`private/dnsmasq-rewrite/evidence/`；M6A和M5旧证据及用户docs/prompts原样。M5/M6a已退役任务在`worktree-retirement-20261007/m5-m6a/manifest.json`保全；14个archive tags已核对（同目录archive-tags.json），M6b已交付8树/分支另先打archive tags再退役，manifest9ae4084f…、8 refs/patch SHA核验，释放约2.37GiB；另4个已合DHCP归因/robustness/helper/perf-guard先archive后退役，second-batch manifest eac301f5…；A活跃工作保留，旧主循环诊断待取消证据归档后archive/退役；/private/tmp空m6b-cache-gate-1已移除，git worktree prune dry-run无失效记录。diag feature交付关闭、环境变量一致为DNSMASQ_M6B_WAKE_METRICS。
+- 续接注意：E=`private/dnsmasq-rewrite/evidence/`；M6A和M5旧证据及用户docs/prompts原样。M5/M6a已退役任务在`worktree-retirement-20261007/m5-m6a/manifest.json`保全；14个archive tags已核对（同目录archive-tags.json），M6b已交付8树/分支另先打archive tags再退役，manifest9ae4084f…、8 refs/patch SHA核验，释放约2.37GiB；另4个已合DHCP归因/robustness/helper/perf-guard先archive后退役，second-batch manifest eac301f5…；A活跃工作保留，旧主循环诊断df99已archive后退役（archive/m6b/20261007/cancelled-old-loop-df99d1f9f3d3）；old-loop-failed-01和cancelled-02全SHA+metadata核验后prune，进程/namespace/空cgroup已清理；/private/tmp空m6b-cache-gate-1已移除，git worktree prune dry-run无失效记录。diag feature交付关闭、环境变量一致为DNSMASQ_M6B_WAKE_METRICS。
 
 ## 工作规则
 
@@ -35,7 +35,7 @@
 - M5 结束时，在同一版本执行完整 M2、实际 5 分钟资源试跑、两项压力测试和 APK 生命周期验证；复测 ELF 体积和满载 RSS，与 M4 的 1,159,280 字节、2,676 KiB 比较。M4 体积例外仅属于原 ELF，新增体积不能自行豁免。
 - 物理路由器不碰；本阶段只做本地与构建机隔离验证。
 
-日更：2026-10-06。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M6a**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
+日更：2026-10-07。本文件是唯一进度入口；每个里程碑只保留一篇报告，原始失败与产物留在 ignored/private。当前进入 **M6b**；M4 按用户接受的方案 A 完成。M5 盘点见下表，M6 未完成，未经 M7 不能称生产验收。
 
 ## 与 C 的行为差异
 
