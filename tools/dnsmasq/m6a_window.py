@@ -910,6 +910,7 @@ def run_window(args):
     daemon = upstream = None
     daemon_log = upstream_log = None
     perf_process = perf_log = None
+    strace_process = strace_log = None
     result = {"accepted": False, "identity": identity}
     try:
         root = prepare(args.image_root, None, args.output / "filesystem", args.rust)
@@ -986,6 +987,13 @@ def run_window(args):
             perf_log = (args.output / "perf.log").open("wb")
             perf_process = subprocess.Popen(perf_command, stdout=perf_log, stderr=perf_log)
             time.sleep(0.2)
+        if args.strace_summary:
+            strace_command = ["strace", "-f", "-c", "-o", str(args.output / "strace-summary.txt"),
+                              "-p", str(daemon.pid)]
+            save(args.output / "strace-command.json", strace_command)
+            strace_log = (args.output / "strace.log").open("wb")
+            strace_process = subprocess.Popen(strace_command, stdout=strace_log, stderr=strace_log)
+            time.sleep(0.2)
         result["measurement"] = run_load(args, daemon, root, upstream)
         result["accepted"] = all(result["measurement"]["quality"].values())
         counters = result["measurement"]["load"]["measurement"]
@@ -1021,6 +1029,17 @@ def run_window(args):
                 result["perf_record_error"] = repr(error)
         if perf_log is not None:
             perf_log.close()
+        if strace_process is not None:
+            try:
+                if strace_process.poll() is None:
+                    strace_process.send_signal(signal.SIGINT)
+                    strace_process.wait(10)
+                result["strace_summary"] = {"returncode": strace_process.returncode,
+                                            "path": str(args.output / "strace-summary.txt")}
+            except Exception as error:
+                result["strace_error"] = repr(error)
+        if strace_log is not None:
+            strace_log.close()
         if daemon is not None:
             try:
                 result["cpu_before_termination"] = cgroup_cpu()
@@ -1122,6 +1141,8 @@ def main():
                         help="require/read DNSMASQ_M6B_WAKE_METRICS sidecar telemetry")
     parser.add_argument("--perf-record", action="store_true",
                         help="diagnostic only: record daemon perf samples during run_load")
+    parser.add_argument("--strace-summary", action="store_true",
+                        help="diagnostic only: attach strace -f -c to the daemon during run_load")
     args = parser.parse_args()
     args.drain_sample_seconds = parse_drain_sample_seconds(args.drain_sample_seconds)
     if args.tftp_worker:
