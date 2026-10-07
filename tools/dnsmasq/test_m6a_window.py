@@ -13,6 +13,52 @@ import m6a_window as window
 from dns_service_probe import query
 
 
+class MeasurementCorrections(unittest.TestCase):
+    def test_drain_requires_stable_idle_fd_and_no_children(self):
+        rows = [
+            {"tree": {"fd_count": 11, "child_processes": 0}},
+            {"tree": {"fd_count": 10, "child_processes": 1}},
+            {"tree": {"fd_count": 10, "child_processes": 0}},
+            {"tree": {"fd_count": 10, "child_processes": 0}},
+        ]
+        with patch.object(window, "process_tree", side_effect=rows):
+            result = window.wait_for_drain(123, 10, timeout=1, stable_samples=2, interval=0)
+        self.assertEqual(result["idle_fd_count"], 10)
+        self.assertEqual(result["observations"][-1]["stable_samples"], 2)
+        self.assertEqual(len(result["observations"]), 4)
+
+    def test_fixed_drain_sample_offsets(self):
+        self.assertEqual(window.parse_drain_sample_seconds(None), (0.0, 1.0, 5.0, 60.0))
+        with self.assertRaises(ValueError):
+            window.parse_drain_sample_seconds("1,5,60")
+        with self.assertRaises(ValueError):
+            window.parse_drain_sample_seconds("0,5,1")
+
+    def test_idle_cpu_disabled_still_writes_explicit_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = window.measure_idle_cpu(123, Path(directory), 0)
+            self.assertFalse(result["enabled"])
+            self.assertEqual(json.loads((Path(directory) / "idle-cpu.json").read_text()), result)
+
+    def test_wake_telemetry_jsonl_is_normalized_and_summarized(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "wake.jsonl"
+            path.write_text(json.dumps({"loop_rounds": 12, "poll_calls": 4,
+                                        "poll_wait_ns": 800, "wait_durations_ns": [100, 700]}) + "\n")
+            first = window.read_wake_telemetry(path)
+            path.write_text(path.read_text() + json.dumps({"loop_rounds": 22, "poll_calls": 9,
+                                                             "poll_wait_ns": 1900}) + "\n")
+            second = window.read_wake_telemetry(path)
+        self.assertEqual(first["loop_rounds"], 12)
+        summary = window.summarize_wake_telemetry([
+            {"observed_monotonic_ns": 1_000_000_000, "counters": first},
+            {"observed_monotonic_ns": 2_000_000_000, "counters": second},
+        ])
+        self.assertEqual(summary["intervals"][0]["loop_rounds_per_second"], 10.0)
+        self.assertEqual(summary["intervals"][0]["poll_calls"], 5)
+        self.assertEqual(summary["intervals"][0]["poll_wait_ns"], 1100)
+
+
 class FrozenInputs(unittest.TestCase):
     def test_mixed_bank_counts_and_cname_labels(self):
         counts = {"a": 0, "aaaa": 0, "cname": 0, "txt": 0}
