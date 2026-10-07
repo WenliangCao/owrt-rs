@@ -6427,6 +6427,76 @@ mod tests {
         assert_eq!(owner_poll_timeout(now + Duration::from_secs(u32::MAX as u64), now, false), i32::MAX);
     }
 
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn interface_collector_send_and_completion_progress_without_network_input() {
+        use dnsmasq_rs::dns::interface_collect::InterfaceCollector;
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let mut collector = InterfaceCollector::new().unwrap();
+        collector.begin().unwrap();
+        assert!(collector.runnable(), "the first dump send has no readable fd yet");
+        owner.interface_collector = Some(collector);
+        for _ in 0..64 {
+            owner.wait_for_files().unwrap();
+            owner.step().unwrap();
+            if !owner.interface_work_pending() { break; }
+        }
+        assert!(!owner.interface_work_pending(), "dump fd and deadline must resume its owner");
+        assert!(owner.interfaces_enumerated);
+        assert!(owner.interfaces.borrow().iter().any(|row| row.loopback));
+        let collector = owner.interface_collector.as_ref().unwrap();
+        assert!(!collector.runnable());
+        assert!(collector.deadline().is_none(), "completed dumps must remove their timer");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn dump_backpressure_resumes_on_writable_fd_without_another_packet() {
+        use dnsmasq_rs::config::dump::DumpConfig;
+        use dnsmasq_rs::dump::{DumpHandle, QUERY};
+        use std::io::{Read, Write};
+        use std::os::unix::fs::OpenOptionsExt;
+        let path = std::env::temp_dir().join(format!("owner-dump-wake-{}", std::process::id()));
+        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let mut reader = std::fs::OpenOptions::new().read(true).custom_flags(0o4000).open(&path).unwrap();
+        let dump = DumpHandle::open(&DumpConfig { file: Some(path.clone()), mask: QUERY }, 1232).unwrap();
+        let mut filler = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
+        for size in [4096, 1] {
+            loop {
+                match filler.write(&[0; 4096][..size]) {
+                    Ok(count) => assert_ne!(count, 0),
+                    Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+                }
+            }
+        }
+        dump.udp(QUERY, b"queued dump", "192.0.2.1:12345".parse().unwrap(), "192.0.2.2:53".parse().unwrap());
+        let fd = dump.poll_fd().expect("the accepted record must retain write interest");
+        let mut owner = test_owner(DnsConfig::default(), None);
+        owner.dump = dump.clone();
+        let mut fds = Vec::new();
+        owner.append_file_fds(&mut fds, true);
+        assert!(fds.iter().any(|row| row.fd == fd && row.events == owrt_ubus::sys::POLLOUT));
+        assert_eq!(owrt_ubus::sys::poll_fds(&mut fds, 0).unwrap(), 0);
+        let mut bytes = [0; 8192];
+        loop {
+            match reader.read(&mut bytes) {
+                Ok(count) => assert_ne!(count, 0),
+                Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+            }
+        }
+        owner.wait_for_files().unwrap();
+        owner.step().unwrap();
+        assert!(dump.poll_fd().is_none(), "drained dump must remove write interest");
+        let count = reader.read(&mut bytes).unwrap();
+        assert!(bytes[..count].ends_with(b"queued dump"));
+        let notices = dump.take_notices();
+        assert_eq!(notices.len(), 1);
+        assert!(!notices[0].0);
+        assert!(notices[0].1.starts_with(b"dumping packet 1 "));
+        drop((owner, dump, reader, filler));
+        std::fs::remove_file(path).unwrap();
+    }
+
     #[cfg(target_os = "linux")]
     #[test]
     fn delivered_signal_counters_wake_even_without_a_pipe_byte() {
