@@ -3112,6 +3112,24 @@ impl SinglePoll {
     }
 
     #[cfg(target_os = "linux")]
+    fn dns_file_work_runnable(&self) -> bool {
+        // Keep the same publication order as step_dns_files. Queued DNS work
+        // cannot run ahead of held hosts/DHCP input or an interface generation.
+        if self.hosts_work_pending() || self.interface_work_pending() {
+            return false;
+        }
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
+            .is_some_and(|provider| provider.try_borrow().map_or(true, |provider| {
+                provider.file_work_pending() || provider.files_runnable()
+            }))
+        {
+            return false;
+        }
+        self.files_runnable || self.dns_files.as_ref().is_some_and(DnsFiles::runnable)
+    }
+
+    #[cfg(target_os = "linux")]
     fn step_dns_files(&mut self) {
         if self.hosts_work_pending() {
             self.files_runnable = false;
@@ -3706,7 +3724,7 @@ impl SinglePoll {
                     deadline = now;
                 }
             }
-            let mut runnable = self.files_runnable
+            let mut runnable = self.dns_file_work_runnable()
                 || self
                     .hosts_read
                     .as_ref()
@@ -6172,6 +6190,69 @@ mod tests {
         let mut writer = PacketWriter::new(7, 0x100, 1232).unwrap();
         writer.question(&Name::from_ascii("ready.test").unwrap(), 1, 1).unwrap();
         writer.finish()
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn queued_server_file_reload_publishes_without_another_network_event() {
+        use dnsmasq_rs::config::dns::{RuleTarget, ServerHost};
+        let path = std::env::temp_dir().join(format!("ready-servers-file-{}", std::process::id()));
+        std::fs::write(&path, b"server=/ready.test/127.0.0.2\n").unwrap();
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        config.no_hosts = true;
+        config.bind_interfaces = true;
+        config.servers_file = Some(path.clone());
+        let daemon = DnsDaemon::new(config.clone(), Hosts::new(), &[], DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config.clone(), Some(daemon));
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        for (reason, address) in [(ReloadReason::Init, "127.0.0.2"),
+                                   (ReloadReason::Signal, "127.0.0.3")] {
+            std::fs::write(&path, format!("server=/ready.test/{address}\n")).unwrap();
+            assert!(!owner.files_runnable, "the previous FileStep is idle");
+            owner.dns_files.as_mut().unwrap().request(reason);
+            assert!(owner.dns_files.as_ref().unwrap().watch_fd().is_none());
+            assert!(owner.dns_file_work_runnable(), "a late request must wake the owner");
+            for _ in 0..16 {
+                if !owner.dns_files.as_ref().unwrap().has_work() { break; }
+                assert!(owner.dns_file_work_runnable());
+                owner.wait_for_files().unwrap();
+                owner.step_dns_files();
+            }
+            assert!(!owner.dns_files.as_ref().unwrap().has_work());
+            assert!(!owner.dns_file_work_runnable(), "idle file sources must not spin");
+            assert!(owner.service.borrow().local.config.rules.iter().any(|rule| {
+                matches!(&rule.target, RuleTarget::Upstream(endpoint)
+                    if endpoint.host == ServerHost::Address(address.parse().unwrap()))
+            }));
+        }
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn held_hosts_fifo_blocks_dns_runnable_without_losing_its_request() {
+        use dnsmasq_rs::dns::hostsdir::{HostSource, HostsRead};
+        let path = std::env::temp_dir().join(format!("ready-hosts-fifo-{}", std::process::id()));
+        assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
+        let mut config = DnsConfig::default();
+        config.no_resolv = true;
+        config.no_hosts = true;
+        let mut owner = test_owner(config.clone(), None);
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        owner.dns_files.as_mut().unwrap().request(ReloadReason::Signal);
+        owner.files_runnable = true; // stale previous result is also suppressed
+        owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 },
+            &config, 37).unwrap());
+        assert!(!owner.hosts_read.as_ref().unwrap().runnable());
+        assert!(!owner.dns_file_work_runnable(), "DNS cannot busy-poll ahead of hosts publication");
+        owner.step_dns_files();
+        assert!(owner.dns_files.as_ref().unwrap().has_work());
+        owner.hosts_read.take();
+        assert!(owner.dns_file_work_runnable(), "finishing hosts makes the saved request runnable");
+        drop(owner);
+        std::fs::remove_file(path).unwrap();
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
