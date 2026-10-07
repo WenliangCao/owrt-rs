@@ -85,6 +85,29 @@ sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/cache_partial_eof_ru
 
 旧 PLAN / IDENTITY / STDOUT pins 不删除、不改名；没有 `--fresh-c-receipt` 的历史路径仅为额外回归，不计作本次 fresh C 对照。whole-frame partial sentinel 是已声明的 C-only transport cutpoint，不冒称产品可注入半条 native pipe；`--stream-format` 若使用，须匹配该源中实际 ignored driver 格式。所有失败保留，fresh C receipt 未通过不得继续授资格。
 
+## 视图隔离与五个安全负控的 copied 入口
+
+`m6b_tcp_a_guards.py --prepare-only` 导出 positive 和五个 mutation 的实际源码／variant-plan；不编译或运行。每个 variant 经同一个 `oracle_build.sh ... probe-tests`，然后 `--run-variant` 验证 source-before／全输入／copied ELF／build／plan／tool 前后身份，运行真实 `dns::cache::tests` 模块。模块 filter 不用 `--exact` 或 `--ignored`；测试数为零不能通过。negative 必须实际执行测试、失败且命中指定 mutation 的 cache test，编译错误或超时不能作为负控成功。
+
+```sh
+python3 "$M6B_TOOLS/m6b_tcp_a_guards.py" --prepare-only \
+  --repository "$M6B_MAIN" --source "$M6B_A_COMMIT" --out "$M6B_A_GUARD_PREP"
+for M6B_GUARD_VARIANT in positive discard-content-on-detach discard-index-on-detach \
+  disable-rrset-rotation preserve-expired-reverse reuse-slot-generation; do
+  ORACLE_BUILD_OPT_LEVEL=3 ORACLE_BUILD_FEATURES='' \
+    sh "$M6B_TOOLS/oracle_build.sh" "$M6B_A_GUARD_PREP/$M6B_GUARD_VARIANT/source" \
+    "$M6B_A_GUARD_PREP/$M6B_GUARD_VARIANT/build" probe-tests
+  sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_a_guards.py" \
+    --run-variant "$M6B_GUARD_VARIANT" --plan "$M6B_A_GUARD_PREP/result.json" \
+    --rust-test-binary "$M6B_A_GUARD_PREP/$M6B_GUARD_VARIANT/build/lib-dnsmasq_rs" \
+    --rust-source-root "$M6B_A_GUARD_PREP/$M6B_GUARD_VARIANT/source" \
+    --rust-build-receipt "$M6B_A_GUARD_PREP/$M6B_GUARD_VARIANT/build/build.json" \
+    --out "$M6B_A_GUARD_PREP/$M6B_GUARD_VARIANT/run"
+done
+```
+
+每 variant 的 `accepted` 只是该正／负控的实际结果；`qualification=false` 保留，不替代镜像服务／内部余额／CPU 门。六个 run 都通过、绑定同一 base A source 后，外层 gate 才能记录这一层实际完成。所有命令本轮尚未执行。
+
 ## 固定执行顺序与尚未覆盖的门
 
 1. frozen A 组件源码与四 bridges 收据 → `primitive-probes` 构建 → 四原语完整差分及原始失败保存。
