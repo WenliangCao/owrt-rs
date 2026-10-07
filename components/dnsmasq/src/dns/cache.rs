@@ -9,6 +9,7 @@ use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
 use std::net::IpAddr;
+use std::num::NonZeroU32;
 use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -225,11 +226,23 @@ pub struct LocalCacheMatch {
 
 #[derive(Clone, Copy)]
 struct Slot {
-    block: usize,
-    offset: usize,
     generation: u64,
-    prev: Option<usize>,
-    next: Option<usize>,
+    prev: Option<NonZeroU32>,
+    next: Option<NonZeroU32>,
+}
+
+fn slot_link(index: usize) -> NonZeroU32 {
+    // Cache::new validates the capacity before constructing any slot. The
+    // one-based representation reserves zero for an absent link.
+    index
+        .checked_add(1)
+        .and_then(|index| u32::try_from(index).ok())
+        .and_then(NonZeroU32::new)
+        .expect("validated one-based cache slot index")
+}
+
+fn slot_index(link: Option<NonZeroU32>) -> Option<usize> {
+    link.map(|index| index.get() as usize - 1)
 }
 
 #[derive(Clone)]
@@ -269,13 +282,12 @@ impl Cache {
     }
 
     fn entry(&self, slot: usize) -> Option<&Entry> {
-        let position = self.slots[slot];
-        self.content[position.block].entries[position.offset].as_ref()
+        self.content[slot / CONTENT_BLOCK_SLOTS].entries[slot % CONTENT_BLOCK_SLOTS].as_ref()
     }
 
     fn entry_mut(&mut self, slot: usize) -> &mut Option<Entry> {
-        let position = self.slots[slot];
-        &mut Arc::make_mut(&mut self.content[position.block]).entries[position.offset]
+        &mut Arc::make_mut(&mut self.content[slot / CONTENT_BLOCK_SLOTS]).entries
+            [slot % CONTENT_BLOCK_SLOTS]
     }
 
     fn key_shard(key: &[u8]) -> usize {
@@ -305,6 +317,13 @@ impl Cache {
         self.policy.max_reply_ttl = maximum;
     }
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
+        // Production cache-size is capped at 5,000,000. Keep the public
+        // primitive's link representation checked too, without truncating
+        // indices or shortening its u64 anti-ABA generation.
+        assert!(
+            capacity <= u32::MAX as usize,
+            "cache capacity exceeds slot link range"
+        );
         // C represents a zero stale allowance as the option being disabled.
         if policy.stale == StalePolicy::Seconds(0) {
             policy.stale = StalePolicy::Disabled;
@@ -322,11 +341,9 @@ impl Cache {
             policy,
             slots: (0..capacity)
                 .map(|i| Slot {
-                    block: i / CONTENT_BLOCK_SLOTS,
-                    offset: i % CONTENT_BLOCK_SLOTS,
                     generation: 0,
-                    prev: i.checked_sub(1),
-                    next: (i + 1 < capacity).then_some(i + 1),
+                    prev: i.checked_sub(1).map(slot_link),
+                    next: (i + 1 < capacity).then_some(i + 1).map(slot_link),
                 })
                 .collect(),
             content,
@@ -354,10 +371,10 @@ impl Cache {
     pub fn clear(&mut self) {
         let capacity = self.slots.len();
         for (index, slot) in self.slots.iter_mut().enumerate() {
-            let position = *slot;
-            Arc::make_mut(&mut self.content[position.block]).entries[position.offset] = None;
-            slot.prev = index.checked_sub(1);
-            slot.next = (index + 1 < capacity).then_some(index + 1);
+            Arc::make_mut(&mut self.content[index / CONTENT_BLOCK_SLOTS]).entries
+                [index % CONTENT_BLOCK_SLOTS] = None;
+            slot.prev = index.checked_sub(1).map(slot_link);
+            slot.next = (index + 1 < capacity).then_some(index + 1).map(slot_link);
         }
         self.names = (0..NAME_SHARDS)
             .map(|_| Arc::new(NameIndex::new()))
@@ -448,7 +465,8 @@ impl Cache {
         let (kind, bytes) = reverse_key(address);
         self.reverse_chain.iter().any(|&slot| {
             !self.invalid(slot, now)
-                && self.entry(slot)
+                && self
+                    .entry(slot)
                     .is_some_and(|entry| entry.record.kind == kind && entry.record.data == bytes)
         }) || self
             .names_for(&reverse_name(address).canonical_wire())
@@ -467,10 +485,7 @@ impl Cache {
     /// emitted. A broken, expired, or cyclic chain is not a terminal.
     pub fn cname_terminal_name(&self, name: &Name, now: i64) -> Option<Name> {
         let key = name.canonical_wire();
-        let mut ids = self
-            .names_for(&key)?
-            .iter()
-            .map(|&slot| self.id(slot));
+        let mut ids = self.names_for(&key)?.iter().map(|&slot| self.id(slot));
         let mut id = ids.find(|id| {
             self.get(*id).is_some_and(|entry| {
                 entry.record.kind == Kind::Cname && !self.invalid(id.slot, now)
@@ -507,7 +522,9 @@ impl Cache {
         let Some(slot) = self.slots.get(id.slot) else {
             return false;
         };
-        slot.generation == id.generation && self.entry(id.slot).is_some() && !self.invalid(id.slot, now)
+        slot.generation == id.generation
+            && self.entry(id.slot).is_some()
+            && !self.invalid(id.slot, now)
     }
 
     pub fn start_insert(&mut self) {
@@ -641,10 +658,7 @@ impl Cache {
         let slot = if let Some(id) = preserved {
             id.slot
         } else {
-            if self
-                .tail
-                .is_some_and(|slot| self.entry(slot).is_some())
-            {
+            if self.tail.is_some_and(|slot| self.entry(slot).is_some()) {
                 // Same pressure trigger as C: reclaim expired entries globally
                 // before spilling any live entry. The scan is a baseline cost.
                 for slot in 0..self.slots.len() {
@@ -873,10 +887,7 @@ impl Cache {
             if reverse {
                 let bucket = reverse_bucket(&name, capacity);
                 let mut at = self.reverse_chain.partition_point(|&old| {
-                    reverse_bucket(
-                        &self.entry(old).unwrap().record.name,
-                        self.slots.len(),
-                    ) < bucket
+                    reverse_bucket(&self.entry(old).unwrap().record.name, self.slots.len()) < bucket
                 });
                 while at < self.reverse_chain.len() {
                     let old = self.entry(self.reverse_chain[at]).unwrap();
@@ -998,13 +1009,10 @@ impl Cache {
         for slot in self.names_for(&key).cloned().unwrap_or_default() {
             if self.invalid(slot, now) {
                 self.remove(slot);
-            } else if kinds.iter().any(|kind| {
-                self.entry(slot)
-                    .unwrap()
-                    .record
-                    .kind
-                    .matches(*kind)
-            }) {
+            } else if kinds
+                .iter()
+                .any(|kind| self.entry(slot).unwrap().record.kind.matches(*kind))
+            {
                 self.unlink(slot);
                 self.link_head(slot);
                 found.push(slot);
@@ -1050,12 +1058,10 @@ impl Cache {
         let (kind, data) = reverse_key(address);
         let mut found = Vec::new();
         for slot in self.reverse_chain.clone() {
-            if self
-                .policy
-                .expired(self.entry(slot).unwrap().expires, now)
-            {
+            if self.policy.expired(self.entry(slot).unwrap().expires, now) {
                 self.remove(slot);
-            } else if self.entry(slot)
+            } else if self
+                .entry(slot)
                 .is_some_and(|entry| entry.record.kind == kind && entry.record.data == data)
             {
                 self.unlink(slot);
@@ -1087,19 +1093,12 @@ impl Cache {
     }
 
     fn invalid(&self, slot: usize, now: i64) -> bool {
-        self.policy
-            .expired(self.entry(slot).unwrap().expires, now)
-            || self.outdated_cname(slot)
+        self.policy.expired(self.entry(slot).unwrap().expires, now) || self.outdated_cname(slot)
     }
 
     fn remove(&mut self, slot: usize) {
         self.reverse_chain.retain(|&entry| entry != slot);
-        let key = self
-            .entry(slot)
-            .unwrap()
-            .record
-            .name
-            .canonical_wire();
+        let key = self.entry(slot).unwrap().record.name.canonical_wire();
         let indices = self.names_for_mut(&key).unwrap();
         indices.retain(|index| *index != slot);
         if indices.is_empty() {
@@ -1112,10 +1111,10 @@ impl Cache {
     fn free(&mut self, slot: usize) {
         let entry = self.entry_mut(slot).take().unwrap();
         self.long_names -= usize::from(entry.record.name.dnsmasq_bytes().len() >= 75);
-        self.slots[slot].prev = self.tail;
+        self.slots[slot].prev = self.tail.map(slot_link);
         self.slots[slot].next = None;
         if let Some(tail) = self.tail {
-            self.slots[tail].next = Some(slot);
+            self.slots[tail].next = Some(slot_link(slot));
         } else {
             self.head = Some(slot);
         }
@@ -1123,15 +1122,15 @@ impl Cache {
     }
 
     fn unlink(&mut self, slot: usize) {
-        let prev = self.slots[slot].prev;
-        let next = self.slots[slot].next;
+        let prev = slot_index(self.slots[slot].prev);
+        let next = slot_index(self.slots[slot].next);
         if let Some(prev) = prev {
-            self.slots[prev].next = next;
+            self.slots[prev].next = next.map(slot_link);
         } else {
             self.head = next;
         }
         if let Some(next) = next {
-            self.slots[next].prev = prev;
+            self.slots[next].prev = prev.map(slot_link);
         } else {
             self.tail = prev;
         }
@@ -1140,10 +1139,10 @@ impl Cache {
     }
 
     fn link_head(&mut self, slot: usize) {
-        self.slots[slot].next = self.head;
+        self.slots[slot].next = self.head.map(slot_link);
         self.slots[slot].prev = None;
         if let Some(head) = self.head {
-            self.slots[head].prev = Some(slot);
+            self.slots[head].prev = Some(slot_link(slot));
         } else {
             self.tail = Some(slot);
         }
