@@ -69,10 +69,10 @@ def foreign_load():
     for pid,row in rows.items():
         if pid in ancestors or related(pid,rows):continue
         names=[n for n in row['names'] if n in {'cargo','cargo-fuzz','rustc','make','cc','gcc','clang',
-               'dnsmasq','dnsmasq-rs','dns_wire','dhcp_packet','config_line','pytest'}
+               'dnsmasq','dnsmasq-rs','dns_wire','dhcp_packet','config_line','pytest','perf','strace'}
                or n in {'m6a_loadgen','m6a_upstream'}
                or n.endswith(('-gcc','-clang'))
-               or re.fullmatch(r'(?:m[23456]_.*|m6a_.*|test_.*)\.py',n)]
+               or re.fullmatch(r'(?:m[23456]_.*|m6[ab]_.*|test_.*)\.py',n)]
         if names:suspects.append({'pid':pid,'start':row['start'],'names':names,
                                   'cmdline_sha256':row['cmdline_sha256']})
     # A namespace child can be born between the process table and candidate read.
@@ -95,6 +95,38 @@ def foreign_load():
             except (FileNotFoundError,ProcessLookupError,PermissionError):row[filename]=None
     return foreign
 
+def verify_controller(spec, path):
+    """Bind the actually executing controller to the frozen tool tree."""
+    name = Path(path).name
+    expected = spec["tools_files"].get(name)
+    if expected is None or sha256(Path(path)) != expected:
+        raise ValueError("executing controller differs from frozen tool: " + name)
+    return {"path": str(Path(path).resolve()), "name": name, "sha256": expected}
+
+
+def check_instrumentation(spec, formal=False):
+    """Feature-on companions and wake collection can never enter formal runs."""
+    instrumentation = spec.get("instrumentation")
+    if instrumentation is None:
+        if spec.get("m6b"):
+            raise ValueError("M6b manifest requires explicit instrumentation rules")
+        return
+    diagnostic = instrumentation["diagnostic_only"]
+    if not isinstance(diagnostic, bool) or not isinstance(instrumentation["wake_metrics"], bool):
+        raise ValueError("instrumentation flags must be explicit booleans")
+    if set(instrumentation["build_features"]) != {"r3", "rs"}:
+        raise ValueError("instrumentation must record both Rust build feature sets")
+    if formal and diagnostic:
+        raise ValueError("diagnostic-only manifest cannot run formal performance windows")
+    for group, features in instrumentation["build_features"].items():
+        if features not in ("", "m6b-diagnostics"):
+            raise ValueError("unsupported instrumentation features for " + group)
+        if features and not diagnostic:
+            raise ValueError("feature-on ELF requires a diagnostic-only manifest")
+        if instrumentation["wake_metrics"] and features != "m6b-diagnostics":
+            raise ValueError("wake metrics require a separate feature-on diagnostic companion")
+
+
 def prepare(args):
     root=args.root.resolve(); private=root/'private'; private.mkdir(exist_ok=True)
     manifest=private/'manifest.json'
@@ -104,6 +136,13 @@ def prepare(args):
     if (not args.m6b and sha256(args.r3)!=R3) or sha256(args.image_root/'usr/sbin/dnsmasq')!=STOCK_SHA256:
         raise ValueError('M5 or exact-image identity differs')
     r3_build=json.loads(args.r3_build.read_text());rs_build=json.loads(args.rs_build.read_text())
+    if args.m6b and any("features" not in build for build in (r3_build, rs_build)):
+        raise ValueError("M6b requires build receipts with explicit features")
+    instrumentation = {"diagnostic_only": getattr(args, "diagnostic_only", False),
+                       "wake_metrics": getattr(args, "wake_metrics", False),
+                       "build_features": {"r3": r3_build.get("features", ""),
+                                          "rs": rs_build.get("features", "")}}
+    check_instrumentation({"instrumentation": instrumentation})
     frozen=json.loads(args.product_freeze.read_text())
     source_commit = args.source_commit or PRODUCT
     if not args.m6b and (frozen['source_commit']!=PRODUCT or frozen['elf_sha256']!=R3):
@@ -126,7 +165,8 @@ def prepare(args):
         subprocess.run(['cc','-O2','-std=c11','-Wall','-Wextra','-Werror',str(tools/(name+'.c')),
                         '-o',str(binary)],check=True)
     protocol_path=root/('docs/dnsmasq/M6B_PROTOCOL.md' if args.m6b else 'docs/dnsmasq/M6A_PROTOCOL.md')
-    spec={'schema':1,'source_commit':source_commit,'m6b':args.m6b,'root':str(root),'protocol':str(protocol_path),
+    spec={'schema':1,'source_commit':source_commit,'m6b':args.m6b,'instrumentation':instrumentation,
+          'root':str(root),'protocol':str(protocol_path),
           'protocol_sha256':sha256(protocol_path),'tools_files':file_map(tools),
           'source_files':frozen['source_files'],'source_root':str(source),
           'product_freeze':{'path':str(args.product_freeze),'sha256':sha256(args.product_freeze)},
@@ -151,16 +191,25 @@ def prepare(args):
                       's_sha256':spec['groups']['rs']['sha256'],'s_bytes':spec['groups']['rs']['bytes']}))
 
 def verify(spec, manifest):
+    check_instrumentation(spec)
+    verify_controller(spec, __file__)
     if sha256(Path(spec['protocol']))!=spec['protocol_sha256']:raise ValueError('protocol changed')
     if file_map(Path(spec['root'])/'tools/dnsmasq')!=spec['tools_files']:raise ValueError('frozen tool tree changed')
     for group in spec['groups'].values():
         if sha256(Path(group['elf']))!=group['sha256']:raise ValueError('ELF changed')
     for asset in [*spec['native'].values(),*spec['builds'].values(),spec['product_freeze']]:
         if sha256(Path(asset['path']))!=asset['sha256']:raise ValueError('frozen asset changed')
+    for group, asset in spec['builds'].items():
+        receipt = json.loads(Path(asset['path']).read_text())
+        if spec.get('m6b') and 'features' not in receipt:
+            raise ValueError('M6b build receipt omitted features')
+        if spec.get('instrumentation') and receipt.get('features', '') != spec['instrumentation']['build_features'][group]:
+            raise ValueError('build instrumentation differs from manifest')
     for name,digest in spec['source_files'].items():
         if sha256(Path(spec['source_root'])/name)!=digest:raise ValueError('product input changed')
 
 def command_for(spec, profile, group, round_no, output, pilot):
+    check_instrumentation(spec, formal=not pilot)
     _,scenario,tcp,rate,sat,bank=profile;root=Path(spec['root']);tools=root/'tools/dnsmasq'
     artifact=spec['groups']['r3' if group=='c' else group]
     cmd=['sh',str(tools/'run_isolated.sh'),'python3',str(tools/'m6a_window.py'),
@@ -170,10 +219,12 @@ def command_for(spec, profile, group, round_no, output, pilot):
          '--scenario',scenario,'--tcp-profile',tcp,'--round',str(round_no),'--rate',str(rate),
          '--cache-names',str(bank),'--output',str(output),'--warmup','2' if pilot else '30',
          '--duration','10' if pilot else '120','--saturation-seconds',str(3 if pilot and sat else sat),
-         '--seed',str(0x4d364100+round_no), '--idle-seconds','5' if pilot else '60', '--wake-metrics',
+         '--seed',str(0x4d364100+round_no), '--idle-seconds','5' if pilot else '60',
          '--drain-timeout-seconds','65', '--drain-sample-seconds','0,1,5,60']
     if spec.get('m6b'):
         cmd += ['--allow-rust-identity-change']
+    if pilot and group != 'c' and spec.get('instrumentation', {}).get('wake_metrics'):
+        cmd += ['--wake-metrics']
     if pilot:cmd+=['--preflight','--fault-start','3','--fault-end','6','--reload-period','3']
     return cmd
 
@@ -291,6 +342,7 @@ def run(args):
     if not args.pilot_only and (args.profile or args.group):
         raise ValueError('formal suite cannot filter or reorder the frozen schedule')
     manifest=args.manifest.resolve();spec=json.loads(manifest.read_text());verify(spec,manifest)
+    check_instrumentation(spec, formal=not args.pilot_only)
     private=Path(spec['root'])/'private';state_path=private/'state.json';state=json.loads(state_path.read_text())
     if state['manifest_sha256']!=sha256(manifest):raise ValueError('state belongs to another freeze')
     os.sched_setaffinity(0,{3});os.environ['PYTHONDONTWRITEBYTECODE']='1'
@@ -368,6 +420,8 @@ def main():
     for name in ['r3','rs','r3-build','rs-build','image-root','product-freeze']:
         p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--source-commit');p.add_argument('--m6b',action='store_true')
+    p.add_argument('--diagnostic-only', action='store_true')
+    p.add_argument('--wake-metrics', action='store_true', help='separate diagnostic companion only')
     p=sub.add_parser('run');p.add_argument('--manifest',type=Path,required=True)
     p.add_argument('--pilot-only',action='store_true');p.add_argument('--profile',action='append');p.add_argument('--group',action='append')
     args=parser.parse_args()
