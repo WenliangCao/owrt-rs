@@ -2087,6 +2087,8 @@ struct SinglePoll {
     poll_fds: Vec<owrt_ubus::sys::PollFd>,
     #[cfg(target_os = "linux")]
     ubus_ready: bool,
+    #[cfg(target_os = "linux")]
+    ready_fds: Vec<i32>,
     probe_metrics: Option<Metrics>,
     full_reload_pending: bool,
     retry_bound_listeners: bool,
@@ -2889,6 +2891,8 @@ impl SinglePoll {
             poll_fds: Vec::new(),
             #[cfg(target_os = "linux")]
             ubus_ready: false,
+            #[cfg(target_os = "linux")]
+            ready_fds: Vec::new(),
             probe_metrics: None,
             full_reload_pending: false,
             retry_bound_listeners: false,
@@ -3648,6 +3652,12 @@ impl SinglePoll {
             self.ubus_ready = ubus_fd_index
                 .and_then(|index| fds.get(index))
                 .is_some_and(|fd| fd.revents != 0);
+            self.ready_fds.clear();
+            self.ready_fds.extend(
+                fds.iter()
+                    .filter(|fd| fd.revents != 0)
+                    .map(|fd| fd.fd),
+            );
             self.poll_fds = fds;
             if ready != 0 {
                 self.drain_signal_wake();
@@ -3992,6 +4002,10 @@ impl SinglePoll {
         let Some(udp) = self.listeners[index].udp.as_ref().map(Arc::clone) else {
             return false;
         };
+        #[cfg(target_os = "linux")]
+        if !self.ready_fds.contains(&udp.as_raw_fd()) {
+            return false;
+        }
         let token = self.listeners[index].token;
         if self.m6b.enabled() {
             let counters = self.m6b.listener_mut(index);
@@ -4511,6 +4525,10 @@ impl SinglePoll {
         let Some(tcp) = &listener.tcp else {
             return;
         };
+        #[cfg(target_os = "linux")]
+        if !self.ready_fds.contains(&tcp.as_raw_fd()) {
+            return;
+        }
         let Ok((stream, peer)) = tcp.accept() else {
             return;
         };
@@ -4678,9 +4696,39 @@ impl SinglePoll {
         });
     }
 
+    #[cfg(target_os = "linux")]
+    fn tcp_client_ready(&self, index: usize) -> bool {
+        let client = &self.clients[index];
+        let now = Instant::now();
+        match &client.phase {
+            TcpClientPhase::Reading => {
+                client.input_offset < client.input.len()
+                    || client
+                        .stream
+                        .as_ref()
+                        .is_some_and(|stream| self.ready_fds.contains(&stream.as_raw_fd()))
+            }
+            TcpClientPhase::WaitingMac { .. } => {
+                now >= client.mac_deadline || !self.ready_fds.is_empty()
+            }
+            TcpClientPhase::Forwarding { wait, .. } => {
+                now >= wait.deadline || self.ready_fds.contains(&wait.fd)
+            }
+            TcpClientPhase::Writing { .. } => client
+                .stream
+                .as_ref()
+                .is_some_and(|stream| self.ready_fds.contains(&stream.as_raw_fd())),
+        }
+    }
+
     fn step_tcp_clients(&mut self) {
         let mut index = 0;
         while index < self.clients.len() {
+            #[cfg(target_os = "linux")]
+            if !self.tcp_client_ready(index) {
+                index += 1;
+                continue;
+            }
             if !self.clients[index].mac_ready && !self.clients[index].mac_deferred {
                 let lookup = if Instant::now() >= self.clients[index].mac_deadline {
                     ClientMacLookup::Ready(None)
