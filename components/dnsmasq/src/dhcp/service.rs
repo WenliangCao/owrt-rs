@@ -452,16 +452,21 @@ impl SocketListener {
     /// The sockets are nonblocking; packet processing remains bounded by the
     /// caller's normal DHCP turn and never runs from the poll itself.
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
-        use owrt_ubus::sys::{PollFd, POLLIN};
+        use owrt_ubus::sys::{PollFd, POLLIN, POLLOUT};
+        // A queued reply has no unread request left to wake the owner. Wait
+        // for the socket which owns that reply to become writable instead.
+        let pending_listener = self.pending_reply.as_ref().map(|reply| reply.listener);
         fds.push(PollFd {
             fd: self.socket.as_raw_fd(),
-            events: POLLIN,
+            events: POLLIN | if pending_listener == Some(self.listener) { POLLOUT } else { 0 },
             revents: 0,
         });
         if let Some(socket) = &self.pxe_socket {
             fds.push(PollFd {
                 fd: socket.as_raw_fd(),
-                events: POLLIN,
+                events: POLLIN | if pending_listener.is_some_and(|kind| kind != self.listener) {
+                    POLLOUT
+                } else { 0 },
                 revents: 0,
             });
         }
@@ -1049,6 +1054,41 @@ mod tests {
         assert_eq!(pending.destination.address, destination.address);
         assert_eq!(pending.listener, Listener::Pxe);
         assert_eq!(pending.would_block_count, 1);
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    #[test]
+    fn deferred_reply_wakes_on_write_without_another_dhcp_request() {
+        use super::super::runtime::{Destination, DestinationKind};
+        use owrt_ubus::sys::{poll_fds, POLLOUT};
+        use std::net::UdpSocket;
+        let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
+        peer.set_read_timeout(Some(std::time::Duration::from_secs(1))).unwrap();
+        let mut listener = SocketListener::bind(
+            "127.0.0.1:0".parse().unwrap(), Listener::Dhcp, &[],
+        ).unwrap();
+        let destination = Destination {
+            address: peer.local_addr().unwrap(), interface: 0,
+            kind: DestinationKind::Peer, arp: None,
+        };
+        // This is the exact state produced by OwnerSender on EAGAIN, above.
+        listener.pending_reply = Some(PendingReply {
+            bytes: b"deferred reply".to_vec(), destination,
+            listener: Listener::Dhcp, would_block_count: 1,
+        });
+        let mut fds = Vec::new();
+        listener.append_poll_fds(&mut fds);
+        assert_eq!(poll_fds(&mut fds, 1000).unwrap(), 1);
+        assert_ne!(fds[0].revents & POLLOUT, 0,
+            "an unread packet cannot be the wakeup for a deferred send");
+        assert!(listener.flush_pending_reply().unwrap());
+        let mut bytes = [0; 64];
+        let (length, _) = peer.recv_from(&mut bytes).unwrap();
+        assert_eq!(&bytes[..length], b"deferred reply");
+        fds.clear();
+        listener.append_poll_fds(&mut fds);
+        assert_eq!(poll_fds(&mut fds, 0).unwrap(), 0,
+            "drained output must not leave an always-writable interest");
     }
 
     #[test]
