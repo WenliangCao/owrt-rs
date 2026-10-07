@@ -2,8 +2,8 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6b 第1包已按用户收尾点关闭，冻结无A新基线70097c66，27窗口已启动（当前12/27有效、本地全归档）；方案A独立准备。产品无TCP方案A；route resend库30d8ca91与owner70097c66已合，实际镜像basic poll/no-poll已过；已写唤醒测试全部实际Linux通过。物理路由器未碰。
-- 刚关闭：新基线UDP-hit/miss/mixed三组共9窗口全部有效、本地完整归档，fault三组3窗也已完成，均600预期timeout/零wrong，正在TCP本地C首窗。报告草稿已有18行steady/saturation及9行fault原始配对表，单轮不作显著分类。hit稳态C/R3 CPU12.2798/16.5592µs、p50 0.01964/0.02328ms、QPS9995.54/9998.31；miss CPU94.7367/84.3103µs、p50 0.164402/0.094121ms；mixed CPU32.1083/32.3364µs、p95 0.134321/0.100801ms。hit三组idle60s CPU均0、PSS1660/3524/3400KiB；C hit饱和generator_limited不得冒称服务上限。旧HUP/idle interface/DNSfiles实证及失败归档仍保留，最终同ELF需复跑。
+- 当前里程碑：M6b 第1包已按用户收尾点关闭，冻结无A新基线70097c66，27窗口已启动（当前15/27有效、本地全归档）；方案A独立准备。产品无TCP方案A；route resend库30d8ca91与owner70097c66已合，实际镜像basic poll/no-poll已过；已写唤醒测试全部实际Linux通过。物理路由器未碰。
+- 刚关闭：新基线UDP-hit/miss/mixed三组共9窗口全部有效、本地完整归档，fault三组3窗也已完成，均600预期timeout/零wrong，TCP-local三组也完成，正在TCP-cache C首窗。报告草稿已有24行steady/saturation及9行fault原始配对表和TCP-local峰/0-1-5-60秒排空资源表，单轮不作显著分类。hit稳态C/R3 CPU12.2798/16.5592µs、p50 0.01964/0.02328ms、QPS9995.54/9998.31；miss CPU94.7367/84.3103µs、p50 0.164402/0.094121ms；mixed CPU32.1083/32.3364µs、p95 0.134321/0.100801ms。tcp-local C/R3 steady CPU27.23493/25.57560µs、p95 .130881/.056600ms，R3较C少6.09%（单轮）；峰PSS4016/11484KiB，真实排空约41ms、60s PSS1660/2292KiB。hit三组idle60s CPU均0、PSS1660/3524/3400KiB；C hit饱和generator_limited不得冒称服务上限。旧HUP/idle interface/DNSfiles实证及失败归档仍保留，最终同ELF需复跑。
 
 - 当前代码与资格：无A冻结源码70097c66（route库30d8ca91＋owner70097c66＋全部runnable修复），Oracle实际742库/51入口/68UBus通过，20ignored不计。feature-off opt3 SHA34b3b80a39ea619f616f9d003372640d6dc0af35d5941788ae15aa64c07a3050、1,949,736B；s SHAb91d3f0ad8ab0759a1c447ed7029035cc2c6561d6a3a7e9e017f8c28c239c62a、1,630,248B，本地SHA/size核验。route-basic-7009-01 poll/no-poll两case镜像C/R均2同wire/sourceport包、forward action1、idleFD稳定，comparison 39735870457b4422eafd8b6dcc3f1c71e17deeb3b2e5485a45510991738b76be；server/no-poll复闭回169/0。E/M6B/route-ready-70097c66有源码、ELF、build/link map和全部运行日志。后继main仅工具/文档，不把它的HEAD当ELF源码。历史7bdb的6HUP/4idle interface/107DNS-files资格及runtime归档2901b5bc…保留；最终同ELF仍统一重跑。
 
