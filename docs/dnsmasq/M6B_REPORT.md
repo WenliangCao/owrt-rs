@@ -229,3 +229,5 @@ fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察
 04:35恢复核对：ae1 same-source core/policy/EDNS/lease、answer764/382metrics、transfer307、layout、34视图正控和五负控4/4/3/2/3、6方法controls实际过。reverse184稳定观察全匹配；layout敏感ordering12有4行与六C raw不同，完整原比较器exit1保留，正在依据既有M5指针mix/桶序合同归因，未排序接受或声称整矩阵过。cache原族仍按原9次C服务规则运行，并纳入新4caller（固定库存540），服务首控制器缺parent目录在开场拒绝、未执行case；第二fresh控制器补parents=True后启动，失败原日志保留。
 
 独立A ae1/e290完整缓存族实际通过：540 executed/540 passed、516 required，missing/differences=[]，C9-run原规则保留四指定PTR的实际参考变体，新增CNAME PTR与lease-TCP caller守卫通过；比较JSON SHA9299e4731a88806d5ca41d0ff9cbd9820ae8fc5784e18bd265d381070336c308。原12观察strict ordering差异仍单列，未用服务通过把它清零；EDNS及余五服务门继续。
+
+EDNS full sameA e290执行195/196，neighbor-tcp-connection-mac-snapshot首query超时、上游0；NoA1bd/301同2秒正确selector也复现，确认共同主循环逻辑唤醒缺口，不计A存储新增差异。首个NoA选择器误加neighbor前缀得到0case，无失败但不作资格；第二正确selector真实Timeout，原日志都保留。独立修复方案是当本turn尾部新neighbor dump同步完成时发布可运行continuation，不能在下一poll仅剩3秒MAC截止前睡过头，也不能伪造POLLIN。该修复独立进行、最终前合入复测；余四服务在same旧A e290继续，EDNS失败不豁免/不手填服务总通过。
