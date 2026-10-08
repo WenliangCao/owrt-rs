@@ -12,6 +12,8 @@
 | 镜像C | 精确OpenWrt 25.12.5 / dnsmasq 2.93 nodhcpv6 | 097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87 | 269,305 | 所有对照使用该镜像rootfs |
 | 第1包无A opt3 | 70097c66 | 34b3b80a39ea619f616f9d003372640d6dc0af35d5941788ae15aa64c07a3050 | 1,949,736 | feature-off，742库/51入口/68UBus实际Linux通过；20 ignored不计 |
 | 第1包无A s | 同70097c66 | b91d3f0ad8ab0759a1c447ed7029035cc2c6561d6a3a7e9e017f8c28c239c62a | 1,630,248 | feature-off，仅性能对照，不作功能验收 |
+| 服务门新NoA opt3 | e8b1d6c4 | 2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc | 1,953,832 | 744库/65入口/68UBus实际过；后续45CPU的新对照，尚未测 |
+| 独立A服务候选 | 69bccf27 | 21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b | 1,962,024 | 753库/66入口实际过；ACL3镜像C caller过，完整服务/资源/45CPU仍在推进，未合main |
 | 最终opt3 / s / APK | 尚未冻结 | 未测 | 未测 | 必须绑定同一最终源码及所有门 |
 
 第1包opt3相对M5增加20,480B（1.06%）；s相对该opt3减少319,488B（16.39%）。这些只是体积，不能由此推断CPU代价或建议切换s。正式窗口不启用`m6b-diagnostics`、wake明细、perf或strace；计数诊断有独立companion身份。
@@ -216,7 +218,7 @@ fresh transfer已通过36个case、307个状态；fresh native C半pipe EOF171�
 
 fresh answer补充对照实际764条命令、164个query、382个metric snapshots零差异。最初build-reference仅构建C未跑比较，fresh-answer-03把配置当positional参数导致C exit1；fresh-answer-04用真实-C配置入口重跑通过，全部失败保留。初始门全量归档tar `1ac1eee5a1b259c66929e928b017da36008fae59bbf45a32409408eea332663f`，10515路径/9753文件SHA及全部元数据已本地通过，snapshot staging已删除，活跃产品源/ELF保留。reverse首次探针仍用旧Slot.entry/usize链接，编译报3处错误；仅工具4938efad改为现Cache::entry/slot_index，新private cfg(test)源码和统一probe-tests正在重建，不是产品功能失败。
 
-## fresh reverse 导入发现的既存缺陷（处理中）
+## fresh reverse 导入发现的既存缺陷（共同修复已提交）
 
 fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察；A copied lib的稳定观察181匹配/3差异，全在PTR target恰为父配置CNAME。ordering12全匹配。root以70097无A冻结ELF在同镜像补真实caller：UDP C/R均1上游、插入1、后两请求缓存续答；TCP C只需1上游并插入1，Rust首次父插入0、下一UDP再次上游，累计2次。这是当前基线也存在的普通导入方向错误，不归因为A共享存储，不改变ordered comparator或列作故意差异。cache-rr选项资格暂重开1项（cache-size容量资格保留），修复与fresh服务复闭后恢复169。
 
@@ -239,3 +241,7 @@ EDNS full sameA e290执行195/196，neighbor-tcp-connection-mac-snapshot首query
 原reverse ordering12已用独立诊断只读sidecar实测真实桶/64B mixer/chain/LRU，原21输入C126运行/Rust21完整记录；已有有序模型关系及3负控collector实际passed，ordered_relation_gate_passed=true，full_original_primitive_passed=false保持，旧e290严格4/12差异不清零/不排序。首sidecar02 C编译失败为dnsmasq.h前stdheader与write返回值Werror；fresh03 generator修后过C，collector先非root读0600 sidecar被PermissionError，sudo后同raw验证成功，全部初始失败保留，不计产品失败。
 
 共同service修复sourceNoA0a4dc/A3c666实际Linux NoA744库/63入口、A753库/64入口、UBus68通过（20ignored不计）。opt3 NoA119f17824f6f4f5b17afb76928aad5ce454e7237b27dbb79d1112c18f644ccb9 1,949,736B；A7128d3b6dc61d9cc6ee52b0b5603b30f15c756d463b38e52bb56b8141731cf5b 1,962,024B。MAC snapshot单caller C/NoA/A实际逐row完全一致、fullQualified=false如实保留单场景范围（hash424e7866…）；interface targeted10 C/A包括startup代表、七语义与两tracer，全零失败（hash8a55e193…），普通5选项即刻复闭168/1。完整new同ELF各族与live ACL三caller仍待；不得把targeted10当276完整资格。
+
+## 最新共同正确性修复与服务门续接
+
+最新产品是无A e8b1／独立A69bc；A增量8,192B，不把旧ae1的12,288B当最新差。MAC dump收尾、hostsdir Init可运行、NEWADDR调用条件、stale日志及live UDP ACL均为两组共同修复，用新NoA作为45CPU门对照。完整canonical六族27steps在同一21937 ELF上进行；前代targeted实际复闭普通169/0，但不替代full/final资格。最新原语／隔离／layout／companion六份原始编译清单已实际连接产品source/build/map，source-join SHAa19cf11a…；它仅源绑定，不授build/run通过。详细实际结果与失败保全见[M6B_A_SERVICE_69BC_CHECKPOINT](audits/M6B_A_SERVICE_69BC_CHECKPOINT.md)。

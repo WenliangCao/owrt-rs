@@ -115,7 +115,7 @@
 | M3 长时与资源 | 混合负载实际 60 分钟，比较计数、资源走势和退出回收；ENOSPC/EMFILE 对照。已按用户修订范围收尾，见 [M3_REPORT.md](M3_REPORT.md)。到期等功能引用 M2，不强塞进 12 小时租期的长跑。旧缓存计数不能作为 live occupancy，M4 已完成双方填满后的实测，见 [M4_REPORT.md](M4_REPORT.md)。 |
 | M4 可替换包 | 单线程功能和资源验证；最终源码/ELF 对应；稳定工具链 opt-level 3、static、strip、panic=abort；最终 APK 真实安装、升级、卸载、回滚。原 ELF 目标 1,000,000 字节未达成；用户已明确接受方案 A 的 1,159,280 字节，其他超标不能自行豁免。见 [M4_REPORT.md](M4_REPORT.md)。 |
 | M5 完整合同 | 169项及最终44族同ELF对照、延期处置/健壮性/M2/fuzz/资源/压力/APK生命周期/报告均完成。见[M5_REPORT](M5_REPORT.md)；最终ELF/APK超原预算，用户已在M6a指令明确接受此M5身份体积。 |
-| M6 性能 | 用户决定M5最终体积/构建方式后，在获准最终产物上按冻结协议测缓存命中/未命中/混合/失败/TCP/DHCP/reload；报告吞吐、错误、延迟、CPU、RSS/FD 和体积，无收益写未证明。尚未启动正式性能窗口；仅有 [冻结方案草稿](M6_PROTOCOL_DRAFT.md)。 |
+| M6 性能 | 用户决定M5最终体积/构建方式后，在获准最终产物上按冻结协议测缓存命中/未命中/混合/失败/TCP/DHCP/reload；报告吞吐、错误、延迟、CPU、RSS/FD 和体积，无收益写未证明。M6a报告已完成；M6b按冻结协议推进，第1包无A27窗已完，独立A最新服务/资源/45CPU门尚未全过，最终135窗与验收未开始。见[M6B_REPORT](M6B_REPORT.md)。 |
 | M7 真机 | 离线 runbook、备份、自动回滚、客户端检查和约三分钟窗口；用户另行明确授权才操作物理路由器。未经 M7 不称生产验收。 |
 
 M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](ADR_THREAD_MODEL.md)。非阻塞 TCP 上游和 ICMP 等待期间的 DNS/TFTP 服务、原始 DHCP interface/listen-address 并集已修复。最终产品 commit 为 `4b3fc62cea8b4d3897c3a9bca082964812e82ffc`；release ELF 为 `faa55065…24577`，全部 110 份构建归档输入与 commit 逐字匹配。该 ELF 的 DHCP 四组、DNS 七组、生命周期、TCP 停滞、ICMP/TFTP、真实 fast-retry 以及 ENOSPC/EMFILE 对镜像 C 通过；库 439 项和 main 10 项 Linux musl 单元通过，17 项 ignored 不算通过。
