@@ -30,3 +30,9 @@
 全量旧目录已pack、本地SHA+全部metadata验证，再prune：E/M6B/full-archives/a-69bc-service-interrupted-01，13682路径/12475普通文件，tar SHA `c1d238823479c0dbe052b01827f0146c27888f7dc281a47141897e1adcf7f3e3`，manifest SHA `15e8d5b491ae14f3528de50a82bc19f0e18340cfc259fef91133acec852dbade`。pack/verification/prune和全部plain收据齐全。
 
 新a-service-02保留原spec/registry/27库存、产品与工具身份，整轮从头运行。每job采用既有PID代际remember/stop收尾，远端nohup保存controller.log与.exit，本地endpoint watcher02独立运行并真实核metadata后送proof。首次launch外层异步shell保留SSH stdout，root独立确认远端nohup进程后终止owned本地wrapper（仅启动通道、非runtime失败），单独启动watcher；记录在pair-udp-acl-01/launch-service-02-wrapper-termination.json。当前不授新整门资格。第4包进一步缓存/租约优化遵用户本次指令延期到M6b之后。
+
+后续资产已独立freeze/上传但未运行：资源工具快照eb62bf67包含容量1判据及required limit30补门，393工具文件；E/M6B/resume-20261008/resource-plan保留review、完整36job队列、runner、原Git tar及GNU payload。payload SHA `e3dc9c4cc4ac9177727ff6ac7b3c21b5b58116be61a5c9be999e7731d9275d9d`，queue SHA `fb2b9f3f63bd5e50e9a1b9abec0188185360cb37aea4fe0492d7e8d3944af4d7`；远端pair-udp-acl-01/resource-tools-current完整工具SHA核验过。原运行服务的noa/source/tools未改变。
+
+CPU45独立fresh root为cpu-a-69bc-01，完整payload SHA `756003209070831d5fbb12da362c28dcc2ea48836557572ef85c74f78a6620f8`（1571537B），已SHA核验传输/解包。E/M6B/resume-20261008/cpu-plan含最新NoA/A源码maps、实build receipts、参数化同源s/common prepare、真实15门receipt入口、45row静态preview及持久controller/watcher；不含假passed或可执行CPU plan。未构建s、未prepare common、未跑窗口。所有前置实际过后才继续。
+
+最新A复制main测试实际日志a/private/bin-tests.log中`tcp_closed_downstream_keeps_pending_stale_work_until_refresh_completes ... ok`且66passed/0failed。此真实上游控制owner门保pending refresh视图/G、完成后先释放DNS状态且持日志G、FIFO恢复后G0；与镜像cache stale及后续S8余额互补，不宣称stale专用1Hz内部余额已实测，不扩新trace矩阵。
