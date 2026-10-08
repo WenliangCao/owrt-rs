@@ -215,3 +215,9 @@ E=`private/dnsmasq-rewrite/evidence/`。所有列出的完整归档按SHA、类�
 fresh transfer已通过36个case、307个状态；fresh native C半pipe EOF171检查通过，但Rust旧`dns::tcp_transfer::partial_eof_tests`入口已经随单owner直传退休，误用此测试器得到0 tests并因缺输出报FileNotFound，红证据保留。现产品每query使用完整`CacheTransaction`同步capture/import，无byte Receiver；不得为通过旧工具重新引入废弃transport。C cache.c952–1056的父子pipe半截读失败仍保留原始C观察，不当成现A存储的可注入故障；实际网络上游EOF及fail-prefix/import合同分别由服务和现Cache原语验证。
 
 fresh answer补充对照实际764条命令、164个query、382个metric snapshots零差异。最初build-reference仅构建C未跑比较，fresh-answer-03把配置当positional参数导致C exit1；fresh-answer-04用真实-C配置入口重跑通过，全部失败保留。初始门全量归档tar `1ac1eee5a1b259c66929e928b017da36008fae59bbf45a32409408eea332663f`，10515路径/9753文件SHA及全部元数据已本地通过，snapshot staging已删除，活跃产品源/ELF保留。reverse首次探针仍用旧Slot.entry/usize链接，编译报3处错误；仅工具4938efad改为现Cache::entry/slot_index，新private cfg(test)源码和统一probe-tests正在重建，不是产品功能失败。
+
+## fresh reverse 导入发现的既存缺陷（处理中）
+
+fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察；A copied lib的稳定观察181匹配/3差异，全在PTR target恰为父配置CNAME。ordering12全匹配。root以70097无A冻结ELF在同镜像补真实caller：UDP C/R均1上游、插入1、后两请求缓存续答；TCP C只需1上游并插入1，Rust首次父插入0、下一UDP再次上游，累计2次。这是当前基线也存在的普通导入方向错误，不归因为A共享存储，不改变ordered comparator或列作故意差异。缓存选项资格暂重开1项，修复与fresh服务复闭后恢复169。
+
+无A的70097完整27窗口原始数据保持历史；A增量45窗口将给无A和A同时带相同方向修复，保证共享存储增量独立归因，不重新扩中间27窗口。新的source/ELF与门收据在修复freeze时登记。计数companion04方法六tests实际通过、目标机布局相符，SHA937a06612edbfd25e37972496bd3d90046cbcf53c5590f6e643ff4ee0c47db84；仅方法控制，不代表10批余额/产品资源/CPU门。其build SSH -n通道同样在远端实际结束后滞留，本地核对无匹配build进程及完整收据后终止owned15785，wrapper255单列保留，不能冒充runtime失败。
