@@ -161,3 +161,12 @@ fresh 36 步使用原 resource-tools-current 的工具资产，仅替换 warm �
 | `m6b/reverse-order-c-helper` | `archive/m6b-reverse-order-c-helper-20261008-705897c3` |
 | `m6b/reverse-order-sidecar-tools` | `archive/m6b-reverse-order-sidecar-tools-20261008-4990f63f` |
 | `m6b/udp-live-acl-admission` | `archive/m6b-udp-live-acl-admission-20261008-ea2dcc88` |
+
+结构 warm 的首个完整 capacity4096 门实际通过：20 个原连接暂停期间全部关闭、恢复后 ready baseline 256 B；十批及最终 60 秒 requested/对象/根/容量严格平衡，原十项负控全拒绝。collector SHA `58166b81b9ca553ff02102358fbff52330db4f858891f80fff73db05df7eb0d9`。这是 fresh warm-03 的结果，原默认十批红记录不翻绿，剩余矩阵仍待。
+
+后续两棵已交付树也已退役，合计 15 棵；活动 A/route 九棵和 dirty counters 一棵保留。接口树 500 MB 旧 Cargo target 已完整 PAX 归档，逐 SHA 与 metadata 验证后才删除；全部产物留在 private。
+
+- `m6b/a-resource-recipe-69bcc` → `archive/m6b-a-resource-recipe-69bcc-20261008-a45fda0a`。
+- `m6b/interface-runnable` → `archive/m6b-interface-runnable-20261008-c2e39baa`。
+
+supplemental completion SHA `e10f85b18938e70756233efb51251b25e4713911c2300390e7d53696f462bc35`；target archive SHA `60ecbfa30f542fd350726ddcbb78c34b2a5e9750b06fbcf24a8801b35b7c842d`。

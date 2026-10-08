@@ -2,13 +2,13 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：A79e 的真实并发结构 warm 已补入测量工具，正在准备 fresh 标准资源门；产品、十批、采样时长及阈值不改。
+- 当前步骤：A79e 的真实并发结构 warm 已补入测量工具，fresh public11 与 capacity4096 严格门已通过，继续余下矩阵；产品、十批、采样时长及阈值不改。
 - 当前身份：NoA 为 cd9edcf7，A 为 79e29d7d；精确源码、ELF、资产和证据入口见 [A79e checkpoint](audits/M6B_A_79E_CHECKPOINT.md)。main 尚无 A。
 - 已关闭：A79e 普通服务、accept、原语、隔离、layout 和六项方法 controls 已实际验证；旧 reverse strict ordering 差异仍如实保留。
 - 重连结论：1024/4096 对照将 ready Vec 的 128 B 增长判为有界高水位、非泄漏；原默认十批红结果保持失败，整体资源资格尚未授予。
 - 本轮剩余：fresh 完整资源矩阵、C/NoA/A 各五轮共 45 个 CPU 窗口、A 合入判定，以及供下一会话最终冻结使用的交接。
 - CPU 准备：cd9 同源 s 与 fresh common 已真实 prepare；cpu-a-79e-01 尚无窗口，必须先取得真实前置门收据。
-- 卫生：保留用户 docs/prompts 修改、活跃 A/route 和未提交树；已交付树先以 archive 标签保全再退役，原始证据只放 private。
+- 卫生：保留用户 docs/prompts 修改、活跃 A/route 和未提交树；15 棵已交付树已以 archive 标签保全并退役，原始证据只放 private。
 - 阻塞点：暂无；oracle 执行由主线程串行，用户服务持续运行，物理路由器不碰；最终冻结与 135 窗口留给下一新会话。
 
 ## 工作规则
