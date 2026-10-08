@@ -1641,26 +1641,8 @@ fn run_inner(
                         dhcp.listener.invalidate_relay_interfaces();
                     }
                 }
-                if changed {
-                    if daemon_config.bind_dynamic || daemon_config.local_service_net
-                        || !daemon_config.interface_records.rules.is_empty()
-                        || daemon_config.needs_domain_interfaces()
-                    {
-                        poll.enumerate_interface_records();
-                    }
-                    if poll.interface_work_pending() {
-                        poll.pending_interface_server_check = true;
-                    } else {
-                        let mut parent = service.borrow_mut();
-                        if let Some(daemon) = &mut parent.daemon {
-                            daemon.check_server_addresses(&dns_local_addresses(
-                                &daemon_config,
-                                &interfaces,
-                                runtime.scalar.dns_port,
-                            ))?;
-                            parent.local.config = daemon.local_config().clone();
-                        }
-                    }
+                if changed && poll.address_refresh_requires_enumeration() {
+                    poll.enumerate_interface_records();
                 }
                 for interface in &interfaces {
                     if daemon_config.listen_addresses.contains(&interface.address)
@@ -2171,7 +2153,6 @@ struct SinglePoll {
     interfaces_enumerated: bool,
     pending_interface_udp: Option<PendingInterfaceUdp>,
     pending_interface_tcp: Option<PendingInterfaceTcp>,
-    pending_interface_server_check: bool,
     #[cfg(target_os = "linux")]
     pending_interface_files: Option<(dnsmasq_rs::dns::files::FileStep, bool)>,
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -3036,7 +3017,6 @@ impl SinglePoll {
             interfaces_enumerated: false,
             pending_interface_udp: None,
             pending_interface_tcp: None,
-            pending_interface_server_check: false,
             #[cfg(target_os = "linux")]
             pending_interface_files: None,
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -3277,7 +3257,14 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn apply_network_events(&mut self, events: NetworkEvents) {
         if events.address {
-            self.interface_refresh.request();
+            // network.c:newaddress only enumerates for clever binding or
+            // effective local-service=net in the NO_DHCP6 reference image.
+            // Ordinary interface-name/domain publication stays lazy until
+            // its DNS, accept or check_servers caller. An unfinished initial
+            // DAD listener also needs an immediate retry on address events.
+            if self.address_refresh_requires_enumeration() {
+                self.interface_refresh.request();
+            }
             #[cfg(target_pointer_width = "64")]
             if let Some(dhcp) = &mut self.dhcp {
                 dhcp.listener.invalidate_relay_interfaces();
@@ -3302,6 +3289,14 @@ impl SinglePoll {
                     format!("netlink returns error: {}", dnsmasq_rs::logging::error_text(&io::Error::from_raw_os_error(code))).into_bytes()));
             }
         }
+    }
+
+    fn address_refresh_requires_enumeration(&self) -> bool {
+        // DnsConfig::finalize has already removed local-service in the
+        // presence of an explicit ACL, and host mode is static binding.
+        self.config.bind_dynamic
+            || self.config.local_service_net
+            || self.interface_refresh.retry_at.is_some()
     }
 
     #[cfg(target_os = "linux")]
@@ -4384,17 +4379,6 @@ impl SinglePoll {
                 daemon.publish_domain_interfaces(domains);
                 daemon.refresh_source_interface_indices();
                 daemon.publish_interface_records(records);
-            }
-        }
-        if std::mem::take(&mut self.pending_interface_server_check) {
-            let addresses =
-                dns_local_addresses(&self.config, &self.interfaces.borrow_mut(), self.dns_port);
-            let mut parent = self.service.borrow_mut();
-            if let Some(daemon) = &mut parent.daemon {
-                if let Err(error) = daemon.check_server_addresses(&addresses) {
-                    eprintln!("dnsmasq-rs: {error}");
-                }
-                parent.local.config = daemon.local_config().clone();
             }
         }
         #[cfg(target_os = "linux")]
@@ -6541,6 +6525,10 @@ mod neighbor_tail_tests;
 #[path = "main_hostsdir_init_tests.rs"]
 mod hostsdir_init_tests;
 
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_newaddress_tests.rs"]
+mod newaddress_tests;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -6722,7 +6710,8 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn port_zero_address_actor_does_not_need_a_dns_file_owner() {
-        let mut owner = test_owner(DnsConfig::default(), None);
+        let mut config = DnsConfig::default(); config.bind_dynamic = true;
+        let mut owner = test_owner(config, None);
         assert!(owner.dns_files.is_none());
         owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
         assert!(owner.interface_refresh.requested, "address publication survives DNS disabled");
@@ -6739,6 +6728,7 @@ mod tests {
         let path = std::env::temp_dir().join(format!("address-held-hosts-{}", std::process::id()));
         assert!(std::process::Command::new("mkfifo").arg(&path).status().unwrap().success());
         let mut config = DnsConfig::default(); config.no_hosts = true; config.no_resolv = true;
+        config.bind_dynamic = true;
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
         owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 }, &config, 37).unwrap());
