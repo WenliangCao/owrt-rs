@@ -1598,12 +1598,14 @@ def stop_enumeration_count(tracer,output,*,completed=True):
 
 
 def enumeration_stop(status):
-    """Classify SEIZE stops before deciding whether a signal may be injected."""
-    if not os.WIFSTOPPED(status):raise AssertionError('enum count owner ended before detach')
-    sig=os.WSTOPSIG(status);event=status>>16
-    if sig==(signal.SIGTRAP|0x80) and event==0:kind='syscall'
-    elif event==128 and sig==signal.SIGTRAP:kind='interrupt'
-    elif event==128 and sig in (signal.SIGSTOP,signal.SIGTSTP,signal.SIGTTIN,signal.SIGTTOU):kind='group-stop'
+    """Decode the pinned Linux wait ABI, including its high ptrace event bits."""
+    # Darwin WSTOPSIG does not mask out ptrace's high event byte, and Darwin
+    # SIGSTOP/TSTP have different numbers. Offline fixtures remain Linux ABI.
+    if (status&0xff)!=0x7f:raise AssertionError('enum count owner ended before detach')
+    sig=(status>>8)&0xff;event=status>>16
+    if sig==(5|0x80) and event==0:kind='syscall' # Linux SIGTRAP | TRACESYSGOOD
+    elif event==128 and sig==5:kind='interrupt'
+    elif event==128 and sig in (19,20,21,22):kind='group-stop' # Linux job-control signals
     elif event:raise AssertionError('unexpected enum count ptrace event '+str(event))
     else:kind='signal-delivery'
     return {'status':status,'signal':sig,'event':event,'kind':kind}
@@ -1642,12 +1644,12 @@ class EnumerationCountControl:
             try:waited,status=os.waitpid(self.pid,os.WNOHANG)
             except InterruptedError:continue
             if waited:
-                if not os.WIFSTOPPED(status):
+                if (status&0xff)!=0x7f:
                     self.attached=False;self.evidence['owner_exit_status']=status
                     raise AssertionError('enum count owner ended before detach')
                 # Retain the already-reaped stop even if classification
                 # rejects an unexpected event, so failure cleanup can detach.
-                self.stopped={'status':status,'signal':os.WSTOPSIG(status),'event':status>>16,'kind':'unexpected-event'}
+                self.stopped={'status':status,'signal':(status>>8)&0xff,'event':status>>16,'kind':'unexpected-event'}
                 self.interrupt_sent=False
                 try:self.stopped=enumeration_stop(status)
                 finally:
