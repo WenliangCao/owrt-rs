@@ -257,3 +257,18 @@ fresh02的最新69bc缓存族已实际540/540配对通过（required516）、完
 69bc现轮最终27/27真实零失败/exit0，余18941路径/14484文件完整验证后prune（tar e886faad…）；含缓存独立归档，所有六族原始证据完整。该普通服务资格不涵盖上述signal故障边界，后继NoA cd9/A79e新pair已开始实际build/tests；资源、压力或CPU均未提前跑。
 
 新pair实际NoA744/67、A753/68、UBus70全过，4signal精准测试真实通过；产品身份与新六诊断源绑定见[M6B_A_79E_CHECKPOINT](audits/M6B_A_79E_CHECKPOINT.md)。A相对新NoA仅多4096B（0.21%），这是文件大小而非收益；完整六族27steps在948…新ELF从头执行。新resource prepare使用实际下载build/ELF SHA，旧69bc准备/原语/窗口不充后继资格。
+
+A79e完整服务已实际27/27、5accept通过并全SHA/metadata保全prune；新core/policy/EDNS/lease、
+answer764/382metrics、transfer307及positive/五mutation/layout/companion6controls均实际过。
+reverse稳定184/184匹配，原strict ordering4/12差异保持，sidecar仅关系门通过不翻strict。
+
+资源public11完整C/A actual过；初次foreign-load守卫终止原因未保PID而未证明。随后内部
+4096/10批collector严格拒绝：product live+128B及logical HashMap容量波动，失败两轮完整
+raw保全。exact Rust/hashbrown源码与新真实控制证实HashMap.capacity是tombstone影响的
+effective下界，不是allocated桶；measurement改用真实observer requested并加无alloc
+poll/ready容量标量，不改产品或阈值。原fixturefresh01完全平衡；fresh02实际复现total+128B
+与ready Vec<PollFd>128→256同步，objects/roots/observer/poll不变、未归属差额0，strict02仍
+失败并完整保留。确认是20fd warm未必覆盖单次ready高水位；只修真实warm关闭调度，
+再fresh严格10批验收，不扣128放行、不选择较好attempt。归档与完整SHA见79e checkpoint。
+NoA cd9同源s/fresh common已实际prepare，零CPU window/未伪造15门；7旧Oracle root共
+111918路径完整metadata/hardlink补保全见[旧现场保全](audits/M6B_LEGACY_ORACLE_PRESERVATION_20261008.md)。
