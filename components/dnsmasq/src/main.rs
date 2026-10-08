@@ -2810,7 +2810,12 @@ impl PollTcpClient {
             }
             match &mut self.phase {
                 TcpClientPhase::WaitingMac { query } => {
-                    let mac = if Instant::now() >= self.mac_deadline {
+                    let mac = if self.mac_ready {
+                        // A dump completed in an earlier owner phase. Keep
+                        // that captured connection identity instead of doing
+                        // a second lookup after its snapshot has advanced.
+                        std::mem::take(&mut self.mac)
+                    } else if Instant::now() >= self.mac_deadline {
                         None
                     } else {
                         match lookup(self.source, true) {
@@ -3862,6 +3867,7 @@ impl SinglePoll {
                     }
                     TcpClientPhase::WaitingMac { .. } => {
                         deadline = deadline.min(client.mac_deadline);
+                        runnable |= client.mac_ready;
                         (-1, 0)
                     }
                     TcpClientPhase::Writing { .. } => (
@@ -5171,7 +5177,8 @@ impl SinglePoll {
         match &client.phase {
             TcpClientPhase::Reading => client.input_offset < client.input.len()
                 || poll_events_match(client.ready_events, owrt_ubus::sys::POLLIN),
-            TcpClientPhase::WaitingMac { .. } => now >= client.mac_deadline || neighbor_ready,
+            TcpClientPhase::WaitingMac { .. } =>
+                client.mac_ready || now >= client.mac_deadline || neighbor_ready,
             TcpClientPhase::Forwarding { wait, .. } => now >= wait.deadline
                 || poll_events_match(client.ready_events, wait.events),
             TcpClientPhase::Writing { .. } =>
@@ -5429,6 +5436,7 @@ impl SinglePoll {
                 }
                 TcpClientPhase::WaitingMac { .. } => {
                     deadline = deadline.min(client.mac_deadline);
+                    if client.mac_ready { deadline = Instant::now(); }
                     (-1, 0)
                 }
                 TcpClientPhase::Writing { .. } => (
@@ -6081,9 +6089,51 @@ impl SinglePoll {
         let Some(neighbors) = self.neighbors.as_mut() else {
             return;
         };
+        let was_busy = neighbors.active_dump_deadline().is_some();
         if let Err(error) = neighbors.step(now_seconds() as u64) {
             if error.kind() != io::ErrorKind::TimedOut {
                 eprintln!("dnsmasq-rs: neighbor snapshot: {error}");
+            }
+        }
+        if was_busy && neighbors.active_dump_deadline().is_none() {
+            // A newly started dump can finish in the tail phase before any
+            // owner poll has registered its fd. Capture pending TCP identities
+            // now so the next wait registers their real downstream sockets;
+            // buffered WaitingMac queries become runnable. UDP's bounded queue
+            // runs after this phase; TFTP uses this same completion hint.
+            self.neighbors_ready = true;
+            self.capture_completed_tcp_macs();
+        }
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    fn capture_completed_tcp_macs(&mut self) {
+        for index in 0..self.clients.len() {
+            let client = &self.clients[index];
+            if client.network_done || client.mac_ready
+                || (client.mac_deferred && !matches!(&client.phase, TcpClientPhase::WaitingMac { .. }))
+            {
+                continue;
+            }
+            let source = client.source;
+            if let ClientMacLookup::Ready(mac) = self.edns_mac(source, true) {
+                let client = &mut self.clients[index];
+                client.mac = mac;
+                client.mac_ready = true;
+                client.mac_deferred = false;
+            }
+        }
+        // Interface collection may still own an admitted connection. Capture
+        // its completed identity once as well; finishing that admission later
+        // must not park it behind a dump which has already disappeared.
+        if let Some(pending) = &mut self.pending_interface_tcp {
+            if !pending.mac_ready && !pending.mac_deferred {
+                if let ClientMacLookup::Ready(mac) =
+                    lookup_edns_mac(&mut self.neighbors, pending.peer.ip(), true)
+                {
+                    pending.mac = mac;
+                    pending.mac_ready = true;
+                }
             }
         }
     }
@@ -6463,6 +6513,10 @@ fn read_resolvers(config: &DnsConfig) -> Result<Vec<SocketAddr>, io::Error> {
 #[cfg(test)]
 #[path = "main_route_resend_tests.rs"]
 mod route_resend_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_neighbor_tail_tests.rs"]
+mod neighbor_tail_tests;
 
 #[cfg(test)]
 mod tests {
