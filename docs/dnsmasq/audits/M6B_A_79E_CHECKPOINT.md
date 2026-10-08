@@ -30,3 +30,15 @@ E/M6B/pair-signal-01/gate-assets-01，原语/隔离/layout/六controls仍待。
 
 旧资源/CPU69bc资产未运行，保留历史不改receipt。后续新source/ELF全部门真实通过才合main，
 最终source-bound安全/延期review仍待最终冻结；SIG01/SIG02在A69原报告保持open历史。
+
+79e新资源及45执行资产已完整review/freeze/GNUtar上传，先全payloadSHA再解包，未运行：
+资源36jobs在pair-signal-01/resource-tools-current，payload SHA
+`c512cc827be61efa2152a1dac0ee45f613740fccc9e9196ae3800322bf4d2199`（1637426B），
+queue SHA `abeb09ee216186e0f22ee78b8041b1f064929f139c809475639fee85fbc1b4c6`；
+本地E/M6B/pair-signal-01/resource-plan-79e-01含完整matrix/argv/checks和真实6controls路径。
+CPU45 root为cpu-a-79e-01，payload SHA
+`72ff2771a0cf74ed3c471845433551ae4aee6239fe8b78385b7fb6678453220a`（1571546B）；
+本地E/M6B/cpu-a-79e-01，tools8ae8b834，source maps锁cd9/79e及实际产品build receipts。
+同源s输出pair-signal-01/noa/private/opts-cpu-common-cd9edcf7-01尚未构建；
+common/15门receipt/plan/window均未执行或伪造。首次CPU资产导出optional.cargo不存在的
+本地准备失败另存preparation-failure-01.json，按实际Git路径fresh完成，原失败不覆盖。
