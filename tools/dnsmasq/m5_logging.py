@@ -1890,6 +1890,51 @@ def reap_children():
     return reaped
 
 
+
+class StartupPipeSelector:
+    """Identify the startup channel by its caller, never by pipe ordinal.
+
+    C dnsmasq.c:597-611 and Rust StartupChannel::begin both chdir("/")
+    successfully, create the private error pipe, then fork. Signal/helper pipes
+    outside that interval must never receive an error-channel fault.
+    """
+    def __init__(self):
+        self.root_chdir_complete = False
+        self.fork_seen = False
+        self.pointer = None
+        self.writer = None
+        self.pending = None
+        self.events = []
+
+    def enter(self, number, args, root_path=False):
+        self.pending = None
+        if number == 49 and root_path:  # AArch64 chdir.
+            self.pending = 'root-chdir'
+            self.events.append({'kind': 'root-chdir-entry'})
+        elif number == 220:  # AArch64 clone (libc fork).
+            self.fork_seen = True
+        elif number == 59 and self.root_chdir_complete and not self.fork_seen and self.pointer is None:
+            self.pointer = args[0]
+            self.pending = 'startup-pipe'
+            self.events.append({'kind': 'startup-pipe-entry', 'pointer': args[0], 'flags': args[1]})
+            return True
+        return False
+
+    def exit(self, result):
+        pending, self.pending = self.pending, None
+        if pending == 'root-chdir':
+            self.root_chdir_complete = result == 0
+            self.events.append({'kind': 'root-chdir-exit', 'result': result})
+        elif pending == 'startup-pipe':
+            self.events.append({'kind': 'startup-pipe-exit', 'result': result})
+            return result == 0
+        return False
+
+    def bind_fds(self, reader, writer):
+        self.writer = writer
+        self.events.append({'kind': 'startup-pipe-fds', 'reader': reader, 'writer': writer})
+
+
 def traced_startup(argv, case, side, stdout, stderr, report_path):
     if platform.machine() != 'aarch64':
         raise RuntimeError('startup syscall ABI is pinned AArch64')
@@ -1919,7 +1964,9 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
         ptrace(0x4205 if write else 0x4204, 1, ctypes.addressof(vec))
         return value
     report = {'pid': pid, 'fault': case['fault'], 'injected': False, 'events': []}
-    attached, pending, pipes, pipe_pointer, error_writer = True, None, 0, None, None
+    attached, pending = True, None
+    startup_pipe = StartupPipeSelector()
+    report['startup_pipe'] = startup_pipe.events
     followed_children = 0
     socket_pending, logging_socket, logging_socket_type = 0, None, 0
     deadline = time.monotonic() + 5
@@ -1966,10 +2013,12 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     continue
                 if not executable.endswith('/dnsmasq' + ('-rs' if side == 'rust' else '')):
                     continue
-                if number == 59:
-                    pipes += 1
-                    if case['fault'] in ['error-pipe-flags', 'error-frame-interrupt'] and pipes == (2 if side == 'c' else 1):
-                        pipe_pointer = args[0]
+                root_path = False
+                if number == 49:
+                    # Both exact callers pass the literal "/". The low two
+                    # bytes distinguish it from any other chdir target.
+                    root_path = ptrace(2, args[0]) & 0xffff == ord('/')
+                selected_pipe = startup_pipe.enter(number, args, root_path)
                 if number == 198 and args[0] == 1:
                     socket_pending = args[1] & 0xf
                 target = ''
@@ -1984,11 +2033,11 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                 if case.get('fault_follow_child'):
                     match &= followed_children == case.get('fault_follow_depth', 1)
                 if case['fault'] == 'error-pipe':
-                    match &= pipes == (2 if side == 'c' else 1)
+                    match &= selected_pipe
                 elif case['fault'] == 'error-pipe-flags':
-                    match &= args[0] == error_writer and args[1] == 4
+                    match &= args[0] == startup_pipe.writer and args[1] == 4
                 elif case['fault'] == 'error-frame-interrupt':
-                    match &= args[0] == error_writer
+                    match &= args[0] == startup_pipe.writer
                 elif case['fault'] in ['pid-write', 'pid-close', 'pid-chown', 'pid-short-write']:
                     match &= target.endswith('/m2/logging/daemon.pid')
                 elif case.get('fault_target') == 'socket-open':
@@ -2023,16 +2072,17 @@ def traced_startup(argv, case, side, stdout, stderr, report_path):
                     skipped = ctypes.c_int(-1)
                     vec = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
                     ptrace(0x4205, 0x404, ctypes.addressof(vec))
-            elif operation == 2 and socket_pending and pending is None:
-                logging_socket = struct.unpack_from('=q', info.raw, 24)[0]
-                logging_socket_type = socket_pending
-                socket_pending = 0
-            elif operation == 2 and pipe_pointer is not None and pending is None:
-                word = ptrace(2, pipe_pointer) & ((1 << 64) - 1)
-                error_writer = word >> 32
-                pipe_pointer = None
-            elif operation == 2 and pending:
+            elif operation == 2:
                 result = struct.unpack_from('=q', info.raw, 24)[0]
+                if startup_pipe.exit(result) and pending is None:
+                    word = ptrace(2, startup_pipe.pointer) & ((1 << 64) - 1)
+                    startup_pipe.bind_fds(word & 0xffffffff, word >> 32)
+                if socket_pending and pending is None:
+                    logging_socket = result
+                    logging_socket_type = socket_pending
+                    socket_pending = 0
+                if pending is None:
+                    continue
                 if 'iov_length' in pending:
                     ptrace(5, pending['args'][1] + 8, pending['iov_length'])
                 if case['fault_errno']:
