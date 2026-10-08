@@ -105,6 +105,16 @@ def log_witness(trace, after):
         time.sleep(.02)
 
 
+def successful_dns_witness(trace):
+    # Acceptance alone has no committed private content. Only a new sample
+    # after the successful query can prove the child still owns its COW root.
+    active = interleaved.fresh_witness(trace, {'clients': 1, 'G': 1, 'dns_work': 1,
+                                'views': 1, 'tcp_pending': 0, 'udp_pending': 0})
+    if active['row']['private_content'] <= 0:
+        raise AssertionError('child did not have successful private DNS work before release')
+    return active
+
+
 def proc_exit(pid):
     path = Path('/proc') / str(pid)
     if not path.exists():
@@ -137,13 +147,9 @@ def schedule(spec, port, upstream, folder, root):
         before = read_sink()
         save_bytes(folder / (label + '.before-fill.raw'), before)
         filled = fill_sink(folder, label)
-        first = len(internal.trace_rows(trace))
         client = fixture.connect()
         fixture.ask(label + '-correct-child-answer', '198.51.100.7', client, HOST, forced=True)
-        active = interleaved.witness(trace, first, {'clients': 1, 'G': 1, 'dns_work': 1,
-                                    'views': 1, 'tcp_pending': 0, 'udp_pending': 0})
-        if active['row']['private_content'] <= 0:
-            raise AssertionError('child did not have successful private DNS work before release')
+        active = successful_dns_witness(trace)
         fixture.sample(label + '-dns-active')
         before_close = len(internal.trace_rows(trace))
         closed = time.monotonic_ns()

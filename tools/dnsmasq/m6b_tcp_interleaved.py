@@ -36,6 +36,10 @@ CASES = {
 }
 TOOLS = list(dict.fromkeys(['m6b_tcp_interleaved.py', 'm6b_tcp_internal.py', *pressure.TOOLS]))
 CLIENTS = {'staggered-conflicts': 3, 'reload-held-import': 2, 'lease-held-import': 2}
+# The fixed capacity150 cache has three64-slot content blocks. Reload clears
+# all three while the first child retains them; the other schedules change
+# one block per older view. The latest view shares the current parent.
+EXCLUSIVE_CONTENT = {'staggered-conflicts': 2, 'reload-held-import': 3, 'lease-held-import': 1}
 HOSTS = {'staggered-conflicts': 'conflict.interleaved.test',
          'reload-held-import': 'reload.interleaved.test', 'lease-held-import': 'leaseold.cache.test'}
 BATCHES = 10
@@ -64,12 +68,17 @@ def witness(path, after, wanted):
         time.sleep(.02)
 
 
+def fresh_witness(path, wanted):
+    """Use only samples produced after the caller's completed phase."""
+    return witness(path, len(internal.trace_rows(path)), wanted)
+
+
 def active_content_contract(mode, row, parent):
     # A sole child can modify an old parent block in place. `ever_parent`
     # classifies that exclusive root as old, even after a successful commit.
-    # The latest view shares the current parent; every earlier view has one
-    # distinct non-parent content root, regardless of that historical label.
-    exclusive = CLIENTS[mode] - 1
+    # Check the exact fixed schedule's non-parent roots, including all three
+    # blocks detached by reload, regardless of their historical label.
+    exclusive = EXCLUSIVE_CONTENT[mode]
     old, private = row['old_pinned_content'], row['private_content']
     if (not internal.drain_row(parent) or old < 0 or private < 0
             or old + private != exclusive
@@ -210,8 +219,8 @@ def schedule(spec, port, upstream, folder, root):
     def plan(value, hold=False):
         upstream.plan[host] = {'ttl': 600, 'hold': hold, 'answers': [{'data': socket.inet_aton(value).hex()}]}
 
-    def point(after, **wanted):
-        return witness(trace, after, wanted) if diagnostic else None
+    def point(**wanted):
+        return fresh_witness(trace, wanted) if diagnostic else None
 
     def reset(label):
         if mode == 'staggered-conflicts':
@@ -254,10 +263,9 @@ def schedule(spec, port, upstream, folder, root):
             fixture.publish_lease(label + '-publish-lease', 'leaseold')
             fixture.ask(label + '-parent-during-hold', driver.LEASE_CLIENT, host=host)
         held_count = 2 if mode == 'staggered-conflicts' else 1
-        held = point(trace_start, clients=held_count, G=held_count, dns_work=held_count,
+        held = point(clients=held_count, G=held_count, dns_work=held_count,
                      views=held_count, tcp_pending=1, udp_pending=0)
         fixture.sample(label + '-held-active')
-        before_release = len(internal.trace_rows(trace))
         value = '198.51.100.9' if mode == 'staggered-conflicts' else '198.51.100.7'
         plan(value)
         fixture.release(label + '-held-child', host, first, request, value)
@@ -270,7 +278,7 @@ def schedule(spec, port, upstream, folder, root):
         fixture.ask(label + '-latest-view', parent_value, last, host)
         if mode == 'staggered-conflicts':
             fixture.ask(label + '-second-private-repeat', '198.51.100.8', second, host)
-        active = point(before_release, clients=CLIENTS[mode], G=CLIENTS[mode],
+        active = point(clients=CLIENTS[mode], G=CLIENTS[mode],
                        dns_work=CLIENTS[mode], views=CLIENTS[mode], tcp_pending=0, udp_pending=0)
         if diagnostic:
             active_content_contract(mode, active['row'], parent['row'])

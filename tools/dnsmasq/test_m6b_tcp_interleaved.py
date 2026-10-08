@@ -2,6 +2,7 @@
 """Pure collector checks for exclusive roots that retain parent history."""
 import copy
 import unittest
+from unittest.mock import patch
 
 import m6b_tcp_internal as internal
 import m6b_tcp_interleaved as gate
@@ -30,8 +31,13 @@ def complete(mode):
             wanted = dict(clients=clients, G=clients, dns_work=clients, views=clients,
                           tcp_pending=pending, udp_pending=0)
             row = idle(number, (len(rows) + 1) * 1_000_000_000)
-            row.update(wanted, full_drained=False, old_pinned_content=count - 1,
-                       content_versions=3 + count - 1)
+            exclusive = gate.EXCLUSIVE_CONTENT[mode]
+            if mode == 'lease-held-import' and number == 0 and phase == 'held':
+                exclusive = 0
+            row.update(wanted, full_drained=False, old_pinned_content=exclusive,
+                       content_versions=3 + exclusive)
+            if mode == 'lease-held-import' and number == 0 and phase == 'active':
+                row.update(old_pinned_content=0, private_content=1)
             points[phase] = {'trace_index': len(rows), 'row': copy.deepcopy(row), 'wanted': wanted}
             rows.append(row)
         row = idle(number + 1, (len(rows) + 1) * 1_000_000_000, 0 if number == 10 else -1)
@@ -60,6 +66,23 @@ class ExclusiveContentRoots(unittest.TestCase):
         parent, active = markers['batches'][0]['parent']['row'], markers['batches'][0]['active']['row']
         active.update(old_pinned_content=1, private_content=1)
         gate.active_content_contract('staggered-conflicts', active, parent)
+
+    def test_lease_warm_clone_and_later_sole_owner_keep_one_exclusive_root(self):
+        rows, markers = complete('lease-held-import')
+        batch = markers['batches'][0]
+        for old, private in [(0, 1), (1, 0)]:
+            row = copy.deepcopy(batch['active']['row'])
+            row.update(old_pinned_content=old, private_content=private)
+            gate.active_content_contract('lease-held-import', row, batch['parent']['row'])
+
+    def test_reload_requires_all_three_old_blocks_even_with_two_clients(self):
+        rows, markers = complete('reload-held-import')
+        batch = markers['batches'][0]
+        self.assertEqual(batch['active']['row']['content_versions'], 6)
+        row = copy.deepcopy(batch['active']['row'])
+        row.update(content_versions=4, old_pinned_content=1)
+        with self.assertRaises(ValueError):
+            gate.active_content_contract('reload-held-import', row, batch['parent']['row'])
 
     def test_missing_shared_extra_and_negative_roots_are_rejected(self):
         for mode in gate.CASES:
@@ -103,6 +126,36 @@ class ExclusiveContentRoots(unittest.TestCase):
             controls = gate.rejection_controls(rows, markers)
             self.assertEqual(len(controls), 6)
             self.assertTrue(all(row['rejected'] for row in controls))
+
+    def test_each_balance_field_and_both_retained_root_labels_are_rejected(self):
+        for key in dict.fromkeys([*internal.BALANCE_FIELDS, 'old_pinned_content', 'private_content']):
+            rows, markers = complete('reload-held-import')
+            point = markers['batches'][-1]['drained']
+            rows[point['trace_index']][key] += 1
+            point['row'] = copy.deepcopy(rows[point['trace_index']])
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                gate.validate_trace(rows, markers)
+
+
+class PhaseWitness(unittest.TestCase):
+    def test_previous_held_or_active_row_is_not_selected(self):
+        for phase in ['held', 'active']:
+            rows, markers = complete('reload-held-import')
+            old = copy.deepcopy(markers['batches'][0][phase]['row'])
+            old.update(content_versions=3, old_pinned_content=0)
+            new = markers['batches'][0][phase]['row']
+            with patch.object(gate.internal, 'trace_rows', side_effect=[[old], [old, new]]):
+                point = gate.fresh_witness('unused', markers['batches'][0][phase]['wanted'])
+            self.assertEqual(point['trace_index'], 1)
+            self.assertEqual(point['row']['content_versions'], 6)
+
+    def test_missing_new_phase_row_does_not_reuse_previous_positive(self):
+        rows, markers = complete('staggered-conflicts')
+        point = markers['batches'][0]['active']
+        with patch.object(gate.internal, 'trace_rows', return_value=[point['row']]), \
+                patch.object(gate.time, 'monotonic', side_effect=[0, 6]):
+            with self.assertRaises(AssertionError):
+                gate.fresh_witness('unused', point['wanted'])
 
 
 if __name__ == '__main__':
