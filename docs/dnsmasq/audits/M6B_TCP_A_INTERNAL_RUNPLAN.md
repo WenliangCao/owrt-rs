@@ -112,6 +112,13 @@ collector 对所有十批要求 parent root/registry容量、对象余额、各 
 reconnect4096每批新增264名字、10批尚未填满4096，不能拿它的增长当泄漏或当余额通过。
 公共11 profile 仍另跑 feature-off product C/A wire+FD/PSS门，内部 companion不替代它。
 
+2026-10-08只读复核（未运行压力或本地测试）：runner在daemon未启动/trace或marker未生成
+时仍保存绑定、全部工具与明确的`missing_raw`收据，不能抛read_bytes异常而省略该收据；
+collector拒绝缺失raw。structural warm的20 views→drain、原始行顺序与warm后baseline余额
+现在也逐项核验；六个method controls须有完整六条实际运行记录，不只检查passed名字列表。
+模板、采样timer与产品源码均未因此改变。internal drain0源于实际busy→drain转换；公共
+FD稳定后的after-drain0是较晚观察点，报告应保留各自真实monotonic时刻，不把两者当同一0点。
+
 ## 第二阶段：已写入口，明确未运行
 
 同一个诊断 source/ELF/controls，无需重建；新增仅 runner/collector。每个独立 fresh output：
