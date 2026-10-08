@@ -145,6 +145,16 @@ for label,fields in [('ptr-address-alias-key',{'action':'ptr-alias'}),
                       ('ptr-stale-refresh',{'action':'expired-stale','ttl':1,'config':'use-stale-cache=0'})]:
     case(label,kind=12,host=PTR4,**fields)
 case('ptr-static-host-precedence','host-record=static.cache.test,192.0.2.17',kind=12,host=PTR4)
+REVERSE_CNAME_CONFIG='host-record=Local.case.test,192.0.2.2\ncname=Alias.case.test,Local.case.test\n'
+REVERSE_CNAME_CASES={}
+for family,host in [('v4',PTR4),('v6',ipaddress.ip_address('2001:db8::17').reverse_pointer)]:
+    for transport in ['udp','tcp']:
+        label='reverse-cname-'+family+'-'+transport
+        REVERSE_CNAME_CASES[label]={'host':host,'transport':transport}
+        # Ordinary PTR insertion/import must not conflict with the configured
+        # forward CNAME. The two parent UDP replays witness the single insert.
+        case(label,REVERSE_CNAME_CONFIG,kind=12,host=host,answers=[{'data':name('Alias.case.test').hex()}],
+             transports=[transport,'udp','udp'],metrics=True)
 case('ptr-dhcp-precedence','dhcp-range=192.0.2.40,192.0.2.60,255.255.255.0,120s\ndhcp-authoritative\nno-ping\ndhcp-leasefile=/m2/cache.leases\ndomain=cache.test',kind=12,host='42.2.0.192.in-addr.arpa',action='ptr-lease')
 for option in ['min-cache-ttl','max-cache-ttl','max-ttl']:
     for suffix,kind,fields in [('a',1,{}),('aaaa',28,{}),('generic',16,{}),
@@ -1291,6 +1301,21 @@ def case_equal(c,r,reverse_variation=False):
     return canonical_observations(c,reverse_variation)==canonical_observations(r,reverse_variation)
 
 
+def reverse_cname_caller_guard(c,r):
+    label=c.get('case')
+    if label not in REVERSE_CNAME_CASES or r.get('case')!=label:return False
+    spec=REVERSE_CNAME_CASES[label]
+    for row in [c,r]:
+        if (row.get('config')!=REVERSE_CNAME_CONFIG or row.get('exit')!=0
+                or row.get('failure') or row.get('upstream_errors') or len(row.get('upstream',[]))!=1):return False
+        upstream=row['upstream'][0]
+        if upstream.get('host')!=spec['host'] or upstream.get('transport')!=spec['transport']:return False
+        observations=row.get('observations',[])
+        if [obs['label'] for obs in observations]!=['query-0','query-1','query-2']:return False
+        if any(obs.get('metrics',{}).get('dns_cache_inserted')!=1 for obs in observations):return False
+    return True
+
+
 def giant_canonical_guard(c,r):
     for row in [c,r]:
         if (row.get('case')!='generic-expanded-u16-overflow' or row.get('config')!='cache-rr=ANY'
@@ -1328,6 +1353,14 @@ def giant_canonical_guard(c,r):
 def corruption_controls(c,r,reverse_variation=False):
     controls=[];label=r['case']
     if 'observations' not in r:return controls
+    if label in REVERSE_CNAME_CASES:
+        for mode in ['ptr-cname-missing-insertion','ptr-cname-zero-insertion','ptr-cname-missing-upstream']:
+            wrong=copy.deepcopy(r)
+            if mode=='ptr-cname-missing-insertion':wrong['observations'][0]['metrics'].pop('dns_cache_inserted')
+            elif mode=='ptr-cname-zero-insertion':wrong['observations'][0]['metrics']['dns_cache_inserted']=0
+            else:wrong['upstream']=[]
+            controls.append({'case':label,'control':mode,
+                             'rejected':not (reverse_cname_caller_guard(c,wrong) and case_equal(c,wrong))})
     if label in IMMEDIATE_PTR_PHASE_CASES:
         seed_label='query-0' if label=='ptr-tcp-child-import' else 'seed'
         for mode in ['fresh-clock-missing','fresh-clock-step','fresh-clock-too-slow']:
@@ -1437,7 +1470,7 @@ def compare_family(args):
             if variation:variations.append(label)
         if label=='generic-expanded-u16-overflow' and giant_canonical_guard(c,r):
             passed.append(label);intentional.append({'case':label,'classification':'intentional valid-wire bound; C ushort canonical length wrap','source':'dnsmasq.h:350;rfc1035.c:1016,1038,1052,2326-2327','guard':'fresh complete65498/468-byte wire geometry,174-byte wrapped cache prefix and1-vs2 exact upstream receipts'})
-        elif case_equal(c,r,variation):passed.append(label)
+        elif case_equal(c,r,variation) and (label not in REVERSE_CNAME_CASES or reverse_cname_caller_guard(c,r)):passed.append(label)
         else:different.append({'case':label,'c':canonical_observations(c),'rust':canonical_observations(r),
                                'c_upstream':len(c.get('upstream',[])),'rust_upstream':len(r.get('upstream',[]))})
     for label in passed:
