@@ -292,7 +292,10 @@ def schedule(spec, port, upstream, folder, root):
                 raise AssertionError('configured parent population witness absent')
         fixture.confirm_warm_idle('pre-batch-idle')
         if spec.get('reconnect_count') is not None:
-            index, row = stable_trace(trace, len(trace_rows(trace)))
+            initial_rows = trace_rows(trace)
+            if not initial_rows or not drain_row(initial_rows[-1]):
+                raise AssertionError('initial prewarm row is not a fully drained trace')
+            index, row = len(initial_rows) - 1, initial_rows[-1]
             markers['initial'] = {'trace_index': index, 'row': row}
         markers['warm_batch'] = batch('warm')
         markers['connection_count_including_warm'] = fixture.accept_sequence
