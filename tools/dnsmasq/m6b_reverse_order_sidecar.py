@@ -116,6 +116,8 @@ def prepare(args):
         "                    if sidecar.exists(): raise ValueError('fresh sidecar required')\n"
         "                    lines = command(args, folder, f'{label}-{repeat}', [*prefix, *suffix],\n"
         "                        env=dict(os.environ, DNSMASQ_REVERSE_ORDER_SIDECAR=str(sidecar)))")
+    builder = replace_once(builder, '    if inputs is not None:\n',
+        "    if inputs is not None and report['status'] == 'C-baseline-complete' and not report['failures']:\n")
     (cdir / 'cache_reverse_transfer_oracle.py').write_text(builder)
     (cdir / 'cache_reverse_transfer_cases.py').write_bytes((HERE / 'cache_reverse_transfer_cases.py').read_bytes())
     receipt = {'schema':1,'kind':'m6b-reverse-order-sidecar-source','source_commit':args.source_commit,

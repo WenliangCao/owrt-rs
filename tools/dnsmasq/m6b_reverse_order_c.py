@@ -32,7 +32,7 @@ static void m6b_context(const char *owner, unsigned long long command, unsigned 
 { m6b_owner = owner; m6b_command = command; m6b_op = op; }
 struct m6b_line { char data[4096]; size_t used; };
 static void m6b_fail(void)
-{ const char msg[]="M6B_REVERSE_ORDER_SIDECAR_FAILED\n"; (void)write(2,msg,sizeof(msg)-1); _exit(118); }
+{ const char msg[]="M6B_REVERSE_ORDER_SIDECAR_FAILED\n"; ssize_t written=write(2,msg,sizeof(msg)-1); (void)written; _exit(118); }
 static void m6b_add(struct m6b_line *line, const char *format, ...)
 {
   va_list args; va_start(args,format);
@@ -177,14 +177,16 @@ def prepare_c(reference_source: Path, original_driver: Path, destination: Path) 
     if 'private' not in out.parts or out.exists():
         raise ValueError('fresh private diagnostic source directory required')
     original_cache, original_driver_text = cache.read_text(), driver.read_text()
-    changed_cache = replace_once(original_cache, 'static struct crec **hash_bucket(char *name)\n{\n',
+    changed_cache = replace_once(original_cache, '#include "dnsmasq.h"\n',
+        '#include "dnsmasq.h"\n#include "m6b_reverse_order_header.h"\n')
+    changed_cache = replace_once(changed_cache, 'static struct crec **hash_bucket(char *name)\n{\n',
         'static struct crec **hash_bucket(char *name)\n{\n  const char *m6b_original_name = name;\n')
     changed_cache = replace_once(changed_cache,
         '  return hash_table + ((val ^ (val >> 16)) & (hash_size - 1));',
         '  struct crec **m6b_result = hash_table + ((val ^ (val >> 16)) & (hash_size - 1));\n'
         '  m6b_hash_diag(m6b_original_name, (unsigned int)(m6b_result - hash_table));\n  return m6b_result;')
     changed_driver = replace_once(original_driver_text, '#include "cache.c"',
-        '#include "m6b_reverse_order_header.h"\n#include "m6b_reverse_order_cache.inc"\n' + IMPLEMENTATION)
+        '#include "m6b_reverse_order_cache.inc"\n' + IMPLEMENTATION)
     changed_driver = replace_once(changed_driver, '  char *line = NULL; size_t capacity = 0;',
         '  char *line = NULL; size_t capacity = 0; unsigned long long m6b_index = 0;')
     changed_driver = replace_once(changed_driver, '      char name[504], hex[33]; unsigned bits, ttl; long long now;',
