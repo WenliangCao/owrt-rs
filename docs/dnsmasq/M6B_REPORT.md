@@ -218,6 +218,8 @@ fresh answer补充对照实际764条命令、164个query、382个metric snapshot
 
 ## fresh reverse 导入发现的既存缺陷（处理中）
 
-fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察；A copied lib的稳定观察181匹配/3差异，全在PTR target恰为父配置CNAME。ordering12全匹配。root以70097无A冻结ELF在同镜像补真实caller：UDP C/R均1上游、插入1、后两请求缓存续答；TCP C只需1上游并插入1，Rust首次父插入0、下一UDP再次上游，累计2次。这是当前基线也存在的普通导入方向错误，不归因为A共享存储，不改变ordered comparator或列作故意差异。缓存选项资格暂重开1项，修复与fresh服务复闭后恢复169。
+fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察；A copied lib的稳定观察181匹配/3差异，全在PTR target恰为父配置CNAME。ordering12全匹配。root以70097无A冻结ELF在同镜像补真实caller：UDP C/R均1上游、插入1、后两请求缓存续答；TCP C只需1上游并插入1，Rust首次父插入0、下一UDP再次上游，累计2次。这是当前基线也存在的普通导入方向错误，不归因为A共享存储，不改变ordered comparator或列作故意差异。cache-rr选项资格暂重开1项（cache-size容量资格保留），修复与fresh服务复闭后恢复169。
 
 无A的70097完整27窗口原始数据保持历史；A增量45窗口将给无A和A同时带相同方向修复，保证共享存储增量独立归因，不重新扩中间27窗口。新的source/ELF与门收据在修复freeze时登记。计数companion04方法六tests实际通过、目标机布局相符，SHA937a06612edbfd25e37972496bd3d90046cbcf53c5590f6e643ff4ee0c47db84；仅方法控制，不代表10批余额/产品资源/CPU门。其build SSH -n通道同样在远端实际结束后滞留，本地核对无匹配build进程及完整收据后终止owned15785，wrapper255单列保留，不能冒充runtime失败。
+
+方向修复main1bd9436c、独立A ae1cdba6只在Cache::import_counted跳过reverse的forward-local callback，新增IPv4/IPv6及forward冲突精准测试，尚待新ELF镜像复闭。新pair第一准备因controller在scp结束前读source tar触发Unexpected EOF，首次raw和controller保留；第二fresh目录先逐tar SHA核对，再解包/构建，不覆写首失败或放宽验证。
