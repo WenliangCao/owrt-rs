@@ -6518,6 +6518,10 @@ mod route_resend_tests;
 #[path = "main_neighbor_tail_tests.rs"]
 mod neighbor_tail_tests;
 
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_hostsdir_init_tests.rs"]
+mod hostsdir_init_tests;
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -338,7 +338,8 @@ impl DnsFiles {
     }
 
     pub fn has_work(&self) -> bool {
-        self.endpoint_update.is_some()
+        self.initializing
+            || self.endpoint_update.is_some()
             || self.endpoint_lookup.is_some()
             || self.job.is_some()
             || !self.requests.is_empty()
@@ -354,7 +355,13 @@ impl DnsFiles {
             return self.endpoint_lookup.as_ref().is_none_or(EndpointLookup::reap_pending);
         }
         self.job.as_ref().map_or(
-            !self.requests.is_empty() || !self.triggers.is_empty() || self.notify_seen,
+            // Init can yield at initial_cache_reload so the owner publishes
+            // hosts directories first. Their final EOF leaves no file job or
+            // trigger, but one turn must still finish the startup barrier.
+            self.initializing
+                || !self.requests.is_empty()
+                || !self.triggers.is_empty()
+                || self.notify_seen,
             |job| !job.wait_readiness,
         )
     }
@@ -737,6 +744,29 @@ mod tests {
     }
 
     #[test]
+    fn empty_init_finish_remains_work_after_hosts_barrier_yields() {
+        let directory = Directory::new();
+        let mut config = directory.config();
+        config.no_resolv = true;
+        config.hosts_dirs = vec![Some(directory.0.clone())];
+        fs::write(directory.0.join("one"), b"192.0.2.42 ready.test\n").unwrap();
+        let mut files = DnsFiles::new(&config, true, false).unwrap();
+        files.request(ReloadReason::Init);
+        let barrier = files.step_with_watch_readiness(false);
+        assert!(barrier.initial_cache_reload && barrier.runnable);
+        let (sources, diagnostics) = files.scan_hosts_dirs();
+        assert_eq!(sources.len(), 1);
+        assert!(diagnostics.is_empty());
+        // The owner may consume all hosts work after its DNS-file turn. Init
+        // is the remaining work even though the original trigger was popped.
+        assert!(files.initializing() && files.has_work() && files.runnable());
+        assert!(files.requests.is_empty() && files.triggers.is_empty() && files.job.is_none());
+        let finished = files.step_with_watch_readiness(false);
+        assert!(!finished.runnable);
+        assert!(!files.initializing() && !files.has_work() && !files.runnable());
+    }
+
+    #[test]
     fn server_file_keeps_distinct_lines_partial_errors_and_reverse_origin() {
         let directory = Directory::new();
         let path = directory.0.join("servers");
@@ -1068,9 +1098,12 @@ mod tests {
         let barrier = files.step();
         assert!(barrier.initial_cache_reload && barrier.runnable);
         assert!(!files.step().runnable);
+        assert!(files.initializing() && files.has_work());
+        assert!(!files.runnable(), "pending init must not spin while its actual FIFO job waits");
         files.request(ReloadReason::Signal);
         let step = files.step();
         assert!(step.update.is_none() && !step.runnable);
+        assert!(!files.runnable(), "a later trigger cannot override FIFO backpressure");
         let mut fds = Vec::new();
         files.append_poll_fds(&mut fds);
         assert_eq!(fds.len(), 2); // Watch descriptor plus waiting FIFO.
