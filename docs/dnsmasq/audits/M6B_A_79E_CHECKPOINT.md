@@ -99,3 +99,23 @@ manifest `3d1d899f7a3fdda0ccea963d10d89cc4637009cc47de2527990edf3bc79211f8`；
 balance-02 52262路径/52181文件，tar `3680a82bcdceace5eb8d94fea9632ebce7dccf284e0f3cbb17fc94b6313f2813`，
 manifest `9c697dee703a5842423ed95847689446c1346464b233b9c110c7c88d71d31659`。
 原余额红结果不翻绿、后续矩阵未执行不通过、CPU45尚未启动。
+
+measurement-only b8a519fb已新prepare/build/bind，并实际原6controls/layout过；新diag SHA
+`c42c92856b398a5413312412394949a1301c27933dd23384490bb00140837457`绑定同一948…产品。
+原fixture不改的attribution01 baseline/10批/final真实requested/对象/根/poll/ready全部平衡，
+strict collector通过；attribution02决定性复现：baseline live1367544、observer8456、
+objects16755、roots128、poll256、ready128；b00–b09/final live1367672及ready256，恰同步+128B，
+其余字段不变，扣除两实际Vec标量后的未归属差额0。原strict collector02仍返回1，
+不把红结果翻绿；确认是单owner ready Vec<PollFd>16→32有界高水位且warm未必同时20 ready。
+只修结构warm的真实ready覆盖，产品/测量10批/60s/阈值不改，不从requested中扣128放行。
+
+两归因attempt全量SHA+metadata回拷后prune，E/M6B/full-archives/a-79e-readiness-attribution-01-02，
+各10776路径/10759文件。stable01 tar `e44f61cc26d858021186533a41be46994c874695feb71b2693ee76507956b61b`，
+manifest `c68cf1aa01ae094cd834fcd5921e45e556fa611d6f8b4def3f728f1e747ccea4`；
+growth02 tar `08ba44a1fec8139dc471baf65dd40cec947971fedc62b4184bf8296cab46a025`，
+manifest `9fac4b2cc81b7bc5f40b584ded028215a019de36bd4b532f4625b3739f2bc7da`。
+两collector原输出单独保留在E/M6B/pair-signal-01/resource-counters-01，不选择最好attempt。
+
+NoA cd9同源feature-off s及fresh common实际prepare完成，身份强门过；root cpu-a-79e-01，
+manifest SHA `a8f89c3b4e5c44ddd273ea29a4ca8982f418c9a7b29f3f1190e49327159745dd`。
+只prepare，不suite run、不创建假15门receipt/CPU plan，零正式/试跑窗口；待资源严格门全过。
