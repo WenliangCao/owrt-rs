@@ -97,7 +97,7 @@ fn tail_dump_completion_resumes_udp_and_interface_held_accept() {
     assert!(matches!(owner.edns_mac(address.ip(), false), ClientMacLookup::Pending));
     owner.pending_edns_udp.push(PendingEdnsUdp {
         query_context: Default::default(), listener: SocketToken(99),
-        client: ClientRequest { source: address, destination: "127.0.0.1:53".parse().unwrap(), interface: 1 },
+        client: ClientRequest { source: address, destination: "127.0.0.1".parse().unwrap(), interface: 1 },
         query: query(), deadline: Instant::now() + Duration::from_secs(3),
     });
     await_dump_datagram(&owner);
