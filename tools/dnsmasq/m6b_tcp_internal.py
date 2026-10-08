@@ -35,8 +35,13 @@ TOOLS = ['m6b_tcp_internal.py', *pressure.TOOLS]
 DRAIN_FIELDS = ['clients', 'G', 'dns_work', 'views', 'tcp_pending', 'tcp_accept_pending',
                 'udp_pending', 'typed_transfer_inflight', 'old_pinned_content', 'old_pinned_index',
                 'private_content', 'private_index']
-BALANCE_FIELDS = ['content_versions', 'index_versions', 'registry_len', 'registry_capacity',
-                  'live_objects', 'client_vector_bytes', 'view_lru_bytes', 'cache_pending',
+REGISTRY_CAPACITY_SEMANTICS = 'effective-insertion-lower-bound'
+# Keep effective HashMap capacity as raw diagnostic context. Allocator-requested
+# registry/total bytes and object/root counts are the actual balance contract.
+BALANCE_FIELDS = ['content_versions', 'index_versions', 'registry_len',
+                  'observer_registry_requested', 'live_requested_including_diagnostic',
+                  'live_objects', 'poll_fd_bytes', 'ready_fd_bytes',
+                  'client_vector_bytes', 'view_lru_bytes', 'cache_pending',
                   'pending_capacity', 'reverse_capacity', 'input_capacity', 'framer_capacity',
                   'writing_capacity', 'waiting_mac_capacity', 'query_event_descriptors',
                   'stale_capacity', 'mac_capacity', 'upstream_capacity', 'log_payload_capacity',
@@ -359,7 +364,9 @@ def run(args):
 
 def validate(rows, markers):
     if not rows or any(row.get('diagnostic_only') is not True or row.get('product_qualification') is not False
-                       or row.get('extra_trace_fd') != 1 or row.get('missing_hooks') != 0
+                       or row.get('extra_trace_fd') != 1
+                       or row.get('registry_capacity_semantics') != REGISTRY_CAPACITY_SEMANTICS
+                       or row.get('missing_hooks') != 0
                        or row.get('balance_errors') != 0 or row.get('alloc_failed') != 0 for row in rows):
         raise ValueError('diagnostic method failed or trace inventory missing')
     if any(b['elapsed_ns'] <= a['elapsed_ns'] for a, b in zip(rows, rows[1:])):
@@ -516,9 +523,13 @@ def rejection_controls(rows, markers):
             key = {'retained-client': 'clients', 'retained-view': 'views',
                    'retained-transaction': 'tcp_pending', 'retained-pinned-root': 'old_pinned_content',
                    'known-one-byte-leak': 'live_requested_including_diagnostic',
-                   'known-one-object-leak': 'live_objects', 'registry-growth': 'registry_capacity',
+                   'known-one-object-leak': 'live_objects', 'registry-growth': 'observer_registry_requested',
                    'missing-hook': 'missing_hooks'}[name]
             target[key] += 1
+            if name == 'registry-growth':
+                # Real observer growth increases total by the same amount,
+                # keeping product_live unchanged; registry bytes must reject it.
+                target['live_requested_including_diagnostic'] += 1
             # Mutate both raw observation and its marker, so rejection cannot
             # merely rely on the trivial report/raw identity check.
             if last:

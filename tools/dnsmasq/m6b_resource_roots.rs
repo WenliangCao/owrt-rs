@@ -49,10 +49,61 @@ mod m6b_root_controls {
         let released = summary(&parent, &[]);
         assert_eq!((released.content, released.index, released.registry_len), (3, 64, 67));
         assert_eq!((released.old_content, released.old_index, released.private_content, released.private_index), (0, 0, 0, 0));
+        registry_effective_capacity_is_not_allocated_bytes();
         println!("M6B_RESOURCE_LAYOUT slot={} entry={} record={} content={} cache={} indices={} index={}",
             std::mem::size_of::<Slot>(), std::mem::size_of::<Entry>(), std::mem::size_of::<Record>(),
             std::mem::size_of::<ContentBlock>(), std::mem::size_of::<Cache>(),
             std::mem::size_of::<SlotIndices>(), std::mem::size_of::<NameIndex>());
+    }
+
+    // A deterministic collision cluster leaves DELETED buckets when removing
+    // an interior key. Insert elsewhere to restore the same cardinality.
+    // The insertion lower bound changes without changing the
+    // backing allocation; the six copied method entry points remain unchanged.
+    fn registry_effective_capacity_is_not_allocated_bytes() {
+        #[derive(Default)]
+        struct CollisionHasher(u64);
+        impl std::hash::Hasher for CollisionHasher {
+            fn finish(&self) -> u64 { self.0 }
+            fn write(&mut self, _: &[u8]) {}
+            fn write_usize(&mut self, key: usize) { self.0 = if key == 128 { 128 } else { 0 }; }
+        }
+        type Map = HashMap<usize, usize, std::hash::BuildHasherDefault<CollisionHasher>>;
+        let before = crate::m6b_resource_diag::allocation();
+        let mut values;
+        {
+            let _scope = crate::m6b_resource_diag::ObserverScope::enter();
+            values = Map::with_capacity_and_hasher(128, Default::default());
+            for key in 0..128 { values.insert(key, key); }
+        }
+        let populated = crate::m6b_resource_diag::allocation();
+        let effective_before = values.capacity();
+        {
+            let _scope = crate::m6b_resource_diag::ObserverScope::enter();
+            assert_eq!(values.remove(&64), Some(64));
+            // Insert into a distinct EMPTY group rather than reuse DELETED.
+            values.insert(128, 128);
+            values.shrink_to(values.len());
+        }
+        let removed = crate::m6b_resource_diag::allocation();
+        assert_eq!(values.len(), 128);
+        assert!(values.capacity() < effective_before,
+            "a real tombstone must change the effective insertion lower bound");
+        assert_eq!(removed.live, populated.live);
+        assert_eq!(removed.observer_live, populated.observer_live);
+        assert_eq!(removed.objects, populated.objects);
+        assert_eq!(removed.alloc, populated.alloc);
+        assert_eq!(removed.realloc, populated.realloc);
+        assert_eq!(removed.free, populated.free);
+        {
+            let _scope = crate::m6b_resource_diag::ObserverScope::enter();
+            drop(values);
+        }
+        let after = crate::m6b_resource_diag::allocation();
+        assert_eq!(after.live, before.live);
+        assert_eq!(after.observer_live, before.observer_live);
+        assert_eq!(after.objects, before.objects);
+        assert_eq!(after.balance_errors, before.balance_errors);
     }
 
     #[test]
@@ -132,6 +183,8 @@ fn m6b_root_mut<T: Clone>(kind: u8, root: &mut Arc<T>) -> &mut T {
 pub struct M6bRootSummary {
     pub content: usize, pub index: usize, pub old_content: usize, pub old_index: usize,
     pub private_content: usize, pub private_index: usize, pub registry_len: usize,
+    // HashMap::capacity is an insertion lower bound, reduced by tombstones.
+    // Allocated registry bytes come only from the scoped allocator counter.
     pub registry_capacity: usize, pub missing_creation_hooks: u64,
 }
 

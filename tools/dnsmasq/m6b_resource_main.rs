@@ -64,6 +64,14 @@ impl SinglePoll {
         }
         // Registry pruning is finished before this snapshot. Formatting uses
         // write_fmt directly, without building a JSON String or root arrays.
+        // Scalar Vec capacities observe existing owner allocations without
+        // allocating, reserving, or changing the ready/poll vectors.
+        #[cfg(target_os = "linux")]
+        let poll_fd_bytes = self.poll_fds.capacity() * std::mem::size_of::<owrt_ubus::sys::PollFd>();
+        #[cfg(target_os = "linux")]
+        let ready_fd_bytes = self.ready_fds.capacity() * std::mem::size_of::<owrt_ubus::sys::PollFd>();
+        #[cfg(not(target_os = "linux"))]
+        let (poll_fd_bytes, ready_fd_bytes) = (0usize, 0usize);
         let alloc = meter::allocation();
         let nominal = stamp.nominal_drain_second.map_or(-1, |n| n as i64);
         let actual = stamp.actual_drain_ns.map_or(-1, |n| n.min(i64::MAX as u128) as i64);
@@ -74,9 +82,11 @@ impl SinglePoll {
             "\"udp_pending\":{},\"udp_forward_pending\":{},\"udp_owner_pending\":{},\"typed_transfer_inflight\":0,\"full_drained\":{},",
             "\"content_versions\":{},\"index_versions\":{},\"old_pinned_content\":{},\"old_pinned_index\":{},",
             "\"private_content\":{},\"private_index\":{},\"registry_len\":{},\"registry_capacity\":{},\"missing_hooks\":{},",
+            "\"registry_capacity_semantics\":\"effective-insertion-lower-bound\",",
             "\"balance_qualification\":\"unproven\",\"live_requested_including_diagnostic\":{},\"observer_registry_requested\":{},",
             "\"peak_requested_including_diagnostic\":{},\"live_objects\":{},",
             "\"alloc\":{},\"zeroed\":{},\"realloc\":{},\"free\":{},\"alloc_failed\":{},\"balance_errors\":{},",
+            "\"poll_fd_bytes\":{},\"ready_fd_bytes\":{},",
             "\"client_vector_bytes\":{},\"view_lru_bytes\":{},\"cache_pending\":{},\"pending_capacity\":{},\"reverse_capacity\":{},",
             "\"input_capacity\":{},\"framer_capacity\":{},\"writing_capacity\":{},\"waiting_mac_capacity\":{},\"query_event_descriptors\":{},\"stale_capacity\":{},",
             "\"mac_capacity\":{},\"upstream_capacity\":{},\"log_payload_capacity\":{},\"log_queue_capacity\":{}}}"),
@@ -85,7 +95,8 @@ impl SinglePoll {
             roots.content, roots.index, roots.old_content, roots.old_index,
             roots.private_content, roots.private_index, roots.registry_len, roots.registry_capacity, roots.missing_creation_hooks,
             alloc.live, alloc.observer_live, alloc.peak, alloc.objects, alloc.alloc, alloc.zeroed, alloc.realloc, alloc.free,
-            alloc.failed, alloc.balance_errors, self.clients.capacity() * std::mem::size_of::<PollTcpClient>(),
+            alloc.failed, alloc.balance_errors, poll_fd_bytes, ready_fd_bytes,
+            self.clients.capacity() * std::mem::size_of::<PollTcpClient>(),
             lru, cache_pending, pending_capacity, reverse_capacity, input, framer, writing, waiting_mac, query_events, stale, mac, upstream,
             log_payload, log_queue))
     }
