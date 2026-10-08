@@ -272,3 +272,12 @@ poll/ready容量标量，不改产品或阈值。原fixturefresh01完全平衡�
 再fresh严格10批验收，不扣128放行、不选择较好attempt。归档与完整SHA见79e checkpoint。
 NoA cd9同源s/fresh common已实际prepare，零CPU window/未伪造15门；7旧Oracle root共
 111918路径完整metadata/hardlink补保全见[旧现场保全](audits/M6B_LEGACY_ORACLE_PRESERVATION_20261008.md)。
+
+按用户要求追加的实际1024/4096重连对照已完成：两次均含20 warm且固定capacity4096，
+1024=20+50×20+4、4096=20+203×20+16，source/product/diag/tools/controls/bound/root
+完全同源。跨run comparison SHA0453e8a5…，七项严格证据变异全部拒绝；absolute ending
+全同。1024 postwarm ready256→256、product_live增量0；4096 ready128→256、product_live
+增量128，差额恰为已测ready Vec高水位16→32，未随重连次数增长，objects/roots/observer/
+poll/其它容量无增量。因此按用户规则将该对象分类`known-ready-128B-plateau`非泄漏；
+不扣requested、不授整体资源资格、不排除未知泄漏。原10批红结果仍保持失败，warm结构修正
+和标准资源门仍待，不选择较好attempt。
