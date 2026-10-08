@@ -2152,6 +2152,8 @@ struct SinglePoll {
     retry_bound_listeners: bool,
     interfaces_enumerated: bool,
     pending_interface_udp: Option<PendingInterfaceUdp>,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pending_udp_admission: Option<PendingUdpAdmission>,
     pending_interface_tcp: Option<PendingInterfaceTcp>,
     #[cfg(target_os = "linux")]
     pending_interface_files: Option<(dnsmasq_rs::dns::files::FileStep, bool)>,
@@ -2463,6 +2465,20 @@ struct PendingInterfaceUdp {
     client: ClientRequest,
     query: Vec<u8>,
     mac: Option<Vec<u8>>,
+}
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+struct PendingUdpAdmission {
+    token: SocketToken,
+    udp: Arc<DnsSocket>,
+    incoming: listeners::Incoming,
+    query: Vec<u8>,
+    loopback: bool,
+}
+enum UdpAdmission {
+    Accept,
+    Reject,
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    PendingInterfaces { loopback: bool },
 }
 struct PendingInterfaceTcp {
     query_ids: dnsmasq_rs::query_logging::QueryIds,
@@ -3016,6 +3032,8 @@ impl SinglePoll {
             retry_bound_listeners: false,
             interfaces_enumerated: false,
             pending_interface_udp: None,
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            pending_udp_admission: None,
             pending_interface_tcp: None,
             #[cfg(target_os = "linux")]
             pending_interface_files: None,
@@ -4285,6 +4303,10 @@ impl SinglePoll {
     }
 
     fn enumerate_interface_records(&mut self) {
+        self.enumerate_interfaces(false);
+    }
+
+    fn enumerate_interfaces(&mut self, needed_for_admission: bool) {
         if self.interfaces_enumerated {
             return;
         }
@@ -4293,7 +4315,8 @@ impl SinglePoll {
             return;
         }
         self.interfaces_enumerated = true;
-        if self.config.interface_records.rules.is_empty() && !self.config.needs_domain_interfaces()
+        if !needed_for_admission && self.config.interface_records.rules.is_empty()
+            && !self.config.needs_domain_interfaces()
         {
             if let Some(daemon) = &mut self.service.borrow_mut().daemon {
                 daemon.refresh_source_interface_indices();
@@ -4395,6 +4418,15 @@ impl SinglePoll {
                 pending.query_context,
             );
         }
+        if let Some(pending) = self.pending_udp_admission.take() {
+            let admitted = self.interfaces.try_borrow().is_ok_and(|interfaces| {
+                listeners::udp_acl_exception(&self.config, &interfaces, pending.incoming.destination,
+                    pending.incoming.interface, pending.loopback)
+            });
+            if admitted {
+                self.process_admitted_udp(pending.token, pending.udp, pending.incoming, pending.query);
+            }
+        }
         if let Some(pending) = self.pending_interface_tcp.take() {
             self.finish_tcp_accept(pending);
         }
@@ -4405,6 +4437,55 @@ impl SinglePoll {
             if let Some(daemon) = parent.daemon.as_mut() {
                 daemon.invalidate_udp_resend();
             }
+        }
+    }
+
+    fn admit_udp(&mut self, udp: &DnsSocket, incoming: listeners::Incoming) -> UdpAdmission {
+        let interfaces = match self.interfaces.try_borrow() {
+            Ok(interfaces) => interfaces,
+            Err(_) => return UdpAdmission::Reject,
+        };
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if listeners::udp_needs_ingress_name(&self.config, incoming.destination) {
+            if !listeners::udp_source_allowed(&self.config, &interfaces, incoming.peer.ip()) {
+                return UdpAdmission::Reject;
+            }
+            drop(interfaces);
+            let Ok(name) = udp.ingress_name(incoming.interface) else {
+                return UdpAdmission::Reject;
+            };
+            let length = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
+            if listeners::udp_acl_name(&self.config, incoming.destination, &name[..length]) {
+                return UdpAdmission::Accept;
+            }
+            // Failed SIOCGIFFLAGS disables only the loopback exception; C
+            // still checks the IPv4 label exception against the new list.
+            let loopback = udp.ingress_loopback(&name).is_ok_and(|value| value);
+            if !self.config.bind_dynamic {
+                self.enumerate_interfaces(true);
+                if self.interface_work_pending() {
+                    return UdpAdmission::PendingInterfaces { loopback };
+                }
+            }
+            // A same-turn latch or early control-socket failure keeps the
+            // prior generation. Do not retry synchronously via getifaddrs.
+            return if self.interfaces.try_borrow().is_ok_and(|interfaces| {
+                listeners::udp_acl_exception(&self.config, &interfaces, incoming.destination,
+                    incoming.interface, loopback)
+            }) {
+                UdpAdmission::Accept
+            } else {
+                UdpAdmission::Reject
+            };
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        let _ = udp;
+        if listeners::admit(&self.config, &interfaces, incoming.peer.ip(), incoming.destination,
+            incoming.interface)
+        {
+            UdpAdmission::Accept
+        } else {
+            UdpAdmission::Reject
         }
     }
 
@@ -4479,25 +4560,26 @@ impl SinglePoll {
                 return false;
             }
         };
-        let interfaces = match self.interfaces.try_borrow_mut() {
-            Ok(interfaces) => interfaces,
-            Err(_) => return true,
-        };
-        let admitted = listeners::admit(
-            &self.config,
-            &interfaces,
-            incoming.peer.ip(),
-            incoming.destination,
-            incoming.interface,
-        );
-        drop(interfaces);
-        if !admitted {
+        if incoming.len < 12 || self.udp_buffer[2] & 0x80 != 0 {
             return true;
+        }
+        match self.admit_udp(&udp, incoming) {
+            UdpAdmission::Reject => return true,
+            UdpAdmission::Accept => {}
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            UdpAdmission::PendingInterfaces { loopback } => {
+                self.pending_udp_admission = Some(PendingUdpAdmission {
+                    token, udp, incoming, query: self.udp_buffer[..incoming.len].to_vec(), loopback,
+                });
+                return true;
+            }
         }
         let query = self.udp_buffer[..incoming.len].to_vec();
-        if query.len() < 12 || query[2] & 0x80 != 0 {
-            return true;
-        }
+        self.process_admitted_udp(token, udp, incoming, query)
+    }
+
+    fn process_admitted_udp(&mut self, token: SocketToken, udp: Arc<DnsSocket>,
+                            incoming: listeners::Incoming, query: Vec<u8>) -> bool {
         let query_context = match self.service.try_borrow_mut() {
             Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
             Err(_) => return true,
@@ -6546,6 +6628,10 @@ mod newaddress_tests;
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_stale_refresh_log_tests.rs"]
 mod stale_refresh_log_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_udp_acl_tests.rs"]
+mod udp_acl_tests;
 
 #[cfg(test)]
 mod tests {

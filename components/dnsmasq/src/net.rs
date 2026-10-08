@@ -415,6 +415,21 @@ pub fn interface_name(socket: &impl AsRawFd, interface: u32) -> io::Result<[u8; 
     Ok(name)
 }
 
+/// Query only the ingress needed by C's failed-ACL loopback exception.
+pub fn interface_loopback(socket: &impl AsRawFd, name: &[u8; 16]) -> io::Result<bool> {
+    let mut request = [0u64; 5];
+    // SAFETY: Linux 64-bit ifreq is 40 aligned bytes. The borrowed name is
+    // initialized IFNAMSIZ storage returned by SIOCGIFNAME, copied in full.
+    let bytes = unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
+    bytes[..16].copy_from_slice(name);
+    // SAFETY: the receiving socket owns fd for this call; SIOCGIFFLAGS writes
+    // its short flags only inside the live initialized ifreq union.
+    if unsafe { ioctl(socket.as_raw_fd(), 0x8913, bytes.as_mut_ptr()) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(u16::from_ne_bytes([bytes[16], bytes[17]]) & 8 != 0)
+}
+
 pub(crate) fn inject_arp_with_name(
     socket: &DatagramSocket,
     address: SocketAddrV4,
