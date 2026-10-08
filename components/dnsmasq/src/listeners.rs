@@ -220,6 +220,39 @@ fn local_source(config: &DnsConfig, interfaces: &[DnsInterface], peer: IpAddr) -
             .any(|interface| same_network(peer, interface.address, interface.netmask))
 }
 
+/// Keep the ordinary no-ACL and explicit-address fast paths free of ioctl.
+/// Static IPv4 has no pktinfo admission check in receive_query.
+pub fn udp_needs_ingress_name(config: &DnsConfig, destination: IpAddr) -> bool {
+    !config.listen_addresses.contains(&destination)
+        && !(config.bind_interfaces && !config.bind_dynamic && destination.is_ipv4())
+        && (!config.interfaces.is_empty() || !config.excluded_interfaces.is_empty()
+            || !config.listen_addresses.is_empty())
+}
+
+pub fn udp_source_allowed(config: &DnsConfig, interfaces: &[DnsInterface], peer: IpAddr) -> bool {
+    local_source(config, interfaces, peer)
+}
+
+/// network.c:iface_check uses the current kernel name, not an old index list.
+pub fn udp_acl_name(config: &DnsConfig, destination: IpAddr, name: &[u8]) -> bool {
+    if config.listen_addresses.contains(&destination) {
+        return true; // A literal match wins over except-interface.
+    }
+    let allowed = config.interfaces.is_empty() && config.listen_addresses.is_empty()
+        || config.interfaces.iter().any(|pattern| name_matches(pattern, name, false));
+    allowed && !config.excluded_interfaces.iter()
+        .any(|pattern| name_matches(pattern, name, false))
+}
+
+/// Only a failed iface_check caller reaches these published-list exceptions.
+pub fn udp_acl_exception(config: &DnsConfig, interfaces: &[DnsInterface], destination: IpAddr,
+                         ingress: u32, loopback: bool) -> bool {
+    interfaces.iter().any(|candidate| {
+        candidate.address == destination && selected(config, candidate)
+            && (loopback || destination.is_ipv4() && candidate.index == ingress)
+    })
+}
+
 pub fn tcp_interface(stream: &TcpStream, ipv6: bool) -> Option<(Vec<u8>, bool)> {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     {
@@ -366,6 +399,16 @@ pub struct DnsSocket {
     socket: std::net::UdpSocket,
 }
 impl DnsSocket {
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn ingress_name(&self, interface: u32) -> io::Result<[u8; 16]> {
+        crate::net::interface_name(&self.socket, interface)
+    }
+
+    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+    pub fn ingress_loopback(&self, name: &[u8; 16]) -> io::Result<bool> {
+        crate::net::interface_loopback(&self.socket, name)
+    }
+
     pub fn as_raw_fd(&self) -> std::os::fd::RawFd {
         use std::os::fd::AsRawFd;
         self.socket.as_raw_fd()
