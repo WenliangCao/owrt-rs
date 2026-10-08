@@ -119,3 +119,21 @@ manifest `9fac4b2cc81b7bc5f40b584ded028215a019de36bd4b532f4625b3739f2bc7da`。
 NoA cd9同源feature-off s及fresh common实际prepare完成，身份强门过；root cpu-a-79e-01，
 manifest SHA `a8f89c3b4e5c44ddd273ea29a4ca8982f418c9a7b29f3f1190e49327159745dd`。
 只prepare，不suite run、不创建假15门receipt/CPU plan，零正式/试跑窗口；待资源严格门全过。
+
+按用户快速区分，实际count工具以同A79e/c42、capacity4096、固定4096名字/TTL/20上限，
+分别完成1024与4096 TCP新连接（含20 warm，尾批4/16）；两次source/product/diag/tools/
+controls/bound/root provenance全同，完整wire、accept gauge、FD、drain及0/1/5/15/60采样。
+1024与4096均method_count_complete=true、internal/product qualification=false。
+
+跨run比较SHA `0453e8a5d9784bea44b092a8caa1f725784a047aae47b1a72dd72af566d05f7f`：
+classification=`known-ready-128B-plateau`、absolute_endings_identical=true、failures=[]、
+七项严格变异控制全部rejected=true。1024 postwarm baseline ready256→ending256、
+product_live delta0；4096 baseline ready128→ending256、product_live delta128；两次ending
+absolute requested/observer/objects/roots/poll/ready/other capacities完全相同，4096的+128B
+恰为已实际归属ready Vec<PollFd> 16→32，未随1024→4096连接次数增长。initial→final较大
+分配保留原始展示，判定只用postwarm baseline，未扣ready。按用户规则这一个128B对象记为
+known-ready-128B-plateau非泄漏；这不排除未知泄漏、不授整体资源资格，严格1B/对象/根/observer
+负控仍拒绝。两raw diagnostic SHA：1024
+`c75bf92bc9abb82843e45345bc1868b85e4c2ad9ada297db578a2e8e7e788cb3`/5325228B，4096
+`4e56e50c6aebab991610cc5630229d9ed705c26dce2e320d19a93cb0fe4f0e01`/5905710B；原始run目录、
+controls与compare留在E/M6B/resume-20261008/reconnect-count-plan/actual，未删未覆盖。
