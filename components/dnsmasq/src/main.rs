@@ -7596,7 +7596,8 @@ mod tests {
             work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096,
                 Default::default()));
             work.input = vec![0; 65_535];
-            work.framer.push_frame(&[0xff, 0xff, 1]).unwrap();
+            // Keep a legal partial 1232-byte frame under this fixture's limit.
+            work.framer.push_frame(&[0x04, 0xd0, 1]).unwrap();
             work.mac = Some(vec![7; 1024]);
             work.stale_query = Some(vec![0; 1232]);
             work.deadline = Instant::now();
