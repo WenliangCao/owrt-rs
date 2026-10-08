@@ -7,6 +7,7 @@ Actual companion rows, gauges, wires, stable FD samples and smaps remain raw.
 """
 import argparse
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -85,8 +86,17 @@ def population(capacity, profile):
     return max(capacity, 32)
 
 
-def case_name(capacity, profile):
-    return f'm6b-internal-{profile}-{capacity}'
+def connection_batch_sizes(reconnect_count):
+    """Exact actual connections include the unchanged twenty-connection warm."""
+    if reconnect_count not in (1024, 4096):
+        raise ValueError('count attribution accepts1024 or4096 actual connections only')
+    full, tail = divmod(reconnect_count - 20, 20)
+    return [20] * full + ([tail] if tail else [])
+
+
+def case_name(capacity, profile, reconnect_count=None):
+    name = f'm6b-internal-{profile}-{capacity}'
+    return name if reconnect_count is None else name + f'-connections-{reconnect_count}'
 
 
 def profile_clients(profile):
@@ -177,7 +187,9 @@ def schedule(spec, port, upstream, folder, root):
     for host in names:
         upstream.plan[host] = {'ttl': 600, 'answers': answers}
     markers = {'prefill_names': names, 'capacity': spec['capacity'], 'profile': spec['profile'], 'clients': 20,
-               'batches': [], 'warm_batch': None, 'baseline': None, 'final': None}
+               'batches': [], 'warm_batch': None, 'baseline': None, 'final': None,
+               'reconnect_count': spec.get('reconnect_count'),
+               'initial': None, 'connection_count_including_warm': 0}
     marker_path = folder / 'internal-markers.json'
     clients = profile_clients(spec['profile'])
     markers['clients'] = clients
@@ -195,10 +207,16 @@ def schedule(spec, port, upstream, folder, root):
         fixture.event(label + '-upstream-witness', before=before, after=len(upstream.events))
         return parsed
 
-    def batch(label):
+    def batch(label, batch_clients=clients):
         start = len(trace_rows(trace))
-        for _ in range(clients):
-            fixture.connect()
+        connection_start = fixture.accept_sequence
+        for _ in range(batch_clients):
+            client = fixture.connect()
+            if spec.get('reconnect_count') is not None:
+                fixture.event(label + f'-connect-{fixture.accept_sequence:04}',
+                              connection_ordinal=fixture.accept_sequence,
+                              concurrent_clients=len(fixture.clients), client_fd=client.fileno(),
+                              gauge_receipt=f'accept-{fixture.accept_sequence}.gauge.json')
         # Both parent and child replacements use the same existing names and
         # exact RDATA. No growing name universe can masquerade as a leak.
         for n in range(min(len(names), 32)):
@@ -252,13 +270,15 @@ def schedule(spec, port, upstream, folder, root):
                 reply = driver.exact_read(queued, struct.unpack('!H', driver.exact_read(queued, 2))[0])
                 fixture.capture(label + '-over-limit-recovered', wire, reply)
         else:
-            active_index, active = active_trace(trace, start, spec['capacity'], clients)
+            active_index, active = active_trace(trace, start, spec['capacity'], batch_clients)
         fixture.sample(label + '-active')
         before_drain = len(trace_rows(trace))
         fixture.drain(label + '-drained')
         drain_index, drained = stable_trace(trace, before_drain)
         fixture.sample(label + '-idle')
-        return {'label': label, 'active_trace_index': active_index, 'active': active, 'limit': limit,
+        return {'label': label, 'clients': batch_clients,
+                'connection_start': connection_start, 'connection_end': fixture.accept_sequence,
+                'active_trace_index': active_index, 'active': active, 'limit': limit,
                 'drain_trace_index': drain_index, 'drained': drained,
                 'upstream_events': len(upstream.events)}
 
@@ -271,7 +291,11 @@ def schedule(spec, port, upstream, folder, root):
             if populated['dns_cache_inserted'] < len(names) * len(answers):
                 raise AssertionError('configured parent population witness absent')
         fixture.confirm_warm_idle('pre-batch-idle')
+        if spec.get('reconnect_count') is not None:
+            index, row = stable_trace(trace, len(trace_rows(trace)))
+            markers['initial'] = {'trace_index': index, 'row': row}
         markers['warm_batch'] = batch('warm')
+        markers['connection_count_including_warm'] = fixture.accept_sequence
         # Warm all persistent client vector, fd-array and map capacities before
         # claiming the baseline. Repeat exactly the same workload ten times.
         index, row = stable_trace(trace, markers['warm_batch']['drain_trace_index'] - 1)
@@ -306,8 +330,11 @@ def schedule(spec, port, upstream, folder, root):
             fixture.close(client)
             checkpoint()
         else:
-            for number in range(10):
-                markers['batches'].append(batch(f'b{number:02}'))
+            sizes = (connection_batch_sizes(spec['reconnect_count'])
+                     if spec.get('reconnect_count') is not None else [clients] * 10)
+            for number, batch_clients in enumerate(sizes):
+                markers['batches'].append(batch(f'b{number:02}', batch_clients))
+                markers['connection_count_including_warm'] = fixture.accept_sequence
                 checkpoint()
         fixture.drain('final-drain')
         fixture.after_drain()
@@ -325,11 +352,13 @@ def run(args):
     receipt = binding(args.bound_receipt)
     if driver.sha256(args.rust) != receipt['diagnostic_elf']['sha256']:
         raise ValueError('this internal run requires the bound diagnostic copy')
+    if args.reconnect_count is not None and (args.profile != 'reconnect' or args.capacity != 4096):
+        raise ValueError('count attribution keeps reconnect/capacity4096 fixed')
     if (args.profile in ['half', 'multi-rr'] and args.capacity != 4096
             or args.profile in ['pin150', 'limit30'] and args.capacity != 150):
         raise ValueError('half/multi-RR freeze at4096 and pin150/limit30 freeze at150')
-    spec = {'case': case_name(args.capacity, args.profile), 'mode': 'internal-reconnect',
-            'capacity': args.capacity, 'profile': args.profile,
+    spec = {'case': case_name(args.capacity, args.profile, args.reconnect_count), 'mode': 'internal-reconnect',
+            'capacity': args.capacity, 'profile': args.profile, 'reconnect_count': args.reconnect_count,
             'config': 'max-tcp-connections=30' if args.profile == 'limit30' else '', 'metrics': True,
             'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
     frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
@@ -352,6 +381,7 @@ def run(args):
     save(args.out / 'internal-run-receipt.json', {
         'source_commit': receipt['source_commit'], 'product_sha256': receipt['product_elf_sha256'],
         'diagnostic_sha256': receipt['diagnostic_elf']['sha256'], 'capacity': args.capacity, 'profile': args.profile,
+        'requested_reconnect_count': args.reconnect_count,
         'bound_receipt_sha256': driver.sha256(args.bound_receipt),
         'trace_sha256': driver.sha256(copied) if copied.is_file() else None,
         'result_sha256': driver.sha256(args.out / 'result.json'),
@@ -376,12 +406,17 @@ def validate(rows, markers):
         raise ValueError('unknown frozen internal profile/capacity')
     if profile == 'limit30' and markers['capacity'] != 150:
         raise ValueError('limit30 freezes at capacity150')
-    wanted_batches = 0 if profile == 'pin150' else 10
+    count = markers.get('reconnect_count')
+    count_sizes = connection_batch_sizes(count) if count is not None else None
+    if count is not None and (profile != 'reconnect' or markers['capacity'] != 4096):
+        raise ValueError('count attribution profile/capacity changed')
+    wanted_batches = len(count_sizes) if count_sizes is not None else 0 if profile == 'pin150' else 10
+    require_balance = count is None
     clients = profile_clients(profile)
     if (markers.get('clients') != clients or len(markers.get('batches', [])) != wanted_batches
             or markers.get('prefill_names') != [f'r{n:06}.internal.test'
                                                for n in range(population(markers['capacity'], profile))]):
-        raise ValueError('fixed prefill or ten complete batches missing')
+        raise ValueError('fixed prefill or complete frozen batch inventory missing')
     base = markers['baseline']
     if rows[base['trace_index']] != base['row'] or not drain_row(base['row']):
         raise ValueError('baseline is not an actual fully drained trace row')
@@ -396,7 +431,15 @@ def validate(rows, markers):
             or product_live(warm['drained']) != product_live(baseline)
             or any(warm['drained'][key] != baseline[key] for key in BALANCE_FIELDS)):
         raise ValueError('matching structural warm batch/baseline raw evidence missing')
+    if count_sizes is not None:
+        initial = markers.get('initial')
+        if (not initial or rows[initial['trace_index']] != initial['row']
+                or not drain_row(initial['row']) or initial['trace_index'] >= warm['active_trace_index']
+                or warm.get('clients') != 20 or warm.get('connection_start') != 0
+                or warm.get('connection_end') != 20):
+            raise ValueError('initial prewarm or twenty actual warm connections missing')
     prior_index, prior_epoch = base['trace_index'], baseline['drain_epoch']
+    connections = 20
     checked = []
     for number, batch in enumerate(markers['batches']):
         if batch['label'] != f'b{number:02}':
@@ -405,14 +448,21 @@ def validate(rows, markers):
         if not prior_index < ai < di or rows[ai] != batch['active'] or rows[di] != batch['drained']:
             raise ValueError('active/drain witness does not match actual ordered trace')
         active, drained = rows[ai], rows[di]
-        if not active_owner_contract(active, markers['capacity'], clients):
-            raise ValueError(f'actual {clients}-view private/old-root owner contract differs')
+        batch_clients = count_sizes[number] if count_sizes is not None else clients
+        if count_sizes is not None:
+            if (batch.get('clients') != batch_clients or batch.get('connection_start') != connections
+                    or batch.get('connection_end') != connections + batch_clients):
+                raise ValueError('actual connection batch accounting differs')
+            connections += batch_clients
+        if not active_owner_contract(active, markers['capacity'], batch_clients):
+            raise ValueError(f'actual {batch_clients}-view private/old-root owner contract differs')
         if not drain_row(drained) or drained['drain_epoch'] != prior_epoch + 1:
             raise ValueError('batch did not actually drain all owner/view/transaction state')
-        if (product_live(drained) != product_live(baseline)
+        if require_balance and (product_live(drained) != product_live(baseline)
                 or any(drained[key] != baseline[key] for key in BALANCE_FIELDS)):
             raise ValueError('fixed parent live/object/root/capacity balance grew across reconnections')
-        checked.append({'batch': number, 'live_without_registry': product_live(drained),
+        checked.append({'batch': number, 'clients': batch_clients,
+                        'live_without_registry': product_live(drained),
                         'live_objects': drained['live_objects'], 'root_versions': drained['registry_len']})
         prior_index, prior_epoch = di, drained['drain_epoch']
     if profile == 'limit30':
@@ -441,9 +491,13 @@ def validate(rows, markers):
     final = markers['final']
     if (not final or final['trace_index'] < prior_index or rows[final['trace_index']] != final['row']
             or final['row']['drain_epoch'] != prior_epoch
-            or not drain_row(final['row']) or product_live(final['row']) != product_live(baseline)
-            or any(final['row'][key] != baseline[key] for key in BALANCE_FIELDS)):
+            or not drain_row(final['row']) or require_balance and (
+                product_live(final['row']) != product_live(baseline)
+                or any(final['row'][key] != baseline[key] for key in BALANCE_FIELDS))):
         raise ValueError('final initial/end live balance differs')
+    if count_sizes is not None and (connections != count
+            or markers.get('connection_count_including_warm') != count):
+        raise ValueError('requested and actual connection totals differ')
     points = [row for row in rows if row['drain_epoch'] == prior_epoch
               and row['nominal_drain_second'] >= 0]
     if [row['nominal_drain_second'] for row in points] != [0, 1, 5, 15, 60]:
@@ -547,13 +601,45 @@ def rejection_controls(rows, markers):
     return results
 
 
+def count_connection_events(work, report, markers, pid, root):
+    """Join every actual accept and stable drain to immutable UBus receipts."""
+    count = markers['reconnect_count']
+    sizes = [20, *connection_batch_sizes(count)]
+    batches = [markers['warm_batch'], *markers['batches']]
+    events = [row for row in report['observations'] if 'connection_ordinal' in row]
+    if len(events) != count:
+        raise ValueError('actual connection event inventory differs from exact count')
+    ordinal = 0
+    for batch, size in zip(batches, sizes):
+        for concurrent in range(1, size + 1):
+            ordinal += 1
+            event = events[ordinal - 1]
+            gauge = f'accept-{ordinal}.gauge.json'
+            if (event.get('label') != batch['label'] + f'-connect-{ordinal:04}'
+                    or event.get('connection_ordinal') != ordinal
+                    or event.get('concurrent_clients') != concurrent
+                    or event.get('client_fd', -1) < 0 or event.get('gauge_receipt') != gauge):
+                raise ValueError('actual ordered connection event differs')
+            pressure.gauge_receipt(work, gauge, pid, root, concurrent)
+        label = batch['label'] + '-drained'
+        drain = [row for row in report['observations'] if row['label'] == label]
+        if (len(drain) != 1 or drain[0].get('tcp_connections') != 0
+                or drain[0].get('parent_fds_restored') is not True or drain[0].get('children') != 0
+                or drain[0].get('stable_observations', 0) < 3):
+            raise ValueError('actual per-batch stable FD/owner drain event missing')
+        pressure.gauge_receipt(work, drain[0]['gauge_receipt'], pid, root, 0)
+    if ordinal != count:
+        raise ValueError('actual connection events do not reach the requested total')
+
+
 def collect(args):
     folder = args.run
     receipt = json.loads((folder / 'internal-run-receipt.json').read_text())
     bound = binding(folder / 'bound-receipt.json')
     report = json.loads((folder / 'result.json').read_text())
     raw = folder / 'diagnostic.jsonl'
-    case = case_name(receipt['capacity'], receipt.get('profile', 'reconnect'))
+    case = case_name(receipt['capacity'], receipt.get('profile', 'reconnect'),
+                     receipt.get('requested_reconnect_count'))
     marker_path = folder / case / 'internal-markers.json'
     if (not receipt['completed_without_fixture_errors'] or not receipt['tools_unchanged']
             or receipt.get('missing_raw', [])
@@ -600,6 +686,11 @@ def collect(args):
                 b = [rr['data'] for rr in second['records'] if rr['section'] == 'answer']
                 if sorted(a) != ['198.51.100.7', '198.51.100.8'] or sorted(b) != sorted(a) or a == b:
                     raise ValueError('actual private multi-RR rotation differs')
+    if markers.get('reconnect_count') != receipt.get('requested_reconnect_count'):
+        raise ValueError('count mode differs from its frozen receipt')
+    count_mode = markers.get('reconnect_count') is not None
+    if count_mode:
+        count_connection_events(folder / case, row, markers, row['identity']['pid'], root['root'])
     checked = validate(rows, markers)
     controls = json.loads(args.controls.read_text())
     if (controls.get('qualified') is not True or controls.get('source_commit') != bound['source_commit']
@@ -628,9 +719,23 @@ def collect(args):
               'diagnostic_sha256': bound['diagnostic_elf']['sha256'], 'capacity': receipt['capacity'],
               'profile': receipt.get('profile', 'reconnect'),
               'batches': checked, 'trace_rows': len(rows), 'controls_sha256': driver.sha256(args.controls),
-              'negative_controls': rejection_controls(rows, markers), 'internal_balance_qualified': True,
+              'negative_controls': [] if count_mode else rejection_controls(rows, markers),
+              'internal_balance_qualified': not count_mode,
               'product_cpu_pss_qualification': False,
               'scope': 'selected fixed internal profile only; all other design pressure gates remain separate'}
+    if count_mode:
+        result.update(mode='count-attribution', method_count_complete=True,
+            count_mode={'requested': markers['reconnect_count'],
+                        'actual': markers['connection_count_including_warm'], 'max': 20,
+                        'warm_connections': 20},
+            initial=markers['initial'], warm=markers['warm_batch'], baseline=markers['baseline'],
+            final=markers['final'], batches=markers['batches'], tools=receipt['tools'],
+            bound_receipt_sha256=receipt['bound_receipt_sha256'],
+            run_receipt_sha256=driver.sha256(folder / 'internal-run-receipt.json'),
+            trace_sha256=receipt['trace_sha256'], marker_sha256=receipt['marker_sha256'],
+            corpus_sha256=hashlib.sha256(json.dumps(markers['prefill_names'],
+                separators=(',', ':')).encode()).hexdigest(),
+            scope='exact connection-count attribution only; no ordinary ten-batch resource qualification')
     save(args.out, result)
     return 0
 
@@ -695,6 +800,8 @@ def main():
     for name in ['image-root', 'rust', 'bound-receipt', 'out']:
         execute.add_argument('--' + name, type=Path, required=True)
     execute.add_argument('--capacity', type=int, choices=CAPACITIES, required=True)
+    execute.add_argument('--reconnect-count', type=int, choices=[1024, 4096],
+                         help='diagnostic-only exact actual TCP connections including structuralwarm')
     execute.add_argument('--profile', choices=PROFILES, default='reconnect')
     compare = sub.add_parser('collect')
     for name in ['run', 'controls', 'out']:

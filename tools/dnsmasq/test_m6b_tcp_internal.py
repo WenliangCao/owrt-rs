@@ -96,6 +96,34 @@ def limit_observations(folder):
     return row
 
 
+class ExactConnectionCounts(unittest.TestCase):
+    def test_exact_totals_include_twenty_warm_connections_and_partial_last_batch(self):
+        for count, batches, tail in [(1024, 51, 4), (4096, 204, 16)]:
+            sizes = gate.connection_batch_sizes(count)
+            with self.subTest(count=count):
+                self.assertEqual(sum(sizes) + 20, count)
+                self.assertEqual(len(sizes), batches)
+                self.assertEqual(sizes[-1], tail)
+                self.assertTrue(all(size == 20 for size in sizes[:-1]))
+                self.assertLessEqual(max(sizes), 20)
+
+    def test_other_counts_are_rejected_and_default_case_identity_is_unchanged(self):
+        for count in [0, 20, 200, 1023, 1025, 4095, 4097]:
+            with self.subTest(count=count), self.assertRaises(ValueError):
+                gate.connection_batch_sizes(count)
+        self.assertEqual(gate.case_name(4096, 'reconnect'), 'm6b-internal-reconnect-4096')
+        self.assertEqual(gate.case_name(4096, 'reconnect', 1024),
+                         'm6b-internal-reconnect-4096-connections-1024')
+
+    def test_partial_batch_owner_contract_uses_actual_four_or_sixteen_views(self):
+        for count in [4, 16]:
+            row = active(0, 1)
+            row.update(clients=count, G=count, dns_work=count, views=count,
+                       private_content=count, content_versions=65 + count, old_pinned_content=1)
+            self.assertTrue(gate.active_owner_contract(row, 4096, count))
+            self.assertFalse(gate.active_owner_contract(row, 4096, 20))
+
+
 class ConfiguredLimitOwners(unittest.TestCase):
     def test_thirty_actual_views_hold_in_warm_and_all_ten_batches(self):
         rows, markers = complete_limit()
