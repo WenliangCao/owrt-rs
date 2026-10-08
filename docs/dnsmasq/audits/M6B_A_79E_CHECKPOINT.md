@@ -170,3 +170,39 @@ fresh 36 步使用原 resource-tools-current 的工具资产，仅替换 warm �
 - `m6b/interface-runnable` → `archive/m6b-interface-runnable-20261008-c2e39baa`。
 
 supplemental completion SHA `e10f85b18938e70756233efb51251b25e4713911c2300390e7d53696f462bc35`；target archive SHA `60ecbfa30f542fd350726ddcbb78c34b2a5e9750b06fbcf24a8801b35b7c842d`。
+## 2026-10-08 资源尾段统一见证复核
+
+产品身份仍为上述 NoA cd9 / A79e 与 c42 companion；本轮没有修改产品、诊断 ELF、十批、负控数量、字节/对象/根余额、0/1/5/15/60 秒采样或 job 时限。原默认十批红结果仍失败。
+
+warm-03 的01–08实际通过，第09容量1失败后以相同资产/参数 fresh 原样复跑，同断言再次失败。实际20视图拥有21个内容根，其中19个新私有标签及1个历史旧标签：最后唯一持有者通过 `Arc::make_mut` 原地改写旧块，`ever_parent` 不会成为当前父所有权。`e903a7f4` 只把容量1的活跃拓扑见证改为这组精确计数；fresh tail-04的09–22全部通过，余额判词未改。
+
+随后 tail-04 的23 C交错运行通过，24 A在 warm 处因 `private_content == 0` 失败；同资产原样 fresh 确认再次失败。实际回复保持 first旧视图、second旧视图及latest父视图的隔离；active为3视图、content5、old2/private0，释放后content3、old0/private0。旧标签记录该根曾是父块，不能据此断言该块仍由当前父共享。两次24红记录保持失败。
+
+按用户追加要求，25–36的所有相关断言在本地一次性复核，完成后只上传一次续跑：
+
+| 场景 | 成功导入后的非当前父内容根 | 见证要求 |
+| --- | ---: | --- |
+| staggered-conflicts | 2 | current parent总根之外有2个独立视图根；旧/新私有标签之和为2，total为parent+2 |
+| reload-held-import | 3 | capacity150的三个64槽内容块均被reload clear复制；sole child可原地写旧标签块，total为parent+3 |
+| lease-held-import | 1 | 首warm的新私有根与后续父移除动态名后的历史旧根均是当前非父所有权，total为parent+1 |
+| S8 recover/TERM | 正私有根必须非零 | child先提交、父仍共享旧根，必须实际COW；只取成功query之后新产生的采样，缺根仍失败 |
+| ENOSPC/EMFILE | 无此类companion根断言 | 原产品配对、300秒场景、accepted/comparison判词不变 |
+
+held与post-import见证也只取父发布/相关wire完成后新产生的采样，不能回扫之前同client/pending计数的旧阶段行。S8的 `private_content > 0` 未放宽；log-only的全部ZERO_DNS（包括old/private根）仍为零；逐批与最终BALANCE_FIELDS、product_live、实际TERM退出/FD缺席及全部六项负控不变。82个本地TCP工具单测实际通过，覆盖历史标签、reload三块、lease两种split、早阶段误选、无新样本、真实缺根及每个余额字段。余额表达式AST与tail-04原工具逐项相同。
+
+最终统一工具提交 `0ca13d99`。只读源码审计、AST余额保全和实际单测记录在 E/M6B/resume-20261008/witness-audit-25-36；interleaved-review SHA `279d18e422248167f95606e3234ff34656816dca6808220bd4dd2d028efafb7e`，S8 review SHA `2bff2d6c0708a5b23e29af00281eec2f72280149e734025941f1741e2d2bd17a`。这些是工具审计，不是尚未执行的资源/CPU通过收据。
+
+完整失败原证据已本地SHA及全部metadata验证后才清理远端raw树；plain用于审阅，tar仍保有overlay/whiteout/xattr/owner/link证据：
+
+| 本地 E/M6B/full-archives 目录 | tar SHA | manifest SHA |
+| --- | --- | --- |
+| a-79e-warm-03-failed | `519e6940b53fe373c706f466b43db414c93464eb047bea51f2ee2a59a6366af5` | 见目录原manifest/local-verification |
+| a-79e-capacity1-confirm-01 | `ad65b634e9808377ecb83365a237189c7650d10636ea4dd3a86b97bb12acda16` | 见目录原manifest/local-verification |
+| a-79e-resources-tail-04 | `18f4cb3ea7f80382114232ee4ff29ea6862bd70d6726b0786fba6655f53995cb` | `616b7727495ae6fc142743fe5601ebeda87627ef685a3d6f4b72164ca584acc2` |
+| a-79e-staggered-confirm-01 | `7237b49d70a6aaf53775fd7281f3f7b97c1c9a7404a698c2e7750ffa71a89cb4` | `fa3ac2d5e03a114dbadb6d8706df649b710b3a179159896ff830615e28fca3d4` |
+
+fresh root为 `pair-signal-01/resource-tools-tail-05`，out为 `private/a79e-resources-tail-05`，queue SHA `7bfec6bd5a9df0cf8ca322b3e149a922952131a0512ca0e11db4b6e115a188ef`，payload SHA `a0901ffdb4faa124258dc4c1836b5fd168f5685d1400230c6bad50c5870627a5`，405文件上传逐SHA验证。冻结原23–36的十四项，包含fresh C/A交错对照；原checks/timeouts/order/规范化argv均不变。控制器pid/log/exit持久化；本地入口为 E/M6B/resume-20261008/resource-tail-05/status.py。未授资源整体或CPU资格。
+
+预期组合覆盖只能使用03实际passed01–08、04实际passed09–22、05实际passed23–36；原03及04控制器整体失败、09及24各两次红都必须保留。04的旧C23不充当修复后配对结果；没有跳项，没有新的完整36项控制器通过声明。CPU入口仍为 cpu-a-79e-01，必须等完整实际结果及本地归档后生成真实15门收据。
+
+资源尾段当前状态：fresh05正在执行；尚未完成14项，CPU正式/试跑窗口均为零。若实际成功阶段缺少当前非父私有所有权，停下报告产品缺陷，不再为同一问题追加工具修补。
