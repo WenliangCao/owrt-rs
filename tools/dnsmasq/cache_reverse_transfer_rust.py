@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import subprocess
 
-from cache_reverse_transfer_oracle import calibrate, compare, save, sha
+from cache_reverse_transfer_oracle import calibrate, compare, save, sha, validate_fresh_reverse
 import rust_lib_probe
 
 IDENTITY = '258e62717009ad9e2567aeda2b82dab81dbd68e2c5a04cd0b7fc4e69a435c516'
@@ -29,6 +29,7 @@ def main():
     parser.add_argument('--cargo', default='cargo')
     parser.add_argument('--source-commit', required=True)
     parser.add_argument('--inject-error', action='store_true')
+    parser.add_argument('--fresh-c-receipt', type=Path, help='new reverse C receipt; historical identity/result pins otherwise')
     rust_lib_probe.add_arguments(parser)
     args = parser.parse_args()
     assert os.environ.get('DNSMASQ_TEST_ISOLATED') == '1'
@@ -43,7 +44,12 @@ def main():
         parser.error('--source and frozen --rust-source-root disagree')
     assert 'private' in out.parts and 'private' in source.parts
     out.mkdir(parents=True, exist_ok=False)
-    assert sha(base/'identity.json') == IDENTITY and sha(base/'plan.json') == PLAN and sha(base/'result.json') == RESULT
+    assert sha(base/'plan.json') == PLAN
+    fresh_c = None
+    if args.fresh_c_receipt:
+        fresh_c = validate_fresh_reverse(base, args.fresh_c_receipt.resolve())
+    else:
+        assert sha(base/'identity.json') == IDENTITY and sha(base/'result.json') == RESULT
     cresult = json.loads((base/'result.json').read_text())
     assert cresult['status'] == 'C-baseline-complete' and not cresult['failures']
     schedule = json.loads((base/'plan.json').read_text())
@@ -67,10 +73,12 @@ def main():
         binding['source_files'] = rust_lib_probe.source_files(source)
     report = dict(scope=__doc__, source_commit=args.source_commit, original_source_files=originals,
                   adapter_sha256=sha(adapter), instrumented_cache_sha256=sha(cache), tool_sha256=sha(Path(__file__)),
-                  c_identity_sha256=IDENTITY, c_plan_sha256=PLAN, c_result_sha256=RESULT,
+                  c_identity_sha256=sha(base/'identity.json'), c_plan_sha256=PLAN, c_result_sha256=sha(base/'result.json'),
+                  fresh_c_receipt=fresh_c,
                   rust_probe=binding, rust_test=TEST,
                   original_source_scope='frozen probe inputs include cfg(test) adapter' if probe else 'legacy private copy before adapter injection',
-                  c_reference_scope='frozen native/target exact-C primitive transcripts; not stock image 097a9e21 ELF',
+                  c_reference_scope=('fresh exact-source reverse C primitive; original 21-case exact ordered comparator; not image097' if fresh_c else
+                                     'historical pinned reverse native/target C transcripts; additional regression, not fresh A service'),
                   cases=[], ordering_cases=[], failures=[], inject_error=args.inject_error)
     if probe is None:
         command = [args.cargo,'+1.98.1','test','--manifest-path',str(source/'components/dnsmasq/Cargo.toml'),'--lib','--no-run','--message-format=json','--target-dir',str(out/'target')]
@@ -85,6 +93,8 @@ def main():
     report['probe_sha256'] = sha(probe)
     for index, case in enumerate(schedule):
         rust_lib_probe.recheck(binding)
+        if fresh_c is not None and validate_fresh_reverse(base, args.fresh_c_receipt.resolve()) != fresh_c:
+            raise ValueError('fresh reverse C receipt/source/raw changed during comparison')
         env = dict(os.environ, DNSMASQ_REVERSE_TRANSFER_CASE=str(base/case['label']), DNSMASQ_REVERSE_TRANSFER_NOW=str(case['now']))
         command = rust_lib_probe.argv(probe, TEST)
         run = subprocess.run(command, env=env, text=True, capture_output=True)
@@ -93,6 +103,7 @@ def main():
             report['failures'].append({'case':case['label'],'exit':run.returncode})
             save(out/'result.json',report)
             return 1
+        rust_lib_probe.require_one_test(run.stdout, TEST)
         actual = rust_lib_probe.records(run.stdout, TEST, ('P0 ','P1 ','R ','CH ','P2 '))
         expected = (base/case['label']/'native-0.stdout').read_text().splitlines()
         if args.inject_error and index == 0: expected[-1] += ' altered'
@@ -103,6 +114,8 @@ def main():
             report['ordering_cases'].append(row)
         else: report['cases'].append(row)
         rust_lib_probe.recheck(binding)
+    if fresh_c is not None and validate_fresh_reverse(base, args.fresh_c_receipt.resolve()) != fresh_c:
+        raise ValueError('fresh reverse C receipt/source/raw changed after comparison')
     report['compared'] = sum(r['observations'] for r in report['cases'])
     report['differing_states'] = sum(len(r['differences']) for r in report['cases'])
     report['matched'] = report['compared'] - report['differing_states']
