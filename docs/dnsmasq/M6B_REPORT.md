@@ -12,8 +12,9 @@
 | 镜像C | 精确OpenWrt 25.12.5 / dnsmasq 2.93 nodhcpv6 | 097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87 | 269,305 | 所有对照使用该镜像rootfs |
 | 第1包无A opt3 | 70097c66 | 34b3b80a39ea619f616f9d003372640d6dc0af35d5941788ae15aa64c07a3050 | 1,949,736 | feature-off，742库/51入口/68UBus实际Linux通过；20 ignored不计 |
 | 第1包无A s | 同70097c66 | b91d3f0ad8ab0759a1c447ed7029035cc2c6561d6a3a7e9e017f8c28c239c62a | 1,630,248 | feature-off，仅性能对照，不作功能验收 |
-| 服务门新NoA opt3 | e8b1d6c4 | 2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc | 1,953,832 | 744库/65入口/68UBus实际过；后续45CPU的新对照，尚未测 |
-| 独立A服务候选 | 69bccf27 | 21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b | 1,962,024 | 753库/66入口实际过；ACL3镜像C caller过，完整服务/资源/45CPU仍在推进，未合main |
+| 前代NoA服务 opt3 | e8b1d6c4 | 2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc | 1,953,832 | 744库/65入口/68UBus实际过；共同signal错误边界修复后身份退休，不作新45对照 |
+| 前代独立A服务候选 | 69bccf27 | 21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b | 1,962,024 | 753库/66入口实际过；ACL3/完整服务在收尾，资源/CPU未跑；不授后继资格 |
+| signal修复NoA / A | cd9edcf7 / 79e29d7d | 尚未构建 | 未测 | 源码已提交；新pair与四项精准测试、全门均待实际 |
 | 最终opt3 / s / APK | 尚未冻结 | 未测 | 未测 | 必须绑定同一最终源码及所有门 |
 
 第1包opt3相对M5增加20,480B（1.06%）；s相对该opt3减少319,488B（16.39%）。这些只是体积，不能由此推断CPU代价或建议切换s。正式窗口不启用`m6b-diagnostics`、wake明细、perf或strace；计数诊断有独立companion身份。
@@ -249,3 +250,5 @@ EDNS full sameA e290执行195/196，neighbor-tcp-connection-mac-snapshot首query
 11:30 UTC续接发现旧服务轮因SSH断链停在14/27；缓存540完整配对过、EDNS两侧196过而compare未执行，整门未完成。旧13682路径/12475文件已全量SHA+metadata归档后prune，fresh a-service-02从头重跑，不拼旧步数。独立A树clean；资源limit30工具草稿已先保全patch，历史dirty与用户prompts保持原样。Oracle现场无残留进程/namespace/mount、63GB可用。用户本次明确第4包缓存/租约进一步优化延期到M6b之后，当前7个工作包仍继续至最终验收/报告；不因此扩大A门或提前结束本轮。
 
 fresh02的最新69bc缓存族已实际540/540配对通过（required516）、完整9次C、lease TCP caller及9负控通过；12195路径/11134文件全量验证后prune，原始归档tar1754c34c…见同checkpoint。它仅授最新缓存完整族资格，尚不授六族总服务、资源或CPU通过。
+
+独立deferred/safety审查共同确认signal pipe的两个普通错误边界：忽略NONBLOCK设置失败可能使handler满写/owner恰64B后读阻塞；handler write会覆写被中断调用errno。NoA398162ff/cd9edcf7与A74e772a6/79e29d7d分别改原子pipe2 flags和TLS errno保存/恢复，原blocking startup/helper与无pipe100ms兜底保持，新增4精准测试尚待Linux实际。详细C链/失败边界见[M6B_SIGNAL_PIPE_ATOMIC_FLAGS](audits/M6B_SIGNAL_PIPE_ATOMIC_FLAGS.md)。69bc现轮继续作为完整历史证据，后继重建/复绑所有门；CPU尚未启动，没有废弃正式窗口。最终链按本次用户顺序在唯一135前完成44族68steps/M2回归，保护cap用既定两条真实basis短窗先冻结，不以诊断PSS或假caps代替。
