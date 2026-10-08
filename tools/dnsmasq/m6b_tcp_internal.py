@@ -137,14 +137,12 @@ def active_owner_contract(row, capacity, clients=20):
         return all(row.get(key) == 0 for key in
                    ['content_versions', 'old_pinned_content', 'private_content'])
     if capacity == 1:
-        # One content block per cache. The fixed batch writes through all
-        # twenty independent views, so every child has detached its sole old
-        # root. That old allocation can legitimately have no remaining owner.
-        # Require exactly twenty private roots plus the one current parent;
-        # accepting arbitrary private/root totals would hide a missing view or
-        # a retained historical owner. End-of-batch balances remain strict.
-        return (row.get('old_pinned_content') == 0
-                and row.get('private_content') == clients
+        # The last view is the old block's sole owner: Arc::make_mut writes
+        # in place, retaining the diagnostic ever_parent tag. All views still
+        # own distinct blocks. Require that exact history-labelled split and
+        # the current parent; drained bytes, objects and roots stay strict.
+        return (row.get('old_pinned_content') == 1
+                and row.get('private_content') == clients - 1
                 and row.get('content_versions') == clients + 1)
     return row.get('old_pinned_content', 0) > 0 and row.get('private_content', 0) > 0
 

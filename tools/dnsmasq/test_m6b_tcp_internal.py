@@ -35,7 +35,7 @@ def idle(epoch, elapsed, nominal=-1):
 def active(epoch, elapsed):
     row = idle(epoch, elapsed)
     row.update(full_drained=False, clients=20, G=20, dns_work=20, views=20,
-               private_content=20, content_versions=21, old_pinned_content=0)
+               private_content=19, content_versions=21, old_pinned_content=1)
     return row
 
 
@@ -274,7 +274,7 @@ class ConfiguredLimitOwners(unittest.TestCase):
 
 
 class SingleBlockOwners(unittest.TestCase):
-    def test_one_block_has_twenty_private_roots_and_no_old_owner_after_all_children_write(self):
+    def test_one_block_has_nineteen_new_roots_and_one_historical_sole_owner(self):
         rows, markers = complete()
         self.assertTrue(gate.active_owner_contract(rows[0], 1))
         self.assertEqual(len(gate.validate(rows, markers)), 10)
@@ -284,8 +284,9 @@ class SingleBlockOwners(unittest.TestCase):
         self.assertEqual(observed, rows[0])
 
     def test_single_block_contract_rejects_lost_private_owner_and_extra_live_root(self):
-        for key, value in [('private_content', 19), ('content_versions', 20),
-                           ('content_versions', 22), ('old_pinned_content', 1), ('views', 19)]:
+        for key, value in [('private_content', 18), ('content_versions', 20),
+                           ('content_versions', 22), ('old_pinned_content', 0),
+                           ('old_pinned_content', 2), ('views', 19)]:
             rows, markers = complete()
             last = markers['batches'][-1]
             target = rows[last['active_trace_index']]
@@ -296,7 +297,7 @@ class SingleBlockOwners(unittest.TestCase):
 
     def test_warm_batch_requires_the_same_actual_owner_contract(self):
         rows, markers = complete()
-        rows[0]['private_content'] = 19
+        rows[0]['private_content'] = 18
         markers['warm_batch']['active'] = copy.deepcopy(rows[0])
         with self.assertRaises(ValueError):
             gate.validate(rows, markers)
