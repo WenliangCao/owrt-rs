@@ -38,3 +38,7 @@ CPU45独立fresh root为cpu-a-69bc-01，完整payload SHA `756003209070831d5fbb1
 最新A复制main测试实际日志a/private/bin-tests.log中`tcp_closed_downstream_keeps_pending_stale_work_until_refresh_completes ... ok`且66passed/0failed。此真实上游控制owner门保pending refresh视图/G、完成后先释放DNS状态且持日志G、FIFO恢复后G0；与镜像cache stale及后续S8余额互补，不宣称stale专用1Hz内部余额已实测，不扩新trace矩阵。
 
 fresh a-service-02最新A的完整cache12步已实际全过：540 executed/540 passed、required516，missing/differences=[]；9次C原规则、四指定PTR参考变体保持，lease TCP caller与9负控通过。本族独立完整归档E/M6B/full-archives/a-69bc-cache-service-02/cache，12195路径/11134文件全SHA+metadata核验后prune，tar SHA `1754c34c1778a6a36bd9fcebcaaa652403bb5a154e3b36294dc744062f94e5f7`，manifest SHA `bf8be29881089a99302861444c8b1e78113ca3bf6252c0648373649cc9e92926`。父controller仍继续余15步，cache原始结果已保于此独立归档，不把整服务门记通过。
+
+本轮最后已实际27/27、failures=[]、passed=true、持久controller.exit=0；EDNS196、DNSfiles107、endpoints191/188及archive/source-row、interface252/276及全部closeout、logging329均完整。余15门及父identity/commands/result/log全量保全于E/M6B/full-archives/a-69bc-service-complete-02/service-remainder：18941路径/14484文件，tar SHA `e886faad8af7651b07ad92ac30b9b490afc200165a50243e2e61059fe25459d9`，manifest SHA `accf665d2ecdb2310d8909d12be332c06284cee630d840445790476438eb69df`，全SHA+metadata过才prune；cache单独完整归档保持。Endpoint原syntax/service special元数据另由watcher02真实验证/归档后恢复plain，原tar9b97f3ca…/886beb1d…保留。
+
+69bc现作为完整历史服务资格保全：静态审查随后确认两个共同signal普通错误边界，不因上述通过豁免。NoA cd9edcf7 / A79e29d7d新pair-signal-01已启动实际两组构建/测试，后继资格必须fresh。源码tarSHA分别d2e4653b…/337f2f34…，新诊断五prepare已生成，第6resource须等新实际产品SHA；全部raw与动态入口在E/M6B/pair-signal-01。旧69bc资源/CPU资产未build/run，不能改receipt充新资格。

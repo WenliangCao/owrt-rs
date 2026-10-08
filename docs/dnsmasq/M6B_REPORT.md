@@ -252,3 +252,5 @@ EDNS full sameA e290执行195/196，neighbor-tcp-connection-mac-snapshot首query
 fresh02的最新69bc缓存族已实际540/540配对通过（required516）、完整9次C、lease TCP caller及9负控通过；12195路径/11134文件全量验证后prune，原始归档tar1754c34c…见同checkpoint。它仅授最新缓存完整族资格，尚不授六族总服务、资源或CPU通过。
 
 独立deferred/safety审查共同确认signal pipe的两个普通错误边界：忽略NONBLOCK设置失败可能使handler满写/owner恰64B后读阻塞；handler write会覆写被中断调用errno。NoA398162ff/cd9edcf7与A74e772a6/79e29d7d分别改原子pipe2 flags和TLS errno保存/恢复，原blocking startup/helper与无pipe100ms兜底保持，新增4精准测试尚待Linux实际。详细C链/失败边界见[M6B_SIGNAL_PIPE_ATOMIC_FLAGS](audits/M6B_SIGNAL_PIPE_ATOMIC_FLAGS.md)。69bc现轮继续作为完整历史证据，后继重建/复绑所有门；CPU尚未启动，没有废弃正式窗口。最终链按本次用户顺序在唯一135前完成44族68steps/M2回归，保护cap用既定两条真实basis短窗先冻结，不以诊断PSS或假caps代替。
+
+69bc现轮最终27/27真实零失败/exit0，余18941路径/14484文件完整验证后prune（tar e886faad…）；含缓存独立归档，所有六族原始证据完整。该普通服务资格不涵盖上述signal故障边界，后继NoA cd9/A79e新pair已开始实际build/tests；资源、压力或CPU均未提前跑。

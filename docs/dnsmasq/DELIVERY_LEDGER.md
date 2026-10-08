@@ -2,7 +2,7 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6b共同signal错误边界修复后新候选准备。NoA cd9edcf7727faa199f225587ea76eb283c52b15f / 独立A79e29d7de66c57fcdbfa2c98b9bec05675c30462已各提交，产品尚未构建；main仍无A。pair-signal-01源码tar全SHA已上传，等待旧不可变69bc服务02收尾再串行build/tests。旧服务现26/27无失败：cache540、EDNS196、DNSfiles107、endpoints及interface实际完成，完整logging329继续；cache归档1754c34c…已prune，其余族保全待收尾，不授新source资格。资源/压力/45CPU未运行，物理路由器未碰。
+- 当前里程碑：M6b共同signal错误边界修复后新候选实际构建。NoA cd9edcf7727faa199f225587ea76eb283c52b15f / 独立A79e29d7de66c57fcdbfa2c98b9bec05675c30462源码tar全SHA上传，pair-signal-01串行build/tests已启动（持久build-controller log/pid/exit），main仍无A。69bc服务02真实27/27零失败，完整logging329通过；cache1754c34c…和余门e886faad…共两全量归档SHA+metadata过后已prune，不授后继source资格。79e五份诊断prepare已真实生成，第6resource须等实际新ELF SHA才prepare，禁止零/旧SHA。资源/压力/45CPU未运行，物理路由器未碰。
 - 刚关闭：前代共同service fixes A3c666/7128d3b6的5case targeted日志真实配对全部0失败（2stale+3startup fault），SHA b5a46a7766c8b3096a86819d8f63e91de1205473164f895e7b79125a37204ee1，log-queries普通缺口即时复闭169/0；closed=[]如实保留，targeted不授全族资格。MAC单caller、interface10 targeted先前复闭5项；最新pair-udp-acl-01构建/owner门过，full新ELF资格继续。
 
 - 当前代码与资格：无A源码e8b1d6c4实际feature-off opt3 SHA2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc，1,953,832B；独立A源码69bccf2738f2c07cbc6d8b8a950015d4cea10af3实际opt3 SHA21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b，1,962,024B。Oracle pair-udp-acl-01，两实际build receipts已回本地E/M6B/pair-udp-acl-01；全部test实际过如上。旧ae1/d8资格只历史，不冒充同源；main仅公共正确性修复、产品无A。CPU45旧common89ea1b95仍未执行，现已过时，不手改manifest；全前置过后须最新NoA同源s和fresh common，只45、不增新27。
