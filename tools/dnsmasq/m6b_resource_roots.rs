@@ -4,6 +4,93 @@
 struct M6bRoot {
     version: u64, ever_parent: bool, parent: bool, view: bool,
 }
+
+#[cfg(test)]
+mod m6b_root_controls {
+    use super::*;
+
+    fn reset() {
+        let _scope = crate::m6b_resource_diag::ObserverScope::enter();
+        M6B_ROOTS.with(|registry| *registry.borrow_mut() = M6bRoots::default());
+    }
+
+    fn summary(parent: &Cache, views: &[&Cache]) -> M6bRootSummary {
+        Cache::m6b_begin_root_sample();
+        parent.m6b_observe_roots(true);
+        for view in views { view.m6b_observe_roots(false); }
+        Cache::m6b_finish_root_sample()
+    }
+
+    #[test]
+    fn snapshots_and_detach_track_actual_owners_without_extra_arcs() {
+        reset();
+        let mut parent = Cache::new(150, Policy::default());
+        parent.m6b_mark_parent_roots();
+        let mut child = parent.snapshot();
+        let first = Arc::as_ptr(&parent.content[0]);
+        assert_eq!(Arc::strong_count(&parent.content[0]), 2);
+        assert_eq!(Arc::weak_count(&parent.content[0]), 0);
+        let initial = summary(&parent, &[&child]);
+        assert_eq!((initial.content, initial.index, initial.registry_len), (3, 64, 67));
+        assert_eq!(initial.missing_creation_hooks, 0);
+        assert_eq!(Arc::as_ptr(&parent.content[0]), first);
+        assert_eq!(Arc::strong_count(&parent.content[0]), 2, "observer may not pin a root");
+        m6b_root_mut(0, &mut parent.content[0]).entries[0] = None;
+        m6b_root_mut(1, &mut parent.names[0]).reserve(1);
+        let detached = summary(&parent, &[&child]);
+        assert_eq!((detached.old_content, detached.old_index), (1, 1));
+        assert_eq!((detached.content, detached.index), (4, 65));
+        m6b_root_mut(0, &mut child.content[1]).entries[0] = None;
+        m6b_root_mut(1, &mut child.names[1]).reserve(1);
+        let private = summary(&parent, &[&child]);
+        assert_eq!((private.private_content, private.private_index), (1, 1));
+        assert_eq!(private.missing_creation_hooks, 0);
+        drop(child);
+        let released = summary(&parent, &[]);
+        assert_eq!((released.content, released.index, released.registry_len), (3, 64, 67));
+        assert_eq!((released.old_content, released.old_index, released.private_content, released.private_index), (0, 0, 0, 0));
+        println!("M6B_RESOURCE_LAYOUT slot={} entry={} record={} content={} cache={} indices={} index={}",
+            std::mem::size_of::<Slot>(), std::mem::size_of::<Entry>(), std::mem::size_of::<Record>(),
+            std::mem::size_of::<ContentBlock>(), std::mem::size_of::<Cache>(),
+            std::mem::size_of::<SlotIndices>(), std::mem::size_of::<NameIndex>());
+    }
+
+    #[test]
+    fn missing_constructor_and_detach_are_detected() {
+        reset();
+        let mut parent = Cache::new(150, Policy::default());
+        parent.m6b_mark_parent_roots();
+        let child = parent.snapshot();
+        // Deliberately bypass the diagnostic detach hook. The product Arc
+        // operation remains real, so an observed unregistered allocation is a
+        // genuine negative control rather than a pre-filled report boolean.
+        Arc::make_mut(&mut parent.content[0]).entries[0] = None;
+        let missing_detach = summary(&parent, &[&child]);
+        assert!(missing_detach.missing_creation_hooks > 0);
+        // Deliberately bypass the constructor hook as well.
+        parent.names[0] = Arc::new(NameIndex::new());
+        let missing_new = summary(&parent, &[&child]);
+        assert!(missing_new.missing_creation_hooks > missing_detach.missing_creation_hooks);
+    }
+
+    #[test]
+    fn creation_stamp_replaces_old_parent_history_at_same_address() {
+        reset();
+        let parent = Cache::new(1, Policy::default());
+        parent.m6b_mark_parent_roots();
+        let address = Arc::as_ptr(&parent.names[0]) as usize;
+        let old = M6B_ROOTS.with(|registry| registry.borrow().roots[&(1, address)].version);
+        // Exercise the constructor's reuse rule on a real root address. This
+        // checks stamping, not a promise about System's address reuse policy.
+        m6b_fresh_root(1, address);
+        M6B_ROOTS.with(|registry| {
+            let registry = registry.borrow();
+            let replacement = &registry.roots[&(1, address)];
+            assert!(replacement.version > old);
+            assert!(!replacement.ever_parent);
+        });
+    }
+}
 #[derive(Default)]
 struct M6bRoots {
     next_version: u64, roots: HashMap<(u8, usize), M6bRoot>, missing: u64,

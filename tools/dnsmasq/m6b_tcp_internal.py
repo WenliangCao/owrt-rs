@@ -1,0 +1,445 @@
+#!/usr/bin/env python3
+"""Source-bound TCP A internal accounting; never product CPU/PSS acceptance.
+
+One profile per fresh image namespace. Parent names, wire responses and capacity
+stay fixed after prefill; one structural warm batch precedes ten measured batches.
+Actual companion rows, gauges, wires, stable FD samples and smaps remain raw.
+"""
+import argparse
+import copy
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import time
+
+import m5_dns_cache as driver
+import m6b_tcp_pressure as pressure
+
+CAPACITIES = [0, 1, 150, 4096]
+CONTROLS = [
+    'm6b_resource_diag::m6b_controls::system_operations_and_known_live_object',
+    'm6b_resource_diag::m6b_controls::failed_realloc_retains_old_object_and_balance',
+    'm6b_resource_diag::m6b_controls::registry_scope_reserve_grow_and_drop_balance',
+    'dns::cache::m6b_root_controls::snapshots_and_detach_track_actual_owners_without_extra_arcs',
+    'dns::cache::m6b_root_controls::missing_constructor_and_detach_are_detected',
+    'dns::cache::m6b_root_controls::creation_stamp_replaces_old_parent_history_at_same_address',
+]
+TOOLS = ['m6b_tcp_internal.py', *pressure.TOOLS]
+DRAIN_FIELDS = ['clients', 'G', 'dns_work', 'views', 'tcp_pending', 'tcp_accept_pending',
+                'udp_pending', 'typed_transfer_inflight', 'old_pinned_content', 'old_pinned_index',
+                'private_content', 'private_index']
+BALANCE_FIELDS = ['content_versions', 'index_versions', 'registry_len', 'registry_capacity',
+                  'live_objects', 'client_vector_bytes', 'view_lru_bytes', 'cache_pending',
+                  'pending_capacity', 'reverse_capacity', 'input_capacity', 'framer_capacity',
+                  'writing_capacity', 'waiting_mac_capacity', 'query_event_descriptors',
+                  'stale_capacity', 'mac_capacity', 'upstream_capacity', 'log_payload_capacity',
+                  'log_queue_capacity']
+
+
+def save(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, indent=2, sort_keys=True)
+        stream.write('\n')
+
+
+def binding(path):
+    receipt = json.loads(path.read_text())
+    if (receipt.get('status') != 'built-not-validated'
+            or not re.fullmatch('[0-9a-f]{40}', receipt.get('source_commit', ''))
+            or not re.fullmatch('[0-9a-f]{64}', receipt.get('product_elf_sha256', ''))
+            or not re.fullmatch('[0-9a-f]{64}', receipt.get('diagnostic_elf', {}).get('sha256', ''))
+            or receipt.get('cpu_or_product_pss_qualification') is not False):
+        raise ValueError('same-source built companion receipt required')
+    return receipt
+
+
+def trace_rows(path):
+    if not path.exists():
+        return []
+    data = path.read_bytes()
+    # A live write may not yet have terminated its last row. Collection after
+    # process exit rejects any incomplete trailing line instead of dropping it.
+    lines = data.split(b'\n')[:-1]
+    return [json.loads(line) for line in lines if line]
+
+
+def product_live(row):
+    return row['live_requested_including_diagnostic'] - row['observer_registry_requested']
+
+
+def drain_row(row):
+    return row.get('full_drained') is True and all(row.get(key) == 0 for key in DRAIN_FIELDS)
+
+
+def stable_trace(path, after):
+    until = time.monotonic() + 5
+    while True:
+        rows = trace_rows(path)
+        if len(rows) >= after + 2:
+            pair = rows[-2:]
+            if (all(drain_row(row) for row in pair)
+                    and pair[1]['elapsed_ns'] - pair[0]['elapsed_ns'] >= 900_000_000
+                    and product_live(pair[0]) == product_live(pair[1])
+                    and pair[0]['live_objects'] == pair[1]['live_objects']):
+                return len(rows) - 1, rows[-1]
+        if time.monotonic() > until:
+            raise AssertionError('actual internal drain/live values did not stabilize')
+        time.sleep(.02)
+
+
+def active_trace(path, after, capacity):
+    until = time.monotonic() + 5
+    while True:
+        rows = trace_rows(path)
+        for index in range(after, len(rows)):
+            row = rows[index]
+            if row.get('clients') == row.get('views') == row.get('dns_work') == row.get('G') == 20:
+                if capacity and not (row['old_pinned_content'] > 0 and row['private_content'] > 0):
+                    continue
+                return index, row
+        if time.monotonic() > until:
+            raise AssertionError('twenty-view old/private root witness was not observed')
+        time.sleep(.02)
+
+
+def schedule(spec, port, upstream, folder, root):
+    fixture = pressure.Caller(spec, port, upstream, folder, root)
+    trace = root / 'm2/internal.jsonl'
+    names = [f'r{n:06}.internal.test' for n in range(max(spec['capacity'], 32))]
+    answers = [{'data': 'c6336407'}]
+    for host in names:
+        upstream.plan[host] = {'ttl': 600, 'answers': answers}
+    markers = {'prefill_names': names, 'capacity': spec['capacity'], 'clients': 20,
+               'batches': [], 'warm_batch': None, 'baseline': None, 'final': None}
+    marker_path = folder / 'internal-markers.json'
+
+    def checkpoint():
+        marker_path.write_text(json.dumps(markers, indent=2, sort_keys=True) + '\n')
+
+    def forced(label, host, client=None):
+        fixture.wire_id += 1
+        wire = driver.query(host, fixture.wire_id, do=True)
+        before = len(upstream.events)
+        fixture.capture(label, wire, driver.exchange(port, wire, tcp=client is not None, connection=client))
+        if len(upstream.events) <= before:
+            raise AssertionError('force-refresh request did not reach the frozen upstream')
+        fixture.event(label + '-upstream-witness', before=before, after=len(upstream.events))
+
+    def batch(label):
+        start = len(trace_rows(trace))
+        for _ in range(20):
+            fixture.connect()
+        # Both parent and child replacements use the same existing names and
+        # exact RDATA. No growing name universe can masquerade as a leak.
+        for n in range(min(len(names), 32)):
+            forced(label + f'-parent-{n:02}', names[n])
+        for n, client in enumerate(fixture.clients):
+            forced(label + f'-child-{n:02}', names[n % len(names)], client)
+            fixture.query(label + f'-hit-{n:02}', client, names[(n + 1) % len(names)])
+        active_index, active = active_trace(trace, start, spec['capacity'])
+        fixture.sample(label + '-active')
+        before_drain = len(trace_rows(trace))
+        fixture.drain(label + '-drained')
+        drain_index, drained = stable_trace(trace, before_drain)
+        fixture.sample(label + '-idle')
+        return {'label': label, 'active_trace_index': active_index, 'active': active,
+                'drain_trace_index': drain_index, 'drained': drained,
+                'upstream_events': len(upstream.events)}
+
+    try:
+        fixture.sample('initial-idle')
+        for n, host in enumerate(names):
+            fixture.query(f'prefill-{n:06}', host=host)
+        if spec['capacity']:
+            populated = fixture.metrics('prefilled')
+            if populated['dns_cache_inserted'] < spec['capacity']:
+                raise AssertionError('parent full-cache prefill witness absent')
+        fixture.confirm_warm_idle('pre-batch-idle')
+        markers['warm_batch'] = batch('warm')
+        # Warm all persistent client vector, fd-array and map capacities before
+        # claiming the baseline. Repeat exactly the same workload ten times.
+        index, row = stable_trace(trace, markers['warm_batch']['drain_trace_index'] - 1)
+        markers['baseline'] = {'trace_index': index, 'row': row}
+        checkpoint()
+        for number in range(10):
+            markers['batches'].append(batch(f'b{number:02}'))
+            checkpoint()
+        fixture.drain('final-drain')
+        fixture.after_drain()
+        index, row = stable_trace(trace, len(trace_rows(trace)) - 2)
+        markers['final'] = {'trace_index': index, 'row': row}
+        checkpoint()
+        return fixture.rows
+    finally:
+        checkpoint()
+        for client in list(fixture.clients):
+            fixture.close(client)
+
+
+def run(args):
+    receipt = binding(args.bound_receipt)
+    if driver.sha256(args.rust) != receipt['diagnostic_elf']['sha256']:
+        raise ValueError('this internal run requires the bound diagnostic copy')
+    spec = {'case': f'm6b-internal-reconnect-{args.capacity}', 'mode': 'internal-reconnect',
+            'capacity': args.capacity, 'config': '', 'metrics': True,
+            'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
+    frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
+    driver.SYNTAX.clear()
+    driver.SCENARIOS[:] = [spec]
+    driver.schedule = schedule
+    args.side, args.only = 'rust', '^m6b-internal-'
+    os.environ['DNSMASQ_M6B_RESOURCE_TRACE'] = '/m2/internal.jsonl'
+    status = driver.run(args)
+    raw = args.out / 'rootfs-overlay/upper/m2/internal.jsonl'
+    copied = args.out / 'diagnostic.jsonl'
+    copied.write_bytes(raw.read_bytes())
+    (args.out / 'bound-receipt.json').write_bytes(args.bound_receipt.read_bytes())
+    for name, data in frozen.items():
+        (args.out / 'drivers' / name).write_bytes(data)
+    unchanged = all(Path(__file__).with_name(name).read_bytes() == data for name, data in frozen.items())
+    save(args.out / 'internal-run-receipt.json', {
+        'source_commit': receipt['source_commit'], 'product_sha256': receipt['product_elf_sha256'],
+        'diagnostic_sha256': receipt['diagnostic_elf']['sha256'], 'capacity': args.capacity,
+        'bound_receipt_sha256': driver.sha256(args.bound_receipt),
+        'trace_sha256': driver.sha256(copied), 'result_sha256': driver.sha256(args.out / 'result.json'),
+        'marker_sha256': driver.sha256(args.out / spec['case'] / 'internal-markers.json'),
+        'tools': {name: driver.sha256(args.out / 'drivers' / name) for name in TOOLS},
+        'tools_unchanged': unchanged, 'completed_without_fixture_errors': status == 0,
+        'product_cpu_pss_qualification': False, 'internal_balance_qualification': False})
+    return status or int(not unchanged)
+
+
+def validate(rows, markers):
+    if not rows or any(not row.get('diagnostic_only') or row.get('product_qualification') is not False
+                       or row.get('extra_trace_fd') != 1 or row.get('missing_hooks') != 0
+                       or row.get('balance_errors') != 0 or row.get('alloc_failed') != 0 for row in rows):
+        raise ValueError('diagnostic method failed or trace inventory missing')
+    if any(b['elapsed_ns'] <= a['elapsed_ns'] for a, b in zip(rows, rows[1:])):
+        raise ValueError('diagnostic rows are not strictly ordered')
+    if (markers.get('clients') != 20 or len(markers.get('batches', [])) != 10
+            or markers.get('prefill_names') != [f'r{n:06}.internal.test'
+                                               for n in range(max(markers['capacity'], 32))]):
+        raise ValueError('fixed prefill or ten complete batches missing')
+    base = markers['baseline']
+    if rows[base['trace_index']] != base['row'] or not drain_row(base['row']):
+        raise ValueError('baseline is not an actual fully drained trace row')
+    baseline = base['row']
+    prior_index, prior_epoch = base['trace_index'], baseline['drain_epoch']
+    checked = []
+    for number, batch in enumerate(markers['batches']):
+        if batch['label'] != f'b{number:02}':
+            raise ValueError('batch order changed or a faster subset was selected')
+        ai, di = batch['active_trace_index'], batch['drain_trace_index']
+        if not prior_index < ai < di or rows[ai] != batch['active'] or rows[di] != batch['drained']:
+            raise ValueError('active/drain witness does not match actual ordered trace')
+        active, drained = rows[ai], rows[di]
+        if not active['clients'] == active['G'] == active['dns_work'] == active['views'] == 20:
+            raise ValueError('twenty independently retained views were not observed')
+        if markers['capacity'] and not (active['old_pinned_content'] > 0 and active['private_content'] > 0):
+            raise ValueError('actual old-parent/private-content churn witness absent')
+        if not drain_row(drained) or drained['drain_epoch'] != prior_epoch + 1:
+            raise ValueError('batch did not actually drain all owner/view/transaction state')
+        if (product_live(drained) != product_live(baseline)
+                or any(drained[key] != baseline[key] for key in BALANCE_FIELDS)):
+            raise ValueError('fixed parent live/object/root/capacity balance grew across reconnections')
+        checked.append({'batch': number, 'live_without_registry': product_live(drained),
+                        'live_objects': drained['live_objects'], 'root_versions': drained['registry_len']})
+        prior_index, prior_epoch = di, drained['drain_epoch']
+    final = markers['final']
+    if (not final or final['trace_index'] < prior_index or rows[final['trace_index']] != final['row']
+            or not drain_row(final['row']) or product_live(final['row']) != product_live(baseline)
+            or any(final['row'][key] != baseline[key] for key in BALANCE_FIELDS)):
+        raise ValueError('final initial/end live balance differs')
+    points = [row for row in rows if row['drain_epoch'] == prior_epoch
+              and row['nominal_drain_second'] >= 0]
+    if [row['nominal_drain_second'] for row in points] != [0, 1, 5, 15, 60]:
+        raise ValueError('complete final drain epoch 0/1/5/15/60 points missing')
+    for row in points:
+        nominal = row['nominal_drain_second'] * 1_000_000_000
+        if not drain_row(row) or not nominal <= row['actual_drain_ns'] <= nominal + 1_500_000_000:
+            raise ValueError('final drain timing was shortened or late')
+    return checked
+
+
+def rejection_controls(rows, markers):
+    mutations = ['retained-client', 'retained-view', 'retained-transaction', 'retained-pinned-root',
+                 'known-one-byte-leak', 'known-one-object-leak', 'registry-growth', 'missing-hook',
+                 'missing-batch', 'shortened-drain']
+    results = []
+    for name in mutations:
+        changed, altered = copy.deepcopy(rows), copy.deepcopy(markers)
+        last = altered['batches'][-1]
+        target = changed[last['drain_trace_index']]
+        if name == 'missing-batch':
+            altered['batches'].pop()
+        elif name == 'shortened-drain':
+            next(row for row in changed if row['nominal_drain_second'] == 60
+                 and row['drain_epoch'] == target['drain_epoch'])['actual_drain_ns'] = 59_000_000_000
+        else:
+            key = {'retained-client': 'clients', 'retained-view': 'views',
+                   'retained-transaction': 'tcp_pending', 'retained-pinned-root': 'old_pinned_content',
+                   'known-one-byte-leak': 'live_requested_including_diagnostic',
+                   'known-one-object-leak': 'live_objects', 'registry-growth': 'registry_capacity',
+                   'missing-hook': 'missing_hooks'}[name]
+            target[key] += 1
+            # Mutate both raw observation and its marker, so rejection cannot
+            # merely rely on the trivial report/raw identity check.
+            last['drained'] = copy.deepcopy(target)
+        rejected = False
+        try:
+            validate(changed, altered)
+        except (ValueError, KeyError):
+            rejected = True
+        results.append({'control': name, 'rejected': rejected})
+    if not all(row['rejected'] for row in results):
+        raise ValueError('internal collector negative control did not reject corrupted evidence')
+    return results
+
+
+def collect(args):
+    folder = args.run
+    receipt = json.loads((folder / 'internal-run-receipt.json').read_text())
+    bound = binding(folder / 'bound-receipt.json')
+    report = json.loads((folder / 'result.json').read_text())
+    raw = folder / 'diagnostic.jsonl'
+    case = f"m6b-internal-reconnect-{receipt['capacity']}"
+    marker_path = folder / case / 'internal-markers.json'
+    if (not receipt['completed_without_fixture_errors'] or not receipt['tools_unchanged']
+            or report['failures'] or report['executed_cases'] != [case] or len(report['scenarios']) != 1
+            or report['side'] != 'rust' or report['rust_sha256'] != bound['diagnostic_elf']['sha256']
+            or receipt['source_commit'] != bound['source_commit']):
+        raise ValueError('incomplete or differently bound internal run')
+    for filename, key in [('bound-receipt.json', 'bound_receipt_sha256'),
+                          ('result.json', 'result_sha256'), ('diagnostic.jsonl', 'trace_sha256')]:
+        if driver.sha256(folder / filename) != receipt[key]:
+            raise ValueError('saved raw identity differs: ' + filename)
+    if driver.sha256(marker_path) != receipt['marker_sha256']:
+        raise ValueError('saved marker identity differs')
+    if raw.read_bytes() != (folder / 'rootfs-overlay/upper/m2/internal.jsonl').read_bytes() or not raw.read_bytes().endswith(b'\n'):
+        raise ValueError('raw overlay trace incomplete or different from copied trace')
+    for name in TOOLS:
+        if (driver.sha256(folder / 'drivers' / name) != receipt['tools'][name]
+                or driver.sha256(Path(__file__).with_name(name)) != receipt['tools'][name]):
+            raise ValueError('frozen dependency differs: ' + name)
+    row = report['scenarios'][0]
+    root = json.loads((folder / 'rootfs-identity.json').read_text())
+    pressure.root_provenance(root)
+    if (row.get('failure') or row['exit'] != 0 or row['upstream_errors']
+            or row['identity']['sha256'] != bound['diagnostic_elf']['sha256']):
+        raise ValueError('actual diagnostic process/cleanup failed')
+    for obs in row['observations']:
+        if 'query' in obs:
+            for kind in ['query', 'reply']:
+                if driver.normalized((folder / case / (obs['label'] + '.' + kind)).read_bytes()) != obs[kind]:
+                    raise ValueError('actual query/reply differs from its report')
+    pressure.validate_profile(folder / case, row, row['identity']['pid'], root['root'])
+    markers, rows = json.loads(marker_path.read_text()), trace_rows(raw)
+    checked = validate(rows, markers)
+    controls = json.loads(args.controls.read_text())
+    if (controls.get('qualified') is not True or controls.get('source_commit') != bound['source_commit']
+            or controls.get('bound_receipt_sha256') != receipt['bound_receipt_sha256']
+            or controls.get('passed_tests') != CONTROLS):
+        raise ValueError('same-source actual six method controls required before balance qualification')
+    control_folder = args.controls.parent
+    control_build = json.loads((control_folder / 'control-build.json').read_text())
+    inputs = {name: digest for name, digest in bound['diagnostic_source_files'].items()
+              if name.startswith(('components/dnsmasq/', 'components/ubus/'))}
+    if (driver.sha256(control_folder / 'control-build.json') != controls['control_build_sha256']
+            or driver.sha256(control_folder / 'lib-dnsmasq_rs') != controls['control_elf_sha256']
+            or control_build['source_files'] != inputs or controls['layout_matches'] is not True
+            or driver.sha256(control_folder / 'layout-report.json') != controls['layout_report_sha256']):
+        raise ValueError('method control actual source/build/copy/layout receipts differ')
+    for number, result in enumerate(controls['tests']):
+        work = control_folder / f'{number:02}'
+        if (result != json.loads((work / 'run.json').read_text())
+                or result['test'] != CONTROLS[number] or result['returncode'] != 0
+                or not result['elf_before'] == result['elf_after'] == controls['control_elf_sha256']
+                or result['stdout_sha256'] != driver.sha256(work / 'stdout')
+                or result['stderr_sha256'] != driver.sha256(work / 'stderr')
+                or '1 passed; 0 failed; 0 ignored' not in (work / 'stdout').read_text()):
+            raise ValueError('actual method control invocation/output differs')
+    result = {'source_commit': bound['source_commit'], 'product_sha256': bound['product_elf_sha256'],
+              'diagnostic_sha256': bound['diagnostic_elf']['sha256'], 'capacity': receipt['capacity'],
+              'batches': checked, 'trace_rows': len(rows), 'controls_sha256': driver.sha256(args.controls),
+              'negative_controls': rejection_controls(rows, markers), 'internal_balance_qualified': True,
+              'product_cpu_pss_qualification': False,
+              'scope': 'ten fixed-name warmed reconnect batches only; all other design pressure gates remain separate'}
+    save(args.out, result)
+    return 0
+
+
+def controls(args):
+    bound = binding(args.bound_receipt)
+    build = json.loads(args.build_json.read_text())
+    elf = args.build_json.parent / 'lib-dnsmasq_rs'
+    inputs = {name: digest for name, digest in bound['diagnostic_source_files'].items()
+              if name.startswith(('components/dnsmasq/', 'components/ubus/'))}
+    if (build.get('kind') != 'probe-tests' or build.get('opt_level') != '3' or build.get('features') != ''
+            or build.get('cargo_target_dir') != '/home/ubuntu/dnsmasq-cargo-target'
+            or build.get('source') != bound['source_root']
+            or build['source_files'] != inputs
+            or not any(row['path'] == elf.name and row['sha256'] == driver.sha256(elf)
+                       for row in build['artifacts'])):
+        raise ValueError('source-bound copied diagnostic control lib-test build required')
+    if args.out.exists() or 'private' not in args.out.resolve().parts:
+        raise ValueError('fresh private control output required')
+    args.out.mkdir(parents=True)
+    shutil.copy2(elf, args.out / elf.name)
+    elf = args.out / elf.name
+    (args.out / 'control-build.json').write_bytes(args.build_json.read_bytes())
+    (args.out / 'layout-report.json').write_bytes(args.layout_report.read_bytes())
+    passed = []
+    results = []
+    for number, test in enumerate(CONTROLS):
+        work = args.out / f'{number:02}'; work.mkdir()
+        env = dict(os.environ, TMPDIR=str(work / 'tmp')); Path(env['TMPDIR']).mkdir()
+        argv = [str(elf), '--exact', test, '--test-threads=1', '--nocapture']
+        before = driver.sha256(elf)
+        with (work / 'stdout').open('wb') as stdout, (work / 'stderr').open('wb') as stderr:
+            result = subprocess.run(argv, stdout=stdout, stderr=stderr, env=env, timeout=60)
+        after = driver.sha256(elf)
+        ok = (result.returncode == 0 and before == after and
+              '1 passed; 0 failed; 0 ignored' in (work / 'stdout').read_text())
+        results.append({'test': test, 'argv': argv, 'returncode': result.returncode,
+                        'elf_before': before, 'elf_after': after, 'passed': ok,
+                        'stdout_sha256': driver.sha256(work / 'stdout'), 'stderr_sha256': driver.sha256(work / 'stderr')})
+        save(work / 'run.json', results[-1])
+        if ok:
+            passed.append(test)
+    layouts = re.findall(r'M6B_RESOURCE_LAYOUT slot=(\d+) entry=(\d+) record=(\d+) content=(\d+) cache=(\d+) indices=(\d+) index=(\d+)',
+                         (args.out / '03/stdout').read_text())
+    layout = json.loads(args.layout_report.read_text())
+    sizes = layout['type_sizes']
+    expected = tuple(str(sizes[key]) for key in ['Slot', 'Entry', 'Record', 'ContentBlock', 'Cache', 'SlotIndices', 'NameIndex'])
+    layout_matches = layouts == [expected] and layout['source_commit'] == bound['source_commit']
+    report = {'source_commit': bound['source_commit'], 'bound_receipt_sha256': driver.sha256(args.bound_receipt),
+              'control_build_sha256': driver.sha256(args.build_json), 'control_elf_sha256': driver.sha256(elf),
+              'layout_report_sha256': driver.sha256(args.layout_report), 'layout_matches': layout_matches,
+              'passed_tests': passed, 'tests': results, 'qualified': passed == CONTROLS and layout_matches,
+              'scope': 'System balance, known undropped object, observer scope, root detach/missing/reuse controls; not product performance'}
+    save(args.out / 'controls.json', report)
+    return int(not report['qualified'])
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest='action', required=True)
+    execute = sub.add_parser('run')
+    for name in ['image-root', 'rust', 'bound-receipt', 'out']:
+        execute.add_argument('--' + name, type=Path, required=True)
+    execute.add_argument('--capacity', type=int, choices=CAPACITIES, required=True)
+    compare = sub.add_parser('collect')
+    for name in ['run', 'controls', 'out']:
+        compare.add_argument('--' + name, type=Path, required=True)
+    control = sub.add_parser('controls')
+    for name in ['bound-receipt', 'build-json', 'layout-report', 'out']:
+        control.add_argument('--' + name, type=Path, required=True)
+    args = parser.parse_args()
+    return {'run': run, 'collect': collect, 'controls': controls}[args.action](args)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
