@@ -223,3 +223,5 @@ fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察
 无A的70097完整27窗口原始数据保持历史；A增量45窗口将给无A和A同时带相同方向修复，保证共享存储增量独立归因，不重新扩中间27窗口。新的source/ELF与门收据在修复freeze时登记。计数companion04方法六tests实际通过、目标机布局相符，SHA937a06612edbfd25e37972496bd3d90046cbcf53c5590f6e643ff4ee0c47db84；仅方法控制，不代表10批余额/产品资源/CPU门。其build SSH -n通道同样在远端实际结束后滞留，本地核对无匹配build进程及完整收据后终止owned15785，wrapper255单列保留，不能冒充runtime失败。
 
 方向修复main1bd9436c、独立A ae1cdba6只在Cache::import_counted跳过reverse的forward-local callback，新增IPv4/IPv6及forward冲突精准测试，尚待新ELF镜像复闭。新pair第一准备因controller在scp结束前读source tar触发Unexpected EOF，首次raw和controller保留；第二fresh目录先逐tar SHA核对，再解包/构建，不覆写首失败或放宽验证。
+
+方向修复新构建已实际通过：无A源码1bd9436c／SHA30141ffe4d75a7a2692999fdad15c9f9f279223d77255cdbe96ea9fde3e8cdae、1,949,736B，743库/51入口；A源码ae1cdba6／SHAe29007279f74165ffd08afc1d590fe6974db4be0624aa0bfe69aecdc5e827695、1,962,024B，752库/52入口；公共UBus68（编译组件字节相同）通过，20 ignored不计。fresh镜像IPv4/IPv6 PTR×UDP/TCP四profile逐一与两候选配对，8组原case_equal语义/metrics全通过，三组均仅1上游/插入1/后两请求命中，cache-rr复闭恢复169。A相对同修NoA新增12,288B（0.63%），只属体积，不授CPU/资源资格；完整family/new原语/资源/CPU门继续执行。
