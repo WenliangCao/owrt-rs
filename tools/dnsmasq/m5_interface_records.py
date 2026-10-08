@@ -1020,19 +1020,20 @@ def run_service_side(root,side,case,out):
                     wanted=['198.18.91.10','198.18.91.9'] if value.get('cycle_new_address') else ['198.18.91.9']
                     if parsed['id']!=0x7341 or [r['data'] for r in parsed['records'] if r['type']==1]!=wanted:
                         raise AssertionError('same-cycle local packet guard failed')
-                Path(str(path)+'.stop').write_text('both received\n')
-                if tracer.wait(5)!=0:raise AssertionError('enum count exit')
+                if stop_enumeration_count(tracer,path)!=0:raise AssertionError('enum count exit')
                 evidence=json.loads(path.read_text());requests=[r for r in evidence['events'] if r['phase']=='request']
                 families=[r['dump_family'] for r in requests]
                 if not families or families!=[10,2]*(len(families)//2):raise AssertionError('incomplete ordered enumeration in parent cycles')
                 cycles=[r['cycle'] for r in requests if r['dump_family']==10]
                 if len(cycles)!=len(set(cycles)):raise AssertionError('more than one enumeration within an actual parent poll cycle')
                 if not evidence.get('polls'):raise AssertionError('actual parent poll boundary witness missing')
+                if not evidence.get('completed') or not evidence.get('trace_control',{}).get('detached'):
+                    raise AssertionError('enum count did not finish and detach after both replies')
                 states.append({'label':'same-cycle','frozen_status':frozen,'requests':requests,'replies':[r.hex() for r in replies],
                     'completed':evidence.get('completed',False)})
             finally:
                 for client in clients:client.close()
-                if tracer.poll() is None:tracer.kill();tracer.wait()
+                if tracer.poll() is None:stop_enumeration_count(tracer,path,completed=False)
             return
         if isinstance(value,dict) and 'allocation_fault' in value:
             pid=int((root/'m2/files.pid').read_text());path=out/'allocation-fault.json'
@@ -1579,6 +1580,118 @@ def main():
     return int(bool(report['failures']))
 
 
+def stop_enumeration_count(tracer,output,*,completed=True):
+    """Notify the tracer, never the daemon or a DNS/reload path."""
+    path=Path(str(output)+'.stop')
+    if not path.exists():
+        pending=Path(str(path)+'.new')
+        pending.write_text('both received\n' if completed else 'controller cleanup\n')
+        pending.replace(path) # The tracer must never observe a partial marker.
+    row={'tracer_pid':tracer.pid,'notification':'stop-marker','forced_kill':False}
+    try:
+        try:row['exit']=tracer.wait(5)
+        except subprocess.TimeoutExpired:
+            row['forced_kill']=True;tracer.kill();row['exit']=tracer.wait(5)
+            raise AssertionError('enum count tracer did not detach within 5 seconds')
+        return row['exit']
+    finally:save(Path(str(output)+'.controller.json'),row)
+
+
+def enumeration_stop(status):
+    """Classify SEIZE stops before deciding whether a signal may be injected."""
+    if not os.WIFSTOPPED(status):raise AssertionError('enum count owner ended before detach')
+    sig=os.WSTOPSIG(status);event=status>>16
+    if sig==(signal.SIGTRAP|0x80) and event==0:kind='syscall'
+    elif event==128 and sig==signal.SIGTRAP:kind='interrupt'
+    elif event==128 and sig in (signal.SIGSTOP,signal.SIGTSTP,signal.SIGTTIN,signal.SIGTTOU):kind='group-stop'
+    elif event:raise AssertionError('unexpected enum count ptrace event '+str(event))
+    else:kind='signal-delivery'
+    return {'status':status,'signal':sig,'event':event,'kind':kind}
+
+
+class EnumerationCountControl:
+    """Count-only ptrace owner with a bounded, signal-free normal detach."""
+    def __init__(self,pid,ptrace,output,report):
+        self.pid=pid;self.ptrace=ptrace;self.stop_path=Path(str(output)+'.stop')
+        self.attached=False;self.stopped=None
+        self.stop_since=None;self.interrupt_sent=False
+        self.evidence=report['trace_control']={'attach':'PTRACE_SEIZE','stops':[],'detached':False}
+
+    def stopping(self):
+        requested=self.stop_path.exists()
+        if requested and self.stop_since is None:
+            self.stop_since=time.monotonic()
+            self.evidence['stop_reason']=self.stop_path.read_text().strip()
+        return requested
+
+    def interrupt(self):
+        if not self.interrupt_sent:
+            # SEIZE/INTERRUPT does not deliver a signal to the daemon. It can
+            # report a syscall-exit-stop instead of PTRACE_EVENT_STOP.
+            try:self.ptrace(0x4207)
+            except OSError as error:
+                if error.errno!=errno.EIO:raise
+                # A syscall/signal stop may have won the race; reap it below.
+                self.evidence['interrupt_race_errno']=error.errno
+            self.interrupt_sent=True
+            self.evidence['interrupt_requested']=True
+
+    def wait(self,timeout=None):
+        deadline=time.monotonic()+timeout if timeout is not None else None
+        while True:
+            try:waited,status=os.waitpid(self.pid,os.WNOHANG)
+            except InterruptedError:continue
+            if waited:
+                if not os.WIFSTOPPED(status):
+                    self.attached=False;self.evidence['owner_exit_status']=status
+                    raise AssertionError('enum count owner ended before detach')
+                # Retain the already-reaped stop even if classification
+                # rejects an unexpected event, so failure cleanup can detach.
+                self.stopped={'status':status,'signal':os.WSTOPSIG(status),'event':status>>16,'kind':'unexpected-event'}
+                self.interrupt_sent=False
+                try:self.stopped=enumeration_stop(status)
+                finally:
+                    if self.stopped['kind']!='syscall':self.evidence['stops'].append(dict(self.stopped))
+                self.stopping()
+                return status
+            if self.stopping():
+                self.interrupt()
+                deadline=self.stop_since+2
+            if deadline is not None and time.monotonic()>=deadline:
+                raise TimeoutError('enum count ptrace stop was not acknowledged within 2 seconds')
+            time.sleep(.001)
+
+    def attach(self):
+        self.ptrace(0x4206,0,1);self.attached=True # SEIZE, TRACESYSGOOD
+        self.interrupt();self.wait(timeout=2)
+        self.evidence['initial_stop']=dict(self.stopped)
+        if self.stopped['kind']=='group-stop':
+            raise AssertionError('enum count daemon was already externally group-stopped')
+
+    def resume(self):
+        if self.stopped is None:raise AssertionError('enum count resume without a ptrace stop')
+        stop=self.stopped
+        if stop['kind']=='group-stop':self.ptrace(0x4208) # LISTEN preserves the real job-control stop.
+        else:self.ptrace(24,0,stop['signal'] if stop['kind']=='signal-delivery' else 0)
+        self.stopped=None
+
+    def detach(self):
+        if not self.attached:return
+        if self.stopped is None:
+            self.interrupt();self.wait(timeout=2)
+        stop=dict(self.stopped)
+        if stop['kind']=='group-stop':
+            # A signal argument to DETACH at a group-stop can be ignored.
+            # Requeue only the observed external stop, never SIGCONT, before
+            # detach so an existing job-control stop is not lost.
+            os.kill(self.pid,stop['signal'])
+            self.evidence['preserved_group_signal']=stop['signal']
+        self.ptrace(17,0,stop['signal'] if stop['kind']=='signal-delivery' else 0)
+        self.attached=False;self.stopped=None
+        self.evidence.update(detached=True,detach_stop=stop)
+        if self.stop_since is not None:self.evidence['stop_to_detach_seconds']=time.monotonic()-self.stop_since
+
+
 def trace_enumeration(pid,side,stage,output):
     """Fault only a selected namespace daemon at a real enumeration syscall."""
     if platform.machine()!='aarch64':raise RuntimeError('ptrace ABI is pinned AArch64')
@@ -1602,23 +1715,39 @@ def trace_enumeration(pid,side,stage,output):
     report={'pid':pid,'side':side,'stage':stage,'events':[],'polls':[],'injected':False};attached=False
     cycle=0
     armed=None;received=False;fault=False;active=None
+    count_control=EnumerationCountControl(pid,ptrace,output,report) if stage=='count' else None
     try:
-        ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
+        if count_control:
+            count_control.attach()
+        else:
+            ptrace(16);os.waitpid(pid,0);attached=True;ptrace(0x4200,0,1)
         Path(str(output)+'.ready').write_text('attached\n')
         if stage=='count':
             deadline=time.monotonic()+5
             while not Path(str(output)+'.go').exists():
+                if count_control.stopping():raise AssertionError('enum count cancelled before queued-cycle start')
                 if time.monotonic()>deadline:raise AssertionError('queued-cycle start was not released')
                 time.sleep(.005)
         while True:
-            ptrace(24);_,status=os.waitpid(pid,0)
-            if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before fault')
-            if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80):continue
-            if stage=='count' and Path(str(output)+'.stop').exists():
-                report['completed']=True;ptrace(17);attached=False;break
+            if count_control:
+                if not count_control.stopping():
+                    count_control.resume();status=count_control.wait()
+                if count_control.stopping():
+                    report['trace_control']['cutoff_syscall']=copy.deepcopy(active)
+                    count_control.detach()
+                    report['completed']=report['trace_control'].get('stop_reason')=='both received'
+                    break
+                if count_control.stopped['kind']!='syscall':continue
+            else:
+                ptrace(24);_,status=os.waitpid(pid,0)
+                if not os.WIFSTOPPED(status):raise AssertionError('tracee ended before fault')
+                if os.WSTOPSIG(status)!=(signal.SIGTRAP|0x80):continue
             info=(ctypes.c_ubyte*128)();ptrace(0x420e,ctypes.sizeof(info),ctypes.addressof(info));regs()
             if info[0]==1:
                 number=int(registers[8]);active={'syscall':number,'fd':int(registers[0])};fault=False
+                if count_control:
+                    entry=report.setdefault('syscalls',{}).setdefault(str(number),{'entries':0,'exits':0})
+                    entry['entries']+=1
                 if number in (72,73):active.update(poll_base=int(registers[0]),poll_count=int(registers[1]))
                 if number in (207,212):active['receive_flags']=int(registers[3 if number==207 else 2])
                 if number==206 and int(registers[2])>=17:
@@ -1638,6 +1767,9 @@ def trace_enumeration(pid,side,stage,output):
             elif info[0]==2:
                 returned=ctypes.c_longlong(registers[0]).value
                 number=active['syscall'] if active else int(registers[8])
+                if count_control:
+                    entry=report.setdefault('syscalls',{}).setdefault(str(number),{'entries':0,'exits':0})
+                    entry['exits']+=1
                 if number in (72,73):
                     cycle+=1
                     ready=[]
@@ -1653,12 +1785,22 @@ def trace_enumeration(pid,side,stage,output):
                 if armed is not None and active['fd']==armed and active['syscall'] in (207,212):
                     report['events'].append(dict(active,phase='return',result=returned,injected=False));received|=returned>0 and not active['receive_flags']&2
                 active=None
+    except Exception as error:
+        report['error']=repr(error)
+        raise
     finally:
-        if attached:
-            try:ptrace(17)
-            except OSError:pass
-        save(Path(output),report)
-    return 0
+        try:
+            if count_control:
+                try:count_control.detach()
+                except Exception as error:
+                    report['cleanup_error']=repr(error);report['completed']=False
+                    raise
+            elif attached:
+                try:ptrace(17)
+                except OSError:pass
+        finally:
+            save(Path(output),report)
+    return int(stage=='count' and not report.get('completed'))
 
 
 if __name__=='__main__':
