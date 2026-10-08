@@ -42,3 +42,13 @@ CPU45 root为cpu-a-79e-01，payload SHA
 同源s输出pair-signal-01/noa/private/opts-cpu-common-cd9edcf7-01尚未构建；
 common/15门receipt/plan/window均未执行或伪造。首次CPU资产导出optional.cargo不存在的
 本地准备失败另存preparation-failure-01.json，按实际Git路径fresh完成，原失败不覆盖。
+
+新ELF六族服务已实际27/27、failures=[]、passed=true、controller.exit=0。库存保持cache540、
+9C及lease caller、EDNS196、DNSfiles107、endpoints全四步、interface全六步、logging329。
+完整raw/identity/argv/checks/source/tool前后SHA/result均保于
+E/M6B/full-archives/a-79e-service-complete-01/service，31134路径/25616文件；
+tar SHA `623b482aea0604ed24f8591dad439d9bcabe34bcdaf6c4f103db2ec35a0f1b4e`，
+manifest SHA `2a3f50ffd395f64efac674d4a3c10726f88d6c0ada97d1f0cfa98f4e22a2c058`。
+本地全SHA+metadata验证才prune，Endpoint原special raw另全量保于a-79e-service-endpoints-01。
+此授最新六族普通服务资格，不授accept supplement、原语、资源/CPU或最终验收。
+5accept补充已启动：pair-signal-01/noa/private/a-accept-01及持久accept-controller-01。
