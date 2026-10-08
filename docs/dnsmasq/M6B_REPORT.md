@@ -231,3 +231,5 @@ fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察
 独立A ae1/e290完整缓存族实际通过：540 executed/540 passed、516 required，missing/differences=[]，C9-run原规则保留四指定PTR的实际参考变体，新增CNAME PTR与lease-TCP caller守卫通过；比较JSON SHA9299e4731a88806d5ca41d0ff9cbd9820ae8fc5784e18bd265d381070336c308。原12观察strict ordering差异仍单列，未用服务通过把它清零；EDNS及余五服务门继续。
 
 EDNS full sameA e290执行195/196，neighbor-tcp-connection-mac-snapshot首query超时、上游0；NoA1bd/301同2秒正确selector也复现，确认共同主循环逻辑唤醒缺口，不计A存储新增差异。首个NoA选择器误加neighbor前缀得到0case，无失败但不作资格；第二正确selector真实Timeout，原日志都保留。独立修复方案是当本turn尾部新neighbor dump同步完成时发布可运行continuation，不能在下一poll仅剩3秒MAC截止前睡过头，也不能伪造POLLIN。该修复独立进行、最终前合入复测；余四服务在same旧A e290继续，EDNS失败不豁免/不手填服务总通过。
+
+同A e290 DNSfiles107场景零失败；endpoints完整syntax/service/local-archive/source-row四steps通过，syntax归档e0dc49aec2b4cca290115421eb1aad71a3b50abc343c2bfa49202bdd89960a75（2136路径/1545普通文件），service3ac0e71245c77578284db4dd50a9d6ae418c824b5a6cb0c169f9aca3e4b9cb5e（2146/1546）全部本地SHA+metadata核验后prune原raw、恢复plain供source-row；端点watcher直接上传root-owned目录被拒，先ubuntu staging再sudo copy解决，失败日志保留。interface syntax过/service继续。
