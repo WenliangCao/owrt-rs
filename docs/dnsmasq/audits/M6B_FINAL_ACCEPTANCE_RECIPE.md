@@ -22,6 +22,107 @@
 
 最终控制器为 `tools/dnsmasq/m5_final_validation.py`，M6b阶段顺序固定为 `families,m2,perf-guard,resources,pressure,package,lifecycle`。只有package/lifecycle在代码中自动要求所有此前阶段；root仍按下面顺序执行，不能以先跑package或缺少前置completion绕过。正式135窗口、方案A硬门与新增route/wake补证属于独立前置证据，控制器summary不会替代它们。
 
+## 2026-10-08 补充：正式135与guard的准备顺序
+
+本节只读核对 `62497a16` 的工具接口，未访问Oracle、未构建、未执行测试；没有填写未测caps，也没有授予最终资格。当前A `69bccf27`仍是独立分支候选，不能直接冒称下面的最终main候选。
+
+存在一个准备依赖：`m5_final_validation.prepare`要求guard plan已经冻结；而guard的caps仍须真实修后数据。正式135先使用独立的**产品身份receipt**，不依赖final功能控制器的identity。等正式数据和实际20连接PSS依据齐备，再冻结guard和两个真实源码review，最后prepare七阶段功能验收。不得为了先生成final identity填临时阈值，或后来原地改已冻结plan。
+
+固定执行顺序是：A全部门通过→main整合/全部产品修复结束→同源码opt3与s构建→独立product-freeze→`m6a_suite prepare --m6b`→唯一135→本地分析/冻结guard→`m5_final_validation prepare`→七阶段。native prepare会用`cc -O2 -std=c11 -Wall -Wextra -Werror`编译两份helper，必须在正式窗口之外；guard本身不构建helper。
+
+假定下一节的最终路径变量已填写，另设同源码s输出`M6B_S_RELEASE`和本地证据`M6B_LOCAL_PERF`。以下命令是配方，当前未执行：
+
+```sh
+# 两构建都在窗口外、统一oracle_build；不增加diagnostics feature。
+# opt3先按下一节release命令实际完成；此处只再构建同源s。
+unset PYTHONOPTIMIZE
+M6B_S_RELEASE=/home/ubuntu/M6B-FINAL/private/release-s
+M6B_IMAGE=/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files
+env -u DNSMASQ_M6B_WAKE_METRICS ORACLE_BUILD_FEATURES= \
+  ORACLE_BUILD_OPT_LEVEL=s ORACLE_BUILD_LINK_MAP=1 \
+  sh "$M6B_TOOLS/oracle_build.sh" "$M6B_SOURCE" "$M6B_S_RELEASE" release
+
+python3 - "$M6B_SOURCE" "$M6B_FINAL_COMMIT" "$M6B_SOURCE_ARCHIVE" \
+  "$M6B_RELEASE" "$M6B_S_RELEASE" <<'PY'
+import hashlib, json, pathlib, sys, tarfile
+source, release, small = map(pathlib.Path, (sys.argv[1], sys.argv[4], sys.argv[5]))
+commit, archive = sys.argv[2:4]
+sys.path.insert(0, str(source / 'tools/dnsmasq'))
+import build_package
+digest = lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+files = build_package.inputs(source)
+extra = {str(p.relative_to(source)): digest(p)
+         for folder in ('tools/dnsmasq', 'components/dnsmasq/fuzz')
+         for p in (source / folder).rglob('*')
+         if p.is_file() and not p.is_symlink() and '__pycache__' not in p.parts and p.suffix != '.pyc'}
+with tarfile.open(archive) as stream:
+    assert stream.pax_headers.get('comment') == commit
+    archived = {m.name: hashlib.sha256(stream.extractfile(m).read()).hexdigest()
+                for m in stream.getmembers() if m.isfile()}
+assert all(archived.get(name) == sha for name, sha in {**files, **extra}.items())
+builds = {}
+for label, folder, level in [('r3', release, '3'), ('rs', small, 's')]:
+    elf = folder / 'dnsmasq-rs'
+    receipt = json.loads((folder / 'build.json').read_text())
+    assert receipt['kind'] == 'release' and receipt['features'] == ''
+    assert receipt['opt_level'] == level and receipt['source'] == str(source.resolve())
+    assert receipt['cargo_target_dir'] == '/home/ubuntu/dnsmasq-cargo-target'
+    assert receipt['artifacts'] == [dict(path='dnsmasq-rs', bytes=elf.stat().st_size, sha256=digest(elf))]
+    builds[label] = dict(path=str(folder / 'build.json'), sha256=digest(folder / 'build.json'))
+freeze = dict(schema=1, frozen=True, scope='final product identity; no functional completion claimed',
+    source_root=str(source.resolve()), source_commit=commit, source_files=files,
+    elf_sha256=digest(release / 'dnsmasq-rs'), source_archive_sha256=digest(archive),
+    archived_extra_files=extra, builds=builds)
+with (source / 'private/product-freeze.json').open('x') as stream:
+    json.dump(freeze, stream, indent=2); stream.write('\n')
+PY
+
+python3 "$M6B_TOOLS/m6a_suite.py" prepare --m6b \
+  --root "$M6B_SOURCE" --source-commit "$M6B_FINAL_COMMIT" \
+  --r3 "$M6B_RELEASE/dnsmasq-rs" --r3-build "$M6B_RELEASE/build.json" \
+  --rs "$M6B_S_RELEASE/dnsmasq-rs" --rs-build "$M6B_S_RELEASE/build.json" \
+  --image-root "$M6B_IMAGE" --product-freeze "$M6B_SOURCE/private/product-freeze.json"
+
+# Oracle独占窗口；每job内部fresh pilot→formal，固定交错，不能加profile/group过滤。
+sudo -n python3 "$M6B_TOOLS/m6a_suite.py" run --manifest "$M6B_SOURCE/private/manifest.json"
+```
+
+在本机另一通道启动归档watcher；source是上面实际Oracle root，不能填写旧27/45或旧M6a root。它已经把proof经ubuntu staging后sudo install到root-owned目录：
+
+```sh
+M6B_LOCAL_PERF=/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-rewrite/evidence/M6B/final-135-FINAL_COMMIT
+python3 tools/dnsmasq/m6a_archive_watch.py \
+  --remote-root "$M6B_SOURCE" --local-root "$M6B_LOCAL_PERF"
+# 最后一窗归档和prune完成后，本机跑离线分析；保留全部attempt，不选最快窗。
+python3 tools/dnsmasq/m6a_analyze.py --evidence-root "$M6B_LOCAL_PERF" \
+  --output "$M6B_LOCAL_PERF/analysis.json"
+```
+
+正式链结束须核`state.status=complete`、`formal_valid_windows=135`、全部9×3组合各5个有效窗，以及analysis的`formal_complete=true`和`valid_counts`。`m6a_analyze`结果中的method固定沿用M6a统计文字，报告必须同时链接manifest里的M6B协议SHA和本轮identity，不能把method字段当旧M6a ELF身份。行为错误保留为回退；方法无效的fresh重跑与原失败都保留。
+
+guard plan的`native_manifest.path`使用本轮`$M6B_SOURCE/private/manifest.json`及其实际SHA；不能用`product-freeze.json`替代，因为它没有`native`与`tools_files`。两份helper和C源码通过guard的`inputs()`锁定。三caps仍留模板null，待root按真实UDP/60秒idle/20连接hold与短窗PSS证据冻结，`basis`应列原始路径、SHA、候选身份和阈值推导；正式TCP采样峰值不能单独冒称确定保持20连接的PSS。需要补采时使用当前feature-off ELF和现成native helper，在正式窗口之外单列证据。不得据guard失败改cap再将同轮记为通过。
+
+## 最终资产预检（不启动窗口）
+
+下列清单由当前接口静态核出。Oracle存在性/执行许可仍须root在正式前核实；旧`m5_final_assets.json`是历史观察，不能当本轮已验证。`m5_final_validation.prepare`本身只hash/展开commands，不跑产品或build，可在guard/reviews完成后作为最后一遍强预检。
+
+| 资产 | 必须保留／核实的具体对象 | 缺口会出现的位置 |
+| --- | --- | --- |
+| 最终源码/构建 | prefixless Git PAX archive及commit comment；完整source/tool/fuzz字节；opt3/s build.json与ELF；opt3同次link.map | 两prepare均校验source/build/artifact；final prepare要求map在build.json同目录、receipt SHA一致 |
+| 原生测量工具 | 本轮native manifest、`private/native/m6a_loadgen`、`m6a_upstream`、两份`.c`；Oracle `cc`；四核与cgroup2 | suite prepare编译native；run要求CPU集合恰0/1/2/3；guard核源码/ELF SHA，不现场编译 |
+| 精确镜像/运行root | 镜像dnsmasq SHA097a…；完整rootfs文件；runtime cfg01411c；M2 plan四profiles与source_config SHA | M2完整7 DNS/4 DHCP/两lifecycle，不能拿测试overlay改shared base |
+| UBus镜像runner | runner、image-identity.json及同目录`usr/sbin/dnsmasq`,`lib/libc.so`,`lib/libubus.so.20251202`,`lib/libubox.so.20260213`,`lib/libgcc_s.so.1` | `verify_reference`逐文件SHA且runner文本必须执行identity父目录绝对路径；不能随意搬runner后保持旧identity |
+| UBus原生helper | `c-native-01/dnsmasq/dnsmasq` SHA bba5…；完整deps目录，尤其include/lib与`deps/sbin/ubusd`；Oracle `cc` | native只供helper；行为C仍镜像097a…；ordinary350及helper编译依赖不能删 |
+| C对应源码 | 完整2.93 `src`目录，含option.c/cache.c/headers，原目录字节锁 | endpoint191-row审计；query-id-wrap source control；UBus/native边界归因 |
+| SDK | 精确25.12.5 SDK目录及其父目录原`.tar.zst` SHA；`sdk_inputs()`列全部wrapper/隐藏.bin/runas.so/loader/toolchain；实际musl交叉gcc | final prepare和package双校验；query-id-wrap在families阶段也需SDK gcc（不只package需要SDK） |
+| 包资产 | stock r1；2 variants＋5 solver deps；接受过M5原r2 APK | prepare锁所有字节；r3 lifecycle14阶段；variants只solver，不安装 |
+| 审查/守卫 | 当前final commit的deferred/safety JSON（complete=true、ordinary_unresolved=[]）；frozen guard plan、三实测caps/native manifest | reviews须重新审查本轮代码，不能仅替换旧commit；null caps明确拒绝 |
+| 库存/预算 | final源码原canonical44族/68steps registry、原1,000,000B ELF/700,000B APK预算 | 不删族/check/inventory；size-only失败保留完整artifact继续14stage，不接受新增体积 |
+
+M5原APK本机仍在`E/M5/final-20261006/dc1b740d7973/archive-package-final/plain/build/dnsmasq-2.93-r2.apk`。本次仅核路径/stat：1,065,071B；已有固定身份见APK配方，root上传后须再次实际核SHA `bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa`，不重建旧包。所有镜像、ELF、APK、SDK和raw保持private，不进Git。
+
+实际最终argv以`m5_final_validation prepare`生成的`commands.json`为准；placeholder库存核定只有常规source/tool/image/ELF/commit/out之外的`link_map`,`reference_source`,`sdk`和四个UBus bindings。`ubus_image_runner_sha`/`ubus_image_identity_sha`由prepare的verified reference生成，不需用户猜填。七阶段的controller命令见下一节；M2/resources/pressure/package/lifecycle的leaf argv和结果check见每阶段表，不另写简化runner。
+
 ## root的可执行配方（现在未执行）
 
 以下变量由root在最终freeze时填实际绝对路径；不填写中间候选，不用M5旧ELF。源码archive须在可信Git checkout生成并复制／解包到fresh source目录；不加tar prefix。所有输出在对应source/private中。
@@ -111,6 +212,8 @@ python3 "$M6B_TOOLS/m5_final_validation.py" summary --manifest "$M6B_MANIFEST"
 44族运行到 `m5_dns_endpoints/archive-gate.ready.json` 时，syntax/service已完成，local-archive-gate等待本机full-metadata验证。默认全族路径是 `$M6B_OUTPUT/runs/families/attempt-1/m5_dns_endpoints`；如果分组执行，从该group的commands.json读取实际路径，不猜组hash。
 
 对syntax和service各执行：Oracle root用 `m5_option_matrix_archive.py pack --run ENDPOINT/name --archive ENDPOINT/name.tar.gz --manifest ENDPOINT/name.manifest.json`（archive/manifest放在run外）；下载到本机；本机用 `m5_final_archive_gate.py verify-local --archive LOCAL/name.tar.gz --manifest LOCAL/name.manifest.json --plain LOCAL/name --out LOCAL/name.local-verification.json`。只在真实verified=true/full-metadata、SHA均核对后，上传proof到对应Oracle的`name.local-verification.json`；Oracle执行 `m5_option_matrix_archive.py prune --run ENDPOINT/name --manifest ENDPOINT/name.manifest.json > ENDPOINT/name.prune.json`；然后把已验证本机plain普通文件/原report恢复到原name路径。gate必须核对异host proof、archive/manifest/prune SHA、原result SHA才能继续191-row audit。不能手写proof、跳过prune witness或伪造相同hostname验证。
+
+最终controller以root运行，ENDPOINT通常root-owned。proof、prune收据及verified plain tar先scp到ubuntu可写的独立staging，再`sudo -n install`/`sudo -n cp`到规定文件名；plain用sudo解包恢复。prune命令的stdout也要由root shell写入ENDPOINT，不能以ubuntu shell直接重定向到root-owned目录。不要chmod原raw绕过权限，因为mode/ownership本身属于完整metadata门。whiteout/device/FIFO等special对象只留原GNU/PAX tar；plain只用于原report/source-row audit。
 
 所有其他成功／失败原始目录也按pack→本机verify全部SHA+metadata→prune保存，不只归档summary。保留最终source archive、ELF/build/map、输入/reviews、identity/commands/completed、全部尝试、APK和生命周期、overlay upper（xattr/whiteout/links/mode）以及本地验证收据。变更产品后必须新freeze，至少全部受影响族再次实际执行；最终统一链始终绑定最后同一ELF。
 
