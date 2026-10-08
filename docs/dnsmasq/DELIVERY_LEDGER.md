@@ -2,12 +2,12 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6b共同signal错误边界修复后新候选实际构建。NoA cd9edcf7727faa199f225587ea76eb283c52b15f / 独立A79e29d7de66c57fcdbfa2c98b9bec05675c30462源码tar全SHA上传，pair-signal-01串行build/tests已启动（持久build-controller log/pid/exit），main仍无A。69bc服务02真实27/27零失败，完整logging329通过；cache1754c34c…和余门e886faad…共两全量归档SHA+metadata过后已prune，不授后继source资格。79e五份诊断prepare已真实生成，第6resource须等实际新ELF SHA才prepare，禁止零/旧SHA。资源/压力/45CPU未运行，物理路由器未碰。
+- 当前里程碑：M6b新A79e完整服务门。pair-signal-01实际两组构建/测试exit0：NoA cd9/c0886bb0…1957928B，744库/67入口；A79e/9480899e…1962024B，753库/68入口；UBus70全过，20ignored不计。4个signal精准测试实际过；main仍无A。新同ELF完整六族27steps从头启动（a-service-01，持久log/pid/exit和endpoint watcher），不得拼69bc旧资格。新六诊断prepare/transfer/source-join实际过，仅源绑定未build/run。资源/压力/45CPU未运行，详[M6B_A_79E_CHECKPOINT](audits/M6B_A_79E_CHECKPOINT.md)。物理路由器未碰。
 - 刚关闭：前代共同service fixes A3c666/7128d3b6的5case targeted日志真实配对全部0失败（2stale+3startup fault），SHA b5a46a7766c8b3096a86819d8f63e91de1205473164f895e7b79125a37204ee1，log-queries普通缺口即时复闭169/0；closed=[]如实保留，targeted不授全族资格。MAC单caller、interface10 targeted先前复闭5项；最新pair-udp-acl-01构建/owner门过，full新ELF资格继续。
 
 - 当前代码与资格：无A源码e8b1d6c4实际feature-off opt3 SHA2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc，1,953,832B；独立A源码69bccf2738f2c07cbc6d8b8a950015d4cea10af3实际opt3 SHA21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b，1,962,024B。Oracle pair-udp-acl-01，两实际build receipts已回本地E/M6B/pair-udp-acl-01；全部test实际过如上。旧ae1/d8资格只历史，不冒充同源；main仅公共正确性修复、产品无A。CPU45旧common89ea1b95仍未执行，现已过时，不手改manifest；全前置过后须最新NoA同源s和fresh common，只45、不增新27。
 
-- 下一步：69bc旧服务收尾并全量归档→pair-signal-01实际新两组build/tests/ELF身份→新ELF完整六族27steps（cache540/9C不缩）及5accept→新原语隔离layout/companion实际门→public11→内部10批/150s/交错/S8/压力→fresh45CPU。A所有门过才合main；最终冻结与保护线真实basis→全44族68steps/M2完整回归→唯一135窗→perfguard/资源压力/APK/报告。旧common/旧ELF不得充新资格，不再加中间27CPU。第4包进一步缓存/租约优化延期M6b之后。
+- 下一步：A79e新ELF完整六族27steps（cache540/9C不缩）及5accept→新原语隔离layout/companion实际门→public11→内部10批/150s/交错/S8/压力→fresh45CPU。A所有门过才合main；最终冻结与保护线真实basis→全44族68steps/M2完整回归→唯一135窗→perfguard/资源压力/APK/报告。旧common/旧ELF不得充新资格，不再加中间27CPU。第4包进一步缓存/租约优化延期M6b之后。
 - 已准备但未执行：最新资源工具393文件与36job串行队列已独立freeze/上传、SHA核验（resource-tools-current，payload e3dc9c4c…，queue fb2b9f3f…）；CPU45 fresh cpu-a-69bc-01完整资产已传SHA核验（payload75600320…），仅静态preview，不含假15门资格，尚无s构建/common prepare/window。入口与完整SHA见[M6B_A_SERVICE_69BC_CHECKPOINT](audits/M6B_A_SERVICE_69BC_CHECKPOINT.md)，不改正在运行的服务工具。
 - 新共同普通错误边界：独立审查确认69bc/e8b的signal pipe忽略两端NONBLOCK设置失败，handler满写/64B drain可能阻塞；write还可能覆写被中断调用errno。root已共同改专用原子pipe2(CLOEXEC|NONBLOCK)及handler TLS errno保存/恢复，保原blocking errorpipe/helper与既有无pipe100ms兜底；新增4测试，Linux实际待执行，见[M6B_SIGNAL_PIPE_ATOMIC_FLAGS](audits/M6B_SIGNAL_PIPE_ATOMIC_FLAGS.md)。当前69bc服务继续作不可变历史证据；后继NoA/A须fresh build、诊断prepare/source-join及全部门，已prepare69bc资源/CPU资产不授后继资格，不增加27窗。
 - 剩余项数：本轮7个M6b工作包（TCP A、性能保护门、最终freeze/135窗口、M5/M2、资源/压力、APK、报告/清理），另1包缓存/租约进一步优化延期到M6b后，未执行不记通过。M5历史169资格保留；本轮普通缺口全部复闭169/0，最新及最终同ELF完整资格仍待实际，不把targeted当全族。

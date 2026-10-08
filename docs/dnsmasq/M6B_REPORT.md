@@ -14,7 +14,8 @@
 | 第1包无A s | 同70097c66 | b91d3f0ad8ab0759a1c447ed7029035cc2c6561d6a3a7e9e017f8c28c239c62a | 1,630,248 | feature-off，仅性能对照，不作功能验收 |
 | 前代NoA服务 opt3 | e8b1d6c4 | 2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc | 1,953,832 | 744库/65入口/68UBus实际过；共同signal错误边界修复后身份退休，不作新45对照 |
 | 前代独立A服务候选 | 69bccf27 | 21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b | 1,962,024 | 753库/66入口实际过；ACL3/完整服务在收尾，资源/CPU未跑；不授后继资格 |
-| signal修复NoA / A | cd9edcf7 / 79e29d7d | 尚未构建 | 未测 | 源码已提交；新pair与四项精准测试、全门均待实际 |
+| signal修复NoA opt3 | cd9edcf7 | c0886bb0cfcc03f0f5afb678a9bfbaaaea25aefc065cc0e3ceb8de52363de85e | 1,957,928 | 744库/67入口/公共UBus70实际过；后续45新对照 |
+| signal修复独立A opt3 | 79e29d7d | 9480899e197df47fdd56d3b336f0872716d925fc259260ce90c32bc41669d078 | 1,962,024 | 753库/68入口实际过；4signal精准测试过，完整服务从头在跑，未合main |
 | 最终opt3 / s / APK | 尚未冻结 | 未测 | 未测 | 必须绑定同一最终源码及所有门 |
 
 第1包opt3相对M5增加20,480B（1.06%）；s相对该opt3减少319,488B（16.39%）。这些只是体积，不能由此推断CPU代价或建议切换s。正式窗口不启用`m6b-diagnostics`、wake明细、perf或strace；计数诊断有独立companion身份。
@@ -254,3 +255,5 @@ fresh02的最新69bc缓存族已实际540/540配对通过（required516）、完
 独立deferred/safety审查共同确认signal pipe的两个普通错误边界：忽略NONBLOCK设置失败可能使handler满写/owner恰64B后读阻塞；handler write会覆写被中断调用errno。NoA398162ff/cd9edcf7与A74e772a6/79e29d7d分别改原子pipe2 flags和TLS errno保存/恢复，原blocking startup/helper与无pipe100ms兜底保持，新增4精准测试尚待Linux实际。详细C链/失败边界见[M6B_SIGNAL_PIPE_ATOMIC_FLAGS](audits/M6B_SIGNAL_PIPE_ATOMIC_FLAGS.md)。69bc现轮继续作为完整历史证据，后继重建/复绑所有门；CPU尚未启动，没有废弃正式窗口。最终链按本次用户顺序在唯一135前完成44族68steps/M2回归，保护cap用既定两条真实basis短窗先冻结，不以诊断PSS或假caps代替。
 
 69bc现轮最终27/27真实零失败/exit0，余18941路径/14484文件完整验证后prune（tar e886faad…）；含缓存独立归档，所有六族原始证据完整。该普通服务资格不涵盖上述signal故障边界，后继NoA cd9/A79e新pair已开始实际build/tests；资源、压力或CPU均未提前跑。
+
+新pair实际NoA744/67、A753/68、UBus70全过，4signal精准测试真实通过；产品身份与新六诊断源绑定见[M6B_A_79E_CHECKPOINT](audits/M6B_A_79E_CHECKPOINT.md)。A相对新NoA仅多4096B（0.21%），这是文件大小而非收益；完整六族27steps在948…新ELF从头执行。新resource prepare使用实际下载build/ELF SHA，旧69bc准备/原语/窗口不充后继资格。
