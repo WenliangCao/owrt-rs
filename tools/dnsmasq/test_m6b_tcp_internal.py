@@ -16,7 +16,8 @@ def idle(epoch, elapsed, nominal=-1):
                elapsed_ns=elapsed, drain_epoch=epoch, nominal_drain_second=nominal,
                actual_drain_ns=nominal * 1_000_000_000 if nominal >= 0 else -1,
                full_drained=True, content_versions=1, index_versions=64,
-               registry_len=65, registry_capacity=112, live_objects=100,
+               registry_len=65, registry_capacity=112,
+               registry_capacity_semantics=gate.REGISTRY_CAPACITY_SEMANTICS, live_objects=100,
                live_requested_including_diagnostic=2000, observer_registry_requested=100)
     return row
 
@@ -217,7 +218,8 @@ class SingleBlockOwners(unittest.TestCase):
         keys = ['clients', 'G', 'dns_work', 'views', 'tcp_pending', 'tcp_accept_pending',
                 'udp_pending', 'typed_transfer_inflight', 'old_pinned_content', 'old_pinned_index',
                 'private_content', 'private_index', 'content_versions', 'index_versions',
-                'live_requested_including_diagnostic', 'live_objects', 'registry_capacity']
+                'live_requested_including_diagnostic', 'observer_registry_requested', 'live_objects',
+                'poll_fd_bytes', 'ready_fd_bytes']
         for key in keys:
             rows, markers = complete()
             last = markers['batches'][-1]
@@ -226,6 +228,45 @@ class SingleBlockOwners(unittest.TestCase):
             last['drained'] = copy.deepcopy(target)
             with self.subTest(key=key), self.assertRaises(ValueError):
                 gate.validate(rows, markers)
+
+    def test_effective_registry_capacity_changes_do_not_claim_allocated_growth(self):
+        rows, markers = complete()
+        for number, batch in enumerate(markers['batches']):
+            target = rows[batch['drain_trace_index']]
+            target['registry_capacity'] = 100 + number
+            batch['drained'] = copy.deepcopy(target)
+        rows[-1]['registry_capacity'] = 107
+        markers['final']['row'] = copy.deepcopy(rows[-1])
+        self.assertEqual(len(gate.validate(rows, markers)), 10)
+
+    def test_true_observer_allocated_growth_rejects_even_if_product_live_is_unchanged(self):
+        rows, markers = complete()
+        last = markers['batches'][-1]
+        target = rows[last['drain_trace_index']]
+        before = gate.product_live(target)
+        target['observer_registry_requested'] += 128
+        target['live_requested_including_diagnostic'] += 128
+        last['drained'] = copy.deepcopy(target)
+        self.assertEqual(gate.product_live(target), before)
+        with self.assertRaises(ValueError):
+            gate.validate(rows, markers)
+
+    def test_product_one_byte_delta_cannot_be_hidden_by_observer_reclassification(self):
+        rows, markers = complete()
+        last = markers['batches'][-1]
+        target = rows[last['drain_trace_index']]
+        target['live_requested_including_diagnostic'] += 1
+        target['observer_registry_requested'] += 1
+        last['drained'] = copy.deepcopy(target)
+        with self.assertRaises(ValueError):
+            gate.validate(rows, markers)
+
+    def test_old_trace_without_capacity_semantics_is_not_reinterpreted(self):
+        rows, markers = complete()
+        for row in rows:
+            del row['registry_capacity_semantics']
+        with self.assertRaises(ValueError):
+            gate.validate(rows, markers)
 
     def test_cannot_drop_a_batch_or_shorten_final_sixty_second_observation(self):
         rows, markers = complete()
