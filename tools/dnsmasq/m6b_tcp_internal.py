@@ -109,6 +109,25 @@ def drain_row(row):
     return row.get('full_drained') is True and all(row.get(key) == 0 for key in DRAIN_FIELDS)
 
 
+def active_owner_contract(row, capacity):
+    if not row.get('clients') == row.get('views') == row.get('dns_work') == row.get('G') == 20:
+        return False
+    if capacity == 0:
+        return all(row.get(key) == 0 for key in
+                   ['content_versions', 'old_pinned_content', 'private_content'])
+    if capacity == 1:
+        # One content block per cache. The fixed batch writes through all
+        # twenty independent views, so every child has detached its sole old
+        # root. That old allocation can legitimately have no remaining owner.
+        # Require exactly twenty private roots plus the one current parent;
+        # accepting arbitrary private/root totals would hide a missing view or
+        # a retained historical owner. End-of-batch balances remain strict.
+        return (row.get('old_pinned_content') == 0
+                and row.get('private_content') == 20
+                and row.get('content_versions') == 21)
+    return row.get('old_pinned_content', 0) > 0 and row.get('private_content', 0) > 0
+
+
 def stable_trace(path, after):
     until = time.monotonic() + 5
     while True:
@@ -131,9 +150,7 @@ def active_trace(path, after, capacity):
         rows = trace_rows(path)
         for index in range(after, len(rows)):
             row = rows[index]
-            if row.get('clients') == row.get('views') == row.get('dns_work') == row.get('G') == 20:
-                if capacity and not (row['old_pinned_content'] > 0 and row['private_content'] > 0):
-                    continue
+            if active_owner_contract(row, capacity):
                 return index, row
         if time.monotonic() > until:
             raise AssertionError('twenty-view old/private root witness was not observed')
@@ -319,7 +336,7 @@ def validate(rows, markers):
             or not warm['active_trace_index'] < warm['drain_trace_index'] <= base['trace_index']
             or rows[warm['active_trace_index']] != warm['active']
             or rows[warm['drain_trace_index']] != warm['drained']
-            or not warm['active']['clients'] == warm['active']['G'] == warm['active']['dns_work'] == warm['active']['views'] == 20
+            or not active_owner_contract(warm['active'], markers['capacity'])
             or not drain_row(warm['drained']) or warm['drained']['drain_epoch'] != baseline['drain_epoch']
             or product_live(warm['drained']) != product_live(baseline)
             or any(warm['drained'][key] != baseline[key] for key in BALANCE_FIELDS)):
@@ -333,10 +350,8 @@ def validate(rows, markers):
         if not prior_index < ai < di or rows[ai] != batch['active'] or rows[di] != batch['drained']:
             raise ValueError('active/drain witness does not match actual ordered trace')
         active, drained = rows[ai], rows[di]
-        if not active['clients'] == active['G'] == active['dns_work'] == active['views'] == 20:
-            raise ValueError('twenty independently retained views were not observed')
-        if markers['capacity'] and not (active['old_pinned_content'] > 0 and active['private_content'] > 0):
-            raise ValueError('actual old-parent/private-content churn witness absent')
+        if not active_owner_contract(active, markers['capacity']):
+            raise ValueError('actual twenty-view private/old-root owner contract differs')
         if not drain_row(drained) or drained['drain_epoch'] != prior_epoch + 1:
             raise ValueError('batch did not actually drain all owner/view/transaction state')
         if (product_live(drained) != product_live(baseline)
@@ -380,6 +395,8 @@ def rejection_controls(rows, markers):
     if markers.get('profile') == 'pin150':
         mutations.remove('missing-batch')
         mutations.append('shortened-pin')
+    if markers['capacity'] == 1:
+        mutations += ['missing-private-owner', 'extra-content-root']
     results = []
     for name in mutations:
         changed, altered = copy.deepcopy(rows), copy.deepcopy(markers)
@@ -392,6 +409,13 @@ def rejection_controls(rows, markers):
                  and row['drain_epoch'] == target['drain_epoch'])['actual_drain_ns'] = 59_000_000_000
         elif name == 'shortened-pin':
             altered['pin']['lifetime_seconds'] = 140
+        elif name in ['missing-private-owner', 'extra-content-root']:
+            target = changed[last['active_trace_index']]
+            if name == 'missing-private-owner':
+                target['private_content'] -= 1
+            else:
+                target['content_versions'] += 1
+            last['active'] = copy.deepcopy(target)
         else:
             key = {'retained-client': 'clients', 'retained-view': 'views',
                    'retained-transaction': 'tcp_pending', 'retained-pinned-root': 'old_pinned_content',
