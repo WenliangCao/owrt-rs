@@ -16,3 +16,5 @@
 最新canonical六族27steps已启动：cache12（540/516、完整C加8repeat）、EDNS3、DNSfiles1、endpoints4、interface6、logging1（329完整scenarios）。产品取a/source，工具冻结自noa/source/tools/dnsmasq，避免A分支工具滞后；spec、完整argv、checks/inventory、源码/工具每步前后SHA和实际结果保存在noa/source/private/a-service-01。现成controller只改真实对象路径/身份，不修改比较器、C变体或期望。Endpoint归档watcher通过ubuntu staging传真实本地metadata证明，sudo copy后才能prune，GNU原tar保留special metadata。
 
 后续仍需最新A原语/隔离/layout/同源companion、5accept supplements、public11、内部10批/150s/交错/S8、压力及45CPU。旧ae1/d8 raw和资格均保留历史，不改receipt假装最新same-source；现有cpu-a-reverse-fixed-01未跑且绑定旧ELF，后续fresh common必须最新NoA同源s，45门无新增27。
+
+3批已完targeted原始证据均在本地full-archives/a-shared-targeted-01通过全部SHA+metadata才prune远端：logging-targeted 154路径/102文件，tar SHA41c5f8f7…7afec；ACL首权限失败19路径/17文件，55f1d864…59b7a；ACL成功263路径/222文件，5358d2ae…69789。完整manifest/proof/prune收据保留，没有修改overlay权限或复制special file为普通文件。
