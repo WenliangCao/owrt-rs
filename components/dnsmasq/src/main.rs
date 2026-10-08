@@ -78,6 +78,7 @@ const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
 unsafe extern "C" {
     fn read(fd: i32, buffer: *mut u8, length: usize) -> isize;
     fn write(fd: i32, buffer: *const u8, length: usize) -> isize;
+    fn __errno_location() -> *mut i32;
 }
 
 #[cfg(target_os = "linux")]
@@ -86,9 +87,13 @@ fn wake_signal_waiter() {
     if fd >= 0 {
         let byte = [1u8; 1];
         // SAFETY: the handler writes one byte from a live stack buffer to the
-        // process-owned nonblocking pipe; write(2) is async-signal-safe.
+        // process-owned nonblocking pipe; write(2) is async-signal-safe. Linux
+        // errno is thread-local; preserve the interrupted caller's value.
         unsafe {
+            let errno = __errno_location();
+            let saved_errno = *errno;
             let _ = write(fd, byte.as_ptr(), 1);
+            *errno = saved_errno;
         }
     }
 }
@@ -6756,6 +6761,42 @@ mod tests {
         assert!(started.elapsed() < Duration::from_millis(50));
         let mut reader = std::fs::File::from(owner.signal_wake_read.take().unwrap());
         assert_eq!(reader.read(&mut [0; 1]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn signal_wake_preserves_interrupted_errno_with_or_without_backpressure() {
+        for (has_pipe, saturated) in [(false, false), (true, false), (true, true)] {
+            let (reader, writer) = owrt_ubus::sys::nonblocking_pipe().unwrap();
+            let mut writer = std::fs::File::from(writer);
+            if saturated {
+                let mut filled = 0;
+                loop {
+                    match writer.write(&[1; 4096]) {
+                        Ok(count) => { assert!(count > 0); filled += count; }
+                        Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+                    }
+                    assert!(filled < 2 * 1024 * 1024);
+                }
+            }
+            let previous_fd = SIGNAL_WAKE_WRITE.swap(if has_pipe { writer.as_raw_fd() } else { -1 }, Ordering::AcqRel);
+            let previous_stop = STOP_REQUESTED.swap(false, Ordering::AcqRel);
+            // SAFETY: Linux returns the current thread's live errno storage.
+            let observed_errno = unsafe {
+                let errno = __errno_location();
+                let saved = *errno;
+                *errno = 5; // EIO must survive a successful write or EAGAIN.
+                request_stop(15);
+                let observed = *errno;
+                *errno = saved;
+                observed
+            };
+            let delivered = STOP_REQUESTED.swap(previous_stop, Ordering::AcqRel);
+            SIGNAL_WAKE_WRITE.store(previous_fd, Ordering::Release);
+            assert!(delivered);
+            assert_eq!(observed_errno, 5, "pipe={has_pipe}, saturated={saturated}");
+            drop((reader, writer));
+        }
     }
 
     #[test]

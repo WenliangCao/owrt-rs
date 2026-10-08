@@ -21,3 +21,10 @@ startup errorpipe/helper合同不改。创建失败沿用已有原子计数与10
 
 当前Oracle继续不可变69bc服务证据，物理路由器未操作。修复同时进入NoA与独立A后，
 统一新pair构建、同源诊断prepare/source-join以及服务/资源/45CPU，旧原始结果保全。
+
+第二个共同错误边界同样已读码独立确认：wake handler的write会在满pipe时将TLS errno设为
+EAGAIN，可能夹在主线程负syscall与last_os_error之间改变原错误。精确C master handler
+明确errsave→send_event→errno=errsave。Linux wake仅在fd>=0分支保存/恢复TLS errno；
+原子计数、成功唤醒、无pipe和满pipe均不改变调用者errno。新增实际pipe/no-pipe/饱和pipe
+三种精准测试，调用TERM handler、核计数及EIO sentinel；fixture FD/计数在断言前恢复。
+当前仍仅代码/diff-check，Linux实际与后继各门待新pair执行，不以此文档代替通过。
