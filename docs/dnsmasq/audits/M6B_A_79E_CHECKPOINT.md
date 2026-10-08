@@ -52,3 +52,33 @@ manifest SHA `2a3f50ffd395f64efac674d4a3c10726f88d6c0ada97d1f0cfa98f4e22a2c058`�
 本地全SHA+metadata验证才prune，Endpoint原special raw另全量保于a-79e-service-endpoints-01。
 此授最新六族普通服务资格，不授accept supplement、原语、资源/CPU或最终验收。
 5accept补充已启动：pair-signal-01/noa/private/a-accept-01及持久accept-controller-01。
+
+5accept补充实际C/A两侧exit0、comparison.passed=true，原5case/30负控保持；
+完整481路径/438文件已本地全SHA+metadata验证后prune，
+E/M6B/full-archives/a-79e-accept-01/accept，tar SHA
+`a627abb2e73f0a1868d6c875862b6772838f4c200422dbf73424cacefaf0917f`，
+manifest SHA `533bd05d7422acc9078527be9deacb6e13ed6b07366e7bf812a5886d62f99889`。
+
+新原语/隔离/layout/companion构建与实际run均exit0：core22571 commands/0 mismatch，
+policy471/0，EDNS155 commands/143queries全match，lease1876/0，answer764 commands/
+164queries/382metrics/0，transfer307/307。positive与五指定mutation变体均passed=true/
+failures=[]。layout实际ignored探针执行后collect通过，requested账与产品PSS/CPU分开。
+reverse原稳定184/184、无新稳定差异；原ordering12仍4行strict不同，完整原strict不记通过；
+sidecar ordered_relation_gate_passed=true、3负控拒绝、full_original_primitive_passed=false
+如实保留。新companion真实6controls逐一exit0、layout_matches/qualified=true，
+diag ELF SHA `34162eb79575455e2570794b315c85d08cce9f4b881cdd39419350a76d05c066`；
+controls SHA `3d06e02b3c7cfda8f30a28551b964291eb91be534555db72a870e97e62ed9711`。
+完整raw在gate-tools-current/private/a79e-gates-01及a/private各fresh build目录，后续collector
+仍读取controls，保持原目录；资源窗口结束后全量snapshot归档再清理，不以summary替代raw。
+
+资源01首次runner启动与start脚本自身fresh log保护冲突，两次启动失败未执行job；原log/exit/
+pid见resource-controller-launch-failure-{01,02}。正确直接run-resource后source preflight过，
+public-plan过，第2public C在128.24s被foreign-load守卫终止（-9）；未记录触发PID，归因未证实。
+原a79e-resources-01完整raw/receipt保留，不授产品或资源失败/通过资格。
+
+资源02使用fresh resource-tools-current-02/private/a79e-resources-02，原矩阵/工具字节/
+checks/timeout不改，仅新root/output及队列SHA
+`fb0d7f090152c2048192ed0cc9012ea3eea3f9f58dd56bf7846d99c9bdfcd771`。
+新copy准备权限/脚本转义失败均发生在run前，原01 raw未动；正确脚本固定完整newline后直接
+nohup run-resource-02.sh（log/pid/proc-stat持久）。source preflight再次过，public C实际11库存
+过，Rust public继续。尚不授资源总资格；没有运行CPU45或common/s构建。
