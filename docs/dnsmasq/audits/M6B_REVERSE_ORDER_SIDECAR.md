@@ -59,3 +59,5 @@ collector逐一处理六个C运行和Rust实际trace，不选择有利permutatio
 5. changed LRU、changed bucket、missing snapshot三个负控必须拒绝；整个21-case Rust inventory和所有raw SHA完整。
 
 结果`ordered_relation_gate_passed`仅表示这套有序关系及方法controls；`full_original_primitive_passed=false`与`product_cpu_pss_qualification=false`固定保留。结果同时列全部六份12行strict C/R逐行差异，不改旧comparator、不把它们清零。若关系失败，必须作为具体插入点／遍历／LRU／方法缺口处理，不能用“布局”名称掩盖。
+
+2026-10-08 sidecar02实际编译失败补正：exact cache.c的dnsmasq.h必须先于其他系统header，生成器把sideheader放在cache include中该原header之后，仅一次；driver只include生成cache inc再实现observer。warn_unused_result用ssize_t变量接write结果。private C builder遇编译／corpus失败仍保存全部result/compiler stdoutstderr并退出非零，不再读取不存在的ELF覆盖主错、不生成fresh passed receipt。root须fresh prep03，02源码和原失败证据不覆盖。本修正仅生成器／错误收尾，未运行本地或Oracle构建测试。
