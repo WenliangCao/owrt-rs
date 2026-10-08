@@ -402,9 +402,13 @@
         "ptr-filter-compose",
         "ptr-expiry-refresh",
         "ptr-stale-refresh",
-        "ptr-tcp-child-import"
+        "ptr-tcp-child-import",
+        "reverse-cname-v4-udp",
+        "reverse-cname-v4-tcp",
+        "reverse-cname-v6-udp",
+        "reverse-cname-v6-tcp"
       ],
-      "contract": "Address-form successful PTR stores F_REVERSE targetname+IP; reverse lookup searches hash buckets and does not rotate via OPT_NORR. PTR+CNAME/missingPTR fallback is ordinary Generic12, NXDOMAIN is forward universalnegative. Preserve address alias key, C hash/ordering/local precedence and per-direction conflict/expiry."
+      "contract": "Address-form successful PTR stores F_REVERSE targetname+IP; reverse lookup searches hash buckets and does not rotate via OPT_NORR. PTR+CNAME/missingPTR fallback is ordinary Generic12, NXDOMAIN is forward universalnegative. Preserve address alias key, C hash/ordering/local precedence and per-direction conflict/expiry. A configured forward CNAME for the PTR target does not reject reverse insertion or TCP child import; v4/v6 UDP/TCP retain one upstream and one insertion through two parent UDP replays."
     },
     {
       "id": "NEGATIVE",
@@ -784,6 +788,8 @@
         "tcp-other-connection-inserts",
         "tcp-current-connection-inserts",
         "tcp-child-import-visible-parent",
+        "reverse-cname-v4-tcp",
+        "reverse-cname-v6-tcp",
         "tcp-parent-hup-clear",
         "tcp-parent-hup-hosts",
         "tcp-child-local-soa-known-name",
@@ -840,7 +846,7 @@
       "contract": "get_new_frec collects40s, counts samegroup age<10s, limit0/negative stillvalidstartupandblocksUDPforward; reusesoldest>=10sonlywhen nofreefrec. Extra coalescedclients globalcount usesftabsize; TCP forward independent. Warnrate strict>5s, groupdomain log and release/recovery/stop must match."
     }
   ],
-  "required_count": 512,
+  "required_count": 516,
   "qualification_rules": [
     "Exactimage C supplies every expectedbehavior; currentRust or retiredexperimentalRust nevergeneratesreference.",
     "Partial/C-only/reference-only cannotqualify. Eachoptionmaycloseindependently onlyafterallmappedboundariesandcontrols arecomplete.",

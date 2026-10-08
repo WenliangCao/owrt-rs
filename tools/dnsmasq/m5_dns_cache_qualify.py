@@ -53,6 +53,8 @@ def qualify(c_runs, candidate_run, elf):
         elif label == 'generic-expanded-u16-overflow':
             okay = family.giant_canonical_guard(left, right)
             intentional.append({'case': label, 'guarded': okay, 'source': 'dnsmasq.h:350;rfc1035.c:1016,1038,1052,2326-2327'})
+        elif label in family.REVERSE_CNAME_CASES:
+            okay = family.case_equal(left, right) and family.reverse_cname_caller_guard(left, right)
         else:
             okay = family.case_equal(left, right, varied)
         if okay:
@@ -71,6 +73,7 @@ def qualify(c_runs, candidate_run, elf):
             'missing_required_cases': [], 'differences': differences, 'deferred_extreme_cases': [],
             'intentional_differences': intentional, 'reference_reverse_order_variation': variations,
             'lease_tcp_caller_guard': lease_okay,
+            'reverse_cname_caller_guard': all(label in passed for label in family.REVERSE_CNAME_CASES),
             'negative_controls': controls, 'reports': inputs, 'comparator_sha256': sha256(__file__)}
 
 
