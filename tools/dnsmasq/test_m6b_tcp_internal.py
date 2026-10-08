@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 """Pure collector controls; no daemon, namespace, socket or Rust execution."""
 import copy
+import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import m6b_tcp_internal as gate
+
+
+def warm_receipt(clients):
+    states = [{'pid': 123, 'starttime': 42, 'state': state, 'monotonic_ns': n}
+              for n, state in enumerate(['S', 'T', 'S'])]
+    return {'phase': 'structural-warm-only', 'completed': True, 'resume_attempted': True,
+            'closed_clients': clients, 'client_fds': list(range(10, 10 + clients)),
+            'identity': {'pid': 123}, 'before': states[0], 'stopped': states[1], 'resumed': states[2]}
 
 
 def idle(epoch, elapsed, nominal=-1):
@@ -16,7 +26,7 @@ def idle(epoch, elapsed, nominal=-1):
                elapsed_ns=elapsed, drain_epoch=epoch, nominal_drain_second=nominal,
                actual_drain_ns=nominal * 1_000_000_000 if nominal >= 0 else -1,
                full_drained=True, content_versions=1, index_versions=64,
-               registry_len=65, registry_capacity=112,
+               registry_len=65, registry_capacity=112, ready_fd_bytes=256,
                registry_capacity_semantics=gate.REGISTRY_CAPACITY_SEMANTICS, live_objects=100,
                live_requested_including_diagnostic=2000, observer_registry_requested=100)
     return row
@@ -31,7 +41,7 @@ def active(epoch, elapsed):
 
 def complete():
     rows = [active(0, 1_000_000_000), idle(1, 2_000_000_000)]
-    warm = {'label': 'warm', 'active_trace_index': 0, 'active': copy.deepcopy(rows[0]),
+    warm = {'label': 'warm', 'ready_close': warm_receipt(20), 'active_trace_index': 0, 'active': copy.deepcopy(rows[0]),
             'drain_trace_index': 1, 'drained': copy.deepcopy(rows[1])}
     markers = {'profile': 'reconnect', 'capacity': 1, 'clients': 20,
                'prefill_names': [f'r{n:06}.internal.test' for n in range(32)],
@@ -71,6 +81,7 @@ def complete_limit():
                                   'completed_monotonic_ns': ai * 1_000_000_000 + gate.LIMIT_HOLD_NS,
                                   'first_trace_index': ai, 'first': copy.deepcopy(rows[ai]),
                                   'last_trace_index': ai + 1, 'last': copy.deepcopy(rows[ai + 1])}})
+    batches[0]['ready_close'] = warm_receipt(29)
     markers = {'profile': 'limit30', 'capacity': 150, 'clients': 30,
                'prefill_names': [f'r{n:06}.internal.test' for n in range(150)],
                'warm_batch': batches[0], 'batches': batches[1:],
@@ -94,6 +105,54 @@ def limit_observations(folder):
         for suffix in ['-parent-at-limit', '-existing-at-limit', '-over-limit-recovered']:
             row['observations'].append({'label': prefix + suffix, 'query': {}, 'reply': {}})
     return row
+
+
+class StructuralWarm(unittest.TestCase):
+    def test_missing_pause_generation_or_ready_high_water_is_rejected(self):
+        for fault in ['missing', 'generation', 'resume', 'ready']:
+            rows, markers = complete()
+            warm = markers['warm_batch']
+            if fault == 'missing':
+                del warm['ready_close']
+            elif fault == 'generation':
+                warm['ready_close']['stopped']['starttime'] += 1
+            elif fault == 'resume':
+                warm['ready_close']['resumed']['state'] = 'T'
+            else:
+                warm['drained']['ready_fd_bytes'] = 128
+            with self.subTest(fault=fault), self.assertRaises(ValueError):
+                gate.validate_warm_ready(warm, 20, 'reconnect')
+
+    def test_measured_batches_cannot_pause_the_daemon(self):
+        rows, markers = complete()
+        markers['batches'][0]['ready_close'] = warm_receipt(20)
+        with self.assertRaisesRegex(ValueError, 'restricted to structural warm'):
+            gate.validate(rows, markers)
+
+    def test_close_failure_still_resumes_the_owned_pidfd(self):
+        states = [{'pid': 123, 'starttime': 42, 'state': state, 'monotonic_ns': n}
+                  for n, state in enumerate(['S', 'S', 'T', 'S'])]
+        with tempfile.TemporaryDirectory() as name:
+            fixture = SimpleNamespace(pid=123, folder=Path(name), root=Path('/synthetic/root'),
+                                      spec={'profile': 'reconnect', 'diagnostic_sha256': 'same-elf'},
+                                      close=Mock(), event=Mock())
+            fixture.clients = [Mock() for _ in range(20)]
+            for number, client in enumerate(fixture.clients):
+                client.fileno.return_value = number + 10
+            fixture.close.side_effect = RuntimeError('close failed')
+            with patch.object(gate, 'process_state', side_effect=states), \
+                    patch.object(gate.os, 'pidfd_open', return_value=99, create=True), \
+                    patch.object(gate.os, 'close') as close_fd, \
+                    patch.object(gate.signal, 'pidfd_send_signal', create=True) as send, \
+                    patch.object(gate.driver, 'process_identity', return_value={'sha256': 'same-elf'}):
+                with self.assertRaisesRegex(RuntimeError, 'close failed'):
+                    gate.warm_ready_close(fixture)
+                self.assertEqual([call.args for call in send.call_args_list],
+                                 [(99, gate.signal.SIGSTOP), (99, gate.signal.SIGCONT)])
+                close_fd.assert_called_once_with(99)
+            receipt = json.loads((Path(name) / 'warm-ready-close.json').read_text())
+            self.assertTrue(receipt['resume_attempted'])
+            self.assertFalse(receipt['completed'])
 
 
 class ExactConnectionCounts(unittest.TestCase):

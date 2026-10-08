@@ -14,6 +14,7 @@ from pathlib import Path
 import random
 import re
 import shutil
+import signal
 import struct
 import subprocess
 import time
@@ -177,6 +178,100 @@ def active_trace(path, after, capacity, clients=20):
         time.sleep(.02)
 
 
+def process_state(pid):
+    raw = (Path('/proc') / str(pid) / 'stat').read_text()
+    fields = raw.rpartition(')')[2].split()
+    return {'pid': pid, 'state': fields[0], 'starttime': int(fields[19]),
+            'stat': raw, 'monotonic_ns': time.monotonic_ns()}
+
+
+def warm_ready_close(fixture):
+    """Queue all original peer EOFs while only this owned daemon is stopped."""
+    expected = profile_clients(fixture.spec['profile']) - int(fixture.spec['profile'] == 'limit30')
+    if len(fixture.clients) != expected or fixture.pid <= 1 or fixture.pid == os.getpid():
+        raise AssertionError('warm must close the original accepted client set')
+    if not hasattr(os, 'pidfd_open') or not hasattr(signal, 'pidfd_send_signal'):
+        raise AssertionError('generation-bound pidfd signals are required for warm')
+    before = process_state(fixture.pid)
+    fd = os.pidfd_open(fixture.pid)
+    record = {'phase': 'structural-warm-only', 'before': before, 'identity': None,
+              'stopped': None, 'resumed': None, 'client_fds': [], 'closed_clients': 0,
+              'resume_attempted': False, 'completed': False}
+    path = fixture.folder / 'warm-ready-close.json'
+    pause_requested = False
+    try:
+        identity = driver.process_identity(fixture.root, fixture.pid)
+        current = process_state(fixture.pid)
+        if (identity['sha256'] != fixture.spec['diagnostic_sha256']
+                or current['starttime'] != before['starttime']
+                or current['state'] not in ['R', 'S', 'D', 'I']):
+            raise AssertionError('owned diagnostic PID generation/ELF/state differs')
+        record['identity'] = identity
+        record['client_fds'] = [client.fileno() for client in fixture.clients]
+        if (len(set(record['client_fds'])) != expected
+                or any(fd < 0 for fd in record['client_fds'])):
+            raise AssertionError('original warm socket descriptors differ')
+
+        def witnessed_state(stopped):
+            deadline = time.monotonic() + 1
+            while True:
+                row = process_state(fixture.pid)
+                if row['starttime'] != before['starttime'] or row['state'] in ['Z', 'X']:
+                    raise AssertionError('owned warm PID generation exited or changed')
+                if (row['state'] == 'T') == stopped:
+                    return row
+                if time.monotonic() >= deadline:
+                    raise AssertionError('warm SIGSTOP/SIGCONT state was not observed')
+                time.sleep(.001)
+
+        try:
+            pause_requested = True
+            signal.pidfd_send_signal(fd, signal.SIGSTOP)
+            record['stopped'] = witnessed_state(True)
+            for client in list(fixture.clients):
+                fixture.close(client)
+                record['closed_clients'] += 1
+        finally:
+            if pause_requested:
+                record['resume_attempted'] = True
+                signal.pidfd_send_signal(fd, signal.SIGCONT)
+                record['resumed'] = witnessed_state(False)
+        record['completed'] = record['closed_clients'] == expected and not fixture.clients
+        if not record['completed']:
+            raise AssertionError('warm did not close every original socket')
+        fixture.event('warm-ready-close', closed_clients=expected,
+                      pid=fixture.pid, starttime=before['starttime'], receipt=path.name)
+        return record
+    finally:
+        os.close(fd)
+        path.write_text(json.dumps(record, indent=2, sort_keys=True) + '\n')
+
+
+def validate_warm_ready(warm, clients, profile):
+    receipt = warm.get('ready_close')
+    expected = clients - int(profile == 'limit30')
+    if (not receipt or receipt.get('phase') != 'structural-warm-only'
+            or receipt.get('completed') is not True or receipt.get('resume_attempted') is not True
+            or receipt.get('closed_clients') != expected
+            or len(set(receipt.get('client_fds', []))) != expected):
+        raise ValueError('complete owned warm close/pause/resume witness missing')
+    before, stopped, resumed = [receipt[name] for name in ['before', 'stopped', 'resumed']]
+    identity = receipt['identity']
+    if (not identity or before['pid'] <= 1 or identity['pid'] != before['pid']
+            or any(row['pid'] != before['pid'] or row['starttime'] != before['starttime']
+                   for row in [stopped, resumed])
+            or before['state'] not in ['R', 'S', 'D', 'I'] or stopped['state'] != 'T'
+            or resumed['state'] not in ['R', 'S', 'D', 'I']
+            or not before['monotonic_ns'] <= stopped['monotonic_ns'] <= resumed['monotonic_ns']):
+        raise ValueError('warm stopped/resumed PID generation witness differs')
+    # The frozen 8-byte PollFd Vec grows16->32 for twenty simultaneous EOFs.
+    # This asserts actual high-water evidence; it does not reserve product memory.
+    required_bytes = (1 << (clients - 1).bit_length()) * 8
+    if warm['drained']['ready_fd_bytes'] < required_bytes:
+        raise ValueError('structural warm did not exercise simultaneous ready high-water')
+
+
+
 def schedule(spec, port, upstream, folder, root):
     fixture = InternalCaller(spec, port, upstream, folder, root)
     trace = root / 'm2/internal.jsonl'
@@ -273,10 +368,11 @@ def schedule(spec, port, upstream, folder, root):
             active_index, active = active_trace(trace, start, spec['capacity'], batch_clients)
         fixture.sample(label + '-active')
         before_drain = len(trace_rows(trace))
+        ready_close = warm_ready_close(fixture) if label == 'warm' else None
         fixture.drain(label + '-drained')
         drain_index, drained = stable_trace(trace, before_drain)
         fixture.sample(label + '-idle')
-        return {'label': label, 'clients': batch_clients,
+        return {'label': label, 'clients': batch_clients, 'ready_close': ready_close,
                 'connection_start': connection_start, 'connection_end': fixture.accept_sequence,
                 'active_trace_index': active_index, 'active': active, 'limit': limit,
                 'drain_trace_index': drain_index, 'drained': drained,
@@ -298,6 +394,7 @@ def schedule(spec, port, upstream, folder, root):
             index, row = len(initial_rows) - 1, initial_rows[-1]
             markers['initial'] = {'trace_index': index, 'row': row}
         markers['warm_batch'] = batch('warm')
+        validate_warm_ready(markers['warm_batch'], clients, spec['profile'])
         markers['connection_count_including_warm'] = fixture.accept_sequence
         # Warm all persistent client vector, fd-array and map capacities before
         # claiming the baseline. Repeat exactly the same workload ten times.
@@ -362,6 +459,7 @@ def run(args):
         raise ValueError('half/multi-RR freeze at4096 and pin150/limit30 freeze at150')
     spec = {'case': case_name(args.capacity, args.profile, args.reconnect_count), 'mode': 'internal-reconnect',
             'capacity': args.capacity, 'profile': args.profile, 'reconnect_count': args.reconnect_count,
+            'diagnostic_sha256': receipt['diagnostic_elf']['sha256'],
             'config': 'max-tcp-connections=30' if args.profile == 'limit30' else '', 'metrics': True,
             'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
     frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
@@ -434,6 +532,9 @@ def validate(rows, markers):
             or product_live(warm['drained']) != product_live(baseline)
             or any(warm['drained'][key] != baseline[key] for key in BALANCE_FIELDS)):
         raise ValueError('matching structural warm batch/baseline raw evidence missing')
+    validate_warm_ready(warm, clients, profile)
+    if any(batch.get('ready_close') is not None for batch in markers['batches']):
+        raise ValueError('pause/close scheduling is restricted to structural warm')
     if count_sizes is not None:
         initial = markers.get('initial')
         if (not initial or rows[initial['trace_index']] != initial['row']
@@ -677,6 +778,12 @@ def collect(args):
     markers, rows = json.loads(marker_path.read_text()), trace_rows(raw)
     if markers['capacity'] != receipt['capacity'] or markers.get('profile', 'reconnect') != receipt.get('profile', 'reconnect'):
         raise ValueError('actual marker profile differs from frozen run')
+    ready_close = markers.get('warm_batch', {}).get('ready_close')
+    if (ready_close != json.loads((folder / case / 'warm-ready-close.json').read_text())
+            or ready_close['identity']['pid'] != row['identity']['pid']
+            or ready_close['identity']['root'] != root['root']
+            or ready_close['identity']['sha256'] != bound['diagnostic_elf']['sha256']):
+        raise ValueError('warm pause receipt differs from actual same-root diagnostic process')
     if receipt.get('profile') == 'limit30':
         limit_observations(folder / case, row, row['identity']['pid'], root['root'])
     if receipt.get('profile') == 'multi-rr':
