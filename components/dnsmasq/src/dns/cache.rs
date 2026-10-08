@@ -930,8 +930,8 @@ impl Cache {
     }
 
     /// Apply a whole received transaction against the parent's current state.
-    /// `local_match` is a read-only lookup using the caller's existing local
-    /// precedence; it must not use the child's old local-name generation.
+    /// `local_match` is a read-only forward lookup using the caller's current
+    /// local precedence; reverse records conflict by address, not target name.
     /// Ordered removals/evictions survive a later failure, as in C. Counters
     /// come only from these actual parent operations, never the child totals.
     pub fn import_counted(
@@ -967,7 +967,15 @@ impl Cache {
                 self.failed = true;
                 break;
             }
-            let inserted = if let Some(local) = local_match(&record) {
+            // cache_scan_free consults protected names only for F_FORWARD.
+            // Reverse inserts coexist with local records, including a CNAME
+            // whose alias happens to be the PTR target.
+            let local = if record.kind.is_reverse() {
+                None
+            } else {
+                local_match(&record)
+            };
+            let inserted = if let Some(local) = local {
                 self.check_local_insert(expires == now, local.same_address)
                     .ok()
                     .map(|()| CnameTarget::Local(self.local_target(record.name, local.from_lease)))

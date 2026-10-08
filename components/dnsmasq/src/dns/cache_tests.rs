@@ -1226,3 +1226,52 @@ fn reverse_snapshot_transfer_preserves_child_and_absolute_expiry() {
     assert!(parent.lookup_reverse(address, 160).is_empty());
     assert_eq!(child.lookup_reverse(address, 100).len(), 1);
 }
+
+#[test]
+fn reverse_import_does_not_consult_forward_local_conflicts() {
+    let target = Name::from_ascii("Alias.reverse.test").unwrap();
+    for address in ["192.0.2.17", "2001:db8::17"] {
+        let address: IpAddr = address.parse().unwrap();
+        let (kind, data) = match address {
+            IpAddr::V4(address) => (Kind::ReverseIpv4, address.octets().to_vec()),
+            IpAddr::V6(address) => (Kind::ReverseIpv6, address.octets().to_vec()),
+        };
+        let mut child = Cache::new(4, Policy::default());
+        child.start_insert();
+        child.insert(Record {
+            name: target.clone(), kind, negative: false, data,
+        }, 100, 60).unwrap();
+        let transfer = child.capture_commit_counted(&mut CacheCounters::default()).unwrap();
+        let mut parent = Cache::new(4, Policy::default());
+        let mut counters = CacheCounters::default();
+        let mut calls = 0;
+        assert!(parent.import_counted(transfer, 103, &mut counters, |_| {
+            calls += 1;
+            Some(LocalCacheMatch { same_address: false, from_lease: false })
+        }));
+        assert_eq!(calls, 0, "C's reverse scan never returns a forward local conflict");
+        assert_eq!((counters.inserted, counters.live_freed), (1, 0));
+        let ids = parent.lookup_reverse(address, 103);
+        assert_eq!(ids.len(), 1);
+        let imported = parent.get(ids[0]).unwrap();
+        assert_eq!(imported.record.name, target);
+        assert_eq!(imported.expires, 160);
+        assert_eq!(child.lookup_reverse(address, 100).len(), 1);
+
+        // A forward insertion for the same configured alias must still fail.
+        let mut forward = Cache::new(4, Policy::default());
+        forward.start_insert();
+        forward.insert(Record {
+            name: target.clone(), kind: Kind::Ipv4, negative: false,
+            data: vec![192, 0, 2, 99],
+        }, 100, 60).unwrap();
+        let transfer = forward.capture_commit_counted(&mut CacheCounters::default()).unwrap();
+        assert!(!parent.import_counted(transfer, 104, &mut counters, |_| {
+            calls += 1;
+            Some(LocalCacheMatch { same_address: false, from_lease: false })
+        }));
+        assert_eq!(calls, 1);
+        assert_eq!((counters.inserted, counters.live_freed), (1, 0));
+        assert_eq!(parent.lookup_reverse(address, 104).len(), 1);
+    }
+}
