@@ -8,6 +8,12 @@ use std::sync::atomic::{AtomicI64, AtomicU64, Ordering::Relaxed};
 use std::time::{Duration, Instant};
 
 pub struct Meter;
+// The copied lib-test ELF needs the same meter to exercise registry accounting.
+// Normal lib compilation does not declare an allocator; the companion binary
+// continues to own its one allocator declaration in main.rs.
+#[cfg(test)]
+#[global_allocator]
+static M6B_RESOURCE_TEST_ALLOC: Meter = Meter;
 static LIVE: AtomicI64 = AtomicI64::new(0);
 static PEAK: AtomicU64 = AtomicU64::new(0);
 static OBJECTS: AtomicI64 = AtomicI64::new(0);
@@ -152,4 +158,83 @@ pub fn emit(arguments: std::fmt::Arguments<'_>) -> io::Result<()> {
         trace.file.write_fmt(arguments)?;
         trace.file.write_all(b"\n")
     })
+}
+
+#[cfg(test)]
+mod m6b_controls {
+    use super::*;
+
+    #[test]
+    fn system_operations_and_known_live_object() {
+        let baseline = allocation();
+        let layout = Layout::from_size_align(64, 8).unwrap();
+        // SAFETY: this test uses a valid nonzero Layout, checks the returned
+        // pointer, and retains the matching Layout for every operation.
+        let pointer = unsafe { Meter.alloc_zeroed(layout) };
+        assert!(!pointer.is_null());
+        for index in 0..64 {
+            // SAFETY: the allocation contains exactly 64 initialized bytes.
+            assert_eq!(unsafe { *pointer.add(index) }, 0);
+        }
+        let held = allocation();
+        assert_eq!(held.live - baseline.live, 64, "known undropped object must be visible");
+        assert_eq!(held.objects - baseline.objects, 1);
+        assert_eq!(held.observer_live, baseline.observer_live, "product object is outside observer scope");
+        // SAFETY: pointer is live under layout and 128 is a valid new size.
+        let resized = unsafe { Meter.realloc(pointer, layout, 128) };
+        assert!(!resized.is_null());
+        let expanded = allocation();
+        assert_eq!(expanded.live - baseline.live, 128);
+        assert_eq!(expanded.objects - baseline.objects, 1);
+        // SAFETY: successful realloc now owns 128 bytes with the same alignment.
+        unsafe { Meter.dealloc(resized, Layout::from_size_align(128, 8).unwrap()); }
+        let released = allocation();
+        assert_eq!(released.live, baseline.live);
+        assert_eq!(released.objects, baseline.objects);
+        assert_eq!(released.balance_errors, baseline.balance_errors);
+    }
+
+    #[test]
+    fn failed_realloc_retains_old_object_and_balance() {
+        let layout = Layout::from_size_align(64, 8).unwrap();
+        // SAFETY: valid Layout; the result is checked before accessing it.
+        let pointer = unsafe { Meter.alloc(layout) };
+        assert!(!pointer.is_null());
+        // SAFETY: the first byte belongs to this live 64-byte allocation.
+        unsafe { *pointer = 0x5a; }
+        let held = allocation();
+        // Half isize::MAX is Layout-valid but cannot fit in Linux's user
+        // address space on this 64-bit target. Null leaves the old block live.
+        // SAFETY: matching live allocation and valid nonzero new size.
+        let result = unsafe { Meter.realloc(pointer, layout, isize::MAX as usize / 2) };
+        assert!(result.is_null(), "this control requires a genuine failed System realloc");
+        let failed = allocation();
+        assert_eq!(failed.live, held.live);
+        assert_eq!(failed.objects, held.objects);
+        assert_eq!(failed.failed, held.failed + 1);
+        // SAFETY: failed realloc retained pointer/layout and its contents.
+        assert_eq!(unsafe { *pointer }, 0x5a);
+        // SAFETY: retained live pointer is freed once under its original Layout.
+        unsafe { Meter.dealloc(pointer, layout); }
+    }
+
+    #[test]
+    fn registry_scope_reserve_grow_and_drop_balance() {
+        let before = allocation();
+        {
+            let _scope = ObserverScope::enter();
+            let mut values = std::collections::HashMap::with_capacity(1);
+            for key in 0..1024usize { values.insert(key, key); }
+            let populated = allocation();
+            assert!(populated.observer_live > before.observer_live);
+            values.clear();
+            values.shrink_to_fit();
+        }
+        let after = allocation();
+        assert_eq!(after.observer_live, before.observer_live);
+        assert_eq!(after.live, before.live);
+        assert_eq!(after.objects, before.objects);
+        assert_eq!(after.balance_errors, before.balance_errors);
+        assert_eq!(OBSERVER_SCOPE.load(Relaxed), 0);
+    }
 }
