@@ -10,15 +10,18 @@ import copy
 import json
 import os
 from pathlib import Path
+import random
 import re
 import shutil
+import struct
 import subprocess
 import time
 
 import m5_dns_cache as driver
 import m6b_tcp_pressure as pressure
 
-CAPACITIES = [0, 1, 150, 4096]
+CAPACITIES = [0, 1, 150, 4096, 16384]
+PROFILES = ['reconnect', 'half', 'multi-rr', 'pin150']
 CONTROLS = [
     'm6b_resource_diag::m6b_controls::system_operations_and_known_live_object',
     'm6b_resource_diag::m6b_controls::failed_realloc_retains_old_object_and_balance',
@@ -70,6 +73,38 @@ def product_live(row):
     return row['live_requested_including_diagnostic'] - row['observer_registry_requested']
 
 
+def population(capacity, profile):
+    if profile in ['half', 'multi-rr']:
+        return capacity // 2
+    return max(capacity, 32)
+
+
+def case_name(capacity, profile):
+    return f'm6b-internal-{profile}-{capacity}'
+
+
+class InternalCaller(pressure.Caller):
+    def capture(self, label, wire, reply):
+        if self.spec['profile'] != 'multi-rr':
+            return super().capture(label, wire, reply)
+        (self.folder / (label + '.query')).write_bytes(wire)
+        if reply is not None:
+            (self.folder / (label + '.reply')).write_bytes(reply)
+        if reply is None or reply[:2] != wire[:2]:
+            raise AssertionError('missing or wrong-ID multi-RR reply: ' + label)
+        parsed = driver.normalized(reply)
+        question = driver.normalized(wire)['questions']
+        if (parsed.get('questions') != question or parsed.get('flags', 0) & 0x820f != 0x8000
+                or 'unparsed' in parsed):
+            raise AssertionError('wrong question/rcode/framing in multi-RR reply: ' + label)
+        answers = [row for row in parsed['records'] if row['section'] == 'answer']
+        wanted = ['198.51.100.99'] if question[0][0] == 'health.cache.test' else ['198.51.100.7', '198.51.100.8']
+        if sorted(row['data'] for row in answers) != wanted or any(row['type'] != 1 or not 0 < row['ttl'] <= 600 for row in answers):
+            raise AssertionError('multi-RR contents/TTL differ: ' + label)
+        self.event(label, query=driver.normalized(wire), reply=parsed)
+        return parsed
+
+
 def drain_row(row):
     return row.get('full_drained') is True and all(row.get(key) == 0 for key in DRAIN_FIELDS)
 
@@ -106,13 +141,15 @@ def active_trace(path, after, capacity):
 
 
 def schedule(spec, port, upstream, folder, root):
-    fixture = pressure.Caller(spec, port, upstream, folder, root)
+    fixture = InternalCaller(spec, port, upstream, folder, root)
     trace = root / 'm2/internal.jsonl'
-    names = [f'r{n:06}.internal.test' for n in range(max(spec['capacity'], 32))]
+    names = [f'r{n:06}.internal.test' for n in range(population(spec['capacity'], spec['profile']))]
     answers = [{'data': 'c6336407'}]
+    if spec['profile'] == 'multi-rr':
+        answers += [{'data': 'c6336408'}]
     for host in names:
         upstream.plan[host] = {'ttl': 600, 'answers': answers}
-    markers = {'prefill_names': names, 'capacity': spec['capacity'], 'clients': 20,
+    markers = {'prefill_names': names, 'capacity': spec['capacity'], 'profile': spec['profile'], 'clients': 20,
                'batches': [], 'warm_batch': None, 'baseline': None, 'final': None}
     marker_path = folder / 'internal-markers.json'
 
@@ -123,10 +160,11 @@ def schedule(spec, port, upstream, folder, root):
         fixture.wire_id += 1
         wire = driver.query(host, fixture.wire_id, do=True)
         before = len(upstream.events)
-        fixture.capture(label, wire, driver.exchange(port, wire, tcp=client is not None, connection=client))
+        parsed = fixture.capture(label, wire, driver.exchange(port, wire, tcp=client is not None, connection=client))
         if len(upstream.events) <= before:
             raise AssertionError('force-refresh request did not reach the frozen upstream')
         fixture.event(label + '-upstream-witness', before=before, after=len(upstream.events))
+        return parsed
 
     def batch(label):
         start = len(trace_rows(trace))
@@ -136,9 +174,19 @@ def schedule(spec, port, upstream, folder, root):
         # exact RDATA. No growing name universe can masquerade as a leak.
         for n in range(min(len(names), 32)):
             forced(label + f'-parent-{n:02}', names[n])
+        order = list(range(len(names)))
+        random.Random(0x6b4096).shuffle(order)
         for n, client in enumerate(fixture.clients):
-            forced(label + f'-child-{n:02}', names[n % len(names)], client)
-            fixture.query(label + f'-hit-{n:02}', client, names[(n + 1) % len(names)])
+            target = names[order[n % len(order)]]
+            forced(label + f'-child-{n:02}', target, client)
+            first = fixture.query(label + f'-hit-{n:02}', client, target)
+            if spec['profile'] == 'multi-rr':
+                second = fixture.query(label + f'-hit-again-{n:02}', client, target)
+                a = [rr['data'] for rr in first['records'] if rr['section'] == 'answer']
+                b = [rr['data'] for rr in second['records'] if rr['section'] == 'answer']
+                if a == b:
+                    raise AssertionError('private multi-RR order did not rotate')
+                fixture.event(label + f'-rotation-{n:02}', before=a, after=b, seed=0x6b4096)
         active_index, active = active_trace(trace, start, spec['capacity'])
         fixture.sample(label + '-active')
         before_drain = len(trace_rows(trace))
@@ -155,8 +203,8 @@ def schedule(spec, port, upstream, folder, root):
             fixture.query(f'prefill-{n:06}', host=host)
         if spec['capacity']:
             populated = fixture.metrics('prefilled')
-            if populated['dns_cache_inserted'] < spec['capacity']:
-                raise AssertionError('parent full-cache prefill witness absent')
+            if populated['dns_cache_inserted'] < len(names) * len(answers):
+                raise AssertionError('configured parent population witness absent')
         fixture.confirm_warm_idle('pre-batch-idle')
         markers['warm_batch'] = batch('warm')
         # Warm all persistent client vector, fd-array and map capacities before
@@ -164,9 +212,38 @@ def schedule(spec, port, upstream, folder, root):
         index, row = stable_trace(trace, markers['warm_batch']['drain_trace_index'] - 1)
         markers['baseline'] = {'trace_index': index, 'row': row}
         checkpoint()
-        for number in range(10):
-            markers['batches'].append(batch(f'b{number:02}'))
+        if spec['profile'] == 'pin150':
+            before_pin = len(trace_rows(trace))
+            client = fixture.connect()
+            accepted = time.monotonic()
+            for number in range(140):
+                forced(f'pin-parent-{number:03}', names[number % len(names)])
+                delay = accepted + number + 1 - time.monotonic()
+                if delay > 0:
+                    time.sleep(delay)
+            fixture.query('pin-old-view-at-140', client, names[0])
+            pin_rows = trace_rows(trace)
+            witnesses = [(i, row) for i, row in enumerate(pin_rows) if i >= before_pin
+                         and row['clients'] == row['G'] == row['dns_work'] == row['views'] == 1
+                         and row['old_pinned_content'] > 0]
+            if not witnesses or witnesses[-1][1]['elapsed_ns'] - witnesses[0][1]['elapsed_ns'] < 130_000_000_000:
+                raise AssertionError('long-lived old parent root pin was not actually observed')
+            client.settimeout(20)
+            if client.recv(1) != b'':
+                raise AssertionError('150s idle view emitted unexpected data')
+            elapsed = time.monotonic() - accepted
+            if not 145 <= elapsed <= 160:
+                raise AssertionError('query at140 altered the original 150s deadline')
+            markers['pin'] = {'first_trace_index': witnesses[0][0], 'first': witnesses[0][1],
+                              'last_trace_index': witnesses[-1][0], 'last': witnesses[-1][1],
+                              'lifetime_seconds': elapsed, 'parent_replacements': 140}
+            fixture.event('pin-150-eof', lifetime_seconds=elapsed, recent_query_seconds=140, eof=True)
+            fixture.close(client)
             checkpoint()
+        else:
+            for number in range(10):
+                markers['batches'].append(batch(f'b{number:02}'))
+                checkpoint()
         fixture.drain('final-drain')
         fixture.after_drain()
         index, row = stable_trace(trace, len(trace_rows(trace)) - 2)
@@ -183,8 +260,10 @@ def run(args):
     receipt = binding(args.bound_receipt)
     if driver.sha256(args.rust) != receipt['diagnostic_elf']['sha256']:
         raise ValueError('this internal run requires the bound diagnostic copy')
-    spec = {'case': f'm6b-internal-reconnect-{args.capacity}', 'mode': 'internal-reconnect',
-            'capacity': args.capacity, 'config': '', 'metrics': True,
+    if args.profile in ['half', 'multi-rr'] and args.capacity != 4096 or args.profile == 'pin150' and args.capacity != 150:
+        raise ValueError('half/multi-RR freeze at4096 and pin150 freeze at150')
+    spec = {'case': case_name(args.capacity, args.profile), 'mode': 'internal-reconnect',
+            'capacity': args.capacity, 'profile': args.profile, 'config': '', 'metrics': True,
             'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
     frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
     driver.SYNTAX.clear()
@@ -202,7 +281,7 @@ def run(args):
     unchanged = all(Path(__file__).with_name(name).read_bytes() == data for name, data in frozen.items())
     save(args.out / 'internal-run-receipt.json', {
         'source_commit': receipt['source_commit'], 'product_sha256': receipt['product_elf_sha256'],
-        'diagnostic_sha256': receipt['diagnostic_elf']['sha256'], 'capacity': args.capacity,
+        'diagnostic_sha256': receipt['diagnostic_elf']['sha256'], 'capacity': args.capacity, 'profile': args.profile,
         'bound_receipt_sha256': driver.sha256(args.bound_receipt),
         'trace_sha256': driver.sha256(copied), 'result_sha256': driver.sha256(args.out / 'result.json'),
         'marker_sha256': driver.sha256(args.out / spec['case'] / 'internal-markers.json'),
@@ -219,9 +298,13 @@ def validate(rows, markers):
         raise ValueError('diagnostic method failed or trace inventory missing')
     if any(b['elapsed_ns'] <= a['elapsed_ns'] for a, b in zip(rows, rows[1:])):
         raise ValueError('diagnostic rows are not strictly ordered')
-    if (markers.get('clients') != 20 or len(markers.get('batches', [])) != 10
+    profile = markers.get('profile', 'reconnect')
+    if profile not in PROFILES or markers['capacity'] not in CAPACITIES:
+        raise ValueError('unknown frozen internal profile/capacity')
+    wanted_batches = 0 if profile == 'pin150' else 10
+    if (markers.get('clients') != 20 or len(markers.get('batches', [])) != wanted_batches
             or markers.get('prefill_names') != [f'r{n:06}.internal.test'
-                                               for n in range(max(markers['capacity'], 32))]):
+                                               for n in range(population(markers['capacity'], profile))]):
         raise ValueError('fixed prefill or ten complete batches missing')
     base = markers['baseline']
     if rows[base['trace_index']] != base['row'] or not drain_row(base['row']):
@@ -248,8 +331,20 @@ def validate(rows, markers):
         checked.append({'batch': number, 'live_without_registry': product_live(drained),
                         'live_objects': drained['live_objects'], 'root_versions': drained['registry_len']})
         prior_index, prior_epoch = di, drained['drain_epoch']
+    if profile == 'pin150':
+        pin = markers['pin']
+        first, last = rows[pin['first_trace_index']], rows[pin['last_trace_index']]
+        if (first != pin['first'] or last != pin['last']
+                or not prior_index < pin['first_trace_index'] <= pin['last_trace_index']
+                or last['elapsed_ns'] - first['elapsed_ns'] < 130_000_000_000
+                or pin['parent_replacements'] != 140 or not 145 <= pin['lifetime_seconds'] <= 160
+                or any(not row['clients'] == row['G'] == row['views'] == row['dns_work'] == 1
+                       or row['old_pinned_content'] <= 0 for row in [first, last])):
+            raise ValueError('150s old root ownership/deadline witness differs')
+        prior_index, prior_epoch = pin['last_trace_index'], baseline['drain_epoch'] + 1
     final = markers['final']
     if (not final or final['trace_index'] < prior_index or rows[final['trace_index']] != final['row']
+            or final['row']['drain_epoch'] != prior_epoch
             or not drain_row(final['row']) or product_live(final['row']) != product_live(baseline)
             or any(final['row'][key] != baseline[key] for key in BALANCE_FIELDS)):
         raise ValueError('final initial/end live balance differs')
@@ -268,16 +363,21 @@ def rejection_controls(rows, markers):
     mutations = ['retained-client', 'retained-view', 'retained-transaction', 'retained-pinned-root',
                  'known-one-byte-leak', 'known-one-object-leak', 'registry-growth', 'missing-hook',
                  'missing-batch', 'shortened-drain']
+    if markers.get('profile') == 'pin150':
+        mutations.remove('missing-batch')
+        mutations.append('shortened-pin')
     results = []
     for name in mutations:
         changed, altered = copy.deepcopy(rows), copy.deepcopy(markers)
-        last = altered['batches'][-1]
-        target = changed[last['drain_trace_index']]
+        last = altered['batches'][-1] if altered['batches'] else None
+        target = changed[last['drain_trace_index']] if last else changed[altered['final']['trace_index']]
         if name == 'missing-batch':
             altered['batches'].pop()
         elif name == 'shortened-drain':
             next(row for row in changed if row['nominal_drain_second'] == 60
                  and row['drain_epoch'] == target['drain_epoch'])['actual_drain_ns'] = 59_000_000_000
+        elif name == 'shortened-pin':
+            altered['pin']['lifetime_seconds'] = 140
         else:
             key = {'retained-client': 'clients', 'retained-view': 'views',
                    'retained-transaction': 'tcp_pending', 'retained-pinned-root': 'old_pinned_content',
@@ -287,7 +387,10 @@ def rejection_controls(rows, markers):
             target[key] += 1
             # Mutate both raw observation and its marker, so rejection cannot
             # merely rely on the trivial report/raw identity check.
-            last['drained'] = copy.deepcopy(target)
+            if last:
+                last['drained'] = copy.deepcopy(target)
+            else:
+                altered['final']['row'] = copy.deepcopy(target)
         rejected = False
         try:
             validate(changed, altered)
@@ -305,7 +408,7 @@ def collect(args):
     bound = binding(folder / 'bound-receipt.json')
     report = json.loads((folder / 'result.json').read_text())
     raw = folder / 'diagnostic.jsonl'
-    case = f"m6b-internal-reconnect-{receipt['capacity']}"
+    case = case_name(receipt['capacity'], receipt.get('profile', 'reconnect'))
     marker_path = folder / case / 'internal-markers.json'
     if (not receipt['completed_without_fixture_errors'] or not receipt['tools_unchanged']
             or report['failures'] or report['executed_cases'] != [case] or len(report['scenarios']) != 1
@@ -337,6 +440,18 @@ def collect(args):
                     raise ValueError('actual query/reply differs from its report')
     pressure.validate_profile(folder / case, row, row['identity']['pid'], root['root'])
     markers, rows = json.loads(marker_path.read_text()), trace_rows(raw)
+    if markers['capacity'] != receipt['capacity'] or markers.get('profile', 'reconnect') != receipt.get('profile', 'reconnect'):
+        raise ValueError('actual marker profile differs from frozen run')
+    if receipt.get('profile') == 'multi-rr':
+        observed = {value['label']: value for value in row['observations']}
+        for prefix in ['warm', *[f'b{number:02}' for number in range(10)]]:
+            for number in range(20):
+                first = observed[prefix + f'-hit-{number:02}']['reply']
+                second = observed[prefix + f'-hit-again-{number:02}']['reply']
+                a = [rr['data'] for rr in first['records'] if rr['section'] == 'answer']
+                b = [rr['data'] for rr in second['records'] if rr['section'] == 'answer']
+                if sorted(a) != ['198.51.100.7', '198.51.100.8'] or sorted(b) != sorted(a) or a == b:
+                    raise ValueError('actual private multi-RR rotation differs')
     checked = validate(rows, markers)
     controls = json.loads(args.controls.read_text())
     if (controls.get('qualified') is not True or controls.get('source_commit') != bound['source_commit']
@@ -363,10 +478,11 @@ def collect(args):
             raise ValueError('actual method control invocation/output differs')
     result = {'source_commit': bound['source_commit'], 'product_sha256': bound['product_elf_sha256'],
               'diagnostic_sha256': bound['diagnostic_elf']['sha256'], 'capacity': receipt['capacity'],
+              'profile': receipt.get('profile', 'reconnect'),
               'batches': checked, 'trace_rows': len(rows), 'controls_sha256': driver.sha256(args.controls),
               'negative_controls': rejection_controls(rows, markers), 'internal_balance_qualified': True,
               'product_cpu_pss_qualification': False,
-              'scope': 'ten fixed-name warmed reconnect batches only; all other design pressure gates remain separate'}
+              'scope': 'selected fixed internal profile only; all other design pressure gates remain separate'}
     save(args.out, result)
     return 0
 
@@ -431,6 +547,7 @@ def main():
     for name in ['image-root', 'rust', 'bound-receipt', 'out']:
         execute.add_argument('--' + name, type=Path, required=True)
     execute.add_argument('--capacity', type=int, choices=CAPACITIES, required=True)
+    execute.add_argument('--profile', choices=PROFILES, default='reconnect')
     compare = sub.add_parser('collect')
     for name in ['run', 'controls', 'out']:
         compare.add_argument('--' + name, type=Path, required=True)
