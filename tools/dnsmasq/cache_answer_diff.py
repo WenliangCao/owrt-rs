@@ -212,6 +212,8 @@ def main():
         (out / f'{label}.stderr').write_text(run.stderr)
         if run.returncode:
             raise RuntimeError(f'{label} exited {run.returncode}; see {out}/{label}.stderr')
+        if label == 'rust':
+            rust_lib_probe.require_one_test(run.stdout, TEST)
         observed[label] = run.stdout.splitlines() if label == 'c' else [line.removeprefix('CACHE_ORACLE ')
             for line in rust_lib_probe.records(run.stdout, TEST, 'CACHE_ORACLE ')]
         assert len(observed[label]) == len(rows), f'{label} output count differs'

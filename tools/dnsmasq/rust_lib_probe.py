@@ -110,3 +110,9 @@ def records(stdout, test, prefixes):
     header = 'test ' + test + ' ... '
     lines = [line.removeprefix(header) for line in stdout.splitlines()]
     return [line for line in lines if line.startswith(prefixes)]
+
+
+def require_one_test(stdout, test):
+    if ('running 1 test' not in stdout.splitlines()
+            or not re.search(r'^test result: ok\. 1 passed; 0 failed; 0 ignored; 0 measured;', stdout, re.MULTILINE)):
+        raise ValueError('expected exactly one executed ignored libtest ' + test + '; zero-test matches are invalid')

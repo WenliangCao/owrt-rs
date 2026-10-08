@@ -12,16 +12,23 @@ import os
 from pathlib import Path
 import socket
 import subprocess
+import shutil
 
 from cache_reverse_transfer_cases import cases
 from cache_transfer_diff import CACHE_SHA, IDENTITY_SHA, NATIVE_SHA, TARGET_IDENTITY_SHA, command, save, sha
 
 BASELINE_SHA = '96fc7eed20067ebc134853620a799aa4a779afdcdf0fdb306815740c339dc941'
+PLAN_SHA = '2d546b0e47749a2dce5e3863be6136f336155db2dd05c680452f26f7717e468d'
 
 
 def build(args, out):
     base = args.transfer_baseline.resolve()
-    assert sha(base / 'identity.json') == BASELINE_SHA
+    fresh_transfer = None
+    if args.fresh_transfer_receipt:
+        import c_primitive_receipt as fresh
+        fresh_transfer = fresh.validate_fresh(base, args.fresh_transfer_receipt.resolve(), 'cache-transfer')
+    else:
+        assert sha(base / 'identity.json') == BASELINE_SHA
     old = json.loads((base / 'identity.json').read_text())
     objects = args.reference_build.resolve() / 'dnsmasq'
     assert sha(objects / 'dnsmasq') == NATIVE_SHA
@@ -58,7 +65,7 @@ def build(args, out):
         built[label] = out / (label + '-oracle')
     target_prefix = [target / 'lib/libc.so', '--library-path', target / 'lib']
     command(args, out, 'target-dependencies', [*target_prefix, '--list', built['target']])
-    identity = dict(scope=__doc__, baseline_identity_sha256=BASELINE_SHA,
+    identity = dict(scope=__doc__, baseline_identity_sha256=sha(base / 'identity.json'),
                     native_reference_sha256=NATIVE_SHA, source_identity_sha256=IDENTITY_SHA,
                     target_reference_identity_sha256=TARGET_IDENTITY_SHA,
                     source_files=source['patched_files'], reused_objects=old,
@@ -66,7 +73,111 @@ def build(args, out):
                     cases_sha256=sha(Path(__file__).with_name('cache_reverse_transfer_cases.py')),
                     native_oracle_sha256=sha(built['native']), target_oracle_sha256=sha(built['target']))
     save(out / 'identity.json', identity)
+    if fresh_transfer:
+        identity.update(cache_source_sha256=CACHE_SHA, fresh_transfer=fresh_transfer,
+                        transfer_baseline=str(base), transfer_receipt=str(args.fresh_transfer_receipt.resolve()))
+        save(out / 'identity.json', identity)
     return [built['native']], [*target_prefix, built['target']]
+
+
+def freeze_reverse(args, out, inputs, compilers, report):
+    import c_primitive_receipt as fresh
+    after = {name: sha(Path(name)) for name in inputs if Path(name).is_file()}
+    save(out / 'source-inputs-after.json', after)
+    if after != inputs:
+        raise ValueError('reverse C source/object/library input changed')
+    save(out / 'compiler-probes.json', compilers)
+    artifacts = [fresh.elf(out / (label + '-oracle')) for label in ('native', 'target')]
+    if any(row['machine'] != 183 for row in artifacts):
+        raise ValueError('fresh reverse primitives require AArch64 ELF64 little-endian')
+    builds = [json.loads((out / (label + '-build.command.json')).read_text()) for label in ('native', 'target')]
+    if any(row['exit'] != 0 or '-o' not in row['argv'] for row in builds):
+        raise ValueError('reverse C compile/link receipt incomplete')
+    transfer = fresh.validate_fresh(args.transfer_baseline, args.fresh_transfer_receipt, 'cache-transfer')
+    receipt = dict(schema=1, kind='m6b-fresh-c-reverse-transfer', primitive='cache-reverse-transfer',
+        passed=report['status'] == 'C-baseline-complete' and not report['failures'],
+        source_identity_sha256=IDENTITY_SHA, cache_source_sha256=CACHE_SHA, planned_cases=21, planned_processes=126,
+        transfer_baseline=str(args.transfer_baseline.resolve()), transfer_receipt=str(args.fresh_transfer_receipt.resolve()),
+        fresh_transfer=transfer, source_inputs=inputs, identity_sha256=sha(out / 'identity.json'),
+        plan_sha256=sha(out / 'plan.json'), result_sha256=sha(out / 'result.json'),
+        compiler_probes_sha256=sha(out / 'compiler-probes.json'), build_argv=builds, artifacts=artifacts,
+        tool_sha256=sha(Path(__file__)), cases_sha256=sha(Path(__file__).with_name('cache_reverse_transfer_cases.py')),
+        files=fresh.inventory(out), image_daemon_qualification=False,
+        scope='fresh 21-case exact-source reverse primitive; native/SDK each3; original exact ordered comparator; not stock image097')
+    save(out / 'fresh-c-receipt.json', receipt)
+
+
+def validate_fresh_reverse(base, receipt_path):
+    """Use the unchanged main C helper for primitives; bind reverse-specific order."""
+    import c_primitive_receipt as fresh
+    base, receipt_path = Path(base).resolve(), Path(receipt_path).resolve()
+    receipt = json.loads(receipt_path.read_text())
+    if (receipt_path.parent != base or receipt.get('schema') != 1
+            or receipt.get('kind') != 'm6b-fresh-c-reverse-transfer' or receipt.get('primitive') != 'cache-reverse-transfer'
+            or receipt.get('passed') is not True or receipt.get('planned_cases') != 21 or receipt.get('planned_processes') != 126
+            or receipt.get('source_identity_sha256') != IDENTITY_SHA or receipt.get('cache_source_sha256') != CACHE_SHA
+            or receipt.get('tool_sha256') != sha(Path(__file__))
+            or receipt.get('cases_sha256') != sha(Path(__file__).with_name('cache_reverse_transfer_cases.py'))
+            or receipt.get('plan_sha256') != PLAN_SHA or receipt.get('files') != fresh.inventory(base)):
+        raise ValueError('complete fresh reverse C source/ABI/corpus receipt required')
+    if fresh.validate_fresh(receipt['transfer_baseline'], receipt['transfer_receipt'], 'cache-transfer') != receipt['fresh_transfer']:
+        raise ValueError('fresh reused transfer objects/ABI receipt changed')
+    for name, key in [('identity.json', 'identity_sha256'), ('plan.json', 'plan_sha256'),
+                      ('result.json', 'result_sha256'), ('compiler-probes.json', 'compiler_probes_sha256')]:
+        if sha(base / name) != receipt[key]:
+            raise ValueError('fresh reverse receipt differs: ' + name)
+    if (json.loads((base / 'source-inputs-before.json').read_text()) != receipt['source_inputs']
+            or json.loads((base / 'source-inputs-after.json').read_text()) != receipt['source_inputs']
+            or {name: sha(Path(name)) for name in receipt['source_inputs'] if Path(name).is_file()} != receipt['source_inputs']):
+        raise ValueError('fresh reverse physical source inputs or before/after maps differ')
+    identity = json.loads((base / 'identity.json').read_text())
+    if (identity.get('source_identity_sha256') != IDENTITY_SHA or identity.get('cache_source_sha256') != CACHE_SHA
+            or identity.get('fresh_transfer') != receipt['fresh_transfer']):
+        raise ValueError('reverse compiled C source/reused transfer identity differs')
+    builds = [json.loads((base / (label + '-build.command.json')).read_text()) for label in ('native', 'target')]
+    if receipt['build_argv'] != builds or any(row['exit'] != 0 or '-o' not in row['argv'] for row in builds):
+        raise ValueError('reverse C compile/link argv differs')
+    if ([fresh.elf(base / row['path']) for row in receipt['artifacts']] != receipt['artifacts']
+            or len(receipt['artifacts']) != 2 or any(row['machine'] != 183 for row in receipt['artifacts'])):
+        raise ValueError('reverse ELF identity/ABI differs')
+    compilers = json.loads((base / 'compiler-probes.json').read_text())
+    if len(compilers) != 2 or any(len(row.get('records', [])) != 3 for row in compilers):
+        raise ValueError('reverse compiler version/target/macros observations incomplete')
+    for compiler in compilers:
+        if sha(Path(compiler['compiler'])) != compiler['compiler_sha256']:
+            raise ValueError('reverse compiler executable changed')
+        for row in compiler['records']:
+            if (row['exit'] != 0 or sha(base / row['stdout']) != row['stdout_sha256']
+                    or sha(base / row['stderr']) != row['stderr_sha256'] or not (base / row['stdout']).stat().st_size):
+                raise ValueError('reverse compiler ABI receipt invalid')
+    schedule = json.loads((base / 'plan.json').read_text())
+    report = json.loads((base / 'result.json').read_text())
+    if (schedule != cases() or len(schedule) != 21 or report.get('status') != 'C-baseline-complete'
+            or report.get('failures') or report.get('planned_processes') != 126
+            or {row['case'] for row in report['cases'] + report['ordering_cases']} != {case['label'] for case in schedule}
+            or len(report['cases']) + len(report['ordering_cases']) != 21):
+        raise ValueError('reverse original 21-case corpus/result incomplete')
+    for case in schedule:
+        observed = []
+        row = next(row for row in report['cases'] + report['ordering_cases'] if row['case'] == case['label'])
+        for label in ('native', 'target'):
+            for repeat in range(3):
+                stem = label + '-' + str(repeat)
+                folder = base / case['label']
+                command_row = json.loads((folder / (stem + '.command.json')).read_text())
+                lines = (folder / (stem + '.stdout')).read_text().splitlines()
+                if command_row['exit'] != 0 or sha(folder / (stem + '.stdout')) != row['result_sha256'][stem]:
+                    raise ValueError('reverse C case exit/stdout identity differs')
+                calibrate(case, lines)
+                observed.append(lines)
+        if not case['ordering'] and any(lines != observed[0] for lines in observed):
+            raise ValueError('reverse deterministic C variant/repeat instability')
+        if row['distinct_exact_traces'] != len({tuple(lines) for lines in observed}) or row['processes'] != 6:
+            raise ValueError('reverse ordered trace count changed')
+    return dict(mode='fresh-c-reverse-primitive', receipt_sha256=sha(receipt_path),
+                identity_sha256=receipt['identity_sha256'], plan_sha256=receipt['plan_sha256'],
+                result_sha256=receipt['result_sha256'], fresh_transfer=receipt['fresh_transfer'],
+                image_daemon_qualification=False, scope=receipt['scope'])
 
 
 def compare(expected, actual):
@@ -104,6 +215,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['reference-build', 'source-identity', 'sdk', 'target-reference', 'transfer-baseline', 'out']:
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--fresh-transfer-receipt', type=Path, help='explicit fresh transfer C receipt; historical identity pin otherwise')
     args = parser.parse_args()
     assert os.environ.get('DNSMASQ_TEST_ISOLATED') == '1'
     assert [n for _, n in socket.if_nameindex()] == ['lo']
@@ -113,7 +225,25 @@ def main():
     save(out / 'plan.json', schedule)
     report = dict(scope=__doc__, planned_cases=21, cases=[], failures=[], ordering_cases=[],
                   status='incomplete', planned_processes=126)
+    inputs = compilers = None
     try:
+        if args.fresh_transfer_receipt:
+            import c_primitive_receipt as fresh
+            fresh.validate_fresh(args.transfer_baseline, args.fresh_transfer_receipt, 'cache-transfer')
+            transfer_identity = json.loads((args.transfer_baseline / 'identity.json').read_text())
+            prior_builds = [json.loads((args.transfer_baseline / (label + '-build.command.json')).read_text())
+                            for label in ('native', 'target')]
+            inputs = fresh.snapshot([args.source_identity, args.reference_build / 'dnsmasq', args.reference_build / 'deps',
+                args.transfer_baseline, args.target_reference, Path(__file__).with_name('cache_reverse_transfer_driver.c'),
+                Path(__file__), Path(__file__).with_name('cache_reverse_transfer_cases.py'),
+                *[args.sdk / name for name in transfer_identity['sdk_files']],
+                *[Path(shutil.which(row['argv'][0]) or row['argv'][0]) for row in prior_builds]])
+            save(out / 'source-inputs-before.json', inputs)
+            compilers = []
+            for label in ('native', 'target'):
+                prior = json.loads((args.transfer_baseline / (label + '-build.command.json')).read_text())
+                compilers.append(fresh.compiler_probe(out, label, prior['argv'][0],
+                    dict(os.environ, STAGING_DIR=str(args.sdk / 'staging_dir'))))
         native, target = build(args, out)
         for case in schedule:
             folder = out / case['label']; folder.mkdir()
@@ -146,6 +276,8 @@ def main():
     except Exception as error:
         report['failures'].append(repr(error))
     save(out / 'result.json', report)
+    if inputs is not None:
+        freeze_reverse(args, out, inputs, compilers, report)
     print(json.dumps({k:v for k,v in report.items() if k not in ['cases','ordering_cases','scope']}))
     return bool(report['failures'])
 

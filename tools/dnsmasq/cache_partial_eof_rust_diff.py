@@ -130,7 +130,8 @@ def main():
             folder.mkdir()
             (folder / "plan.txt").write_text(plan_text(case))
             env = dict(os.environ, DNSMASQ_PARTIAL_EOF_CASE=str(folder))
-            command(folder, "probe", rust_lib_probe.argv(probe, TEST), env=env)
+            output = command(folder, "probe", rust_lib_probe.argv(probe, TEST), env=env)
+            rust_lib_probe.require_one_test(output, TEST)
             actual = [json.loads(line) for line in (folder / "rust-states.jsonl").read_text().splitlines()]
             typed_metadata = json.loads((folder / "typed-metadata.json").read_text())
             assert typed_metadata.get("format", "whole-frame-v1") == report["typed_format"], "runner/adapter format mismatch"

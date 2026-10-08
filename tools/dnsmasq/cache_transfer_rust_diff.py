@@ -128,6 +128,7 @@ def main():
         (out / f"{case['label']}.stdout").write_text(run.stdout)
         (out / f"{case['label']}.stderr").write_text(run.stderr)
         assert run.returncode == 0, (case['label'], run.returncode)
+        rust_lib_probe.require_one_test(run.stdout, TEST)
         actual = rust_lib_probe.records(run.stdout, TEST, ('P0 ', 'P1 ', 'R ', 'CH ', 'P2 '))
         expected = reference[case['label']].copy()
         if args.inject_error and index == 0:
