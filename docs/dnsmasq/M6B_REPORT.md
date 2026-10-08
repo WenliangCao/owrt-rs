@@ -1,6 +1,6 @@
 # M6b 修复与优化报告
 
-状态：执行中，尚未完成最终验收。性能结论仅代表 Oracle AArch64 构建机；物理路由器未操作。第1包已经按用户固定收尾点关闭，无方案A新基线正在运行；方案A仍在独立分支，未取得新基线上的验收资格，未合入主线。本文提交不是本轮结束条件。
+状态：执行中，尚未完成最终验收。性能结论仅代表 Oracle AArch64 构建机；物理路由器未操作。第1包已经按用户固定收尾点关闭，无方案A新基线27/27已经完成；方案A仍在独立分支，未取得新基线上的验收资格，未合入主线。本文提交不是本轮结束条件。
 
 ## 协议与身份
 
@@ -31,7 +31,7 @@
 
 ## 无A新基线已完成部分（单轮，未作显著分类）
 
-70097c66的UDP-hit三组raw analyzer均方法有效、analysis_errors=[]。稳态90秒，饱和30秒；正确吞吐排除跨段完成和错误，CPU来自相应cgroup边界。其他八profile仍在测量，不拼旧候选结果。
+70097c66的UDP-hit三组raw analyzer均方法有效、analysis_errors=[]。稳态90秒，饱和30秒；正确吞吐排除跨段完成和错误，CPU来自相应cgroup边界。全部九profile已完成27/27并全量本地SHA及metadata归档；以下均只作单轮归因，不拼旧候选结果。
 
 | UDP-hit | 正确QPS | CPU µs/正确请求 | p50 ms | p95 ms | p99 ms | 限制 |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -200,3 +200,16 @@ E=`private/dnsmasq-rewrite/evidence/`。所有列出的完整归档按SHA、类�
 最终固定链为44canonical族/68步骤→M2→perf guard→资源→压力→package→lifecycle；配方与未执行边界见[M6B_FINAL_ACCEPTANCE_RECIPE.md](audits/M6B_FINAL_ACCEPTANCE_RECIPE.md)。perf guard将冻结20客户端UDP p50≤1ms、60秒idleCPU与真实hold20 TCP峰PSS的具体cap/basis；当前cap尚未取得最终实测，不称通过。最终交付强制opt3/feature-off，同一ELF验证所有受影响M5、M2、满4096缓存RSS/300秒资源、ENOSPC/EMFILE与APK安装升级卸载回滚。
 
 既有故意差异见[账本差异总表](DELIVERY_LEDGER.md#与-C-的行为差异)及[M5_BEHAVIOR_DIFFERENCES.md](M5_BEHAVIOR_DIFFERENCES.md)。169项不能有M6b新增差异。最终ELF/APK、满载RSS与M4/M5比较、逐族体积归因和全部fresh资格尚未完成，不能请求体积或M7决定；完成最终报告后再请用户决定是否切换s、是否接受本轮增量及是否进入M7。
+
+## 独立方案 A 已完成的前置门
+
+独立A源码为 `d8ddb22b3dcd3cce2eae44b0941f5c4095800b3c`，仍未合main。Oracle复制测试ELF的实际日志为库751通过、20 ignored（不计通过）；main首次51通过/1失败，使用独立TMPDIR重跑同复制ELF后52通过；UBus68通过。feature-off opt3产品ELF为1,957,928B，SHA `924bdfc240f1ef811c8eacb4035a7476f8581166469144b6e4a22a01449a2c71`，比无A 70097c66 opt3增加8,192B（0.42%）。这些结果仅确认构建和上述测试，不代表镜像服务门、资源门或CPU门通过。
+
+实际Rust crate基础原语已完成：core21场景/22,571条命令、policy29场景/471条命令、EDNS155条命令（143 queries）、lease1,876条命令比较，均零差异/失败。core只归一化不同generic RR类型之间的相对次序；类型内顺序、值、expiry、negative、TTL、stale精确比较。lease日志打印时剔除了cases数组，不能凭当前prep日志声称“70 cases”。四组原语明确没有镜像C守护进程资格：core使用精确hash的C函数提取和ASan/UBSan；其余组为新编译driver链接匹配源版本的既有native C对象，没有重建全部C对象。
+
+目标机layout探针实际执行1个指定ignored测试、exit0，同复制ELF前后SHA相同，collector再次核验所得JSON逐字节相同。4096条snapshot为66,560 requested B/3 allocations；全部名字索引分片detach为243,264B/128 allocations，全部内容块detach为296,960B/128 allocations，child drop为−606,784B，三个净值平衡。singleton零分配、Many clone零分配、首次共享rotation72B/2 allocations、unique rotation/remove零分配。视图隔离正控33/33；五负控均触发指定真实测试失败：discard content/index各4、禁rotation3、保留expired reverse2、reuse generation3。探针与负控是诊断门，不是产品PSS/CPU资格，不能替代内部余额10批、S1–S8镜像服务、资源/生命周期、压力或45窗CPU门。
+
+
+完整身份及失败记录见[独立A证据核对](audits/M6B_A_D8_EVIDENCE_REVIEW.md)。以上是阶段资格，全部门过之前不合主线。
+
+fresh transfer已通过36个case、307个状态；fresh native C半pipe EOF171检查通过，但Rust旧`dns::tcp_transfer::partial_eof_tests`入口已经随单owner直传退休，误用此测试器得到0 tests并因缺输出报FileNotFound，红证据保留。现产品每query使用完整`CacheTransaction`同步capture/import，无byte Receiver；不得为通过旧工具重新引入废弃transport。C cache.c952–1056的父子pipe半截读失败仍保留原始C观察，不当成现A存储的可注入故障；实际网络上游EOF及fail-prefix/import合同分别由服务和现Cache原语验证。
