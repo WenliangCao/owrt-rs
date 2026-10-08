@@ -42,7 +42,9 @@ def main():
         parser.error('--local-native reverse probe requires an explicit --source private copy')
     if args.source and args.source.resolve() != source:
         parser.error('--source and frozen --rust-source-root disagree')
-    assert 'private' in out.parts and 'private' in source.parts
+    assert 'private' in out.parts
+    if probe is None:
+        assert 'private' in source.parts
     out.mkdir(parents=True, exist_ok=False)
     assert sha(base/'plan.json') == PLAN
     fresh_c = None
