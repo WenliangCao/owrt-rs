@@ -4814,6 +4814,7 @@ impl SinglePoll {
                 // Preserve dnsmasq's send-before-refresh ordering.  The
                 // refresh may enqueue an upstream response for a later turn;
                 // Release the parent borrow before that I/O completes.
+                let mut refresh_query_events = Vec::new();
                 if let Ok(mut parent) = self.service.try_borrow_mut() {
                     if let (Some(daemon), Some(metadata)) = (parent.daemon.as_mut(), metadata) {
                         let refresh = daemon.refresh_udp_prepared_on_listener(
@@ -4829,6 +4830,19 @@ impl SinglePoll {
                         );
                         if matches!(refresh, Ok(QueryResult::Local(_))) {
                             event.local_answered = event.local_answered.wrapping_add(1);
+                        }
+                        // Forwarded is produced when the refresh is submitted.
+                        // Its upstream may never reply, so emit it this turn.
+                        refresh_query_events = daemon.take_query_events();
+                    }
+                }
+                #[cfg(target_os = "linux")]
+                if let Some(logger) = &mut self.logger {
+                    for (context, notice) in refresh_query_events {
+                        if let Some(notice) = dnsmasq_rs::logging::query::format(
+                            self.query_logging, context, &notice,
+                        ) {
+                            logger.emit(notice);
                         }
                     }
                 }
@@ -6509,6 +6523,10 @@ mod hostsdir_init_tests;
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_newaddress_tests.rs"]
 mod newaddress_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_stale_refresh_log_tests.rs"]
+mod stale_refresh_log_tests;
 
 #[cfg(test)]
 mod tests {
