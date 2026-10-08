@@ -112,17 +112,49 @@ collector 对所有十批要求 parent root/registry容量、对象余额、各 
 reconnect4096每批新增264名字、10批尚未填满4096，不能拿它的增长当泄漏或当余额通过。
 公共11 profile 仍另跑 feature-off product C/A wire+FD/PSS门，内部 companion不替代它。
 
-## 后续阶段（明确未实施/未运行）
+## 第二阶段：已写入口，明确未运行
+
+同一个诊断 source/ELF/controls，无需重建；新增仅 runner/collector。每个独立 fresh output：
+
+```sh
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_internal.py" run \
+  --image-root "$M6B_IMAGE" --rust "$M6B_DIAG_BUILD/dnsmasq-rs" \
+  --bound-receipt "$M6B_PREP/bound-receipt.json" --profile half --capacity 4096 \
+  --out "$M6B_A_ROOT/private/internal-half-4096-03" </dev/null
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_internal.py" run \
+  --image-root "$M6B_IMAGE" --rust "$M6B_DIAG_BUILD/dnsmasq-rs" \
+  --bound-receipt "$M6B_PREP/bound-receipt.json" --capacity 16384 \
+  --out "$M6B_A_ROOT/private/internal-16384-03" </dev/null
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_internal.py" run \
+  --image-root "$M6B_IMAGE" --rust "$M6B_DIAG_BUILD/dnsmasq-rs" \
+  --bound-receipt "$M6B_PREP/bound-receipt.json" --profile multi-rr --capacity 4096 \
+  --out "$M6B_A_ROOT/private/internal-multi-rr-4096-03" </dev/null
+sudo -n sh "$M6B_TOOLS/run_isolated.sh" python3 "$M6B_TOOLS/m6b_tcp_internal.py" run \
+  --image-root "$M6B_IMAGE" --rust "$M6B_DIAG_BUILD/dnsmasq-rs" \
+  --bound-receipt "$M6B_PREP/bound-receipt.json" --profile pin150 --capacity 150 \
+  --out "$M6B_A_ROOT/private/internal-pin150-150-03" </dev/null
+```
+
+每个 output 仍用第一阶段 `collect --run ... --controls ... --out FRESH_JSON`。
+half4096 只预填2048条；大缓存16384完整预填；multi-RR4096预填2048名字×双A，
+固定 seed `0x6b4096` shuffle，各20 child真实查询相同RRset两次，raw必须保持双A并轮转
+RR顺序；仍完整warm+10批、严格初末余额。pin150先同样warm20连接，然后只持有1 view，
+连续140s每秒强制替换一个既有parent名字，在140s再查旧snapshot，150s原始deadline关闭
+（145–160s witness）；old parent roots实际pin至少130s、释放后全部归零并严格余额。
+诊断1Hztimer可推动该伴随构建，因此**不证明feature-off product timer正确**，普通公共
+idle-pin150的C/A配对仍必须独立通过。
+
+## 其它并行阶段（明确未运行）
 
 | 设计压力 | 现有覆盖 | 后继必须补齐 |
 | --- | --- | --- |
 | 空/小/4096、20client、10批 | 本文第一阶段工具已写，未运行 | 全部实际通过且保全 |
-| 半满和大缓存 | 公共11没有 | 4096只填2048与16384满载，相同固定集合/10批 |
-| 单条150s snapshot+父持续替换 | 公共 idle-pin150有wire/FD | companion运行该单profile，验证旧根pin到释放、timer实际150s、0/1/5/15/60内部余额 |
-| 随机多RR轮转 | 公共 reconnect有双A但未冻结内部账 | 固定双A集合填满，seed固定shuffle，实际RR交替、共享index首次detach/后续零增长 |
-| 错峰accept+同名冲突 | 公共11没有 | 固定不同代际accept、父子同名RDATA冲突及即时导回证据 |
-| reload/lease更新+导入交错 | M5各服务单项有 | 保留accepted旧代际/parent新代际，hold child upstream后reload或lease发布再导入，内部余额 |
-| EOF/deadline/stale/log-only/TERM | 公共11及M5服务各自有 | 同companion交叉G/work、待事务、pin释放与诊断写失败；不从FD推对象 |
+| 半满和大缓存 | 第二阶段已写入口 | 实际run/collect未做 |
+| 单条150s snapshot+父持续替换 | 第二阶段pin150已写；公共 idle-pin150有wire/FD | 两种ELF的实际资格独立，未运行 |
+| 随机多RR轮转 | 第二阶段multi-rr已写 | 真实raw RR顺序和内部余额尚未运行 |
+| 错峰accept+同名冲突 | 独立m6b_tcp_interleaved代理准备 | 固定不同代际accept、父子同名RDATA冲突及即时导回证据 |
+| reload/lease更新+导入交错 | 独立m6b_tcp_interleaved代理准备 | 保留accepted旧代际/parent新代际，hold child upstream后reload或lease发布再导入，内部余额 |
+| EOF/deadline/stale/log-only/TERM | 公共11/M5及独立interleaved补充 | 同companion交叉G/work、待事务、pin释放与诊断写失败；不从FD推对象 |
 
 以上剩余压力与方法异常控制属于独立后续工具单元，由 root 串行实际验证；未做不能写
 “设计5.6通过”。全部 raw/receipt/source/ELF/patch 按 SHA+metadata回拷验证后才 prune。
