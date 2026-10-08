@@ -2,7 +2,7 @@
 
 ## 当前状态与下一步
 
-- 当前里程碑：M6b方案A独立服务门。2026-10-08续接在10分钟内核现场：最新无A e8b1d6c4 / A69bccf27身份不变，main仍无A；独立A工作树clean。旧a-service-01停在14/27且passed=false：cache12含540/540配对及lease caller实际过，EDNS两侧196执行过、compare未跑；无残留进程/namespace/mount，可用63GB。原轮完整保全后从头fresh a-service-02串行重跑，远端nohup日志/exit持久化、逐job PID代际收尾，本地endpoint watcher02在跑；不得以旧14步拼完整资格。资源/压力/45CPU尚未运行，物理路由器未碰。
+- 当前里程碑：M6b方案A独立服务门。2026-10-08续接现场与旧中断轮已全保全；最新A69bc/21937与NoAe8b/2326身份不变，main无A。fresh a-service-02完整cache12实际全过：540/540、required516、9次C不缩、lease TCP caller及9负控过；本族12195路径/11134文件全量SHA+metadata回拷验证后已prune（tar1754c34c…），不拼旧14步。EDNS及余族继续，服务还需15steps与5accept补充；最新原语/资源/压力/45CPU未运行。endpoint watcher02活跃；物理路由器未碰。
 - 刚关闭：前代共同service fixes A3c666/7128d3b6的5case targeted日志真实配对全部0失败（2stale+3startup fault），SHA b5a46a7766c8b3096a86819d8f63e91de1205473164f895e7b79125a37204ee1，log-queries普通缺口即时复闭169/0；closed=[]如实保留，targeted不授全族资格。MAC单caller、interface10 targeted先前复闭5项；最新pair-udp-acl-01构建/owner门过，full新ELF资格继续。
 
 - 当前代码与资格：无A源码e8b1d6c4实际feature-off opt3 SHA2326f4e104c6ea2c13bfd410335356bb34094db532272c92d8884352bb50becc，1,953,832B；独立A源码69bccf2738f2c07cbc6d8b8a950015d4cea10af3实际opt3 SHA21937fa33b2552801278ea6cb15f0e13cb733824e4cd236382f968a1c1c4324b，1,962,024B。Oracle pair-udp-acl-01，两实际build receipts已回本地E/M6B/pair-udp-acl-01；全部test实际过如上。旧ae1/d8资格只历史，不冒充同源；main仅公共正确性修复、产品无A。CPU45旧common89ea1b95仍未执行，现已过时，不手改manifest；全前置过后须最新NoA同源s和fresh common，只45、不增新27。

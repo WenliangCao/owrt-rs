@@ -247,3 +247,5 @@ EDNS full sameA e290执行195/196，neighbor-tcp-connection-mac-snapshot首query
 最新产品是无A e8b1／独立A69bc；A增量8,192B，不把旧ae1的12,288B当最新差。MAC dump收尾、hostsdir Init可运行、NEWADDR调用条件、stale日志及live UDP ACL均为两组共同修复，用新NoA作为45CPU门对照。完整canonical六族27steps在同一21937 ELF上进行；前代targeted实际复闭普通169/0，但不替代full/final资格。最新原语／隔离／layout／companion六份原始编译清单已实际连接产品source/build/map，source-join SHAa19cf11a…；它仅源绑定，不授build/run通过。详细实际结果与失败保全见[M6B_A_SERVICE_69BC_CHECKPOINT](audits/M6B_A_SERVICE_69BC_CHECKPOINT.md)。
 
 11:30 UTC续接发现旧服务轮因SSH断链停在14/27；缓存540完整配对过、EDNS两侧196过而compare未执行，整门未完成。旧13682路径/12475文件已全量SHA+metadata归档后prune，fresh a-service-02从头重跑，不拼旧步数。独立A树clean；资源limit30工具草稿已先保全patch，历史dirty与用户prompts保持原样。Oracle现场无残留进程/namespace/mount、63GB可用。用户本次明确第4包缓存/租约进一步优化延期到M6b之后，当前7个工作包仍继续至最终验收/报告；不因此扩大A门或提前结束本轮。
+
+fresh02的最新69bc缓存族已实际540/540配对通过（required516）、完整9次C、lease TCP caller及9负控通过；12195路径/11134文件全量验证后prune，原始归档tar1754c34c…见同checkpoint。它仅授最新缓存完整族资格，尚不授六族总服务、资源或CPU通过。

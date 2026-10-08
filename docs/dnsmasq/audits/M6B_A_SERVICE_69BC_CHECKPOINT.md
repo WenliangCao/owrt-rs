@@ -36,3 +36,5 @@
 CPU45独立fresh root为cpu-a-69bc-01，完整payload SHA `756003209070831d5fbb12da362c28dcc2ea48836557572ef85c74f78a6620f8`（1571537B），已SHA核验传输/解包。E/M6B/resume-20261008/cpu-plan含最新NoA/A源码maps、实build receipts、参数化同源s/common prepare、真实15门receipt入口、45row静态preview及持久controller/watcher；不含假passed或可执行CPU plan。未构建s、未prepare common、未跑窗口。所有前置实际过后才继续。
 
 最新A复制main测试实际日志a/private/bin-tests.log中`tcp_closed_downstream_keeps_pending_stale_work_until_refresh_completes ... ok`且66passed/0failed。此真实上游控制owner门保pending refresh视图/G、完成后先释放DNS状态且持日志G、FIFO恢复后G0；与镜像cache stale及后续S8余额互补，不宣称stale专用1Hz内部余额已实测，不扩新trace矩阵。
+
+fresh a-service-02最新A的完整cache12步已实际全过：540 executed/540 passed、required516，missing/differences=[]；9次C原规则、四指定PTR参考变体保持，lease TCP caller与9负控通过。本族独立完整归档E/M6B/full-archives/a-69bc-cache-service-02/cache，12195路径/11134文件全SHA+metadata核验后prune，tar SHA `1754c34c1778a6a36bd9fcebcaaa652403bb5a154e3b36294dc744062f94e5f7`，manifest SHA `bf8be29881089a99302861444c8b1e78113ca3bf6252c0648373649cc9e92926`。父controller仍继续余15步，cache原始结果已保于此独立归档，不把整服务门记通过。
