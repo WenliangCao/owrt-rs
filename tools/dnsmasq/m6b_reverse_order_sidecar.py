@@ -36,7 +36,10 @@ def save(path, value):
 
 def module(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
-    value = importlib.util.module_from_spec(spec); spec.loader.exec_module(value)
+    value = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode; sys.dont_write_bytecode = True
+    try: spec.loader.exec_module(value)
+    finally: sys.dont_write_bytecode = previous
     return value
 
 
@@ -102,6 +105,7 @@ def prepare(args):
     # Keep the existing C 21-case execution/calibrations/fresh-receipt implementation,
     # changing only where each invocation's auxiliary trace is written.
     builder = (HERE / 'cache_reverse_transfer_oracle.py').read_text()
+    builder = replace_once(builder, 'import argparse\n', 'import sys\nsys.dont_write_bytecode = True\nimport argparse\n')
     builder = replace_once(builder, "driver = Path(__file__).with_name('cache_reverse_transfer_driver.c').resolve()",
         "driver = Path(__file__).with_name('m6b_reverse_order_driver.c').resolve()")
     builder = replace_once(builder, "args.target_reference, Path(__file__).with_name('cache_reverse_transfer_driver.c'),",
