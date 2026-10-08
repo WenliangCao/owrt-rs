@@ -413,9 +413,18 @@ pub fn wait_readable(fd: RawFd, timeout_ms: i32) -> io::Result<bool> {
 }
 
 pub fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
+    pipe_with_flags(O_CLOEXEC)
+}
+
+/// Create both ends nonblocking before either descriptor can be published.
+pub fn nonblocking_pipe() -> io::Result<(OwnedFd, OwnedFd)> {
+    pipe_with_flags(O_CLOEXEC | O_NONBLOCK)
+}
+
+fn pipe_with_flags(flags: i32) -> io::Result<(OwnedFd, OwnedFd)> {
     let mut fds = [-1i32; 2];
     // SAFETY: fds is a live two-element array, which is what pipe2 fills.
-    if unsafe { pipe2(fds.as_mut_ptr(), O_CLOEXEC) } < 0 {
+    if unsafe { pipe2(fds.as_mut_ptr(), flags) } < 0 {
         return Err(io::Error::last_os_error());
     }
     // SAFETY: pipe2 succeeded, so both entries are fresh descriptors owned by
@@ -459,6 +468,48 @@ mod tests {
     use std::io::{Read, Write};
     use std::os::fd::AsRawFd;
     use std::os::unix::net::UnixStream;
+
+    #[test]
+    fn ordinary_pipe_keeps_blocking_ends() {
+        let (reader, writer) = pipe().unwrap();
+        for fd in [reader.as_raw_fd(), writer.as_raw_fd()] {
+            // SAFETY: F_GETFL only inspects the live owned descriptor.
+            let flags = unsafe { fcntl(fd, F_GETFL, 0) };
+            assert!(flags >= 0);
+            assert_eq!(flags & O_NONBLOCK, 0);
+        }
+    }
+
+    #[test]
+    fn nonblocking_pipe_handles_empty_reads_and_full_writes() {
+        let (reader, writer) = nonblocking_pipe().unwrap();
+        for fd in [reader.as_raw_fd(), writer.as_raw_fd()] {
+            // SAFETY: F_GETFL only inspects the live owned descriptor.
+            let flags = unsafe { fcntl(fd, F_GETFL, 0) };
+            assert!(flags >= 0);
+            assert_ne!(flags & O_NONBLOCK, 0);
+        }
+        let mut reader = std::fs::File::from(reader);
+        let mut writer = std::fs::File::from(writer);
+        assert_eq!(reader.read(&mut [0; 64]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        let bytes = [1; 4096];
+        let mut written = 0;
+        loop {
+            match writer.write(&bytes) {
+                Ok(count) => { assert!(count > 0); written += count; }
+                Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+            }
+            assert!(written < 2 * 1024 * 1024, "default pipe must reach backpressure");
+        }
+        let mut drained = 0;
+        loop {
+            match reader.read(&mut [0; 64]) {
+                Ok(count) => { assert!(count > 0); drained += count; }
+                Err(error) => { assert_eq!(error.kind(), io::ErrorKind::WouldBlock); break; }
+            }
+        }
+        assert_eq!(drained, written);
+    }
 
     #[test]
     fn body_without_ancillary_storage_closes_discarded_descriptor() {

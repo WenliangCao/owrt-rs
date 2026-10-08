@@ -838,10 +838,9 @@ fn run_inner(
     let tftp_config = runtime.tftp.clone();
     let dhcp_config = runtime.dhcp.clone();
     #[cfg(target_os = "linux")]
-    let signal_wake = owrt_ubus::sys::pipe().ok();
+    let signal_wake = owrt_ubus::sys::nonblocking_pipe().ok();
     #[cfg(target_os = "linux")]
     if let Some((_, write_end)) = &signal_wake {
-        let _ = owrt_ubus::sys::set_nonblocking(write_end.as_raw_fd());
         SIGNAL_WAKE_WRITE.store(write_end.as_raw_fd(), Ordering::Release);
     }
     DEBUG_MODE.store(runtime.process.debug, Ordering::Relaxed);
@@ -1394,7 +1393,6 @@ fn run_inner(
     );
     #[cfg(target_os = "linux")]
     if let Some((read_end, write_end)) = signal_wake {
-        let _ = owrt_ubus::sys::set_nonblocking(read_end.as_raw_fd());
         poll.signal_wake_read = Some(read_end);
         poll.signal_wake_write = Some(write_end);
     }
@@ -6743,6 +6741,21 @@ mod tests {
             assert!(started.elapsed() < Duration::from_millis(50),
                 "logical signals cannot wait for the 100ms fallback");
         }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn signal_wake_drains_a_full_buffer_without_another_write() {
+        let mut owner = test_owner(DnsConfig::default(), None);
+        let (reader, writer) = owrt_ubus::sys::nonblocking_pipe().unwrap();
+        let mut writer = std::fs::File::from(writer);
+        writer.write_all(&[1; 64]).unwrap();
+        owner.signal_wake_read = Some(reader);
+        let started = Instant::now();
+        owner.drain_signal_wake();
+        assert!(started.elapsed() < Duration::from_millis(50));
+        let mut reader = std::fs::File::from(owner.signal_wake_read.take().unwrap());
+        assert_eq!(reader.read(&mut [0; 1]).unwrap_err().kind(), io::ErrorKind::WouldBlock);
     }
 
     #[test]
