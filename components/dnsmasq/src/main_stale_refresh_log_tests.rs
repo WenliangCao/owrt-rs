@@ -72,7 +72,7 @@ fn stale_refresh_log_case(deliver_late_reply: bool) {
     let (length, refresh_peer) = upstream.recv_from(&mut bytes).unwrap();
     let refresh = Message::parse(&bytes[..length]).unwrap();
     assert_eq!(Question::parse(&bytes[..length], 12).unwrap().name, Name::from_ascii(NAME).unwrap());
-    let forwarded = format!("UDP 106 forwarded {NAME} to {}", upstream.local_addr().unwrap());
+    let forwarded = format!("UDP 106 forwarded {NAME} to 127.0.0.1#{}", upstream.local_addr().unwrap().port());
     let text = std::fs::read_to_string(&path).unwrap();
     assert_eq!(text.matches(&forwarded).count(), 1,
         "submission must log before any upstream reply or a second owner wake");
