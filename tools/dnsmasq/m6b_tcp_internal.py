@@ -274,25 +274,29 @@ def run(args):
     status = driver.run(args)
     raw = args.out / 'rootfs-overlay/upper/m2/internal.jsonl'
     copied = args.out / 'diagnostic.jsonl'
-    copied.write_bytes(raw.read_bytes())
+    if raw.is_file():
+        copied.write_bytes(raw.read_bytes())
     (args.out / 'bound-receipt.json').write_bytes(args.bound_receipt.read_bytes())
     for name, data in frozen.items():
         (args.out / 'drivers' / name).write_bytes(data)
     unchanged = all(Path(__file__).with_name(name).read_bytes() == data for name, data in frozen.items())
+    marker = args.out / spec['case'] / 'internal-markers.json'
+    missing = [str(path.relative_to(args.out)) for path in [copied, marker] if not path.is_file()]
     save(args.out / 'internal-run-receipt.json', {
         'source_commit': receipt['source_commit'], 'product_sha256': receipt['product_elf_sha256'],
         'diagnostic_sha256': receipt['diagnostic_elf']['sha256'], 'capacity': args.capacity, 'profile': args.profile,
         'bound_receipt_sha256': driver.sha256(args.bound_receipt),
-        'trace_sha256': driver.sha256(copied), 'result_sha256': driver.sha256(args.out / 'result.json'),
-        'marker_sha256': driver.sha256(args.out / spec['case'] / 'internal-markers.json'),
+        'trace_sha256': driver.sha256(copied) if copied.is_file() else None,
+        'result_sha256': driver.sha256(args.out / 'result.json'),
+        'marker_sha256': driver.sha256(marker) if marker.is_file() else None, 'missing_raw': missing,
         'tools': {name: driver.sha256(args.out / 'drivers' / name) for name in TOOLS},
         'tools_unchanged': unchanged, 'completed_without_fixture_errors': status == 0,
         'product_cpu_pss_qualification': False, 'internal_balance_qualification': False})
-    return status or int(not unchanged)
+    return status or int(not unchanged or bool(missing))
 
 
 def validate(rows, markers):
-    if not rows or any(not row.get('diagnostic_only') or row.get('product_qualification') is not False
+    if not rows or any(row.get('diagnostic_only') is not True or row.get('product_qualification') is not False
                        or row.get('extra_trace_fd') != 1 or row.get('missing_hooks') != 0
                        or row.get('balance_errors') != 0 or row.get('alloc_failed') != 0 for row in rows):
         raise ValueError('diagnostic method failed or trace inventory missing')
@@ -310,6 +314,16 @@ def validate(rows, markers):
     if rows[base['trace_index']] != base['row'] or not drain_row(base['row']):
         raise ValueError('baseline is not an actual fully drained trace row')
     baseline = base['row']
+    warm = markers.get('warm_batch')
+    if (not warm or warm['label'] != 'warm'
+            or not warm['active_trace_index'] < warm['drain_trace_index'] <= base['trace_index']
+            or rows[warm['active_trace_index']] != warm['active']
+            or rows[warm['drain_trace_index']] != warm['drained']
+            or not warm['active']['clients'] == warm['active']['G'] == warm['active']['dns_work'] == warm['active']['views'] == 20
+            or not drain_row(warm['drained']) or warm['drained']['drain_epoch'] != baseline['drain_epoch']
+            or product_live(warm['drained']) != product_live(baseline)
+            or any(warm['drained'][key] != baseline[key] for key in BALANCE_FIELDS)):
+        raise ValueError('matching structural warm batch/baseline raw evidence missing')
     prior_index, prior_epoch = base['trace_index'], baseline['drain_epoch']
     checked = []
     for number, batch in enumerate(markers['batches']):
@@ -411,6 +425,7 @@ def collect(args):
     case = case_name(receipt['capacity'], receipt.get('profile', 'reconnect'))
     marker_path = folder / case / 'internal-markers.json'
     if (not receipt['completed_without_fixture_errors'] or not receipt['tools_unchanged']
+            or receipt.get('missing_raw', [])
             or report['failures'] or report['executed_cases'] != [case] or len(report['scenarios']) != 1
             or report['side'] != 'rust' or report['rust_sha256'] != bound['diagnostic_elf']['sha256']
             or receipt['source_commit'] != bound['source_commit']):
@@ -456,7 +471,7 @@ def collect(args):
     controls = json.loads(args.controls.read_text())
     if (controls.get('qualified') is not True or controls.get('source_commit') != bound['source_commit']
             or controls.get('bound_receipt_sha256') != receipt['bound_receipt_sha256']
-            or controls.get('passed_tests') != CONTROLS):
+            or controls.get('passed_tests') != CONTROLS or len(controls.get('tests', [])) != len(CONTROLS)):
         raise ValueError('same-source actual six method controls required before balance qualification')
     control_folder = args.controls.parent
     control_build = json.loads((control_folder / 'control-build.json').read_text())
