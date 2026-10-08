@@ -19,4 +19,14 @@
 
 3批已完targeted原始证据均在本地full-archives/a-shared-targeted-01通过全部SHA+metadata才prune远端：logging-targeted 154路径/102文件，tar SHA41c5f8f7…7afec；ACL首权限失败19路径/17文件，55f1d864…59b7a；ACL成功263路径/222文件，5358d2ae…69789。完整manifest/proof/prune收据保留，没有修改overlay权限或复制special file为普通文件。
 
-最新六份诊断prepare均已完整SHA传到pair-udp-acl-01/a/private，source-join实际验证原始编译maps与21937产品source/build/map一致，receipt SHA `a19cf11a4f256b94508e3f3b09a1587296d009ac7d092cafa6adc8c45ec9e95a`。prepare/transfer/source-join只为源绑定，尚未build/run；执行队列见[M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE](M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE.md)。当前完整cache的C侧540库存已实际通过（699.2s），Rust侧继续；单侧通过不授配对资格。
+最新六份诊断prepare均已完整SHA传到pair-udp-acl-01/a/private，source-join实际验证原始编译maps与21937产品source/build/map一致，receipt SHA `a19cf11a4f256b94508e3f3b09a1587296d009ac7d092cafa6adc8c45ec9e95a`。prepare/transfer/source-join只为源绑定，尚未build/run；执行队列见[M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE](M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE.md)。
+
+## 11:30 UTC 续接核对与整轮重跑
+
+未查旧聊天。只依据AGENTS、账本和报告恢复。Oracle无残留build/test/perf进程、namespace或挂载，可用63GB；最新A工作树69bc完全clean，主树仅用户docs/prompts改动保留。资源工具树的limit30未提交草稿先保全为E/M6B/resume-20261008/worktree-patches下patch（SHA e1a9edcb1891cc231cd25cd4d218aeb24df6bc44d2d4aa5d432d7e64a54ee4b7）；历史dirty树保持原样。
+
+旧a-service-01已无进程，result.passed=false、failures=[]、仅14/27步。cache两侧各540、8次C reverse及compare、lease caller共12步实际过；compare SHA `60f021f63e9565e7dec85186b5d715ae7b7205d9d73dbf2f6b5a31dd26ac4bfb`。EDNS两侧各196过，但compare及后续族未执行。SSH Connection reset/Broken pipe原日志保留，不能认定整门通过，也不能将部分结果拼入新轮。
+
+全量旧目录已pack、本地SHA+全部metadata验证，再prune：E/M6B/full-archives/a-69bc-service-interrupted-01，13682路径/12475普通文件，tar SHA `c1d238823479c0dbe052b01827f0146c27888f7dc281a47141897e1adcf7f3e3`，manifest SHA `15e8d5b491ae14f3528de50a82bc19f0e18340cfc259fef91133acec852dbade`。pack/verification/prune和全部plain收据齐全。
+
+新a-service-02保留原spec/registry/27库存、产品与工具身份，整轮从头运行。每job采用既有PID代际remember/stop收尾，远端nohup保存controller.log与.exit，本地endpoint watcher02独立运行并真实核metadata后送proof。首次launch外层异步shell保留SSH stdout，root独立确认远端nohup进程后终止owned本地wrapper（仅启动通道、非runtime失败），单独启动watcher；记录在pair-udp-acl-01/launch-service-02-wrapper-termination.json。当前不授新整门资格。第4包进一步缓存/租约优化遵用户本次指令延期到M6b之后。
