@@ -64,6 +64,19 @@ def witness(path, after, wanted):
         time.sleep(.02)
 
 
+def active_content_contract(mode, row, parent):
+    # A sole child can modify an old parent block in place. `ever_parent`
+    # classifies that exclusive root as old, even after a successful commit.
+    # The latest view shares the current parent; every earlier view has one
+    # distinct non-parent content root, regardless of that historical label.
+    exclusive = CLIENTS[mode] - 1
+    old, private = row['old_pinned_content'], row['private_content']
+    if (not internal.drain_row(parent) or old < 0 or private < 0
+            or old + private != exclusive
+            or row['content_versions'] != parent['content_versions'] + exclusive):
+        raise ValueError('post-import content roots do not match actual independent views')
+
+
 class Caller(pressure.Caller):
     """Public FD/UBus receipts, with profile-specific content assertions."""
     def __init__(self, *args):
@@ -211,7 +224,10 @@ def schedule(spec, port, upstream, folder, root):
             fixture.ask(label + '-reset-lease-visible', driver.LEASE_CLIENT, host='seedlease.cache.test')
 
     def batch(label):
-        trace_start, before_rows = len(internal.trace_rows(trace)), len(fixture.rows)
+        rows = internal.trace_rows(trace)
+        trace_start, before_rows = len(rows), len(fixture.rows)
+        parent = ({'trace_index': trace_start - 1,
+                   'row': rows[-1]} if diagnostic else None)
         first = fixture.connect()
         accepted_first = time.monotonic_ns()
         fixture.event(label + '-accept-first', accepted_monotonic_ns=accepted_first,
@@ -256,8 +272,8 @@ def schedule(spec, port, upstream, folder, root):
             fixture.ask(label + '-second-private-repeat', '198.51.100.8', second, host)
         active = point(before_release, clients=CLIENTS[mode], G=CLIENTS[mode],
                        dns_work=CLIENTS[mode], views=CLIENTS[mode], tcp_pending=0, udp_pending=0)
-        if diagnostic and active['row']['private_content'] == 0:
-            raise AssertionError('successful child commit has no actual private content root')
+        if diagnostic:
+            active_content_contract(mode, active['row'], parent['row'])
         fixture.sample(label + '-post-import-active')
         fixture.drain(label + '-drained')
         reset(label)
@@ -268,7 +284,7 @@ def schedule(spec, port, upstream, folder, root):
         else:
             drained = None
         fixture.sample(label + '-idle')
-        return {'label': label, 'held': held, 'active': active, 'drained': drained,
+        return {'label': label, 'parent': parent, 'held': held, 'active': active, 'drained': drained,
                 'observation_range': [before_rows, len(fixture.rows)], 'upstream_events': len(upstream.events)}
 
     try:
@@ -374,6 +390,10 @@ def validate_trace(rows, markers):
         for point in [held, active, drained]:
             if rows[point['trace_index']] != point['row']:
                 raise ValueError('marker differs from actual companion row')
+        parent = batch['parent']
+        if (not before <= parent['trace_index'] < held['trace_index']
+                or rows[parent['trace_index']] != parent['row']):
+            raise ValueError('pre-accept parent differs from the actual idle trace')
         for point in [held, active]:
             if not all(point['row'].get(key) == value for key, value in point['wanted'].items()):
                 raise ValueError('actual client/view/transaction witness does not match phase')
@@ -385,8 +405,7 @@ def validate_trace(rows, markers):
         if active['wanted'] != {'clients': count, 'G': count, 'dns_work': count,
                                 'views': count, 'tcp_pending': 0, 'udp_pending': 0}:
             raise ValueError('post-import independent views were weakened')
-        if active['row']['private_content'] <= 0:
-            raise ValueError('actual private content after successful child commit absent')
+        active_content_contract(mode, active['row'], parent['row'])
         if (not internal.drain_row(drained['row'])
                 or internal.product_live(drained['row']) != internal.product_live(base['row'])
                 or any(drained['row'][key] != base['row'][key] for key in internal.BALANCE_FIELDS)):
