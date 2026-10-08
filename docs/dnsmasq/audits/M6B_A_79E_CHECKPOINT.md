@@ -82,3 +82,20 @@ checks/timeout不改，仅新root/output及队列SHA
 新copy准备权限/脚本转义失败均发生在run前，原01 raw未动；正确脚本固定完整newline后直接
 nohup run-resource-02.sh（log/pid/proc-stat持久）。source preflight再次过，public C实际11库存
 过，Rust public继续。尚不授资源总资格；没有运行CPU45或common/s构建。
+
+资源02第3/4 public Rust及完整11比较已实际过；第5 reconnect4096真实10批run完成，第6
+collector返回1：fixed parent live/object/root/capacity balance grew。原raw中baseline
+live1367544/objects16755、registry_len128/cap152；b00 requested相同而cap156，b01–b09/final
+requested1367672（+128B）、对象和128根均不变，observer_requested8456不变，product_live
+实际多128B。cap147–156只是std HashMap tombstone/growth_left的effective容量，不能替代
+真实allocated/requested账；但+128B不能由此豁免。poll_fds/ready_fds Vec<PollFd>未入当前
+trace，8B元素16→32为待验证候选，未冒称原因或通过。只补measurement标量/真实observer账，
+产品不改，warm/阈值不改；fresh诊断实测后决定，strict requested/objects/roots和known1B
+泄漏负控仍保持。
+
+两次失败已全量本地SHA+metadata归档后prune，E/M6B/full-archives/a-79e-resources-failed-01-02：
+foreign-load-01 336路径/310文件，tar `c2ff02c6f39e1fab4d2f4c89825ea9519a2aa24dc2b010e97e907006709e75a0`，
+manifest `3d1d899f7a3fdda0ccea963d10d89cc4637009cc47de2527990edf3bc79211f8`；
+balance-02 52262路径/52181文件，tar `3680a82bcdceace5eb8d94fea9632ebce7dccf284e0f3cbb17fc94b6313f2813`，
+manifest `9c697dee703a5842423ed95847689446c1346464b233b9c110c7c88d71d31659`。
+原余额红结果不翻绿、后续矩阵未执行不通过、CPU45尚未启动。
