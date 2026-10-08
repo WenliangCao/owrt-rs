@@ -137,3 +137,27 @@ known-ready-128B-plateau非泄漏；这不排除未知泄漏、不授整体资�
 `c75bf92bc9abb82843e45345bc1868b85e4c2ad9ada297db578a2e8e7e788cb3`/5325228B，4096
 `4e56e50c6aebab991610cc5630229d9ed705c26dce2e320d19a93cb0fe4f0e01`/5905710B；原始run目录、
 controls与compare留在E/M6B/resume-20261008/reconnect-count-plan/actual，未删未覆盖。
+
+## 2026-10-08 本轮结构 warm 与现场整理
+
+测量工具 `cafce5ba` 只在原 warm 阶段用 generation-bound pidfd 暂停该夹具自己的诊断进程，关闭原批所有已接受连接后必恢复；实际 trace 必须显示 ready Vec 至少 256 B，随后才取 baseline。十批测量阶段不暂停进程；requested/对象/根、60 秒末态及全部负控阈值不变。23 个本地工具测试通过；产品源码和 ELF 未改。
+
+fresh 36 步使用原 resource-tools-current 的工具资产，仅替换 warm 工具和同源 c42 计数 companion。payload `b273310351ee4ae966bd7e461f1309631b589e3fdf06b0fb54d7c55e5e9c9e4e`，queue `dae6ec65426cfe526502a767de46ab8a425b9eb1732003337707b30a8c97bebd`，402 文件上传逐 SHA 核验；job 顺序、checks、timeouts 全部与原矩阵一致。Oracle root 为 `pair-signal-01/resource-tools-warm-03`，输出 `private/a79e-resources-warm-03`；实际 source preflight 与 public-plan 已过，其余执行中。本地完整准备/失败记录在 E/M6B/resume-20261008/resource-warm-03。未授整体资源或 CPU 资格。
+
+本轮已逐树复核 clean/HEAD，13 个交付树先打下列 durable tags，再删除 worktree 和任务分支。活跃 A/route、未提交测量草稿及两项尚未核定树保留。inventory/completion 原始记录在 E/M6B/resume-20261008/worktree-retirement-current；completion SHA `95f0d4145ef4ccf2d624bd2539258bfc0ae514013e4a150b2b5664ed85784171`。
+
+| 已退役分支 | durable tag |
+| --- | --- |
+| `m6b/a-current-gate-audit` | `archive/m6b-a-current-gate-audit-20261008-84f9346d` |
+| `m6b/a-libtest-adapters` | `archive/m6b-a-libtest-adapters-20261008-880ca97c` |
+| `m6b/a69bc-deferred-review` | `archive/m6b-a69bc-deferred-review-20261008-f088e66b` |
+| `m6b/a69bc-safety-review` | `archive/m6b-a69bc-safety-review-20261008-304673ef` |
+| `m6b/final-assets-readiness` | `archive/m6b-final-assets-readiness-20261008-054e198d` |
+| `m6b/interface-fault-actor` | `archive/m6b-interface-fault-actor-20261008-bf2daf4c` |
+| `m6b/logging-triage` | `archive/m6b-logging-triage-20261008-17086fb6` |
+| `m6b/newaddr-publication-contract` | `archive/m6b-newaddr-publication-contract-20261008-ac0d62aa` |
+| `m6b/reverse-cname-family` | `archive/m6b-reverse-cname-family-20261008-fe1d7e62` |
+| `m6b/reverse-import-direction-noa` | `archive/m6b-reverse-import-direction-noa-20261008-0e706717` |
+| `m6b/reverse-order-c-helper` | `archive/m6b-reverse-order-c-helper-20261008-705897c3` |
+| `m6b/reverse-order-sidecar-tools` | `archive/m6b-reverse-order-sidecar-tools-20261008-4990f63f` |
+| `m6b/udp-live-acl-admission` | `archive/m6b-udp-live-acl-admission-20261008-ea2dcc88` |
