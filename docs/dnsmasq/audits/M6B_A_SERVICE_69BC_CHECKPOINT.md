@@ -18,3 +18,5 @@
 后续仍需最新A原语/隔离/layout/同源companion、5accept supplements、public11、内部10批/150s/交错/S8、压力及45CPU。旧ae1/d8 raw和资格均保留历史，不改receipt假装最新same-source；现有cpu-a-reverse-fixed-01未跑且绑定旧ELF，后续fresh common必须最新NoA同源s，45门无新增27。
 
 3批已完targeted原始证据均在本地full-archives/a-shared-targeted-01通过全部SHA+metadata才prune远端：logging-targeted 154路径/102文件，tar SHA41c5f8f7…7afec；ACL首权限失败19路径/17文件，55f1d864…59b7a；ACL成功263路径/222文件，5358d2ae…69789。完整manifest/proof/prune收据保留，没有修改overlay权限或复制special file为普通文件。
+
+最新六份诊断prepare均已完整SHA传到pair-udp-acl-01/a/private，source-join实际验证原始编译maps与21937产品source/build/map一致，receipt SHA `a19cf11a4f256b94508e3f3b09a1587296d009ac7d092cafa6adc8c45ec9e95a`。prepare/transfer/source-join只为源绑定，尚未build/run；执行队列见[M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE](M6B_TCP_A_CURRENT_SOURCE_GATE_RECIPE.md)。当前完整cache的C侧540库存已实际通过（699.2s），Rust侧继续；单侧通过不授配对资格。
