@@ -21,7 +21,8 @@ import m5_dns_cache as driver
 import m6b_tcp_pressure as pressure
 
 CAPACITIES = [0, 1, 150, 4096, 16384]
-PROFILES = ['reconnect', 'half', 'multi-rr', 'pin150']
+PROFILES = ['reconnect', 'half', 'multi-rr', 'pin150', 'limit30']
+LIMIT_HOLD_NS = 2_200_000_000
 CONTROLS = [
     'm6b_resource_diag::m6b_controls::system_operations_and_known_live_object',
     'm6b_resource_diag::m6b_controls::failed_realloc_retains_old_object_and_balance',
@@ -83,6 +84,10 @@ def case_name(capacity, profile):
     return f'm6b-internal-{profile}-{capacity}'
 
 
+def profile_clients(profile):
+    return 30 if profile == 'limit30' else 20
+
+
 class InternalCaller(pressure.Caller):
     def capture(self, label, wire, reply):
         if self.spec['profile'] != 'multi-rr':
@@ -109,8 +114,8 @@ def drain_row(row):
     return row.get('full_drained') is True and all(row.get(key) == 0 for key in DRAIN_FIELDS)
 
 
-def active_owner_contract(row, capacity):
-    if not row.get('clients') == row.get('views') == row.get('dns_work') == row.get('G') == 20:
+def active_owner_contract(row, capacity, clients=20):
+    if not row.get('clients') == row.get('views') == row.get('dns_work') == row.get('G') == clients:
         return False
     if capacity == 0:
         return all(row.get(key) == 0 for key in
@@ -123,8 +128,8 @@ def active_owner_contract(row, capacity):
         # accepting arbitrary private/root totals would hide a missing view or
         # a retained historical owner. End-of-batch balances remain strict.
         return (row.get('old_pinned_content') == 0
-                and row.get('private_content') == 20
-                and row.get('content_versions') == 21)
+                and row.get('private_content') == clients
+                and row.get('content_versions') == clients + 1)
     return row.get('old_pinned_content', 0) > 0 and row.get('private_content', 0) > 0
 
 
@@ -144,16 +149,16 @@ def stable_trace(path, after):
         time.sleep(.02)
 
 
-def active_trace(path, after, capacity):
+def active_trace(path, after, capacity, clients=20):
     until = time.monotonic() + 5
     while True:
         rows = trace_rows(path)
         for index in range(after, len(rows)):
             row = rows[index]
-            if active_owner_contract(row, capacity):
+            if active_owner_contract(row, capacity, clients):
                 return index, row
         if time.monotonic() > until:
-            raise AssertionError('twenty-view old/private root witness was not observed')
+            raise AssertionError(f'{clients}-view old/private root witness was not observed')
         time.sleep(.02)
 
 
@@ -169,6 +174,8 @@ def schedule(spec, port, upstream, folder, root):
     markers = {'prefill_names': names, 'capacity': spec['capacity'], 'profile': spec['profile'], 'clients': 20,
                'batches': [], 'warm_batch': None, 'baseline': None, 'final': None}
     marker_path = folder / 'internal-markers.json'
+    clients = profile_clients(spec['profile'])
+    markers['clients'] = clients
 
     def checkpoint():
         marker_path.write_text(json.dumps(markers, indent=2, sort_keys=True) + '\n')
@@ -185,7 +192,7 @@ def schedule(spec, port, upstream, folder, root):
 
     def batch(label):
         start = len(trace_rows(trace))
-        for _ in range(20):
+        for _ in range(clients):
             fixture.connect()
         # Both parent and child replacements use the same existing names and
         # exact RDATA. No growing name universe can masquerade as a leak.
@@ -204,13 +211,49 @@ def schedule(spec, port, upstream, folder, root):
                 if a == b:
                     raise AssertionError('private multi-RR order did not rotate')
                 fixture.event(label + f'-rotation-{n:02}', before=a, after=b, seed=0x6b4096)
-        active_index, active = active_trace(trace, start, spec['capacity'])
+        limit = None
+        if spec['profile'] == 'limit30':
+            # A fixed hold makes two genuine 1Hz rows observable; admission
+            # is still measured with the original sockets/gauge, not counts
+            # manufactured by the controller or a diagnostic timer shortcut.
+            before_hold, held_at = len(trace_rows(trace)), time.monotonic_ns()
+            time.sleep(LIMIT_HOLD_NS / 1_000_000_000)
+            finished_at = time.monotonic_ns()
+            held_rows = [(index, row) for index, row in enumerate(trace_rows(trace))
+                         if index >= before_hold and active_owner_contract(row, spec['capacity'], clients)]
+            if len(held_rows) < 2 or held_rows[-1][1]['elapsed_ns'] - held_rows[0][1]['elapsed_ns'] < 900_000_000:
+                raise AssertionError('configured limit30 was not observed in two actual separated rows')
+            active_index, active = held_rows[0]
+            limit = {'started_monotonic_ns': held_at, 'completed_monotonic_ns': finished_at,
+                     'first_trace_index': held_rows[0][0], 'first': held_rows[0][1],
+                     'last_trace_index': held_rows[-1][0], 'last': held_rows[-1][1]}
+            with pressure.socket.socket(pressure.socket.AF_INET, pressure.socket.SOCK_STREAM) as queued:
+                queued.settimeout(3); queued.bind((driver.CLIENT, 0)); queued.connect((driver.LISTEN, port))
+                wire = fixture.request()
+                (folder / (label + '-over-limit.query')).write_bytes(wire)
+                queued.sendall(struct.pack('!H', len(wire)) + wire)
+                queued.settimeout(.2)
+                try:
+                    unexpected = queued.recv(1)
+                    (folder / (label + '-over-limit.unexpected')).write_bytes(unexpected)
+                    raise AssertionError('31st request replied/closed while configured limit30 remained full')
+                except pressure.socket.timeout:
+                    fixture.event(label + '-over-limit-held', no_reply=True,
+                                  metrics=fixture.gauge(30, label + '-over-limit-gauge'))
+                fixture.query(label + '-parent-at-limit')
+                fixture.query(label + '-existing-at-limit', fixture.clients[0])
+                fixture.close(fixture.clients[0])
+                queued.settimeout(3)
+                reply = driver.exact_read(queued, struct.unpack('!H', driver.exact_read(queued, 2))[0])
+                fixture.capture(label + '-over-limit-recovered', wire, reply)
+        else:
+            active_index, active = active_trace(trace, start, spec['capacity'], clients)
         fixture.sample(label + '-active')
         before_drain = len(trace_rows(trace))
         fixture.drain(label + '-drained')
         drain_index, drained = stable_trace(trace, before_drain)
         fixture.sample(label + '-idle')
-        return {'label': label, 'active_trace_index': active_index, 'active': active,
+        return {'label': label, 'active_trace_index': active_index, 'active': active, 'limit': limit,
                 'drain_trace_index': drain_index, 'drained': drained,
                 'upstream_events': len(upstream.events)}
 
@@ -277,10 +320,12 @@ def run(args):
     receipt = binding(args.bound_receipt)
     if driver.sha256(args.rust) != receipt['diagnostic_elf']['sha256']:
         raise ValueError('this internal run requires the bound diagnostic copy')
-    if args.profile in ['half', 'multi-rr'] and args.capacity != 4096 or args.profile == 'pin150' and args.capacity != 150:
-        raise ValueError('half/multi-RR freeze at4096 and pin150 freeze at150')
+    if (args.profile in ['half', 'multi-rr'] and args.capacity != 4096
+            or args.profile in ['pin150', 'limit30'] and args.capacity != 150):
+        raise ValueError('half/multi-RR freeze at4096 and pin150/limit30 freeze at150')
     spec = {'case': case_name(args.capacity, args.profile), 'mode': 'internal-reconnect',
-            'capacity': args.capacity, 'profile': args.profile, 'config': '', 'metrics': True,
+            'capacity': args.capacity, 'profile': args.profile,
+            'config': 'max-tcp-connections=30' if args.profile == 'limit30' else '', 'metrics': True,
             'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
     frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
     driver.SYNTAX.clear()
@@ -322,8 +367,11 @@ def validate(rows, markers):
     profile = markers.get('profile', 'reconnect')
     if profile not in PROFILES or markers['capacity'] not in CAPACITIES:
         raise ValueError('unknown frozen internal profile/capacity')
+    if profile == 'limit30' and markers['capacity'] != 150:
+        raise ValueError('limit30 freezes at capacity150')
     wanted_batches = 0 if profile == 'pin150' else 10
-    if (markers.get('clients') != 20 or len(markers.get('batches', [])) != wanted_batches
+    clients = profile_clients(profile)
+    if (markers.get('clients') != clients or len(markers.get('batches', [])) != wanted_batches
             or markers.get('prefill_names') != [f'r{n:06}.internal.test'
                                                for n in range(population(markers['capacity'], profile))]):
         raise ValueError('fixed prefill or ten complete batches missing')
@@ -336,7 +384,7 @@ def validate(rows, markers):
             or not warm['active_trace_index'] < warm['drain_trace_index'] <= base['trace_index']
             or rows[warm['active_trace_index']] != warm['active']
             or rows[warm['drain_trace_index']] != warm['drained']
-            or not active_owner_contract(warm['active'], markers['capacity'])
+            or not active_owner_contract(warm['active'], markers['capacity'], clients)
             or not drain_row(warm['drained']) or warm['drained']['drain_epoch'] != baseline['drain_epoch']
             or product_live(warm['drained']) != product_live(baseline)
             or any(warm['drained'][key] != baseline[key] for key in BALANCE_FIELDS)):
@@ -350,8 +398,8 @@ def validate(rows, markers):
         if not prior_index < ai < di or rows[ai] != batch['active'] or rows[di] != batch['drained']:
             raise ValueError('active/drain witness does not match actual ordered trace')
         active, drained = rows[ai], rows[di]
-        if not active_owner_contract(active, markers['capacity']):
-            raise ValueError('actual twenty-view private/old-root owner contract differs')
+        if not active_owner_contract(active, markers['capacity'], clients):
+            raise ValueError(f'actual {clients}-view private/old-root owner contract differs')
         if not drain_row(drained) or drained['drain_epoch'] != prior_epoch + 1:
             raise ValueError('batch did not actually drain all owner/view/transaction state')
         if (product_live(drained) != product_live(baseline)
@@ -360,6 +408,18 @@ def validate(rows, markers):
         checked.append({'batch': number, 'live_without_registry': product_live(drained),
                         'live_objects': drained['live_objects'], 'root_versions': drained['registry_len']})
         prior_index, prior_epoch = di, drained['drain_epoch']
+    if profile == 'limit30':
+        for batch in [warm, *markers['batches']]:
+            hold = batch.get('limit')
+            if (not hold or hold['completed_monotonic_ns'] - hold['started_monotonic_ns'] < LIMIT_HOLD_NS
+                    or not batch['active_trace_index'] == hold['first_trace_index']
+                    <= hold['last_trace_index'] < batch['drain_trace_index']
+                    or rows[hold['first_trace_index']] != hold['first']
+                    or rows[hold['last_trace_index']] != hold['last']
+                    or hold['last']['elapsed_ns'] - hold['first']['elapsed_ns'] < 900_000_000
+                    or any(not active_owner_contract(row, markers['capacity'], 30)
+                           for row in [hold['first'], hold['last']])):
+                raise ValueError('fixed limit30 hold/two actual independent-view rows missing')
     if profile == 'pin150':
         pin = markers['pin']
         first, last = rows[pin['first_trace_index']], rows[pin['last_trace_index']]
@@ -388,6 +448,33 @@ def validate(rows, markers):
     return checked
 
 
+def limit_observations(work, row, pid, root):
+    config = (work / 'config').read_text().splitlines()
+    if (row.get('config') != 'max-tcp-connections=30'
+            or [line for line in config if line.startswith('max-tcp-connections=')] != ['max-tcp-connections=30']
+            or [line for line in config if line.startswith('cache-size=')] != ['cache-size=150']):
+        raise ValueError('limit30 actual configuration differs')
+    observations = row['observations']
+    labels = [value['label'] for value in observations]
+    for prefix in ['warm', *[f'b{number:02}' for number in range(10)]]:
+        wanted = [prefix + suffix for suffix in ['-over-limit-held', '-parent-at-limit',
+                                               '-existing-at-limit', '-over-limit-recovered']]
+        if any(labels.count(label) != 1 for label in wanted):
+            raise ValueError('limit30 complete admission/progress/recovery observations missing')
+        positions = [labels.index(label) for label in wanted]
+        if positions != sorted(positions):
+            raise ValueError('limit30 admission/progress/recovery order differs')
+        held = observations[positions[0]]
+        gauges = pressure.gauge_receipt(work, prefix + '-over-limit-gauge.gauge.json', pid, root, 30)
+        if held.get('no_reply') is not True or held.get('metrics') != gauges[-1]['value']:
+            raise ValueError('limit30 held request lacks actual full gauge')
+        if any('query' not in observations[index] or 'reply' not in observations[index]
+               for index in positions[1:]):
+            raise ValueError('limit30 parent/existing/recovered answers missing')
+        if (work / (prefix + '-over-limit.query')).read_bytes() != (work / (wanted[-1] + '.query')).read_bytes():
+            raise ValueError('limit30 recovery is not the originally queued request')
+
+
 def rejection_controls(rows, markers):
     mutations = ['retained-client', 'retained-view', 'retained-transaction', 'retained-pinned-root',
                  'known-one-byte-leak', 'known-one-object-leak', 'registry-growth', 'missing-hook',
@@ -397,6 +484,8 @@ def rejection_controls(rows, markers):
         mutations.append('shortened-pin')
     if markers['capacity'] == 1:
         mutations += ['missing-private-owner', 'extra-content-root']
+    if markers.get('profile') == 'limit30':
+        mutations += ['missing-limit-view', 'shortened-limit-hold']
     results = []
     for name in mutations:
         changed, altered = copy.deepcopy(rows), copy.deepcopy(markers)
@@ -409,6 +498,13 @@ def rejection_controls(rows, markers):
                  and row['drain_epoch'] == target['drain_epoch'])['actual_drain_ns'] = 59_000_000_000
         elif name == 'shortened-pin':
             altered['pin']['lifetime_seconds'] = 140
+        elif name == 'shortened-limit-hold':
+            last['limit']['completed_monotonic_ns'] = last['limit']['started_monotonic_ns'] + LIMIT_HOLD_NS - 1
+        elif name == 'missing-limit-view':
+            target = changed[last['active_trace_index']]
+            target['views'] -= 1
+            last['active'] = copy.deepcopy(target)
+            last['limit']['first'] = copy.deepcopy(target)
         elif name in ['missing-private-owner', 'extra-content-root']:
             target = changed[last['active_trace_index']]
             if name == 'missing-private-owner':
@@ -481,6 +577,8 @@ def collect(args):
     markers, rows = json.loads(marker_path.read_text()), trace_rows(raw)
     if markers['capacity'] != receipt['capacity'] or markers.get('profile', 'reconnect') != receipt.get('profile', 'reconnect'):
         raise ValueError('actual marker profile differs from frozen run')
+    if receipt.get('profile') == 'limit30':
+        limit_observations(folder / case, row, row['identity']['pid'], root['root'])
     if receipt.get('profile') == 'multi-rr':
         observed = {value['label']: value for value in row['observations']}
         for prefix in ['warm', *[f'b{number:02}' for number in range(10)]]:

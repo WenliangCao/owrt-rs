@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Pure collector controls; no daemon, namespace, socket or Rust execution."""
 import copy
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -47,6 +49,140 @@ def complete():
         rows.append(idle(11, origin + second * 1_000_000_000, second))
     markers['final'] = {'trace_index': len(rows) - 1, 'row': copy.deepcopy(rows[-1])}
     return rows, markers
+
+
+def complete_limit():
+    rows = []
+    batches = []
+    for number in range(11):
+        ai = len(rows)
+        for second in [1, 2]:
+            row = active(number, (ai + second) * 1_000_000_000)
+            row.update(clients=30, G=30, dns_work=30, views=30,
+                       old_pinned_content=1, private_content=30, content_versions=32)
+            rows.append(row)
+        di = len(rows)
+        rows.append(idle(number + 1, (di + 1) * 1_000_000_000, 0 if number == 10 else -1))
+        batches.append({'label': 'warm' if number == 0 else f'b{number - 1:02}',
+                        'active_trace_index': ai, 'active': copy.deepcopy(rows[ai]),
+                        'drain_trace_index': di, 'drained': copy.deepcopy(rows[di]),
+                        'limit': {'started_monotonic_ns': ai * 1_000_000_000,
+                                  'completed_monotonic_ns': ai * 1_000_000_000 + gate.LIMIT_HOLD_NS,
+                                  'first_trace_index': ai, 'first': copy.deepcopy(rows[ai]),
+                                  'last_trace_index': ai + 1, 'last': copy.deepcopy(rows[ai + 1])}})
+    markers = {'profile': 'limit30', 'capacity': 150, 'clients': 30,
+               'prefill_names': [f'r{n:06}.internal.test' for n in range(150)],
+               'warm_batch': batches[0], 'batches': batches[1:],
+               'baseline': {'trace_index': 2, 'row': copy.deepcopy(rows[2])}}
+    origin = rows[-1]['elapsed_ns']
+    for second in [1, 5, 15, 60]:
+        rows.append(idle(11, origin + second * 1_000_000_000, second))
+    markers['final'] = {'trace_index': len(rows) - 1, 'row': copy.deepcopy(rows[-1])}
+    return rows, markers
+
+
+def limit_observations(folder):
+    (folder / 'config').write_text('cache-size=150\nmax-tcp-connections=30\n')
+    row = {'config': 'max-tcp-connections=30', 'observations': []}
+    for prefix in ['warm', *[f'b{number:02}' for number in range(10)]]:
+        wire = b'original-request-' + prefix.encode()
+        (folder / (prefix + '-over-limit.query')).write_bytes(wire)
+        (folder / (prefix + '-over-limit-recovered.query')).write_bytes(wire)
+        row['observations'].append({'label': prefix + '-over-limit-held', 'no_reply': True,
+                                    'metrics': {'tcp_connections': 30}})
+        for suffix in ['-parent-at-limit', '-existing-at-limit', '-over-limit-recovered']:
+            row['observations'].append({'label': prefix + suffix, 'query': {}, 'reply': {}})
+    return row
+
+
+class ConfiguredLimitOwners(unittest.TestCase):
+    def test_thirty_actual_views_hold_in_warm_and_all_ten_batches(self):
+        rows, markers = complete_limit()
+        self.assertEqual(len(gate.validate(rows, markers)), 10)
+        self.assertTrue(gate.active_owner_contract(rows[0], 150, 30))
+        self.assertFalse(gate.active_owner_contract(rows[0], 150))
+        self.assertEqual(gate.profile_clients('reconnect'), 20)
+        controls = gate.rejection_controls(rows, markers)
+        self.assertEqual(len(controls), 12)
+        self.assertTrue(all(row['rejected'] for row in controls))
+        self.assertEqual([row['control'] for row in controls[-2:]],
+                         ['missing-limit-view', 'shortened-limit-hold'])
+
+    def test_cannot_expand_limit_profile_to_another_capacity(self):
+        rows, markers = complete_limit()
+        markers['capacity'] = 4096
+        markers['prefill_names'] = [f'r{n:06}.internal.test' for n in range(4096)]
+        with self.assertRaises(ValueError):
+            gate.validate(rows, markers)
+
+    def test_missing_view_or_slot_is_rejected_even_with_matching_raw_markers(self):
+        for number in [0, 10]:
+            for key in ['clients', 'G', 'dns_work', 'views']:
+                rows, markers = complete_limit()
+                batch = ([markers['warm_batch'], *markers['batches']])[number]
+                target = rows[batch['active_trace_index']]
+                target[key] = 29
+                batch['active'] = copy.deepcopy(target)
+                batch['limit']['first'] = copy.deepcopy(target)
+                with self.subTest(batch=number, key=key), self.assertRaises(ValueError):
+                    gate.validate(rows, markers)
+
+    def test_short_hold_missing_warm_or_collapsed_trace_pair_is_rejected(self):
+        for kind in ['short-hold', 'short-spacing', 'missing-warm-hold', 'same-row']:
+            rows, markers = complete_limit()
+            batch = markers['warm_batch']
+            hold = batch['limit']
+            if kind == 'short-hold':
+                hold['completed_monotonic_ns'] -= 1
+            elif kind == 'short-spacing':
+                rows[hold['last_trace_index']]['elapsed_ns'] = hold['first']['elapsed_ns'] + 899_999_999
+                hold['last'] = copy.deepcopy(rows[hold['last_trace_index']])
+            elif kind == 'missing-warm-hold':
+                del batch['limit']
+            else:
+                hold['last_trace_index'] = hold['first_trace_index']
+                hold['last'] = copy.deepcopy(hold['first'])
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                gate.validate(rows, markers)
+
+    def test_all_admission_progress_and_recovery_observations_join_the_gauge(self):
+        with tempfile.TemporaryDirectory() as name:
+            folder = Path(name)
+            row = limit_observations(folder)
+            with patch.object(gate.pressure, 'gauge_receipt', return_value=[{'value': {'tcp_connections': 30}}]) as gauge:
+                gate.limit_observations(folder, row, 123, '/synthetic/root')
+            self.assertEqual(gauge.call_count, 11)
+            self.assertEqual(gauge.call_args_list[0].args,
+                             (folder, 'warm-over-limit-gauge.gauge.json', 123, '/synthetic/root', 30))
+
+    def test_missing_reordered_or_forged_admission_and_recovery_is_rejected(self):
+        for kind in ['config', 'raw-config', 'raw-capacity', 'duplicate', 'missing',
+                     'order', 'reply-present', 'gauge', 'missing-answer', 'different-request']:
+            with tempfile.TemporaryDirectory() as name:
+                folder = Path(name)
+                row = limit_observations(folder)
+                if kind == 'config':
+                    row['config'] = ''
+                elif kind == 'raw-config':
+                    (folder / 'config').write_text('cache-size=150\nmax-tcp-connections=20\n')
+                elif kind == 'raw-capacity':
+                    (folder / 'config').write_text('cache-size=4096\nmax-tcp-connections=30\n')
+                elif kind == 'duplicate':
+                    row['observations'].append(copy.deepcopy(row['observations'][0]))
+                elif kind == 'missing':
+                    row['observations'].pop()
+                elif kind == 'order':
+                    row['observations'][0], row['observations'][3] = row['observations'][3], row['observations'][0]
+                elif kind == 'reply-present':
+                    row['observations'][0]['no_reply'] = False
+                elif kind == 'gauge':
+                    row['observations'][0]['metrics']['tcp_connections'] = 29
+                elif kind == 'missing-answer':
+                    del row['observations'][1]['reply']
+                else:
+                    (folder / 'warm-over-limit-recovered.query').write_bytes(b'another-request')
+                with self.subTest(kind=kind), patch.object(gate.pressure, 'gauge_receipt', return_value=[{'value': {'tcp_connections': 30}}]), self.assertRaises(ValueError):
+                    gate.limit_observations(folder, row, 123, '/synthetic/root')
 
 
 class SingleBlockOwners(unittest.TestCase):
