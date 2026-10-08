@@ -64,3 +64,23 @@ before declaring the harness defect closed. The rerun must retain the complete
 trace reports and controller receipts and satisfy the unchanged answer,
 enumeration-family and poll-cycle assertions. This change touches no product
 source and opens no new behavior exception.
+
+## Offline ABI correction
+
+Root's first actual offline run retained seven failures out of 14 in
+`E/M6B/interface-ae1-failed-01/count-stop-unit.log`. All seven rejected event 128
+because macOS `WSTOPSIG(status)` shifts by eight without masking Linux ptrace's
+high event byte. macOS additionally treats stopping signal 19 as continued,
+and its SIGSTOP/TSTP numbers differ from Linux. The initial mocks encoded a
+Linux event status but then used the host's incompatible wait macros.
+
+Count-stop decoding now explicitly uses the already-pinned Linux wait ABI:
+low byte `0x7f`, stopping signal `(status >> 8) & 0xff`, event `status >> 16`;
+SIGTRAP 5 and the four job-control signals 19/20/21/22. These fields match
+[Linux signal UAPI](https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/signal.h)
+and [Linux wait macros](https://github.com/bminor/glibc/blob/master/bits/waitstatus.h).
+Fixtures likewise use Linux signal numbers. Unknown events and invalid event-128 signals remain
+rejected, and their already-reaped stop remains available to failure detach.
+This follow-up did not run tests, builds or Oracle; root must rerun all 14
+controls and both real Linux same-cycle pairs. The original failed run remains
+red evidence, not a product failure or a successful gate.

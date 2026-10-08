@@ -12,7 +12,15 @@ from unittest.mock import Mock, patch
 import m5_interface_records as gate
 
 
-def stopped(sig=signal.SIGTRAP, event=0):
+# These fixtures describe the Linux/AArch64 tracee, even on a macOS host.
+LINUX_SIGTRAP = 5
+LINUX_SIGSTOP = 19
+LINUX_SIGTSTP = 20
+LINUX_SIGUSR1 = 10
+LINUX_SIGUSR2 = 12
+
+
+def stopped(sig=LINUX_SIGTRAP, event=0):
     return (event << 16) | (sig << 8) | 0x7f
 
 
@@ -29,7 +37,7 @@ class CountStops(unittest.TestCase):
             owner, ptrace, report = self.control(directory)
             owner.attached = True
             owner.stop_path.write_text('both received\n')
-            with patch.object(gate.os, 'waitpid', side_effect=[(0, 0), (123, stopped(signal.SIGTRAP | 0x80))]), \
+            with patch.object(gate.os, 'waitpid', side_effect=[(0, 0), (123, stopped(LINUX_SIGTRAP | 0x80))]), \
                     patch.object(gate.time, 'sleep'), patch.object(gate.os, 'kill') as kill:
                 owner.wait()
                 owner.detach()
@@ -66,7 +74,7 @@ class CountStops(unittest.TestCase):
 
     def test_real_signal_delivery_is_reinjected_on_resume_and_detach(self):
         with tempfile.TemporaryDirectory() as directory:
-            for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGUSR2, signal.SIGTRAP):
+            for sig in (signal.SIGTERM, signal.SIGHUP, LINUX_SIGUSR2, LINUX_SIGTRAP):
                 owner, ptrace, _ = self.control(directory)
                 owner.attached = True
                 owner.stopped = gate.enumeration_stop(stopped(sig))
@@ -81,28 +89,28 @@ class CountStops(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             owner, ptrace, report = self.control(directory)
             owner.attached = True
-            owner.stopped = gate.enumeration_stop(stopped(signal.SIGSTOP, 128))
+            owner.stopped = gate.enumeration_stop(stopped(LINUX_SIGSTOP, 128))
             owner.resume()
             ptrace.assert_called_once_with(0x4208)
-            owner.stopped = gate.enumeration_stop(stopped(signal.SIGSTOP, 128))
+            owner.stopped = gate.enumeration_stop(stopped(LINUX_SIGSTOP, 128))
             ptrace.reset_mock()
             with patch.object(gate.os, 'kill') as kill:
                 owner.detach()
-            kill.assert_called_once_with(123, signal.SIGSTOP)
+            kill.assert_called_once_with(123, LINUX_SIGSTOP)
             ptrace.assert_called_once_with(17, 0, 0)
-            self.assertEqual(report['trace_control']['preserved_group_signal'], signal.SIGSTOP)
+            self.assertEqual(report['trace_control']['preserved_group_signal'], LINUX_SIGSTOP)
 
     def test_initial_external_group_stop_is_rejected_then_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
             owner, ptrace, _ = self.control(directory)
-            with patch.object(gate.os, 'waitpid', return_value=(123, stopped(signal.SIGTSTP, 128))), \
+            with patch.object(gate.os, 'waitpid', return_value=(123, stopped(LINUX_SIGTSTP, 128))), \
                     patch.object(gate.os, 'kill') as kill:
                 with self.assertRaisesRegex(AssertionError, 'already externally group-stopped'):
                     owner.attach()
                 owner.detach()
             self.assertEqual(ptrace.call_args_list,
                              [unittest.mock.call(0x4206, 0, 1), unittest.mock.call(0x4207), unittest.mock.call(17, 0, 0)])
-            kill.assert_called_once_with(123, signal.SIGTSTP)
+            kill.assert_called_once_with(123, LINUX_SIGTSTP)
 
     def test_normal_attach_is_seize_and_preserves_a_frozen_tracing_stop(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -147,7 +155,7 @@ class CountStops(unittest.TestCase):
             self.assertFalse(owner.attached)
             self.assertFalse(report['trace_control']['detached'])
             ptrace.assert_not_called()
-        for status in (stopped(event=6), stopped(signal.SIGUSR1, 128)):
+        for status in (stopped(event=6), stopped(LINUX_SIGUSR1, 128)):
             with self.assertRaisesRegex(AssertionError, 'unexpected enum count ptrace event'):
                 gate.enumeration_stop(status)
         with tempfile.TemporaryDirectory() as directory:
@@ -176,7 +184,7 @@ class CountCutoff(unittest.TestCase):
                 if wait_index == 4:
                     Path(str(output) + '.stop').write_text('both received\n')
                     return 0, 0
-                return pid, stopped(signal.SIGTRAP | 0x80)
+                return pid, stopped(LINUX_SIGTRAP | 0x80)
 
             def ptrace(request, pid, address, data):
                 if request.value == 0x420e:
