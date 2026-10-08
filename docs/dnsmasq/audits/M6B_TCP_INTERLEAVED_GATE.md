@@ -32,4 +32,15 @@ python3 tools/dnsmasq/m6b_tcp_interleaved.py collect \
 
 收据中的 `interleaved_internal_qualified` 仅证明本门；`product_cpu_pss_qualification=false`。诊断强制1Hz trace、全局System计数及observer registry改变开销，绝不可用于产品CPU/PSS门。最后同一feature-off产品ELF的canonical M5相关族、S1–S8服务及资源/CPU门仍独立必需。对比中只将合法生命周期内的answer TTL设为有界标记：回答内容和RR顺序严格；完整固定accept-clock/精确TTL由canonical S2门负责，原始TTL仍全保留。
 
-S8日志-only/TERM仍由后续独立入口补齐；不能因为本工具三个profile通过就称设计5.6全部完成。
+## S8 日志-only与TERM
+
+独立工具：[m6b_tcp_log_lifetime.py](../../../tools/dnsmasq/m6b_tcp_log_lifetime.py)，同样只有准备完成，未运行。`run/collect`接口与上例相同，但仅诊断Rust、不接收`--side`，profile为`recover`或`term`，collector使用`--run`和实际method `--controls`。
+
+1. 同fresh镜像root创建 `/m2/tcp-log.fifo`；reader在启动前打开，但sink保持空。正常启动和32个固定DNS父cache预填之后才由controller将FIFO写满至内核实际`F_GETPIPE_SZ`，保存fill到EAGAIN的bytes/时钟/metadata。不是启动门被阻塞的场景。
+2. accept1、成功完成强制TCP上游A查询。真实trace先证实1个DNS work/view和私有content根；随后关闭下游，要求trace为`clients=G=1`、全部DNS owner/root/txn/input/framer/writing/stale/upstream容量为0，只有accepted log context容量仍非零。此时UBus真实`tcp_connections=1`，不能以网络FD已归还冒称slot排空。
+3. `recover`排reader、证实原满FIFO filler逐字保持且accepted child的query log存在；slot/G真实归零，公共FD与内部对象/根/容量余额回复预热值。一次warm＋10批固定names；最终公共和内部0/1/5/15/60秒完整采样。每次sink bytes、上游query/response、UBus gauge和trace都保留。
+4. `term`先同样warm恢复，再建一个真实log-only/full-sink状态，保持reader不消费并发送TERM。1秒内须观察原PID进入Z/不存在、FD为空；保留`stat`原文和0/1/5/15/60秒post-exit实际PID/FD样本，最终daemon exit0。退出后没有heap采样，明确标`not-observed`，不伪造live allocation=0；十批对象余额资格来自独立recover门。退出后才读取仍有完整filler的FIFO。
+
+C写文件FIFO阻塞DNS是M5差异总表已有条目（精确`log.c:133–134/192/320–326/421–440`），此内部S8门不冒称C与Rust在full FIFO下DNS进展一致。相同feature-off产品的canonical logging（含blocked-sink差异守卫、accepted目的地快照、TERM）仍必需。六个collector证据负控要求拒绝残留DNS work/view/root、丢slot、丢accepted log、余额泄漏/虚造TERM drain；真实diagnostic6条method controls仍由独立复制的lib-test ELF执行，不把证据变异称为产品故障注入。
+
+三个interleaved profile、两个S8 profile通过后仍不能称设计5.6全部完成：容量/半满/4096/大缓存、随机多RR、150s pin/churn及独立feature-off资源/服务/CPU门分别由其它入口执行。
