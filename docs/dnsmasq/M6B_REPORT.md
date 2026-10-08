@@ -225,3 +225,5 @@ fresh C reverse21case/126进程完成，20稳定case184观察、ordering12观察
 方向修复main1bd9436c、独立A ae1cdba6只在Cache::import_counted跳过reverse的forward-local callback，新增IPv4/IPv6及forward冲突精准测试，尚待新ELF镜像复闭。新pair第一准备因controller在scp结束前读source tar触发Unexpected EOF，首次raw和controller保留；第二fresh目录先逐tar SHA核对，再解包/构建，不覆写首失败或放宽验证。
 
 方向修复新构建已实际通过：无A源码1bd9436c／SHA30141ffe4d75a7a2692999fdad15c9f9f279223d77255cdbe96ea9fde3e8cdae、1,949,736B，743库/51入口；A源码ae1cdba6／SHAe29007279f74165ffd08afc1d590fe6974db4be0624aa0bfe69aecdc5e827695、1,962,024B，752库/52入口；公共UBus68（编译组件字节相同）通过，20 ignored不计。fresh镜像IPv4/IPv6 PTR×UDP/TCP四profile逐一与两候选配对，8组原case_equal语义/metrics全通过，三组均仅1上游/插入1/后两请求命中，cache-rr复闭恢复169。A相对同修NoA新增12,288B（0.63%），只属体积，不授CPU/资源资格；完整family/new原语/资源/CPU门继续执行。
+
+04:35恢复核对：ae1 same-source core/policy/EDNS/lease、answer764/382metrics、transfer307、layout、34视图正控和五负控4/4/3/2/3、6方法controls实际过。reverse184稳定观察全匹配；layout敏感ordering12有4行与六C raw不同，完整原比较器exit1保留，正在依据既有M5指针mix/桶序合同归因，未排序接受或声称整矩阵过。cache原族仍按原9次C服务规则运行，并纳入新4caller（固定库存540），服务首控制器缺parent目录在开场拒绝、未执行case；第二fresh控制器补parents=True后启动，失败原日志保留。
