@@ -92,7 +92,7 @@ def prepare(args):
     original = files(source)
     compilation = compilation_files(source)
     originals = {name: (source / name).read_text() for name in original if name.endswith('.rs')}
-    if any('#[global_allocator]' in value for name, value in originals.items() if name.startswith('components/')):
+    if any('#[global_allocator]' in value for name, value in originals.items() if name in compilation):
         raise ValueError('product already declares a global allocator')
     edits = {}; anchors = []
 
