@@ -110,3 +110,19 @@ formal的100-query重连、30秒warm和90秒steady提供较长实际高水位；
 guard另要求确定同时hold20的FD+20、单线程无子进程见证，测量2秒warm
 和10秒load。正式采样不冒称确定hold20，也不保证其PSS必覆盖guard。
 三个cap只在135闭合后填写并冻结；guard红色不得据此调cap洗绿。
+
+
+## 已完成批的归档清单长度
+
+整体功能目录归档的首项已在本地验证全部50,250个条目的SHA和完整元数据，
+才删除远端原始目录。恢复验收JSON／日志时，17,148个文件及其目录的
+argv超过系统`ARG_MAX`，GNU tar尚未启动，原归档及本地证明均保持完整。
+这是任务归档调用问题，不是产品测试失败，也没有丢失原始证据。
+
+任务归档脚本改为GNU tar `--null --verbatim-files-from --files-from=-`，
+以stdin传完整NUL分隔清单；本地覆盖50,003项／约5MB清单、换行、
+前导横线及Unicode路径的完整编码。恢复首项后逐文件再核SHA、mode、
+uid/gid、纳秒mtime和所有xattr，17,148项全部一致；原E2BIG日志和
+独立恢复收据保留。没有重跑产品测试、改写原红结果或放宽元数据检查。
+后续目录使用同一修订方式；最终原tar、manifest、本地proof和prune
+总索引在`E/M6B/final-889fe4f5/acceptance-archives/`。
