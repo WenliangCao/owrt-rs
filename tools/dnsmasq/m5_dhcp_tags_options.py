@@ -602,7 +602,16 @@ def primary_options(wire):
     raise AssertionError('response has no primary END')
 
 
-def comparable_reply(response, event):
+def inform_clock_witness(leases, event, before_ns, after_ns):
+    rows = [line.split() for line in leases.splitlines() if line.split()]
+    matching = [row for row in rows if len(row) >= 3 and row[2] == event['ciaddr']]
+    assert len(matching) <= 1, 'ambiguous INFORM lease address'
+    expiry = int(matching[0][0]) if matching else None
+    return {'ciaddr': event['ciaddr'], 'leasefile_before': leases, 'lease_expiry': expiry,
+            'before_ns': before_ns, 'after_ns': after_ns}
+
+
+def comparable_reply(response, event, inform_clock=None):
     if event.get('renew'):
         assert event['kind'] == 3 and event['requested_address'] is False
         assert event['server_id'] is None and event['ciaddr'] != '0.0.0.0'
@@ -619,6 +628,35 @@ def comparable_reply(response, event):
                 assert len(bytes.fromhex(row['value'])) == 4
                 start = row['offset'] + 2
                 normalized[start:start+4] = b'\0'*4
+        return normalized.hex()
+    if event['kind'] == 8 and inform_clock is not None:
+        rows = primary_options(response)['rows']
+        lease_options = [row for row in rows if row['code'] == 51]
+        if not lease_options:
+            return response.hex()
+        assert len(lease_options) == 1, 'duplicate INFORM lease time'
+        row = lease_options[0]
+        value = bytes.fromhex(row['value'])
+        assert len(value) == 4, 'INFORM lease time is not u32'
+        assert inform_clock['ciaddr'] == event['ciaddr']
+        assert inform_clock == inform_clock_witness(inform_clock['leasefile_before'], event,
+            inform_clock['before_ns'], inform_clock['after_ns']), 'INFORM expiry witness differs from its raw leasefile'
+        expiry = inform_clock['lease_expiry']
+        assert expiry is not None, 'INFORM lease time lacks a pre-request lease witness'
+        before, after = inform_clock['before_ns'], inform_clock['after_ns']
+        assert type(before) is int and type(after) is int and 0 <= before <= after
+        remaining = int.from_bytes(value, 'big')
+        if expiry == 0:
+            assert remaining == 0xffffffff, 'infinite INFORM lease time differs'
+        else:
+            # Both C and Rust report expiry minus the request's integer clock.
+            # Check this side's actual expiry and observed request interval;
+            # only then omit the elapsed-time field from the C/R comparison.
+            assert before // 1_000_000_000 <= expiry - remaining <= after // 1_000_000_000, \
+                'INFORM lease time does not match the observed request clock'
+        normalized = bytearray(response)
+        start = row['offset'] + 2
+        normalized[start:start+4] = b'\0'*4
         return normalized.hex()
     # Leasequery is deliberately sent more than one second after ACK. Verify
     # the exact 600-second lease relationships before normalizing clock phase.
@@ -693,6 +731,8 @@ def run(root, side, folder, text, events):
                     time.sleep(1.05)  # make option91 presence deterministic after the preceding ACK
                 wire = request(event, 0xa100+index)
                 (folder/f'{index:03}.request').write_bytes(wire)
+                lease_before = (root/'m2/family.leases').read_text() if event['kind'] == 8 and (root/'m2/family.leases').exists() else ''
+                before_ns = time.time_ns()
                 if event.get('transport') == 'relay':
                     result_path = folder/f'{index:03}.transport.json'
                     result = subprocess.run(network.argv(sys.executable, Path(__file__).resolve(), '--relay-client',
@@ -705,6 +745,11 @@ def run(root, side, folder, text, events):
                     source = event['ciaddr'] if event.get('renew') else None
                     target = ('127.0.0.1' if source else '255.255.255.255', 67)
                     response, peer, foreign, drained = receive(client, wire, target, source=source)
+                after_ns = time.time_ns()
+                inform_clock = None
+                if event['kind'] == 8:
+                    inform_clock = inform_clock_witness(lease_before, event, before_ns, after_ns)
+                    save(folder/f'{index:03}.inform-clock.json', inform_clock)
                 save(folder/f'{index:03}.transport.json', {'foreign': foreign, 'drained': drained})
                 row = {'label': event['label']}
                 if response is None:
@@ -714,7 +759,7 @@ def run(root, side, folder, text, events):
                     assert not event.get('no_reply'), 'ignored client received matching xid reply'
                     assert response[0] == 2 and response[4:8] == wire[4:8], 'invalid response header'
                     (folder/f'{index:03}.response').write_bytes(response)
-                    comparable = bytes.fromhex(comparable_reply(response, event))
+                    comparable = bytes.fromhex(comparable_reply(response, event, inform_clock))
                     row.update(reply=comparable.hex(), peer=list(peer), options=options(comparable), primary=primary_options(comparable))
                 leases, normalized = lease_rows(root)
                 (folder/f'{index:03}.leases').write_text(leases)
@@ -901,6 +946,7 @@ def main():
               'tool_sha256': sha256(Path(__file__)), 'source_commit': args.source_commit,
               'normalizations': ['diagnostics: only line-leading executable prefix dnsmasq-rs: becomes dnsmasq:; raw streams retained',
                 'explicit renewals: validate lease600 and shared T1/T2 fuzz in0..37, then zero only option58/59; raw .response retained',
+                'INFORM: verify option51 against the pre-request lease expiry and recorded request clock interval, then zero only its value; raw response/lease/clock retained',
                 'leasequery: wait 1.05 seconds before each query; validate 600-second lease T1/T2/elapsed relationships then zero only option51/58/59/91 values; raw .response retained',
                 'leasefile: finite expiry epochs become finite-600 after checking remaining lifetime; lease identities/names/extensions unchanged'],
               'c_only': args.c_only, 'required_case_map': required_map, 'cases': [], 'parser': [], 'failures': [], 'negative_controls': [], 'reference_differences': []}
