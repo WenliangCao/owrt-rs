@@ -300,7 +300,7 @@ fn route_resend_owner_debug_shared_partial_frame_clears_before_validation() {
     let mut peer = fixture.accept_tcp();
     // Select the debug consumer without changing the process-global mode used
     // by unrelated parallel tests. Save itself is produced only by real UDP.
-    fixture.owner.clients[0].cache_debug = true;
+    fixture.owner.clients[0].dns_work.as_mut().unwrap().cache_debug = true;
     peer.write_all(&[0]).unwrap();
     fixture.owner.wait_for_files().unwrap();
     fixture.owner.step_tcp_clients();

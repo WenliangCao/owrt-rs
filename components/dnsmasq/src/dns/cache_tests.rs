@@ -1,6 +1,248 @@
 use super::*;
 
 #[test]
+fn real_mixed_rrset_rotation_keeps_unique_many_allocation_and_snapshot_order() {
+    let mut parent = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("mixed.index.test").unwrap();
+    let key = name.canonical_wire();
+    parent.start_insert();
+    for (kind, value) in [(Kind::Ipv4, 1), (Kind::Ipv6, 2), (Kind::Generic(16), 3),
+                          (Kind::Ipv4, 4), (Kind::Generic(15), 5)] {
+        parent.insert(record("mixed.index.test", kind, value), 100, 60).unwrap();
+    }
+    assert!(parent.commit());
+    let SlotIndices::Many(indices) = parent.names_for(&key).unwrap() else { panic!() };
+    let unique = indices.as_ptr();
+    parent.lookup(&name, &[Kind::Ipv4], 100, true);
+    let SlotIndices::Many(indices) = parent.names_for(&key).unwrap() else { panic!() };
+    assert_eq!(indices.as_ptr(), unique, "lookup's temporary snapshot must be gone before unique rotation");
+    let order = |cache: &Cache| cache.names_for(&key).unwrap().iter()
+        .map(|&slot| cache.entry(slot).unwrap().record.data[0]).collect::<Vec<_>>();
+    assert_eq!(order(&parent), [5, 1, 4, 3, 2]);
+    let mut child = parent.snapshot();
+    child.lookup(&name, &[Kind::Generic(16)], 100, true);
+    assert_eq!(order(&parent), [5, 1, 4, 3, 2]);
+    assert_eq!(order(&child), [3, 5, 1, 4, 2]);
+    check_ownership(&parent);
+    check_ownership(&child);
+}
+
+#[test]
+fn shard_detach_shares_many_indices_until_order_write_and_keeps_canonical_key_alive() {
+    let mut parent = Cache::new(8, Policy::default());
+    let name = Name::from_ascii("shared.rrset.test").unwrap();
+    let key = name.canonical_wire();
+    let shard = Cache::key_shard(&key);
+    parent.start_insert();
+    parent.insert(record("shared.rrset.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    parent.insert(record("shared.rrset.test", Kind::Ipv4, 2), 100, 60).unwrap();
+    assert!(parent.commit());
+    let parent_key = parent.names[shard].keys().find(|old| old.as_ref() == key.as_slice()).unwrap();
+    // Only the immutable key has a Weak observer. Content/index root weak
+    // references would change Arc::make_mut's detach behavior.
+    let key_lifetime = Arc::downgrade(parent_key);
+    let parent_key = parent_key.as_ptr();
+    let mut child = parent.snapshot();
+    // Write another name in this shard so the map detaches while its existing
+    // multi-record value must still share the immutable ordered index slice.
+    let other = (0..4096).map(|i| format!("neighbor-{i}.test")).find(|text| {
+        Cache::key_shard(&Name::from_ascii(text).unwrap().canonical_wire()) == shard
+    }).unwrap();
+    child.start_insert();
+    child.insert(record(&other, Kind::Ipv4, 3), 100, 60).unwrap();
+    assert!(child.commit());
+    let (SlotIndices::Many(parent_indices), SlotIndices::Many(child_indices)) =
+        (parent.names_for(&key).unwrap(), child.names_for(&key).unwrap()) else { panic!() };
+    assert!(Arc::ptr_eq(parent_indices, child_indices));
+    assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+    let old_order = parent_indices.to_vec();
+    child.lookup(&name, &[Kind::Ipv4], 100, true);
+    assert_eq!(&**parent.names_for(&key).unwrap(), old_order.as_slice());
+    assert_ne!(&**child.names_for(&key).unwrap(), old_order.as_slice());
+    parent.clear();
+    let child_key = child.names[shard].keys().find(|old| old.as_ref() == key.as_slice()).unwrap().as_ptr();
+    assert_eq!(child_key, parent_key, "detached map retains the canonical key payload");
+    assert_eq!(child.lookup(&name, &[Kind::Ipv4], 100, false).len(), 2);
+    assert!(key_lifetime.upgrade().is_some());
+    drop(child);
+    assert!(key_lifetime.upgrade().is_none(), "last view must release its canonical key");
+}
+
+#[test]
+fn tcp_retained_view_keeps_negative_reverse_lease_and_rotation_private() {
+    let mut parent = Cache::new(16, Policy::default());
+    parent.start_insert();
+    let negative = parent
+        .insert(
+            Record {
+                name: Name::from_ascii("negative.snapshot.test").unwrap(),
+                kind: Kind::NxDomain,
+                negative: true,
+                data: Vec::new(),
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    parent.set_negative_authority(negative, Name::from_ascii("old.authority.test").unwrap());
+    parent
+        .insert(
+            Record {
+                name: Name::from_ascii("reverse.snapshot.test").unwrap(),
+                kind: Kind::ReverseIpv4,
+                negative: false,
+                data: vec![192, 0, 2, 17],
+            },
+            100,
+            60,
+        )
+        .unwrap();
+    let alias = parent
+        .insert(record("lease-alias.snapshot.test", Kind::Cname, 0), 100, 60)
+        .unwrap();
+    let lease = parent.local_target(Name::from_ascii("lease.snapshot.test").unwrap(), true);
+    assert!(parent.set_local_cname_target(alias, lease));
+    parent
+        .insert(record("rrset.snapshot.test", Kind::Ipv4, 1), 100, 60)
+        .unwrap();
+    parent
+        .insert(record("rrset.snapshot.test", Kind::Ipv4, 2), 100, 60)
+        .unwrap();
+    assert!(parent.commit());
+    let name = Name::from_ascii("rrset.snapshot.test").unwrap();
+    let before_order = parent.names_for(&name.canonical_wire()).unwrap().clone();
+    let mut child = parent.snapshot();
+
+    assert!(child.set_negative_authority(negative, Name::from_ascii("new.authority.test").unwrap()));
+    assert_eq!(
+        parent
+            .get(negative)
+            .unwrap()
+            .negative_authority_name()
+            .unwrap(),
+        &Name::from_ascii("old.authority.test").unwrap()
+    );
+    assert_eq!(
+        child
+            .get(negative)
+            .unwrap()
+            .negative_authority_name()
+            .unwrap(),
+        &Name::from_ascii("new.authority.test").unwrap()
+    );
+    child.lookup(&name, &[Kind::Ipv4], 100, true);
+    assert_eq!(
+        parent.names_for(&name.canonical_wire()).unwrap(),
+        &before_order
+    );
+    assert_ne!(
+        child.names_for(&name.canonical_wire()).unwrap(),
+        &before_order
+    );
+    assert!(child
+        .lookup_reverse("192.0.2.17".parse().unwrap(), 160)
+        .is_empty());
+    assert_eq!(
+        parent
+            .lookup_reverse("192.0.2.17".parse().unwrap(), 100)
+            .len(),
+        1
+    );
+    child.first_lease_entry();
+    assert!(lookup(&mut child, "lease-alias.snapshot.test", Kind::Cname, 100).is_empty());
+    assert_eq!(
+        parent
+            .lookup(
+                &Name::from_ascii("lease-alias.snapshot.test").unwrap(),
+                &[Kind::Cname],
+                100,
+                false
+            )
+            .len(),
+        1
+    );
+    child.clear();
+    assert!(child.get(negative).is_none());
+    assert!(parent.get(negative).is_some());
+    check_ownership(&parent);
+    check_ownership(&child);
+}
+
+#[test]
+fn tcp_snapshot_clear_is_private_at_zero_small_and_large_capacity() {
+    for capacity in [0, 1, 150, 4096] {
+        let mut parent = Cache::new(capacity, Policy::default());
+        parent.start_insert();
+        let inserted = parent.insert(record("capacity.snapshot.test", Kind::Ipv4, 7), 100, 60);
+        if capacity == 0 {
+            assert_eq!(inserted, Err(InsertError::Full));
+        } else {
+            assert!(inserted.is_ok());
+            assert!(parent.commit());
+        }
+        let mut child = parent.snapshot();
+        child.clear();
+        assert_eq!(
+            lookup(&mut parent, "capacity.snapshot.test", Kind::Ipv4, 100),
+            if capacity == 0 { Vec::new() } else { vec![7] }
+        );
+        assert!(lookup(&mut child, "capacity.snapshot.test", Kind::Ipv4, 100).is_empty());
+        check_ownership(&parent);
+        check_ownership(&child);
+    }
+}
+
+#[test]
+fn compact_slot_links_preserve_zero_absence_and_production_capacity_limit() {
+    assert_eq!(slot_index(None), None);
+    for index in [0, 1, 149, 4095, 4_999_999, u32::MAX as usize - 1] {
+        assert_eq!(slot_index(Some(slot_link(index))), Some(index));
+    }
+    assert_eq!(std::mem::size_of::<Option<NonZeroU32>>(), 4);
+    assert_eq!(std::mem::size_of::<Slot>(), 16);
+}
+
+#[test]
+fn tcp_snapshot_content_and_name_roots_detach_only_on_mutation() {
+    let name = Name::from_ascii("shared-root.test").unwrap();
+    let mut parent = Cache::new(128, Policy::default());
+    parent.start_insert();
+    let old = parent
+        .insert(record("shared-root.test", Kind::Ipv4, 1), 100, 60)
+        .unwrap();
+    assert!(parent.commit());
+
+    let mut child = parent.snapshot();
+    let block = old.slot / CONTENT_BLOCK_SLOTS;
+    assert!(Arc::ptr_eq(&parent.content[block], &child.content[block]));
+    let key = name.canonical_wire();
+    let shard = Cache::key_shard(&key);
+    assert!(Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+
+    // A cache hit only updates the owner's LRU; shared content/index roots
+    // remain shared and the parent cannot observe that promotion.
+    assert_eq!(child.lookup(&name, &[Kind::Ipv4], 100, false).len(), 1);
+    assert!(Arc::ptr_eq(&parent.content[block], &child.content[block]));
+    assert!(Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+
+    // Replacing the record detaches just the touched content block and its
+    // conflicting name shard while the parent keeps its old roots.
+    child.start_insert();
+    child
+        .insert(record("shared-root.test", Kind::Ipv4, 2), 100, 60)
+        .unwrap();
+    assert!(!Arc::ptr_eq(&parent.content[block], &child.content[block]));
+    assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+    assert!(child.commit());
+    assert!(!Arc::ptr_eq(&parent.names[shard], &child.names[shard]));
+    assert_eq!(
+        lookup(&mut parent, "shared-root.test", Kind::Ipv4, 100),
+        [1]
+    );
+    assert_eq!(lookup(&mut child, "shared-root.test", Kind::Ipv4, 100), [2]);
+}
+
+#[test]
 fn tcp_view_isolates_mutation_shares_payload_and_imports_only_child_transaction() {
     let a = Name::from_ascii("a.snapshot.test").unwrap();
     let b = Name::from_ascii("b.snapshot.test").unwrap();
@@ -179,25 +421,27 @@ fn check_ownership(cache: &Cache) {
     while let Some(index) = at {
         assert!(linked.insert(index), "cycle or duplicated slot");
         let slot = &cache.slots[index];
-        assert_eq!(slot.prev, previous);
-        assert!(slot.entry.as_ref().is_none_or(|entry| entry.committed));
+        assert_eq!(slot_index(slot.prev), previous);
+        assert!(cache.entry(index).is_none_or(|entry| entry.committed));
         previous = at;
-        at = slot.next;
+        at = slot_index(slot.next);
     }
     assert_eq!(previous, cache.tail);
     for &slot in &cache.pending {
         assert!(linked.insert(slot));
-        assert!(!cache.slots[slot].entry.as_ref().unwrap().committed);
+        assert!(!cache.entry(slot).unwrap().committed);
     }
     assert_eq!(linked.len(), cache.slots.len());
     let mut indexed = HashSet::new();
-    for (name, indices) in &cache.names {
-        assert!(!indices.is_empty());
-        for &slot in indices {
-            assert!(indexed.insert(slot));
-            let entry = cache.slots[slot].entry.as_ref().unwrap();
-            assert!(entry.committed);
-            assert_eq!(&entry.record.name.canonical_wire(), name);
+    for shard in &cache.names {
+        for (name, indices) in shard.iter() {
+            assert!(!indices.is_empty());
+            for &slot in indices {
+                assert!(indexed.insert(slot));
+                let entry = cache.entry(slot).unwrap();
+                assert!(entry.committed);
+                assert_eq!(entry.record.name.canonical_wire().as_slice(), name.as_ref());
+            }
         }
     }
     assert_eq!(
@@ -205,7 +449,8 @@ fn check_ownership(cache: &Cache) {
         cache
             .slots
             .iter()
-            .filter(|slot| slot.entry.as_ref().is_some_and(|entry| entry.committed))
+            .enumerate()
+            .filter(|(index, _)| cache.entry(*index).is_some_and(|entry| entry.committed))
             .count()
     );
 }
@@ -335,7 +580,7 @@ fn local_insert_failure_aborts_pending_batch_without_restoring_removed_records()
     assert!(cache.get(pending).is_none());
     assert!(cache.insert_against_local(90, true).is_ok());
     assert!(cache.commit());
-    assert!(cache.names.is_empty());
+    assert!(cache.names.iter().all(|shard| shard.is_empty()));
     check_ownership(&cache);
 }
 

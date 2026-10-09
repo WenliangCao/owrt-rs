@@ -38,17 +38,17 @@ fn await_dump_datagram(owner: &SinglePoll) {
 #[test]
 fn tail_dump_completion_captures_accept_mac_then_registers_real_downstream() {
     let (mut owner, _peer) = queued_client(DnsConfig::default());
-    let source = owner.clients[0].source;
+    let source = owner.clients[0].dns_work.as_ref().unwrap().source;
     assert!(matches!(owner.edns_mac(source, false), ClientMacLookup::Pending));
     assert!(!owner.tcp_client_ready(0));
     assert_eq!(owner.clients[0].ready_events, 0);
     await_dump_datagram(&owner);
     owner.advance_neighbors();
     assert_eq!(owner.neighbors.as_ref().unwrap().active_dump_deadline(), None);
-    assert!(owner.clients[0].mac_ready, "tail publication must resume the accepted MAC lookup");
+    assert!(owner.clients[0].dns_work.as_ref().unwrap().mac_ready, "tail publication must resume the accepted MAC lookup");
     assert_eq!(owner.clients[0].ready_events, 0, "completion is not a synthetic POLLIN");
-    assert!(owner.clients[0].input.is_empty());
-    let fd = owner.clients[0].stream.as_ref().unwrap().as_raw_fd();
+    assert!(owner.clients[0].dns_work.as_ref().unwrap().input.is_empty());
+    let fd = owner.clients[0].dns_work.as_ref().unwrap().stream.as_ref().unwrap().as_raw_fd();
     owner.wait_for_files().unwrap();
     assert!(owner.poll_fds.iter().any(|item| item.fd == fd && item.events == owrt_ubus::sys::POLLIN));
     assert!(poll_events_match(owner.clients[0].ready_events, owrt_ubus::sys::POLLIN),
@@ -62,7 +62,7 @@ fn captured_buffered_mac_query_is_runnable_and_does_not_lookup_again() {
     let (mut owner, mut peer) = queued_client(config);
     // The separate queued bytes are not needed by this already-framed query.
     // A captured MAC must authorize its phase without declaring them readable.
-    let client = &mut owner.clients[0];
+    let client = owner.clients[0].dns_work.as_mut().unwrap();
     client.queries = 1;
     client.phase = TcpClientPhase::WaitingMac { query: query() };
     client.mac = Some(vec![2, 0, 0, 0, 0, 1]);
@@ -70,16 +70,16 @@ fn captured_buffered_mac_query_is_runnable_and_does_not_lookup_again() {
     assert!(owner.tcp_client_ready(0));
     owner.wait_for_files().unwrap();
     assert_eq!(owner.clients[0].ready_events, 0);
-    assert!(owner.clients[0].step(&owner.service,
+    assert!(owner.clients[0].dns_work.as_mut().unwrap().step(&owner.service,
         &mut |_, _| panic!("captured connection MAC must not be looked up again"),
         false, false, false).unwrap());
-    assert_eq!(owner.clients[0].mac, Some(vec![2, 0, 0, 0, 0, 1]));
+    assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().mac, Some(vec![2, 0, 0, 0, 0, 1]));
     let mut length = [0; 2];
     peer.read_exact(&mut length).unwrap();
     let mut packet = vec![0; u16::from_be_bytes(length) as usize];
     peer.read_exact(&mut packet).unwrap();
     assert_eq!(&packet[..2], &query()[..2]);
-    assert_eq!(owner.clients[0].queries, 1, "the separate queued frame was not read without POLLIN");
+    assert_eq!(owner.clients[0].dns_work.as_ref().unwrap().queries, 1, "the separate queued frame was not read without POLLIN");
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn tail_dump_completion_resumes_udp_and_interface_held_accept() {
     assert!(owner.pending_edns_udp.is_empty());
     let pending = owner.pending_interface_tcp.take().unwrap();
     owner.finish_tcp_accept(pending);
-    assert!(owner.clients[0].mac_ready);
+    assert!(owner.clients[0].dns_work.as_ref().unwrap().mac_ready);
 }
 
 #[test]

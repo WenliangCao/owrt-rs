@@ -9,7 +9,12 @@ use super::lease_names::{BlockerKind, ForwardPublication, PublicationCache};
 use super::wire::Name;
 use std::collections::HashMap;
 use std::net::IpAddr;
+use std::num::NonZeroU32;
 use std::sync::Arc;
+
+#[path = "cache_name_index.rs"]
+mod name_index;
+use name_index::SlotIndices;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
@@ -223,13 +228,36 @@ pub struct LocalCacheMatch {
     pub from_lease: bool,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 struct Slot {
-    entry: Option<Entry>,
     generation: u64,
-    prev: Option<usize>,
-    next: Option<usize>,
+    prev: Option<NonZeroU32>,
+    next: Option<NonZeroU32>,
 }
+
+fn slot_link(index: usize) -> NonZeroU32 {
+    // Cache::new validates the capacity before constructing any slot. The
+    // one-based representation reserves zero for an absent link.
+    index
+        .checked_add(1)
+        .and_then(|index| u32::try_from(index).ok())
+        .and_then(NonZeroU32::new)
+        .expect("validated one-based cache slot index")
+}
+
+fn slot_index(link: Option<NonZeroU32>) -> Option<usize> {
+    link.map(|index| index.get() as usize - 1)
+}
+
+#[derive(Clone)]
+struct ContentBlock {
+    entries: Box<[Option<Entry>]>,
+}
+
+type NameIndex = HashMap<Arc<[u8]>, SlotIndices>;
+
+const CONTENT_BLOCK_SLOTS: usize = 64;
+const NAME_SHARDS: usize = 64;
 
 /// Fixed number of records, with an index per name and an intrusive LRU of slot
 /// indices. Pending inserts are outside the LRU and invisible to lookups.
@@ -238,7 +266,8 @@ struct Slot {
 pub struct Cache {
     policy: Policy,
     slots: Vec<Slot>,
-    names: HashMap<Vec<u8>, Vec<usize>>,
+    content: Vec<Arc<ContentBlock>>,
+    names: Vec<Arc<NameIndex>>,
     reverse_chain: Vec<usize>,
     head: Option<usize>,
     tail: Option<usize>,
@@ -256,25 +285,75 @@ impl Cache {
         self.clone()
     }
 
+    fn entry(&self, slot: usize) -> Option<&Entry> {
+        self.content[slot / CONTENT_BLOCK_SLOTS].entries[slot % CONTENT_BLOCK_SLOTS].as_ref()
+    }
+
+    fn entry_mut(&mut self, slot: usize) -> &mut Option<Entry> {
+        &mut Arc::make_mut(&mut self.content[slot / CONTENT_BLOCK_SLOTS]).entries
+            [slot % CONTENT_BLOCK_SLOTS]
+    }
+
+    fn key_shard(key: &[u8]) -> usize {
+        // Stable high FNV-1a bits select the 64 owner roots independently of
+        // HashMap's randomized bucket hasher, as the scheme-A contract specifies.
+        let mut hash = 0xcbf29ce484222325u64;
+        for byte in key {
+            hash ^= u64::from(*byte);
+            hash = hash.wrapping_mul(0x100000001b3);
+        }
+        (hash >> (64 - NAME_SHARDS.ilog2())) as usize
+    }
+
+    fn names_for(&self, key: &[u8]) -> Option<&SlotIndices> {
+        self.names[Self::key_shard(key)].get(key)
+    }
+
+    fn names_for_mut(&mut self, key: &[u8]) -> Option<&mut SlotIndices> {
+        Arc::make_mut(&mut self.names[Self::key_shard(key)]).get_mut(key)
+    }
+
+    fn names_shard_mut(&mut self, key: &[u8]) -> &mut NameIndex {
+        Arc::make_mut(&mut self.names[Self::key_shard(key)])
+    }
+
     pub fn set_max_reply_ttl(&mut self, maximum: u64) {
         self.policy.max_reply_ttl = maximum;
     }
     pub fn new(capacity: usize, mut policy: Policy) -> Self {
+        // Production cache-size is capped at 5,000,000. Keep the public
+        // primitive's link representation checked too, without truncating
+        // indices or shortening its u64 anti-ABA generation.
+        assert!(
+            capacity <= u32::MAX as usize,
+            "cache capacity exceeds slot link range"
+        );
         // C represents a zero stale allowance as the option being disabled.
         if policy.stale == StalePolicy::Seconds(0) {
             policy.stale = StalePolicy::Disabled;
         }
+        let content = (0..capacity.div_ceil(CONTENT_BLOCK_SLOTS))
+            .map(|block| {
+                let start = block * CONTENT_BLOCK_SLOTS;
+                let len = (capacity - start).min(CONTENT_BLOCK_SLOTS);
+                Arc::new(ContentBlock {
+                    entries: vec![None; len].into_boxed_slice(),
+                })
+            })
+            .collect();
         Self {
             policy,
             slots: (0..capacity)
                 .map(|i| Slot {
-                    entry: None,
                     generation: 0,
-                    prev: i.checked_sub(1),
-                    next: (i + 1 < capacity).then_some(i + 1),
+                    prev: i.checked_sub(1).map(slot_link),
+                    next: (i + 1 < capacity).then_some(i + 1).map(slot_link),
                 })
                 .collect(),
-            names: HashMap::new(),
+            content,
+            names: (0..NAME_SHARDS)
+                .map(|_| Arc::new(NameIndex::new()))
+                .collect(),
             reverse_chain: Vec::new(),
             head: (capacity > 0).then_some(0),
             tail: capacity.checked_sub(1),
@@ -296,11 +375,14 @@ impl Cache {
     pub fn clear(&mut self) {
         let capacity = self.slots.len();
         for (index, slot) in self.slots.iter_mut().enumerate() {
-            slot.entry = None;
-            slot.prev = index.checked_sub(1);
-            slot.next = (index + 1 < capacity).then_some(index + 1);
+            Arc::make_mut(&mut self.content[index / CONTENT_BLOCK_SLOTS]).entries
+                [index % CONTENT_BLOCK_SLOTS] = None;
+            slot.prev = index.checked_sub(1).map(slot_link);
+            slot.next = (index + 1 < capacity).then_some(index + 1).map(slot_link);
         }
-        self.names.clear();
+        self.names = (0..NAME_SHARDS)
+            .map(|_| Arc::new(NameIndex::new()))
+            .collect();
         self.reverse_chain.clear();
         self.pending.clear();
         self.failed = false;
@@ -319,18 +401,18 @@ impl Cache {
     pub fn get(&self, id: EntryId) -> Option<&Entry> {
         self.slots
             .get(id.slot)
-            .filter(|slot| slot.generation == id.generation)?
-            .entry
-            .as_ref()
+            .filter(|slot| slot.generation == id.generation)?;
+        self.entry(id.slot)
     }
 
     /// C cache_find_non_terminal: any live exact-name forward record except
     /// NXDOMAIN establishes existence, including NODATA and dynamic CNAMEs.
     /// Do not promote, rotate or remove records as a normal lookup would.
     pub fn contains_forward_name(&self, name: &Name, now: i64) -> bool {
-        self.names.get(&name.canonical_wire()).is_some_and(|slots| {
+        let key = name.canonical_wire();
+        self.names_for(&key).is_some_and(|slots| {
             slots.iter().any(|&slot| {
-                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                self.entry(slot).is_some_and(|entry| {
                     entry.record.kind != Kind::NxDomain && !entry.record.kind.is_reverse()
                 }) && !self.invalid(slot, now)
             })
@@ -342,11 +424,12 @@ impl Cache {
     /// or NXDOMAIN marker is a candidate for every ordinary address query;
     /// generic requests match any cached generic RR at the name.
     pub fn has_forward_candidate(&self, name: &Name, rrtype: u16, now: i64) -> bool {
-        let Some(slots) = self.names.get(&name.canonical_wire()) else {
+        let key = name.canonical_wire();
+        let Some(slots) = self.names_for(&key) else {
             return false;
         };
         slots.iter().any(|&slot| {
-            let Some(entry) = self.slots[slot].entry.as_ref() else {
+            let Some(entry) = self.entry(slot) else {
                 return false;
             };
             if self.invalid(slot, now) || entry.record.kind.is_reverse() {
@@ -369,9 +452,10 @@ impl Cache {
     /// answers. Owners may defer an initial local answer into CacheContext so
     /// that marker's cached SOA is retained by the final authority footer.
     pub fn has_nxdomain(&self, name: &Name, now: i64) -> bool {
-        self.names.get(&name.canonical_wire()).is_some_and(|slots| {
+        let key = name.canonical_wire();
+        self.names_for(&key).is_some_and(|slots| {
             slots.iter().any(|&slot| {
-                self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                self.entry(slot).is_some_and(|entry| {
                     entry.record.kind == Kind::NxDomain && entry.record.negative
                 }) && !self.invalid(slot, now)
             })
@@ -385,18 +469,14 @@ impl Cache {
         let (kind, bytes) = reverse_key(address);
         self.reverse_chain.iter().any(|&slot| {
             !self.invalid(slot, now)
-                && self.slots[slot]
-                    .entry
-                    .as_ref()
+                && self
+                    .entry(slot)
                     .is_some_and(|entry| entry.record.kind == kind && entry.record.data == bytes)
         }) || self
-            .names
-            .get(&reverse_name(address).canonical_wire())
+            .names_for(&reverse_name(address).canonical_wire())
             .is_some_and(|slots| {
                 slots.iter().any(|&slot| {
-                    self.slots[slot]
-                        .entry
-                        .as_ref()
+                    self.entry(slot)
                         .is_some_and(|entry| entry.record.kind == Kind::Cname)
                         && !self.invalid(slot, now)
                 })
@@ -408,11 +488,8 @@ impl Cache {
     /// interface-record resolver may override before ordinary cached RDATA is
     /// emitted. A broken, expired, or cyclic chain is not a terminal.
     pub fn cname_terminal_name(&self, name: &Name, now: i64) -> Option<Name> {
-        let mut ids = self
-            .names
-            .get(&name.canonical_wire())?
-            .iter()
-            .map(|&slot| self.id(slot));
+        let key = name.canonical_wire();
+        let mut ids = self.names_for(&key)?.iter().map(|&slot| self.id(slot));
         let mut id = ids.find(|id| {
             self.get(*id).is_some_and(|entry| {
                 entry.record.kind == Kind::Cname && !self.invalid(id.slot, now)
@@ -449,7 +526,9 @@ impl Cache {
         let Some(slot) = self.slots.get(id.slot) else {
             return false;
         };
-        slot.generation == id.generation && slot.entry.is_some() && !self.invalid(id.slot, now)
+        slot.generation == id.generation
+            && self.entry(id.slot).is_some()
+            && !self.invalid(id.slot, now)
     }
 
     pub fn start_insert(&mut self) {
@@ -558,7 +637,7 @@ impl Cache {
             // Reverse insertion scans all dynamic hash buckets and removes
             // this IP's old RRset. Forward names and other IPs are independent.
             for slot in 0..self.slots.len() {
-                if self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                if self.entry(slot).is_some_and(|entry| {
                     entry.committed
                         && (self.policy.expired(entry.expires, now)
                             || (entry.record.kind == record.kind
@@ -567,9 +646,9 @@ impl Cache {
                     self.remove(slot);
                 }
             }
-        } else if let Some(indices) = self.names.get(&key).cloned() {
-            for slot in indices {
-                let entry = self.slots[slot].entry.as_ref().unwrap();
+        } else if let Some(indices) = self.names_for(&key).cloned() {
+            for &slot in indices.iter() {
+                let entry = self.entry(slot).unwrap();
                 if record.kind.conflicts(entry.record.kind) {
                     if entry.referenced {
                         preserved = Some(self.id(slot));
@@ -583,14 +662,11 @@ impl Cache {
         let slot = if let Some(id) = preserved {
             id.slot
         } else {
-            if self
-                .tail
-                .is_some_and(|slot| self.slots[slot].entry.is_some())
-            {
+            if self.tail.is_some_and(|slot| self.entry(slot).is_some()) {
                 // Same pressure trigger as C: reclaim expired entries globally
                 // before spilling any live entry. The scan is a baseline cost.
                 for slot in 0..self.slots.len() {
-                    if self.slots[slot].entry.as_ref().is_some_and(|entry| {
+                    if self.entry(slot).is_some_and(|entry| {
                         entry.committed && self.policy.expired(entry.expires, now)
                     }) {
                         self.remove(slot);
@@ -600,7 +676,7 @@ impl Cache {
             let Some(mut slot) = self.tail else {
                 return self.fail(InsertError::Full);
             };
-            if let Some(entry) = &self.slots[slot].entry {
+            if let Some(entry) = self.entry(slot) {
                 if now < entry.expires {
                     counters.live_freed = counters.live_freed.wrapping_add(1);
                 }
@@ -612,10 +688,10 @@ impl Cache {
                 let victims = if victim_kind.is_reverse() {
                     self.reverse_chain.clone()
                 } else {
-                    self.names.get(&victim_key).cloned().unwrap_or_default()
+                    self.names_for(&victim_key).map(|indices| indices.to_vec()).unwrap_or_default()
                 };
                 for victim in victims {
-                    let entry = self.slots[victim].entry.as_ref().unwrap();
+                    let entry = self.entry(victim).unwrap();
                     if (victim_kind.is_reverse()
                         && entry.record.kind == victim_kind
                         && entry.record.data == victim_address)
@@ -645,7 +721,7 @@ impl Cache {
                 .expect("cache generation exhausted");
         }
         self.long_names += usize::from(long);
-        self.slots[slot].entry = Some(Entry {
+        *self.entry_mut(slot) = Some(Entry {
             record: Arc::new(record),
             expires,
             target: None,
@@ -709,12 +785,14 @@ impl Cache {
     /// lookup, as in `cache.c::find_soa`; the authority itself consumes a
     /// normal cache slot.
     pub fn set_negative_authority(&mut self, negative: EntryId, authority: Name) -> bool {
-        let Some(entry) = self
+        if self
             .slots
-            .get_mut(negative.slot)
-            .filter(|slot| slot.generation == negative.generation)
-            .and_then(|slot| slot.entry.as_mut())
-        else {
+            .get(negative.slot)
+            .is_none_or(|slot| slot.generation != negative.generation)
+        {
+            return false;
+        }
+        let Some(entry) = self.entry_mut(negative.slot).as_mut() else {
             return false;
         };
         if !entry.record.negative {
@@ -733,8 +811,8 @@ impl Cache {
         {
             return false;
         }
-        self.slots[target.slot].entry.as_mut().unwrap().referenced = true;
-        self.slots[cname.slot].entry.as_mut().unwrap().target = Some(CnameTarget::Dynamic(target));
+        self.entry_mut(target.slot).as_mut().unwrap().referenced = true;
+        self.entry_mut(cname.slot).as_mut().unwrap().target = Some(CnameTarget::Dynamic(target));
         true
     }
 
@@ -756,7 +834,7 @@ impl Cache {
         {
             return false;
         }
-        self.slots[cname.slot].entry.as_mut().unwrap().target = Some(CnameTarget::Local(target));
+        self.entry_mut(cname.slot).as_mut().unwrap().target = Some(CnameTarget::Local(target));
         true
     }
 
@@ -797,23 +875,26 @@ impl Cache {
                 continue;
             }
             let capacity = self.slots.len();
-            let entry = self.slots[slot].entry.as_mut().unwrap();
-            entry.committed = true;
-            self.names
-                .entry(entry.record.name.canonical_wire())
+            let (key, reverse, name) = {
+                let entry = self.entry_mut(slot).as_mut().unwrap();
+                entry.committed = true;
+                (
+                    entry.record.name.canonical_wire(),
+                    entry.record.kind.is_reverse(),
+                    entry.record.name.clone(),
+                )
+            };
+            self.names_shard_mut(&key)
+                .entry(Arc::from(key.into_boxed_slice()))
                 .or_default()
                 .push(slot);
-            if entry.record.kind.is_reverse() {
-                let bucket = reverse_bucket(&entry.record.name, capacity);
-                let name = entry.record.name.clone();
+            if reverse {
+                let bucket = reverse_bucket(&name, capacity);
                 let mut at = self.reverse_chain.partition_point(|&old| {
-                    reverse_bucket(
-                        &self.slots[old].entry.as_ref().unwrap().record.name,
-                        self.slots.len(),
-                    ) < bucket
+                    reverse_bucket(&self.entry(old).unwrap().record.name, self.slots.len()) < bucket
                 });
                 while at < self.reverse_chain.len() {
-                    let old = self.slots[self.reverse_chain[at]].entry.as_ref().unwrap();
+                    let old = self.entry(self.reverse_chain[at]).unwrap();
                     if reverse_bucket(&old.record.name, self.slots.len()) != bucket
                         || !old.record.name.eq_ignore_ascii_case(&name)
                     {
@@ -826,7 +907,7 @@ impl Cache {
             self.link_head(slot);
             counters.inserted = counters.inserted.wrapping_add(1);
             if let Some(records) = &mut capture {
-                let entry = self.slots[slot].entry.as_ref().unwrap();
+                let entry = self.entry(slot).unwrap();
                 records.push(TransferredRecord {
                     record: Record {
                         name: entry.record.name.clone(),
@@ -937,32 +1018,26 @@ impl Cache {
     ) -> Vec<EntryId> {
         let key = name.canonical_wire();
         let mut found = Vec::new();
-        for slot in self.names.get(&key).cloned().unwrap_or_default() {
+        let indices = self.names_for(&key).cloned().unwrap_or_default();
+        for &slot in indices.iter() {
             if self.invalid(slot, now) {
                 self.remove(slot);
-            } else if kinds.iter().any(|kind| {
-                self.slots[slot]
-                    .entry
-                    .as_ref()
-                    .unwrap()
-                    .record
-                    .kind
-                    .matches(*kind)
-            }) {
+            } else if kinds
+                .iter()
+                .any(|kind| self.entry(slot).unwrap().record.kind.matches(*kind))
+            {
                 self.unlink(slot);
                 self.link_head(slot);
                 found.push(slot);
             }
         }
+        // The iteration snapshot must not force an otherwise unique Many
+        // list to detach for a round-robin rotation after the lookup.
+        drop(indices);
         if round_robin && found.len() > 1 {
             // Move subsequent matching entries before the first match, leaving
             // unrelated kinds in their positions relative to that first match.
-            let entries = self.names.get_mut(&key).unwrap();
-            for &slot in &found[1..] {
-                entries.retain(|index| *index != slot);
-            }
-            let at = entries.iter().position(|index| *index == found[0]).unwrap();
-            entries.splice(at..at, found[1..].iter().copied());
+            self.names_for_mut(&key).unwrap().rotate_matches(&found);
         }
         found.into_iter().rev().map(|slot| self.id(slot)).collect()
     }
@@ -994,14 +1069,10 @@ impl Cache {
         let (kind, data) = reverse_key(address);
         let mut found = Vec::new();
         for slot in self.reverse_chain.clone() {
-            if self
-                .policy
-                .expired(self.slots[slot].entry.as_ref().unwrap().expires, now)
-            {
+            if self.policy.expired(self.entry(slot).unwrap().expires, now) {
                 self.remove(slot);
-            } else if self.slots[slot]
-                .entry
-                .as_ref()
+            } else if self
+                .entry(slot)
                 .is_some_and(|entry| entry.record.kind == kind && entry.record.data == data)
             {
                 self.unlink(slot);
@@ -1021,7 +1092,7 @@ impl Cache {
     }
 
     fn outdated_cname(&self, slot: usize) -> bool {
-        let entry = self.slots[slot].entry.as_ref().unwrap();
+        let entry = self.entry(slot).unwrap();
         entry.record.kind == Kind::Cname
             && match &entry.target {
                 None => true,
@@ -1033,36 +1104,28 @@ impl Cache {
     }
 
     fn invalid(&self, slot: usize, now: i64) -> bool {
-        self.policy
-            .expired(self.slots[slot].entry.as_ref().unwrap().expires, now)
-            || self.outdated_cname(slot)
+        self.policy.expired(self.entry(slot).unwrap().expires, now) || self.outdated_cname(slot)
     }
 
     fn remove(&mut self, slot: usize) {
         self.reverse_chain.retain(|&entry| entry != slot);
-        let key = self.slots[slot]
-            .entry
-            .as_ref()
-            .unwrap()
-            .record
-            .name
-            .canonical_wire();
-        let indices = self.names.get_mut(&key).unwrap();
-        indices.retain(|index| *index != slot);
+        let key = self.entry(slot).unwrap().record.name.canonical_wire();
+        let indices = self.names_for_mut(&key).unwrap();
+        indices.remove(slot);
         if indices.is_empty() {
-            self.names.remove(&key);
+            self.names_shard_mut(&key).remove(key.as_slice());
         }
         self.unlink(slot);
         self.free(slot);
     }
 
     fn free(&mut self, slot: usize) {
-        let entry = self.slots[slot].entry.take().unwrap();
+        let entry = self.entry_mut(slot).take().unwrap();
         self.long_names -= usize::from(entry.record.name.dnsmasq_bytes().len() >= 75);
-        self.slots[slot].prev = self.tail;
+        self.slots[slot].prev = self.tail.map(slot_link);
         self.slots[slot].next = None;
         if let Some(tail) = self.tail {
-            self.slots[tail].next = Some(slot);
+            self.slots[tail].next = Some(slot_link(slot));
         } else {
             self.head = Some(slot);
         }
@@ -1070,15 +1133,15 @@ impl Cache {
     }
 
     fn unlink(&mut self, slot: usize) {
-        let prev = self.slots[slot].prev;
-        let next = self.slots[slot].next;
+        let prev = slot_index(self.slots[slot].prev);
+        let next = slot_index(self.slots[slot].next);
         if let Some(prev) = prev {
-            self.slots[prev].next = next;
+            self.slots[prev].next = next.map(slot_link);
         } else {
             self.head = next;
         }
         if let Some(next) = next {
-            self.slots[next].prev = prev;
+            self.slots[next].prev = prev.map(slot_link);
         } else {
             self.tail = prev;
         }
@@ -1087,10 +1150,10 @@ impl Cache {
     }
 
     fn link_head(&mut self, slot: usize) {
-        self.slots[slot].next = self.head;
+        self.slots[slot].next = self.head.map(slot_link);
         self.slots[slot].prev = None;
         if let Some(head) = self.head {
-            self.slots[head].prev = Some(slot);
+            self.slots[head].prev = Some(slot_link(slot));
         } else {
             self.tail = Some(slot);
         }
@@ -1222,9 +1285,9 @@ impl PublicationCache for Cache {
             .filter(|b| b.reverse)
             .map(blocker)
             .collect();
-        rows.extend(self.names[&key].iter().map(|&slot| Row {
+        rows.extend(self.names_for(&key).into_iter().flatten().map(|&slot| Row {
             slot: Some(slot),
-            kind: self.slots[slot].entry.as_ref().unwrap().record.kind,
+            kind: self.entry(slot).unwrap().record.kind,
             flags: 0,
         }));
         for immortal in [false, true] {
@@ -1251,7 +1314,7 @@ impl PublicationCache for Cache {
         // A protected RRset still observes the lookup's rotation. A mortal
         // DHCP blocker can itself move before the first dynamic match and
         // stop deletion partway through this order.
-        *self.names.get_mut(&key).unwrap() = rows.iter().filter_map(|row| row.slot).collect();
+        *self.names_for_mut(&key).unwrap() = rows.iter().filter_map(|row| row.slot).collect();
         for row in rows {
             if trigger.conflicts(row.kind) {
                 if let Some(slot) = row.slot {
@@ -1266,7 +1329,7 @@ impl PublicationCache for Cache {
     fn reverse_owned(&mut self, address: std::net::Ipv4Addr) -> bool {
         // cache_add_dhcp_entry does not apply expiry at this ownership probe.
         self.reverse_chain.iter().any(|&slot| {
-            let entry = self.slots[slot].entry.as_ref().unwrap();
+            let entry = self.entry(slot).unwrap();
             entry.record.kind == Kind::ReverseIpv4 && entry.record.data == address.octets()
         })
     }
