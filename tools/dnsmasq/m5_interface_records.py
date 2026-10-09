@@ -910,11 +910,7 @@ def run_service_side(root,side,case,out):
                 target.write_bytes(body)
                 files.await_predicate(lambda:'read /m2/files/dir/one - 1 names' in (out/'stderr').read_text()[offset:],'bounded hosts source completed',seconds=8)
             finally:stop.set();worker.join(2)
-            active_health=sum(row['healthy'] and row['file_active'] and row['file_still_active'] for row in samples)
-            proof={'label':'hosts-large','bytes':len(body),'sha256':sha256(target),'samples':samples,'healthy_while_open':active_health}
-            states.append(proof);save(out/'hosts-large-progress.json',proof)
-            if worker.is_alive() or not samples or not all(row['healthy'] for row in samples):raise AssertionError('hosts large-file owner health failed')
-            if side=='rust' and not active_health:raise AssertionError('no Rust DNS progress while hosts file stayed open')
+            check_hosts_large_progress(out,target,body,samples,states,side,worker.is_alive())
             return
         if isinstance(value,dict) and value.get('hosts_stream'):
             pid=int((root/'m2/files.pid').read_text());target=root/'m2/files/dir/one';staged=root/'m2/files/staged-fifo'
@@ -1529,6 +1525,17 @@ def ordinary_cases(mode,scope):
     catalog=syntax_cases() if mode=='syntax' else service_cases()
     return [case for case in catalog if not case.get('c_only') and not case.get('extreme_input') and case['id'] not in deferred and
         (case['id'] in mapped or case['id'].startswith(tuple(prefixes)))]
+
+
+def check_hosts_large_progress(out, target, body, samples, states, side, worker_alive):
+    active_health=sum(row['healthy'] and row['file_active'] and row['file_still_active'] for row in samples)
+    proof={'label':'hosts-large','bytes':len(body),'sha256':sha256(target),'samples':samples,'healthy_while_open':active_health}
+    states.append(proof);save(out/'hosts-large-progress.json',proof)
+    if worker_alive or not samples or not all(row['healthy'] for row in samples):
+        raise AssertionError('hosts large-file owner health failed')
+    if side=='rust' and not active_health:
+        raise AssertionError('no Rust DNS progress while hosts file stayed open')
+    return proof
 
 
 def main():
