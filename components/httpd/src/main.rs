@@ -174,7 +174,7 @@ fn parse_args_from(mut args: impl Iterator<Item = String>) -> Result<Config, Str
             "-K" => c.key = Some(value("-K")?),
             "--call-log" => c.call_log = Some(value("--call-log")?),
             "--help" => {
-                println!("{}", usage());
+                let _ = writeln!(std::io::stdout(), "{}", usage());
                 std::process::exit(0);
             }
             other => return Err(format!("unknown argument {other:?}\n{}", usage())),
@@ -1098,7 +1098,7 @@ fn main() {
     let config = match parse_args() {
         Ok(config) => config,
         Err(error) => {
-            eprintln!("httpd-rs: {error}");
+            let _ = writeln!(std::io::stderr(), "httpd-rs: {error}");
             std::process::exit(64);
         }
     };
@@ -1107,12 +1107,12 @@ fn main() {
         (Some(cert), Some(key), false) => match tls::server_config(cert, key, config.tls_ciphers.as_deref()) {
             Ok(cfg) => Some(cfg),
             Err(error) => {
-                eprintln!("httpd-rs: cannot initialize TLS: {error}");
+                let _ = writeln!(std::io::stderr(), "httpd-rs: cannot initialize TLS: {error}");
                 std::process::exit(1);
             }
         },
         (_, _, false) => {
-            eprintln!("httpd-rs: HTTPS requires a certificate and key");
+            let _ = writeln!(std::io::stderr(), "httpd-rs: HTTPS requires a certificate and key");
             std::process::exit(1);
         }
         _ => None,
@@ -1126,7 +1126,7 @@ fn main() {
     for spec in &config.http {
         match bind(spec) {
             Ok(bound) => listeners.extend(bound.into_iter().map(|listener| (listener, None))),
-            Err(error) => eprintln!("httpd-rs: cannot bind {spec}: {error}"),
+            Err(error) => { let _ = writeln!(std::io::stderr(), "httpd-rs: cannot bind {spec}: {error}"); },
         }
     }
     if let Some(tls_config) = tls_config {
@@ -1138,7 +1138,7 @@ fn main() {
                         listeners.push((listener, Some(Arc::clone(&tls_config))));
                     }
                 }
-                Err(error) => eprintln!("httpd-rs: cannot bind {spec}: {error}"),
+                Err(error) => { let _ = writeln!(std::io::stderr(), "httpd-rs: cannot bind {spec}: {error}"); },
             }
         }
     }
@@ -1164,7 +1164,7 @@ fn main() {
         config,
     });
     let Some(last) = listeners.pop() else {
-        eprintln!("httpd-rs: nothing to listen on");
+        let _ = writeln!(std::io::stderr(), "httpd-rs: nothing to listen on");
         std::process::exit(1);
     };
     let mut handles = Vec::new();

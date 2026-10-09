@@ -1,0 +1,289 @@
+{
+  "source_commit": "42608b5af3f131f37ce5c26ddf8d5d96fb9ea6e1",
+  "host": "Linux aarch64 oracle build host",
+  "recorded_at": "2026-10-09T07:46:50.855940+00:00",
+  "physical_router_accessed": false,
+  "results": [
+    {
+      "name": "ubus-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/ubus/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 3.371,
+      "log_sha256": "e6fcff166eabc6a9c444ef4ebd083fe3a25ad12214fb221f0b0a3ed440f65df1",
+      "test_counts": {
+        "passed": 59,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "uci-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/uci/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 4.075,
+      "log_sha256": "26f91a11123cb593fec8fe83852baab0f7f7e3fce1d4384d8831e2cdeeedef93",
+      "test_counts": {
+        "passed": 49,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "reload-config-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/reload-config/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 3.07,
+      "log_sha256": "93e6eb141624268111437a4d2781c54403749c8603a1803726a39696ea2597bd",
+      "test_counts": {
+        "passed": 20,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "logd-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/logd/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 2.42,
+      "log_sha256": "614b2d628c54200f6c560bc1707dbf1054ea4073495186162c8006b5dab82a5f",
+      "test_counts": {
+        "passed": 18,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "httpd-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/httpd/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 15.402,
+      "log_sha256": "38fe2a8b175cc98e628cfcb361e368549687bb16db55257964e491727a67d568",
+      "test_counts": {
+        "passed": 59,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "fw4-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/fw4/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 5.527,
+      "log_sha256": "5243540a0954c15bd8cc7a802dcd3b4c902ab100eeb1611525377c1d32572967",
+      "test_counts": {
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "rpcd-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/rpcd/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 11.955,
+      "log_sha256": "329bc6e9c2bed5a8e069816b074637abce51202a156d0b3fe351b483f36e295a",
+      "test_counts": {
+        "passed": 65,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "ubusd-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/ubusd/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 8.44,
+      "log_sha256": "ef87730766e3b8bc6803c84b4baed086880d56ae515fe7d996e94c4e82635405",
+      "test_counts": {
+        "passed": 55,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "netifd-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/netifd/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 9.437,
+      "log_sha256": "c9c92a276dc984e2aea8013a4416100d6fc64981a9e6dc3236d7287c80124670",
+      "test_counts": {
+        "passed": 172,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "procd-unit",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "components/procd/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 12.489,
+      "log_sha256": "4898be7df5c88442f01c720ea15e1407f8c76722604d1a4401be462577ef5dc9",
+      "test_counts": {
+        "passed": 86,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "check-toolchain",
+      "command": [
+        "make",
+        "check-toolchain"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.167,
+      "log_sha256": "eda3d406a9dc9ffb477aeddd07cf8bce45f1527eae86de73798cba7d5503562e"
+    },
+    {
+      "name": "check-toolchain-negative",
+      "command": [
+        "make",
+        "check-toolchain-negative"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 1.618,
+      "log_sha256": "55140e7a97a7e8a1e31c4c8f269112489273db9810d5da4469ea1df6f430df3a"
+    },
+    {
+      "name": "check-tools",
+      "command": [
+        "make",
+        "check-tools"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.816,
+      "log_sha256": "39e2c189fab15659d5536c710a51814fc33932b129264f31a1a60cde04f18fef"
+    },
+    {
+      "name": "check-harnesses",
+      "command": [
+        "make",
+        "check-harnesses"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.566,
+      "log_sha256": "7c55ac443f106ce7777e649627003d18dcfeb4ac379d1fee4569a837eb692a3d"
+    },
+    {
+      "name": "check-benchmark",
+      "command": [
+        "make",
+        "check-benchmark"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 8.089,
+      "log_sha256": "55499101816333d210774d10a1d87da5c498223ff0f7d2a326170fdb47597b67",
+      "test_counts": {
+        "passed": 14,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    {
+      "name": "benchmark-musl-build",
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked",
+        "--target",
+        "aarch64-unknown-linux-musl",
+        "--manifest-path",
+        "tools/benchmark/Cargo.toml"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 13.338,
+      "log_sha256": "f860bade634a3da035946739bced726c2291794092aac7e7fb133c1a0dab944d"
+    },
+    {
+      "name": "namespace-helper-build",
+      "command": [
+        "cc",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "tools/benchmark/ns_exec.c",
+        "-o",
+        "/home/ubuntu/health-20261008-validation/source-tests-42608b5a/ns-exec"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 0.114,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "complete": true,
+  "description": "One Linux aarch64 source batch: nine programs plus shared ubus library, existing CI checks and benchmark/helper preparation.",
+  "followup_harness_check": {
+    "source_commit": "9774b10b",
+    "platform": "macOS; pure Python comparison logic only",
+    "command": "python3 tools/health_20261008/test_netifd_replay.py",
+    "passed": 5,
+    "failed": 0,
+    "runtime_rebuilt": false,
+    "tool_sha256": {
+      "netifd_replay.py": "aa34433ba42f4d1301c409ce70ab8ca9e05ac718a8ebeca68403ff061b6e9b54",
+      "test_netifd_replay.py": "70adb7783f8c2fcc2f8c848d756f510ceb38b525b8f9e7e0eb8881a5aeca27be"
+    }
+  }
+}

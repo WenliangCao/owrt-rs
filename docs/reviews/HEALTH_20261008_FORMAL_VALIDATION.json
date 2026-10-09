@@ -1,0 +1,588 @@
+{
+  "source_commit": "d72928c9a7d9ed28a9aa2c8d749d31e2a9ed6d33",
+  "physical_router_accessed": false,
+  "started_at": "2026-10-09T08:14:43.854106+00:00",
+  "cpu_gate": {
+    "checked_at": "2026-10-09T08:14:43.651044+00:00",
+    "cpu_a_79e_present": false
+  },
+  "host_test_component_source_commit": "42608b5af3f131f37ce5c26ddf8d5d96fb9ea6e1",
+  "netifd_followup_source_commit": "d72928c9a7d9ed28a9aa2c8d749d31e2a9ed6d33",
+  "image_sha256": "bd6db93f2a7eb5efab226f882d25baa6740b04f6548ee9d051ef2a0ccccfcc68",
+  "manifest_sha256": "6220b21adf2b79a2761f17793cce124f3420964e8826389acb0d6df5bfeb76b2",
+  "checksum_entries_verified": 26,
+  "binary_sha256": {
+    "fw4": "77e2a33ead41736ce313780adf92473765d008f9137165a39ae94bf97028582e",
+    "httpd": "bf7b29260f008622b1157bb39bcd969ae39932c534828be8429c50343670e904",
+    "logd": "e1d29e61f2a1c6d5242747156a215e0a7d934a3079f17bd5ea582b2dccb73151",
+    "netifd": "7ce3a64d094e05484721ec68855eff5f4d68a484a6ce5f073bd013d2fbb79eb1",
+    "procd": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+    "reload-config": "c96823a2e4b8ea3b5dd79ad375220514ae1ac2357e7f61714a722c4a2269dc7a",
+    "rpcd": "c65491f434f35b6771b3fa9e0336a3580bf88522dfd222d3cc6cc45a8c6227c1",
+    "ubusd": "ab3bff56b6ba5d798701d0e73d20469a36cf1ea0773fdd64a0eb9411ec1fc42d",
+    "uci": "50ba9ed8f5cf5686313be3e1d32a281278daf3d17c319b71211fb96a4dbd76a7"
+  },
+  "benchmark_sha256": "696df586e44a6ebb9113355b9915e1d903537c876c31be3e8b349d295233fcdc",
+  "stock_binary_sha256": {
+    "fw4": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+    "httpd": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+    "logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+    "netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+    "procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+    "reload-config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+    "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+  },
+  "namespace_helper_sha256": "99ecfa85209dd16d0955d8e47391a5205bea2653ae70e38d5f74167add64d840",
+  "replay_harness": {
+    "source_commit": "d72928c9a7d9ed28a9aa2c8d749d31e2a9ed6d33",
+    "sha256": "53c8ca72bd2a697a043ff491d5b08f5d2556e6b0f76754f2502db5378803b236"
+  },
+  "finished_at": "2026-10-09T08:27:09.811512+00:00",
+  "passed": true,
+  "workflow_run": 37902724239,
+  "workflow_conclusion": "success",
+  "scope": "Canonical CI artifact; disposable aarch64 Linux namespaces; no physical router actions.",
+  "orchestration_driver_sha256": "4d7eff7fb5c8eb6c4e84c5a63f1f81d2c27826233f4472483cbaed5a26f86449",
+  "raw_evidence_archive_sha256": "301b7e006fe0dbc0e1d08ec0a427b11879b33750e2b12158804a697351f94c7d",
+  "raw_evidence_archive_bytes": 277053440,
+  "gates": [
+    {
+      "name": "cli-pipes",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:14:43.877832+00:00",
+      "seconds": 92.725,
+      "log_sha256": "76fd6eab258be7894f3a7cc6ec0a35a0ec2b16a8c18be8475344eee655ed452b"
+    },
+    {
+      "name": "diagnostics",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:16:16.613063+00:00",
+      "seconds": 19.248,
+      "log_sha256": "453d22f1d2995f3aea63a8507370e39b62a724a7c029305dae3e829b31eb265a"
+    },
+    {
+      "name": "normal-output",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:16:35.872083+00:00",
+      "seconds": 8.98,
+      "log_sha256": "8c4591df0de9c6b9b2f1e3d4f474eb1f301c8d9554752d07c8e5fbfdc201a162"
+    },
+    {
+      "name": "r56_dhcpv6_diff",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:16:44.862839+00:00",
+      "seconds": 14.639,
+      "log_sha256": "6ccbf8bdb6857406e8a725462b4bbf4e75d9dbe423efe7e6c251a4169b368f77"
+    },
+    {
+      "name": "r62_pd_diff",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:16:59.512728+00:00",
+      "seconds": 64.62,
+      "log_sha256": "64dc2e548def92555b5530a9959268453583cc859d19af835c7669da9e1172b6"
+    },
+    {
+      "name": "wan6-replay",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:18:04.144428+00:00",
+      "seconds": 84.255,
+      "log_sha256": "53448b90207176e549c151b05ff7608ece2c1c1c71c578ecb2dacf54a592d334"
+    },
+    {
+      "name": "wan6-natural-expiry",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:19:28.410570+00:00",
+      "seconds": 21.899,
+      "log_sha256": "59cc5d4f70e30edd99c031c890ce57c7a8c56e614811396b4d23b63a1f3a2b0a"
+    },
+    {
+      "name": "native-image",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:19:50.320955+00:00",
+      "seconds": 2.369,
+      "log_sha256": "42e81096035d49bce09c68319f35f832682734f2b18cf306d36a60d195dd79a0"
+    },
+    {
+      "name": "native-boot",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:19:52.701047+00:00",
+      "seconds": 5.924,
+      "log_sha256": "f391a837f158eb014353c5bcfd146c92ccc117b6d9ef735b6bf6f7702e5d589a"
+    },
+    {
+      "name": "bench-fw4-1-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:19:58.636088+00:00",
+      "seconds": 8.582,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-2-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:07.229148+00:00",
+      "seconds": 3.52,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-3-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:10.759704+00:00",
+      "seconds": 3.42,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-4-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:14.190342+00:00",
+      "seconds": 7.579,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-5-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:21.780258+00:00",
+      "seconds": 3.52,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-6-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:25.311938+00:00",
+      "seconds": 7.529,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-7-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:32.851347+00:00",
+      "seconds": 8.48,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-fw4-8-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:41.342294+00:00",
+      "seconds": 3.52,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-1-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:44.873993+00:00",
+      "seconds": 2.319,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-2-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:47.204654+00:00",
+      "seconds": 1.567,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-3-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:48.783066+00:00",
+      "seconds": 1.617,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-4-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:50.411415+00:00",
+      "seconds": 2.269,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-5-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:52.691265+00:00",
+      "seconds": 1.567,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-6-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:54.269712+00:00",
+      "seconds": 2.268,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-7-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:56.549024+00:00",
+      "seconds": 2.269,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-uci-8-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:20:58.828673+00:00",
+      "seconds": 1.617,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-1-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:21:00.456914+00:00",
+      "seconds": 46.118,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-2-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:21:46.585908+00:00",
+      "seconds": 6.432,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-3-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:21:53.028913+00:00",
+      "seconds": 7.379,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-4-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:22:00.419305+00:00",
+      "seconds": 45.317,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-5-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:22:45.746920+00:00",
+      "seconds": 6.429,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-6-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:22:52.187663+00:00",
+      "seconds": 45.938,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-7-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:23:38.137811+00:00",
+      "seconds": 44.525,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-reload-config-8-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:24:22.674463+00:00",
+      "seconds": 6.528,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-1-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:24:29.214055+00:00",
+      "seconds": 19.65,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-2-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:24:48.875628+00:00",
+      "seconds": 20.4,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-3-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:25:09.287935+00:00",
+      "seconds": 20.5,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-4-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:25:29.800200+00:00",
+      "seconds": 19.649,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-5-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:25:49.461666+00:00",
+      "seconds": 20.4,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-6-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:26:09.874020+00:00",
+      "seconds": 19.499,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-7-c",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:26:29.384459+00:00",
+      "seconds": 19.649,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bench-netifd-8-rs",
+      "attempt": 1,
+      "exit": 0,
+      "cpu_gate_checked_at": "2026-10-09T08:26:49.045486+00:00",
+      "seconds": 20.764,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "cli": {
+    "cases": 37,
+    "rounds": 4,
+    "rows": 888,
+    "passed": true,
+    "comparison": "exact stdout and operational stderr bytes + shell status; raw wait/stderr retained; restart-abort excludes only the existing ucode interpreter traceback",
+    "result_sha256": "3eb8a51125ca4d3ac29a2764669cc82153e1fb9c72ff0250069f48685af88d00"
+  },
+  "diagnostics": {
+    "cases": 15,
+    "rounds": 4,
+    "rows": 360,
+    "passed": true,
+    "comparison": "r2 normal bytes/status preserved; closed streams ignored; no claim of C help text parity",
+    "result_sha256": "3f573268d358c5ac2d554918e4376856d4f49d671093d6b07e9dfe04922fd002"
+  },
+  "normal_output": {
+    "fw4_upstream_cases": 31,
+    "fw4_defaults_cases": 12,
+    "uci_identical_steps": 193,
+    "uci_differences": [],
+    "reload_reference_cases": 11,
+    "reload_fault_cases": 17,
+    "reload_gates": {
+      "all_11_reference_cases_passed": true,
+      "baseline_bytes_equivalent": true,
+      "delivery_results_observable": true,
+      "event_sets_equivalent": true,
+      "fault_cases_passed": true,
+      "passed": true,
+      "within_size_budget": true
+    },
+    "gate_results": [
+      {
+        "group": "functional",
+        "name": "fw4-upstream",
+        "exit": 0,
+        "required": true,
+        "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153",
+        "original_busy_control": false
+      },
+      {
+        "group": "functional",
+        "name": "fw4-defaults",
+        "exit": 0,
+        "required": true,
+        "log_sha256": "de9dd46bf7fd8cf25c7c078be33e857527aa86decd11ab7114ff20e468b06ab0",
+        "original_busy_control": false
+      },
+      {
+        "group": "functional",
+        "name": "uci-r16",
+        "exit": 0,
+        "required": true,
+        "log_sha256": "3d1f91490d03dca0395162936b7cdfd8fcbab38313d73f89bb01e3c6d296a793",
+        "original_busy_control": false
+      },
+      {
+        "group": "functional",
+        "name": "reload-config-r1",
+        "exit": 0,
+        "required": true,
+        "log_sha256": "c55d1a3e4ce640c39d31566eed54e59668b0553bbc9861aabd60b3187ec74921",
+        "original_busy_control": false
+      }
+    ]
+  },
+  "protocol": {
+    "r56": "kernel, WAN6 status, full interface dump and ifup hotplug content equal; existing harness excludes updated/ifupdate",
+    "r62": "prefix/assignment countdown, grant, replacement, withdrawal and kernel state match; existing lifetime tolerance 3 seconds"
+  },
+  "wan6_capture_replay": {
+    "addresses_per_input": [
+      6,
+      5,
+      5,
+      6,
+      5,
+      6,
+      6,
+      6,
+      5,
+      6,
+      5,
+      6,
+      6
+    ],
+    "candidate_sha256": "7ce3a64d094e05484721ec68855eff5f4d68a484a6ce5f073bd013d2fbb79eb1",
+    "candidate_source_rule_counts": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+    "captured_inputs": 13,
+    "core_differences": [],
+    "dad": "on",
+    "differences": [],
+    "hotplug_equal": true,
+    "input_interval_seconds": 3,
+    "inputs": 13,
+    "kernel_release": "6.17.0-1020-oracle",
+    "lifecycle": false,
+    "lifetime_tolerance_seconds": 2,
+    "machine": "aarch64",
+    "natural_expiry": false,
+    "protection_differences": [],
+    "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+    "reference_source_rule_counts": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "replies_equal": true,
+    "route_rule_differences": [],
+    "snapshots_per_side": 14
+  },
+  "wan6_natural_expiry": {
+    "addresses_per_input": [
+      6
+    ],
+    "candidate_sha256": "7ce3a64d094e05484721ec68855eff5f4d68a484a6ce5f073bd013d2fbb79eb1",
+    "candidate_source_rule_counts": [
+      0,
+      1,
+      0
+    ],
+    "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+    "captured_inputs": 13,
+    "core_differences": [],
+    "dad": "off",
+    "differences": [],
+    "hotplug_equal": true,
+    "input_interval_seconds": 3,
+    "inputs": 1,
+    "kernel_release": "6.17.0-1020-oracle",
+    "lifecycle": false,
+    "lifetime_tolerance_seconds": 2,
+    "machine": "aarch64",
+    "natural_expiry": true,
+    "protection_differences": [],
+    "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+    "reference_source_rule_counts": [
+      0,
+      1,
+      0
+    ],
+    "replies_equal": true,
+    "route_rule_differences": [],
+    "snapshots_per_side": 3
+  },
+  "native_image": {
+    "layered_migration_configuration_and_service_policy": true,
+    "native_upgrade_configuration_and_service_policy": true,
+    "corrupt_recovery_rejected_before_any_replacement": true,
+    "mounted_target_rejected_before_any_replacement": true,
+    "all_nine_C_staged_idempotently_with_configuration_unchanged": true,
+    "stock_package_reinstall_preserves_nine_Rust_files": true,
+    "native_package_reinstall_preserves_Rust_and_recovery_files": true
+  },
+  "native_boot": {
+    "pid1_and_five_daemon_identities": true,
+    "standard_service_paths": true,
+    "synthetic_LAN_and_WAN_up": true,
+    "HTTP_and_HTTPS_content": true,
+    "first_boot_certificate_generation": true,
+    "log_roundtrip": true,
+    "uci_and_reload_config": true,
+    "fw4_matches_stock_and_checks": true,
+    "no_executable_bind_mounts": true,
+    "PID1_reboot_exits_namespace": true,
+    "physical_hardware_tested": false
+  },
+  "native_fw4_equal_output_sha256": "5fba0a06e520060f0dc96b863454027ce0e066342bf25cdf3826a5cafed9eeed",
+  "benchmark": {
+    "report": "HEALTH_20261008_BENCHMARKS.json",
+    "report_sha256": "fce101991b9d9648da8e0ac1c20ad72230dec9e480a340568f91847df018465c",
+    "runs": 32,
+    "workload_runs": 120,
+    "successful_operations": 433600
+  },
+  "superseded_setup_attempt": {
+    "outcome": "Stopped before executing any tested CLI; not a component pass/failure.",
+    "cause": "Python copytree attempted to read pristine image /dev/console; used verified exact rootfs-files without device nodes for the valid batch.",
+    "evidence": "Initial driver log and owned-process fd/wchan observation retained privately; no build was repeated."
+  }
+}

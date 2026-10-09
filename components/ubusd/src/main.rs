@@ -18,6 +18,7 @@ mod server;
 mod sys;
 
 use server::Server;
+use std::io::Write;
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use std::time::{Duration, Instant};
@@ -84,8 +85,8 @@ fn saturated_signal_pipe_preserves_errno() {
 }
 
 fn usage(program: &str) -> ! {
-    eprintln!("{BUILD_ID}");
-    eprintln!(
+    let _ = writeln!(std::io::stderr(), "{BUILD_ID}");
+    let _ = writeln!(std::io::stderr(),
         "Usage: {program} [<options>]\n\
          Options: \n\
          \x20 -A <path>:\t\tSet the path to ACL files\n\
@@ -116,7 +117,7 @@ fn main() {
 
     // keep BUILD_ID in the binary even when usage() is never reached
     if std::env::var_os("UBUSD_RS_VERSION").is_some() {
-        println!("{BUILD_ID}");
+        let _ = writeln!(std::io::stdout(), "{BUILD_ID}");
         return;
     }
     if let Err(e) = run(&socket, &acl_dir) {

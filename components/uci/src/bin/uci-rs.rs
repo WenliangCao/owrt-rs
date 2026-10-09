@@ -83,7 +83,7 @@ fn strerror_str(e: &io::Error) -> String {
 
 impl Cli {
     fn usage(&self) {
-        eprint!(
+        let _ = write!(io::stderr(),
             "Usage: {} [<options>] <command> [<arguments>]\n\n\
 Commands:\n\
 \tbatch\n\
@@ -133,7 +133,7 @@ Options:\n\
         if self.flags & FLAG_QUIET != 0 {
             return;
         }
-        eprint!("{msg}");
+        let _ = write!(io::stderr(), "{msg}");
     }
 
     fn show_changes(&self, out: &mut impl Write, p: &Package) {
@@ -206,11 +206,11 @@ Options:\n\
                         // one buffer sized for the package, one write(2)
                         let p = &self.ctx.root[pidx];
                         let mut buf = Vec::with_capacity(export::size_hint(p));
-                        if export::export_package(&mut buf, self.ctx.flags, p, true).is_err()
-                            || out.write_all(&buf).is_err()
-                        {
+                        if export::export_package(&mut buf, self.ctx.flags, p, true).is_err() {
                             break 'out;
                         }
+                        // libuci's uci_export ignores fprintf errors on stdout.
+                        let _ = out.write_all(&buf);
                     }
                 }
                 CliCmd::Show => {
@@ -348,7 +348,7 @@ Options:\n\
                 e as i32
             }
             Ok(name) => {
-                println!("{name}");
+                let _ = writeln!(io::stdout(), "{name}");
                 0
             }
         }
@@ -626,7 +626,7 @@ fn run(raw: Vec<Arg>) -> ! {
             k += 1;
             let pos = OPTSTRING.find(c).filter(|_| c != ':');
             let Some(pos) = pos else {
-                eprintln!("{appname}: unrecognized option: {c}");
+                let _ = writeln!(io::stderr(), "{appname}: unrecognized option: {c}");
                 cli.usage();
                 std::process::exit(0);
             };
@@ -640,7 +640,7 @@ fn run(raw: Vec<Arg>) -> ! {
                     optind += 1;
                     Some(s(&raw[optind - 1]))
                 } else {
-                    eprintln!("{appname}: option requires an argument: {c}");
+                    let _ = writeln!(io::stderr(), "{appname}: option requires an argument: {c}");
                     cli.usage();
                     std::process::exit(0);
                 }

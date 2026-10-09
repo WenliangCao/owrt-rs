@@ -1,0 +1,88 @@
+{
+  "native_manifest_sha256": "e318d179ac8e203aab051214ef2a868dd45be431e05c67a872116a4a643657c1",
+  "real_reinstalls": {
+    "stock_package_reinstall_preserves_nine_Rust_files": true,
+    "native_package_reinstall_preserves_Rust_and_recovery_files": true
+  },
+  "negative_controls": [
+    {
+      "stage": "stock",
+      "repeat": 1,
+      "rejected": true,
+      "missing_files": 8,
+      "error_type": "FileNotFoundError"
+    },
+    {
+      "stage": "stock",
+      "repeat": 2,
+      "rejected": true,
+      "missing_files": 8,
+      "error_type": "FileNotFoundError"
+    },
+    {
+      "stage": "stock",
+      "repeat": 3,
+      "rejected": true,
+      "missing_files": 8,
+      "error_type": "FileNotFoundError"
+    },
+    {
+      "stage": "stock",
+      "repeat": 4,
+      "rejected": true,
+      "missing_files": 8,
+      "error_type": "FileNotFoundError"
+    },
+    {
+      "stage": "native",
+      "repeat": 1,
+      "rejected": true,
+      "missing_files": 1,
+      "error_type": "AssertionError"
+    },
+    {
+      "stage": "native",
+      "repeat": 2,
+      "rejected": true,
+      "missing_files": 1,
+      "error_type": "AssertionError"
+    },
+    {
+      "stage": "native",
+      "repeat": 3,
+      "rejected": true,
+      "missing_files": 1,
+      "error_type": "AssertionError"
+    },
+    {
+      "stage": "native",
+      "repeat": 4,
+      "rejected": true,
+      "missing_files": 1,
+      "error_type": "AssertionError"
+    }
+  ],
+  "physical_router_accessed": false,
+  "recorded_at": "2026-10-09",
+  "scope": "Linux aarch64 disposable native-nine rootfs namespaces; test harness only",
+  "source_commit": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+  "version": "0.1.0-r2",
+  "image_sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720",
+  "test_tool_sha256": {
+    "tools/native_image_check.py": "cdd5d42910bba3dfefaad675ab2296a33eafd56ed34ac88fd1e247c44ba4888e",
+    "tools/native_package_reinstall_selftest.py": "ee1e0e8a7a21b6abd9fe8d0ee73092db1b7eabbff21ae7a5ab2168d8aed58768"
+  },
+  "historical_false_green": {
+    "observation": "Both old package checks returned success despite APK unavailable, skipped; prior binary hashes and ownership checks did not prove extraction.",
+    "stock_log_sha256": "1bead786763cf2c40354dbf4e4d7b9828a161488372fcbfc0933d9d30691806c",
+    "native_log_sha256": "27a3411d3c2b101cfdd51e9c02fa2b9d9fcf05c0e30137966d3cdd73fc9dd26a",
+    "superseding_evidence_manifest_sha256": "bb1d2d6fad7736a3a692ccc79585778679e37c7d423704ba265472559d5bf140",
+    "historical_corrected_tool_sha256": "faafbdb934258b4111d7c023dad6a446463262a18dbcd76a0dffcd165e4952e0"
+  },
+  "current_log_sha256": {
+    "stock": "af36a8e90b747f4334920cd3f0097663dcb5bb161b433e3ad23c97e820fe9712",
+    "native": "5baf4c1e3eabd787ec417fb78e1c0328973815116af692cb75c66eb1857c02fa"
+  },
+  "stock_fixture_provenance_sha256": "99147e65204f7d9e508e98745023c91fb4b03170ef73f9da32962de417acb261",
+  "fixture_limit": "Stock APKs are unsigned exact-image payload reconstructions; lifecycle scripts and original APK signatures are not tested."
+}

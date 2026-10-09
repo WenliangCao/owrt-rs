@@ -336,6 +336,7 @@ struct Netifd {
     wdeadline: Option<u64>,
     wqueue: std::collections::VecDeque<(String, &'static str)>,
     wproc_checked: u64,
+    prefix_expiry_checked: u64,
     /// Every device netifd has an object for. An entry means `device_init`
     /// has run -- its state was cleared once -- and it means the device is
     /// reported by `network.device status`, which lists every present object,
@@ -399,6 +400,7 @@ impl Netifd {
             wdeadline: None,
             wqueue: std::collections::VecDeque::new(),
             wproc_checked: 0,
+            prefix_expiry_checked: 0,
             link_state: Vec::new(),
             present: Vec::new(),
             prepared_bridges: Vec::new(),
@@ -1924,6 +1926,16 @@ impl Netifd {
         // address. A renewal that only changes a lifetime is the same entry
         // and must not be removed and re-added.
         for a in &old.addresses {
+            // In the pinned C callback, v6 is still false in the old-address
+            // branch: IPv6 /64 offlink null routes survive a protocol-only
+            // withdrawal. Full interface disable removes them separately.
+            if a.addr.is_ipv4() && !new.addresses.iter().any(|n| same_address(n, a) && n.offlink) {
+                let mut sa = sys::Address::new(a.addr, a.mask);
+                sa.offlink = a.offlink;
+                if let Some(route) = sys::offlink_route(&sa) {
+                    let _ = self.sys.del_route(0, &route);
+                }
+            }
             if new.addresses.iter().any(|n| same_address(n, a)) {
                 continue;
             }
@@ -2046,6 +2058,14 @@ impl Netifd {
                 }
                 if !a.offlink {
                     self.replace_subnet_route(devidx, &sa, &ic);
+                } else if !previous.addresses.iter().any(|old| {
+                    old.addr == a.ip && old.mask == a.mask && old.offlink
+                }) {
+                    if let Some(route) = sys::offlink_route(&sa) {
+                        if let Err(e) = self.sys.add_route(0, &route) {
+                            logging::log!(Warning, "{name}: cannot add offlink null route: {e}");
+                        }
+                    }
                 }
                 let mut ia = Address::new(a.ip, a.mask);
                 ia.point_to_point = a.point_to_point;
@@ -2541,7 +2561,11 @@ impl Netifd {
 
         for (name, local, len, valid, owner) in before {
             if let Some(o) = &owner {
-                if live.contains(o) {
+                if live.contains(o) && self.iface_index(&name).is_some_and(|i| {
+                    self.interfaces[i].prefix_assignments.iter().any(|a| {
+                        a.owner.as_ref() == Some(o) && a.local == Some((local, len))
+                    })
+                }) {
                     continue;
                 }
             } else {
@@ -2565,7 +2589,11 @@ impl Netifd {
             if di == 0 {
                 continue;
             }
-            self.withdraw_assignment(di, local, len, valid);
+            let delegated = owner.as_ref().is_some_and(|(uplink, _, _)| uplink.is_some());
+            let valid = owner.as_ref().and_then(|o| self.prefixes.iter().find(|p| {
+                (&p.iface, p.addr, p.length) == (&o.0, o.1, o.2)
+            })).map(|p| p.valid_until).unwrap_or(valid);
+            self.withdraw_assignment(di, local, len, valid, delegated.then_some(dev.as_str()));
         }
     }
 
@@ -2586,9 +2614,8 @@ impl Netifd {
             .collect();
         reqs.sort_by(|a, b| a.name.cmp(&b.name));
 
-        for i in &mut self.interfaces {
-            i.prefix_assignments.clear();
-        }
+        let previous: Vec<_> = self.interfaces.iter_mut()
+            .map(|i| std::mem::take(&mut i.prefix_assignments)).collect();
         for p in &self.prefixes {
             // `interface_update_prefix` installs an unreachable route for the
             // whole prefix, at the lowest possible priority, so a packet for
@@ -2608,7 +2635,13 @@ impl Netifd {
                 let Some(idx) = self.iface_index(&a.name) else { continue };
                 let up = self.interfaces[idx].state == State::Up;
                 let l3 = self.interfaces[idx].l3_device.clone();
-                if up {
+                let was_enabled = previous[idx].iter().any(|old| {
+                    old.local == Some((local, a.length))
+                        && old.owner.as_ref() == Some(&(p.iface.clone(), p.addr, p.length))
+                });
+                let valid = !p.valid_until.is_some_and(|v| (v as u64).saturating_sub(1) <= now());
+                let mut enabled = was_enabled && valid;
+                if up && valid {
                     if let Some(dev) = &l3 {
                         if let Ok(di) = self.sys.if_index(dev) {
                             if di != 0 {
@@ -2638,22 +2671,29 @@ impl Netifd {
                                         "{}: cannot add {local}/{}: {e}",
                                         a.name, a.length
                                     );
-                                }
-                                // the on-link route for the assignment, never
-                                // narrower than a /64
-                                let rmask = a.length.max(64);
-                                let mut pr =
-                                    sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
-                                let ic =
-                                    self.cfg.interfaces.iter().find(|i| i.name == a.name);
-                                pr.metric = ic.map(|i| i.metric).unwrap_or(0);
-                                let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
-                                pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
-                                if let Err(e) = self.sys.add_route(di, &pr) {
-                                    logging::log!(Warning,
-                                        "{}: cannot add the {}/{rmask} route: {e}",
-                                        a.name, pr.target
-                                    );
+                                } else {
+                                    enabled = true;
+                                    if p.iface.is_some() && !was_enabled {
+                                        if let Err(e) = self.sys.prefix_reject(dev, local, a.length, true) {
+                                            logging::log!(Warning, "{}: cannot add prefix source rule: {e}", a.name);
+                                        }
+                                    }
+                                    // the on-link route for the assignment, never
+                                    // narrower than a /64
+                                    let rmask = a.length.max(64);
+                                    let mut pr =
+                                        sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
+                                    let ic =
+                                        self.cfg.interfaces.iter().find(|i| i.name == a.name);
+                                    pr.metric = ic.map(|i| i.metric).unwrap_or(0);
+                                    let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
+                                    pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
+                                    if let Err(e) = self.sys.add_route(di, &pr) {
+                                        logging::log!(Warning,
+                                            "{}: cannot add the {}/{rmask} route: {e}",
+                                            a.name, pr.target
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -2665,7 +2705,7 @@ impl Netifd {
                         length: a.length,
                         preferred_until: p.preferred_until,
                         valid_until: p.valid_until,
-                        local: if up { Some((local, a.length)) } else { None },
+                        local: if up && enabled { Some((local, a.length)) } else { None },
                         owner: Some((p.iface.clone(), p.addr, p.length)),
                     },
                 );
@@ -3581,7 +3621,11 @@ impl Netifd {
                         let _ = self.sys.neighbor(di, &sn, false);
                     }
                     for a in &addrs {
-                        let sa = sys::Address::new(a.addr, a.mask);
+                        let mut sa = sys::Address::new(a.addr, a.mask);
+                        sa.offlink = a.offlink;
+                        if let Some(route) = sys::offlink_route(&sa) {
+                            let _ = self.sys.del_route(0, &route);
+                        }
                         if let Err(e) = self.sys.del_address(di, &sa) {
                             logging::log!(Warning,
                                 "{name}: cannot remove {}/{}: {e}",
@@ -3591,7 +3635,8 @@ impl Netifd {
                     }
                     for a in &assigns {
                         if let Some((local, len)) = a.local {
-                            self.withdraw_assignment(di, local, len, a.valid_until);
+                            let delegated = a.owner.as_ref().is_some_and(|(uplink, _, _)| uplink.is_some());
+                            self.withdraw_assignment(di, local, len, a.valid_until, delegated.then_some(dev.as_str()));
                         }
                     }
                 }
@@ -4386,6 +4431,7 @@ impl Netifd {
             self.reap_children();
             process::reap_retired();
             self.pump_proto_deadlines();
+            self.pump_prefix_expiry();
             self.pump_wireless_deadline();
             self.pump_wireless_procs();
             self.pump_removals();
@@ -4631,7 +4677,10 @@ impl Netifd {
     /// deprecated, so connections still using it survive a renumber and it
     /// ages out on its own. Our own route goes first, and re-adding without
     /// NOPREFIXROUTE is what makes the kernel install one of its own.
-    fn withdraw_assignment(&mut self, di: u32, local: Ipv6Addr, len: u8, valid: Option<u32>) {
+    fn withdraw_assignment(&mut self, di: u32, local: Ipv6Addr, len: u8, valid: Option<u32>, reject_dev: Option<&str>) {
+        if let Some(dev) = reject_dev {
+            let _ = self.sys.prefix_reject(dev, local, len, false);
+        }
         let rmask = len.max(64);
         let pr = sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
         let _ = self.sys.del_route(di, &pr);
@@ -4689,6 +4738,43 @@ impl Netifd {
             self.refresh_prefix_assignments();
         }
         changed
+    }
+
+    /// The delegated-prefix part of C's interface_ip_valid_until_handler.
+    /// A source reject rule has no kernel expiry, so the daemon must withdraw
+    /// it even when odhcp6c sends no further notification. Keep C's strict
+    /// deadline comparison and only expire protocol state on UP interfaces.
+    fn pump_prefix_expiry(&mut self) {
+        let t = now();
+        if t <= self.prefix_expiry_checked {
+            return;
+        }
+        self.prefix_expiry_checked = t;
+        let expired: Vec<(String, Ipv6Addr, u8)> = self.prefixes.iter()
+            .filter_map(|p| {
+                let owner = p.iface.as_ref()?;
+                let deadline = p.valid_until?;
+                if (deadline as u64) >= t || !self.iface_index(owner)
+                    .is_some_and(|i| self.interfaces[i].state == State::Up) {
+                    return None;
+                }
+                Some((owner.clone(), p.addr, p.length))
+            }).collect();
+        if expired.is_empty() {
+            return;
+        }
+        for (owner, addr, length) in &expired {
+            self.prefixes.retain(|p| !(p.iface.as_ref() == Some(owner)
+                && p.addr == *addr && p.length == *length));
+            let mut null = sys::Route::v6(*addr, *length);
+            null.metric = i32::MAX as u32;
+            null.nodev = true;
+            let _ = self.sys.del_route(0, &null);
+            if let Some(i) = self.iface_index(owner) {
+                self.interfaces[i].updated |= interface::updated::PREFIX;
+            }
+        }
+        self.refresh_prefix_assignments();
     }
 
     /// `wdev_proc_check`, on the one-second interval `wdev_proc_add` starts.
@@ -5288,6 +5374,7 @@ fn sys_route(r: &interface::Route) -> sys::Route {
 }
 
 fn main() {
+    use std::io::Write;
     let mut confdir = "/etc/config".to_string();
     let mut hotplug = DEFAULT_HOTPLUG_PATH.to_string();
     let mut protodir = DEFAULT_PROTO_DIR.to_string();
@@ -5306,7 +5393,7 @@ fn main() {
             "-S" => log_stderr = true,
             "-l" => {
                 let Some(level) = args.next() else {
-                    eprintln!("netifd-rs: -l requires a level");
+                    let _ = writeln!(std::io::stderr(), "netifd-rs: -l requires a level");
                     std::process::exit(1);
                 };
                 log_level = logging::parse_level(&level);
@@ -5315,7 +5402,7 @@ fn main() {
                 log_level = logging::parse_level(&level[2..]);
             }
             "-V" | "--version" => {
-                println!("{BUILD_ID}");
+                let _ = writeln!(std::io::stdout(), "{BUILD_ID}");
                 return;
             }
             // Diagnostic, not part of the daemon: print what `network.wireless`
@@ -5325,11 +5412,11 @@ fn main() {
             // the inert identity probe p6_switch.sh uses on the device.
             "--dump-wireless" => {
                 let dir = args.next().unwrap_or_else(|| DEFAULT_WIRELESS_DIR.to_string());
-                println!("{}", wireless::dump(&confdir, &dir));
+                let _ = writeln!(std::io::stdout(), "{}", wireless::dump(&confdir, &dir));
                 return;
             }
             other => {
-                eprintln!("netifd-rs: unknown argument {other}");
+                let _ = writeln!(std::io::stderr(), "netifd-rs: unknown argument {other}");
                 std::process::exit(2);
             }
         }
@@ -5339,7 +5426,7 @@ fn main() {
     let mut n = match Netifd::new(&confdir, socket.as_deref(), &hotplug, &protodir) {
         Ok(n) => n,
         Err(e) => {
-            eprintln!("netifd-rs: startup failed: {e}");
+            let _ = writeln!(std::io::stderr(), "netifd-rs: startup failed: {e}");
             std::process::exit(1);
         }
     };

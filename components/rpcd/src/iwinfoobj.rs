@@ -597,11 +597,12 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
 /// `rpcd-rs --iwinfo-bench <ifname>`: run the `info` op sequence once per op,
 /// print wall time and the number of nl80211 requests each op issued.
 pub fn bench(dev: &str) {
+    use std::io::Write;
     use crate::iwinfo::netlink::SENDS;
     use std::sync::atomic::Ordering;
     use std::time::Instant;
     if iw::iwinfo_type(dev).is_none() {
-        eprintln!("{dev}: nl80211 probe failed");
+        let _ = writeln!(std::io::stderr(), "{dev}: nl80211 probe failed");
         return;
     }
     macro_rules! op {
@@ -609,7 +610,7 @@ pub fn bench(dev: &str) {
             let s0 = SENDS.load(Ordering::Relaxed);
             let t = Instant::now();
             let ok = $e.is_ok();
-            println!(
+            let _ = writeln!(std::io::stdout(),
                 "{:<18} {:>8.2} ms  nl_sends={:<3} {}",
                 $name,
                 t.elapsed().as_secs_f64() * 1000.0,
@@ -644,7 +645,7 @@ pub fn bench(dev: &str) {
     op!("hardware_id", nl80211::hardware_id(dev));
     op!("hardware_name", nl80211::hardware_name(dev));
     op!("assoclist", nl80211::assoclist(dev));
-    println!(
+    let _ = writeln!(std::io::stdout(),
         "total              {:>8.2} ms  nl_sends={}",
         t_all.elapsed().as_secs_f64() * 1000.0,
         SENDS.load(Ordering::Relaxed) - s_all

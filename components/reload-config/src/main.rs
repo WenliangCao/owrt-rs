@@ -75,7 +75,7 @@ fn parse_args() -> Result<(Settings, bool), String> {
             }
             "--trace-stderr" => trace_stderr = true,
             "-h" | "--help" => {
-                println!("{}", usage());
+                let _ = writeln!(std::io::stdout(), "{}", usage());
                 std::process::exit(EX_OK);
             }
             value => return Err(format!("unknown argument {value:?}")),
@@ -94,12 +94,12 @@ fn main() {
     let (settings, trace_stderr) = match parse_args() {
         Ok(parsed) => parsed,
         Err(error) => {
-            eprintln!("{error}\n{}", usage());
+            let _ = writeln!(std::io::stderr(), "{error}\n{}", usage());
             std::process::exit(EX_USAGE);
         }
     };
     if let Err(error) = install_signal_handlers() {
-        eprintln!("cannot install signal handlers: {error}");
+        let _ = writeln!(std::io::stderr(), "cannot install signal handlers: {error}");
         std::process::exit(EX_SOFTWARE);
     }
 

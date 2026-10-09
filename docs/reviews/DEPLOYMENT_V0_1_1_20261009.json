@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "status": "STOPPED_BEFORE_BASELINE",
+  "release": {
+    "tag": "v0.1.1",
+    "title": "v0.1.1 · OpenWrt 25.12.5 · AX3000T",
+    "id": 407733947,
+    "draft": true,
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/untagged-3a136c82e583c1f02794",
+    "tag_target": "d72928c9a7d9ed28a9aa2c8d749d31e2a9ed6d33",
+    "canonical_ci_run": 37902724239,
+    "firmware_file": "owrt-control-plane-v0.1.1-openwrt-25.12.5-ax3000t-sysupgrade.bin",
+    "firmware_sha256": "bd6db93f2a7eb5efab226f882d25baa6740b04f6548ee9d051ef2a0ccccfcc68",
+    "assets_verified": 8,
+    "rebuilt": false,
+    "published": false,
+    "previous_release_unchanged": true,
+    "workflow_restored_to_active": true,
+    "new_tag_build_runs": 0
+  },
+  "device": {
+    "wifi_interface": "en0",
+    "ssh_passed": true,
+    "ssh_observed_at": "2026-10-09T08:58:51.351321+00:00",
+    "last_observed_manifest_version": "0.1.0-r2",
+    "last_observed_manifest_source": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+    "baseline_passed": false,
+    "baseline_completed": false,
+    "disk_and_runtime_identity_gate_completed": false,
+    "new_configuration_backup_created": false,
+    "flashed": false,
+    "rollback_executed": false,
+    "postflash_health_verified": false
+  },
+  "stop_reason": "Local background baseline collector had no live process, an empty log, no progress/result, and no sample files. Stopped without retry under the explicit user instruction. No device gate was inferred to pass.",
+  "private_evidence_directory": "private/deploy-v0.1.1",
+  "private_release_directory": "private/release-v0.1.1",
+  "oracle_used": false,
+  "evidence_files": {
+    "old-release-before.json": {
+      "sha256": "a46b65fa781e4cec7e0ceb03705834c470eeeb25335af8e5776901c1ed7d7d4e",
+      "bytes": 7925
+    },
+    "old-release-after.json": {
+      "sha256": "a46b65fa781e4cec7e0ceb03705834c470eeeb25335af8e5776901c1ed7d7d4e",
+      "bytes": 7925
+    },
+    "release-workflow-before.json": {
+      "sha256": "61b2c60f76ddaf757f3e2f2dd0502ef8c2516c6dd9d8628b1b0d36851fe860f5",
+      "bytes": 534
+    },
+    "workflow-disabled.json": {
+      "sha256": "1d7278eec18f96d77632347780b96e0ab36d0a979161c9f9b678af04c9930db5",
+      "bytes": 545
+    },
+    "workflow-restored.json": {
+      "sha256": "7b06afa70b2e6a03c0285dd34097c824837e2daaddbd6143644ea61ae1723d7b",
+      "bytes": 534
+    },
+    "tag-created.json": {
+      "sha256": "70da65c426a4685bd73050ea79b32fbc91ae6a1f8440af6d9a84d4cd3bb4e07d",
+      "bytes": 367
+    },
+    "tag-runs.json": {
+      "sha256": "a2790a384d7d281e7395679000c35d27768d89dbd7052f725b8f4688beb59915",
+      "bytes": 36
+    },
+    "draft-verified.json": {
+      "sha256": "db25c28e27443bce8905986e68c259c4d6fcf76696aa5e88eb23de17043877af",
+      "bytes": 24700
+    },
+    "wifi-route-gate.json": {
+      "sha256": "7879c7e78bbfda077258ebc1dd872e8dc654c4a1ebdb11802bd450e56bbb9083",
+      "bytes": 182
+    },
+    "wifi-ssh-gate.json": {
+      "sha256": "66067e657f37f35aafe6672cdf8eeb90225acad4c435e1757b7e7e3fb02eab57",
+      "bytes": 453
+    },
+    "wifi-ssh.stdout": {
+      "sha256": "20cb6f82cb39b5444d9d3b669144eadb053b1bb5a6ef79308f1fd26e78ab4412",
+      "bytes": 6388
+    },
+    "wifi-ssh.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "health_window.py": {
+      "sha256": "27b51a9d5fb2ba5397b7e688d7b03bb85a3812c21247aeacc583a308265741c7",
+      "bytes": 6990
+    },
+    "baseline-driver.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "baseline-process-check.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "STOPPED.json": {
+      "sha256": "b15033815ff688a310ae26483ad1114e7d75e53ce879f621b0e571339785fab0",
+      "bytes": 1174
+    }
+  }
+}

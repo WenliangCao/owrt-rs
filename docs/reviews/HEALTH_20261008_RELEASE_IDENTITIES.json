@@ -1,0 +1,150 @@
+{
+  "r2": {
+    "source_commit": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+    "ci_url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36592957923",
+    "image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 12759328,
+      "sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720"
+    }
+  },
+  "r3": {
+    "source_commit": "d72928c9a7d9ed28a9aa2c8d749d31e2a9ed6d33",
+    "ci_url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/37902724239",
+    "image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 12759328,
+      "sha256": "bd6db93f2a7eb5efab226f882d25baa6740b04f6548ee9d051ef2a0ccccfcc68"
+    },
+    "packages": {
+      "luci-i18n-attendedsysupgrade-zh-cn": "26.180.75667~128a781",
+      "owrt-control-plane": "0.1.0-r3",
+      "luci-i18n-package-manager-zh-cn": "26.180.75667~128a781",
+      "luci-i18n-base-zh-cn": "26.180.75667~128a781",
+      "luci-i18n-firewall-zh-cn": "26.180.75667~128a781"
+    },
+    "artifact_checksums_verified": 26,
+    "artifact_checksums_all_match": true,
+    "manifest_sha256": "6220b21adf2b79a2761f17793cce124f3420964e8826389acb0d6df5bfeb76b2",
+    "native_validation": {
+      "nine_native_paths": true,
+      "package_ownership": true,
+      "stock_recovery_hashes": true,
+      "stock_service_scripts": true,
+      "stock_config_defaults": true,
+      "unchanged_execution_files": 867,
+      "stock_package_versions_unchanged": 159,
+      "production_Chinese_catalogs_identical": 4,
+      "physical_boot_tested": false
+    },
+    "apk_sha256": {
+      "luci-i18n-attendedsysupgrade-zh-cn-26.180.75667~128a781.apk": "bbd5c832c3174380fdc7721064b5ab0b24e0a0ccf9e41d320883c9b470fd5e39",
+      "luci-i18n-base-zh-cn-26.180.75667~128a781.apk": "3a285d99faa3d87ca84029dc2fc13028058dc4e47688b5b62003e26f6dd677a1",
+      "luci-i18n-firewall-zh-cn-26.180.75667~128a781.apk": "2198d59ef5a20d75dc0e2e9ab39770aa28becf110dae207a66dc33086639f563",
+      "luci-i18n-package-manager-zh-cn-26.180.75667~128a781.apk": "e1741ce1478670661585414dd0a94e49c49fb5b9fb6f6c1386b26039d86e37d6",
+      "owrt-control-plane-0.1.0-r3.apk": "7d14addc91ce18a968037e94014c4b90309821516eaba00576018f7f412bd8cd"
+    }
+  },
+  "components": [
+    {
+      "component": "fw4",
+      "path": "/sbin/fw4",
+      "r2_sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "r3_sha256": "77e2a33ead41736ce313780adf92473765d008f9137165a39ae94bf97028582e",
+      "changed": true,
+      "r2_bytes": 1034963,
+      "r3_bytes": 1030867,
+      "delta_bytes": -4096
+    },
+    {
+      "component": "httpd",
+      "path": "/usr/sbin/uhttpd",
+      "r2_sha256": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+      "r3_sha256": "bf7b29260f008622b1157bb39bcd969ae39932c534828be8429c50343670e904",
+      "changed": true,
+      "r2_bytes": 1612543,
+      "r3_bytes": 1612535,
+      "delta_bytes": -8
+    },
+    {
+      "component": "logd",
+      "path": "/sbin/logd",
+      "r2_sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "r3_sha256": "e1d29e61f2a1c6d5242747156a215e0a7d934a3079f17bd5ea582b2dccb73151",
+      "changed": true,
+      "r2_bytes": 428731,
+      "r3_bytes": 432819,
+      "delta_bytes": 4088
+    },
+    {
+      "component": "netifd",
+      "path": "/sbin/netifd",
+      "r2_sha256": "adcf2bee51a4d985cea4ed01497da42988b8d0c9ab71eaf2d49eef821afc0a1f",
+      "r3_sha256": "7ce3a64d094e05484721ec68855eff5f4d68a484a6ce5f073bd013d2fbb79eb1",
+      "changed": true,
+      "r2_bytes": 1077312,
+      "r3_bytes": 1081400,
+      "delta_bytes": 4088
+    },
+    {
+      "component": "procd",
+      "path": "/sbin/procd",
+      "r2_sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "r3_sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "changed": false,
+      "r2_bytes": 876536,
+      "r3_bytes": 876536,
+      "delta_bytes": 0
+    },
+    {
+      "component": "reload-config",
+      "path": "/sbin/reload_config",
+      "r2_sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+      "r3_sha256": "c96823a2e4b8ea3b5dd79ad375220514ae1ac2357e7f61714a722c4a2269dc7a",
+      "changed": true,
+      "r2_bytes": 465643,
+      "r3_bytes": 465643,
+      "delta_bytes": 0
+    },
+    {
+      "component": "rpcd",
+      "path": "/sbin/rpcd",
+      "r2_sha256": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+      "r3_sha256": "c65491f434f35b6771b3fa9e0336a3580bf88522dfd222d3cc6cc45a8c6227c1",
+      "changed": true,
+      "r2_bytes": 1252115,
+      "r3_bytes": 1256203,
+      "delta_bytes": 4088
+    },
+    {
+      "component": "ubusd",
+      "path": "/sbin/ubusd",
+      "r2_sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "r3_sha256": "ab3bff56b6ba5d798701d0e73d20469a36cf1ea0773fdd64a0eb9411ec1fc42d",
+      "changed": true,
+      "r2_bytes": 516072,
+      "r3_bytes": 516072,
+      "delta_bytes": 0
+    },
+    {
+      "component": "uci",
+      "path": "/sbin/uci",
+      "r2_sha256": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+      "r3_sha256": "50ba9ed8f5cf5686313be3e1d32a281278daf3d17c319b71211fb96a4dbd76a7",
+      "changed": true,
+      "r2_bytes": 486155,
+      "r3_bytes": 486155,
+      "delta_bytes": 0
+    }
+  ],
+  "all_nine_recovery_hashes_and_paths_unchanged": true,
+  "physical_router_deployed": false,
+  "unchanged_image_inputs": {
+    "stock_image": true,
+    "stock_packages": true,
+    "luci_source": true,
+    "translations": true,
+    "kernel_sha256": true
+  },
+  "kernel_sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6"
+}
