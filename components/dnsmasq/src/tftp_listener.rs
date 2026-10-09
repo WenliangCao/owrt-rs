@@ -5,12 +5,13 @@
 mod policy;
 use crate::config::{dns::DnsConfig, tftp::TftpConfig};
 use crate::neighbors::MacLookup;
+use crate::interfaces::DnsInterface;
 use crate::net::{Datagram, DatagramSocket};
 use crate::tftp_runtime::{
     Completion, FileOpener, RealFileOpener, RequestPolicy, RuntimeConfig, RuntimeEvent,
     RuntimePathPolicy, SocketRole, TransferId, TransferRuntime,
 };
-use policy::Policy;
+use policy::{Admission, Policy};
 use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::net::{IpAddr, SocketAddr, SocketAddrV6, UdpSocket};
@@ -53,6 +54,7 @@ pub struct TftpListener<O> {
     buffer: Vec<u8>,
     policy: Option<Policy>,
     pending: VecDeque<Pending>,
+    pending_admission: Option<(Pending, bool)>,
     completed: VecDeque<Completion>,
     refreshed: u64,
     accepting: bool,
@@ -121,6 +123,7 @@ impl<O: FileOpener> TftpListener<O> {
             buffer: vec![0; 65535],
             policy: None,
             pending: VecDeque::new(),
+            pending_admission: None,
             completed: VecDeque::new(),
             refreshed: 0,
             accepting: true,
@@ -176,7 +179,22 @@ impl<O: FileOpener> TftpListener<O> {
     }
     /// Pending MAC lookups need owner wakeups even before a transfer exists.
     pub fn has_pending_work(&self) -> bool {
-        self.runtime.active_len() != 0 || !self.pending.is_empty()
+        self.runtime.active_len() != 0 || !self.pending.is_empty() || self.pending_admission.is_some()
+    }
+    pub fn needs_interface_admission(&self) -> bool {
+        self.pending_admission.is_some()
+    }
+    /// Resume the saved datagram after the existing shared owner's collection.
+    /// It now tests only C's published-list exceptions, never the old name.
+    pub fn resume_interface_admission(&mut self, interfaces: &[DnsInterface], now: u64) {
+        let Some((mut pending, loopback)) = self.pending_admission.take() else { return };
+        self.refresh_listener_interfaces(interfaces);
+        if self.policy.as_ref().is_some_and(|policy|
+            policy.admitted_exception(&pending.datagram, &pending.name, loopback))
+        {
+            pending.deadline = now.saturating_add(2);
+            self.pending.push_back(pending);
+        }
     }
     pub fn needs_mac_lookup(&self) -> bool {
         self.policy
@@ -342,7 +360,7 @@ impl<O: FileOpener> TftpListener<O> {
 
     pub fn append_poll_fds(&self, fds: &mut Vec<owrt_ubus::sys::PollFd>) {
         use owrt_ubus::sys::{PollFd, POLLIN};
-        for server in &self.servers {
+        for server in self.servers.iter().filter(|_| self.pending_admission.is_none()) {
             if self.single_port || self.accepting && server.accepting && self.has_capacity() {
                 fds.push(PollFd {
                     fd: server.socket.as_raw_fd(),
@@ -386,13 +404,19 @@ impl<O: FileOpener> TftpListener<O> {
             let Some(pending) = self.pending.pop_front() else {
                 break;
             };
-            let found = match mac(pending.datagram.peer.ip(), pending.datagram.interface, now) {
-                MacLookup::Ready(found) => found,
-                MacLookup::Pending if now < pending.deadline => {
-                    self.pending.push_back(pending);
-                    continue;
+            let need_mac = matches!(pending.bytes.get(..2), Some([0, 1] | [0, 2]))
+                && self.policy.as_ref().is_some_and(|policy| policy.needs_mac(&pending.name));
+            let found = if need_mac {
+                match mac(pending.datagram.peer.ip(), pending.datagram.interface, now) {
+                    MacLookup::Ready(found) => found,
+                    MacLookup::Pending if now < pending.deadline => {
+                        self.pending.push_back(pending);
+                        continue;
+                    }
+                    MacLookup::Pending => None,
                 }
-                MacLookup::Pending => None,
+            } else {
+                None
             };
             self.dispatch(pending, found, now, &mut events)?;
         }
@@ -495,6 +519,9 @@ impl<O: FileOpener> TftpListener<O> {
         mac: &mut dyn FnMut(IpAddr, u32, u64) -> MacLookup,
         events: &mut Vec<RuntimeEvent>,
     ) -> io::Result<()> {
+        if self.pending_admission.is_some() {
+            return Ok(());
+        }
         if !self.single_port
             && (!self.accepting || !self.servers[index].accepting || !self.has_capacity())
         {
@@ -523,6 +550,8 @@ impl<O: FileOpener> TftpListener<O> {
         };
         let mut name = Vec::new();
         let mut mtu = None;
+        let mut loopback = false;
+        let mut refresh = false;
         if let Some(policy) = &self.policy {
             let bound =
                 policy.dns.bind_interfaces && !policy.dns.bind_dynamic && datagram.peer.is_ipv4();
@@ -537,10 +566,14 @@ impl<O: FileOpener> TftpListener<O> {
                 else {
                     return Ok(());
                 };
+                loopback = crate::net::interface_loopback(&self.servers[index].socket, &found)
+                    .is_ok_and(|value| value);
                 name.extend(found.into_iter().take_while(|byte| *byte != 0));
             }
-            if !policy.admitted(&datagram, &name) {
-                return Ok(());
+            match policy.admission(&datagram, &name, loopback) {
+                Admission::Accept => {}
+                Admission::Reject => return Ok(()),
+                Admission::Refresh => refresh = true,
             }
             if !bound {
                 mtu = interface_mtu(self.servers[index].socket.as_raw_fd(), &name);
@@ -554,6 +587,21 @@ impl<O: FileOpener> TftpListener<O> {
             mtu,
             deadline: now.saturating_add(2),
         };
+        if refresh {
+            if self.shared_listener_owner {
+                // One original packet shares the existing eight-waiter cap;
+                // the main owner supplies its existing collector continuation.
+                if self.pending.len() < 8 {
+                    self.pending_admission = Some((pending, loopback));
+                }
+                return Ok(());
+            }
+            let Some(policy) = &mut self.policy else { return Ok(()) };
+            policy.refresh()?;
+            if !policy.admitted_exception(&datagram, &pending.name, loopback) {
+                return Ok(());
+            }
+        }
         let need_mac = new_request
             && self
                 .policy

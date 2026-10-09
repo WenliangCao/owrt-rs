@@ -4417,6 +4417,10 @@ impl SinglePoll {
                 daemon.publish_interface_records(records);
             }
         }
+        if let Some(tftp) = self.tftp.as_mut().filter(|tftp| tftp.needs_interface_admission()) {
+            tftp.resume_interface_admission(&self.interfaces.borrow(), now_seconds() as u64);
+            self.tftp_ready = true;
+        }
         #[cfg(target_os = "linux")]
         if let Some((step, initial_finished)) = self.pending_interface_files.take() {
             self.apply_dns_file_step(step, initial_finished);
@@ -6294,6 +6298,7 @@ impl SinglePoll {
                     neighbors.query(address, interface, now)
                 })
         });
+        drop(provider);
         let packet_overwritten = events.as_ref().is_ok_and(|events| {
             events.iter().any(|event| {
                 use dnsmasq_rs::tftp_runtime::RuntimeEvent;
@@ -6331,6 +6336,18 @@ impl SinglePoll {
         }
         self.tftp_next_due = listener.has_pending_work()
             .then_some(now_instant + Duration::from_millis(250));
+        let needs_interfaces = listener.needs_interface_admission();
+        if needs_interfaces {
+            self.enumerate_interfaces(true);
+            if !self.interface_work_pending() {
+                // The same-turn latch or a failed control socket retains the
+                // current published generation, just like UDP admission.
+                if let Some(tftp) = &mut self.tftp {
+                    tftp.resume_interface_admission(&self.interfaces.borrow(), now);
+                }
+                self.tftp_ready = true;
+            }
+        }
     }
 }
 
@@ -6646,6 +6663,10 @@ mod stale_refresh_log_tests;
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_udp_acl_tests.rs"]
 mod udp_acl_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_tftp_admission_tests.rs"]
+mod tftp_admission_tests;
 
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_tcp_import_local_tests.rs"]

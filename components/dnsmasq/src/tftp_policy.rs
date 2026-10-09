@@ -7,6 +7,12 @@ use std::io;
 use std::net::SocketAddr;
 use std::os::unix::ffi::OsStrExt;
 
+pub(super) enum Admission {
+    Accept,
+    Reject,
+    Refresh,
+}
+
 pub(super) struct Policy {
     pub config: TftpConfig,
     pub dns: DnsConfig,
@@ -100,24 +106,33 @@ impl Policy {
             name,
         )
     }
-    pub fn admitted(&self, datagram: &Datagram, name: &[u8]) -> bool {
+    pub fn admission(&self, datagram: &Datagram, name: &[u8], loopback: bool) -> Admission {
         if self.dns.bind_interfaces && !self.dns.bind_dynamic && datagram.destination.is_ipv4() {
             // tftp.c's static IPv4 path trusts socket creation eligibility.
             // It also accepts an unowned explicit listener, whose cached
             // name is NULL, without testing the dedicated interface list.
-            return true;
+            return Admission::Accept;
         }
         if !self.config.interfaces.is_empty() {
-            return self.tftp_interface(name);
+            return if self.tftp_interface(name) { Admission::Accept } else { Admission::Reject };
         }
-        self.tftp_interface(name)
-            && crate::listeners::admit(
-                &self.dns,
-                &self.interfaces,
-                datagram.peer.ip(),
-                datagram.local_address,
-                datagram.interface,
-            )
+        if crate::listeners::udp_acl_name(&self.dns, datagram.local_address, name, loopback) {
+            return if self.tftp_interface(name) { Admission::Accept } else { Admission::Reject };
+        }
+        if !self.dns.bind_dynamic {
+            return Admission::Refresh;
+        }
+        if self.admitted_exception(datagram, name, loopback) {
+            Admission::Accept
+        } else {
+            Admission::Reject
+        }
+    }
+
+    pub fn admitted_exception(&self, datagram: &Datagram, name: &[u8], loopback: bool) -> bool {
+        crate::listeners::udp_acl_exception(&self.dns, &self.interfaces,
+            datagram.local_address, datagram.interface, loopback)
+            && self.tftp_interface(name)
     }
     pub fn request(
         &self,
