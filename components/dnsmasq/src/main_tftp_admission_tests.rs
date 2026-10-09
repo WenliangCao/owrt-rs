@@ -23,7 +23,7 @@ fn owner(label: &str, dns: DnsConfig, dedicated: bool) -> (SinglePoll, std::path
 fn rrq(destination: &str) -> UdpSocket {
     let peer = UdpSocket::bind(if destination.starts_with('[') { "[::1]:0" } else { "127.0.0.1:0" }).unwrap();
     peer.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
-    peer.send_to(b"\0\1boot.bin\0octet\0", destination).unwrap();
+    peer.send_to(b"\0\x01boot.bin\0octet\0", destination).unwrap();
     peer
 }
 
@@ -59,8 +59,8 @@ fn start_and_collect(owner: &mut SinglePoll) {
 fn data(peer: &UdpSocket) {
     let mut response = [0; 512];
     let (length, source) = peer.recv_from(&mut response).unwrap();
-    assert_eq!(&response[..length], b"\0\3\0\1admitted");
-    peer.send_to(b"\0\4\0\1", source).unwrap();
+    assert_eq!(&response[..length], b"\0\x03\0\x01admitted");
+    peer.send_to(b"\0\x04\0\x01", source).unwrap();
 }
 
 #[test]
