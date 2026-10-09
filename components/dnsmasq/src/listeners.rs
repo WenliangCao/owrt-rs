@@ -35,6 +35,14 @@ fn name_matches(pattern: &Option<Vec<u8>>, name: &[u8], _loopback: bool) -> bool
         },
     }
 }
+fn name_allowed(config: &DnsConfig, name: &[u8], loopback: bool) -> bool {
+    (config.interfaces.is_empty() && config.listen_addresses.is_empty()
+        || config.interfaces.iter().any(|pattern| name_matches(pattern, name, loopback))
+        // network.c:501 adds loopback names whenever an interface list exists.
+        || !config.interfaces.is_empty() && loopback)
+        && !config.excluded_interfaces.iter()
+            .any(|pattern| name_matches(pattern, name, loopback))
+}
 pub fn selected(config: &DnsConfig, interface: &DnsInterface) -> bool {
     if config.listen_addresses.contains(&interface.address) {
         return true;
@@ -49,13 +57,7 @@ pub fn selected(config: &DnsConfig, interface: &DnsInterface) -> bool {
     if config.local_service_host && !config.local_service_net && !explicit_access(config) {
         return interface.loopback;
     }
-    config.interfaces.is_empty() && config.listen_addresses.is_empty()
-        || config
-            .interfaces
-            .iter()
-            .any(|name| name_matches(name, &interface.name, interface.loopback))
-        || !config.interfaces.is_empty() && interface.loopback
-        || config.listen_addresses.contains(&interface.address)
+    name_allowed(config, &interface.name, interface.loopback)
 }
 fn explicit_access(config: &DnsConfig) -> bool {
     !config.interfaces.is_empty()
@@ -234,14 +236,11 @@ pub fn udp_source_allowed(config: &DnsConfig, interfaces: &[DnsInterface], peer:
 }
 
 /// network.c:iface_check uses the current kernel name, not an old index list.
-pub fn udp_acl_name(config: &DnsConfig, destination: IpAddr, name: &[u8]) -> bool {
+pub fn udp_acl_name(config: &DnsConfig, destination: IpAddr, name: &[u8], loopback: bool) -> bool {
     if config.listen_addresses.contains(&destination) {
         return true; // A literal match wins over except-interface.
     }
-    let allowed = config.interfaces.is_empty() && config.listen_addresses.is_empty()
-        || config.interfaces.iter().any(|pattern| name_matches(pattern, name, false));
-    allowed && !config.excluded_interfaces.iter()
-        .any(|pattern| name_matches(pattern, name, false))
+    name_allowed(config, name, loopback)
 }
 
 /// Only a failed iface_check caller reaches these published-list exceptions.
@@ -300,18 +299,8 @@ pub fn admit_tcp(
         // C's fallback requires an enumerated, selected destination address.
         return selected_destination;
     };
-    let named = config
-        .interfaces
-        .iter()
-        .any(|pattern| name_matches(pattern, name, loopback))
-        || !config.interfaces.is_empty() && loopback;
-    let excluded = config
-        .excluded_interfaces
-        .iter()
-        .any(|pattern| name_matches(pattern, name, loopback));
     config.listen_addresses.contains(&destination.ip())
-        || (config.interfaces.is_empty() && config.listen_addresses.is_empty() || named)
-            && !excluded
+        || name_allowed(config, name, loopback)
         || loopback && selected_destination
 }
 
@@ -359,17 +348,7 @@ pub fn admit(
             .iter()
             .filter(|interface| interface.index == ingress)
             .any(|interface| {
-                let excluded = config
-                    .excluded_interfaces
-                    .iter()
-                    .any(|name| name_matches(name, interface.link_name(), interface.loopback));
-                let allowed = (config.interfaces.is_empty() && config.listen_addresses.is_empty()
-                    || config
-                        .interfaces
-                        .iter()
-                        .any(|name| name_matches(name, interface.link_name(), interface.loopback))
-                    || !config.interfaces.is_empty() && interface.loopback)
-                    && !excluded;
+                let allowed = name_allowed(config, interface.link_name(), interface.loopback);
                 // C's loopback and label exceptions retain locally originated DNS
                 // queries to a configured address even when ingress is loopback.
                 allowed

@@ -61,6 +61,67 @@ fn udp_live_ingress_accepts_a_real_received_index_absent_from_the_old_snapshot()
 }
 
 #[test]
+fn udp_restricted_interface_implicitly_accepts_unlisted_loopback_through_step_udp() {
+    for interface in [b"lan".as_slice(), b"".as_slice()] {
+        let mut owner = owner(interface);
+        let udp = Arc::new(DnsSocket::bind("0.0.0.0:0".parse().unwrap()).unwrap());
+        let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let destination = SocketAddr::new("127.0.0.2".parse().unwrap(), udp.local_addr().unwrap().port());
+        assert!(owner.interfaces.borrow().is_empty());
+        owner.add_listener(SocketToken(73), Some(udp), None);
+        peer.send_to(&query(), destination).unwrap();
+        owner.wait_for_files().unwrap();
+        assert!(owner.step_udp(0));
+        assert_reply(&peer);
+        assert!(owner.interfaces.borrow().is_empty());
+        assert!(!owner.interfaces_enumerated);
+        assert!(owner.interface_collector.is_none());
+        assert!(owner.pending_udp_admission.is_none());
+        assert_eq!(owner.parent_events.borrow().local_answered, 1);
+    }
+}
+
+#[test]
+fn udp_production_admission_preserves_loopback_exclusion_and_literal_precedence() {
+    let lo = dnsmasq_rs::interfaces::dns_interfaces().unwrap().into_iter()
+        .find(|row| row.loopback && row.address == "127.0.0.1".parse::<IpAddr>().unwrap()).unwrap();
+    let mut owner = owner(b"lan");
+    owner.interfaces_enumerated = true;
+    owner.interfaces.borrow_mut().push(lo.clone());
+    let udp = DnsSocket::bind("0.0.0.0:0".parse().unwrap()).unwrap();
+    let incoming = listeners::Incoming { len: 12, peer: "127.0.0.1:12345".parse().unwrap(),
+        destination: "127.0.0.2".parse().unwrap(), interface: lo.index };
+    assert!(matches!(owner.admit_udp(&udp, incoming), UdpAdmission::Accept));
+    owner.config.excluded_interfaces.push(Some(lo.name.clone()));
+    assert!(matches!(owner.admit_udp(&udp, incoming), UdpAdmission::Reject));
+    owner.config.listen_addresses.push(incoming.destination);
+    assert!(matches!(owner.admit_udp(&udp, incoming), UdpAdmission::Accept));
+    owner.config.excluded_interfaces.clear();
+    owner.config.interfaces.clear();
+    owner.config.listen_addresses = vec!["127.0.0.1".parse().unwrap()];
+    assert!(matches!(owner.admit_udp(&udp, incoming), UdpAdmission::Reject),
+        "listen-address alone must not implicitly select other loopback addresses");
+    owner.config.bind_interfaces = true;
+    assert!(matches!(owner.admit_udp(&udp, listeners::Incoming {
+        interface: u32::MAX, ..incoming
+    }), UdpAdmission::Accept), "static IPv4 trusts the bound socket without ioctl");
+    owner.config.bind_interfaces = false;
+    owner.config.bind_dynamic = true;
+    owner.config.listen_addresses.clear();
+    owner.config.interfaces.push(Some(b"lan".to_vec()));
+    assert!(matches!(owner.admit_udp(&udp, incoming), UdpAdmission::Accept));
+    assert!(matches!(owner.admit_udp(&udp, listeners::Incoming {
+        destination: "::2".parse().unwrap(), ..incoming
+    }), UdpAdmission::Accept), "the implicit interface rule also covers IPv6 ingress");
+    assert!(matches!(owner.admit_udp(&udp, listeners::Incoming {
+        interface: u32::MAX, ..incoming
+    }), UdpAdmission::Reject), "wildcard ingress must resolve a kernel interface name");
+    assert!(owner.interface_collector.is_none());
+    assert!(owner.pending_udp_admission.is_none());
+}
+
+#[test]
 fn udp_alias_admission_collects_without_publication_rules_and_resumes_the_original_packet() {
     assert_eq!(std::env::var("DNSMASQ_TEST_ISOLATED").as_deref(), Ok("1"),
         "the alias actor must run in its private network namespace");
@@ -72,6 +133,9 @@ fn udp_alias_admission_collects_without_publication_rules_and_resumes_the_origin
         }
     }
     let mut owner = owner(b"lo:acl42");
+    // Veto the automatic loopback name so this packet exercises C's selected
+    // address-label exception rather than the direct live-name acceptance.
+    owner.config.excluded_interfaces.push(Some(b"lo".to_vec()));
     assert!(std::process::Command::new("ip")
         .args(["addr", "add", "127.0.0.42/8", "dev", "lo", "label", "lo:acl42"])
         .status().unwrap().success());

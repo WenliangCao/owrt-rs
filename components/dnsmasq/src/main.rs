@@ -4468,12 +4468,13 @@ impl SinglePoll {
                 return UdpAdmission::Reject;
             };
             let length = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
-            if listeners::udp_acl_name(&self.config, incoming.destination, &name[..length]) {
+            // This is also the implicit loopback name in C's interface list.
+            // A failed flags lookup disables only that rule and its exception.
+            let loopback = udp.ingress_loopback(&name).is_ok_and(|value| value);
+            if listeners::udp_acl_name(&self.config, incoming.destination, &name[..length], loopback) {
                 return UdpAdmission::Accept;
             }
-            // Failed SIOCGIFFLAGS disables only the loopback exception; C
-            // still checks the IPv4 label exception against the new list.
-            let loopback = udp.ingress_loopback(&name).is_ok_and(|value| value);
+            // C still checks the IPv4 label exception against the new list.
             if !self.config.bind_dynamic {
                 self.enumerate_interfaces(true);
                 if self.interface_work_pending() {
