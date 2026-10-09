@@ -36,7 +36,7 @@ define Build/Prepare
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/fw4/src $(PKG_BUILD_DIR)/ubus/src $(PKG_BUILD_DIR)/uci/src/bin
 	test -f $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml
 	test -f $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock
-	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock $(PKG_BUILD_DIR)/fw4/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock $(OWRT_COMPONENTS_SOURCE)/fw4/build.rs $(PKG_BUILD_DIR)/fw4/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/src/*.rs $(PKG_BUILD_DIR)/fw4/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/*.rs $(PKG_BUILD_DIR)/ubus/src/
