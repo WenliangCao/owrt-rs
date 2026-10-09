@@ -40,3 +40,25 @@ identity、失败目录、确认结果和25个同 ELF 已通过族的收据保�
 `dhcp-inform-tool-tests.log`、`inform-fixture-prepare.log`，以及独立
 `identity-inform.json`、`inform-tools.tar`。原始运行完整归档索引在最终
 报告收尾时列出；未完成的后续门仍为未执行。
+
+## Hosts 大文件的采样完成条件
+
+接口族 `hostsdir-large-owner` 首次及一次原参数确认均通过所有健康回复检查，
+但没有采到查询前后hosts FD均打开的交集。原工具在该断言前丢失samples，
+不能仅凭它的 `infrastructure` 标签判断产品。修订754d1c1b／42d0bf00先
+保存原始健康/FD/单调时钟采样，再执行原断言；三项负控验证红色仍为红，
+且证据保留。独立该方法观察已取得严格的Rust while-open健康阳性。
+
+完整fresh族的新证据进一步表明采样停止条件过早：唯一样本的查询健康，
+`file_active=false`、`file_still_active=true`，但控制器已经结束采样。
+“同路径read日志”可来自先前排队读取，不能证明本次1MiB源已经结束。
+工具21e6646d要求新 `one.records.test→192.0.2.8` 已发布、且当前源FD
+关闭后才结束采样；保留原来的1MiB、8秒deadline、健康及while-open合同，
+没有把负载做大或丢掉资源见证。四项本地负控包括旧记录、仍打开的源、
+重开FD、缺交集、不健康和未结束线程；受影响完整族fresh执行中。
+
+上述运行/采样原始结果仍保持原判定。修订只修改工具，不修改冻结ELF；
+本次未确认新的hosts服务产品缺陷，也不把独立单case阳性冒称完整族通过。
+证据入口为preflight下 `hostsdir-large-owner-*`、`hostsdir-confirmation-*`、
+`hosts-large-observed-samples.jsonl`、`hosts-full-observer-red-01.txt`、
+`hosts-observer-tests.log`、`hosts-completion-tests.log` 与三个独立tools archive。

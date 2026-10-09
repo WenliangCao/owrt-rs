@@ -2,7 +2,7 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF首25族通过，INFORM时钟方法修订后继续剩余族，旧13步不沿用。
+- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF已有34族同身份通过，INFORM时钟及hosts采样完成条件的方法修订后继续剩余族，旧13步不沿用。
 - 最终身份：feature-off opt3为791a7c33…／1,966,120 B，同源s为d8d3c1ea…／1,642,536 B；源码889fe4f5。完整build/map/archive见[最终冻结](audits/M6B_FINAL_FREEZE.md)，产品再次禁止修改。
 - 已关闭：UDP真实caller及共用准入修复；TFTP在约13分钟内复用现有collector续步完成，Linux main74/lib753、额外TFTP main3/socket3实际过，20ignored不计；精确C rename配对前后和清理一致。未改接口收集设计，未触发1小时止损。
 - 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步/169、M2、普通+targeted、资源/压力、正式135、guard、APK、报告及退役清理均尚未完成。
@@ -11,7 +11,8 @@
 - 已知差距：TCP未命中内存约C三倍；最终opt3 ELF约C7.30倍。M7真机与延期第4包未执行；未据源码审查补造异常collector路径的运行见证。
 - 卫生：原始资料只在private；prompts、health分支/工作树、dirty树、常驻服务保持，物理路由器未接触；退役仍仅本地盘点。
 - 方法修订：DHCP identities原红仅option51 600/599，原mtime/expiry精确证明独立整数秒相位；一次确认绿。工具2489b0ed加入严格租约/请求时钟见证后fresh全族通过，原失败保留，见[方法记录](audits/M6B_FINAL_METHOD_CORRECTIONS.md)。
-- 阻塞点：无产品缺陷；冻结后新产品缺陷按用户要求立即停并告知，不修产品继续跑门。
+- Hosts方法修订：原健康全绿但FD交集未测到，新增样本证实read日志触发结束时FD仍打开；21e6646d改为新记录已发布且FD关闭才结束采样，原1MiB/while-open合同不变，完整受影响族fresh执行中。
+- 阻塞点：无已确认产品缺陷；冻结后新产品缺陷按用户要求立即停并告知，不修产品继续跑门。
 
 ## 工作规则
 
