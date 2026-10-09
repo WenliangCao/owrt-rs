@@ -2,6 +2,8 @@
 //! `/sbin/fw4`; `FW4_MOCK_DIRS=dir1:dir2` switches all inputs to the upstream
 //! test-suite fixture layout and `FW4_TRACE=stderr` emits the `[call]` trace.
 
+#![cfg_attr(not(test), no_main)]
+#![cfg_attr(test, allow(dead_code))]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
@@ -23,11 +25,13 @@ use parse::Fw4;
 use statefile::STATEFILE;
 use std::io::{IsTerminal, Write};
 use std::process::{Command, Stdio};
+use std::os::unix::process::{CommandExt, ExitStatusExt};
 
 const LOCK: &str = "/var/run/fw4.lock";
 
 extern "C" {
     fn flock(fd: i32, op: i32) -> i32;
+    fn signal(sig: i32, handler: usize) -> usize;
 }
 
 struct Lock(#[allow(dead_code)] std::fs::File);
@@ -69,7 +73,7 @@ fn new_fw4(quiet: bool) -> Fw4 {
 
 fn die(quiet: bool, msg: &str) -> ! {
     if !quiet {
-        eprintln!("{msg}");
+        let _ = writeln!(std::io::stderr(), "{msg}");
     }
     std::process::exit(1);
 }
@@ -115,7 +119,7 @@ fn render(quiet: bool, use_statefile: bool) -> Option<String> {
 }
 
 /// Feed `ruleset` to `nft [-e] [-c] -f -`; returns the exit code.
-fn nft_load(ruleset: &str, verbose: bool, check: bool, quiet_io: bool) -> i32 {
+fn nft_load(ruleset: &str, verbose: bool, check: bool, quiet_io: bool, sigpipe: usize) -> i32 {
     let mut cmd = Command::new("nft");
     if verbose {
         cmd.arg("-e");
@@ -127,11 +131,26 @@ fn nft_load(ruleset: &str, verbose: bool, check: bool, quiet_io: bool) -> i32 {
     if quiet_io {
         cmd.stdout(Stdio::null()).stderr(Stdio::null());
     }
+    // nft inherits the shell caller's disposition, not the renderer's uloop
+    // side effect. Command would otherwise reset an inherited SIG_IGN.
+    // SAFETY: the child hook only calls async-signal-safe signal(2).
+    unsafe {
+        cmd.pre_exec(move || {
+            signal(owrt_ubus::sys::SIGPIPE, sigpipe);
+            Ok(())
+        });
+    }
     let Ok(mut child) = cmd.spawn() else { return 127 };
     if let Some(mut stdin) = child.stdin.take() {
+        // In the stock pipeline the writer is ucode after ubus/uloop, so
+        // an nft that exits before consuming stdin must not kill the wrapper.
+        // SAFETY: single-threaded CLI; restore the previous handler afterwards.
+        let previous = unsafe { signal(owrt_ubus::sys::SIGPIPE, 1) };
         let _ = stdin.write_all(ruleset.as_bytes());
+        // SAFETY: previous is a disposition returned by signal(2).
+        unsafe { signal(owrt_ubus::sys::SIGPIPE, previous) };
     }
-    child.wait().map(|s| s.code().unwrap_or(1)).unwrap_or(1)
+    child.wait().map(|s| s.code().unwrap_or_else(|| 128 + s.signal().unwrap_or(1))).unwrap_or(1)
 }
 
 fn read_saved(fw: &Fw4) -> statefile::Saved {
@@ -242,7 +261,7 @@ fn lookup(quiet: bool, action: &str, object: Option<&str>, device: Option<&str>)
             for z in &saved.zones {
                 if let Some(Json::Array(nets)) = z.get("network") {
                     if nets.iter().any(|n| n.get("device").map(|d| val::loose_eq_str(d, object)).unwrap_or(false)) {
-                        println!("{}", name(z));
+                        let _ = writeln!(std::io::stdout(), "{}", name(z));
                         return 0;
                     }
                 }
@@ -252,7 +271,7 @@ fn lookup(quiet: bool, action: &str, object: Option<&str>, device: Option<&str>)
         "device" => {
             for z in &saved.zones {
                 if devices_of(z).iter().any(|d| d == object) {
-                    println!("{}", name(z));
+                    let _ = writeln!(std::io::stdout(), "{}", name(z));
                     return 0;
                 }
             }
@@ -264,13 +283,13 @@ fn lookup(quiet: bool, action: &str, object: Option<&str>, device: Option<&str>)
                     let devices = devices_of(z);
                     if let Some(dev) = device.filter(|d| !d.is_empty()) {
                         if devices.iter().any(|d| d == dev) {
-                            println!("{dev}");
+                            let _ = writeln!(std::io::stdout(), "{dev}");
                             return 0;
                         }
                         return 1;
                     }
                     if !devices.is_empty() {
-                        println!("{}", devices.join("\n"));
+                        let _ = writeln!(std::io::stdout(), "{}", devices.join("\n"));
                     }
                     return 0;
                 }
@@ -280,8 +299,8 @@ fn lookup(quiet: bool, action: &str, object: Option<&str>, device: Option<&str>)
     }
 }
 
-fn usage(argv0: &str) {
-    print!("Usage:
+fn usage(argv0: &str) -> i32 {
+    let result = write!(std::io::stdout(), "Usage:
 
   {argv0} [-v] [-q] start|stop|flush|restart|reload
 
@@ -330,9 +349,15 @@ fn usage(argv0: &str) {
     and not covered by the given zone.
 
 ");
+    if let Err(error) = result {
+        // The stock wrapper prints its usage through BusyBox cat.
+        let _ = writeln!(std::io::stderr(), "cat: write error: {}", input::fs_error(&error));
+        return 1;
+    }
+    0
 }
 
-fn start(quiet: bool, verbose: bool, mode: &str) -> i32 {
+fn start(quiet: bool, verbose: bool, mode: &str, sigpipe: usize) -> i32 {
     let _lock = lock();
     match mode {
         "start" if std::path::Path::new(STATEFILE).is_file() => {
@@ -349,7 +374,10 @@ fn start(quiet: bool, verbose: bool, mode: &str) -> i32 {
     // The wrapper runs its includes phase even when the render pipeline
     // aborted. With no state file this supplies the observed exit code 1.
     let ruleset = render(quiet, true).unwrap_or_default();
-    nft_load(&ruleset, verbose, false, false);
+    // nft and includes are separate children of the stock shell wrapper.
+    // SAFETY: restore the inherited disposition returned by signal(2).
+    unsafe { signal(owrt_ubus::sys::SIGPIPE, sigpipe) };
+    nft_load(&ruleset, verbose, false, false, sigpipe);
     run_includes(quiet)
 }
 
@@ -374,9 +402,30 @@ fn flush() -> i32 {
     0
 }
 
-fn main() {
-    let argv0 = std::env::args().next().unwrap_or_else(|| "fw4".into());
-    let mut args: Vec<String> = std::env::args().skip(1).collect();
+/// Preserve the caller's SIGPIPE disposition, like the shell/ucode entry point.
+/// Rust's runtime would replace SIG_DFL with SIG_IGN before `run` starts.
+///
+/// # Safety
+/// Called by libc with `argc` pointers to NUL-terminated argument strings.
+#[cfg(not(test))]
+#[no_mangle]
+pub unsafe extern "C" fn main(argc: i32, argv: *const *const std::ffi::c_char) -> i32 {
+    let args = (0..argc.max(0) as usize)
+        // SAFETY: libc supplies argc valid argument pointers.
+        .map(|i| unsafe { std::ffi::CStr::from_ptr(*argv.add(i)) }.to_string_lossy().into_owned())
+        .collect();
+    run(args)
+}
+
+fn run(mut args: Vec<String>) -> ! {
+    let argv0 = if args.is_empty() { "fw4".into() } else { args.remove(0) };
+    // SAFETY: signal(2) accepts SIGPIPE and SIG_IGN (1); immediately restore
+    // the disposition while retaining it across the wrapper's subprocess phases.
+    let sigpipe = unsafe {
+        let inherited = signal(owrt_ubus::sys::SIGPIPE, 1);
+        signal(owrt_ubus::sys::SIGPIPE, inherited);
+        inherited
+    };
     let mut quiet = false;
     let mut verbose = false;
     while let Some(first) = args.first() {
@@ -400,20 +449,24 @@ fn main() {
     }
     let action = args.first().map(String::as_str).unwrap_or("");
     let code = match action {
-        "start" | "reload" => start(quiet, verbose, action),
+        "start" | "reload" => start(quiet, verbose, action, sigpipe),
         "stop" => stop(),
         "flush" => flush(),
         "restart" => {
             // the shell runs `QUIET=1 print` in a pipeline, so an abort there
             // reaches `die` just like a ruleset nft rejects.
-            let Some(ruleset) = render(true, false) else {
+            let rendered = render(true, false);
+            // The shell itself retains its original disposition.
+            // SAFETY: restore the inherited disposition returned by signal(2).
+            unsafe { signal(owrt_ubus::sys::SIGPIPE, sigpipe) };
+            let Some(ruleset) = rendered else {
                 die(quiet, "The rendered ruleset contains errors, not doing firewall restart.")
             };
-            if nft_load(&ruleset, verbose, true, false) != 0 {
+            if nft_load(&ruleset, verbose, true, false, sigpipe) != 0 {
                 die(quiet, "The rendered ruleset contains errors, not doing firewall restart.");
             }
             stop();
-            start(quiet, verbose, "")
+            start(quiet, verbose, "", sigpipe)
         }
         "check" => {
             // /sbin/fw4 check under -q: `exec 1>/dev/null; exec 2>/dev/null`
@@ -422,9 +475,16 @@ fn main() {
                 silence_stdio();
             }
             let Some(ruleset) = render(quiet, false) else { std::process::exit(UCODE_ABORT) };
-            let rc = nft_load(&ruleset, verbose, true, quiet);
+            // The success message is the stock wrapper's shell builtin echo,
+            // outside the ucode renderer and its libubox signal handling.
+            // SAFETY: restore the inherited disposition returned by signal(2).
+            unsafe { signal(owrt_ubus::sys::SIGPIPE, sigpipe) };
+            let rc = nft_load(&ruleset, verbose, true, quiet, sigpipe);
             if rc == 0 && !quiet {
-                println!("Ruleset passes nftables check.");
+                if let Err(error) = writeln!(std::io::stdout(), "Ruleset passes nftables check.") {
+                    let _ = writeln!(std::io::stderr(), "sh: write error: {}", input::fs_error(&error));
+                    std::process::exit(1);
+                }
             }
             rc
         }
@@ -440,7 +500,7 @@ fn main() {
                 let _ = std::io::stdout().write_all(out.as_bytes());
                 0
             } else {
-                nft_load(&out, verbose, false, false)
+                nft_load(&out, verbose, false, false, sigpipe)
             }
         }
         "includes" => run_includes(quiet),
@@ -448,10 +508,7 @@ fn main() {
             let _lock = if is_mock() { None } else { lock() };
             lookup(quiet, action, args.get(1).map(String::as_str), args.get(2).map(String::as_str))
         }
-        _ => {
-            usage(&argv0);
-            0
-        }
+        _ => usage(&argv0),
     };
     std::process::exit(code);
 }

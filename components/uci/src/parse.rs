@@ -12,7 +12,7 @@ use crate::context::{Context, ParseInfo, FLAG_PERROR, FLAG_STRICT};
 use crate::error::{Error, Result};
 use crate::model::{OptionValue, Package, Ptr, LOOKUP_DONE};
 use crate::ops;
-use std::io::BufRead;
+use std::io::{BufRead, Write};
 use std::sync::Mutex;
 
 /// LINEBUF (file.c)
@@ -758,7 +758,7 @@ pub fn perror(ctx: &Context, prefix: Option<&str>) {
     }
     info.push('\n');
     let err = ctx.err.map(Error::strerror).unwrap_or("Success");
-    eprint!(
+    let _ = write!(std::io::stderr(),
         "{}{}{}{}",
         prefix.unwrap_or(""),
         if prefix.is_some() { ": " } else { "" },

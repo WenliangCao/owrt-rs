@@ -8,7 +8,7 @@ use crate::uci::Config;
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::{self, Json};
 use std::io::{self, Read, Write};
-use std::os::unix::process::ExitStatusExt;
+use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::path::Path;
 use std::process::Command;
 
@@ -156,6 +156,9 @@ impl Inputs {
             }
             return None;
         }
+        // C ubus_connect_ctx initializes uloop before attempting to connect,
+        // so SIGPIPE becomes ignored even when the bus socket is unavailable.
+        owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
         let mut conn = owrt_ubus::Connection::connect(None).ok()?;
         Self::call_on(&mut conn, object, method, args)
     }
@@ -178,6 +181,9 @@ impl Inputs {
             return Ok((self.ubus_call("network.interface", "dump", None),
                 self.ubus_call("service", "get_data", Some(&args))));
         }
+        // C ubus_connect_ctx initializes uloop before attempting to connect,
+        // so SIGPIPE becomes ignored even when the bus socket is unavailable.
+        owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
         let mut conn = owrt_ubus::Connection::connect(None)?;
         Ok((Self::call_on(&mut conn, "network.interface", "dump", None),
             Self::call_on(&mut conn, "service", "get_data", Some(&args))))
@@ -341,7 +347,24 @@ impl Inputs {
             return 0;
         }
         let Some((prog, rest)) = argv.split_first() else { return -1 };
-        let Ok(mut child) = Command::new(prog).args(rest).spawn() else { return -1 };
+        let mut command = Command::new(prog);
+        command.args(rest);
+        // ucode system() preserves the inherited disposition; Command resets
+        // SIGPIPE unless explicitly restored in its child hook.
+        // SAFETY: this CLI is single-threaded; restore the handler immediately.
+        let sigpipe = unsafe {
+            let inherited = crate::signal(owrt_ubus::sys::SIGPIPE, 1);
+            crate::signal(owrt_ubus::sys::SIGPIPE, inherited);
+            inherited
+        };
+        // SAFETY: only async-signal-safe signal(2) runs between fork and exec.
+        unsafe {
+            command.pre_exec(move || {
+                crate::signal(owrt_ubus::sys::SIGPIPE, sigpipe);
+                Ok(())
+            });
+        }
+        let Ok(mut child) = command.spawn() else { return -1 };
         let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
         loop {
             match child.try_wait() {

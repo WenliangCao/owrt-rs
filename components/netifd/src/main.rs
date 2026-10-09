@@ -5334,6 +5334,7 @@ fn sys_route(r: &interface::Route) -> sys::Route {
 }
 
 fn main() {
+    use std::io::Write;
     let mut confdir = "/etc/config".to_string();
     let mut hotplug = DEFAULT_HOTPLUG_PATH.to_string();
     let mut protodir = DEFAULT_PROTO_DIR.to_string();
@@ -5352,7 +5353,7 @@ fn main() {
             "-S" => log_stderr = true,
             "-l" => {
                 let Some(level) = args.next() else {
-                    eprintln!("netifd-rs: -l requires a level");
+                    let _ = writeln!(std::io::stderr(), "netifd-rs: -l requires a level");
                     std::process::exit(1);
                 };
                 log_level = logging::parse_level(&level);
@@ -5361,7 +5362,7 @@ fn main() {
                 log_level = logging::parse_level(&level[2..]);
             }
             "-V" | "--version" => {
-                println!("{BUILD_ID}");
+                let _ = writeln!(std::io::stdout(), "{BUILD_ID}");
                 return;
             }
             // Diagnostic, not part of the daemon: print what `network.wireless`
@@ -5371,11 +5372,11 @@ fn main() {
             // the inert identity probe p6_switch.sh uses on the device.
             "--dump-wireless" => {
                 let dir = args.next().unwrap_or_else(|| DEFAULT_WIRELESS_DIR.to_string());
-                println!("{}", wireless::dump(&confdir, &dir));
+                let _ = writeln!(std::io::stdout(), "{}", wireless::dump(&confdir, &dir));
                 return;
             }
             other => {
-                eprintln!("netifd-rs: unknown argument {other}");
+                let _ = writeln!(std::io::stderr(), "netifd-rs: unknown argument {other}");
                 std::process::exit(2);
             }
         }
@@ -5385,7 +5386,7 @@ fn main() {
     let mut n = match Netifd::new(&confdir, socket.as_deref(), &hotplug, &protodir) {
         Ok(n) => n,
         Err(e) => {
-            eprintln!("netifd-rs: startup failed: {e}");
+            let _ = writeln!(std::io::stderr(), "netifd-rs: startup failed: {e}");
             std::process::exit(1);
         }
     };

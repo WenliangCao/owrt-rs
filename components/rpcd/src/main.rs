@@ -278,12 +278,13 @@ fn exec_self(children: &delayed::Children) {
 }
 
 fn main() {
+    use std::io::Write;
     // getopt "s:t:" (musl: no argument permutation)
     let argv: Vec<String> = std::env::args().skip(1).collect();
     if argv.first().map(String::as_str) == Some("--iwinfo-bench") {
         // profiling aid: time every `info` op for one interface and count netlink sends
         let Some(dev) = argv.get(1) else {
-            eprintln!("usage: rpcd-rs --iwinfo-bench <ifname>");
+            let _ = writeln!(std::io::stderr(), "usage: rpcd-rs --iwinfo-bench <ifname>");
             std::process::exit(2);
         };
         iwinfoobj::bench(dev);
@@ -313,7 +314,7 @@ fn main() {
         i += 1;
     }
     if !(1000..=600_000).contains(&exec_timeout) {
-        eprintln!("Invalid execution timeout specified");
+        let _ = writeln!(std::io::stderr(), "Invalid execution timeout specified");
         std::process::exit(255);
     }
     if std::fs::metadata(session::RUN_DIR).is_err() {
