@@ -1,0 +1,583 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "scope": "Independent read-only source and raw-evidence audit; redacted derived facts only; no router modification",
+  "roots": {
+    "diagnostics": "/Users/USER/Documents/OpenWRT/diagnostics/2026-10-08",
+    "stack": "private/stack-20260929",
+    "oracle_sources": "oracle:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components"
+  },
+  "health_manifest": {
+    "checked": 33,
+    "mismatches": []
+  },
+  "sources": {
+    "odhcp6c": {
+      "revision": "07d324ee7222c0e15b9975281f18236fdccc11bd",
+      "clean": true,
+      "script.c_sha256": "c3251b23ebef2f565e0554fb9ab511e513aae9a117446ea757f04aa652f936b9",
+      "kill_previous_lines": "452-456",
+      "new_child_sigterm_default_line": 490,
+      "execv_line": 571
+    },
+    "procd": {
+      "revision": "58eb263d5abe03f8c1280bdfa65a3b052614215d",
+      "clean": true,
+      "signal.c_sha256": "b209cf27025ebaad20df43c18a5c5e788491d7abc7235b22bdc8fc170235ddd6",
+      "ignore_sigpipe_line": 90
+    },
+    "dhcpv6_script": {
+      "file": "private/upstream-ref/dhcpv6.script",
+      "sha256": "7b5208d7bad126359061bc1c2e6e1e75bab40ac9779070b3064ae4bada9d4de9",
+      "fw3_query_line": 174
+    }
+  },
+  "stock_c2": {
+    "stock-2-failed-output": {
+      "components": {
+        "procd": {
+          "stock_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+          "matches_image_recipe": true
+        },
+        "ubusd": {
+          "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+          "matches_image_recipe": true
+        },
+        "netifd": {
+          "stock_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "matches_image_recipe": true
+        },
+        "rpcd": {
+          "stock_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+          "matches_image_recipe": true
+        },
+        "logd": {
+          "stock_sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+          "matches_image_recipe": true
+        },
+        "httpd": {
+          "stock_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+          "matches_image_recipe": true
+        },
+        "uci": {
+          "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+          "matches_image_recipe": true
+        },
+        "fw4": {
+          "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+          "matches_image_recipe": true
+        },
+        "reload-config": {
+          "stock_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+          "matches_image_recipe": true
+        }
+      },
+      "live_archive_hash_checks": 59,
+      "all_match": true,
+      "failure_log": "benchmark INVALID: child stdout failed byte validation",
+      "failed_fw4_result_bytes": 0
+    },
+    "stock-2-retry-failed-output": {
+      "components": {
+        "procd": {
+          "stock_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+          "matches_image_recipe": true
+        },
+        "ubusd": {
+          "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+          "matches_image_recipe": true
+        },
+        "netifd": {
+          "stock_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "matches_image_recipe": true
+        },
+        "rpcd": {
+          "stock_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+          "matches_image_recipe": true
+        },
+        "logd": {
+          "stock_sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+          "matches_image_recipe": true
+        },
+        "httpd": {
+          "stock_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+          "matches_image_recipe": true
+        },
+        "uci": {
+          "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+          "matches_image_recipe": true
+        },
+        "fw4": {
+          "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+          "matches_image_recipe": true
+        },
+        "reload-config": {
+          "stock_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+          "matches_image_recipe": true
+        }
+      },
+      "live_archive_hash_checks": 59,
+      "all_match": true,
+      "failure_log": "benchmark INVALID: child stdout failed byte validation",
+      "failed_fw4_result_bytes": 0
+    }
+  },
+  "stock_wan6_samples": [
+    {
+      "file": "private/stack-20260929/windows/stock-2-failed-output/measurements/live/network.json",
+      "global_address_count": 1,
+      "ula_address_count": 5,
+      "route_count": 18,
+      "delegated_prefix_count": 1
+    },
+    {
+      "file": "private/stack-20260929/c2-failure-diagnostic/network.stdout",
+      "global_address_count": 0,
+      "ula_address_count": 5,
+      "route_count": 16,
+      "delegated_prefix_count": 1
+    },
+    {
+      "file": "private/stack-20260929/c2-failure-diagnostic/repeated/00-network-before.stdout",
+      "global_address_count": 1,
+      "ula_address_count": 3,
+      "route_count": 22,
+      "delegated_prefix_count": 1
+    },
+    {
+      "file": "private/stack-20260929/c2-failure-diagnostic/repeated/06-network-after.stdout",
+      "global_address_count": 1,
+      "ula_address_count": 3,
+      "route_count": 22,
+      "delegated_prefix_count": 1
+    },
+    {
+      "file": "private/stack-20260929/c2-failure-diagnostic/repeated/07-network-before.stdout",
+      "global_address_count": 1,
+      "ula_address_count": 5,
+      "route_count": 18,
+      "delegated_prefix_count": 1
+    },
+    {
+      "file": "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/live/network.json",
+      "global_address_count": 1,
+      "ula_address_count": 5,
+      "route_count": 18,
+      "delegated_prefix_count": 1
+    },
+    {
+      "file": "private/stack-20260929/c2-failure-diagnostic/after-retry/network.stdout",
+      "global_address_count": 1,
+      "ula_address_count": 5,
+      "route_count": 18,
+      "delegated_prefix_count": 1
+    }
+  ],
+  "health_wan6_inputs": [
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": false,
+      "address_count": 5,
+      "prefix_count": 1,
+      "route_count": 16
+    },
+    {
+      "global_address_present": false,
+      "address_count": 5,
+      "prefix_count": 1,
+      "route_count": 16
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": false,
+      "address_count": 5,
+      "prefix_count": 1,
+      "route_count": 16
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": false,
+      "address_count": 5,
+      "prefix_count": 1,
+      "route_count": 16
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": false,
+      "address_count": 5,
+      "prefix_count": 1,
+      "route_count": 16
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    },
+    {
+      "global_address_present": true,
+      "address_count": 6,
+      "prefix_count": 1,
+      "route_count": 18
+    }
+  ],
+  "core_evidence": {
+    "listed_count": 90,
+    "logical_bytes": 22560768,
+    "historical_broken_pipe_scan_lines": 90,
+    "independently_reparsed_core_files": [
+      {
+        "file": "fw3-first.core",
+        "nt_prstatus": [
+          {
+            "owner": "CORE",
+            "pr_info_signo": 6,
+            "pr_cursig": 6
+          }
+        ],
+        "broken_pipe_panic_present": true,
+        "wan6_query_present": true
+      },
+      {
+        "file": "fw3-latest.core",
+        "nt_prstatus": [
+          {
+            "owner": "CORE",
+            "pr_info_signo": 6,
+            "pr_cursig": 6
+          }
+        ],
+        "broken_pipe_panic_present": true,
+        "wan6_query_present": true
+      }
+    ],
+    "limitation": "Only two original ELF cores exist in local raw/. 90/90 classification is a historical scan record, not 90 independent reanalyses. Parent router SSH read attempt returned No route to host.",
+    "historical_allocated_kib": 10128,
+    "allocated_evidence": "raw/final-snapshot.txt:4"
+  },
+  "sigpipe_runtime": [
+    {
+      "process": "procd",
+      "sigpipe_ignored": true
+    },
+    {
+      "process": "netifd",
+      "sigpipe_ignored": true
+    },
+    {
+      "process": "odhcp6c",
+      "sigpipe_ignored": true
+    }
+  ],
+  "logs": {
+    "lines": 1273,
+    "start": "2026-10-08T15:10:02",
+    "end": "2026-10-08T17:33:53",
+    "minutes": 143.85,
+    "firewall_wan6_reload_lines": 594,
+    "firewall_wan6_reload_per_minute": 4.129301355578728,
+    "lease_60_lines": 288,
+    "cat_broken_pipe_lines": 28,
+    "configured_buffer_kib": 128
+  },
+  "classifications": [
+    {
+      "item": "fw4 stdout abort / core accumulation",
+      "class": "our_defect",
+      "basis": "Two original cores independently contain stdout Broken pipe panic and ELF signal 6; CLI oracle and fix evidence handled separately."
+    },
+    {
+      "item": "SIGPIPE ignore inheritance / superseded dhcpv6.script",
+      "class": "stock_behavior",
+      "basis": "Exact-source procd and netifd SIGPIPE ignore; odhcp6c SIGTERM previous script on new call, preserving SIGPIPE in exec child."
+    },
+    {
+      "item": "WAN6 GUA omission / restore",
+      "class": "upstream_network_likely_pending_kernel_replay",
+      "basis": "Same symptom in identity-verified C stack; 5/13 already omitted at notify_proto input. Kernel-feedback replay remains a separate requirement."
+    },
+    {
+      "item": "60-second DHCP lease",
+      "class": "upstream_network",
+      "basis": "288 original udhcpc lease obtained messages explicitly carry lease time 60."
+    },
+    {
+      "item": "IPv4 TCP/53 timeouts",
+      "class": "upstream_network_likely",
+      "basis": "Three direct IPv4 endpoints time out; LAN TCP DNS and direct IPv6 TCP DNS succeed; conntrack SYN_SENT UNREPLIED and firewall outbound accept. Exact drop location unproven."
+    },
+    {
+      "item": "2.4 GHz station TX failed",
+      "class": "insufficient_evidence",
+      "basis": "One cumulative driver counter snapshot, 32202 failures / 315374 packets; no temporal rates or C comparison establishes a nine-component cause."
+    },
+    {
+      "item": "mt7530 probe timeout",
+      "class": "stock_behavior",
+      "basis": "Kernel driver at 2.639700 seconds; subsequent AN8855 initialization and WAN 1Gbps full duplex; no evidence of nine-component cause."
+    },
+    {
+      "item": "short log retention",
+      "class": "stock_config_behavior",
+      "basis": "128 KiB configured ring plus 594 reload and 288 DHCP renewal lines within 143.85 minutes. Recommendation only."
+    }
+  ],
+  "evidence_files": {
+    "diagnostics/2026-10-08/raw/client-ping-continuous.txt": {
+      "sha256": "3b3f112baa5340aeb1b24600ae853dfc2cd46998c70466f33c99dfdc34ffce27",
+      "bytes": 267
+    },
+    "diagnostics/2026-10-08/raw/client-tests.json": {
+      "sha256": "84c06896530a784cec73784f727266335eee777a2a055f661d63fdab0d5eed96",
+      "bytes": 4207
+    },
+    "diagnostics/2026-10-08/raw/connectivity-router.txt": {
+      "sha256": "6690cf1ce7f6aeb1c8be32a9ed261b64222813f00350c2dbaf80856b6284b588",
+      "bytes": 2097
+    },
+    "diagnostics/2026-10-08/raw/core-classification.txt": {
+      "sha256": "793afa531f0d676aaf1f573bfb6ccade1adcf86dbf73f5e3758d584adb6735ed",
+      "bytes": 10465
+    },
+    "diagnostics/2026-10-08/raw/cores.txt": {
+      "sha256": "2c65f3e7fbd49c52fbff381e97a19bfcaaa7fa7335e5b406ed28ac5c52e1e6d1",
+      "bytes": 8484
+    },
+    "diagnostics/2026-10-08/raw/dmesg.txt": {
+      "sha256": "83e389efcb1740d47ca9e50e4cb39226fac1952bde87216c8e635bc40ca77a8f",
+      "bytes": 18980
+    },
+    "diagnostics/2026-10-08/raw/dns-tcp-cold.txt": {
+      "sha256": "dd3326eede040a01eb148e69648e6f12a95b58aa175580086eb7e813f911525c",
+      "bytes": 660
+    },
+    "diagnostics/2026-10-08/raw/dns-tcp-investigation.txt": {
+      "sha256": "392c323d7a0beb6182bcfcad79b0ecbca167074294f68c02d8a24248445f1744",
+      "bytes": 5622
+    },
+    "diagnostics/2026-10-08/raw/dns-tcp-tests.json": {
+      "sha256": "d372d8dfadc0b6d5d37edeb582565bd99fa07368eb77db14d4bf88f235b2ce6e",
+      "bytes": 2971
+    },
+    "diagnostics/2026-10-08/raw/dns-tcp-upstream-v6.txt": {
+      "sha256": "1dd38faa9a3f06cfab49e0788c37e59fd7af50ba7d01d9a93b7f4b85e7b2fe96",
+      "bytes": 605
+    },
+    "diagnostics/2026-10-08/raw/final-snapshot.txt": {
+      "sha256": "cb412b7b72cfd51db864811815e53e374925e73cc0642c273086b0157e2dc049",
+      "bytes": 399
+    },
+    "diagnostics/2026-10-08/raw/firewall.txt": {
+      "sha256": "c4ddf61e23bc82319da569f1db2d2fd93f9dea6c007227b30214341a88cbbe31",
+      "bytes": 11212
+    },
+    "diagnostics/2026-10-08/raw/fw3-first.core": {
+      "sha256": "9f0d68cbd58bae4cb4ea1d13e26d118f1d6995be358ee53eee39e59ea28dd6ff",
+      "bytes": 253952
+    },
+    "diagnostics/2026-10-08/raw/fw3-latest.core": {
+      "sha256": "9eb72db79e595806645ed5bea91b61604d8b5ea7fe1625d755c87683ab3e95a4",
+      "bytes": 253952
+    },
+    "diagnostics/2026-10-08/raw/fw4-readonly-check.txt": {
+      "sha256": "b170a25ff633f45a94101999f951db903c9697bda3b4e95fc4f798c54db9bc4c",
+      "bytes": 60
+    },
+    "diagnostics/2026-10-08/raw/fw4.elf": {
+      "sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "bytes": 1034963
+    },
+    "diagnostics/2026-10-08/raw/hardware.txt": {
+      "sha256": "02301aba4babc738a40c4b9a117c1af32276b00c70692aaeee84af6a8b4fe92c",
+      "bytes": 14242
+    },
+    "diagnostics/2026-10-08/raw/identity.txt": {
+      "sha256": "954dcd9c0c1fd88a7c8f63807fe5ac0f31b97ecdd233e8e578f6eebf64b9fca3",
+      "bytes": 16443
+    },
+    "diagnostics/2026-10-08/raw/integration.txt": {
+      "sha256": "506e0dd721941fe8bfca8039c3df3065ec79e5b0accd0c13b9c2fd512e5159ff",
+      "bytes": 15558
+    },
+    "diagnostics/2026-10-08/raw/interfaces.txt": {
+      "sha256": "04851bdcaee01372d4fd88f27feaee023a0e4c72afb0cb25ff213342c6a72a4e",
+      "bytes": 8222
+    },
+    "diagnostics/2026-10-08/raw/logread.txt": {
+      "sha256": "6e5c5d225f1cb12bcf6272604a9585c617f334feb560fe971c83c6f72969c36c",
+      "bytes": 136529
+    },
+    "diagnostics/2026-10-08/raw/luci-unauthenticated.html": {
+      "sha256": "b02acd43d40408a193eaeee72aaa7b82d04a88ccaa6e624a879a473c77290267",
+      "bytes": 2813
+    },
+    "diagnostics/2026-10-08/raw/network-config.txt": {
+      "sha256": "bed8cafad3f5cd1fe145acc9fba29168c1824f9afe2d7e73f738578cf33f9a2d",
+      "bytes": 3019
+    },
+    "diagnostics/2026-10-08/raw/processes.txt": {
+      "sha256": "7b1a29eb0becddb53f8947f001d46859501d8ed0a296c90d447820dd9afdbe1d",
+      "bytes": 20294
+    },
+    "diagnostics/2026-10-08/raw/recovery-integrity.txt": {
+      "sha256": "a0458176bc7bfe2a26ac73a1e11903d4bdb7bd66ff7ba68a87b8f46dd02feb14",
+      "bytes": 726
+    },
+    "diagnostics/2026-10-08/raw/release.json": {
+      "sha256": "e318d179ac8e203aab051214ef2a868dd45be431e05c67a872116a4a643657c1",
+      "bytes": 6339
+    },
+    "diagnostics/2026-10-08/raw/router-ping-continuous.txt": {
+      "sha256": "409e4294b20db59487909308645eae8d0280511c83a3c7db35df8b5697a09096",
+      "bytes": 225
+    },
+    "diagnostics/2026-10-08/raw/samples.json": {
+      "sha256": "c2ce96a647d64cec58cfeb424d1a9e86916e157c0822509e3ea75b09ebc8ee6d",
+      "bytes": 111868
+    },
+    "diagnostics/2026-10-08/raw/services.txt": {
+      "sha256": "83f2396d378a57725e93a8b5a8e4a7dca589b9f9a2f74cf25fd6578dba1787ea",
+      "bytes": 7375
+    },
+    "diagnostics/2026-10-08/raw/ubus-health.txt": {
+      "sha256": "8a330b65bdae3f3f8e4ff90607598e27eb7f6780e11caf2d41e0b9295a592b98",
+      "bytes": 17720
+    },
+    "diagnostics/2026-10-08/raw/ubus-monitor.txt": {
+      "sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+      "bytes": 207827
+    },
+    "diagnostics/2026-10-08/raw/wan6-events.txt": {
+      "sha256": "6a2a082db0df4aeff55976db8b9ebf31da29f76831b992bc30a9a07da3779f9e",
+      "bytes": 10304
+    },
+    "diagnostics/2026-10-08/raw/wireless.txt": {
+      "sha256": "a861f620811bbcc8662a49f6472675323937dd07984306ba6c4f3a4c12f92ebc",
+      "bytes": 14685
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/boot.log": {
+      "sha256": "7ad46447e9fa5611d24d06e011e72e2e118aa72fa8074fe2d80bc05c5c8c2cd6",
+      "bytes": 11064
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/health.json": {
+      "sha256": "48fcf87ff6f188707d83803d537fedb437ace4caa5b3613d6a0adb6e4d3efb12",
+      "bytes": 1163
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/measurements/running-hashes.txt": {
+      "sha256": "ecece0933fb77d8c43241bd4106a752e49f370d3ccac429131f29f65d459f548",
+      "bytes": 674
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/measurements/live.sha256": {
+      "sha256": "ea778b42eb19ff340e8505d521d4c97e40d61819171995eb3671fd964aac969c",
+      "bytes": 5123
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/measurements/live.log": {
+      "sha256": "a89a8bb5fa14a879e6b29f8a3a96cb1fbd2f2d643a4d9c9a115cf23eb13d5437",
+      "bytes": 55
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/measurements/live/network.json": {
+      "sha256": "5db305de53070c878b6698461cf7b74211c0099d29438ff2e8adecd213a321be",
+      "bytes": 8158
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/measurements/live/expected-fw4.bytes": {
+      "sha256": "c723e2bc8fa93dd5599a78e8a34e4e114121e806387abcf54dde56ba3109ed63",
+      "bytes": 5951
+    },
+    "private/stack-20260929/windows/stock-2-failed-output/measurements/live/1-fw4.json": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/boot.log": {
+      "sha256": "805f14176eb684e31fe30fa7fcb646c80adccdcaba53ff3068e25f510a24f56e",
+      "bytes": 11168
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/health.json": {
+      "sha256": "5b248898ee407851113ab44a054e102817fcf4117c707da8924c0d7e3980dff1",
+      "bytes": 1162
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/running-hashes.txt": {
+      "sha256": "aca3cf6065c3637112384095ee743b51a821391a0a5f2283306373b0437fc4b6",
+      "bytes": 674
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/live.sha256": {
+      "sha256": "49cdbcd74abc7ede4abab221763da15dbca753562b51413eb637c037de4f1f11",
+      "bytes": 5123
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/live.log": {
+      "sha256": "a89a8bb5fa14a879e6b29f8a3a96cb1fbd2f2d643a4d9c9a115cf23eb13d5437",
+      "bytes": 55
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/live/network.json": {
+      "sha256": "fd3aea7c9d23095eab2dcc43f64fdc2054b23f6ba1d910975653503648319f91",
+      "bytes": 8195
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/live/expected-fw4.bytes": {
+      "sha256": "8e2e505f7fba652eee7c58aaf10f621d9afdd851927f3ed38114fb9ef7507c34",
+      "bytes": 5951
+    },
+    "private/stack-20260929/windows/stock-2-retry-failed-output/measurements/live/1-fw4.json": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "private/stack-20260929/c2-failure-diagnostic/network.stdout": {
+      "sha256": "d0d8dbfa1637bd03d8839b46416f26552ca68edca6ee6d0eaebe4b5f9a670799",
+      "bytes": 7669
+    },
+    "private/stack-20260929/c2-failure-diagnostic/repeated/00-network-before.stdout": {
+      "sha256": "c664d471f25c327998da79219e2307b62e76a58e9eebf3f3ecdacd88ad478111",
+      "bytes": 8919
+    },
+    "private/stack-20260929/c2-failure-diagnostic/repeated/06-network-after.stdout": {
+      "sha256": "ef7f0b1c808c287c81fabfeaee96aa5dabeef600a04876ad41cb9b21bbdba89c",
+      "bytes": 8919
+    },
+    "private/stack-20260929/c2-failure-diagnostic/repeated/07-network-before.stdout": {
+      "sha256": "e461538ec87dfe1c8230d7994fee61a134082be0af1eef39560e444276ddd760",
+      "bytes": 8210
+    },
+    "private/stack-20260929/c2-failure-diagnostic/after-retry/network.stdout": {
+      "sha256": "823fec68f2d1f37330cf71121d7c31b0bad3eca1a040ee377e82685fa3335bb7",
+      "bytes": 8210
+    },
+    "private/stack-20260929/c2-failure-diagnostic/fw4.diff": {
+      "sha256": "f4aa104e3f835c398f10021ad30b22b7d8d04da2ded76cf586f34e5a2e3d869d",
+      "bytes": 480
+    },
+    "private/stack-20260929/c2-failure-diagnostic/after-retry/fw4.diff": {
+      "sha256": "a3cca9137a5a990ee849a89ec55480652becd12a6d598981fad8479a7c6299b2",
+      "bytes": 506
+    }
+  }
+}
