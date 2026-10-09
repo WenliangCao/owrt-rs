@@ -2,15 +2,15 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：按用户授权解冻修复UDP；跨协议检查又确认普通TFTP准入缺陷，等待是否一并修复的范围决定，**尚未重新冻结产品**。
-- 已修复：`3492bbde`从旧admit提取共用名字判定，生产Linux UDP caller传入实际loopback flags；selected/TCP/旧admit复用同一规则。真实step_udp收包、排除/明确地址/static/dynamic/IPv6/非法ingress及alias continuation测试已实际通过。
-- 已验证：source-bound Linux main74／lib753通过，20ignored不计；首轮一个旧FIFO撞共享/tmp为方法问题，仅fresh TMPDIR确认一次并保留原失败。新整批预检提交49732901覆盖163 listener见证与DNS DHCP helper，六项本地预检过。
-- 引入点：UDP回退为M6b live-ingress提交e8b1d6c4，新caller旁路旧正确admit；M5 169/0及原listeners绿身份可信，但不能外推新ELF。[历史报告](audits/M6B_UDP_LOOPBACK_REGRESSION_HISTORY.md)列同批ready/continuation审查。
-- 第二缺陷：port=0/interface=lan/普通TFTP IPv6，rename lan→retired0后C拒绝，旧Rust继续传输；主线程精确C/e53原ELF一次配对确认、两侧正常退出。普通TFTP已取当前名却按旧快照准入；M6b 2c28df78删除周期扫描使错误持续。TCP和DHCP未见同类漏项，详见[跨协议报告](audits/M6B_INTERFACE_ADMISSION_REVIEW.md)。
-- 剩余：TFTP范围决定/修复，新opt3与s冻结，从第1步完整44族68步/169/M2/ordinary+targeted、资源/压力、唯一135、guard、APK生命周期、最终报告与退役清理；旧13步不沿用。
-- 原冻结身份：284376c4/e53fbdcb…opt3及6cb5bcbe…s和原失败全部保留；main后合入无关16ac3cea不改该历史身份。[原停点](audits/M6B_FINAL_FREEZE_STOP.md)不改成通过；当前main已有授权UDP修复。
-- 证据与卫生：E/M6B/loopback-repair-01保全两份TFTP反例及Linux test ELF/raw完整tar、SHA/metadata核验和prune，原始资料只在private；用户prompts、health分支/工作树、dirty树和常驻服务保持，物理路由器未接触。
-- 阻塞点：TFTP普通当前名/旧快照准入需要共享owner非阻塞收集续步；确认是否纳入本次修复后才继续产品修改和重新冻结。
+- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；准备从第1步执行完整同ELF统一验收，旧13步不沿用。
+- 最终身份：feature-off opt3为791a7c33…／1,966,120 B，同源s为d8d3c1ea…／1,642,536 B；源码889fe4f5。完整build/map/archive见[最终冻结](audits/M6B_FINAL_FREEZE.md)，产品再次禁止修改。
+- 已关闭：UDP真实caller及共用准入修复；TFTP在约13分钟内复用现有collector续步完成，Linux main74/lib753、额外TFTP main3/socket3实际过，20ignored不计；精确C rename配对前后和清理一致。未改接口收集设计，未触发1小时止损。
+- 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步/169、M2、普通+targeted、资源/压力、正式135、guard、APK、报告及退役清理均尚未完成。
+- 历史：UDP回退为e8b1d6c4新增live-name caller漏隐式lo；3492bbde修复。TFTP旧快照名字从M5已有，M6b2c28df78删除扫描使rename错误持续；8bd80024修复、889fe4f5仅测试夹具。见[引入历史](audits/M6B_UDP_LOOPBACK_REGRESSION_HISTORY.md)与[跨协议复核](audits/M6B_INTERFACE_ADMISSION_REVIEW.md)。DNS-TCP/DHCP审查到此结束，不再扩范围。
+- 旧证据：原284376c4/e53及s、前13步、listener失败及一次确认均保留原判定；后合入无关health16ac3cea不改其历史身份。旧CPU45资格/接受判定仍属原ELF，新最终135未执行。
+- 已知差距：TCP未命中内存约C三倍；最终opt3 ELF约C7.30倍。M7真机与延期第4包未执行；未据源码审查补造异常collector路径的运行见证。
+- 卫生：原始资料只在private；prompts、health分支/工作树、dirty树、常驻服务保持，物理路由器未接触；退役仍仅本地盘点。
+- 阻塞点：无；冻结后新产品缺陷按用户要求立即停并告知，不修产品继续跑门。
 
 ## 工作规则
 
