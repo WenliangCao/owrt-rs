@@ -2,10 +2,10 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF已有34族同身份通过，INFORM时钟及hosts采样完成条件的方法修订后继续剩余族，旧13步不沿用。
+- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF完整44族68步aggregate已通过；完整M2已启动，独立targeted将在M2完成后串行执行，旧13步不沿用。
 - 最终身份：feature-off opt3为791a7c33…／1,966,120 B，同源s为d8d3c1ea…／1,642,536 B；源码889fe4f5。完整build/map/archive见[最终冻结](audits/M6B_FINAL_FREEZE.md)，产品再次禁止修改。
 - 已关闭：UDP真实caller及共用准入修复；TFTP在约13分钟内复用现有collector续步完成，Linux main74/lib753、额外TFTP main3/socket3实际过，20ignored不计；精确C rename配对前后和清理一致。未改接口收集设计，未触发1小时止损。
-- 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步/169、M2、普通+targeted、资源/压力、正式135、guard、APK、报告及退役清理均尚未完成。
+- 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步及169选项CLI/file形式已实际完成；M2、独立targeted、资源/压力、正式135、guard、APK、报告及退役清理仍未完成。
 - 历史：UDP回退为e8b1d6c4新增live-name caller漏隐式lo；3492bbde修复。TFTP旧快照名字从M5已有，M6b2c28df78删除扫描使rename错误持续；8bd80024修复、889fe4f5仅测试夹具。见[引入历史](audits/M6B_UDP_LOOPBACK_REGRESSION_HISTORY.md)与[跨协议复核](audits/M6B_INTERFACE_ADMISSION_REVIEW.md)。DNS-TCP/DHCP审查到此结束，不再扩范围。
 - 旧证据：原284376c4/e53及s、前13步、listener失败及一次确认均保留原判定；后合入无关health16ac3cea不改其历史身份。旧CPU45资格/接受判定仍属原ELF，新最终135未执行。
 - 已知差距：TCP未命中内存约C三倍；最终opt3 ELF约C7.30倍。M7真机与延期第4包未执行；未据源码审查补造异常collector路径的运行见证。
