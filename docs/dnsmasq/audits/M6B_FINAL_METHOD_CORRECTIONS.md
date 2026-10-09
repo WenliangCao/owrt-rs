@@ -89,3 +89,24 @@ status SHA和修订后两项精确结果，供资源控制器验证，不把原�
 单列保留，随后root权限、fresh路径预检通过才执行唯一完整原参数确认。
 证据在最终preflight下`netlink-confirm-01-*`、`netlink-readback-01-*`、
 `netlink-skip-tests.log`和`functional-completion-01.json`；完整raw归档仍待收尾。
+
+
+## 最终 guard 的数值推导政策（正式135前固定）
+
+用户授权从最终135实测冻结三个保护阈值。为避免见红后修改cap，本次先
+固定推导方法，再等待全部正式窗口完成：UDP p50保持协议1,000,000 ns；
+idle取本轮`udp-hit/R3`五轮真实60秒daemon cgroup CPU增量最高值，
+cap为`max(1.25×最高值, 最高值+0.010秒)`，向上取整至1 ms；
+TCP PSS取本轮`tcp-cache/R3`五轮steady的tree PSS最高采样，
+cap为`max(1.25×最高值, 最高值+256 KiB)`，向上取整至64 KiB。
+
+两项余量是低成本保护线的工程选择，不是协议已有的显著收益阈值；不用
+C/Rs或旧候选混入上限，不选最快attempt，也不修改正式W/4-of-5判定。
+实际basis必须保留五个选中attempt、源/ELF、result/raw采样与分析SHA和
+最高值及取整过程。数据缺失先补证据资格，不填默认数字。
+
+formal与guard均为4096动态A、TTL3600、20clients及同一cache proof。
+formal的100-query重连、30秒warm和90秒steady提供较长实际高水位；
+guard另要求确定同时hold20的FD+20、单线程无子进程见证，测量2秒warm
+和10秒load。正式采样不冒称确定hold20，也不保证其PSS必覆盖guard。
+三个cap只在135闭合后填写并冻结；guard红色不得据此调cap洗绿。
