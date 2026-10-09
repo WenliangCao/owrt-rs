@@ -58,7 +58,7 @@ fn parse_args() -> Result<Options, String> {
             }
             "--no-drop-privileges" => options.user = None,
             "-h" | "--help" => {
-                println!("usage: logd-rs [-S KiB] [--ubus-socket PATH] [--log-socket PATH] [--kmsg PATH|none] [--no-drop-privileges]");
+                let _ = writeln!(std::io::stdout(), "usage: logd-rs [-S KiB] [--ubus-socket PATH] [--log-socket PATH] [--kmsg PATH|none] [--no-drop-privileges]");
                 std::process::exit(0);
             }
             other => return Err(format!("unknown argument {other:?}")),
@@ -663,7 +663,7 @@ fn main() {
     let options = match parse_args() {
         Ok(options) => options,
         Err(error) => {
-            eprintln!("logd-rs: {error}");
+            let _ = writeln!(std::io::stderr(), "logd-rs: {error}");
             std::process::exit(64);
         }
     };
@@ -671,7 +671,7 @@ fn main() {
     let syslog = match open_syslog(&options.log_socket) {
         Ok(socket) => socket,
         Err(error) => {
-            eprintln!("logd-rs: failed to open {}: {error}", options.log_socket);
+            let _ = writeln!(std::io::stderr(), "logd-rs: failed to open {}: {error}", options.log_socket);
             std::process::exit(1);
         }
     };
@@ -683,7 +683,7 @@ fn main() {
                 Some(file)
             }
             Err(error) => {
-                eprintln!("logd-rs: failed to open {path}: {error}");
+                let _ = writeln!(std::io::stderr(), "logd-rs: failed to open {path}: {error}");
                 None
             }
         }
@@ -691,14 +691,14 @@ fn main() {
     let mut conn = match Connection::connect(options.ubus_socket.as_deref()) {
         Ok(conn) => conn,
         Err(error) => {
-            eprintln!("logd-rs: ubus connect failed: {error}");
+            let _ = writeln!(std::io::stderr(), "logd-rs: ubus connect failed: {error}");
             std::process::exit(1);
         }
     };
     let objid = match register_log(&mut conn) {
         Ok(id) => id,
         Err(error) => {
-            eprintln!("logd-rs: failed to add object: {error}");
+            let _ = writeln!(std::io::stderr(), "logd-rs: failed to add object: {error}");
             std::process::exit(1);
         }
     };
@@ -706,11 +706,11 @@ fn main() {
         match lookup_user(user) {
             Some((uid, gid)) => {
                 if let Err(error) = sys::drop_privileges(uid, gid) {
-                    eprintln!("logd-rs: setuid/setgid failed: {error}");
+                    let _ = writeln!(std::io::stderr(), "logd-rs: setuid/setgid failed: {error}");
                     std::process::exit(1);
                 }
             }
-            None => eprintln!("logd-rs: user {user} not found, staying root"),
+            None => { let _ = writeln!(std::io::stderr(), "logd-rs: user {user} not found, staying root"); },
         }
     }
     let mut daemon = Daemon {
@@ -729,7 +729,7 @@ fn main() {
         spin: 0,
     };
     if let Err(error) = daemon.run() {
-        eprintln!("logd-rs: {error}");
+        let _ = writeln!(std::io::stderr(), "logd-rs: {error}");
         std::process::exit(1);
     }
 }
