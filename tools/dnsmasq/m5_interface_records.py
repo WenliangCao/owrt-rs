@@ -901,17 +901,20 @@ def run_service_side(root,side,case,out):
             samples=[];stop=threading.Event();offset=len((out/'stderr').read_text())
             def sampler():
                 while not stop.is_set():
+                    started_ns=time.monotonic_ns()
                     active=bool(files.open_file_fds(pid,'/m2/files/dir/one'));health=files.local_health(port,0x3300+len(samples)%512)
-                    samples.append(dict(health,file_active=active,file_still_active=bool(files.open_file_fds(pid,'/m2/files/dir/one'))));time.sleep(.001)
+                    samples.append(dict(health,file_active=active,file_still_active=bool(files.open_file_fds(pid,'/m2/files/dir/one')),
+                        started_ns=started_ns,completed_ns=time.monotonic_ns()));time.sleep(.001)
             worker=threading.Thread(target=sampler);worker.start()
             try:
                 target.write_bytes(body)
                 files.await_predicate(lambda:'read /m2/files/dir/one - 1 names' in (out/'stderr').read_text()[offset:],'bounded hosts source completed',seconds=8)
             finally:stop.set();worker.join(2)
-            if worker.is_alive() or not samples or not all(row['healthy'] for row in samples):raise AssertionError('hosts large-file owner health failed')
             active_health=sum(row['healthy'] and row['file_active'] and row['file_still_active'] for row in samples)
+            proof={'label':'hosts-large','bytes':len(body),'sha256':sha256(target),'samples':samples,'healthy_while_open':active_health}
+            states.append(proof);save(out/'hosts-large-progress.json',proof)
+            if worker.is_alive() or not samples or not all(row['healthy'] for row in samples):raise AssertionError('hosts large-file owner health failed')
             if side=='rust' and not active_health:raise AssertionError('no Rust DNS progress while hosts file stayed open')
-            states.append({'label':'hosts-large','bytes':len(body),'sha256':sha256(target),'samples':samples,'healthy_while_open':active_health})
             return
         if isinstance(value,dict) and value.get('hosts_stream'):
             pid=int((root/'m2/files.pid').read_text());target=root/'m2/files/dir/one';staged=root/'m2/files/staged-fifo'
