@@ -149,6 +149,10 @@ def inside(args):
     def notify(event):
         return ['ubus', 'call', 'network.interface.wan6', 'notify_proto', json.dumps(event)]
     commands = [notify(event) for event in captured]
+    if args.natural_expiry:
+        short = copy.deepcopy(captured[0])
+        short['ip6prefix'] = [p.split(',')[0] + ',6,6' for p in short['ip6prefix']]
+        commands = [notify(short)]
     # Exercise deletion and re-addition as well as the captured renewals.
     withdrawn = copy.deepcopy(captured[-1])
     withdrawn['ip6prefix'] = []
@@ -190,6 +194,10 @@ def inside(args):
         immediate.append(json.loads(run('ip', '-j', '-6', 'addr', 'show')))
         time.sleep(max(0, deadline + 2.2 - time.monotonic()))
         snapshots.append(snapshot(root, index))
+    if args.natural_expiry:
+        # No second notification: this must be handled by the daemon timer.
+        time.sleep(max(0, schedule + 8.2 - time.monotonic()))
+        snapshots.append(snapshot(root, 2))
     dump(out / 'immediate-addresses.json', immediate)
     dump(out / 'schedule-lateness-seconds.json', timing)
     dump(out / 'snapshots.json', snapshots)
@@ -259,6 +267,8 @@ printf '%s %s %s %s %s\\n' "$ACTION" "$INTERFACE" "$IFUPDATE_ADDRESSES" "$IFUPDA
                '--capture', str(args.capture), '--dad', args.dad]
         if args.lifecycle:
             cmd.append('--lifecycle')
+        if args.natural_expiry:
+            cmd.append('--natural-expiry')
         result = subprocess.run(cmd, text=True, capture_output=True)
         (out / 'outer.log').write_text(result.stdout + result.stderr)
         if result.returncode:
@@ -280,8 +290,12 @@ printf '%s %s %s %s %s\\n' "$ACTION" "$INTERFACE" "$IFUPDATE_ADDRESSES" "$IFUPDA
     protection_diff = differences(reference_protections, candidate_protections)
     if not reference_protections[1]['rules'] or not reference_protections[1]['routes']:
         raise RuntimeError('reference protection routes/rules never appeared: untested')
+    if args.natural_expiry and (reference_protections[-1]['rules'] or c[-1]['wan6']['ipv6-prefix']):
+        raise RuntimeError('reference did not expire the short PD: untested')
     summary = {'capture_sha256': sha(args.capture), 'candidate_sha256': sha(args.candidate),
-               'reference_sha256': sha(args.rootfs / 'sbin/netifd'), 'inputs': len(messages),
+               'reference_sha256': sha(args.rootfs / 'sbin/netifd'),
+               'inputs': 1 if args.natural_expiry else len(messages),
+               'captured_inputs': len(messages), 'natural_expiry': args.natural_expiry,
                'kernel_release': platform.release(), 'machine': platform.machine(),
                'snapshots_per_side': len(c), 'dad': args.dad, 'input_interval_seconds': 3,
                'lifecycle': args.lifecycle, 'differences': diff,
@@ -292,7 +306,7 @@ printf '%s %s %s %s %s\\n' "$ACTION" "$INTERFACE" "$IFUPDATE_ADDRESSES" "$IFUPDA
                'route_rule_differences': [d for i, (a, b) in enumerate(zip(c, rs))
                    for key in ('routes', 'rules') for d in differences(a[key], b[key], f'/{i}/{key}')], 'hotplug_equal': hotplug_equal,
                'replies_equal': replies_equal, 'lifetime_tolerance_seconds': 2,
-               'addresses_per_input': [len(x['ip6addr']) for x in messages]}
+               'addresses_per_input': [len(x['ip6addr']) for x in (messages[:1] if args.natural_expiry else messages)]}
     dump(args.out / 'summary.json', summary)
     print(json.dumps(summary, indent=2))
     return bool(diff or not hotplug_equal or not replies_equal)
@@ -306,7 +320,9 @@ if __name__ == '__main__':
     parser.add_argument('--candidate', type=Path)
     parser.add_argument('--side', choices=('c', 'rs'))
     parser.add_argument('--dad', choices=('on', 'off'), default='off')
-    parser.add_argument('--lifecycle', action='store_true')
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--lifecycle', action='store_true')
+    modes.add_argument('--natural-expiry', action='store_true')
     parser.add_argument('--root', type=Path)
     options = parser.parse_args()
     if options.side:

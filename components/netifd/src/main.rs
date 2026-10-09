@@ -336,6 +336,7 @@ struct Netifd {
     wdeadline: Option<u64>,
     wqueue: std::collections::VecDeque<(String, &'static str)>,
     wproc_checked: u64,
+    prefix_expiry_checked: u64,
     /// Every device netifd has an object for. An entry means `device_init`
     /// has run -- its state was cleared once -- and it means the device is
     /// reported by `network.device status`, which lists every present object,
@@ -399,6 +400,7 @@ impl Netifd {
             wdeadline: None,
             wqueue: std::collections::VecDeque::new(),
             wproc_checked: 0,
+            prefix_expiry_checked: 0,
             link_state: Vec::new(),
             present: Vec::new(),
             prepared_bridges: Vec::new(),
@@ -4429,6 +4431,7 @@ impl Netifd {
             self.reap_children();
             process::reap_retired();
             self.pump_proto_deadlines();
+            self.pump_prefix_expiry();
             self.pump_wireless_deadline();
             self.pump_wireless_procs();
             self.pump_removals();
@@ -4735,6 +4738,43 @@ impl Netifd {
             self.refresh_prefix_assignments();
         }
         changed
+    }
+
+    /// The delegated-prefix part of C's interface_ip_valid_until_handler.
+    /// A source reject rule has no kernel expiry, so the daemon must withdraw
+    /// it even when odhcp6c sends no further notification. Keep C's strict
+    /// deadline comparison and only expire protocol state on UP interfaces.
+    fn pump_prefix_expiry(&mut self) {
+        let t = now();
+        if t <= self.prefix_expiry_checked {
+            return;
+        }
+        self.prefix_expiry_checked = t;
+        let expired: Vec<(String, Ipv6Addr, u8)> = self.prefixes.iter()
+            .filter_map(|p| {
+                let owner = p.iface.as_ref()?;
+                let deadline = p.valid_until?;
+                if (deadline as u64) >= t || !self.iface_index(owner)
+                    .is_some_and(|i| self.interfaces[i].state == State::Up) {
+                    return None;
+                }
+                Some((owner.clone(), p.addr, p.length))
+            }).collect();
+        if expired.is_empty() {
+            return;
+        }
+        for (owner, addr, length) in &expired {
+            self.prefixes.retain(|p| !(p.iface.as_ref() == Some(owner)
+                && p.addr == *addr && p.length == *length));
+            let mut null = sys::Route::v6(*addr, *length);
+            null.metric = i32::MAX as u32;
+            null.nodev = true;
+            let _ = self.sys.del_route(0, &null);
+            if let Some(i) = self.iface_index(owner) {
+                self.interfaces[i].updated |= interface::updated::PREFIX;
+            }
+        }
+        self.refresh_prefix_assignments();
     }
 
     /// `wdev_proc_check`, on the one-second interval `wdev_proc_add` starts.
