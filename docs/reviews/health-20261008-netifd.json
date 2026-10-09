@@ -2,6 +2,7 @@
   "base_commit": "a4053dd5",
   "comparison_fix_commit": "66b9a384",
   "fix_commit": "1cabb7fc",
+  "historical_validation_note": "Original runs describe the initial rule fix before natural PD expiry was closed; final timer validation is natural_expiry_followup.",
   "inputs": {
     "addresses_per_input": [
       6,
@@ -37,7 +38,6 @@
     "aligned-lifecycle3: route dump order differed; complete route multiset comparator removes presentation-order artifacts, preserving 9 existing differences"
   ],
   "known_remaining_differences": [
-    "PD expiry timer retains prefix metadata and parent null route in r2 and candidate",
     "LAN down/up bridge lifecycle, assignment projection and subsequent ifindex differ in r2 and candidate"
   ],
   "limits": [
@@ -46,6 +46,624 @@
     "netlink messages retained but not compared event-by-event",
     "IPv4 offlink and overlapping multiple PD ownership are source/unit coverage, not exercised by the 13 captured IPv6 inputs"
   ],
+  "natural_expiry_followup": {
+    "fix_commit": "d72928c9",
+    "notes": [
+      "PD lease6seconds then no more notification, sampled after8.2seconds",
+      "Before fix C source guard0,1,0 versus Rust0,1,1; all4 identical",
+      "After fix complete C/Rust state matches, including PD metadata, parent null route, LAN route and source rule",
+      "Minimal PD lifetime timer added as a required dependency of source-rule cleanup; bridge lifecycle remains unchanged"
+    ],
+    "runs": [
+      {
+        "run": "natural-expiry-red1",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "eee26c4cda99d4a861bbbcb48e487e4d5e656e3fc4363e22735bc8b6ebbbce61",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "61bf67c659ac549d8efcd83f95f4934d9d48121b61bcb219b6482fe35ebe3100",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "9cfac459d51cdef18cb2a3434cb3a02e16105037995e2ae0f8cdcf25f6c45d18",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "014b964f004381d91651db2c505c8f8ee460aaf4468187e4009e8444fcbe6f9e",
+          "rs/snapshots.json": "a9d2f11b6c9f4df876e0855de5099ec3e2b84fb904c4962a5c64aa546831c824",
+          "summary.json": "92fdee1dae5a8e08a20aa5f10d4546ff6a528a62d7f480a518882c18a2c7a25c"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6,
+            5,
+            5,
+            6,
+            5,
+            6,
+            6,
+            6,
+            5,
+            6,
+            5,
+            6,
+            6
+          ],
+          "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            1
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "dad": "off",
+          "differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [
+            "/2/rules: lengths (0, 1)"
+          ],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)"
+          ],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-red2",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "e66df4bec2ddba9cc874ab3446470b69a197ffb03faad9ec597b3b726f36843a",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "a8faa1fc025c32f4d9b9e5333375c4a0a4baa8e4386314d32a5dee9f74f121da",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "2bf4d8a89a25582dae39abcc11d0499eec3be6e5028a3666282a80ec0e50fb80",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "230e27a73cc0b03f3a362dc111c1fdb6b481b026fdab9a7018c4b3a59883e583",
+          "rs/snapshots.json": "a9d2f11b6c9f4df876e0855de5099ec3e2b84fb904c4962a5c64aa546831c824",
+          "summary.json": "92fdee1dae5a8e08a20aa5f10d4546ff6a528a62d7f480a518882c18a2c7a25c"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6,
+            5,
+            5,
+            6,
+            5,
+            6,
+            6,
+            6,
+            5,
+            6,
+            5,
+            6,
+            6
+          ],
+          "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            1
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "dad": "off",
+          "differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [
+            "/2/rules: lengths (0, 1)"
+          ],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)"
+          ],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-red3",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "a5abc0ed17ae224eb4e5c4743bee5cad62a38102b451213c1b6772f36ce95ec9",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "42c171add142a6b3605fa23a0041cbfac8bce80c73143388ad160bb98e3b84cd",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "87cd32828bccb80746df2559c34cd91f27bbea75b44a2eceaf9967f05792d919",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "7a778a86e351a53e2c58e4687ef4da19dec7f6c9f270a3fb7a9ea4d89514ad26",
+          "rs/snapshots.json": "06a5fb679d6409f753490694b96682c7798bbe9fa7346b5be2d07585c241c802",
+          "summary.json": "92fdee1dae5a8e08a20aa5f10d4546ff6a528a62d7f480a518882c18a2c7a25c"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6,
+            5,
+            5,
+            6,
+            5,
+            6,
+            6,
+            6,
+            5,
+            6,
+            5,
+            6,
+            6
+          ],
+          "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            1
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "dad": "off",
+          "differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [
+            "/2/rules: lengths (0, 1)"
+          ],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)"
+          ],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-red4",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "02e02fae56b08d29feea12a2f77772212a94e62d22177ee675c9c4a8d22b3766",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "3a3c0106ba9916437345174cb77e13ef0e514611a555660898f422f752afd4b6",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "5ee1971d717c1b659230fd302e96031500a5d8e5bf0e41e4b0d3eb866a9998c2",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "70ea6414ce3f0114e344934fcf7364d5e00282150f8468c04e4472d130092704",
+          "rs/snapshots.json": "a9d2f11b6c9f4df876e0855de5099ec3e2b84fb904c4962a5c64aa546831c824",
+          "summary.json": "92fdee1dae5a8e08a20aa5f10d4546ff6a528a62d7f480a518882c18a2c7a25c"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6,
+            5,
+            5,
+            6,
+            5,
+            6,
+            6,
+            6,
+            5,
+            6,
+            5,
+            6,
+            6
+          ],
+          "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            1
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "dad": "off",
+          "differences": [
+            "/2/lan/ipv6-prefix-assignment: lengths (1, 2)",
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)",
+            "/2/wan6/ipv6-prefix: lengths (0, 1)"
+          ],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [
+            "/2/rules: lengths (0, 1)"
+          ],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [
+            "/2/routes: lengths (46, 48)",
+            "/2/rules: lengths (2, 3)"
+          ],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-green1",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "a5abc0ed17ae224eb4e5c4743bee5cad62a38102b451213c1b6772f36ce95ec9",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "81b5adf43c391c71ad316fc4e1437d216a3ea6067d35dfdbb107a286834e63eb",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "02e02fae56b08d29feea12a2f77772212a94e62d22177ee675c9c4a8d22b3766",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "03f9a2bc67fbb5a8bd67a324b3342d444d33eccd63cc91a1b8254d0b082deb9e",
+          "rs/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "summary.json": "3324d03acfc745b83aae8856b94b5b67950137921d73f7b7d2ffc93a31dd322a"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6
+          ],
+          "candidate_sha256": "6ec3a645982155cd98d47473060369df36e768af7011b816593cdee575591aa8",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [],
+          "dad": "off",
+          "differences": [],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-green2",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "eee26c4cda99d4a861bbbcb48e487e4d5e656e3fc4363e22735bc8b6ebbbce61",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "672266067541b3756f6ccf781905fe18c38f8262239482a0777f9aa2d54e633e",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "a5abc0ed17ae224eb4e5c4743bee5cad62a38102b451213c1b6772f36ce95ec9",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "b4b82990a6030c2e04d168686f7c2f2c8e6078083c9b170312dfca3cddcfaf01",
+          "rs/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "summary.json": "3324d03acfc745b83aae8856b94b5b67950137921d73f7b7d2ffc93a31dd322a"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6
+          ],
+          "candidate_sha256": "6ec3a645982155cd98d47473060369df36e768af7011b816593cdee575591aa8",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [],
+          "dad": "off",
+          "differences": [],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-green3",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "e66df4bec2ddba9cc874ab3446470b69a197ffb03faad9ec597b3b726f36843a",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "7c21d94441b1d8e59949671e3f2382fe27da7d5b734460a839d3c00471b2a7cd",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "eee26c4cda99d4a861bbbcb48e487e4d5e656e3fc4363e22735bc8b6ebbbce61",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "f37e8f66b5c7112f8c8da1d264292352d66a8769b24359cb705baa47ced22f34",
+          "rs/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "summary.json": "3324d03acfc745b83aae8856b94b5b67950137921d73f7b7d2ffc93a31dd322a"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6
+          ],
+          "candidate_sha256": "6ec3a645982155cd98d47473060369df36e768af7011b816593cdee575591aa8",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [],
+          "dad": "off",
+          "differences": [],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-expiry-green4",
+        "sha256": {
+          "c/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "c/namespaces.json": "02e02fae56b08d29feea12a2f77772212a94e62d22177ee675c9c4a8d22b3766",
+          "c/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "c/schedule-lateness-seconds.json": "7e4786d34a120c08ae4340ba7d81c1cad81995e16770c7cc639fdad03a4a6696",
+          "c/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "rs/immediate-addresses.json": "de9983759745bef9766cee36f457f663fe75803bb9a7e7c8248449fc455d6b10",
+          "rs/namespaces.json": "e66df4bec2ddba9cc874ab3446470b69a197ffb03faad9ec597b3b726f36843a",
+          "rs/replies.json": "8d512a735f97489dfdd3df2095418cf778d81e2ccb119ff1776e8a41ad41de11",
+          "rs/schedule-lateness-seconds.json": "f6cb145862f72ff0737720696053708527f87dd4a2ddb6a08be0059dcc5044ce",
+          "rs/snapshots.json": "4fbc2af881765caff12c7b1d14d504bda4ea7ab27e76fb12eb704deee33dec7c",
+          "summary.json": "3324d03acfc745b83aae8856b94b5b67950137921d73f7b7d2ffc93a31dd322a"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6
+          ],
+          "candidate_sha256": "6ec3a645982155cd98d47473060369df36e768af7011b816593cdee575591aa8",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [],
+          "dad": "off",
+          "differences": [],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 1,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": true,
+          "protection_differences": [],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            0
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [],
+          "snapshots_per_side": 3
+        }
+      },
+      {
+        "run": "natural-fix-dad-on",
+        "sha256": {
+          "c/immediate-addresses.json": "4f0d270899e4aa64bf2b6fbce5b9af5729ec94acd9198ebd66026bccdc39e0cb",
+          "c/namespaces.json": "679be25a828965868d79f2e18d6e72185a6d2c6188ded94a3dc49561b5555f50",
+          "c/replies.json": "7713b07c25ce962ab4fc98f890c8dc9e9d2eaa905112582146515cf86ccdb77e",
+          "c/schedule-lateness-seconds.json": "9818b5c4d1126fff64423b1a448bde632fdcfdc4e35d67a2a3df23dc2d42ab42",
+          "c/snapshots.json": "7e82793d4a8db93d75aece1412f2aa6e6f9e606db992db6dc54e6ba2af165e11",
+          "rs/immediate-addresses.json": "4f0d270899e4aa64bf2b6fbce5b9af5729ec94acd9198ebd66026bccdc39e0cb",
+          "rs/namespaces.json": "a5abc0ed17ae224eb4e5c4743bee5cad62a38102b451213c1b6772f36ce95ec9",
+          "rs/replies.json": "7713b07c25ce962ab4fc98f890c8dc9e9d2eaa905112582146515cf86ccdb77e",
+          "rs/schedule-lateness-seconds.json": "e5fd4979df8dc9ba6ffcad427df970647dee70f9537d323c61db91f17d453163",
+          "rs/snapshots.json": "29403007c0c0b39438dd1a0646aeb8ad3e54913d495495021704a97cc649b375",
+          "summary.json": "6157e85fc314458947d3d9bc73cb0f029f96307922bff2843930c94ef56fb985"
+        },
+        "summary": {
+          "addresses_per_input": [
+            6,
+            5,
+            5,
+            6,
+            5,
+            6,
+            6,
+            6,
+            5,
+            6,
+            5,
+            6,
+            6
+          ],
+          "candidate_sha256": "6ec3a645982155cd98d47473060369df36e768af7011b816593cdee575591aa8",
+          "candidate_source_rule_counts": [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+          "captured_inputs": 13,
+          "core_differences": [],
+          "dad": "on",
+          "differences": [],
+          "hotplug_equal": true,
+          "input_interval_seconds": 3,
+          "inputs": 13,
+          "kernel_release": "6.17.0-1020-oracle",
+          "lifecycle": false,
+          "lifetime_tolerance_seconds": 2,
+          "machine": "aarch64",
+          "natural_expiry": false,
+          "protection_differences": [],
+          "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "reference_source_rule_counts": [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "replies_equal": true,
+          "route_rule_differences": [],
+          "snapshots_per_side": 14
+        }
+      }
+    ],
+    "schema_version": 1,
+    "source_sha256": {
+      "components/netifd/src/main.rs": "7770b49b79a967970d092c24a65d37268e42e1e78ba533bdf6c7d55ed1b55e84",
+      "tools/health_20261008/netifd_replay.py": "53c8ca72bd2a697a043ff491d5b08f5d2556e6b0f76754f2502db5378803b236"
+    },
+    "tested_base": "022a8545",
+    "tests": {
+      "linux_comparator": 5,
+      "linux_netifd": 172,
+      "natural_expiry_green_repetitions": 4,
+      "natural_expiry_red_repetitions": 4,
+      "original_13_dad_on": true,
+      "original_13_route_sorted_snapshots_equal_without_tolerance": false,
+      "original_13_snapshots_equal_without_tolerance": false
+    }
+  },
   "oracle": {
     "kernel": "6.17.0-1020-oracle",
     "machine": "aarch64",
