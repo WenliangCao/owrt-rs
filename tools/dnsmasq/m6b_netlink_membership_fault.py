@@ -48,7 +48,11 @@ def check_trace(report, case):
         raise ValueError('exactly one membership syscall must be injected')
     first = injected[0]
     if (first['syscall'] != 200 or first['groups'] != 0x550 or first['family'] != 16
-            or first['actual_result'] != -errno.ENOSYS or first['result'] != -expected):
+            or first.get('entry_syscall') != 200 or first.get('skipped_syscall') != -1
+            or first.get('exit_syscall') != -1 or first.get('entry_stop') != 1
+            or first.get('exit_stop') != 2 or first.get('syscall_regset_bytes') != 4
+            or first['fd'] <= 0 or first.get('entry_x0') != first['fd']
+            or first['actual_result'] != first['fd'] or first['result'] != -expected):
         raise ValueError('membership target or skipped-kernel/errno witness differs')
     fd = first['fd']
     fallback = [row for row in events if row['syscall'] == 200 and row['fd'] == fd and row.get('groups') == 0]
@@ -92,6 +96,13 @@ def traced_start(argv, case, side, stdout, stderr, report_path):
     def regs(write=False):
         vector = Iovec(ctypes.addressof(registers), ctypes.sizeof(registers))
         ptrace(0x4205 if write else 0x4204, 1, ctypes.addressof(vector))
+    def syscall_number(value=None):
+        number = ctypes.c_int(0 if value is None else value)
+        vector = Iovec(ctypes.addressof(number), ctypes.sizeof(number))
+        ptrace(0x4204 if value is None else 0x4205, 0x404, ctypes.addressof(vector))
+        if vector.size != ctypes.sizeof(number):
+            raise ValueError('short NT_ARM_SYSTEM_CALL register witness')
+        return number.value
     def memory(address, size):
         # Open at the selected stop: /proc/mem opened before exec retains the old mm.
         with Path(f'/proc/{pid}/mem').open('rb', buffering=0) as stream:
@@ -135,8 +146,10 @@ def traced_start(argv, case, side, stdout, stderr, report_path):
                         pending = {'syscall': number, 'fd': args[0], **address, 'sockaddr': wire.hex(),
                                    'entered_monotonic_ns': time.monotonic_ns(), 'injected': inject}
                         if inject:
-                            skipped = ctypes.c_int(-1); vector = Iovec(ctypes.addressof(skipped), ctypes.sizeof(skipped))
-                            ptrace(0x4205, 0x404, ctypes.addressof(vector))
+                            pending.update(entry_syscall=syscall_number(), entry_stop=int(info.raw[0]),
+                                           entry_x0=args[0], syscall_regset_bytes=ctypes.sizeof(ctypes.c_int))
+                            syscall_number(-1)
+                            pending['skipped_syscall'] = syscall_number()
                 elif number == 204 and target_fd == args[0]:
                     pending = {'syscall': number, 'fd': args[0], 'pointer': args[1], 'injected': False,
                                'entered_monotonic_ns': time.monotonic_ns()}
@@ -144,8 +157,10 @@ def traced_start(argv, case, side, stdout, stderr, report_path):
                 returned = ctypes.c_int64(registers[0]).value
                 pending['actual_result'] = returned
                 if pending['injected']:
+                    pending.update(exit_syscall=syscall_number(), exit_stop=int(info.raw[0]))
                     registers[0] = (-fault) & ((1 << 64) - 1); regs(True)
-                pending['result'] = -fault if pending['injected'] else returned
+                    regs()
+                pending['result'] = ctypes.c_int64(registers[0]).value
                 pending['exited_monotonic_ns'] = time.monotonic_ns()
                 if pending['syscall'] == 204 and returned == 0:
                     pending['address'] = membership_address(memory(pending.pop('pointer'), 12))

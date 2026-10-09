@@ -12,7 +12,9 @@ class MembershipReceipts(unittest.TestCase):
     def valid(self):
         return {'events': [
             {'syscall': 200, 'fd': 19, 'family': 16, 'groups': 0x550, 'injected': True,
-             'actual_result': -errno.ENOSYS, 'result': -errno.EPERM},
+             'actual_result': 19, 'result': -errno.EPERM,
+             'entry_syscall': 200, 'skipped_syscall': -1, 'exit_syscall': -1,
+             'entry_stop': 1, 'exit_stop': 2, 'entry_x0': 19, 'syscall_regset_bytes': 4},
             {'syscall': 200, 'fd': 19, 'family': 16, 'groups': 0, 'injected': False,
              'actual_result': 0, 'result': 0},
             {'syscall': 204, 'fd': 19, 'injected': False, 'actual_result': 0, 'result': 0,
@@ -50,6 +52,23 @@ class MembershipReceipts(unittest.TestCase):
                 fault.check_cleanup(case, {'returncode': result, 'forced': False})
         with self.assertRaises(ValueError):
             fault.check_cleanup('membership-eperm', {'returncode': 0, 'forced': True})
+
+    def test_skip_requires_actual_entry_write_readback_and_exit_registers(self):
+        for field, value in [('entry_syscall', 201), ('skipped_syscall', 200),
+                             ('exit_syscall', 200), ('entry_stop', 2), ('exit_stop', 1),
+                             ('syscall_regset_bytes', 8), ('entry_x0', 20),
+                             ('family', 2), ('fd', 0),
+                             ('actual_result', -errno.ENOSYS), ('actual_result', 20),
+                             ('actual_result', -errno.EPERM)]:
+            report = self.valid(); report['events'][0][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                fault.check_trace(report, 'membership-eperm')
+        report = self.valid(); report['events'].append(copy.deepcopy(report['events'][0]))
+        with self.assertRaises(ValueError): fault.check_trace(report, 'membership-eperm')
+        for field in ['entry_syscall', 'skipped_syscall', 'exit_syscall', 'entry_x0']:
+            report = self.valid(); del report['events'][0][field]
+            with self.subTest(missing=field), self.assertRaises(ValueError):
+                fault.check_trace(report, 'membership-eperm')
 
     def test_einval_must_not_fall_back_or_claim_eperm_result(self):
         report = self.valid(); report['events'] = report['events'][:1]
