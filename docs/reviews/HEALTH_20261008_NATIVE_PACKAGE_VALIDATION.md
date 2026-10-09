@@ -5,7 +5,8 @@
 `apk fix --reinstall`；实际日志包含八次 `APK unavailable, skipped`，命令仍
 返回成功。随后核对既存 ELF 和文件所有权，只能证明原文件没有改变，不能
 证明重装发生。历史 `final-offline-evidence-02.json` 已明确废弃旧重装结果，
-但当时修正仅保存在 `native_image_check-final-02.py`。
+但 r2 发布源码未含该修正；后续 `ee315edc` 已将与
+`native_image_check-final-02.py` 相同的修正纳入 main，本热修仅移植相同重装段。
 
 本轮把该脚本的重装修正纳入仓库：使用显式本地 APK 的
 `add --force-reinstall`，先删除八个原包的文件清单，再要求逐字节恢复；
