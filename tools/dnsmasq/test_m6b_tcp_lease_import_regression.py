@@ -19,6 +19,20 @@ def run_record():
 
 
 class PairRejection(unittest.TestCase):
+    def test_profile_config_process_and_root_must_join_actual_evidence(self):
+        trace = dict(case=gate.CASE, config=gate.interleaved.CASES[gate.PROFILE]['config'],
+                     identity=dict(sha256='a' * 64, root='/private/run/rootfs'))
+        root = dict(root='/private/run/rootfs')
+        gate.validate_identity(trace, root, 'a' * 64)
+        for fault in ['case', 'config', 'sha256', 'root']:
+            changed = copy.deepcopy(trace)
+            if fault in ['case', 'config']:
+                changed[fault] += '-other'
+            else:
+                changed['identity'][fault] += '-other'
+            with self.subTest(fault=fault), self.assertRaises(ValueError):
+                gate.validate_identity(changed, root, 'a' * 64)
+
     def test_wrong_new_view_address_is_rejected(self):
         c = run_record()
         rust = copy.deepcopy(c)

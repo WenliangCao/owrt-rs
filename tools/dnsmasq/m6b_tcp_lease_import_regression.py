@@ -24,6 +24,13 @@ def tool_files():
     return {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
 
 
+def validate_identity(trace, root, expected):
+    if (trace['case'] != CASE or trace['config'] != interleaved.CASES[PROFILE]['config']
+            or trace['identity']['sha256'] != expected
+            or trace['identity']['root'] != root['root']):
+        raise ValueError('actual regression profile/process/root binding differs')
+
+
 def run(args):
     if driver.sha256(args.rust) != args.expected_rust_sha:
         raise ValueError('frozen feature-off product ELF differs')
@@ -74,6 +81,10 @@ def read_run(args, side):
     trace = result['scenarios'][0]
     work = folder / CASE
     expected = driver.STOCK_SHA256 if side == 'c' else args.expected_rust_sha
+    root = json.loads((folder / 'rootfs-identity.json').read_text())
+    if root['rust_sha256'] != args.expected_rust_sha:
+        raise ValueError('copied product ELF/root binding differs')
+    validate_identity(trace, root, expected)
     if (trace != json.loads((work / 'trace.json').read_text()) or trace.get('failure')
             or trace['exit'] != 0 or trace['upstream_errors'] or trace['identity']['sha256'] != expected):
         raise ValueError('actual regression trace failed or differs')
@@ -90,7 +101,7 @@ def read_run(args, side):
         raise ValueError('complete fixed lease interleaving schedule missing')
     upstream = json.loads((work / 'upstream-wire-events.json').read_text())
     interleaved.validate_actions(PROFILE, trace['observations'], work, upstream, trace['upstream'])
-    provenance = accept.root_provenance(json.loads((folder / 'rootfs-identity.json').read_text()))
+    provenance = accept.root_provenance(root)
     return receipt, trace, upstream, provenance
 
 
