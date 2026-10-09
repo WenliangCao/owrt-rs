@@ -289,3 +289,5 @@ poll/其它容量无增量。因此按用户规则将该对象分类`known-ready
 用户授权A的局部产品修复并要求检查reload/hosts两套对象。审计确认两条hosts链同样只把重建lease安装到外部ParentDns.local；显式使用当前owner local作为importer输入即可沿用C同址丢弃/异址事务失败规则。A修复7d3dc4d9已提交独立候选树；15个精准Linux测试真实通过，新feature-off opt3为1,962,024B、SHA77079092…；main产品仍保留NoA。新产品C差分回归、受影响服务/原语及fresh26–36待执行；全部过才重绑CPU45，不给旧证据换身份。
 
 止损规则：若需要边界外设计或修完出现新的产品错答，停止A、保留NoA并直接进入最终冻结。九组件r3会话也在Oracle；CPU45前必须确认health-20261008相关进程退出且负载接近零，否则等待。最新实际入口和完整SHA统一见[A79e checkpoint](audits/M6B_A_79E_CHECKPOINT.md)，原始审计与资产在E/M6B/resume-20261009。
+
+新A7d3实际完成15精准tests、feature-off lease-held-import C对照、DHCP4/9负控、accept5/30负控、transfer36/307和lease70/1876；fresh资源26–36由六项交错、四项S8和一项独立pressure真实通过段覆盖。没有新产品错答，产品未再修改。完整private与pressure原始证据已本地SHA/metadata保全后清理完成run/overlay，所有原红保持。CPU新root cpu-a-7d3-01已freshcommonprepare，原8aeCPU方法不变、零窗口；须完成来源清楚的十五门派生收据，并在启动前再确认health-20261008退出与Oracle近零负载。完整新资产与实际SHA见同checkpoint最新段。

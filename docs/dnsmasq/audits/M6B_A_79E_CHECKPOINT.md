@@ -231,3 +231,24 @@ A候选树已形成小修复 `7d3dc4d9c270d76ce73ad0cd1b805a6737af6da1`：Parent
 永久产品C差分回归工具为 `tools/dnsmasq/m6b_tcp_lease_import_regression.py`：复用既有lease-held-import固定warm+10批、真实DHCP ACK/held release/新旧TCP顺序，使用feature-off产品；检查实际process/root/profile和query/reply，独立于companion余额门。5个纯Python负例单测通过；实际C/产品执行仍待。新同源primitive/layout/计数companion及六controls的准备在该root的stage-assets-02，payload SHA `cf0317e8cee45feb4a574ac77a52db25799809b784b157ad23e9974e0985af1d`；6389文件/397工具。第一个未执行stage资产因静态reader关联审查被第二份取代，原准备资产保留，未冒充运行失败或资格。
 
 下一步只按授权执行受影响门和fresh26–36。CPU的15门衔接不得给旧raw换source/ELF标签：旧实际身份、162个未变编译输入及23个关键函数字节等值证明、新受影响实际结果分别保留，再生成明确的派生wrapper；旧62份实际输入SHA已只读核验，仍未生成新资格receipt。精确方案见同目录cpu-prereq-transition.json。新A source/build/ELF与fresh common需重新冻结，原cpu-a-79e-01尚无窗口。最终冻结/135仍按用户当前分支决定执行，不碰物理路由器。
+
+## 2026-10-09 新 A 受影响门与资源实测收尾
+
+新A保持7d3dc4d9、feature-off opt3 SHA77079092…，没有继续改产品。实际门完成：产品lease-held-import固定warm加10批镜像C/新A逐wire对照通过；四DHCP caller与9负控、accept五项与30负控通过；transfer原36case/307观察全部匹配，lease70case/1876命令无差异。layout与新同源六controls真实通过，diag SHA `4f170b729c175687de63ac2bfd785ecbc96f413645940ef480e9983dffabf35f`，bound SHA `45f4eddaab4f5a8cef9a258937a8e01f68d18eccfa5f4ed59a8870b32800af31`，controls SHA `92d28199c8440fbfdb57f5d1c2b4377e648bb32a18b26173420451a8a2037030`。
+
+资源26–31的reload/lease交错完整C/A、十批余额与六负控通过；S8 recover11/TERM2及原六负控全部通过；feature-off ENOSPC/EMFILE四side与两比较accepted/equal、failures=[]。按原300秒duration参数/3600秒套件timeout执行，不改阈值。新A没有再次出现产品错答。
+
+以下准备/测量/队列错误都先原样确认、再单次修正受影响项；原红不改写为绿色，也没有新的产品修复：资产路径重写误序列化了非编译JSON，恢复原生成字节且编译输入逐SHA不变；阶段目录遗漏三份冻结协议文件，补精确源字节；transfer队列误写27而原标准为36，恢复原36后仅续转移/租约；S8原夹具重复log-facility而C同样ARG_ONE拒绝，修成一个facility，default540配置字节不变；S8构造0640与collector误期待0660不一致，严格统一实际构造0640并保留type/owner校验；pressure输出不在工具自身ROOT/private，仅改私有队列out位置。90本地工具单测通过，原BALANCE_FIELDS/product_live/批次/时序/负控不变。所有原实际wrong-wire、startup、collector、preflight、count与out红证据保留。
+
+新执行的资格由真实通过段组成：affected前九项加fresh原语两项；resource原26–31六项、freshS832–35四项、单独freshpressure36一项。任何原整控制器失败继续failed；不宣称新完整26–36控制器一次通过，不挑较好attempt。完整原始证据与ELF/构建/测试/controls已PAX归档并逐SHA及全部metadata本地验证：
+
+| E/M6B/full-archives目录 | tar SHA | manifest SHA | 内容 |
+| --- | --- | --- | --- |
+| a-7d3-private-complete-01 | `1df8443068af09436af88f142dffef7611f3807bae36cd7641fa0d8b236be882` | `4ae38dc0a04e34d47e9184500feb1229282e68bf34ccc29e38ed807063ef6b5e` | 全private：5261路径/4894文件，所有新测试ELF/构建/map/controls/raw/失败与确认 |
+| a-7d3-pressure-complete-01 | `e4746917353c86cf6bd4beb930e6777033ceebfa7e72e85770c51cb4aa5bdf2c` | `54808740808d7560040fefb67352c72214ed34114988039622cc31ed475aba7d` | 独立pressure36完整141路径/61文件 |
+
+已用上述完整manifest的精确子树覆盖验证后清理七份完成run/overlay及pressure目录，产品、源码、probe与controls保留给CPU绑定；prune原记录见E/M6B/resume-20261009/a-lease-import-01/raw-prune-01。没有删未归档raw或修改其内容。
+
+CPU新root为 `/home/ubuntu/dnsmasq-m6b-20261009/cpu-a-7d3-01`，本地E/M6B/cpu-a-7d3-01；payload SHA `a38f8ea6928fdad22c869fb4aa1e2e69f5349218917f035fde8de903e3b0cf62`，406文件上传逐SHA过，393项CPU工具/runner/analyzer/budget/schedule/archive字节与原8ae8b834相同。仅private准备wrapper改为显式A/NoA不同root。NoA cd9同源opt-s原实际artifact已读回验证：1,634,344B、SHA `aa23608d0cdffe10fed53d33c63f7ee90291a8b9afe473cc54ed44f0a4e51f90`，不再重建。fresh common已真实prepare/exit0，尚无CPUplan或窗口。
+
+CPU资格必须从完整新raw生成派生十五门收据，旧运行身份和源等值证明分别展示；离线草稿当前在核验正确的bin/lib输入范围与原build/copy路径，未生成资格。Oracle独占前置首次实测health-20261008进程为空、load0.02/0.04/0.00、5秒idle99.8%；正式启动前还需立即复查。下一步完成实际前置收据/冻结45计划后串行45窗口，A全部通过再合main。
