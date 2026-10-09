@@ -208,6 +208,13 @@ def differences(a, b, path=''):
             return [path + ': keys ' + str(sorted(a.keys() ^ b.keys()))]
         return [d for k in a for d in differences(a[k], b[k], path + '/' + k)]
     if isinstance(a, list):
+        if path.endswith('/routes'):
+            # rtnetlink dump order among equal-priority routes on different
+            # devices is not routing priority. Compare the complete multiset;
+            # retain duplicates and every field, excluding clocks only from
+            # the sort key. Ubus assignment and policy-rule order stay strict.
+            key = lambda row: json.dumps({k: v for k, v in row.items() if k != 'expires'}, sort_keys=True)
+            a, b = sorted(a, key=key), sorted(b, key=key)
         if len(a) != len(b):
             return [path + ': lengths ' + str((len(a), len(b)))]
         return [d for i, (x, y) in enumerate(zip(a, b))
