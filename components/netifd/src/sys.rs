@@ -36,6 +36,12 @@ pub const RTM_GETROUTE: u16 = 26;
 pub const RTM_NEWNEIGH: u16 = 28;
 pub const RTM_DELNEIGH: u16 = 29;
 pub const RTM_GETNEIGH: u16 = 30;
+pub const RTM_NEWRULE: u16 = 32;
+pub const RTM_DELRULE: u16 = 33;
+pub const FRA_SRC: u16 = 2;
+pub const FRA_IIFNAME: u16 = 3;
+pub const FRA_PRIORITY: u16 = 6;
+pub const FR_ACT_UNREACHABLE: u8 = 7;
 
 pub const IFLA_ADDRESS: u16 = 1;
 pub const IFLA_IFNAME: u16 = 3;
@@ -488,6 +494,19 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
     (cmd, hdr, a.as_bytes().to_vec())
 }
 
+/// The delegated-prefix source rejection from interface_set_prefix_address.
+/// Keep the host bits, as C does: the kernel receives the assignment address
+/// with its prefix length, plus the downstream input device.
+pub fn encode_prefix_reject(dev: &str, addr: Ipv6Addr, mask: u8, add: bool) -> (u16, [u8; 12], Vec<u8>) {
+    let hdr = rtmsg(AF_INET6, 0, mask, 0, RT_TABLE_UNSPEC, RTPROT_STATIC,
+                    RT_SCOPE_UNIVERSE, FR_ACT_UNREACHABLE, 0);
+    let mut attrs = Attrs::new();
+    attrs.str0(FRA_IIFNAME, dev);
+    attrs.bytes(FRA_SRC, &addr.octets());
+    attrs.u32(FRA_PRIORITY, 4_200_000_000);
+    (if add { RTM_NEWRULE } else { RTM_DELRULE }, hdr, attrs.as_bytes().to_vec())
+}
+
 /// Bridge creation parameters. Only the options this device's config can reach
 /// are present; anything else would be dead code here.
 #[derive(Clone, Debug)]
@@ -677,6 +696,11 @@ impl System {
     pub fn add_route(&mut self, index: u32, route: &Route) -> io::Result<()> {
         let (ty, hdr, attrs) = encode_route(index, route, true);
         self.nl.request(ty, netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE, &hdr, &attrs)
+    }
+
+    pub fn prefix_reject(&mut self, dev: &str, addr: Ipv6Addr, mask: u8, add: bool) -> io::Result<()> {
+        let (ty, hdr, attrs) = encode_prefix_reject(dev, addr, mask, add);
+        self.nl.request(ty, 0, &hdr, &attrs)
     }
 
     pub fn del_route(&mut self, index: u32, route: &Route) -> io::Result<()> {
@@ -910,6 +934,18 @@ fn clear_v6(addr: Ipv6Addr, length: u8) -> Ipv6Addr {
     Ipv6Addr::from(o)
 }
 
+/// C installs a lowest-priority null route for each non-host offlink subnet.
+/// This prevents unmatched destinations falling back to the upstream default.
+pub fn offlink_route(addr: &Address) -> Option<Route> {
+    let bits = if addr.ip.is_ipv6() { 128 } else { 32 };
+    if !addr.offlink || addr.mask >= bits {
+        return None;
+    }
+    let mut route = subnet_route(addr, i32::MAX as u32, 0);
+    route.nodev = true;
+    Some(route)
+}
+
 /// The prefix route an on-link address implies.
 /// `interface_handle_subnet_route` does two operations, in this order:
 /// delete the route as if the kernel had installed it (`proto kernel`), which
@@ -949,6 +985,43 @@ mod tests {
     use super::*;
     use crate::netlink::{attr, attr_u32, parse_attrs};
     use std::net::Ipv4Addr;
+
+    #[test]
+    fn offlink_null_routes_cover_subnets_but_not_host_addresses() {
+        let mut addr = Address::new("2001:db8:1::1234".parse().unwrap(), 64);
+        assert!(offlink_route(&addr).is_none());
+        addr.offlink = true;
+        let route = offlink_route(&addr).unwrap();
+        assert_eq!(route.target, "2001:db8:1::".parse::<IpAddr>().unwrap());
+        assert_eq!(route.metric, 2_147_483_647);
+        assert!(route.nodev);
+        let (_, hdr, attrs) = encode_route(0, &route, true);
+        assert_eq!(hdr[7], RTN_UNREACHABLE);
+        assert!(attr(&parse_attrs(&attrs), RTA_OIF).is_none());
+        addr.mask = 128;
+        assert!(offlink_route(&addr).is_none());
+        let mut v4 = Address::new("192.0.2.17".parse().unwrap(), 24);
+        v4.offlink = true;
+        assert_eq!(offlink_route(&v4).unwrap().target, "192.0.2.0".parse::<IpAddr>().unwrap());
+        v4.mask = 32;
+        assert!(offlink_route(&v4).is_none());
+    }
+
+    #[test]
+    fn delegated_prefix_reject_matches_c_rule_wire_format() {
+        let address: Ipv6Addr = "2001:db8:1::1".parse().unwrap();
+        let (ty, hdr, attrs) = encode_prefix_reject("br-lan", address, 64, true);
+        assert_eq!(ty, RTM_NEWRULE);
+        assert_eq!(hdr, [10, 0, 64, 0, 0, 4, 0, 7, 0, 0, 0, 0]);
+        let fields = parse_attrs(&attrs);
+        assert_eq!(attr(&fields, FRA_IIFNAME), Some(&b"br-lan\0"[..]));
+        assert_eq!(attr(&fields, FRA_SRC), Some(&address.octets()[..]));
+        assert_eq!(attr_u32(&fields, FRA_PRIORITY), Some(4_200_000_000));
+        let (del, del_hdr, del_attrs) = encode_prefix_reject("br-lan", address, 64, false);
+        assert_eq!(del, RTM_DELRULE);
+        assert_eq!(del_hdr, hdr);
+        assert_eq!(del_attrs, attrs);
+    }
 
     #[test]
     fn ifinfomsg_layout_is_sixteen_bytes() {
