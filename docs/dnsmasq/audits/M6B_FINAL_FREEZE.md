@@ -9,12 +9,14 @@
 | --- | ---: | --- |
 | 最终 opt3 | 1,962,024 | `e53fbdcb7cb29e0ac0d2d5bcfaa9c5f284849af2114f8d37720bb644485c6c79` |
 | 同源 s | 1,642,536 | `6cb5bcbe3ea2677e4e898a94e90f5407611bbdd0591d44a183344c36d519d09c` |
-| 精确镜像 C | 283,464 | `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87` |
+| 精确镜像 C | 269,305 | `097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87` |
 
 opt3 为最终功能、资源与 APK 对象；s 仅为正式性能对照。
 此处只关闭构建与身份冻结，不授予功能或性能资格。
 冻结后产品代码不再修改；任何新产品缺陷均保留证据并停止，交由用户决定。
 工具修订与产品身份分开记录。
+main 随后合入无关的 health r3 热修复 `16ac3cea`，未改变 dnsmasq
+源码或构建输入；本轮仍绑定冻结时的 `284376c4`，没有因此重建产品。
 
 证据根为 `private/dnsmasq-rewrite/evidence/M6B/final-284376c4/`：
 `source.tar`、`product-freeze.json`、`release-opt3/`、`release-s/` 和

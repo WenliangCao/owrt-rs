@@ -57,6 +57,8 @@ def main():
                 # Preserve a full unchanged pair when the first semantic comparison is red.
                 for implementation in ('c', 'rust'):
                     run(implementation, profile, 2)
+        if failures:
+            break
     print(json.dumps({'failed_profiles': failures, 'commands': len(records)}))
     return bool(failures)
 

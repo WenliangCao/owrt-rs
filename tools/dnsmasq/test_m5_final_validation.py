@@ -12,6 +12,82 @@ from unittest.mock import patch
 import m5_final_validation as final
 
 
+class LateGuardTests(unittest.TestCase):
+    def test_prepare_keeps_unmeasured_guard_required_without_changing_identity(self):
+        spec = {'validation_mode': 'm6b'}; before = copy.deepcopy(spec)
+        with patch.object(final, 'commands', return_value=[]) as commands:
+            schedule = final.prepare_schedule(spec, Path('/private/final'))
+        self.assertEqual(spec, before)
+        self.assertEqual(commands.call_count, 6)
+        self.assertEqual(schedule['perf-guard'], {'status': 'pending-measured-plan', 'required': True})
+        self.assertIn('perf-guard', final.completion_status(spec, {})['missing_phases'])
+        self.assertIn('perf-guard', final.phase_prerequisites(spec, 'package'))
+
+    def fixture(self, root):
+        root = root.resolve()
+        tools = root / 'tools/dnsmasq'; tools.mkdir(parents=True)
+        native = {'tools_files': {}, 'native': {}}
+        for name in ('m6a_loadgen', 'm6a_upstream'):
+            source = tools / (name + '.c'); source.write_text('synthetic source ' + name)
+            elf = root / name; elf.write_bytes(b'synthetic helper ' + name.encode())
+            native['tools_files'][name + '.c'] = final.digest(source)
+            native['native'][name] = {'path': str(elf), 'sha256': final.digest(elf)}
+        manifest = root / 'native.json'; final.save(manifest, native)
+        plan = root / 'guard.json'
+        final.save(plan, {'schema': 1, 'frozen': True, 'basis': 'unit-test only',
+            'thresholds': {'udp_p50_max_ns': 1000000, 'idle_cpu_max_seconds': 0.1,
+                           'tcp_peak_pss_max_kib': 7000},
+            'native_manifest': {'path': str(manifest), 'sha256': final.digest(manifest)}})
+        spec = {'validation_mode': 'm6b', 'source_root': str(root), 'source_commit': 'b' * 40,
+                'elf': '/final-elf', 'elf_sha256': 'a' * 64, 'image_root': '/image',
+                'runtime_root': '/runtime', 'build_json': '/build.json', 'assets': {}}
+        return spec, plan
+
+    def test_late_binding_pins_plan_native_and_sources_and_rejects_replacement(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); spec, plan = self.fixture(root)
+            before = copy.deepcopy(spec)
+            binding = final.bind_guard(spec, plan, final.digest(plan))
+            final.verify_guard_binding(spec, binding)
+            self.assertEqual(spec, before)
+            for expected in (None, 'c' * 64):
+                with self.assertRaises(ValueError): final.bind_guard(spec, plan, expected)
+            with self.assertRaises(ValueError):
+                final.bind_guard(dict(spec, perf_guard_plan='/other'), plan, final.digest(plan))
+            with self.assertRaises(ValueError):
+                final.verify_guard_binding(spec, dict(binding, assets={}))
+            (root / 'm6a_loadgen').write_bytes(b'changed helper')
+            with self.assertRaises(ValueError): final.verify_guard_binding(spec, binding)
+
+    def test_guard_prerequisite_rejects_changed_elf_checks_and_result(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); spec, plan = self.fixture(root)
+            binding = final.bind_guard(spec, plan, final.digest(plan))
+            attempt = root / 'attempt'; attempt.mkdir()
+            bound = dict(spec, perf_guard_plan=binding['path'])
+            jobs = final.commands(bound, 'perf-guard', attempt)
+            result_path = Path(jobs[0]['result']); result_path.parent.mkdir()
+            final.save(result_path, jobs[0]['checks'])
+            jobs[0].update(passed=True, returncode=0, result_sha256=final.digest(result_path))
+            receipt = attempt / 'result.json'
+            record = {'passed': True, 'manifest_sha256': 'd' * 64,
+                'source_commit': spec['source_commit'], 'elf_sha256': spec['elf_sha256'],
+                'attempt': str(attempt), 'guard_binding': binding, 'commands': jobs}
+            final.save(receipt, record)
+            final.prerequisite(spec, 'd' * 64, {'perf-guard': record}, 'perf-guard')
+            for key in ('argv', 'checks'):
+                changed = copy.deepcopy(record)
+                if key == 'argv':
+                    argv = changed['commands'][0]['argv']; argv[argv.index('--elf') + 1] = '/other-elf'
+                else: changed['commands'][0]['checks'] = {}
+                final.save(receipt, changed)
+                with self.assertRaises(ValueError):
+                    final.prerequisite(spec, 'd' * 64, {'perf-guard': changed}, 'perf-guard')
+            final.save(receipt, record); final.save(result_path, {'passed': True})
+            with self.assertRaises(ValueError):
+                final.prerequisite(spec, 'd' * 64, {'perf-guard': record}, 'perf-guard')
+
+
 class ValidationModeTests(unittest.TestCase):
     def test_m6b_product_identity_rejects_s_and_instrumentation_but_keeps_m5_policy(self):
         product = {'features': '', 'opt_level': '3'}

@@ -50,6 +50,7 @@ def setup_root(*args, **kwargs):
     root = HOLDER['original_prepare'](*args, **kwargs)
     fifo = root / SINK.lstrip('/')
     os.mkfifo(fifo, FIFO_MODE)
+    os.chmod(fifo, FIFO_MODE)
     HOLDER.update(root=root, path=fifo, reader=os.open(fifo, os.O_RDONLY | os.O_NONBLOCK))
     return root
 

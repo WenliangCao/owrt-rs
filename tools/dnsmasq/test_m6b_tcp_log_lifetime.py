@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """S8 phase witnesses and unchanged DNS/root/object release checks."""
 import copy
+import os
+from pathlib import Path
+import stat
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -52,6 +56,22 @@ def complete(profile):
 
 
 class SuccessfulDnsWitness(unittest.TestCase):
+    def test_real_fifo_mode_does_not_depend_on_controller_umask(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); (root / 'm2').mkdir()
+            previous = os.umask(0o077)
+            holder = dict(gate.HOLDER)
+            try:
+                gate.HOLDER['original_prepare'] = lambda: root
+                self.assertEqual(gate.setup_root(), root)
+                info = (root / gate.SINK.lstrip('/')).stat()
+                self.assertTrue(stat.S_ISFIFO(info.st_mode))
+                self.assertEqual(stat.S_IMODE(info.st_mode), 0o640)
+            finally:
+                os.umask(previous)
+                if 'reader' in gate.HOLDER: os.close(gate.HOLDER['reader'])
+                gate.HOLDER.clear(); gate.HOLDER.update(holder)
+
     def test_fifo_witness_matches_the_declared_constructor_mode_and_root_owner(self):
         metadata = dict(path=gate.SINK, fifo=True, mode=0o640, uid=0, gid=0)
         gate.validate_fifo_metadata(metadata)

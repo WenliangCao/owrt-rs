@@ -79,6 +79,32 @@ def validate_qualification_build(mode, build):
         require(build.get('opt_level') == '3', 'M6b final qualification requires opt-level 3')
 
 
+def bind_guard(spec, path, expected_sha):
+    """Bind the measured guard after 135 windows, without changing identity.json."""
+    require(spec.get('validation_mode') == 'm6b', 'late guard binding is only for M6b')
+    path = Path(path).resolve()
+    require(re.fullmatch('[0-9a-f]{64}', expected_sha or '')
+            and digest(path) == expected_sha, 'explicit guard plan SHA differs')
+    require(not spec.get('perf_guard_plan') or Path(spec['perf_guard_plan']).resolve() == path,
+            'cannot replace the guard in the original freeze')
+    from m6b_perf_guard import inputs as guard_inputs
+    tools = Path(spec.get('tools_root', spec['source_root'] + '/tools/dnsmasq'))
+    _, _, assets = guard_inputs(path, tools)
+    return {'path': str(path), 'sha256': expected_sha, 'assets': assets}
+
+
+def verify_guard_binding(spec, binding):
+    require(binding == bind_guard(spec, binding['path'], binding['sha256']),
+            'guard assets differ from the phase freeze')
+
+
+def prepare_schedule(spec, out):
+    return {phase: (commands(spec, phase, out / 'runs' / phase / 'attempt-1')
+                    if phase != 'perf-guard' or spec.get('perf_guard_plan') else
+                    {'status': 'pending-measured-plan', 'required': True})
+            for phase in required_phases(spec)}
+
+
 def package_inputs(mode, spec):
     release = '3' if mode == 'm6b' else '2'
     require(spec.get('package_release', release) == release, 'milestone package release differs')
@@ -251,9 +277,8 @@ def prepare(args):
     assets.update(pinned_ubus)
     verify_release_map(spec, build)
     validate_qualification_build(mode, build)
-    if mode == 'm6b':
+    if mode == 'm6b' and spec.get('perf_guard_plan'):
         from m6b_perf_guard import inputs as guard_inputs
-        require(spec.get('perf_guard_plan'), 'M6b requires an explicit frozen performance guard plan')
         _, _, guard_assets = guard_inputs(Path(spec['perf_guard_plan']).resolve(), source / 'tools/dnsmasq')
         assets.update(guard_assets)
     reference_source = Path(spec.get('bindings', {}).get('reference_source', '')).resolve()
@@ -282,7 +307,7 @@ def prepare(args):
               **{'components/dnsmasq/fuzz/' + name: sha for name, sha in spec['fuzz_inputs'].items()}}
     require(all(archived.get(name) == sha for name, sha in locked.items()), 'final source does not match its exact commit archive')
     spec['assets'][str(archive)] = digest(archive)
-    schedule = {phase: commands(spec, phase, out / 'runs' / phase / 'attempt-1') for phase in phases}
+    schedule = prepare_schedule(spec, out)
     out.mkdir(parents=True)
     save(out / 'identity.json', spec)
     save(out / 'commands.json', schedule)
@@ -587,6 +612,16 @@ def prerequisite(spec, manifest_sha, completed, phase):
             phase + ': complete result from this exact freeze required')
     receipt = Path(record.get('receipt', str(Path(record['attempt']) / 'result.json')))
     require(json.loads(receipt.read_text()) == record, phase + ': receipt changed')
+    if phase == 'perf-guard':
+        require(record.get('guard_binding'), 'measured guard binding is missing')
+        verify_guard_binding(spec, record['guard_binding'])
+        bound = dict(spec, perf_guard_plan=record['guard_binding']['path'])
+        expected = commands(bound, phase, Path(record['attempt']))
+        require(len(record['commands']) == len(expected), 'guard command count differs')
+        for actual, wanted in zip(record['commands'], expected):
+            require(all(actual.get(key) == value for key, value in wanted.items()),
+                    'guard command differs from the bound schedule')
+        verify_command_results(record['commands'])
     if record.get('imported_from'):
         from m5_fixture_revision import verify_import
         verify_import(spec, record)
@@ -702,6 +737,18 @@ def run(args):
     spec = json.loads(args.manifest.read_text()); verify_identity(spec)
     root = Path(spec['output']); phase = args.phase
     manifest_sha = digest(args.manifest)
+    guard_binding = None
+    guard_path = getattr(args, 'perf_guard_plan', None)
+    require(not guard_path or phase == 'perf-guard', '--perf-guard-plan applies only to perf-guard')
+    if phase == 'perf-guard':
+        guard_path = guard_path or spec.get('perf_guard_plan')
+        require(guard_path, 'run perf-guard only after freezing the measured plan')
+        guard_sha = getattr(args, 'expected_guard_sha', None)
+        if spec.get('perf_guard_plan') and not guard_sha:
+            guard_sha = spec['assets'][str(Path(guard_path).resolve())]
+        guard_binding = bind_guard(spec, guard_path, guard_sha)
+        spec['perf_guard_plan'] = guard_binding['path']
+        spec['assets'].update(guard_binding['assets'])
     selected = getattr(args, 'family', None) or []
     require(not selected or phase == 'families', '--family applies only to families phase')
     available = {row['id'] for row in spec['family_registry']['families']}
@@ -794,6 +841,8 @@ def run(args):
         result = {'phase': phase, 'passed': not failures, 'failures': failures, 'commands': records,
                   'elf_sha256': spec['elf_sha256'], 'source_commit': spec['source_commit'], 'attempt': str(attempt),
                   'selected_families': selected, 'manifest_sha256': manifest_sha}
+        if guard_binding:
+            result['guard_binding'] = guard_binding
         if phase == 'fuzz':
             result['target_seconds'] = sum(record.get('elapsed_seconds', 0) for record in records)
             result['required_target_seconds'] = len(FUZZ) * FUZZ_SECONDS
@@ -812,6 +861,7 @@ def summary(args):
     status = completion_status(spec, completed)
     missing = status['missing_phases']
     if 'families' not in missing: prerequisite(spec, digest(args.manifest), completed, 'families')
+    if 'perf-guard' in completed: prerequisite(spec, digest(args.manifest), completed, 'perf-guard')
     for phase, record in completed.items():
         require(record['elf_sha256'] == spec['elf_sha256'] and record['source_commit'] == spec['source_commit'], 'phase used another identity')
         require(record['manifest_sha256'] == digest(args.manifest), 'phase used another frozen tools/input identity')
@@ -870,6 +920,8 @@ def main():
     execute.add_argument('--phase', choices=PHASES + ['perf-guard', 'full-cache-600'], required=True); execute.add_argument('--attempt', type=int, default=1)
     execute.add_argument('--exclusive-window', action='store_true')
     execute.add_argument('--family', action='append', help='independent fresh family group; repeat for several families')
+    execute.add_argument('--perf-guard-plan', type=Path, help='measured M6b plan, bound only when running perf-guard')
+    execute.add_argument('--expected-guard-sha', help='explicit SHA256 for a late-bound guard plan')
     report = sub.add_parser('summary'); report.add_argument('--manifest', type=Path, required=True)
     revision = sub.add_parser('fixture-revision')
     revision.add_argument('--manifest', type=Path, required=True)
