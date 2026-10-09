@@ -52,6 +52,15 @@ def complete(profile):
 
 
 class SuccessfulDnsWitness(unittest.TestCase):
+    def test_fifo_witness_matches_the_declared_constructor_mode_and_root_owner(self):
+        metadata = dict(path=gate.SINK, fifo=True, mode=0o640, uid=0, gid=0)
+        gate.validate_fifo_metadata(metadata)
+        for key, value in [('path', '/other'), ('fifo', False), ('mode', 0o660),
+                           ('mode', 0o600), ('uid', 1), ('gid', 1)]:
+            changed = dict(metadata, **{key: value})
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                gate.validate_fifo_metadata(changed)
+
     def test_s8_uses_one_fifo_facility_without_the_default_file_facility(self):
         config = gate.driver.scenario_config({'config': 'log-queries', 'log_facility': gate.SINK,
                                              'capacity': 150, 'metrics': True}, 5300, 5400)

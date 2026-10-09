@@ -33,6 +33,7 @@ ZERO_DNS = ['dns_work', 'views', 'tcp_pending', 'tcp_accept_pending', 'udp_pendi
 HOST = 'child.logonly.test'
 PREFILL = [f'p{n:02}.logonly.test' for n in range(32)]
 SINK = '/m2/tcp-log.fifo'
+FIFO_MODE = 0o640
 HOLDER = {}
 
 
@@ -48,7 +49,7 @@ def save_bytes(path, value):
 def setup_root(*args, **kwargs):
     root = HOLDER['original_prepare'](*args, **kwargs)
     fifo = root / SINK.lstrip('/')
-    os.mkfifo(fifo, 0o640)
+    os.mkfifo(fifo, FIFO_MODE)
     HOLDER.update(root=root, path=fifo, reader=os.open(fifo, os.O_RDONLY | os.O_NONBLOCK))
     return root
 
@@ -309,6 +310,12 @@ def check_row(rows, point):
     return point['row']
 
 
+def validate_fifo_metadata(metadata):
+    if (metadata['path'] != SINK or metadata['fifo'] is not True or metadata['mode'] != FIFO_MODE
+            or metadata['uid'] != 0 or metadata['gid'] != 0):
+        raise ValueError('actual accepted FIFO type/ownership differs from exact root caller')
+
+
 def validate_trace(rows, markers):
     if (not rows or any(row.get('diagnostic_only') is not True or row.get('product_qualification') is not False
                        or row.get('extra_trace_fd') != 1 or row.get('missing_hooks') != 0
@@ -490,9 +497,7 @@ def collect(args):
     rows = internal.trace_rows(raw)
     checked = validate_trace(rows, markers)
     metadata = json.loads((work / 'fifo-metadata.json').read_text())
-    if (metadata['path'] != SINK or metadata['fifo'] is not True or metadata['mode'] != 0o660
-            or metadata['uid'] != 0 or metadata['gid'] != 0):
-        raise ValueError('actual accepted FIFO type/ownership differs from exact root caller')
+    validate_fifo_metadata(metadata)
     interleaved.method_controls(args.controls, bound, receipt['files']['bound-receipt.json'])
     for observation in scenario['observations']:
         if 'reply' in observation:
