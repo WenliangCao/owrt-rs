@@ -2,7 +2,7 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF完整44族68步aggregate、完整M2与16项独立targeted已实际通过，透明方法收据已关闭，43项既定资源批已detached串行启动；旧13步不沿用。
+- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF完整44族68步aggregate、完整M2与16项独立targeted已实际通过，透明方法收据已关闭，43项既定资源批已detached串行执行至34项关闭（public配对、internal9、冲突/reload交错），剩租约交错、S8和canonical资源/压力；旧13步不沿用。
 - 最终身份：feature-off opt3为791a7c33…／1,966,120 B，同源s为d8d3c1ea…／1,642,536 B；源码889fe4f5。完整build/map/archive见[最终冻结](audits/M6B_FINAL_FREEZE.md)，产品再次禁止修改。
 - 已关闭：UDP真实caller及共用准入修复；TFTP在约13分钟内复用现有collector续步完成，Linux main74/lib753、额外TFTP main3/socket3实际过，20ignored不计；精确C rename配对前后和清理一致。未改接口收集设计，未触发1小时止损。
 - 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步及169选项CLI/file形式已实际完成；完整M2十个jobs及独立targeted十六jobs实际通过；资源/压力、正式135、guard、APK、报告及退役清理仍未完成。
