@@ -206,3 +206,28 @@ fresh root为 `pair-signal-01/resource-tools-tail-05`，out为 `private/a79e-res
 预期组合覆盖只能使用03实际passed01–08、04实际passed09–22、05实际passed23–36；原03及04控制器整体失败、09及24各两次红都必须保留。04的旧C23不充当修复后配对结果；没有跳项，没有新的完整36项控制器通过声明。CPU入口仍为 cpu-a-79e-01，必须等完整实际结果及本地归档后生成真实15门收据。
 
 资源尾段当前状态：fresh05正在执行；尚未完成14项，CPU正式/试跑窗口均为零。若实际成功阶段缺少当前非父私有所有权，停下报告产品缺陷，不再为同一问题追加工具修补。
+## 2026-10-09 租约导入产品修复续接
+
+上节的 fresh05 已在 2026-10-08 19:15:57 UTC 停于第30项。23–28实际通过：冲突和reload的两个collector各完成10批、6负控全部拒绝；29仅镜像C运行通过，31–36均未执行。A的最新TCP视图应返回已发布租约 `192.0.2.42`，实际返回先前child导入的动态 `198.51.100.7`（TTL600）。2026-10-09以原资产、原参数仅换fresh输出原样确认，仍返回该动态地址（TTL599）；镜像C返回租约地址、TTL120。两次失败发生在wire断言、早于active根见证，不能用标签修订或未捕获的周期sample掩盖。
+
+失败执行、原样确认及原语门完整raw已本地全部SHA/metadata验证后prune：
+
+| E/M6B/full-archives 目录 | tar SHA | manifest SHA |
+| --- | --- | --- |
+| a-79e-resources-tail-05 | `8669d039fb242933a2ae7650dea711db0a4db392d80d09425eed12cd29ba583c` | `d10c16624add4e318455e8a21d9b8ed6f3c18e015350f637a7bba740bb2cc27f` |
+| a-79e-lease-confirm-01 | `4a41c11204f8faef33d31b1f79ec7dd4093489231b6b91ebd426c9d42ba3704c` | `db9aa820e9019bbc5a1cbd2cd992cb00627877845c744f399ebf3ed88955035f` |
+| a-79e-gates-01 | `7b01424ac11064aef0e59ea02d9a13bede750d18580380e3e2c0c79153cdcdf0` | `23397303c769d68752b3748e6d5ec3473b92eb7bf801527b17f619568ebfd334` |
+
+source-audit/evidence-audit、失败raw引用、controller/log/argv/exit、原始query/reply SHA及Oracle停点见 E/M6B/resume-20261009/lease30-product-failure。原止点main产品仍等于cd9，Oracle无本任务残留进程；cpu-a-79e-01仅prepared、零pilot/formal、无plan/controller。原红保持失败。
+
+用户随后明确授权仅修A租约/导入边界，补C差分回归；顺序为精准tests与受影响服务/原语门，再fresh第26–36项，全过才CPU45。止损条件：需要边界外设计，或修完出现新的产品错答，则停止A、保留NoA并直接进入最终冻结。另一个九组件r3会话正在Oracle运行；资源门可以继续，CPU45前必须确认无health-20261008相关进程、负载接近零；若未满足就等待，不停用户服务。
+
+精确源码与匹配C审计确认：LeasePublisher只更新ParentDns.local.leases，原导入用DnsDaemon.local做冲突检查；新的TCP正确复制前者，但错误父动态记录优先命中。reload与动态hosts发布确实同步hosts，重建后的lease仍仅安装外部对象；hosts clone还早于lease rebuild，不能把两个local对象当成同一当前状态。C cache_recv_insert→really_insert→cache_scan_free在当前父hash上处理F_HOSTS/F_DHCP/F_CONFIG冲突，同址丢弃、异址使事务失败，已有ordered-removal边界保持。该共同源码边界不等于本次实际重跑了NoA；没有NoA运行失败声明。
+
+A候选树已形成小修复 `7d3dc4d9c270d76ce73ad0cd1b805a6737af6da1`：ParentDns owner将自身当前local显式借给既有TCP importer；daemon沿用原local_cache_match规则。没有clone/cache副本、额外持有状态、子视图更新、事务重排或边界外设计。main产品仍是NoA，待完整资格决定后才合入。四个新生产publisher→typed-transfer→owner单测，以及既有11个相关精准测试均在新Linux测试ELF真实执行并通过，不把ignored-only或未执行项记过。
+
+新feature-off opt3已实际build：1,962,024字节，SHA `7707909285e3d4bbd30bdbc69e14ac1366b0729ba6ece88ee19f1037902e3f3c`；link map SHA `95bd5b670c69ac5987ce0b659666b4330769c7aec56ece8cf99aa988eee25d1e`。产品/receipt/map已下载逐SHA核验。完整source archive、source freeze、准备资产、脚本、PID/exit/log和15测试结果在 E/M6B/resume-20261009/a-lease-import-01；Oracle root为 `/home/ubuntu/dnsmasq-m6b-20261009/a-lease-import-01`，产品 `private/opt3-01/dnsmasq-rs`。NoA仍锁cd9及原c088…产品。
+
+永久产品C差分回归工具为 `tools/dnsmasq/m6b_tcp_lease_import_regression.py`：复用既有lease-held-import固定warm+10批、真实DHCP ACK/held release/新旧TCP顺序，使用feature-off产品；检查实际process/root/profile和query/reply，独立于companion余额门。5个纯Python负例单测通过；实际C/产品执行仍待。新同源primitive/layout/计数companion及六controls的准备在该root的stage-assets-02，payload SHA `cf0317e8cee45feb4a574ac77a52db25799809b784b157ad23e9974e0985af1d`；6389文件/397工具。第一个未执行stage资产因静态reader关联审查被第二份取代，原准备资产保留，未冒充运行失败或资格。
+
+下一步只按授权执行受影响门和fresh26–36。CPU的15门衔接不得给旧raw换source/ELF标签：旧实际身份、162个未变编译输入及23个关键函数字节等值证明、新受影响实际结果分别保留，再生成明确的派生wrapper；旧62份实际输入SHA已只读核验，仍未生成新资格receipt。精确方案见同目录cpu-prereq-transition.json。新A source/build/ELF与fresh common需重新冻结，原cpu-a-79e-01尚无窗口。最终冻结/135仍按用户当前分支决定执行，不碰物理路由器。
