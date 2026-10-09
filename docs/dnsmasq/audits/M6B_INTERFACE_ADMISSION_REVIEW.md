@@ -157,3 +157,39 @@ C 无回复、Rust 仍发 DATA；`cleanup.returncode=0`、`forced=false`。
 TFTP 缺陷尚未修复；当前 UDP 修复源码 `3492bbde` 只完成 source-bound
 Linux 测试，尚未重新冻结最终 opt3/s。原 `284376c4` 的前13步只留历史
 身份，未来新 ELF 必须从第1步实际重跑，不能导入这些结果。
+
+## 有界修复的收尾与最终身份
+
+用户随后授权一并修 TFTP，只能复用现有共享 owner 的接口收集续步，
+以1小时止损；DNS-TCP/DHCP专项到此结束。实际修复 `8bd80024`
+复用 `udp_acl_name/udp_acl_exception`，只增加一份原包 admission 单槽，
+与现有MAC等待共用8项上限。`step_tftp` 请求已有 `enumerate_interfaces(true)`；
+原collector完成回调发布接口并恢复这一原包，后备放行后走原MAC/dispatch。
+没有新增collector、线程、计时器或收集设计。静态IPv4信任cached owner、
+dedicated名单、single-port listener ACK与独立transfer ACK边界保持。
+
+`main_tftp_admission_tests.rs` 实际调用main接收链，覆盖旧IPv6名字误放行的
+拒绝/collector完成、IPv4 label例外恢复原RRQ且没有第二包、静态IPv4cached
+owner与dedicated当前名分支。新增main caller三项及既有TFTP socket三项
+在隔离Linux上实际通过；完整main74/lib753亦通过，其他20 ignored不计。
+首次 `8bd80024` 新测试夹具字节转义编译错误由 `889fe4f5` 修正，原错误
+归档保留，不改成产品红或运行通过。
+
+计时从2026-10-09 17:52:45 UTC开始；18:05:52 UTC精确C/新opt3配对
+已通过：改名前都发正确DATA，改名后均无回答，daemon退出0且未强杀。
+因此未触发“UDP-only＋TFTP已知差异”的止损方案。最终源码889fe4f5，
+opt3 `791a7c33987fbb21887c51041f27722b9cc1bd8bd4cffab0fc03a292517fb10f`；
+同源s身份见最终冻结报告。
+
+完整修复验证证据在 `E/M6B/final-889fe4f5/archives/`，均有本地
+SHA/全部metadata校验和prune收据，原始upper/special对象只保留完整tar：
+
+| 对象 | archive SHA256 |
+| --- | --- |
+| `repair-tests-01` | `bfcce6b399b7c42885573188d91e0c696253ada58652b72ce457c2e76077d1a2` |
+| `tftp-rename-c-01` | `5dccdb8b3c0afba99d5d14b9001bef908a79fe98ed1e7f0f02c70409438abcdb` |
+| `tftp-rename-rust-01` | `36cd8fc4bb7da15a876e7a65adc026f80feb0def32c9c281f0da413333cbc339` |
+| 原夹具编译失败 `fixture-build-error-01` | `f1f1f848b0690792af8af2f2e676b6d2fd8e5a409d14834ffb7a820d29f6e386` |
+
+这关闭修复专项；完整最终统一验收仍由新ELF的44族/68步、M2、资源压力、
+135、guard及APK链给出。原284376c4的13步未导入新资格。
