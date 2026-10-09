@@ -1,0 +1,388 @@
+{
+  "base_commit": "a4053dd5",
+  "comparison_fix_commit": "66b9a384",
+  "fix_commit": "1cabb7fc",
+  "inputs": {
+    "addresses_per_input": [
+      6,
+      5,
+      5,
+      6,
+      5,
+      6,
+      6,
+      6,
+      5,
+      6,
+      5,
+      6,
+      6
+    ],
+    "capture_sha256": "433df63996bc9802dd7937e87eee8395c3964ee50dbe07fed9944acc4b2bb2ad",
+    "count": 13,
+    "minimum_prefix_valid_seconds": 6263,
+    "no_gua_indices": [
+      2,
+      3,
+      5,
+      9,
+      11
+    ],
+    "unique_delegated_prefixes": 1
+  },
+  "invalid_attempts_retained": [
+    "run1: C removed unmanaged bridge; corrected fixture to configure owned bridge",
+    "unit.log: omitted shared rpcd profile example support; full source copied and final 172 tests passed",
+    "final-dad-on: unfixed sleep cadence crossed integer clock seconds, one prefix updated/hotplug mismatch; aligned cadence preserves notifications and passes",
+    "aligned-lifecycle3: route dump order differed; complete route multiset comparator removes presentation-order artifacts, preserving 9 existing differences"
+  ],
+  "known_remaining_differences": [
+    "PD expiry timer retains prefix metadata and parent null route in r2 and candidate",
+    "LAN down/up bridge lifecycle, assignment projection and subsequent ifindex differ in r2 and candidate"
+  ],
+  "limits": [
+    "oracle host kernel differs from router kernel",
+    "idle fixture protocol replays inputs; no live upstream RA or odhcp6c feedback",
+    "netlink messages retained but not compared event-by-event",
+    "IPv4 offlink and overlapping multiple PD ownership are source/unit coverage, not exercised by the 13 captured IPv6 inputs"
+  ],
+  "oracle": {
+    "kernel": "6.17.0-1020-oracle",
+    "machine": "aarch64",
+    "reference_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+    "upstream_revision": "cbb83a1857407a28a63dc09412a1f209195914ef"
+  },
+  "runs": [
+    {
+      "candidate_sha256": "28c8830ac70212b03c052e7531c617a7b284411b77e1b081420c72d5da8c48d7",
+      "canonical_difference_count": 26,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 26,
+      "replies_equal": true,
+      "run": "run2",
+      "snapshot_sha256": {
+        "c": "8f7c14ce62b418780e49ad18d43e389051b3aeddf3cf36725d3a4b927f5b7528",
+        "rs": "522449290ccda6957154aa5da733b7d34b07e80c791a9676e176a30b1ac3c6a0"
+      },
+      "snapshots_per_side": 14,
+      "summary_sha256": "fb5ac44bf98221f4f774110d174af0333051891f2621fa3ba671e02e7d13b7ba"
+    },
+    {
+      "candidate_sha256": "28c8830ac70212b03c052e7531c617a7b284411b77e1b081420c72d5da8c48d7",
+      "canonical_difference_count": 26,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 26,
+      "replies_equal": true,
+      "run": "run3",
+      "snapshot_sha256": {
+        "c": "60f5073f682fac15ebe9a8c9e30c8177bc723017c99e8e3404bcdf6831bafe10",
+        "rs": "4448d8ebb9af15ab7b42fad2a6bc172aac18e4c4dff0a3a68d617da1581d5447"
+      },
+      "snapshots_per_side": 14,
+      "summary_sha256": "fb5ac44bf98221f4f774110d174af0333051891f2621fa3ba671e02e7d13b7ba"
+    },
+    {
+      "candidate_sha256": "28c8830ac70212b03c052e7531c617a7b284411b77e1b081420c72d5da8c48d7",
+      "canonical_difference_count": 26,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 26,
+      "replies_equal": true,
+      "run": "run4",
+      "snapshot_sha256": {
+        "c": "60f5073f682fac15ebe9a8c9e30c8177bc723017c99e8e3404bcdf6831bafe10",
+        "rs": "4448d8ebb9af15ab7b42fad2a6bc172aac18e4c4dff0a3a68d617da1581d5447"
+      },
+      "snapshots_per_side": 14,
+      "summary_sha256": "fb5ac44bf98221f4f774110d174af0333051891f2621fa3ba671e02e7d13b7ba"
+    },
+    {
+      "candidate_sha256": "28c8830ac70212b03c052e7531c617a7b284411b77e1b081420c72d5da8c48d7",
+      "canonical_difference_count": 26,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 26,
+      "replies_equal": true,
+      "run": "run5",
+      "snapshot_sha256": {
+        "c": "60f5073f682fac15ebe9a8c9e30c8177bc723017c99e8e3404bcdf6831bafe10",
+        "rs": "4448d8ebb9af15ab7b42fad2a6bc172aac18e4c4dff0a3a68d617da1581d5447"
+      },
+      "snapshots_per_side": 14,
+      "summary_sha256": "fb5ac44bf98221f4f774110d174af0333051891f2621fa3ba671e02e7d13b7ba"
+    },
+    {
+      "candidate_sha256": "3f67abc8ba251f5119bfd8eb47cb70570ce647182bed406351557add385337c4",
+      "canonical_difference_count": 53,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 55,
+      "protection_difference_count": 41,
+      "replies_equal": true,
+      "run": "aligned-baseline-lifecycle1",
+      "snapshot_sha256": {
+        "c": "9112d3fb3be3eeac90d3bf79e476e0e3f12b0a66d009bc8531d92a7ed5bbb6e6",
+        "rs": "cc3991f6223a8f9065b73542b6d354b215517cb37b14ccc0d9a3836c7a482e34"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "78bce826b20040c83e9e7d95eaef404a2de13a164baa268718d4a7b55fa0512a"
+    },
+    {
+      "candidate_sha256": "3f67abc8ba251f5119bfd8eb47cb70570ce647182bed406351557add385337c4",
+      "canonical_difference_count": 53,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 53,
+      "protection_difference_count": 41,
+      "replies_equal": true,
+      "run": "aligned-baseline-lifecycle2",
+      "snapshot_sha256": {
+        "c": "2c220ae922fc65a66756fcd9af8a384845a17f5953d27604724ec05ab7937b9c",
+        "rs": "cc3991f6223a8f9065b73542b6d354b215517cb37b14ccc0d9a3836c7a482e34"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "554a9194fdd156c6cd0a85e6dd59010010022765b3b0632bb7892ae474144b5d"
+    },
+    {
+      "candidate_sha256": "3f67abc8ba251f5119bfd8eb47cb70570ce647182bed406351557add385337c4",
+      "canonical_difference_count": 53,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 53,
+      "protection_difference_count": 41,
+      "replies_equal": true,
+      "run": "aligned-baseline-lifecycle3",
+      "snapshot_sha256": {
+        "c": "2c220ae922fc65a66756fcd9af8a384845a17f5953d27604724ec05ab7937b9c",
+        "rs": "cc3991f6223a8f9065b73542b6d354b215517cb37b14ccc0d9a3836c7a482e34"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "554a9194fdd156c6cd0a85e6dd59010010022765b3b0632bb7892ae474144b5d"
+    },
+    {
+      "candidate_sha256": "3f67abc8ba251f5119bfd8eb47cb70570ce647182bed406351557add385337c4",
+      "canonical_difference_count": 53,
+      "core_difference_count": 26,
+      "hotplug_equal": true,
+      "original_difference_count": 53,
+      "protection_difference_count": 41,
+      "replies_equal": true,
+      "run": "aligned-baseline-lifecycle4",
+      "snapshot_sha256": {
+        "c": "2c220ae922fc65a66756fcd9af8a384845a17f5953d27604724ec05ab7937b9c",
+        "rs": "cc3991f6223a8f9065b73542b6d354b215517cb37b14ccc0d9a3836c7a482e34"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "554a9194fdd156c6cd0a85e6dd59010010022765b3b0632bb7892ae474144b5d"
+    },
+    {
+      "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+      "canonical_difference_count": 0,
+      "core_difference_count": 0,
+      "hotplug_equal": true,
+      "original_difference_count": 0,
+      "protection_difference_count": 0,
+      "replies_equal": true,
+      "run": "aligned-dad-on",
+      "snapshot_sha256": {
+        "c": "29403007c0c0b39438dd1a0646aeb8ad3e54913d495495021704a97cc649b375",
+        "rs": "29403007c0c0b39438dd1a0646aeb8ad3e54913d495495021704a97cc649b375"
+      },
+      "snapshots_per_side": 14,
+      "summary_sha256": "f3e3642ecc99307b0ce44cbb23dde0ec1585f6e7555838ef981c687f947e0195"
+    },
+    {
+      "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+      "canonical_difference_count": 9,
+      "core_difference_count": 0,
+      "hotplug_equal": true,
+      "original_difference_count": 9,
+      "protection_difference_count": 0,
+      "remaining_differences": [
+        "/16/lan/ipv6-prefix-assignment: lengths (1, 2)",
+        "/16/routes: lengths (47, 48)",
+        "/16/wan6/ipv6-prefix: lengths (0, 1)",
+        "/20/sysctl/br-lan: keys ['accept_dad', 'accept_ra', 'accept_ra_defrtr', 'accept_ra_from_local', 'accept_ra_min_hop_limit', 'accept_ra_min_lft', 'accept_ra_mtu', 'accept_ra_pinfo', 'accept_ra_rt_info_max_plen', 'accept_ra_rt_info_min_plen', 'accept_ra_rtr_pref', 'accept_redirects', 'accept_source_route', 'accept_untracked_na', 'addr_gen_mode', 'autoconf', 'dad_transmits', 'disable_ipv6', 'disable_policy', 'drop_unicast_in_l2_multicast', 'drop_unsolicited_na', 'enhanced_dad', 'force_forwarding', 'force_mld_version', 'force_tllao', 'forwarding', 'hop_limit', 'ignore_routes_with_linkdown', 'ioam6_enabled', 'ioam6_id', 'ioam6_id_wide', 'keep_addr_on_down', 'max_addresses', 'max_desync_factor', 'mc_forwarding', 'missing', 'mldv1_unsolicited_report_interval', 'mldv2_unsolicited_report_interval', 'mtu', 'ndisc_evict_nocarrier', 'ndisc_notify', 'ndisc_tclass', 'optimistic_dad', 'proxy_ndp', 'ra_defrtr_metric', 'ra_honor_pio_life', 'ra_honor_pio_pflag', 'regen_max_retry', 'regen_min_advance', 'router_probe_interval', 'router_solicitation_delay', 'router_solicitation_interval', 'router_solicitation_max_interval', 'router_solicitations', 'rpl_seg_enabled', 'seg6_enabled', 'seg6_require_hmac', 'stable_secret', 'suppress_frag_ndisc', 'temp_prefered_lft', 'temp_valid_lft', 'use_oif_addrs_only', 'use_optimistic', 'use_tempaddr']",
+        "/20/wan6/ipv6-prefix/0/assigned: keys ['lan']",
+        "/21/addresses/4/ifindex: values",
+        "/22/addresses/4/ifindex: values",
+        "/23/addresses/4/ifindex: values",
+        "/24/addresses/4/ifindex: values"
+      ],
+      "replies_equal": true,
+      "run": "aligned-lifecycle",
+      "snapshot_sha256": {
+        "c": "73af49ef2927a6cf04e905ac041069281a9a30296a3f809f4f2b27d9dc6c9ba5",
+        "rs": "158df8fc1ea04399a2cd82ecbef3ef19c868bc2c90d74e5dcef7c0284b6f5e51"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "092da12e30cf3a44afe32ca9ccd1e6f8af7e3b36247647bf6290f9c9c5fd1396"
+    },
+    {
+      "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+      "canonical_difference_count": 9,
+      "core_difference_count": 0,
+      "hotplug_equal": true,
+      "original_difference_count": 9,
+      "protection_difference_count": 0,
+      "remaining_differences": [
+        "/16/lan/ipv6-prefix-assignment: lengths (1, 2)",
+        "/16/routes: lengths (47, 48)",
+        "/16/wan6/ipv6-prefix: lengths (0, 1)",
+        "/20/sysctl/br-lan: keys ['accept_dad', 'accept_ra', 'accept_ra_defrtr', 'accept_ra_from_local', 'accept_ra_min_hop_limit', 'accept_ra_min_lft', 'accept_ra_mtu', 'accept_ra_pinfo', 'accept_ra_rt_info_max_plen', 'accept_ra_rt_info_min_plen', 'accept_ra_rtr_pref', 'accept_redirects', 'accept_source_route', 'accept_untracked_na', 'addr_gen_mode', 'autoconf', 'dad_transmits', 'disable_ipv6', 'disable_policy', 'drop_unicast_in_l2_multicast', 'drop_unsolicited_na', 'enhanced_dad', 'force_forwarding', 'force_mld_version', 'force_tllao', 'forwarding', 'hop_limit', 'ignore_routes_with_linkdown', 'ioam6_enabled', 'ioam6_id', 'ioam6_id_wide', 'keep_addr_on_down', 'max_addresses', 'max_desync_factor', 'mc_forwarding', 'missing', 'mldv1_unsolicited_report_interval', 'mldv2_unsolicited_report_interval', 'mtu', 'ndisc_evict_nocarrier', 'ndisc_notify', 'ndisc_tclass', 'optimistic_dad', 'proxy_ndp', 'ra_defrtr_metric', 'ra_honor_pio_life', 'ra_honor_pio_pflag', 'regen_max_retry', 'regen_min_advance', 'router_probe_interval', 'router_solicitation_delay', 'router_solicitation_interval', 'router_solicitation_max_interval', 'router_solicitations', 'rpl_seg_enabled', 'seg6_enabled', 'seg6_require_hmac', 'stable_secret', 'suppress_frag_ndisc', 'temp_prefered_lft', 'temp_valid_lft', 'use_oif_addrs_only', 'use_optimistic', 'use_tempaddr']",
+        "/20/wan6/ipv6-prefix/0/assigned: keys ['lan']",
+        "/21/addresses/4/ifindex: values",
+        "/22/addresses/4/ifindex: values",
+        "/23/addresses/4/ifindex: values",
+        "/24/addresses/4/ifindex: values"
+      ],
+      "replies_equal": true,
+      "run": "aligned-lifecycle2",
+      "snapshot_sha256": {
+        "c": "2c220ae922fc65a66756fcd9af8a384845a17f5953d27604724ec05ab7937b9c",
+        "rs": "158df8fc1ea04399a2cd82ecbef3ef19c868bc2c90d74e5dcef7c0284b6f5e51"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "3240b303e00bc91a2a0d5c80bd254e4748b3fbfb7de7f3b03c3037ed04560499"
+    },
+    {
+      "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+      "canonical_difference_count": 9,
+      "core_difference_count": 0,
+      "hotplug_equal": true,
+      "original_difference_count": 105,
+      "protection_difference_count": 0,
+      "remaining_differences": [
+        "/16/lan/ipv6-prefix-assignment: lengths (1, 2)",
+        "/16/routes: lengths (47, 48)",
+        "/16/wan6/ipv6-prefix: lengths (0, 1)",
+        "/20/sysctl/br-lan: keys ['accept_dad', 'accept_ra', 'accept_ra_defrtr', 'accept_ra_from_local', 'accept_ra_min_hop_limit', 'accept_ra_min_lft', 'accept_ra_mtu', 'accept_ra_pinfo', 'accept_ra_rt_info_max_plen', 'accept_ra_rt_info_min_plen', 'accept_ra_rtr_pref', 'accept_redirects', 'accept_source_route', 'accept_untracked_na', 'addr_gen_mode', 'autoconf', 'dad_transmits', 'disable_ipv6', 'disable_policy', 'drop_unicast_in_l2_multicast', 'drop_unsolicited_na', 'enhanced_dad', 'force_forwarding', 'force_mld_version', 'force_tllao', 'forwarding', 'hop_limit', 'ignore_routes_with_linkdown', 'ioam6_enabled', 'ioam6_id', 'ioam6_id_wide', 'keep_addr_on_down', 'max_addresses', 'max_desync_factor', 'mc_forwarding', 'missing', 'mldv1_unsolicited_report_interval', 'mldv2_unsolicited_report_interval', 'mtu', 'ndisc_evict_nocarrier', 'ndisc_notify', 'ndisc_tclass', 'optimistic_dad', 'proxy_ndp', 'ra_defrtr_metric', 'ra_honor_pio_life', 'ra_honor_pio_pflag', 'regen_max_retry', 'regen_min_advance', 'router_probe_interval', 'router_solicitation_delay', 'router_solicitation_interval', 'router_solicitation_max_interval', 'router_solicitations', 'rpl_seg_enabled', 'seg6_enabled', 'seg6_require_hmac', 'stable_secret', 'suppress_frag_ndisc', 'temp_prefered_lft', 'temp_valid_lft', 'use_oif_addrs_only', 'use_optimistic', 'use_tempaddr']",
+        "/20/wan6/ipv6-prefix/0/assigned: keys ['lan']",
+        "/21/addresses/4/ifindex: values",
+        "/22/addresses/4/ifindex: values",
+        "/23/addresses/4/ifindex: values",
+        "/24/addresses/4/ifindex: values"
+      ],
+      "replies_equal": true,
+      "run": "aligned-lifecycle3",
+      "snapshot_sha256": {
+        "c": "2c220ae922fc65a66756fcd9af8a384845a17f5953d27604724ec05ab7937b9c",
+        "rs": "8631a3df79558c4a062b4c710692d28b1af3c2f3fcd30fc77c228f371aa66a61"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "2bc57255c54a3f800acb15d1876e8758ea922b4aa56f4c3219b11d51ab768615"
+    },
+    {
+      "candidate_sha256": "7f12686b331e5d46cb79ce13041476014ffaf62a420ecb409de6c724105a0330",
+      "canonical_difference_count": 9,
+      "core_difference_count": 0,
+      "hotplug_equal": true,
+      "original_difference_count": 9,
+      "protection_difference_count": 0,
+      "remaining_differences": [
+        "/16/lan/ipv6-prefix-assignment: lengths (1, 2)",
+        "/16/routes: lengths (47, 48)",
+        "/16/wan6/ipv6-prefix: lengths (0, 1)",
+        "/20/sysctl/br-lan: keys ['accept_dad', 'accept_ra', 'accept_ra_defrtr', 'accept_ra_from_local', 'accept_ra_min_hop_limit', 'accept_ra_min_lft', 'accept_ra_mtu', 'accept_ra_pinfo', 'accept_ra_rt_info_max_plen', 'accept_ra_rt_info_min_plen', 'accept_ra_rtr_pref', 'accept_redirects', 'accept_source_route', 'accept_untracked_na', 'addr_gen_mode', 'autoconf', 'dad_transmits', 'disable_ipv6', 'disable_policy', 'drop_unicast_in_l2_multicast', 'drop_unsolicited_na', 'enhanced_dad', 'force_forwarding', 'force_mld_version', 'force_tllao', 'forwarding', 'hop_limit', 'ignore_routes_with_linkdown', 'ioam6_enabled', 'ioam6_id', 'ioam6_id_wide', 'keep_addr_on_down', 'max_addresses', 'max_desync_factor', 'mc_forwarding', 'missing', 'mldv1_unsolicited_report_interval', 'mldv2_unsolicited_report_interval', 'mtu', 'ndisc_evict_nocarrier', 'ndisc_notify', 'ndisc_tclass', 'optimistic_dad', 'proxy_ndp', 'ra_defrtr_metric', 'ra_honor_pio_life', 'ra_honor_pio_pflag', 'regen_max_retry', 'regen_min_advance', 'router_probe_interval', 'router_solicitation_delay', 'router_solicitation_interval', 'router_solicitation_max_interval', 'router_solicitations', 'rpl_seg_enabled', 'seg6_enabled', 'seg6_require_hmac', 'stable_secret', 'suppress_frag_ndisc', 'temp_prefered_lft', 'temp_valid_lft', 'use_oif_addrs_only', 'use_optimistic', 'use_tempaddr']",
+        "/20/wan6/ipv6-prefix/0/assigned: keys ['lan']",
+        "/21/addresses/4/ifindex: values",
+        "/22/addresses/4/ifindex: values",
+        "/23/addresses/4/ifindex: values",
+        "/24/addresses/4/ifindex: values"
+      ],
+      "replies_equal": true,
+      "run": "aligned-lifecycle4",
+      "snapshot_sha256": {
+        "c": "2c220ae922fc65a66756fcd9af8a384845a17f5953d27604724ec05ab7937b9c",
+        "rs": "158df8fc1ea04399a2cd82ecbef3ef19c868bc2c90d74e5dcef7c0284b6f5e51"
+      },
+      "snapshots_per_side": 25,
+      "summary_sha256": "3240b303e00bc91a2a0d5c80bd254e4748b3fbfb7de7f3b03c3037ed04560499"
+    }
+  ],
+  "schema_version": 1,
+  "source_sha256": {
+    "components/netifd/src/ip.rs": "a5b555935d640d4261d9f91b39e3e06d3e813f65b04af5dc950f7acad405b2f0",
+    "components/netifd/src/main.rs": "a35517fdfb32f672bbcf09122dfcc62cab02a8a55f4c53ff9503e7a59686ed9a",
+    "components/netifd/src/sys.rs": "6f1ff89ae9327526012061243c17dc49066bb3f56bd5c793f1e9eb169aa1f801",
+    "components/ubus/src/conn.rs": "e7dc64391eb981a3be86ff2f8ece52ed5d07b2518521241c2e325afaea071b57",
+    "components/ubus/src/sys.rs": "23203d875c3adf20e70eed077f3911da65aa7baf6084fa2557698fbf59bd1a15"
+  },
+  "validation": {
+    "dad_on_immediate_addresses_exactly_equal_without_tolerance": true,
+    "dad_on_immediate_tentative_count_c": [
+      7,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "dad_on_immediate_tentative_count_rs": [
+      7,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "dad_on_stable_snapshots_exactly_equal_without_tolerance": true,
+    "dad_on_stable_tentative_count_c": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "dad_on_stable_tentative_count_rs": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "final_local_comparator_tests_passed": 5,
+    "input_interval_seconds": 3,
+    "lifetime_tolerance_seconds": 2,
+    "linux_comparator_tests_passed": 4,
+    "linux_netifd_tests_passed": 172,
+    "route_comparison": "complete multiset; clocks excluded only from sorting key; no removal or deduplication",
+    "tool_test_log_sha256": "d094b1bd2c8318c96097f80c50da282add5b2972970a77046de8db6c8935f6ca",
+    "ubus_assignment_and_policy_rule_order": "strict",
+    "unit_log_sha256": "77e55d9e8c036c4147abf431493addf4b2e8919a3a1f4cddd15b7477d1395a9e"
+  }
+}
