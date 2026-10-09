@@ -908,7 +908,10 @@ def run_service_side(root,side,case,out):
             worker=threading.Thread(target=sampler);worker.start()
             try:
                 target.write_bytes(body)
-                files.await_predicate(lambda:'read /m2/files/dir/one - 1 names' in (out/'stderr').read_text()[offset:],'bounded hosts source completed',seconds=8)
+                def completed():
+                    logged='read /m2/files/dir/one - 1 names' in (out/'stderr').read_text()[offset:]
+                    return hosts_large_completed(pid,port,logged,out)
+                files.await_predicate(completed,'bounded hosts source completed',seconds=8)
             finally:stop.set();worker.join(2)
             check_hosts_large_progress(out,target,body,samples,states,side,worker.is_alive())
             return
@@ -1525,6 +1528,21 @@ def ordinary_cases(mode,scope):
     catalog=syntax_cases() if mode=='syntax' else service_cases()
     return [case for case in catalog if not case.get('c_only') and not case.get('extreme_input') and case['id'] not in deferred and
         (case['id'] in mapped or case['id'].startswith(tuple(prefixes)))]
+
+
+def hosts_large_completed(pid, port, read_logged, out):
+    # A queued earlier read can emit the same path/count after this write.
+    # Require the actual new record and a closed source before ending sampling.
+    if not read_logged or files.open_file_fds(pid,'/m2/files/dir/one'):
+        return False
+    reply=files.exchange(port,files.probe('large-source-complete','one.records.test'),0x35ff,'udp',[],{})
+    response=reply.get('response')
+    ready=bool(response and any(row.get('data')=='192.0.2.8' and row.get('type')==1
+        for row in response.get('records',[])))
+    closed=not files.open_file_fds(pid,'/m2/files/dir/one')
+    save(out/'hosts-large-completion.json',{'read_logged':read_logged,'source_published':ready,
+        'source_closed':closed,'reply':reply})
+    return ready and closed
 
 
 def check_hosts_large_progress(out, target, body, samples, states, side, worker_alive):

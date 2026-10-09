@@ -2,11 +2,30 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import m5_interface_records as family
 
 
 class RetainedProgress(unittest.TestCase):
+    def test_same_path_log_does_not_finish_an_open_or_old_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            out=Path(temporary)
+            with patch.object(family.files,'open_file_fds',return_value=[{'fd':7}]), \
+                    patch.object(family.files,'exchange') as exchange:
+                self.assertFalse(family.hosts_large_completed(1,15353,True,out))
+                exchange.assert_not_called()
+            for address,wanted in [('192.0.2.7',False),('192.0.2.8',True)]:
+                reply={'response':{'records':[{'type':1,'data':address}]}}
+                with patch.object(family.files,'open_file_fds',return_value=[]), \
+                        patch.object(family.files,'exchange',return_value=reply):
+                    self.assertEqual(family.hosts_large_completed(1,15353,True,out),wanted)
+                    self.assertEqual(json.loads((out/'hosts-large-completion.json').read_text())['source_published'],wanted)
+            reply={'response':{'records':[{'type':1,'data':'192.0.2.8'}]}}
+            with patch.object(family.files,'open_file_fds',side_effect=[[],[{'fd':8}]]), \
+                    patch.object(family.files,'exchange',return_value=reply):
+                self.assertFalse(family.hosts_large_completed(1,15353,True,out))
+
     def exercise(self, samples, side='rust', alive=False):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);target=root/'hosts';body=b'# comment\n';target.write_bytes(body)
