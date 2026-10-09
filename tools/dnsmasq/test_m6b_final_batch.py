@@ -13,6 +13,8 @@ import m5_cli_final as cli
 import m5_config_inputs as inputs
 import m5_dhcp_files as dhcp_files
 import m5_dns_cache as cache
+import m5_listeners as listeners
+import m5_dns_files as dns_files
 import m6b_route_resend as route
 import m6b_tcp_accept_snapshot as accept
 import m6b_tcp_lease_import_regression as lease
@@ -22,6 +24,42 @@ HERE = Path(final.__file__).resolve().parent
 
 
 class FinalBatch(unittest.TestCase):
+    def test_listener_batch_keeps_all_original_cases_and_loopback_witnesses(self):
+        cases = listeners.scenarios()
+        plan = json.loads((HERE / 'm5_listeners.json').read_text())
+        self.assertEqual(len(cases), 163)
+        self.assertEqual([case['name'] for case in cases], plan['required_cases'])
+        self.assertEqual(len({case['name'] for case in cases}), 163)
+        for case in cases:
+            labels = listeners.expected_labels(case)
+            self.assertTrue(labels)
+            self.assertEqual(len(labels), len(set(labels)), case['name'])
+            self.assertEqual(labels, plan['required_observations'][case['name']])
+        named = {case['name']: case for case in cases}
+        for transport in ['udp', 'tcp']:
+            label = 'lo-extra-' + transport
+            self.assertTrue(listeners.expected_answer(named['interface-wildcard'], label))
+            for name in ['listen-only-wildcard', 'interface-static', 'interface-dynamic']:
+                self.assertFalse(listeners.expected_answer(named[name], label))
+
+    def test_dns_file_dhcp_callers_have_the_declared_executable_helper(self):
+        cases = [case for case in dns_files.scenarios() if case.get('dhcp_witness')]
+        self.assertTrue(cases)
+        for case in cases:
+            self.assertTrue(case['files']['helper.sh'].startswith('#!/bin/sh\n'))
+            self.assertIn('dhcp-script=/m2/files/helper.sh', case['config'].splitlines())
+            with tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary); (root / 'm2/files').mkdir(parents=True)
+                opened = {}
+                try:
+                    dns_files.put(root, 'helper.sh', case['files']['helper.sh'], opened)
+                    path = root / 'm2/files/helper.sh'; path.chmod(0o755)
+                    self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o755)
+                    self.assertEqual(path.read_bytes(), case['files']['helper.sh'].encode())
+                finally:
+                    for handle in opened.values():
+                        if hasattr(handle, 'close'): handle.close()
+
     def test_all_44_families_68_steps_have_real_tools_and_witnesses(self):
         registry = json.loads((HERE / 'm5_final_families.draft.json').read_text())
         self.assertEqual(len(registry['families']), 44)
