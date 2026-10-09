@@ -52,6 +52,24 @@ def complete(profile):
 
 
 class SuccessfulDnsWitness(unittest.TestCase):
+    def test_s8_uses_one_fifo_facility_without_the_default_file_facility(self):
+        config = gate.driver.scenario_config({'config': 'log-queries', 'log_facility': gate.SINK,
+                                             'capacity': 150, 'metrics': True}, 5300, 5400)
+        self.assertEqual([line for line in config.splitlines() if line.startswith('log-facility=')],
+                         ['log-facility=' + gate.SINK])
+        self.assertIn('log-queries', config.splitlines())
+        self.assertIn('enable-ubus=cache-metrics', config.splitlines())
+
+    def test_default_family_configuration_is_byte_for_byte_unchanged(self):
+        for spec in gate.driver.SCENARIOS:
+            config = (f'port={0 if spec.get("dns_off") else 5300}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={gate.driver.LISTEN}\n'
+                      f'server=127.0.0.2#5400\ncache-size={spec.get("capacity",100)}\nno-0x20-encode\n'
+                      'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
+                      'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config'].replace('@UPSTREAM@','5400')+'\n'
+                      +('enable-ubus=cache-metrics\n' if spec.get('metrics') else ''))
+            with self.subTest(case=spec['case']):
+                self.assertEqual(gate.driver.scenario_config(spec, 5300, 5400), config)
+
     def test_acceptance_sample_cannot_replace_a_completed_query_sample(self):
         early, completed = active(1), active(2)
         early.update(private_content=0, content_versions=3)

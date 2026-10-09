@@ -943,6 +943,15 @@ def schedule_clock_phase():
             'after_monotonic_ns':time.monotonic_ns()}
 
 
+def scenario_config(spec,port,upstream_port):
+    return (f'port={0 if spec.get("dns_off") else port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN}\n'
+            f'server=127.0.0.2#{upstream_port}\ncache-size={spec.get("capacity",100)}\nno-0x20-encode\n'
+            'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
+            'pid-file=/m2/cache.pid\n'+f'log-facility={spec.get("log_facility", "/m2/cache.log")}\n'
+            +spec['config'].replace('@UPSTREAM@',str(upstream_port))+'\n'
+            +('enable-ubus=cache-metrics\n' if spec.get('metrics') else ''))
+
+
 def run(args):
     if os.geteuid()!=0 or os.environ.get('DNSMASQ_TEST_ISOLATED')!='1':raise ValueError('run through run_isolated.sh')
     network();out=args.out.resolve()
@@ -974,11 +983,7 @@ def run(args):
         if not pattern.search(spec['case']):continue
         label=spec['case'];folder=out/label;folder.mkdir();upstream=Upstream()
         with socket.socket(socket.AF_INET,socket.SOCK_DGRAM) as reserve:reserve.bind((LISTEN,0));port=reserve.getsockname()[1]
-        config=(f'port={0 if spec.get("dns_off") else port}\nno-resolv\nno-hosts\nbind-interfaces\nlisten-address={LISTEN}\n'
-                f'server=127.0.0.2#{upstream.port}\ncache-size={spec.get("capacity",100)}\nno-0x20-encode\n'
-                'host-record=health.cache.test,198.51.100.99\nlocal-ttl=600\nuser=root\n'
-                'pid-file=/m2/cache.pid\nlog-facility=/m2/cache.log\n'+spec['config'].replace('@UPSTREAM@',str(upstream.port))+'\n'
-                +('enable-ubus=cache-metrics\n' if spec.get('metrics') else ''))
+        config=scenario_config(spec,port,upstream.port)
         (folder/'config').write_text(config);(root/'m2/cache.conf').write_text(config)
         if 'initial_hosts' in spec:(root/'m2/caller.hosts').write_text(spec['initial_hosts'])
         trace={'case':label,'config':spec['config'],'observations':[],'exit':None};process=None

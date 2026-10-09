@@ -261,7 +261,7 @@ def run(args):
         raise ValueError('same-source bound diagnostic ELF required')
     frozen = {name: Path(__file__).with_name(name).read_bytes() for name in TOOLS}
     spec = {'case': 'm6b-internal-log-' + args.profile, 'mode': args.profile, 'capacity': 150,
-            'config': 'log-queries\nlog-facility=' + SINK, 'metrics': True,
+            'config': 'log-queries', 'log_facility': SINK, 'metrics': True,
             'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
     driver.SYNTAX.clear()
     driver.SCENARIOS[:] = [spec]
@@ -456,7 +456,7 @@ def collect(args):
             raise ValueError('frozen S8 dependency changed: ' + name)
     case = 'm6b-internal-log-' + receipt['profile']
     plan = {'case': case, 'mode': receipt['profile'], 'capacity': 150,
-            'config': 'log-queries\nlog-facility=' + SINK, 'metrics': True,
+            'config': 'log-queries', 'log_facility': SINK, 'metrics': True,
             'samples_after_drain_seconds': [0, 1, 5, 15, 60]}
     if json.loads((folder / 'profile-plan.json').read_text()) != plan:
         raise ValueError('frozen S8 caller configuration differs')
