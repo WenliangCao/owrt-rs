@@ -39,6 +39,14 @@ class ComparisonTest(unittest.TestCase):
         a = ['2001:db8::/64', 'fd00::/60']
         self.assertTrue(differences(a, list(reversed(a))))
 
+    def test_route_dump_order_does_not_hide_contents_or_duplicates(self):
+        first = {'dst': 'fe80::/64', 'dev': 'wan', 'metric': 256}
+        second = {'dst': 'fe80::/64', 'dev': 'upstream', 'metric': 256}
+        original = {'routes': [first, second]}
+        self.assertEqual(differences(original, {'routes': [second, first]}), [])
+        self.assertTrue(differences(original, {'routes': [first, first]}))
+        self.assertTrue(differences(original, {'routes': [first]}))
+
     def test_empty_capture_is_not_a_pass(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'capture'
