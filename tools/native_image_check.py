@@ -145,23 +145,40 @@ mount -o bind /sbin/uci /sbin/uci
         root = self.copy("package-reinstall")
         cache = root / "tmp/native-apks"
         cache.mkdir()
-        for source in [*apk_dir.glob("*.apk"), apk_dir / "packages.adb"]:
+        for source in apk_dir.glob("*.apk"):
             shutil.copy2(source, cache / source.name)
-        owners = " ".join(self.manifest["stock_packages"])
+        owner_apks = " ".join(
+            f"/tmp/native-apks/{name}-{info['version']}.apk"
+            for name, info in self.manifest["stock_packages"].items())
+        # fix --reinstall may return success after skipping an unavailable
+        # installed APK identity. Explicit payloads and missing-file repair
+        # prove that all eight fixtures were actually extracted.
+        file_lists = {}
+        for name in self.manifest["stock_packages"]:
+            path = root / "lib/apk/packages" / (name + ".list")
+            file_lists[path] = path.read_bytes()
+            path.unlink()
         ownership = "\n".join(
             f"apk info --who-owns {c['path']} | grep -Fx '{c['path']} is owned by owrt-control-plane-{self.manifest['version']}'"
             for c in self.manifest["components"].values()) + "\n"
         self.shell("package-stock-reinstall", root, f'''
-apk --no-scripts --no-network --allow-untrusted -X /tmp/native-apks/packages.adb fix --reinstall {owners}
+apk --no-scripts --no-network --allow-untrusted --repositories-file /dev/null add --force-reinstall {owner_apks}
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
 ''' + ownership)
+        assert "APK unavailable" not in (self.out / "package-stock-reinstall.log").read_text()
+        for path, expected in file_lists.items():
+            assert path.read_bytes() == expected, path
         self.identities(root)
         self.passed("stock_package_reinstall_preserves_nine_Rust_files")
-        self.shell("package-native-reinstall", root, '''
-apk --no-scripts --no-network --allow-untrusted -X /tmp/native-apks/packages.adb fix --reinstall owrt-control-plane
+        recovery = root / "usr/libexec/owrt-stock/sbin/procd"
+        recovery.unlink()
+        self.shell("package-native-reinstall", root, f'''
+apk --no-scripts --no-network --allow-untrusted --repositories-file /dev/null add --force-reinstall /tmp/native-apks/owrt-control-plane-{self.manifest['version']}.apk
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
 sha256sum -c /usr/share/owrt-control-plane/stock.sha256
 ''' + ownership)
+        assert "APK unavailable" not in (self.out / "package-native-reinstall.log").read_text()
+        assert sha(recovery) == self.manifest["components"]["procd"]["stock_sha256"]
         self.identities(root)
         self.passed("native_package_reinstall_preserves_Rust_and_recovery_files")
 
@@ -171,7 +188,7 @@ def main():
     parser.add_argument("rootfs", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--apk-dir", type=Path,
-                        help="offline index containing the native APK and pinned stock owner APKs")
+                        help="directory containing the native APK and pinned stock owner APKs")
     args = parser.parse_args()
     assert os.geteuid() == 0 and platform.system() == "Linux"
     assert platform.machine() == "aarch64" and not Path("/etc/openwrt_release").exists()
