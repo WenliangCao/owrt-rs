@@ -2,14 +2,15 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：最终产品冻结完成，正在准备同 ELF 功能回归；本轮尚未执行最终运行门。
-- 产品身份：从 main 284376c4 构建 feature-off opt3 与同源 s，分别 1,962,024 B 和 1,642,536 B；完整 SHA 与证据见 [最终冻结](audits/M6B_FINAL_FREEZE.md)。A 产品提交 f2a59167。
-- 冻结规则：产品代码不再修改；发现产品缺陷即停止交由用户决定。后续工具修订单独冻结，不能重标旧证据。
-- 已关闭：最终源码 archive、两实际 build/ELF/link map 与本地回拷身份核验。
-- 剩余：44族68步/169选项、完整M2、普通与targeted、资源/压力、正式135、实测guard、APK生命周期、报告与退役清理。
-- 已知差距：TCP未命中内存约为C三倍、opt3 ELF约为C七倍；第4包及M7真机未执行。
-- 卫生：用户 prompts、health热修复分支/工作树与常驻服务保持；原始证据只在private，物理路由器不碰。
-- 阻塞点：无产品缺陷；正在关闭既有控制器guard顺序依赖与整批夹具预检。
+- 当前步骤：**遇到普通产品缺陷，按用户最终冻结规则停止**；本轮没有改产品，也没有完成M6b交付。见 [最终验收停点](audits/M6B_FINAL_FREEZE_STOP.md)。
+- 冻结身份：源码284376c4，A产品提交f2a59167；opt3为e53fbdcb…／1,962,024 B，s为6cb5bcbe…／1,642,536 B。main后合入无关health热修复16ac3cea，dnsmasq源码与构建输入未变，未重建产品。完整身份见 [最终冻结](audits/M6B_FINAL_FREEZE.md)。
+- 已关闭：两产品构建/ELF/link map与回拷身份核验、本地整批夹具预检、两份原静态审查、独立工具冻结db32da6a；44族68步中前13族/13步实际通过。
+- 新缺陷：第14步listener完整163 cases／3,534 observations产生28条失败，实为14个profile的同一UDP admission缺陷。显式interface列表下C隐式允许lo，Rust新Linux caller漏掉该规则，丢弃127.0.0.2的合法UDP请求；TCP正确。原参一次单profile确认重现，不再复跑；interface普通合同重新打开，历史169清零不代表最终ELF已通过。
+- 剩余：31族/55步与169选项完整最终形式、普通/targeted、完整M2、资源矩阵/压力、唯一正式135、实测guard、APK生命周期、最终报告与退役清理均未完成；已有本地准备不算运行通过。
+- 证据：E/M6B/final-284376c4下两份完整tar与SHA/metadata本地验证、prune、plain和控制器收据均保留；远端已清对应upper并留普通报告。本轮控制器/watcher结束，剩余本轮进程0；失败predicate未改。
+- 已知差距：TCP未命中内存仍约为C三倍；最终opt3 ELF为C的7.29倍。第4包及M7真机未执行，原CPU45资格/接受判定保留原身份。
+- 卫生：用户prompts、health分支/工作树、4棵dirty树与常驻服务保持；退役仅完成只读盘点，未打tag或删树。物理路由器未接触，原始证据只在private。
+- 阻塞点与下一步：需用户决定是否解冻修复上述生产caller后重新冻结验收；当前冻结候选不得继续后续门。
 
 ## 工作规则
 
@@ -98,6 +99,8 @@ M4 的单 poll owner 已替换六线程接线，决定见 [ADR_THREAD_MODEL.md](
 最多四个子代理，各自有明确文件所有权。证据按里程碑统一放在 `private/dnsmasq-rewrite/evidence/`；实验分支 48 小时内合入或归档后删除。活跃功能族保留各自任务分支/worktree，完成后按开头规则归档和清理；旧 detached worktree 中有 ignored 证据和未提交内容，未为清理而丢弃。用户在 `docs/prompts/` 的改动保持原样。物理路由器没有操作授权，也没有执行操作。
 
 ## M5 盘点与工作顺序
+
+以下为M5历史盘点；M6b最终冻结重新打开interface普通UDP合同，完整169项最终资格仍未完成。
 
 盘点基线是 M4 的 `4b3fc62` / `faa55065…24577`。169 项全部逐项检查：**169 项已实现并有 C 差分，0 项部分实现，0 项未实现；剩余 0 项**。部分实现同时包括已知代码缺口和缺少镜像 C 族级行为验证，不能把元数据或语法通过算作运行时完成。历史源码 C、提取原语 C 和镜像 ELF 的证据身份分别记录；完成项也要参加 M5 最终统一二进制回归。 本轮 DNS 本地记录族在精确镜像上使用 build-02 ELF `ea8a39cd…b1a90` 完成 paired-04：140 条服务语义、25 条解析、0 个未执行和 0 个差异；唯一 reference difference 是 C 对非法 `dns-rr ... gg` 的分配失败缺陷，详见 [paired-04/result.json](../../private/dnsmasq-rewrite/evidence/M5/local-records/paired-04/result.json)。
 
@@ -204,7 +207,7 @@ M5 退出条件：169项全部实现并有C差分，或已证明与C一致的拒
 | `enable-ubus` | A / 1002 | 启动/日志/监听 | 已实现，有C差分 | [普通UBus完整资格](../../private/dnsmasq-rewrite/evidence/M5/ubus-contract/ordinary-744-close-summary.json)；5schedule／12C边界／350配对观察、2176检查／10负控全过：30真实metric wire字段/无服务、方法及payload、订阅与DHCP gating、IPv4/6多RR/metadata/TTL/doctor、TCP no-doctor/gauge、startup/retry双collision/disable、日志/EOF/真实分片/健康/FD回收。7440f1fd／8d38c1d5…84300c2b，1,777,704B；735路径/734文件SHA+metadata归档清远端。原版缺陷与one-owner调度各有严格独立guard；运行数十亿events wrap及进一步极端fuzz依用户规则deferred，不伪造已执行。 |
 | `except-interface` | A / 193 | 启动/日志/监听 | 已实现，有C差分 | [M5监听闭合](../../private/dnsmasq-rewrite/evidence/M5/listeners/close-summary.json)；163配置／3534逐标签观察／18完整C边界／130负控通过：DAD/失败组合/能力、IPv4 alias与双栈scope、动态owner/永久unowned、共享DNS/TFTP部分绑定、relay及源码caller语义。27条原版scopedTFTP缺陷单列有阳性控制；f987f941／2b63edc9…a2fa91，1,663,016字节；static TFTP独立修复增量0，其余混合增量单列。完整归档已核验清理；归档gate恢复审计另保留。 |
 | `group` | A / 1179 | 启动/日志/监听 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；已实现组选择、清 supplementary groups；M1 权限差分及 M4 镜像账户/服务验证。 |
-| `interface` | A / 184 | 启动/日志/监听 | 已实现，有C差分 | [M5监听闭合](../../private/dnsmasq-rewrite/evidence/M5/listeners/close-summary.json)；163配置／3534逐标签观察／18完整C边界／130负控通过：DAD/失败组合/能力、IPv4 alias与双栈scope、动态owner/永久unowned、共享DNS/TFTP部分绑定、relay及源码caller语义。27条原版scopedTFTP缺陷单列有阳性控制；f987f941／2b63edc9…a2fa91，1,663,016字节；static TFTP独立修复增量0，其余混合增量单列。完整归档已核验清理；归档gate恢复审计另保留。 |
+| `interface` | A / 184 | 启动/日志/监听 | 重新打开：普通UDP loopback | [M5监听闭合](../../private/dnsmasq-rewrite/evidence/M5/listeners/close-summary.json)；163配置／3534逐标签观察／18完整C边界／130负控通过：DAD/失败组合/能力、IPv4 alias与双栈scope、动态owner/永久unowned、共享DNS/TFTP部分绑定、relay及源码caller语义。27条原版scopedTFTP缺陷单列有阳性控制；f987f941／2b63edc9…a2fa91，1,663,016字节；static TFTP独立修复增量0，其余混合增量单列。完整归档已核验清理；归档gate恢复审计另保留。 | M6b最终冻结e53fbdcb的Linux wildcard UDP caller漏隐式lo，14profile红且原参确认；见[最终停点](audits/M6B_FINAL_FREEZE_STOP.md)，不能沿用旧普通资格。
 | `keep-in-foreground` | A / 1267 | 启动/日志/监听 | 已实现，有C差分 | [image-elf](../../private/dnsmasq-rewrite/evidence/M4/size-opt3-final-service/summary.json)；前台服务与正常信号退出有 M4 镜像全场景差分；未将无此选项的 daemonize 算通过。 |
 | `listen-address` | A / 188 | 启动/日志/监听 | 已实现，有C差分 | [M5监听闭合](../../private/dnsmasq-rewrite/evidence/M5/listeners/close-summary.json)；163配置／3534逐标签观察／18完整C边界／130负控通过：DAD/失败组合/能力、IPv4 alias与双栈scope、动态owner/永久unowned、共享DNS/TFTP部分绑定、relay及源码caller语义。27条原版scopedTFTP缺陷单列有阳性控制；f987f941／2b63edc9…a2fa91，1,663,016字节；static TFTP独立修复增量0，其余混合增量单列。完整归档已核验清理；归档gate恢复审计另保留。 |
 | `local-service` | A / 1011 | 启动/日志/监听 | 已实现，有C差分 | [M5严格准入复跑](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/affected-24671034/result.json)；14配置／180行含独立IPv4/IPv6本地/相邻非本地源、模式/显式ACL/CLI交互通过；[idle与排队见证](../../private/dnsmasq-rewrite/evidence/M5/option-matrix/batch2/admission-timing-03/result.json)证明双方idle EOF、已排41字节时RST。移除错误shutdown，严格比较errno，不再归一化。候选24671034／ELF99aaa63c…4f0dd3，1,396,848字节（修复增量0）。 |
