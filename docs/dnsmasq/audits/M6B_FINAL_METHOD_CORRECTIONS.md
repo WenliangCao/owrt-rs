@@ -62,3 +62,30 @@ identity、失败目录、确认结果和25个同 ELF 已通过族的收据保�
 证据入口为preflight下 `hostsdir-large-owner-*`、`hostsdir-confirmation-*`、
 `hosts-large-observed-samples.jsonl`、`hosts-full-observer-red-01.txt`、
 `hosts-observer-tests.log`、`hosts-completion-tests.log` 与三个独立tools archive。
+
+
+## AArch64 membership 注入的跳过见证
+
+独立targeted第15项原红和唯一完整原参数确认均在见证校验失败：
+C的`actual_result=3`、Rust为9，都是选中bind的原fd；原工具错误要求
+跳过后的x0为`-ENOSYS`。两侧EPERM随后真正执行同fd的group-zero bind，
+返回0；真正getsockname返回groups0及kernel port12。EINVAL没有fallback。
+该阶段的红不能认定产品准入或生命周期缺陷。
+
+工具`d05eab2c`保留原syscall200/family16/groups0x550目标，增加实际
+`NT_ARM_SYSTEM_CALL`入口读200、写-1后的读回、出口再读-1及4字节
+regset见证；要求entry/exit停点分别为1/2，并严格要求
+`actual_result == entry_x0 == fd > 0`。注入errno后再读general registers，
+以实际x0填写result。没有兼容任意返回值、人工填-ENOSYS或去掉原fallback、
+顺序、socket-name及cleanup检查。五项本地测试含缺读回、错误syscall/停点、
+错误fd/返回值、目标family/group、重复注入、伪造fallback/name与错误退出负控。
+独立tools树fresh两侧两errno均实际通过：EPERM健康回复并正常TERM退出0，
+EINVAL startup退出5、不回退。
+
+原工具树及原post-families红色status保持不变。完整M2和前14项targeted
+通过收据按实际manifest保留；新`functional-completion-01.json`明确引用旧
+status SHA和修订后两项精确结果，供资源控制器验证，不把原红原地改绿。
+启动确认时的Ubuntu父目录PermissionError发生在任何case创建前；其日志
+单列保留，随后root权限、fresh路径预检通过才执行唯一完整原参数确认。
+证据在最终preflight下`netlink-confirm-01-*`、`netlink-readback-01-*`、
+`netlink-skip-tests.log`和`functional-completion-01.json`；完整raw归档仍待收尾。

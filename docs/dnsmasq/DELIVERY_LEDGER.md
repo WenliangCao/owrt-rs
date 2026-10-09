@@ -2,16 +2,17 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF完整44族68步aggregate已通过；完整M2已启动，独立targeted将在M2完成后串行执行，旧13步不沿用。
+- 当前步骤：UDP/TFTP授权修复通过，已从889fe4f5重新冻结产品；已从第1步实际执行完整同ELF统一验收；新ELF完整44族68步aggregate、完整M2与16项独立targeted已实际通过，正在关闭透明方法收据并启动资源批；旧13步不沿用。
 - 最终身份：feature-off opt3为791a7c33…／1,966,120 B，同源s为d8d3c1ea…／1,642,536 B；源码889fe4f5。完整build/map/archive见[最终冻结](audits/M6B_FINAL_FREEZE.md)，产品再次禁止修改。
 - 已关闭：UDP真实caller及共用准入修复；TFTP在约13分钟内复用现有collector续步完成，Linux main74/lib753、额外TFTP main3/socket3实际过，20ignored不计；精确C rename配对前后和清理一致。未改接口收集设计，未触发1小时止损。
-- 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步及169选项CLI/file形式已实际完成；M2、独立targeted、资源/压力、正式135、guard、APK、报告及退役清理仍未完成。
+- 新验收：本地整批夹具/路径/见证/权限预检及两source-bound review已完成；完整44族68步及169选项CLI/file形式已实际完成；完整M2十个jobs及独立targeted十六jobs实际通过；资源/压力、正式135、guard、APK、报告及退役清理仍未完成。
 - 历史：UDP回退为e8b1d6c4新增live-name caller漏隐式lo；3492bbde修复。TFTP旧快照名字从M5已有，M6b2c28df78删除扫描使rename错误持续；8bd80024修复、889fe4f5仅测试夹具。见[引入历史](audits/M6B_UDP_LOOPBACK_REGRESSION_HISTORY.md)与[跨协议复核](audits/M6B_INTERFACE_ADMISSION_REVIEW.md)。DNS-TCP/DHCP审查到此结束，不再扩范围。
 - 旧证据：原284376c4/e53及s、前13步、listener失败及一次确认均保留原判定；后合入无关health16ac3cea不改其历史身份。旧CPU45资格/接受判定仍属原ELF，新最终135未执行。
 - 已知差距：TCP未命中内存约C三倍；最终opt3 ELF约C7.30倍。M7真机与延期第4包未执行；未据源码审查补造异常collector路径的运行见证。
 - 卫生：原始资料只在private；prompts、health分支/工作树、dirty树、常驻服务保持，物理路由器未接触；退役仍仅本地盘点。
 - 方法修订：DHCP identities原红仅option51 600/599，原mtime/expiry精确证明独立整数秒相位；一次确认绿。工具2489b0ed加入严格租约/请求时钟见证后fresh全族通过，原失败保留，见[方法记录](audits/M6B_FINAL_METHOD_CORRECTIONS.md)。
 - Hosts方法修订：原健康全绿但FD交集未测到，新增样本证实read日志触发结束时FD仍打开；21e6646d改为新记录已发布且FD关闭才结束采样，原1MiB/while-open合同不变，完整受影响族fresh执行后276service零失败、族级closeout实际过。
+- Netlink方法修订：原红与唯一原参确认均在skip返回值预期失败，C/R实际保留x0原fd。工具d05eab2c改为entry syscall200→写-1→真实读回-1、exit-1和正fd保持、errno写后读回的严格见证；五项本地负控与fresh两侧两errno实际通过。原post红保持，新functional-completion单独衔接资源。
 - 阻塞点：无已确认产品缺陷；冻结后新产品缺陷按用户要求立即停并告知，不修产品继续跑门。
 
 ## 工作规则
