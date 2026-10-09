@@ -1,6 +1,6 @@
 # signal 修复后 A79e 资格入口
 
-执行中。main仍无A；物理路由器未操作。原69bc完整27服务资格已全量保全，不能授新身份。
+当前 A 已合入 main，最终停点与完整 SHA 见本文件末节及 [CPU45 冻结交接](M6B_A_7D3_CPU45.md)。下方阶段记录保留各自原身份与失败；原69bc完整27服务资格不改标签。
 
 | 对象 | 源码 | feature-off opt3 SHA256 | 字节 | 实际Linux测试 |
 | --- | --- | --- | ---: | --- |
@@ -249,12 +249,24 @@ A候选树已形成小修复 `7d3dc4d9c270d76ce73ad0cd1b805a6737af6da1`：Parent
 
 已用上述完整manifest的精确子树覆盖验证后清理七份完成run/overlay及pressure目录，产品、源码、probe与controls保留给CPU绑定；prune原记录见E/M6B/resume-20261009/a-lease-import-01/raw-prune-01。没有删未归档raw或修改其内容。
 
-CPU新root为 `/home/ubuntu/dnsmasq-m6b-20261009/cpu-a-7d3-01`，本地E/M6B/cpu-a-7d3-01；payload SHA `a38f8ea6928fdad22c869fb4aa1e2e69f5349218917f035fde8de903e3b0cf62`，406文件上传逐SHA过，393项CPU工具/runner/analyzer/budget/schedule/archive字节与原8ae8b834相同。仅private准备wrapper改为显式A/NoA不同root。NoA cd9同源opt-s原实际artifact已读回验证：1,634,344B、SHA `aa23608d0cdffe10fed53d33c63f7ee90291a8b9afe473cc54ed44f0a4e51f90`，不再重建。fresh common已真实prepare/exit0，尚无CPUplan或窗口。
+CPU新root为 `/home/ubuntu/dnsmasq-m6b-20261009/cpu-a-7d3-01`，本地E/M6B/cpu-a-7d3-01；payload SHA `a38f8ea6928fdad22c869fb4aa1e2e69f5349218917f035fde8de903e3b0cf62`，406文件上传逐SHA过，393项CPU工具/runner/analyzer/budget/schedule/archive字节与原8ae8b834相同。仅private准备wrapper改为显式A/NoA不同root。NoA cd9同源opt-s原实际artifact已读回验证：1,634,344B、SHA `aa23608d0cdffe10fed53d33c63f7ee90291a8b9afe473cc54ed44f0a4e51f90`，不再重建。该准备停点仅完成 fresh common prepare/exit0；后续 plan、45 窗口与最终结论见本节后段及最终交接。
 
-CPU资格必须从完整新raw生成派生十五门收据，旧运行身份和源等值证明分别展示；离线草稿当前在核验正确的bin/lib输入范围与原build/copy路径，未生成资格。Oracle独占前置首次实测health-20261008进程为空、load0.02/0.04/0.00、5秒idle99.8%；正式启动前还需立即复查。下一步完成实际前置收据/冻结45计划后串行45窗口，A全部通过再合main。
+CPU 前置十五门随后已从完整新 raw 实际生成并发布，旧运行身份和源等值证明分别展示。首次 Oracle 空闲检查与启动前立即复查均通过；完整 45 与用户接受判定见最终交接。
 
 CPU45 已真实启动：plan SHA `071f9b425ed05a23db0f349c72d6a25fe59e146e1ebbc92ab4dd8be2e0d01acc`，fresh common manifest SHA `3099d469944ed8f37aa1b5129565d19db7b1e7902b09a6d6fe902116720f874e`，完整schedule/argv与原45方法一致，C/R3_new/A各15窗口（三profile各五轮）。派生十五门实际离线验证后写出 local prerequisites SHA `3b024684731e86e8061769346698942881a8cf27b220ebdf180c46f9aa1a277a`；只将外层wrapper路径改成Oracle后，published receipt SHA `ce2f66902493ae936739952b12d0f83d76c1242f0dc3c179a2114f0ae99dc045`，十五wrapper字节未改，16文件上传逐SHA核验。旧CLI格式归档也实际重放全SHA/metadata校验，不修改旧proof或raw；构建map按156个bin/lib输入与165含fuzz/toolchain冻结分别准确关联，工具链单独绑定。
 
-启动前再次实测health-20261008相关进程为空、load0.00/0.00/0.00、idle99.45%。本地watcher第一次shell后台未存活，尚无window时已保全空log/PID改为独立session；watcher PID54533存活且先取得manifest/state，再启动Oracle controller PID2882751。文件入口：local E/M6B/cpu-a-7d3-01/status-local.py、archived-private/{plan,state,archives}、watcher.log/.pid/.exit；remote cpu-a-7d3-01/private/{controller.log,controller.pid,controller.python.pid,controller.exit,state.json}，全部持久。每attempt包括失败/取消必须完整PAX传输、本地所有SHA/metadata核验、proof回传，才remoteprune及下一窗口；不读取live raw作选择。当前首轮tcp-local C正式运行，pilot已过、正式有效窗口尚零；不能据此授CPU资格。
+启动前再次实测health-20261008相关进程为空、load0.00/0.00/0.00、idle99.45%。本地watcher第一次shell后台未存活，尚无window时已保全空log/PID改为独立session；watcher PID54533存活且先取得manifest/state，再启动Oracle controller PID2882751。文件入口：local E/M6B/cpu-a-7d3-01/status-local.py、archived-private/{plan,state,archives}、watcher.log/.pid/.exit；remote cpu-a-7d3-01/private/{controller.log,controller.pid,controller.python.pid,controller.exit,state.json}，全部持久。每attempt包括失败/取消必须完整PAX传输、本地所有SHA/metadata核验、proof回传，才remoteprune及下一窗口；不读取live raw作选择。这是首次启动的历史停点；正式 45 窗口现已全部完成，最终停点见下。
 
 原正式window参数保持warmup30/duration120（含既定saturation30）、idle60与drain0/1/5/60，pilot同样带原idle/drain；不缩时长，累计45耗时较长。预算仍 `u_A <= 1.05*u_R3_new` 且 `u_A < u_C`，并执行原已有QPS/p95/行为/FD/测量方法检查，不新增门、不选更快attempt。
+
+## 2026-10-09 最终停点与冻结交接
+
+A 已合入 main：产品提交 `f2a5916712ff66a6bed8973b59aa6e6199ece8c7`，精确八路径采用候选 `7d3dc4d9c270d76ce73ad0cd1b805a6737af6da1`。暂存及提交后实际 165 输入与共同 signal/route 十正文均逐 SHA 核对无差异。源码核对没有重命名候选 build/ELF 收据；最终 main opt3/s 冻结与正式 135 留下一新会话。
+
+CPU45 全部完成第 1 次 attempt，C/NoA/A 各十五窗；controller/watcher exit0，零错答、超时、传输错误。六个 CPU 门和 QPS/p95 数值全通过。原冻结分析因 A local/cache 饱和生成器受限仍为 `unproven/false`，原 JSON 不改；用户明确接受 CPU 预算为合入门、受限 QPS 为已高于 NoA/C 的下限。A 饱和 local 写为 **≥85,207.87 QPS**，cache 写为 **≥120,566.37 QPS**（生成器受限，真实上限未测），不宣称吞吐提升倍数。两窗确认已由用户取消，只有本地草稿与空闲检查，未上传或执行。
+
+TCP 未命中内存仍约为 C 三倍：**18.6 MB 对 5.7 MB**，留给延期第 4 包；本轮 steady 树 PSS 峰值中位数 A/C 为 18,580/5,617 KiB。资源与产品通过段、所有原红与 strict reverse 差异保持原判定；十五门的旧实际身份和源等值证明保留。
+
+完整表格、全部 ELF/plan/common/收据/最终 state/分析/接受判定/归档总索引 SHA 与下一会话入口见 [CPU45 冻结交接](M6B_A_7D3_CPU45.md)。本地 E/M6B/cpu-a-7d3-01：`cpu-analysis-01.json`、`adoption-decision-01.json`、`archive-index-final-01.json`、`merge-verification-{staged,committed}-01.json`、`oracle-closure-01.json` 及 `archived-private/archives`。45 tar 合计 1,698,394,773 B，全部本地 SHA/metadata 证明及最终 tar 复核已完成；远端保留原工具需要的 JSON/log，未删未归档 raw。
+
+已退役十五棵交付树有 archive refs；活跃 A/route、dirty counters、用户 prompts 保留。Oracle 本任务已结束，物理路由器和用户服务未操作。本轮到交接提交结束。

@@ -282,12 +282,14 @@ poll/其它容量无增量。因此按用户规则将该对象分类`known-ready
 不扣requested、不授整体资源资格、不排除未知泄漏。原10批红结果仍保持失败，warm结构修正
 和标准资源门仍待，不选择较好attempt。
 
-## 2026-10-09 租约导入修复续接
+## 2026-10-09 A 合入与最终冻结交接
 
-统一见证修订后的 fresh23–28 实际通过；29镜像C过、30同源A计数companion真实错答，原样fresh确认仍错。新TCP应返回当前租约192.0.2.42，实际命中旧动态198.51.100.7；失败发生在wire断言、早于active根见证，没有根缺失或余额通过声明。31–36及CPU未执行，失败raw全量SHA/metadata归档后prune，原红保持。
+旧 A79e 第30项租约错答经原样确认，原红保留。新 A7d3 只在租约/导入边界将当前 ParentDns.local 显式借给 importer，沿用 C 冲突规则；reload/hosts 两套对象的同一边界也经过审查和生产 caller 测试。15 个精准 Linux 测试、feature-off C 差分、DHCP4/9负控、accept5/30负控、transfer36/307、lease70/1876及 fresh 资源26–36均实际通过，未出现新产品错答。资源资格由六项交错、四项S8及一项pressure通过段组成，失败整控制器与旧十批、strict reverse 原判词不翻绿。
 
-用户授权A的局部产品修复并要求检查reload/hosts两套对象。审计确认两条hosts链同样只把重建lease安装到外部ParentDns.local；显式使用当前owner local作为importer输入即可沿用C同址丢弃/异址事务失败规则。A修复7d3dc4d9已提交独立候选树；15个精准Linux测试真实通过，新feature-off opt3为1,962,024B、SHA77079092…；main产品仍保留NoA。新产品C差分回归、受影响服务/原语及fresh26–36待执行；全部过才重绑CPU45，不给旧证据换身份。
+CPU45 已完整完成：C/NoA/A各三场景五轮，45个第1次attempt，完整原始归档及SHA/metadata证明保全；三组全部错答、超时、传输错误均为0。六项 CPU 预算 `u_A <= 1.05*u_R3_new` 且 `u_A < u_C` 全通过，QPS/p95数值也全通过。原分析器因 A local/cache 饱和生成器受限保持 `unproven/false`；用户明确以CPU预算作合入门，并接受受限饱和吞吐为下限、吞吐未退步成立。local 为 **≥85,207.87 QPS**，cache 为 **≥120,566.37 QPS**（生成器受限，真实上限未测），不写吞吐提升倍数。确认窗口由用户取消，未上传、prepare或执行。
 
-止损规则：若需要边界外设计或修完出现新的产品错答，停止A、保留NoA并直接进入最终冻结。九组件r3会话也在Oracle；CPU45前必须确认health-20261008相关进程退出且负载接近零，否则等待。最新实际入口和完整SHA统一见[A79e checkpoint](audits/M6B_A_79E_CHECKPOINT.md)，原始审计与资产在E/M6B/resume-20261009。
+A 已采用精确八产品路径合入 main `f2a59167`；暂存及提交后165项编译输入和共同signal/route十正文逐SHA一致。候选source/build/ELF仍保留原7d3身份；完整数值、SHA与接受判定见 [CPU45冻结交接](audits/M6B_A_7D3_CPU45.md)。
 
-新A7d3实际完成15精准tests、feature-off lease-held-import C对照、DHCP4/9负控、accept5/30负控、transfer36/307和lease70/1876；fresh资源26–36由六项交错、四项S8和一项独立pressure真实通过段覆盖。没有新产品错答，产品未再修改。完整private与pressure原始证据已本地SHA/metadata保全后清理完成run/overlay，所有原红保持。CPU新root cpu-a-7d3-01已freshcommonprepare，原8aeCPU方法不变、零窗口；须完成来源清楚的十五门派生收据，并在启动前再确认health-20261008退出与Oracle近零负载。完整新资产与实际SHA见同checkpoint最新段。
+TCP未命中内存仍为 C 的约3倍：**18.6 MB对5.7 MB**，列延期第4包；本轮steady树PSS峰值中位数A/C为18,580/5,617KiB。CPU改善没有关闭该残余内存成本。
+
+本轮停在已合入及交接提交。下一新会话从最终main重新冻结feature-off opt3及同源s，完成最终source-bound review、正式135与既定统一验收；入口、资产和完整SHA统一见 [checkpoint最终停点](audits/M6B_A_79E_CHECKPOINT.md)。控制器与watcher均exit0，Oracle本任务结束；十五棵交付树archive后退役，活跃A/route与未提交树、用户prompts保留。

@@ -2,14 +2,14 @@
 
 ## 当前状态与下一步
 
-- 当前步骤：新 A 的精准测试、受影响 C 差分/服务/原语和资源第 26–36 项已实际通过，完整证据已保全；CPU 45 已真实启动并由归档 watcher 逐 attempt 验证。
-- 当前身份：NoA 为 cd9edcf7，新 A 为 7d3dc4d9；精确 SHA、源等值、资产与入口见 [A79e checkpoint](audits/M6B_A_79E_CHECKPOINT.md)。main 产品仍保留 NoA。
-- 已关闭：租约错答已在新产品复闭，reload/hosts 两套对象已审查；新 A 的 S8、ENOSPC/EMFILE 及原严格余额/负控通过。
-- 失败保全：所有旧十批、原错答、准备/队列/夹具红记录保持失败；通过段明确组成资格，未宣称失败整控制器通过，也未选择较好 attempt。
-- 本轮剩余：CPU 45 完整离线判定、A 合入判定与交接；出现新产品错答或边界外设计即停止 A、转 NoA 最终冻结。
-- CPU 准备：cpu-a-7d3-01 fresh common 已 prepare，同源 NoA opt-s 实际资产复用且校验；计划与前置收据已验证，启动前已复查无 health-20261008 进程且近零负载。
-- 卫生：15 棵交付树已 archive 退役；活跃 A/route、未提交树和用户 prompts 保留，完成 raw/overlay 本地完整验证后已清理，产品与源码留存。
-- 阻塞点：暂无；Oracle 本轮 CPU 独占，不停用户服务、不碰物理路由器。
+- 当前结论：A 已按用户接受的 CPU 门合入 main，产品提交为 f2a59167；本轮交接完成后停止。
+- 产品身份：main 组件与候选 7d3dc4d9 的 165 项编译输入完全相同；精确 ELF、源码与证据见 [冻结交接](audits/M6B_A_7D3_CPU45.md) 和 [checkpoint](audits/M6B_A_79E_CHECKPOINT.md)。
+- 已关闭：租约导入修复及 reload/hosts 同边界审查、精准测试、受影响服务/原语和 fresh 资源第 26–36 项均已实际通过。
+- CPU 结论：四十五个窗口完整归档，六项 CPU 预算通过且零错误；受限饱和吞吐按下限记录，原分析器的 unproven 判词保留。
+- 内存延期：TCP 未命中仍约 18.6 MB 对 C 的 5.7 MB，约为三倍，留给延期第 4 包。
+- 下一会话：从最终 main 重新冻结 opt3 与同源 s，再按既定配方完成正式 135 和最终统一验收；本轮没有执行这些后续步骤。
+- 卫生：十五棵交付树已 archive 后退役；活跃 A/route、dirty counters 和用户 prompts 保留，原始失败与证据只在 private。
+- 阻塞点：无；本轮 Oracle 控制器和 watcher 均正常结束，没有启动额外确认窗口。
 
 ## 工作规则
 
