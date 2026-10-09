@@ -11,7 +11,7 @@
 - 已知差距：TCP未命中内存约C三倍；最终opt3 ELF约C7.30倍。M7真机与延期第4包未执行；未据源码审查补造异常collector路径的运行见证。
 - 卫生：原始资料只在private；prompts、health分支/工作树、dirty树、常驻服务保持，物理路由器未接触；退役仍仅本地盘点。
 - 方法修订：DHCP identities原红仅option51 600/599，原mtime/expiry精确证明独立整数秒相位；一次确认绿。工具2489b0ed加入严格租约/请求时钟见证后fresh全族通过，原失败保留，见[方法记录](audits/M6B_FINAL_METHOD_CORRECTIONS.md)。
-- Hosts方法修订：原健康全绿但FD交集未测到，新增样本证实read日志触发结束时FD仍打开；21e6646d改为新记录已发布且FD关闭才结束采样，原1MiB/while-open合同不变，完整受影响族fresh执行中。
+- Hosts方法修订：原健康全绿但FD交集未测到，新增样本证实read日志触发结束时FD仍打开；21e6646d改为新记录已发布且FD关闭才结束采样，原1MiB/while-open合同不变，完整受影响族fresh执行后276service零失败、族级closeout实际过。
 - 阻塞点：无已确认产品缺陷；冻结后新产品缺陷按用户要求立即停并告知，不修产品继续跑门。
 
 ## 工作规则
