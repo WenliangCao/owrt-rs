@@ -1833,6 +1833,7 @@ impl<R: Random> DnsDaemon<R> {
         &mut self,
         transaction: super::cache::CacheTransaction,
         now: i64,
+        local: &LocalDnsService,
     ) -> bool {
         let Some(cache) = self.cache.as_mut() else {
             return false;
@@ -1844,7 +1845,9 @@ impl<R: Random> DnsDaemon<R> {
             negative_ttl: self.negative_ttl,
             filter_rr: &self.filter_rr,
         }
-        .import_transfer(transaction, now, &self.local)
+        // DHCP/hosts publication belongs to the event owner's current local
+        // generation, independently of this daemon's resolver state.
+        .import_transfer(transaction, now, local)
     }
 
     pub fn cached_tcp_answer(

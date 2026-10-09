@@ -320,6 +320,18 @@ struct ParentDns {
     daemon: Option<DnsDaemon>,
 }
 
+impl ParentDns {
+    fn import_tcp_cache_transfer(
+        &mut self,
+        transaction: dnsmasq_rs::dns::cache::CacheTransaction,
+        now: i64,
+    ) -> bool {
+        self.daemon.as_mut().is_some_and(|daemon| {
+            daemon.import_tcp_cache_transfer(transaction, now, &self.local)
+        })
+    }
+}
+
 /// One serialized parent event, including synchronous ubus callbacks. These
 /// counters belong to the actual UDP send and TCP-session lifetime below;
 /// cache/forward/DHCP counters stay with their engines and are only borrowed.
@@ -2699,9 +2711,7 @@ impl TcpDnsWork {
         if let Some(transaction) = transaction {
             self.parent_cache_activity = true;
             let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
-            if let Some(daemon) = owner.daemon.as_mut() {
-                daemon.import_tcp_cache_transfer(transaction, now_seconds());
-            }
+            owner.import_tcp_cache_transfer(transaction, now_seconds());
         }
         Ok(progress)
     }
@@ -6635,6 +6645,10 @@ mod stale_refresh_log_tests;
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_udp_acl_tests.rs"]
 mod udp_acl_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_tcp_import_local_tests.rs"]
+mod tcp_import_local_tests;
 
 #[cfg(test)]
 mod tests {
