@@ -9,7 +9,7 @@ use crate::startup::{ProcessConfig, StartupError};
 use std::collections::VecDeque;
 use std::ffi::{c_char, c_int, c_void, CStr};
 use std::fs::{File, OpenOptions};
-use std::io;
+use std::io::{self, Write};
 use std::net::SocketAddr;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
@@ -514,7 +514,8 @@ impl Logger {
             Destination::Syslog { .. } | Destination::Closed
         );
         if syslog {
-            bytes.extend_from_slice(format!("<{}>", self.facility | priority as i32).as_bytes());
+            // Vec writes are infallible; avoid a separate formatting buffer.
+            let _ = write!(bytes, "<{}>", self.facility | priority as i32);
         }
         if !self.omit_timestamp {
             let mut timestamp = [0u8; 26];
@@ -532,7 +533,7 @@ impl Logger {
         // libc openlog keeps one program identifier after log.c falls back;
         // subsystem suffixes still apply to its separate debug echo only.
         let suffix = if self.fallback { "" } else { service.suffix() };
-        bytes.extend_from_slice(format!("{PROGRAM}{suffix}[{pid}]: ").as_bytes());
+        let _ = write!(bytes, "{PROGRAM}{suffix}[{pid}]: ");
         let terminators = 1 + usize::from(self.fallback);
         bytes.extend_from_slice(
             &message[..message

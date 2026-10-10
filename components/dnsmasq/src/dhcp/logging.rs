@@ -1,6 +1,7 @@
 //! DHCP packet notices from rfc2131.c::log_packet (1918-1959).
 //! Callers supply values at their actual state transition, before wire/send.
 use crate::ubus_service::DhcpLogging;
+use std::io::Write;
 use std::net::Ipv4Addr;
 
 pub struct PacketLog<'a> {
@@ -24,17 +25,17 @@ pub fn packet(settings: DhcpLogging, record: PacketLog<'_>) -> Option<Vec<u8>> {
     if settings.suppresses_event() {
         return None;
     }
-    let mut message = Vec::new();
+    let mut message = Vec::with_capacity(128);
+    // Vec writes are infallible; format directly into the message buffer.
     if settings.log_options {
-        message.extend_from_slice(format!("{} ", record.xid).as_bytes());
+        let _ = write!(message, "{} ", record.xid);
     }
     message.extend_from_slice(record.kind);
     message.push(b'(');
     message.extend_from_slice(record.interface.unwrap_or(b"(null)"));
     message.extend_from_slice(b") ");
     if let Some(address) = record.address {
-        message.extend_from_slice(address.to_string().as_bytes());
-        message.push(b' ');
+        let _ = write!(message, "{address} ");
     }
     if let Some(mac) = record.mac {
         message.extend_from_slice(mac);

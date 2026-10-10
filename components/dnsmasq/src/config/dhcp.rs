@@ -655,6 +655,8 @@ impl DhcpConfig {
         )
     }
 
+    /// `in_context` is a pure address-membership predicate; only hosts whose
+    /// selector and tags match need the potentially longer context-chain scan.
     pub fn find_host_tagged(
         &self,
         client_id: Option<&[u8]>,
@@ -668,33 +670,31 @@ impl DhcpConfig {
         // before allowing untagged rules, not one pass per selector globally.
         for allow_untagged in [false, true] {
             let eligible = |host: &HostConfig| {
-                host.address.is_none_or(&in_context)
-                    && host.filter.matches_with(tags, allow_untagged)
+                host.filter.matches_with(tags, allow_untagged)
+                    && host.address.is_none_or(&in_context)
             };
             if let Some(id) = client_id {
                 if let Some(index) = self.hosts.iter().position(|host| {
-                    eligible(host)
-                        && host.client_id.as_deref().is_some_and(|configured| {
-                            configured == id || (id.first() == Some(&0) && configured == &id[1..])
-                        })
+                    host.client_id.as_deref().is_some_and(|configured| {
+                        configured == id || (id.first() == Some(&0) && configured == &id[1..])
+                    }) && eligible(host)
                 }) {
                     return Some(index);
                 }
             }
             if let Some(address) = hardware_address {
                 if let Some(index) = self.hosts.iter().position(|host| {
-                    eligible(host) && host.matches_hardware(hardware_type, address)
+                    host.matches_hardware(hardware_type, address) && eligible(host)
                 }) {
                     return Some(index);
                 }
             }
             if let Some(name) = hostname {
                 if let Some(index) = self.hosts.iter().position(|host| {
-                    eligible(host)
-                        && host
-                            .hostname
-                            .as_deref()
-                            .is_some_and(|configured| configured.eq_ignore_ascii_case(name))
+                    host.hostname
+                        .as_deref()
+                        .is_some_and(|configured| configured.eq_ignore_ascii_case(name))
+                        && eligible(host)
                 }) {
                     return Some(index);
                 }
@@ -702,14 +702,9 @@ impl DhcpConfig {
             if let Some(address) = hardware_address {
                 let mut best = None;
                 let mut score = 0;
-                for (index, host) in self
-                    .hosts
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, host)| eligible(host))
-                {
+                for (index, host) in self.hosts.iter().enumerate() {
                     let candidate = host.wildcard_score(hardware_type, address);
-                    if candidate > score {
+                    if candidate > score && eligible(host) {
                         score = candidate;
                         best = Some(index);
                     }
