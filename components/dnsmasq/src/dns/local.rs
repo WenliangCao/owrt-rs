@@ -1268,6 +1268,14 @@ fn select_local_rules(
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     notices: &mut QueryEvents,
 ) -> (bool, bool, bool) {
+    if config.rules.iter().all(|rule| match &rule.target {
+        RuleTarget::Upstream(_) | RuleTarget::DefaultResolvers => true,
+        RuleTarget::LocalOnly | RuleTarget::Literal(_) | RuleTarget::ZeroAddresses => false,
+    }) {
+        // Any matched forwarding rule still blocks lower local tiers, but
+        // without a local target no score ordering can produce an answer.
+        return (false, false, config.rules.iter().any(|rule| matches_domain(name, &rule.domain)));
+    }
     let class_in = class == CLASS_IN;
     let mut scores = config
         .rules

@@ -3,7 +3,7 @@
 //! OPT discovery precedes extract_request failure in UDP. TCP has a different
 //! ordering and deliberately does not call this admission helper.
 
-use super::wire::{find_pseudoheader, skip_questions, Header, Question, HEADER_LEN};
+use super::wire::{find_pseudoheader, skip_questions, validate_name, Header, HEADER_LEN};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Admission {
@@ -29,7 +29,7 @@ pub fn inspect(query: &[u8], edns_packet_max: u16) -> Admission {
     } else if header.questions != 1
         || header.answers != 0
         || header.authorities != 0
-        || Question::parse(query, HEADER_LEN).is_err()
+        || validate_name(query, HEADER_LEN, 4).is_err()
     {
         Some((5, Some(24))) // extract_request failure / EDE_INVALID_DATA
     } else {

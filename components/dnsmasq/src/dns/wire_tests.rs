@@ -114,6 +114,47 @@ fn maximum_name_uses_wire_length_even_for_escaped_bytes() {
 }
 
 #[test]
+fn validation_only_matches_decoding_for_prefixes_limits_and_compression() {
+    let mut maximum = Vec::new();
+    for length in [63, 63, 63, 61] {
+        maximum.push(length);
+        maximum.extend(std::iter::repeat_n(0, length.into()));
+    }
+    maximum.push(0);
+    let mut overlong = maximum.clone();
+    overlong[192] = 62;
+    overlong.push(0);
+    let mut pointer_chain = Vec::new();
+    for index in 0..256 {
+        pointer_chain.extend_from_slice(&(0xc000u16 | ((index + 1) * 2)).to_be_bytes());
+    }
+    pointer_chain.push(0);
+    let cases = [
+        (A_RESPONSE.to_vec(), 12),
+        (vec![0], 0),
+        (vec![5, 0, 1, b'.', 255, b'A', 0], 0),
+        (vec![1, b'a', 0, 0xc0, 0, 42], 3),
+        (vec![0xc0, 0], 0),
+        (vec![0xc0, 2, 0], 0),
+        (vec![0xc0, 255], 0),
+        (vec![1, b'a', 65, 0, 0], 0),
+        (maximum, 0),
+        (overlong, 0),
+        (pointer_chain, 0),
+    ];
+    for (packet, start) in cases {
+        for length in 0..=packet.len() {
+            for extra in [0, 1, 4] {
+                let input = &packet[..length];
+                assert_eq!(validate_name(input, start, extra),
+                    decode_name(input, start, extra).map(|(_, next)| next),
+                    "prefix {length}, start {start}, extra {extra}");
+            }
+        }
+    }
+}
+
+#[test]
 fn binary_labels_are_not_lossily_converted_to_text() {
     let (name, _) = decode_name(&[5, 0, 1, b'.', 255, b'A', 0], 0, 0).unwrap();
     assert_eq!(name.dnsmasq_bytes(), &[1, 1, 1, 2, 1, 47, 255, b'A']);
