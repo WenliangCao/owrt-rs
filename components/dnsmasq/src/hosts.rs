@@ -221,6 +221,9 @@ impl Hosts {
     /// Returns the current order, then rotates the first matching flags group
     /// for the next call, as cache_find_by_name does. `ipv6=None` means both.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
+        if self.forward.is_empty() {
+            return Vec::new();
+        }
         let Some(indices) = self.forward.get_mut(&name.to_ascii_lowercase()) else {
             return Vec::new();
         };

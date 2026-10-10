@@ -4796,8 +4796,8 @@ impl SinglePoll {
                 Some((answer, false))
             }
             dnsmasq_rs::dns::udp_query::Admission::Continue => {
-                let Ok((_, original_metadata)) =
-                    dnsmasq_rs::dns::forward_service::prepare_query(packet, self.edns_max)
+                let Ok(original_metadata) =
+                    dnsmasq_rs::dns::forward_service::query_metadata(packet, self.edns_max)
                 else {
                     return;
                 };

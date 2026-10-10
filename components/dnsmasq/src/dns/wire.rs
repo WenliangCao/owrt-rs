@@ -146,7 +146,7 @@ impl Name {
 
     /// dnsmasq's internal escaped byte string, without its C NUL terminator.
     pub fn dnsmasq_bytes(&self) -> Vec<u8> {
-        let mut result = Vec::new();
+        let mut result = Vec::with_capacity(self.0.len().saturating_sub(2));
         let mut pos = 0;
         while self.0[pos] != 0 {
             let length = self.0[pos] as usize;
@@ -553,9 +553,7 @@ pub fn find_pseudoheader(packet: &[u8], detect_signed: bool) -> Result<EdnsScan<
                 }
                 pos = fixed + 4;
             }
-            // The signed-query scan only records TKEY presence. Re-walk the
-            // questions to establish the section cursor.
-            pos = skip_questions(packet)?;
+            // The TKEY scan has already advanced to the section cursor.
         }
     } else {
         pos = skip_questions(packet)?;

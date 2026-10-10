@@ -1659,6 +1659,9 @@ impl<R: Random> DnsDaemon<R> {
     /// source-dependent EDNS cacheability; this performs no cache lookup side
     /// effects and does not start collection or read network state itself.
     pub fn interface_query_needs_enumeration(&self, query: &[u8], now: i64) -> bool {
+        if self.local.config.interface_records.rules.is_empty() {
+            return false;
+        }
         if super::local::interface_forward_name(&self.local.config, query).is_some() {
             return true;
         }

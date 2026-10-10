@@ -127,6 +127,10 @@ fn composed(rule: &InterfaceRule, input: &InterfaceAddress) -> Option<RecordAddr
 }
 
 impl InterfaceRecords {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
     /// Inputs follow C enumeration order: IPv6 dump, then IPv4 dump. Each rule
     /// prepends new results and keeps the flags of the first duplicate input.
     pub fn from_addresses(rules: &[InterfaceRule], inputs: &[InterfaceAddress]) -> Self {

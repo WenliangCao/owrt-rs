@@ -173,7 +173,7 @@ impl ForwardDispatcher {
         now: i64,
         random: &mut impl Random,
     ) -> Result<DispatchSubmission, DispatchError> {
-        let (_, metadata) = prepare_query(packet, self.edns_packet_max)?;
+        let metadata = query_metadata(packet, self.edns_packet_max)?;
         self.submit_with_metadata(packet, client, group, scope, now, random, metadata)
     }
 
@@ -392,13 +392,11 @@ impl ForwardDispatcher {
     }
 }
 
-/// Prepare the packet sent to an upstream server and derive the state needed
-/// for the client reply.  This function does not add option-specific EDNS
-/// data and does not alter signed TKEY/TSIG queries.
-pub fn prepare_query(
+/// Capture original client flags and limits before upstream EDNS decoration.
+pub fn query_metadata(
     packet: &[u8],
     configured_max: u16,
-) -> Result<(Vec<u8>, QueryMetadata), WireError> {
+) -> Result<QueryMetadata, WireError> {
     let header = Header::parse(packet)?;
     let scan = find_pseudoheader(packet, true)?;
     let configured_max = configured_max.max(DNS_DEFAULT_UDP_SIZE);
@@ -407,12 +405,23 @@ pub fn prepare_query(
         None => (DNS_DEFAULT_UDP_SIZE, false, false),
     };
     let flags = Flags::from_header(header, had_opt, dnssec_ok, true);
-    let metadata = QueryMetadata {
+    Ok(QueryMetadata {
         udp_limit,
         had_opt,
         signed: scan.signed,
         flags,
-    };
+    })
+}
+
+/// Prepare the packet sent to an upstream server and derive the state needed
+/// for the client reply. This does not add option-specific EDNS data or alter
+/// signed TKEY/TSIG queries.
+pub fn prepare_query(
+    packet: &[u8],
+    configured_max: u16,
+) -> Result<(Vec<u8>, QueryMetadata), WireError> {
+    let metadata = query_metadata(packet, configured_max)?;
+    let configured_max = configured_max.max(DNS_DEFAULT_UDP_SIZE);
     let mut prepared = packet.to_vec();
     super::edns_policy::add_pseudoheader(
         &mut prepared,

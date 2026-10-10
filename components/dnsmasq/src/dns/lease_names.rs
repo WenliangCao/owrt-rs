@@ -234,8 +234,9 @@ impl LeaseNames {
     /// Address presence does not answer other types locally. In particular,
     /// an IPv4 lease alone must not synthesize an AAAA NODATA response.
     pub fn lookup(&self, name: &[u8], now: i64) -> impl Iterator<Item = &LeaseName> {
-        self.forward
-            .get(&name.to_ascii_lowercase())
+        (!self.forward.is_empty())
+            .then(|| self.forward.get(&name.to_ascii_lowercase()))
+            .flatten()
             .into_iter()
             .flatten()
             .filter_map(move |&id| {

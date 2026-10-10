@@ -200,6 +200,7 @@ impl<'a> LocalAnswerer<'a> {
         // Defer this local answer to CacheContext so its SOA footer survives.
         if class_in
             && matches!(question.qtype, TYPE_A | TYPE_AAAA)
+            && !interfaces.is_empty()
             && interfaces.declared(&question.name.dnsmasq_bytes())
             && cache
                 .as_deref()
@@ -225,7 +226,6 @@ impl<'a> LocalAnswerer<'a> {
             interfaces,
         };
 
-        let key = question.name.canonical_wire();
         let mut rows: Vec<(u16, u32, Vec<u8>)> = Vec::new();
         let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
         let mut owned = false;
@@ -237,12 +237,12 @@ impl<'a> LocalAnswerer<'a> {
         // requested RR type is looked up there.  This also applies to unknown
         // RR types, which still receive a CNAME-only answer.
         let has_cname = class_in
-            && self
-                .config
-                .records
-                .cnames
-                .iter()
-                .any(|record| dotted_key(&record.alias) == key);
+            && !self.config.records.cnames.is_empty()
+            && {
+                let key = question.name.canonical_wire();
+                self.config.records.cnames.iter()
+                    .any(|record| dotted_key(&record.alias) == key)
+            };
         if has_cname {
             owned = add_cname_chain(
                 self.config,
@@ -651,6 +651,9 @@ fn expire_lease_lookups(
     qtype: u16,
     now: i64,
 ) {
+    if leases.entries().is_empty() {
+        return;
+    }
     let Some(mut name) = wire_to_dotted(query) else {
         return;
     };
@@ -692,7 +695,7 @@ fn dotted_key(name: &[u8]) -> Vec<u8> {
 
 pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
     let wire = name.as_wire();
-    let mut out = Vec::new();
+    let mut out = Vec::with_capacity(wire.len().saturating_sub(2));
     let mut pos = 0;
     while pos < wire.len() {
         let len = usize::from(wire[pos]);
@@ -1057,7 +1060,8 @@ fn add_local_records_for_name(
                     hosts.source_name(source),
                 );
             }
-            if !rows.iter().any(|row| row.0 == rrtype)
+            if !leases.synth.domains.is_empty()
+                && !rows.iter().any(|row| row.0 == rrtype)
                 && !cache.is_some_and(|cache| {
                     Name::from_dotted_bytes(name).ok().is_some_and(|query| {
                         cache.has_forward_candidate(&query, rrtype, leases.now)
@@ -1360,6 +1364,9 @@ fn select_local_rules(
 }
 
 fn matches_domain(name: &Name, pattern: &DomainPattern) -> bool {
+    if !pattern.dotless && pattern.suffix.is_empty() {
+        return true;
+    }
     // Keep C's label escapes: an embedded dot cannot become a separator,
     // but later real labels must still match local/address suffix rules.
     let query = name.dnsmasq_bytes().to_ascii_lowercase();
@@ -2608,6 +2615,9 @@ fn is_interface_ancestor(name: &[u8], configured: &[u8]) -> bool {
 /// Resolve the configured CNAME terminal before the parent's enum decision.
 /// Packet/cache wrappers remain the cache family's responsibility.
 pub fn interface_forward_name(config: &DnsConfig, query: &[u8]) -> Option<Vec<u8>> {
+    if config.interface_records.rules.is_empty() {
+        return None;
+    }
     let header = Header::parse(query).ok()?;
     if header.opcode() != 0 || header.flags & 0x8000 != 0 || header.questions != 1 {
         return None;
