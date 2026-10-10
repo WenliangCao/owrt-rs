@@ -573,6 +573,10 @@ impl LocalProvider {
         if context.is_none() {
             return;
         }
+        if self.config.boot.is_none() && self.config.boot_entries.is_empty() {
+            self.selected_boot = None;
+            return;
+        }
         let mode = u8::from(
             self.pxe_client
                 .as_ref()
@@ -953,10 +957,12 @@ impl LocalProvider {
         self.packet_interfaces = None;
     }
 
-    fn packet_addresses(&self) -> io::Result<Vec<crate::interfaces::Ipv4Interface>> {
+    // One admitted packet consumes this generation; probe waits cannot reenter
+    // DHCP, and a WouldBlock listener fallback has not reached this method.
+    fn packet_addresses(&mut self) -> io::Result<Vec<crate::interfaces::Ipv4Interface>> {
         if self.interface_owner.is_some() {
             self.packet_interfaces
-                .clone()
+                .take()
                 .ok_or_else(|| io::Error::other("DHCP address snapshot is not ready"))
         } else {
             ipv4_interfaces()
@@ -1928,7 +1934,8 @@ impl LocalProvider {
                     }),
             );
         }
-        let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
+        let mut tags: Vec<&[u8]> = Vec::with_capacity(2);
+        tags.extend(interface_name);
         let [oui, serial, _] = crate::helper::cpe_data(packet);
         if oui.is_some() && serial.is_some() {
             tags.push(b"cpewan-id");
@@ -1957,14 +1964,20 @@ impl LocalProvider {
         }
 
         let in_context = |address| ranges.iter().any(|range| range.same_subnet(address));
-        let mut lookup_tags = tags.clone();
-        TagIf::apply_all(&self.config.tag_if, &mut lookup_tags);
+        let mut expanded_tags;
+        let lookup_tags = if self.config.tag_if.is_empty() {
+            tags.as_slice()
+        } else {
+            expanded_tags = tags.clone();
+            TagIf::apply_all(&self.config.tag_if, &mut expanded_tags);
+            expanded_tags.as_slice()
+        };
         let mut host_index = self.config.find_host_tagged(
             clid,
             identity.hardware_type,
             Some(&identity.hardware_address),
             None,
-            &lookup_tags,
+            lookup_tags,
             in_context,
         );
         if host_index.is_some() {
@@ -1976,7 +1989,7 @@ impl LocalProvider {
                 identity.hardware_type,
                 Some(&identity.hardware_address),
                 None,
-                &lookup_tags,
+                lookup_tags,
                 |_| true,
             )
             .is_some()
@@ -1996,7 +2009,7 @@ impl LocalProvider {
         let mut configured_by_name = false;
         if host_index.is_none() {
             if let Some(name) = client_name.as_deref() {
-                lookup_tags = tags.clone();
+                let mut lookup_tags = tags.clone();
                 TagIf::apply_all(&self.config.tag_if, &mut lookup_tags);
                 if let Some(index) = self.config.find_host_tagged(
                     None,
@@ -2036,7 +2049,11 @@ impl LocalProvider {
             }
             tags.push(b"bootp");
         }
-        self.request_tags = tags.iter().map(|tag| tag.to_vec()).collect();
+        self.request_tags.resize_with(tags.len(), Vec::new);
+        for (saved, tag) in self.request_tags.iter_mut().zip(&tags) {
+            saved.clear();
+            saved.extend_from_slice(tag);
+        }
         // do_options checks the original netid head, not tag-if additions.
         self.force_broadcast = self.config.force_broadcast_for(&tags);
         TagIf::apply_all(&self.config.tag_if, &mut tags);
@@ -2387,7 +2404,6 @@ impl LocalProvider {
             }
         };
         let helper_new_lease = existing.is_none();
-        let lease_identity = super::state::identity(packet, environment.ignore_client_id);
         let reply_error = RefCell::new(None);
         let mut before_offer = |context: usize, counters: LeaseCounters| {
             // C's DISCOVER record precedes reply-delay and any other service
@@ -2471,18 +2487,25 @@ impl LocalProvider {
         drop(before_offer);
         drop(on_event);
         drop(packet_notice);
-        self.network_notices.extend(packet_notices.into_inner());
+        let packet_notices = packet_notices.into_inner();
+        if self.network_notices.is_empty() {
+            self.network_notices = packet_notices;
+        } else {
+            self.network_notices.extend(packet_notices);
+        }
         if let Some(error) = reply_error.into_inner() {
             return Err(RuntimeError::State(error.to_string()));
         }
         if let Ok(outcome) = &result {
             let lease_id = match outcome.reply {
-                Reply::Ack { address, .. } | Reply::Bootp { address, .. } => self
-                    .leases
-                    .find_client(&lease_identity)
-                    .filter(|lease| lease.address == address)
-                    .or_else(|| self.leases.get(address))
-                    .map(|lease| lease.id()),
+                Reply::Ack { address, .. } | Reply::Bootp { address, .. } => {
+                    let lease_identity = super::state::identity(packet, environment.ignore_client_id);
+                    self.leases
+                        .find_client(&lease_identity)
+                        .filter(|lease| lease.address == address)
+                        .or_else(|| self.leases.get(address))
+                        .map(|lease| lease.id())
+                }
                 _ => None,
             };
             if let Some(id) = lease_id.filter(|_| matches!(outcome.reply, Reply::Ack { .. })) {
