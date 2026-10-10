@@ -1646,7 +1646,7 @@ fn run_inner(
         poll.step_dns_files();
         #[cfg(target_os = "linux")]
         poll.step_hosts_files();
-        if poll.interface_refresh.due(Instant::now()) && !poll.interface_work_pending() {
+        if poll.interface_refresh.due_now() && !poll.interface_work_pending() {
             poll.interface_refresh.requested = false;
             let mut failed_snapshot = false;
             match listeners::snapshot() {
@@ -2117,6 +2117,9 @@ impl InterfaceRefresh {
     fn request(&mut self) { self.requested = true; }
     fn due(&self, now: Instant) -> bool {
         self.requested || self.retry_at.is_some_and(|due| due <= now)
+    }
+    fn due_now(&self) -> bool {
+        self.requested || (self.retry_at.is_some() && self.due(Instant::now()))
     }
     fn complete(&mut self, now: Instant, pending: bool) {
         self.requested = false;
@@ -3339,10 +3342,10 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn step_route_events(&mut self) {
-        let now = Instant::now();
-        if self.route_retry_at.is_some_and(|due| due > now) { return; }
         let ready = self.route_watch.as_ref().is_some_and(|watch| self.fd_ready(watch.raw_fd(), owrt_ubus::sys::POLLIN));
         if !ready && self.route_retry_at.is_none() { return; }
+        let now = Instant::now();
+        if self.route_retry_at.is_some_and(|due| due > now) { return; }
         self.route_retry_at = None;
         let Some(watch) = &mut self.route_watch else { return; };
         let result = watch.read_events();
@@ -4046,9 +4049,9 @@ impl SinglePoll {
             // Active timers retain the existing one-hour recheck cadence.
             // An idle owner has no periodic deadline.
             let deadline = deadline.map(|due| due.min(now + Duration::from_secs(3600)));
-            let timeout = owner_poll_timeout(deadline, Instant::now(), runnable);
-            debug_assert!(!runnable || timeout == 0);
             let started = Instant::now();
+            let timeout = owner_poll_timeout(deadline, started, runnable);
+            debug_assert!(!runnable || timeout == 0);
             let poll_result = owrt_ubus::sys::poll_fds(&mut fds, timeout);
             let ready = match poll_result {
                 Ok(ready) => ready,
@@ -4243,7 +4246,7 @@ impl SinglePoll {
         // A collector may have completed above while an address event was
         // held behind it. Publish that queued generation on the next owner
         // turn before admitting new DNS/DHCP/TFTP work; poll will be runnable.
-        if self.interface_refresh.due(Instant::now()) && !self.interface_work_pending() {
+        if self.interface_refresh.due_now() && !self.interface_work_pending() {
             return Ok(());
         }
         // Bound work per turn.  This keeps a busy UDP socket from starving
@@ -4850,6 +4853,7 @@ impl SinglePoll {
                 let needs_interfaces =
                     dnsmasq_rs::dns::local::interface_forward_name(&self.config, packet).is_some()
                         || (decoration.cacheable
+                            && !daemon.local_config().interface_records.rules.is_empty()
                             && daemon.interface_query_needs_enumeration(packet, now_seconds()));
                 if needs_interfaces && !self.interfaces_enumerated {
                     drop(parent);
@@ -6292,11 +6296,14 @@ impl SinglePoll {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_tftp(&mut self) {
-        let now_instant = Instant::now();
         let active = self
             .tftp
             .as_ref()
             .is_some_and(TftpListener::has_pending_work);
+        if !self.tftp_ready && !active {
+            return;
+        }
+        let now_instant = Instant::now();
         if !self.tftp_ready && !(active && self.neighbors_ready)
             && !(active && self.tftp_next_due.is_some_and(|deadline| deadline <= now_instant))
         {
