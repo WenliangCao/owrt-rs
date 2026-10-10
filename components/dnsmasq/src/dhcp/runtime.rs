@@ -33,12 +33,6 @@ pub trait DatagramSender {
         Ok(())
     }
     fn send(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()>;
-
-    /// SocketListener has already enabled DHCP socket options before admission.
-    /// Other senders retain their normal send/failure behavior.
-    fn send_configured_dhcp(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()> {
-        self.send(bytes, destination)
-    }
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -82,15 +76,9 @@ impl DatagramSender for crate::net::DatagramSocket {
     }
 
     fn send(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()> {
-        if destination.kind == DestinationKind::Broadcast {
-            self.set_broadcast(true)?;
-        }
-        self.send_configured_dhcp(bytes, destination)
-    }
-
-    fn send_configured_dhcp(&mut self, bytes: &[u8], destination: &Destination) -> io::Result<()> {
         match destination.kind {
             DestinationKind::Broadcast => {
+                self.set_broadcast(true)?;
                 self.send_on_interface_once(bytes, destination.address, destination.interface)
             }
             DestinationKind::Client | DestinationKind::Peer => {

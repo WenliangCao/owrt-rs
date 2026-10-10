@@ -214,7 +214,7 @@ impl<S: super::runtime::DatagramSender> super::runtime::DatagramSender for Owner
         if let Some(source) = self.dump_source {
             self.dump.udp(crate::dump::DHCP, bytes, source, destination.address);
         }
-        match super::runtime::DatagramSender::send_configured_dhcp(self.socket, bytes, destination) {
+        match super::runtime::DatagramSender::send(self.socket, bytes, destination) {
             Err(error)
                 if matches!(
                     error.kind(),
@@ -511,7 +511,7 @@ impl SocketListener {
                 .as_mut()
                 .ok_or_else(|| io::Error::other("queued PXE reply has no socket"))?
         };
-        match super::runtime::DatagramSender::send_configured_dhcp(socket, &pending.bytes, &pending.destination) {
+        match super::runtime::DatagramSender::send(socket, &pending.bytes, &pending.destination) {
             Ok(()) => Ok(true),
             Err(error)
                 if matches!(

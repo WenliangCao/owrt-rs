@@ -237,7 +237,6 @@ pub struct Logger {
     echo: Option<RawFd>,
     echo_queue: VecDeque<Record>,
     queue: VecDeque<Record>,
-    spare: Vec<u8>,
     limit: usize,
     lost: u32,
     facility: i32,
@@ -407,7 +406,6 @@ impl Logger {
                 echo,
                 echo_queue: VecDeque::new(),
                 queue: VecDeque::new(),
-                spare: Vec::new(),
                 limit,
                 lost: 0,
                 facility: config
@@ -471,17 +469,15 @@ impl Logger {
                 self.echo_queue.push_back(Record::new(bytes));
             }
         }
-        let mut pid = None;
         if self.queue.len() >= self.limit {
             self.lost = self.lost.wrapping_add(1);
         } else {
             let record = self.format_record(event.service, event.priority, message);
-            pid = Some(record.pid);
             self.queue.push_back(record);
         }
         // C retries a down connection on my_syslog, not every owner poll.
         self.connection_good = true;
-        self.flush_ready_with_pid(pid);
+        self.flush_ready();
     }
 
     /// log.c::die echoes only the first critical record, with a leading blank
@@ -505,14 +501,11 @@ impl Logger {
         self.finish()
     }
 
-    fn format_record(&mut self, service: Service, priority: Priority, message: &[u8]) -> Record {
+    fn format_record(&self, service: Service, priority: Priority, message: &[u8]) -> Record {
         // Formatting and queue ownership share this event's PID. The flush
         // guard still reads the current PID so a later fork cannot replay it.
         let pid = std::process::id();
-        // PRI, timestamp, service/PID prefix and terminators fit in 64 bytes.
-        let capacity = message.len().saturating_add(64).min(MAX_MESSAGE);
-        let mut bytes = std::mem::take(&mut self.spare);
-        bytes.reserve_exact(capacity);
+        let mut bytes = Vec::with_capacity(MAX_MESSAGE);
         let syslog = matches!(
             self.destination,
             Destination::Syslog { .. } | Destination::Closed
@@ -584,12 +577,6 @@ impl Logger {
     /// Safe both after readiness and once per owner step: every write is
     /// nonblocking and a finite budget bounds short-write/EINTR/reconnect work.
     pub fn flush_ready(&mut self) {
-        self.flush_ready_with_pid(None);
-    }
-
-    // Only emit supplies a PID, captured while formatting in this same call.
-    // External flushes obtain the current PID before examining queued records.
-    fn flush_ready_with_pid(&mut self, mut pid: Option<u32>) {
         if let Some(echo) = self.echo {
             drain_echo(echo, &mut self.echo_queue);
         }
@@ -638,7 +625,7 @@ impl Logger {
             };
             // An early owner may survive daemon fork. Never deliver records
             // already queued by another process, matching log.c's PID guard.
-            if record.pid != *pid.get_or_insert_with(std::process::id) {
+            if record.pid != std::process::id() {
                 self.queue.pop_front();
                 continue;
             }
@@ -664,12 +651,7 @@ impl Logger {
                 }
                 record.offset += result as usize;
                 if record.offset == record.bytes.len() - usize::from(datagram) {
-                    if let Some(record) = self.queue.pop_front() {
-                        // Only fully written, uniquely owned bytes can be reused.
-                        // Pending/partial records and the echo queue keep theirs.
-                        self.spare = record.bytes;
-                        self.spare.clear();
-                    }
+                    self.queue.pop_front();
                     if self.lost != 0 {
                         let lost = std::mem::take(&mut self.lost);
                         let record = self.format_record(
@@ -822,8 +804,6 @@ mod tests {
         assert!(!text.contains("inherited"));
         assert!(text.contains(&format!("dnsmasq[{}]: current\n", std::process::id())));
         assert!(logger.queue.is_empty());
-        logger.emit(LogEvent::new(Service::Dns, Priority::Info, b"next".to_vec()));
-        assert!(std::fs::read_to_string(&path).unwrap().ends_with(": next\n"));
         std::fs::remove_file(path).unwrap();
     }
 

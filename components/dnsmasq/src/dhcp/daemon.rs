@@ -1934,8 +1934,7 @@ impl LocalProvider {
                     }),
             );
         }
-        let mut tags: Vec<&[u8]> = Vec::with_capacity(2);
-        tags.extend(interface_name);
+        let mut tags: Vec<&[u8]> = interface_name.into_iter().collect();
         let [oui, serial, _] = crate::helper::cpe_data(packet);
         if oui.is_some() && serial.is_some() {
             tags.push(b"cpewan-id");
@@ -1964,20 +1963,14 @@ impl LocalProvider {
         }
 
         let in_context = |address| ranges.iter().any(|range| range.same_subnet(address));
-        let mut expanded_tags;
-        let lookup_tags = if self.config.tag_if.is_empty() {
-            tags.as_slice()
-        } else {
-            expanded_tags = tags.clone();
-            TagIf::apply_all(&self.config.tag_if, &mut expanded_tags);
-            expanded_tags.as_slice()
-        };
+        let mut lookup_tags = tags.clone();
+        TagIf::apply_all(&self.config.tag_if, &mut lookup_tags);
         let mut host_index = self.config.find_host_tagged(
             clid,
             identity.hardware_type,
             Some(&identity.hardware_address),
             None,
-            lookup_tags,
+            &lookup_tags,
             in_context,
         );
         if host_index.is_some() {
@@ -1989,7 +1982,7 @@ impl LocalProvider {
                 identity.hardware_type,
                 Some(&identity.hardware_address),
                 None,
-                lookup_tags,
+                &lookup_tags,
                 |_| true,
             )
             .is_some()
@@ -2009,7 +2002,7 @@ impl LocalProvider {
         let mut configured_by_name = false;
         if host_index.is_none() {
             if let Some(name) = client_name.as_deref() {
-                let mut lookup_tags = tags.clone();
+                lookup_tags = tags.clone();
                 TagIf::apply_all(&self.config.tag_if, &mut lookup_tags);
                 if let Some(index) = self.config.find_host_tagged(
                     None,
@@ -2049,11 +2042,7 @@ impl LocalProvider {
             }
             tags.push(b"bootp");
         }
-        self.request_tags.resize_with(tags.len(), Vec::new);
-        for (saved, tag) in self.request_tags.iter_mut().zip(&tags) {
-            saved.clear();
-            saved.extend_from_slice(tag);
-        }
+        self.request_tags = tags.iter().map(|tag| tag.to_vec()).collect();
         // do_options checks the original netid head, not tag-if additions.
         self.force_broadcast = self.config.force_broadcast_for(&tags);
         TagIf::apply_all(&self.config.tag_if, &mut tags);

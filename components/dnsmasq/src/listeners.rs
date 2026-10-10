@@ -407,30 +407,6 @@ impl DnsSocket {
             Ok(Self { socket })
         }
     }
-
-    /// Only an owned static IPv4 listener may omit receive pktinfo. Keep
-    /// unowned aliases, wildcard sockets, dynamic binding and IPv6 unchanged.
-    pub fn bind_for_interfaces(
-        address: SocketAddr,
-        config: &DnsConfig,
-        interfaces: &[DnsInterface],
-    ) -> io::Result<Self> {
-        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if config.bind_interfaces && !config.bind_dynamic {
-            if let SocketAddr::V4(address4) = address {
-                if !address4.ip().is_unspecified() && interfaces.iter().any(|interface| {
-                    interface.index != 0 && interface.address == address.ip()
-                        && selected(config, interface)
-                }) {
-                    return Ok(Self { socket: crate::net::DatagramSocket::bind_dns_static(address4)? });
-                }
-            }
-        }
-        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
-        let _ = (config, interfaces);
-        Self::bind(address)
-    }
-
     pub fn receive(&self, bytes: &mut [u8]) -> io::Result<Option<Incoming>> {
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         {
@@ -819,30 +795,5 @@ mod tests {
             interfaces[0].address,
             4
         ));
-    }
-
-    #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    #[test]
-    fn receive_pktinfo_is_omitted_only_for_owned_static_ipv4() {
-        let interfaces = vec![interface("127.0.0.1", "255.0.0.0", 1)];
-        for (owned, dynamic, wildcard) in [
-            (true, false, false), (false, false, false),
-            (true, true, false), (true, false, true),
-        ] {
-            let mut config = DnsConfig::default();
-            config.bind_interfaces = true;
-            config.bind_dynamic = dynamic;
-            let address = if wildcard { "0.0.0.0:0" } else { "127.0.0.1:0" };
-            let server = DnsSocket::bind_for_interfaces(address.parse().unwrap(), &config,
-                if owned { &interfaces } else { &[] }).unwrap();
-            let target = SocketAddr::new(Ipv4Addr::LOCALHOST.into(), server.local_addr().unwrap().port());
-            let client = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
-            client.send_to(b"query", target).unwrap();
-            let mut fds = [owrt_ubus::sys::PollFd { fd: server.as_raw_fd(), events: 1, revents: 0 }];
-            assert_eq!(owrt_ubus::sys::poll_fds(&mut fds, 1000).unwrap(), 1);
-            let incoming = server.receive(&mut [0; 32]).unwrap().unwrap();
-            assert_eq!(incoming.destination, target.ip());
-            assert_eq!(incoming.interface == 0, owned && !dynamic && !wildcard);
-        }
     }
 }

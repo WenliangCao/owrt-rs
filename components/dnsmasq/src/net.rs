@@ -160,7 +160,6 @@ pub struct Datagram {
 pub struct DatagramSocket {
     socket: UdpSocket,
     ipv6: bool,
-    dns_bound_ipv4: Option<Ipv4Addr>,
 }
 
 impl AsRawFd for DatagramSocket {
@@ -457,25 +456,19 @@ pub(crate) fn inject_arp_with_name(
 
 impl DatagramSocket {
     pub fn bind(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_options(address, true, false, None)
-    }
-
-    /// DNS static binding already identifies an owned IPv4 destination.
-    /// network.c::make_sock omits IP_PKTINFO for this OPT_NOWILD case.
-    pub(crate) fn bind_dns_static(address: SocketAddrV4) -> io::Result<Self> {
-        Self::bind_options(address.into(), true, false, Some(*address.ip()))
+        Self::bind_options(address, true, false)
     }
 
     /// Default DHCP listeners are exclusive; C enables reuse only for the
     /// separately gated bind-interfaces/bind-dynamic modes.
     pub fn bind_exclusive(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_options(address, false, false, None)
+        Self::bind_options(address, false, false)
     }
 
     /// dhcp.c:70-92 enables both reuse flags only for bind-interfaces or
     /// bind-dynamic. Older kernels may lack SO_REUSEPORT (ENOPROTOOPT).
     pub fn bind_dhcp(address: SocketAddr, reuse: bool) -> io::Result<Self> {
-        Self::bind_options(address, reuse, reuse, None)
+        Self::bind_options(address, reuse, reuse)
     }
 
     /// dhcp-common.c bindtodevice passes the terminated name, capped at IFNAMSIZ.
@@ -498,7 +491,6 @@ impl DatagramSocket {
         address: SocketAddr,
         reuse_address: bool,
         reuse_port: bool,
-        dns_bound_ipv4: Option<Ipv4Addr>,
     ) -> io::Result<Self> {
         let ipv6 = address.is_ipv6();
         // SAFETY: socket has no pointers and returns a new descriptor on success.
@@ -535,10 +527,10 @@ impl DatagramSocket {
         }
         if ipv6 {
             set_flag(fd, IPPROTO_IPV6, IPV6_RECVPKTINFO)?;
-        } else if dns_bound_ipv4.is_none() {
+        } else {
             set_flag(fd, IPPROTO_IP, IP_PKTINFO)?;
         }
-        Ok(Self { socket, ipv6, dns_bound_ipv4 })
+        Ok(Self { socket, ipv6 })
     }
 
     pub fn local_addr(&self) -> io::Result<SocketAddr> {
@@ -581,12 +573,8 @@ impl DatagramSocket {
             namelen: 32,
             iov: &mut iov,
             iovlen: 1,
-            control: if self.dns_bound_ipv4.is_some() {
-                std::ptr::null_mut()
-            } else {
-                control.as_mut_ptr().cast()
-            },
-            controllen: if self.dns_bound_ipv4.is_some() { 0 } else { 40 },
+            control: control.as_mut_ptr().cast(),
+            controllen: 40,
             flags: 0,
         };
         // SAFETY: buffers, iovec and header are initialized and live; lengths
@@ -601,17 +589,6 @@ impl DatagramSocket {
         let peer = peer.decode(msg.namelen)?;
         if peer.port() == 0 {
             return Ok(None);
-        }
-        if let Some(address) = self.dns_bound_ipv4 {
-            // receive_query retains if_index=0 when static IPv4 binding
-            // supplies the destination through its owned listener iface.
-            return Ok(Some(Datagram {
-                len: len as usize,
-                peer,
-                destination: address.into(),
-                local_address: address.into(),
-                interface: 0,
-            }));
         }
         // SAFETY: initialized control array, bounded by its actual allocation.
         let bytes = unsafe {
@@ -857,38 +834,6 @@ mod tests {
                 assert_eq!(packet_info(&bytes[..length], true), None);
             }
         }
-    }
-
-    #[test]
-    fn static_dns_ipv4_omits_pktinfo_but_preserves_source_and_truncation() {
-        let server = DatagramSocket::bind_dns_static("127.0.0.1:0".parse().unwrap()).unwrap();
-        let mut enabled = -1;
-        let mut length = 4;
-        // SAFETY: one live native int and its exact length are writable.
-        assert_eq!(unsafe {
-            getsockopt(server.as_raw_fd(), IPPROTO_IP, IP_PKTINFO, &mut enabled, &mut length)
-        }, 0);
-        assert_eq!(enabled, 0);
-        let client = UdpSocket::bind("127.0.0.1:0").unwrap();
-        client.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
-        let target = server.local_addr().unwrap();
-        client.send_to(b"question", target).unwrap();
-        let mut fds = [owrt_ubus::sys::PollFd {
-            fd: server.as_raw_fd(), events: 1, revents: 0,
-        }];
-        assert_eq!(owrt_ubus::sys::poll_fds(&mut fds, 1000).unwrap(), 1);
-        let mut bytes = [0; 32];
-        let incoming = server.receive(&mut bytes).unwrap().unwrap();
-        assert_eq!((incoming.destination, incoming.local_address, incoming.interface),
-            (target.ip(), target.ip(), 0));
-        assert_eq!(&bytes[..incoming.len], b"question");
-        server.send(b"answer", incoming.peer, None).unwrap();
-        let (length, source) = client.recv_from(&mut bytes).unwrap();
-        assert_eq!(source, target);
-        assert_eq!(&bytes[..length], b"answer");
-        client.send_to(&[7; 100], target).unwrap();
-        assert_eq!(owrt_ubus::sys::poll_fds(&mut fds, 1000).unwrap(), 1);
-        assert_eq!(server.receive(&mut bytes).unwrap(), None);
     }
 
     #[test]

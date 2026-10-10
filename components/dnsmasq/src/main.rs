@@ -1120,7 +1120,7 @@ fn run_inner(
     // every socket without leaving an already-running partial service.
     let mut listeners = Vec::new();
     for address in addresses {
-        match open_dns_listener(address, &daemon_config, &interface_snapshot.borrow()) {
+        match open_dns_listener(address, daemon_config.bind_dynamic) {
             Ok((udp, tcp)) if udp.is_some() || tcp.is_some() => listeners.push((address, udp, tcp)),
             Ok(_) => {}
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
@@ -1641,9 +1641,7 @@ fn run_inner(
         #[cfg(target_os = "linux")]
         poll.step_route_events();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if poll.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some()) {
-            poll.step_dhcp_files();
-        }
+        poll.step_dhcp_files();
         #[cfg(target_os = "linux")]
         poll.step_dns_files();
         #[cfg(target_os = "linux")]
@@ -1749,7 +1747,7 @@ fn run_inner(
                         continue;
                     }
                     let (udp, tcp, mut bind_errors) = if dns_addresses.contains(&address) {
-                        open_late_dns_listener(address, &daemon_config, &interfaces)
+                        open_late_dns_listener(address, daemon_config.bind_dynamic)
                     } else {
                         (None, None, Vec::new())
                     };
@@ -1838,8 +1836,7 @@ fn run_inner(
                 || poll.tftp_pending_interfaces());
         }
         // Address events and HUP both publish before new DNS admission.
-        let signaled = RELOAD_REQUESTED.load(Ordering::Acquire) != 0
-            && !poll.reload_in_progress()
+        let signaled = !poll.reload_in_progress()
             && RELOAD_REQUESTED.fetch_update(Ordering::AcqRel, Ordering::Acquire,
                 |count| count.checked_sub(1)).is_ok();
         poll.process_reload_before_dns(runtime.scalar.local_ttl, signaled)?;
@@ -1985,9 +1982,8 @@ fn optional_listener<T>(result: io::Result<T>, dynamic: bool) -> io::Result<Opti
     }
 }
 
-fn open_dns_listener(address: SocketAddr, config: &DnsConfig, interfaces: &[DnsInterface]) -> io::Result<DnsListenerPair> {
-    let dynamic = config.bind_dynamic;
-    let udp = optional_listener(DnsSocket::bind_for_interfaces(address, config, interfaces), dynamic)?.map(Arc::new);
+fn open_dns_listener(address: SocketAddr, dynamic: bool) -> io::Result<DnsListenerPair> {
+    let udp = optional_listener(DnsSocket::bind(address), dynamic)?.map(Arc::new);
     let tcp = optional_listener(listeners::tcp_bind(address), dynamic)?;
     if let Some(tcp) = &tcp {
         tcp.set_nonblocking(true)?;
@@ -2000,12 +1996,10 @@ fn open_dns_listener(address: SocketAddr, config: &DnsConfig, interfaces: &[DnsI
 /// C iface->done, and never fills in a failed half until that address retires.
 fn open_late_dns_listener(
     address: SocketAddr,
-    config: &DnsConfig,
-    interfaces: &[DnsInterface],
+    dynamic: bool,
 ) -> (Option<Arc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
-    let dynamic = config.bind_dynamic;
     let mut errors = Vec::new();
-    let udp = match optional_listener(DnsSocket::bind_for_interfaces(address, config, interfaces), dynamic) {
+    let udp = match optional_listener(DnsSocket::bind(address), dynamic) {
         Ok(socket) => socket.map(Arc::new),
         Err(error) => {
             errors.push(error);
@@ -2155,7 +2149,6 @@ struct SinglePoll {
     edns_max: u16,
     m6b: M6bDiagnostics,
     udp_buffer: Vec<u8>,
-    udp_budget: usize,
     #[cfg(target_os = "linux")]
     signal_wake_read: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
@@ -3034,7 +3027,6 @@ impl SinglePoll {
             edns_max,
             m6b: M6bDiagnostics::new(listener_count),
             udp_buffer: vec![0; 65_535],
-            udp_budget: UDP_PACKETS_PER_TURN,
             #[cfg(target_os = "linux")]
             signal_wake_read: None,
             #[cfg(target_os = "linux")]
@@ -3195,9 +3187,7 @@ impl SinglePoll {
                     break;
                 }
                 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                if self.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some()) {
-                    self.step_dhcp_files();
-                }
+                self.step_dhcp_files();
                 self.step_dns_files();
                 self.step_hosts_files();
                 if std::mem::take(&mut self.full_reload_pending) {
@@ -3855,36 +3845,6 @@ impl SinglePoll {
             }
             if let Some(due) = self.route_retry_at { wake_at(due); }
 
-            // C's fd-sorted poll set puts DHCP before later DNS listeners.
-            // Descriptor order does not change the dispatch order in step().
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let dhcp_fd_start = fds.len();
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            if let Some(dhcp) = &self.dhcp {
-                if self.dhcp_packet_work_allowed() {
-                    let interfaces_pending = dhcp.provider.as_ref()
-                        .is_some_and(|provider| provider.borrow().packet_interfaces_pending());
-                    if !interfaces_pending {
-                        dhcp.listener.append_poll_fds(&mut fds);
-                    }
-                }
-                if let Some(provider) = dhcp.provider.as_ref()
-                    .filter(|_| self.dhcp_packet_work_allowed()) {
-                    let provider = provider.borrow();
-                    // Packet interface dumps share the file owner, but their
-                    // readiness must also resume the DHCP transaction.
-                    provider.append_packet_interface_fds(&mut fds);
-                    if provider.packet_interfaces_runnable() {
-                        wake_at(now);
-                    }
-                    if let Some(due) = provider.next_maintenance() {
-                        wake_at(due);
-                    }
-                }
-            }
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let dhcp_fd_end = fds.len();
-
             // The normal owner waits on network and file descriptors in one
             // set.  `step` still performs bounded nonblocking work after the
             // wait returns; readiness is deliberately not consumed here.
@@ -3986,6 +3946,33 @@ impl SinglePoll {
                 });
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let dhcp_fd_start = fds.len();
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(dhcp) = &self.dhcp {
+                if self.dhcp_packet_work_allowed() {
+                    let interfaces_pending = dhcp.provider.as_ref()
+                        .is_some_and(|provider| provider.borrow().packet_interfaces_pending());
+                    if !interfaces_pending {
+                        dhcp.listener.append_poll_fds(&mut fds);
+                    }
+                }
+                if let Some(provider) = dhcp.provider.as_ref()
+                    .filter(|_| self.dhcp_packet_work_allowed()) {
+                    let provider = provider.borrow();
+                    // Packet interface dumps share the file owner, but their
+                    // readiness must also resume the DHCP transaction.
+                    provider.append_packet_interface_fds(&mut fds);
+                    if provider.packet_interfaces_runnable() {
+                        wake_at(now);
+                    }
+                    if let Some(due) = provider.next_maintenance() {
+                        wake_at(due);
+                    }
+                }
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let dhcp_fd_end = fds.len();
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(helper) = &self.helper {
                 for (fd, events) in helper.poll_fds() {
                     if fd >= 0 {
@@ -4072,14 +4059,6 @@ impl SinglePoll {
                 }
             };
             let waited = started.elapsed();
-            // A sleeping listener usually has one new packet. Skip its
-            // speculative final receive; an immediate poll keeps batching
-            // queued traffic within the existing fairness bound.
-            self.udp_budget = if waited >= Duration::from_micros(5) {
-                1
-            } else {
-                UDP_PACKETS_PER_TURN
-            };
             let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
             let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
             let signal_ready = signal_fd_index
@@ -4263,7 +4242,7 @@ impl SinglePoll {
         // Bound work per turn.  This keeps a busy UDP socket from starving
         // DHCP, TFTP, reload and TCP admission.
         let listeners = self.listeners.len();
-        let mut udp_budget = self.udp_budget;
+        let mut udp_budget = UDP_PACKETS_PER_TURN;
         for index in 0..listeners {
             if udp_budget != 0 {
                 let mut batch = 0;
@@ -4301,22 +4280,14 @@ impl SinglePoll {
             self.neighbors_ready = true;
             self.advance_neighbors();
         }
-        if !self.clients.is_empty() {
-            self.step_tcp_clients();
-        }
+        self.step_tcp_clients();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.dhcp.is_some() || self.helper.is_some() || self.pending_delivery.is_some()
-            || self.helper_init.is_some() || self.helper_init_error.is_some() || self.helper_init_end
-        {
-            self.step_dhcp();
-        }
+        self.step_dhcp();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_neighbors();
         self.step_edns_udp();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if self.tftp_ready || self.tftp.as_ref().is_some_and(TftpListener::has_pending_work) {
-            self.step_tftp();
-        }
+        self.step_tftp();
         #[cfg(target_os = "linux")]
         self.log_dns_diagnostics();
         Ok(())
@@ -5689,13 +5660,9 @@ impl SinglePoll {
         self.poll_udp_completions();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.advance_neighbors();
-        if !self.clients.is_empty() {
-            self.step_tcp_clients();
-        }
+        self.step_tcp_clients();
         self.step_edns_udp();
-        if self.tftp_ready || self.tftp.as_ref().is_some_and(TftpListener::has_pending_work) {
-            self.step_tftp();
-        }
+        self.step_tftp();
         // Early DNS/TCP timers or any listener activity must not consume an
         // ICMP quarter-second timeout. Only the full idle poll counts as one.
         self.log_dns_diagnostics();

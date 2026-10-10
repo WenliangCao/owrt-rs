@@ -208,31 +208,6 @@ pub fn decode_name(packet: &[u8], start: usize, extra: usize) -> Result<(Name, u
     }
 }
 
-/// Validate an ordinary flat name without constructing its decoded bytes.
-/// Compression and unusual label types retain decode_name's exact checks.
-pub(crate) fn validate_name(packet: &[u8], start: usize, extra: usize) -> Result<usize, WireError> {
-    let mut pos = start;
-    loop {
-        end(packet, pos, 1)?;
-        let length = packet[pos];
-        pos += 1;
-        match length {
-            0 => {
-                end(packet, pos, extra)?;
-                return Ok(pos);
-            }
-            1..=63 => {
-                let label_end = end(packet, pos, length as usize)?;
-                if label_end - start >= MAX_NAME_LEN {
-                    return Err(WireError::NameTooLong);
-                }
-                pos = label_end;
-            }
-            _ => return decode_name(packet, start, extra).map(|(_, next)| next),
-        }
-    }
-}
-
 /// Locate the end of the encoded name without dereferencing pointers.
 pub fn skip_name(packet: &[u8], mut pos: usize, extra: usize) -> Result<usize, WireError> {
     loop {
@@ -709,7 +684,7 @@ impl PacketWriter {
         if name_offset >= 0x4000 || usize::from(name_offset) >= self.packet.len() {
             return Err(WireError::InvalidName);
         }
-        validate_name(&self.packet, name_offset.into(), 0)?;
+        decode_name(&self.packet, name_offset.into(), 0)?;
         self.append_record(
             section,
             &(0xc000 | name_offset).to_be_bytes(),
