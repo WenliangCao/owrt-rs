@@ -1120,7 +1120,7 @@ fn run_inner(
     // every socket without leaving an already-running partial service.
     let mut listeners = Vec::new();
     for address in addresses {
-        match open_dns_listener(address, daemon_config.bind_dynamic) {
+        match open_dns_listener(address, &daemon_config, &interface_snapshot.borrow()) {
             Ok((udp, tcp)) if udp.is_some() || tcp.is_some() => listeners.push((address, udp, tcp)),
             Ok(_) => {}
             Err(error) => return Err(Box::new(NetworkStartupError(error))),
@@ -1747,7 +1747,7 @@ fn run_inner(
                         continue;
                     }
                     let (udp, tcp, mut bind_errors) = if dns_addresses.contains(&address) {
-                        open_late_dns_listener(address, daemon_config.bind_dynamic)
+                        open_late_dns_listener(address, &daemon_config, &interfaces)
                     } else {
                         (None, None, Vec::new())
                     };
@@ -1982,8 +1982,9 @@ fn optional_listener<T>(result: io::Result<T>, dynamic: bool) -> io::Result<Opti
     }
 }
 
-fn open_dns_listener(address: SocketAddr, dynamic: bool) -> io::Result<DnsListenerPair> {
-    let udp = optional_listener(DnsSocket::bind(address), dynamic)?.map(Arc::new);
+fn open_dns_listener(address: SocketAddr, config: &DnsConfig, interfaces: &[DnsInterface]) -> io::Result<DnsListenerPair> {
+    let dynamic = config.bind_dynamic;
+    let udp = optional_listener(DnsSocket::bind_for_interfaces(address, config, interfaces), dynamic)?.map(Arc::new);
     let tcp = optional_listener(listeners::tcp_bind(address), dynamic)?;
     if let Some(tcp) = &tcp {
         tcp.set_nonblocking(true)?;
@@ -1996,10 +1997,12 @@ fn open_dns_listener(address: SocketAddr, dynamic: bool) -> io::Result<DnsListen
 /// C iface->done, and never fills in a failed half until that address retires.
 fn open_late_dns_listener(
     address: SocketAddr,
-    dynamic: bool,
+    config: &DnsConfig,
+    interfaces: &[DnsInterface],
 ) -> (Option<Arc<DnsSocket>>, Option<TcpListener>, Vec<io::Error>) {
+    let dynamic = config.bind_dynamic;
     let mut errors = Vec::new();
-    let udp = match optional_listener(DnsSocket::bind(address), dynamic) {
+    let udp = match optional_listener(DnsSocket::bind_for_interfaces(address, config, interfaces), dynamic) {
         Ok(socket) => socket.map(Arc::new),
         Err(error) => {
             errors.push(error);
