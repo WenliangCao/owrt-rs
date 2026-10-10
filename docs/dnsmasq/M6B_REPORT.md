@@ -117,8 +117,8 @@ UDP-hit 稳态 p50 为 C/R3/Rs **0.019760 / 0.023720 / 0.024841 ms**，最终 R3
 | TCP local | 相对 C，两组稳态 CPU/p95 有收益；饱和 CPU/p95 也有收益，但 R3 吞吐受限，且两组饱和 PSS 分别多 28.74%/22.26%。相对原始两组，稳态吞吐、p95、PSS 有收益，**CPU 增 19.65%/17.33%，属退步**；饱和 CPU/p95/PSS 则有收益。accept 固定 local/routing/lease/clock 视图，并共享不可变 cache 内容根，仍保留元数据与快照成本。这里不能把 M6a 原 CPU 20.139 µs 替换成 readiness 后 R3_new 作为“原始 Rust”；CPU45 用新基线的合入门单独成立。最终 `step_tcp_accept/tcp_cache_view`、[A CPU45](audits/M6B_A_7D3_CPU45.md)。 |
 | TCP cache | 相对原始两组，稳态 CPU 降约 29.3%、p95 降约 99%、峰 PSS 降约 81%，吞吐提高到施加的约 10,000 QPS；饱和 CPU/p95/PSS 也有收益，吞吐仅记下限。相对 C，稳态 CPU/p95/PSS 均有收益；饱和 CPU/p95 有收益，PSS 虽较低但波动未达分类。共享 64-slot 内容块、canonical-name shard、有序索引，命中更新连接私有 LRU；写入/轮转 detach 保留父子隔离。最终 `dns/cache.rs/cache_name_index.rs`、[A 服务与资源合同](audits/M6B_TCP_A_SERVICE_RESOURCE_GATE.md)，完整最终资源资格由其独立收据证明。 |
 | TCP miss | 相对 C，稳态两组吞吐约增 126%、CPU 降约 56–57%、p95 降 68.87–80.63%；相对原始两组 CPU 降约 30%、p95 降 89.24–93.07%、PSS 降约 44%，饱和同样有收益。**内存仍明显不足：R3 稳态 18,712 KiB / C 5,527 KiB＝3.386 倍，Rs＝3.353 倍；饱和 R3 为 C 的 4.671 倍。**新记录和父 churn 触发块/索引写时复制，老连接固定视图，导回按当前 owner local 发布检查冲突；这是机制说明，没有 allocator 栈证据时不能把残余 PSS 分摊到某个对象。原第4包没有执行。最终 `Cache` mutator、`ParentDns::import_tcp_cache_transfer`、独立 companion 容量/十批余额及 S8 收据。 |
-| DHCP lease | 三组都保持 20 cycle/s、release 末态 leasefile 为空。相对原始两组，CPU 降约 92.13%、p95 降约 71.8%，PSS 未达收益幅度；相对 C，CPU 多 55.09%/58.39%、PSS 多 38.61%/23.50%，p95 无显著差异。每包 fresh 接口视图及 ACK 前 DNS-name 发布合同保留；事件分派去除周期空工作。[旧 DHCP trace](audits/M6B_DHCP_SYSCALL_GAP.md)只证明旧 `6f3bed3d` 的重复接口 ioctl/snapshot 计数，不能把已撤除周期扫描算作最终热点，或声称已把最终 262.7 µs/cycle 余差全部归因。 |
-| Reload concurrent | 相对原始两组，吞吐约 464→1,000 QPS，CPU 降约 60.5–60.7%、p95 降约 99.79%，PSS 无显著差异。相对 C，CPU 多 80.81%/83.20%、p95 多 37.08%/34.25%、PSS 多 44.07%/28.81%，均退步。每组五轮各 11 次 reload、共 55 次全部正确，观测 publication 最大值 C/R3/Rs 11.962/12.027/12.726 ms；这是 10 ms probe 间隔加 controller gap 的上界，不是精确发布时间或 p99。共同 owner 先发布小文件再准入新 UDP/TCP，保留旧连接视图、大文件有界让出；额外 CPU 的具体比例未完全归因。最终 hosts/reload publication、`ParentDns` current-local 边界及正式 `reloads.json`。 |
+| DHCP lease | 三组都保持 20 cycle/s、release 末态 leasefile 为空。相对原始两组，CPU 降约 92.13%、p95 降约 71.8%，PSS 未达收益幅度；相对 C，CPU 多 55.08%/58.39%、PSS 多 38.61%/23.50%，p95 无显著差异。每包 fresh 接口视图及 ACK 前 DNS-name 发布合同保留；事件分派去除周期空工作。[旧 DHCP trace](audits/M6B_DHCP_SYSCALL_GAP.md)只证明旧 `6f3bed3d` 的重复接口 ioctl/snapshot 计数，不能把已撤除周期扫描算作最终热点，或声称已把最终 262.7 µs/cycle 余差全部归因。 |
+| Reload concurrent | 相对原始两组，吞吐约 464→1,000 QPS，CPU 降约 60.5–60.7%、p95 降约 99.79%，PSS 无显著差异。相对 C，CPU 多 80.81%/83.19%、p95 多 37.08%/34.25%、PSS 多 44.07%/28.81%，均退步。每组五轮各 11 次 reload、共 55 次全部正确，观测 publication 最大值 C/R3/Rs 11.962/12.027/12.726 ms；这是 10 ms probe 间隔加 controller gap 的上界，不是精确发布时间或 p99。共同 owner 先发布小文件再准入新 UDP/TCP，保留旧连接视图、大文件有界让出；额外 CPU 的具体比例未完全归因。最终 hosts/reload publication、`ParentDns` current-local 边界及正式 `reloads.json`。 |
 
 波动规则确实影响结论：Rs 的 UDP-miss 稳态 p95 中位数比 C 低 30.31%，但 C 的 W 是 34.11%，所以仍是“无显著差异”；R3 恢复 CPU 比 C 低 23.39%，但 C 的 W 是 23.98%，也未分类。Rs 故障前 CPU 相对原始 s 低 37.23%，候选 W 38.07%，仍未分类。TCP-cache 饱和 Rs PSS 低于 C 10.68%，C W 30.43%，同样不宣称收益。没有更改工具原判词来抹去这些限制。
 
@@ -327,7 +327,7 @@ UDP回退首次引入main **`e8b1d6c411fba324888e3e202c0c133156afbed4`**，属�
 
 ## 性能保护门与可替换 APK
 
-在读取135结果前，以文档提交 `5e9fb5bc` 固定阈值算法，避免见红后提高 cap：UDP p50保持1 ms；idle取最终R3五轮60秒 cgroup增量高点加 `max(25%,10 ms)`、向上到1 ms；TCP cache取五轮steady树PSS高点加 `max(25%,256 KiB)`、向上到64 KiB。实际高点为idle 0和PSS4892 KiB。最终计划SHA为 `c074047addae2f6cf9f714b38ca9d06871b308ad7995569f56a25898dd82ad28`，已写入 [工具冻结计划](../../tools/dnsmasq/m6b_perf_guard.final.json)。这只是低成本保护线，不替代正式W/4-of-5判定。
+在读取135结果前，以文档提交 `5e9fb5bc` 固定阈值算法，避免见红后提高 cap：UDP p50保持1 ms；idle取最终R3五轮60秒 cgroup增量高点加 `max(25%,10 ms)`、向上到1 ms；TCP cache取五轮steady树PSS高点加 `max(25%,256 KiB)`、向上到64 KiB。实际高点为idle 0和PSS4880 KiB。最终计划SHA为 `c074047addae2f6cf9f714b38ca9d06871b308ad7995569f56a25898dd82ad28`，已写入 [工具冻结计划](../../tools/dnsmasq/m6b_perf_guard.final.json)。这只是低成本保护线，不替代正式W/4-of-5判定。
 
 | guard | 最终 cap | 实际观测 | 判定 |
 | --- | ---: | ---: | --- |
@@ -337,7 +337,7 @@ UDP回退首次引入main **`e8b1d6c411fba324888e3e202c0c133156afbed4`**，属�
 
 实际warm/load回答全部正确、20客户端二进制latency覆盖、4096动态A逐名cache证明、FD+20、单线程无子进程、稳定排空和正常退出均通过。plan晚绑定到原功能manifest，没有修改已冻结工具树或产品；完整结果在 `F/acceptance-archives-final/m6b-final-hosts/plain/runs/perf-guard/attempt-1/`。
 
-最终可替换包为 **dnsmasq-2.93-r3.apk，1,085,625 B**，SHA256 `8df2e454151ac09aad64630bf4d8b5f95fcf415c6f65a96a010e923ad0c59a01`。[APK](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/apk/dnsmasq-2.93-r3.apk)。实际 `/usr/sbin/dnsmasq` 载荷SHA逐字等于最终opt3，打包不重新codegen或strip，SDK recipe已恢复。builder因原预算ELF≤1,000,000 B、APK≤700,000 B返回原红 `size-target`；其身份资格通过，外层仅允许继续生命周期，不把体积目标改绿，也不授予用户接受新增体积。APK比原M5 r2增加20,554 B（1.93%）。
+最终可替换包为 **dnsmasq-2.93-r3.apk，1,085,625 B**，SHA256 `8df2e454151ac09aad64630bf4d8b5f95fcf415c6f65a96a010e923ad0c59a01`。[APK](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/apk/dnsmasq-2.93-r3.apk)。实际 `/usr/sbin/dnsmasq` 载荷SHA逐字等于最终opt3，打包不重新codegen或strip，SDK recipe已恢复。builder因原预算ELF≤1,000,000 B、APK≤700,000 B返回原红 `size-target`；其身份资格通过，外层仅允许继续生命周期，不把体积目标改绿，也不授予用户接受新增体积。APK比原M5 r2增加20,554 B（1.93%）；本轮实际stock C APK为155,123 B，最终APK是其6.998倍，多930,502 B，大小与SHA由实际生命周期输入归档核验。
 
 镜像rootfs实际完成以下14阶段，执行的是安装后的 `/usr/sbin/dnsmasq`，不是辅助Rust路径。每个安装状态均核APK数据库、实际ELF、UID/GID453、文件权限／配置、stock init/procd/ujail调用和DNS回答；升级后明确operator restart，不冒称post-upgrade自动重启。
 
@@ -365,4 +365,16 @@ UDP回退首次引入main **`e8b1d6c411fba324888e3e202c0c133156afbed4`**，属�
 
 前置10目录250,884条目、279,446,557 B，正式135原tar共3,832,502,072 B，全部本地SHA与类型／mode／uid/gid／纳秒mtime／链接／device／xattr验证通过；plain只是普通文件副本，原PAX tar保留。最终guard／APK／生命周期及控制器收尾另保存在 `F/acceptance-archives-final/`；最终索引将同时绑定所有归档及summary。
 
-43棵已交付worktree和9条任务分支已完成只读退休核对：32棵10/01 detached旧树、5棵route、4棵A、2棵其他detached。清理执行前先保留每个exact tip的archive tag和全部ignored/private及四个target缓存的逐文件／元数据验证归档，再移除exact树与任务分支。当前正执行这一最后清理步骤；四棵dirty树、main、health分支／工作树、已有archive refs和用户prompts继续保护。完成后本节更新实际退役收据。
+**清理已经完成：43棵worktree、9条任务分支退役。** 包括32棵10/01 detached旧树、5棵route、4棵A、2棵其他detached；每个exact tip先保存为 `archive/dnsmasq/m6b-final/20261009/<tree>-<sha12>` tag。全部ignored/private与四个target缓存以43个PAX归档保全，共36,621条目、1,482,019,483 B；每个文件SHA、类型、mode、uid/gid、纳秒mtime、symlink／hardlink均核验，xattr以base64保存在manifest与PAX扩展中，不跟随外部链接。源未变才删除原树；pycache单列可重建缓存。Git剩6棵受保护树、18条branch，既有archive refs保持。
+
+四棵dirty树 `stale-work`、`resume-send-retry-20261001`、`m6b-resource-measurement-counters`、`owrt-m2-integration` 的HEAD／status／修改内容SHA保持；`hotfix/health-20261008-r3` 与 `owrt-health-r3` 未动，11项prompts内容SHA不变。原始资料全在private，物理路由器与Oracle常驻服务未操作。
+
+| 最终收尾证据 | SHA256 |
+| --- | --- |
+| [全部交付／归档总索引](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/final-delivery-index.json) | `81ea618a1c5ed5d5d8ecdce379ad30f82930dbc2becd51a0e3b9588d455dfc59` |
+| [43树保全与tag退役索引](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/cleanup-archives/retirement-index.json) | `f7008b55bdeb21a29e983a6f60d87e666b34f09c943656a1ace77f35e38c1293` |
+| [清理后的保护对象核验](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/preflight/cleanup-final-closeout.json) | `7d9f50ce22ecccd850af5ce7761dba24211b7a00e248ee1337468c8b88a8c54f` |
+| [七阶段统一summary](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/final-summary/summary.json) | `f0d71182b5ad4460667f12deef7e7a8877c272bf594ecf35d1aa36ebefd53a1b` |
+| [最终归档后Oracle依赖与现场核验](../../private/dnsmasq-rewrite/evidence/M6B/final-889fe4f5/preflight/final-oracle-closeout.json) | `178b8ec4a27b380604d7c6bdddcb88416eca2bad8742f3df5f243060f74a6fa0` |
+
+后置门实际再次核对最终产品／所有输入assets以及families、M2、guard、资源、压力、package、lifecycle七阶段的完整收据，全部通过。可替换APK与报告已经交付；本轮不进行s切换、M7或第4包，后续范围等待用户另行决定。
