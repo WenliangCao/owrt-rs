@@ -279,7 +279,10 @@ def service_cases():
         actions=[dict(op='start-tcp',id='held',name='held.endpoint.test'),write('servers','server=127.0.0.3@127.0.0.8#34005\n'),
             signal_reload(),probe('new-parent'),dict(op='release-tcp',server=0),dict(op='receive-tcp',id='old-pending',pending='held'),
             probe('old-child',transports=['held']),dict(op='disconnect',id='held'),probe('fresh')])
+    # Each reply closes its accepted upstream connection. The kernel may choose
+    # the same ephemeral number again; only compare ports within a probe epoch.
     add('tcp-existing-upstream-reconnect','server=127.0.0.2@127.0.0.9#34004\n',tcp_close_after_reply=True,
+        port_epochs=True,expected_source_port=34004,
         actions=[dict(op='connect',id='held'),probe('first',transports=['held']),dict(op='pause',seconds=.15),
             probe('reconnected',transports=['held']),dict(op='disconnect',id='held')])
     add('pool-distinct-groups-compatible','min-port=34100\nmax-port=34100\nserver=/one.endpoint.test/127.0.0.2\nserver=/two.endpoint.test/127.0.0.2\n',same_udp_port=True,source_range=[34100,34100],
@@ -750,6 +753,16 @@ def controls():
     shared['source_events'][1]['peer'][1]=34005
     tests['shared-port-mutation']=bool(source_guard_errors(shared,{'same_udp_port':True}))
     tests['port-limit-mutation']=bool(source_guard_errors(sample,{'udp_unique_ports':2}))
+    reconnect=next(case for case in service_cases() if case['id']=='tcp-existing-upstream-reconnect')
+    tcp=copy.deepcopy(sample);tcp['source_events'][0].update(transport='tcp',name='first.files.test')
+    tcp['source_events'][0]['peer'][1]=48001
+    tcp['source_events'].append(copy.deepcopy(tcp['source_events'][0]))
+    tcp['source_events'][1]['name']='reconnected.files.test'
+    different=copy.deepcopy(tcp);different['source_events'][1]['peer'][1]=48003
+    tests['tcp-reconnect-kernel-port-choice']=source_projection(tcp,reconnect)==source_projection(different,reconnect)
+    tests['tcp-persistent-port-mutation']=source_projection(tcp,{})!=source_projection(different,{})
+    wrong=copy.deepcopy(tcp);wrong['source_events'][1]['peer'][1]=34004
+    tests['tcp-reconnect-inherited-udp-port']=bool(source_guard_errors(wrong,reconnect))
     missing=copy.deepcopy(sample);missing['source_events']=[]
     tests['missing-expanded-endpoint']=bool(source_guard_errors(missing,{'actions':[{'op':'query'}]}))
     diagnostic=dict(sample,file_diagnostics=['bad interface name at line 1 of /m2/files/servers'])
