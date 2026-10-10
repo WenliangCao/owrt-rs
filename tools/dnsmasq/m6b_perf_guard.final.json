@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "frozen": true,
+  "thresholds": {
+    "udp_p50_max_ns": 1000000,
+    "idle_cpu_max_seconds": 0.01,
+    "tcp_peak_pss_max_kib": 6144
+  },
+  "native_manifest": {
+    "path": "/home/ubuntu/dnsmasq-final135-889fe4f5/private/manifest.json",
+    "sha256": "667f6bd2e1f72b8ba22c908af3e06810eaca8074f5c0e4c61210a5d2e80a6099"
+  },
+  "basis": {
+    "source_commit": "889fe4f5c59da514529e31173d346ec93bae03a9",
+    "elf_sha256": "791a7c33987fbb21887c51041f27722b9cc1bd8bd4cffab0fc03a292517fb10f",
+    "analysis_sha256": "9bdbdb9aa6f145220e353f505a0568439a45bdfc3ab6543aaa7362df6a042b52",
+    "policy_commit": "5e9fb5bc",
+    "policy": "UDP1ms; R3 idle max5 + max(25%,10ms),ceil1ms; R3 tcp-cache steady PSS max5 + max(25%,256KiB),ceil64KiB; no cap adjustment after red",
+    "observations": {
+      "udp-hit": [
+        {
+          "job": "r01-udp-hit-r3",
+          "attempt": 1,
+          "round": 1,
+          "result_sha256": "ec6c6e9d8d27aeaf3399528962392b540946b81e11fec622eb317052ce340d52",
+          "idle_cpu_usec": 0,
+          "idle_elapsed_seconds": 60.000434415
+        },
+        {
+          "job": "r02-udp-hit-r3",
+          "attempt": 1,
+          "round": 2,
+          "result_sha256": "0689d0a37a7f2128870e989ad8e9bd5b227c0db1f5939a76822efdcfb262380a",
+          "idle_cpu_usec": 0,
+          "idle_elapsed_seconds": 60.000483852
+        },
+        {
+          "job": "r03-udp-hit-r3",
+          "attempt": 1,
+          "round": 3,
+          "result_sha256": "ba49212d1aeb501a4ebad05bfcd26b26b9a40e35513a607cdce6b46919cb6d95",
+          "idle_cpu_usec": 0,
+          "idle_elapsed_seconds": 60.000475819
+        },
+        {
+          "job": "r04-udp-hit-r3",
+          "attempt": 1,
+          "round": 4,
+          "result_sha256": "2afb129c105f9f13c266576df1301a05e58bb0e5dd2e8866b3de5c2f55ecf6f2",
+          "idle_cpu_usec": 0,
+          "idle_elapsed_seconds": 60.000569074
+        },
+        {
+          "job": "r05-udp-hit-r3",
+          "attempt": 1,
+          "round": 5,
+          "result_sha256": "c97477a795633ad362377bd748389272e2068d27282d51525dfc27913a3216fd",
+          "idle_cpu_usec": 0,
+          "idle_elapsed_seconds": 60.00044333
+        }
+      ],
+      "tcp-cache": [
+        {
+          "job": "r01-tcp-cache-r3",
+          "attempt": 1,
+          "round": 1,
+          "result_sha256": "1d0fd07f5173ed6231f8fe38654805911ca21a0f94989e35f0071140f0954eba",
+          "steady_peak_pss_kib": 4880,
+          "resources_sha256": "2fe872486bc0390be37618a89e48906cb02bec76d4d80b73695ff67cffdd5924",
+          "steady_samples": 90
+        },
+        {
+          "job": "r02-tcp-cache-r3",
+          "attempt": 1,
+          "round": 2,
+          "result_sha256": "e7da8f2606114c9a3585a9f39cdba32009fd577203f7489795b4160f0991000d",
+          "steady_peak_pss_kib": 4880,
+          "resources_sha256": "c33b0d7819fc99772861671126333fbb2b47eb043ed8e98478e974956975c81c",
+          "steady_samples": 90
+        },
+        {
+          "job": "r03-tcp-cache-r3",
+          "attempt": 1,
+          "round": 3,
+          "result_sha256": "ad16e78e8b883bc3e4a4a0e802923a58e67f5d37c643b2defe607babbe59f4fa",
+          "steady_peak_pss_kib": 4756,
+          "resources_sha256": "e186d4b38c56ed6b9da4773dfd481953e76757ce416e2717f604d65c578a4a1a",
+          "steady_samples": 90
+        },
+        {
+          "job": "r04-tcp-cache-r3",
+          "attempt": 1,
+          "round": 4,
+          "result_sha256": "36fd6b1dbc87808f872d66c7f99fc9bb90a8e7c4131439adf559908a0ed9b55e",
+          "steady_peak_pss_kib": 4688,
+          "resources_sha256": "8cb83fde1c385bab4ccf52585266baba6bd2a66278906ea9531067fc7b80d4df",
+          "steady_samples": 90
+        },
+        {
+          "job": "r05-tcp-cache-r3",
+          "attempt": 1,
+          "round": 5,
+          "result_sha256": "0a038e557dd654a1dbf4338232e40b75eb143e80cfd64b6de0b428f133966007",
+          "steady_peak_pss_kib": 4712,
+          "resources_sha256": "48be98b00457b6db053f3ea858bc5870c38c6a516d6e92a5fab2bcbbf37cd0bf",
+          "steady_samples": 90
+        }
+      ]
+    },
+    "scope": "low-cost guard only; formal sampling does not prove simultaneous hold20; guard separately verifies hold20"
+  }
+}
