@@ -255,7 +255,15 @@ impl<'a> LocalAnswerer<'a> {
                 &mut extra_rows,
                 &mut notices,
             );
-        } else if class_in {
+        } else if class_in
+            && (has_configured_rrs(&self.config.records)
+                || !self.hosts.is_empty()
+                || !leases.names.entries().is_empty()
+                || !interfaces.is_empty()
+                || !leases.synth.domains.is_empty()
+                || self.config.records.self_mx
+                || self.config.records.local_mx)
+        {
             if let Some(name) = wire_to_dotted(&question.name) {
                 let (local_rows, local_owned) = add_local_records_for_name(
                     self.config,
@@ -879,6 +887,15 @@ fn add_cname_chain(
     true
 }
 
+fn has_configured_rrs(records: &RecordConfig) -> bool {
+    !records.txt.is_empty()
+        || !records.raw.is_empty()
+        || !records.ptr.is_empty()
+        || !records.mx.is_empty()
+        || !records.srv.is_empty()
+        || !records.naptr.is_empty()
+}
+
 /// Collect all local records for one owner. The returned rows are ownerless;
 /// callers can use them for the question owner or attach an explicit owner
 /// while following a CNAME.
@@ -893,13 +910,7 @@ fn add_local_records_for_name(
     notices: &mut QueryEvents,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
     // Only configured RR loops compare this key; address sources use name.
-    let records = &config.records;
-    let needs_key = !records.txt.is_empty()
-        || !records.raw.is_empty()
-        || !records.ptr.is_empty()
-        || !records.mx.is_empty()
-        || !records.srv.is_empty()
-        || !records.naptr.is_empty();
+    let needs_key = has_configured_rrs(&config.records);
     let key = if needs_key { dotted_key(name) } else { Vec::new() };
     let mut rows = Vec::new();
     let mut owned = false;
