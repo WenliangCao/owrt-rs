@@ -4784,7 +4784,7 @@ impl SinglePoll {
         }
         daemon.set_query_context(query_context);
         let packet = &query[..];
-        let mut decorated = query.clone();
+        let mut decorated = self.config.edns.active().then(|| query.clone());
         let mut metadata = None;
         let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
@@ -4819,15 +4819,23 @@ impl SinglePoll {
                 else {
                     return;
                 };
-                let Ok(decoration) = dnsmasq_rs::dns::edns_policy::decorate(
-                    &mut decorated,
-                    &self.config.edns,
-                    client.source.ip(),
-                    mac.as_deref(),
-                    self.edns_max,
-                    usize::from(self.edns_max),
-                ) else {
-                    return;
+                let decoration = if let Some(decorated) = &mut decorated {
+                    let Ok(decoration) = dnsmasq_rs::dns::edns_policy::decorate(
+                        decorated,
+                        &self.config.edns,
+                        client.source.ip(),
+                        mac.as_deref(),
+                        self.edns_max,
+                        usize::from(self.edns_max),
+                    ) else {
+                        return;
+                    };
+                    decoration
+                } else {
+                    dnsmasq_rs::dns::edns_policy::Decoration {
+                        cacheable: dnsmasq_rs::dns::edns_policy::client_subnet_cacheable(packet),
+                        padded_subnet: false,
+                    }
                 };
                 let prepared_metadata = original_metadata.with_cacheable(decoration.cacheable);
                 metadata = Some(prepared_metadata);
@@ -4859,7 +4867,7 @@ impl SinglePoll {
                     Ok(Some(answer)) => Some((answer, false)),
                     Ok(None) => match daemon.forward_udp_prepared_with_local(
                         packet,
-                        &decorated,
+                        decorated.as_deref().unwrap_or(packet),
                         prepared_metadata,
                         ClientRequest {
                             source: client.source,
@@ -4942,7 +4950,7 @@ impl SinglePoll {
                     if let (Some(daemon), Some(metadata)) = (parent.daemon.as_mut(), metadata) {
                         let refresh = daemon.refresh_udp_prepared_on_listener(
                             &query[..],
-                            &decorated,
+                            decorated.as_deref().unwrap_or(packet),
                             metadata,
                             ClientRequest {
                                 source: client.source,

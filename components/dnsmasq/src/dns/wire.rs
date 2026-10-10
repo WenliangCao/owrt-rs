@@ -610,7 +610,8 @@ impl PacketWriter {
             flags,
             ..Header::default()
         };
-        let mut packet = vec![0; HEADER_LEN];
+        let mut packet = Vec::with_capacity(limit.min(128));
+        packet.resize(HEADER_LEN, 0);
         header.write(&mut packet)?;
         Ok(Self {
             packet,
