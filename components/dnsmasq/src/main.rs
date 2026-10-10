@@ -114,10 +114,13 @@ fn neighbor_poll_deadline(epoch_seconds: u64, now: Instant, realtime: Duration) 
 }
 
 #[cfg(target_os = "linux")]
-fn owner_poll_timeout(deadline: Instant, now: Instant, runnable: bool) -> i32 {
+fn owner_poll_timeout(deadline: Option<Instant>, now: Instant, runnable: bool) -> i32 {
     if runnable {
         return 0;
     }
+    let Some(deadline) = deadline else {
+        return -1;
+    };
     deadline.saturating_duration_since(now).as_nanos()
         .div_ceil(1_000_000).min(i32::MAX as u128) as i32
 }
@@ -3824,7 +3827,10 @@ impl SinglePoll {
             }
             let network_fd_start = fds.len();
             let now = Instant::now();
-            let mut deadline = now + Duration::from_secs(3600);
+            let mut deadline: Option<Instant> = None;
+            let mut wake_at = |due: Instant| {
+                deadline = Some(deadline.map_or(due, |current| current.min(due)));
+            };
             // Logical work can be queued after its consumer's turn. Do not
             // depend on a pipe byte surviving until the next wait: counters
             // and queues are the authority, fd readiness is only the wakeup.
@@ -3833,10 +3839,10 @@ impl SinglePoll {
                 || (RELOAD_REQUESTED.load(Ordering::Acquire) != 0
                     && !self.reload_in_progress());
             if !self.interface_work_pending() {
-                if let Some(due) = self.interface_refresh.retry_at { deadline = deadline.min(due); }
+                if let Some(due) = self.interface_refresh.retry_at { wake_at(due); }
                 runnable |= self.interface_refresh.requested;
             }
-            if let Some(due) = self.route_retry_at { deadline = deadline.min(due); }
+            if let Some(due) = self.route_retry_at { wake_at(due); }
 
             // The normal owner waits on network and file descriptors in one
             // set.  `step` still performs bounded nonblocking work after the
@@ -3863,16 +3869,15 @@ impl SinglePoll {
                 }
             }
             for pending in &self.pending_edns_udp {
-                deadline = deadline.min(pending.deadline);
+                wake_at(pending.deadline);
             }
             let upstream_fd_start = fds.len();
             let timer_sentinel = now + Duration::from_secs(3600);
             self.upstream_next_due = self.service.borrow().daemon.as_ref().and_then(|daemon| {
-                let due = daemon.append_poll_fds(&mut fds, timer_sentinel);
-                (due < timer_sentinel).then_some(due)
+                daemon.append_poll_fds(&mut fds, timer_sentinel)
             });
             if let Some(due) = self.upstream_next_due {
-                deadline = deadline.min(due);
+                wake_at(due);
             }
             let upstream_fd_end = fds.len();
             for client in &mut self.clients {
@@ -3880,16 +3885,16 @@ impl SinglePoll {
                 client.ready_events = 0;
                 if let (Some(logger), Some(context)) = (&self.logger, &client.log_context) {
                     if let Some(due) = logger.tcp_retry_deadline(context) {
-                        deadline = deadline.min(due);
+                        wake_at(due);
                     }
                     if client.dns_work.is_none() && logger.tcp_finished(context) {
                         runnable = true;
                     }
                 }
                 let Some(work) = &client.dns_work else { continue };
-                deadline = deadline.min(work.deadline);
+                wake_at(work.deadline);
                 if !work.mac_ready && !work.mac_deferred {
-                    deadline = deadline.min(work.mac_deadline);
+                    wake_at(work.mac_deadline);
                     // DNS bytes already queued on the downstream cannot
                     // advance an accept-time MAC lookup. Polling that unread
                     // socket would wake continuously while its dump waits.
@@ -3906,7 +3911,7 @@ impl SinglePoll {
                         )
                     }
                     TcpClientPhase::WaitingMac { .. } => {
-                        deadline = deadline.min(work.mac_deadline);
+                        wake_at(work.mac_deadline);
                         runnable |= work.mac_ready;
                         (-1, 0)
                     }
@@ -3915,7 +3920,7 @@ impl SinglePoll {
                         POLLOUT,
                     ),
                     TcpClientPhase::Forwarding { wait, .. } => {
-                        deadline = deadline.min(wait.deadline);
+                        wake_at(wait.deadline);
                         (wait.fd, wait.events)
                     }
                 };
@@ -3957,10 +3962,10 @@ impl SinglePoll {
                     // readiness must also resume the DHCP transaction.
                     provider.append_packet_interface_fds(&mut fds);
                     if provider.packet_interfaces_runnable() {
-                        deadline = now;
+                        wake_at(now);
                     }
                     if let Some(due) = provider.next_maintenance() {
-                        deadline = deadline.min(due);
+                        wake_at(due);
                     }
                 }
             }
@@ -3979,7 +3984,7 @@ impl SinglePoll {
                 }
                 if let Some(due) = self.helper_next_due(now) {
                     runnable |= due <= now;
-                    deadline = deadline.min(due);
+                    wake_at(due);
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -3988,7 +3993,7 @@ impl SinglePoll {
             if let Some(tftp) = &self.tftp {
                 tftp.append_poll_fds(&mut fds);
                 if tftp.has_pending_work() {
-                    deadline = deadline.min(self.tftp_next_due.unwrap_or(now));
+                    wake_at(self.tftp_next_due.unwrap_or(now));
                 }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -3999,7 +4004,7 @@ impl SinglePoll {
             if let Some(neighbors) = &self.neighbors {
                 neighbors.append_poll_fds(&mut fds);
                 if let Some(due) = neighbors.active_dump_deadline() {
-                    deadline = deadline.min(neighbor_poll_deadline(due, now,
+                    wake_at(neighbor_poll_deadline(due, now,
                         SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default()));
                 }
             }
@@ -4009,7 +4014,7 @@ impl SinglePoll {
             if let Some(collector) = &self.interface_collector {
                 collector.append_poll_fds(&mut fds);
                 if let Some(limit) = collector.deadline() {
-                    deadline = deadline.min(limit);
+                    wake_at(limit);
                 }
                 if collector.runnable() {
                     runnable = true;
@@ -4027,17 +4032,20 @@ impl SinglePoll {
                 runnable |= provider.borrow_mut().files_runnable();
             }
             runnable |= self.full_reload_pending;
-            // A failed wake-pipe allocation must not make TERM/HUP sleep for
-            // the one-hour no-timer sentinel. This is only an error fallback;
+            // A failed wake-pipe allocation must not make TERM/HUP sleep
+            // indefinitely. This is only an error fallback;
             // the normal path is woken by the pipe and uses the real deadline.
             if self.signal_wake_read.is_none() {
-                deadline = deadline.min(now + Duration::from_millis(100));
+                wake_at(now + Duration::from_millis(100));
             }
             for logger in self.early_logger.iter().chain(self.logger.iter()) {
                 if let Some(due) = logger.retry_deadline() {
-                    deadline = deadline.min(due);
+                    wake_at(due);
                 }
             }
+            // Active timers retain the existing one-hour recheck cadence.
+            // An idle owner has no periodic deadline.
+            let deadline = deadline.map(|due| due.min(now + Duration::from_secs(3600)));
             let timeout = owner_poll_timeout(deadline, Instant::now(), runnable);
             debug_assert!(!runnable || timeout == 0);
             let started = Instant::now();
@@ -5542,8 +5550,7 @@ impl SinglePoll {
         let upstream_fd_start = fds.len();
         let timer_sentinel = Instant::now() + Duration::from_secs(3600);
         self.upstream_next_due = self.service.borrow().daemon.as_ref().and_then(|daemon| {
-            let due = daemon.append_poll_fds(&mut fds, timer_sentinel);
-            (due < timer_sentinel).then_some(due)
+            daemon.append_poll_fds(&mut fds, timer_sentinel)
         });
         if let Some(due) = self.upstream_next_due {
             deadline = deadline.min(due);
@@ -6165,7 +6172,7 @@ impl SinglePoll {
         let parent = self.service.borrow_mut();
         if let Some(daemon) = &parent.daemon {
             let deadline = daemon.append_poll_fds(&mut fds, now + Duration::from_secs(3600));
-            self.arp_awake |= deadline <= now;
+            self.arp_awake |= deadline.is_some_and(|due| due <= now);
         }
         drop(parent);
         if let Some(ubus) = &self.parent_events.borrow_mut().ubus {
@@ -6731,10 +6738,13 @@ mod tests {
     #[test]
     fn owner_runnable_overrides_a_future_timer_and_preserves_timer_rounding() {
         let now = Instant::now();
-        assert_eq!(owner_poll_timeout(now + Duration::from_secs(3600), now, true), 0);
-        assert_eq!(owner_poll_timeout(now + Duration::from_nanos(1), now, false), 1);
-        assert_eq!(owner_poll_timeout(now, now, false), 0);
-        assert_eq!(owner_poll_timeout(now + Duration::from_secs(u32::MAX as u64), now, false), i32::MAX);
+        assert_eq!(owner_poll_timeout(None, now, false), -1);
+        assert_eq!(owner_poll_timeout(None, now, true), 0);
+        assert_eq!(owner_poll_timeout(Some(now + Duration::from_secs(3600)), now, true), 0);
+        assert_eq!(owner_poll_timeout(Some(now + Duration::from_nanos(1)), now, false), 1);
+        assert_eq!(owner_poll_timeout(Some(now), now, false), 0);
+        assert_eq!(owner_poll_timeout(Some(now + Duration::from_secs(7200)), now, false), 7_200_000);
+        assert_eq!(owner_poll_timeout(Some(now + Duration::from_secs(u32::MAX as u64)), now, false), i32::MAX);
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]

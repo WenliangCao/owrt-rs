@@ -56,7 +56,7 @@ fn owner_fast_retry_deadline_completes_a_real_daemon_query_without_new_client_in
 
     let mut fds = Vec::new();
     let before = Instant::now();
-    let due = daemon.append_poll_fds(&mut fds, before + Duration::from_secs(1));
+    let due = daemon.append_poll_fds(&mut fds, before + Duration::from_secs(1)).unwrap();
     assert!(due <= before + Duration::from_millis(45));
     let left = due.saturating_duration_since(Instant::now());
     let millis = left
@@ -95,7 +95,7 @@ fn owner_fast_retry_deadline_completes_a_real_daemon_query_without_new_client_in
     assert_eq!(daemon.poll_failures(), PollFailures::default());
     fds.clear();
     let idle = Instant::now() + Duration::from_secs(1);
-    assert_eq!(daemon.append_poll_fds(&mut fds, idle), idle);
+    assert_eq!(daemon.append_poll_fds(&mut fds, idle), None);
     assert!(fds.is_empty());
 }
 

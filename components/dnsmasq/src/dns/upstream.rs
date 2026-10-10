@@ -582,10 +582,11 @@ impl<R: Random> UpstreamResolver<R> {
     }
 
     /// Borrow readiness interests without waiting or advancing any query.
-    /// Used by the service owner while DHCP temporarily owns its state.
-    pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>, deadline: Instant) -> Instant {
+    /// None means there are no sockets, timers or queued completions to drive.
+    /// Otherwise the supplied deadline remains an upper bound on the wait.
+    pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>, deadline: Instant) -> Option<Instant> {
         if self.no_timer_or_socket_work() && self.events.is_empty() {
-            return deadline;
+            return None;
         }
         let now = Instant::now();
         let mut deadline = self.next_wakeup(deadline);
@@ -608,7 +609,7 @@ impl<R: Random> UpstreamResolver<R> {
                 deadline = deadline.min(retry);
             }
         }
-        deadline
+        Some(deadline)
     }
 
     pub fn counters(&self) -> super::forward::ForwardCounters {

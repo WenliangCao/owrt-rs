@@ -85,7 +85,7 @@ fn dynamic_net_and_unfinished_dad_address_events_keep_their_real_wake() {
         assert!(owner.address_refresh_requires_enumeration());
         assert!(owner.interface_refresh.requested);
         assert!(owner.interface_refresh.due(Instant::now()));
-        assert_eq!(owner_poll_timeout(Instant::now() + Duration::from_secs(60),
+        assert_eq!(owner_poll_timeout(Some(Instant::now() + Duration::from_secs(60)),
             Instant::now(), owner.interface_refresh.requested), 0);
         owner.interface_refresh.complete(Instant::now(), false);
         if dad {
