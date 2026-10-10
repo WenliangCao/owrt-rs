@@ -722,7 +722,9 @@ impl LeaseStore {
 
     /// Prune the selected object, rather than every lease sharing its address.
     pub fn prune_lease(&mut self, target: Option<LeaseId>, now: i64) -> Vec<Lease> {
-        let mut removed = Vec::new();
+        // A targeted RELEASE normally removes one large Lease, not Vec's
+        // default four-element allocation. Bulk expiry keeps ordinary growth.
+        let mut removed = Vec::with_capacity(usize::from(target.is_some()));
         while let Some(&(expires, first)) = self.expiry.first() {
             let id = if lease_expired(expires, now) {
                 Some(first)

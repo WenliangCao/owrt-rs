@@ -476,8 +476,10 @@ where
         let mut lost_names = LeaseStore::names_lost(&expired);
         lost_names.extend(LeaseStore::names_lost(&outcome.removed));
         lost_names.append(&mut outcome.lost_names);
-        expired.append(&mut outcome.removed);
-        outcome.removed = expired;
+        if !expired.is_empty() {
+            expired.append(&mut outcome.removed);
+            outcome.removed = expired;
+        }
         outcome.lost_names = lost_names;
         Ok(outcome)
     }
