@@ -58,6 +58,7 @@ pub struct Ipv4Snapshot {
     state: State,
     bytes: Vec<u8>,
     rows: Vec<Ipv4Interface>,
+    interface_flags: Vec<(u32, u16)>,
 }
 
 impl Ipv4Snapshot {
@@ -94,6 +95,7 @@ impl Ipv4Snapshot {
             state: State::Idle,
             bytes: vec![0; 512],
             rows: Vec::new(),
+            interface_flags: Vec::new(),
         })
     }
 
@@ -106,6 +108,7 @@ impl Ipv4Snapshot {
         }
         self.sequence = self.sequence.wrapping_add(1).max(1);
         self.rows.clear();
+        self.interface_flags.clear();
         self.state = State::Send;
         Ok(())
     }
@@ -140,6 +143,7 @@ impl Ipv4Snapshot {
         let result = self.advance(control);
         if result.is_err() {
             self.rows.clear();
+            self.interface_flags.clear();
             self.state = State::Idle;
         }
         result
@@ -246,10 +250,15 @@ impl Ipv4Snapshot {
             self.port,
             self.sequence,
             &mut self.rows,
-            |index| interface_flags(control, index),
+            |index| {
+                cached_flags(&mut self.interface_flags, index, |index| {
+                    interface_flags(control, index)
+                })
+            },
         )?;
         if done {
             self.state = State::Idle;
+            self.interface_flags.clear();
             return Ok(Some(std::mem::take(&mut self.rows)));
         }
         Ok(None)
@@ -278,6 +287,21 @@ fn interface_flags(control: &UdpSocket, index: u32) -> io::Result<u16> {
         return Err(io::Error::last_os_error());
     }
     Ok(u16::from_ne_bytes(bytes[16..18].try_into().unwrap()))
+}
+
+// Aliases share link flags within this fresh, possibly multipart address dump.
+// No result survives into the next packet, and failed lookups are never cached.
+fn cached_flags(
+    cache: &mut Vec<(u32, u16)>,
+    index: u32,
+    read: impl FnOnce(u32) -> io::Result<u16>,
+) -> io::Result<u16> {
+    if let Some(&(_, flags)) = cache.iter().find(|&&(id, _)| id == index) {
+        return Ok(flags);
+    }
+    let flags = read(index)?;
+    cache.push((index, flags));
+    Ok(flags)
 }
 
 fn status(bytes: &[u8], empty_ok: bool) -> io::Result<()> {
@@ -485,6 +509,76 @@ mod tests {
             |_| unreachable!()
         )
         .unwrap());
+    }
+
+    #[test]
+    fn multipart_aliases_share_flags_but_a_new_packet_refreshes_them() {
+        let mut snapshot = Ipv4Snapshot::new().unwrap();
+        snapshot.begin().unwrap();
+        let mut calls = Vec::new();
+        let port = snapshot.port;
+        let address = |sequence, index, host| {
+            let payload = row(index, 24, Some([192, 0, 2, host]), None);
+            message(20, 2, sequence, port, &payload)
+        };
+        let first = [address(1, 11, 2), address(1, 13, 3)].concat();
+        let second = [
+            address(1, 11, 1),
+            address(1, 13, 4),
+            address(1, 12, 5),
+            message(3, 2, 1, port, &[]),
+        ]
+        .concat();
+        for (wire, done) in [(first, false), (second, true)] {
+            assert_eq!(
+                decode(&wire, snapshot.port, 1, &mut snapshot.rows, |index| {
+                    cached_flags(&mut snapshot.interface_flags, index, |index| {
+                        calls.push(index);
+                        Ok(match index {
+                            12 => 9,
+                            13 => 0,
+                            _ => 1,
+                        })
+                    })
+                })
+                .unwrap(),
+                done
+            );
+        }
+        assert_eq!(calls, [11, 13, 12]);
+        assert_eq!(snapshot.rows.len(), 3);
+        assert!(snapshot.rows[2].loopback);
+
+        // A new packet must observe a link that went down after the last dump.
+        snapshot.state = State::Idle;
+        snapshot.begin().unwrap();
+        assert!(snapshot.interface_flags.is_empty());
+        assert!(snapshot.rows.is_empty());
+        let wire = address(2, 11, 2);
+        assert!(
+            !decode(&wire, snapshot.port, 2, &mut snapshot.rows, |index| {
+                cached_flags(&mut snapshot.interface_flags, index, |index| {
+                    calls.push(index);
+                    Ok(0)
+                })
+            })
+            .unwrap()
+        );
+        assert_eq!(calls, [11, 13, 12, 11]);
+        assert!(snapshot.rows.is_empty());
+
+        assert_eq!(
+            cached_flags(&mut snapshot.interface_flags, 99, |_| {
+                Err(io::Error::from_raw_os_error(19))
+            })
+            .unwrap_err()
+            .raw_os_error(),
+            Some(19)
+        );
+        assert_eq!(
+            cached_flags(&mut snapshot.interface_flags, 99, |_| Ok(9)).unwrap(),
+            9
+        );
     }
 
     #[test]
