@@ -27,7 +27,7 @@ use crate::config::dhcp::{
 };
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use crate::helper::{LeaseDelivery, LeaseEventContext};
-use crate::interfaces::{ipv4_interfaces, primary_ipv4};
+use crate::interfaces::{ipv4_interfaces, primary_ipv4_with_name};
 use crate::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
 use std::cell::RefCell;
 use std::ffi::OsStr;
@@ -1755,7 +1755,7 @@ impl LocalProvider {
         let mut addresses = self
             .packet_addresses()
             .map_err(|error| RuntimeError::State(error.to_string()))?;
-        let mut local = primary_ipv4(interface, &self.control)
+        let mut local = primary_ipv4_with_name(interface, interface_name, &self.control)
             .map_err(|error| RuntimeError::State(error.to_string()))?;
         let loopback = dispatch.packet.giaddr().is_unspecified()
             && addresses
@@ -2714,7 +2714,7 @@ impl OutcomeProvider for LocalProvider {
         let mut addresses = self
             .packet_addresses()
             .map_err(|error| RuntimeError::State(error.to_string()))?;
-        let mut local = primary_ipv4(interface, &self.control)
+        let mut local = primary_ipv4_with_name(interface, interface_name, &self.control)
             .map_err(|error| RuntimeError::State(error.to_string()))?;
         match self
             .interface_policy

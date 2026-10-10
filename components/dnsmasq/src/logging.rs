@@ -472,11 +472,11 @@ impl Logger {
         if self.queue.len() >= self.limit {
             self.lost = self.lost.wrapping_add(1);
         } else {
-            self.queue.push_back(Record::new(self.format(
+            self.queue.push_back(self.format_record(
                 event.service,
                 event.priority,
                 message,
-            )));
+            ));
         }
         // C retries a down connection on my_syslog, not every owner poll.
         self.connection_good = true;
@@ -504,7 +504,10 @@ impl Logger {
         self.finish()
     }
 
-    fn format(&self, service: Service, priority: Priority, message: &[u8]) -> Vec<u8> {
+    fn format_record(&self, service: Service, priority: Priority, message: &[u8]) -> Record {
+        // Formatting and queue ownership share this event's PID. The flush
+        // guard still reads the current PID so a later fork cannot replay it.
+        let pid = std::process::id();
         let mut bytes = Vec::with_capacity(MAX_MESSAGE);
         let syslog = matches!(
             self.destination,
@@ -529,7 +532,7 @@ impl Logger {
         // libc openlog keeps one program identifier after log.c falls back;
         // subsystem suffixes still apply to its separate debug echo only.
         let suffix = if self.fallback { "" } else { service.suffix() };
-        bytes.extend_from_slice(format!("{PROGRAM}{suffix}[{}]: ", std::process::id()).as_bytes());
+        bytes.extend_from_slice(format!("{PROGRAM}{suffix}[{pid}]: ").as_bytes());
         let terminators = 1 + usize::from(self.fallback);
         bytes.extend_from_slice(
             &message[..message
@@ -542,7 +545,7 @@ impl Logger {
             bytes.push(b'\n');
         }
         bytes.push(if syslog { 0 } else { b'\n' });
-        bytes
+        Record { bytes, offset: 0, pid }
     }
 
     /// Include this descriptor with POLLOUT only while it is returned. Failed
@@ -602,12 +605,12 @@ impl Logger {
                         self.destination = destination;
                         self.omit_timestamp = false;
                         self.fallback = true;
-                        let bytes = self.format(
+                        let record = self.format_record(
                             Service::Dns,
                             Priority::Critical,
                             format!("log failed: {}", error_text(&error)).as_bytes(),
                         );
-                        self.queue.push_back(Record::new(bytes));
+                        self.queue.push_back(record);
                     } else {
                         self.connection_good = false;
                         return;
@@ -653,12 +656,12 @@ impl Logger {
                     self.queue.pop_front();
                     if self.lost != 0 {
                         let lost = std::mem::take(&mut self.lost);
-                        let bytes = self.format(
+                        let record = self.format_record(
                             Service::Dns,
                             Priority::Warning,
                             format!("overflow: {lost} log entries lost").as_bytes(),
                         );
-                        self.queue.push_back(Record::new(bytes));
+                        self.queue.push_back(record);
                     }
                 }
                 continue;
@@ -727,12 +730,12 @@ impl Logger {
                         format!("{PROGRAM}: log failed: {}\n", error_text(&error)).into_bytes();
                     self.echo_queue.push_back(Record::new(bytes));
                 }
-                let bytes = self.format(
+                let record = self.format_record(
                     Service::Dns,
                     Priority::Critical,
                     format!("log failed: {}", error_text(&error)).as_bytes(),
                 );
-                self.queue.push_back(Record::new(bytes));
+                self.queue.push_back(record);
                 // Complete the immediate fallback attempt before accepting the
                 // next producer. Otherwise the single file buffer drops that
                 // next line and incorrectly emits an overflow warning.

@@ -41,6 +41,8 @@ impl DnsInterface {
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 pub use linux::{dns_interfaces, ipv4_interfaces, primary_ipv4};
+#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+pub(crate) use linux::primary_ipv4_with_name;
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 mod linux {
@@ -63,13 +65,29 @@ mod linux {
     /// Return SIOCGIFADDR's primary address, not whichever alias received the
     /// datagram. The caller can retain one control socket for every request.
     pub fn primary_ipv4(index: u32, control: &UdpSocket) -> io::Result<Ipv4Addr> {
+        primary_ipv4_with_name(index, None, control)
+    }
+
+    /// Reuse the ingress or effective bridge name captured for this packet,
+    /// matching C's ifr_name; callers without a name still resolve the index.
+    pub(crate) fn primary_ipv4_with_name(
+        index: u32,
+        name: Option<&[u8]>,
+        control: &UdpSocket,
+    ) -> io::Result<Ipv4Addr> {
         let mut request = [0u64; 5];
         // SAFETY: Linux 64-bit ifreq is 40 bytes with an aligned union. Its
-        // first 16 bytes are ifr_name. Reuse the retained control socket for
-        // SIOCGIFNAME rather than allowing libc to allocate another socket.
+        // first 16 bytes are ifr_name, including the zero-filled terminator.
         let bytes =
             unsafe { std::slice::from_raw_parts_mut(request.as_mut_ptr().cast::<u8>(), 40) };
-        bytes[..16].copy_from_slice(&crate::net::interface_name(control, index)?);
+        if let Some(name) = name {
+            if name.len() >= 16 || name.contains(&0) {
+                return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid interface name"));
+            }
+            bytes[..name.len()].copy_from_slice(name);
+        } else {
+            bytes[..16].copy_from_slice(&crate::net::interface_name(control, index)?);
+        }
         // SAFETY: SIOCGIFADDR writes sockaddr_in at byte 16 of the live ifreq.
         // The UdpSocket owns the descriptor for the entire call.
         if unsafe { ioctl(control.as_raw_fd(), 0x8915, bytes.as_mut_ptr()) } < 0 {
@@ -293,6 +311,8 @@ mod linux {
                 interface.address
             );
             assert!(primary_ipv4(u32::MAX, &control).is_err());
+            assert_eq!(primary_ipv4_with_name(u32::MAX, Some(b"lo"), &control).unwrap(), interface.address);
+            assert!(primary_ipv4_with_name(interface.index, Some(b"absent"), &control).is_err());
         }
     }
 }
