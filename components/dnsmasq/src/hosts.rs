@@ -224,7 +224,14 @@ impl Hosts {
         if self.forward.is_empty() {
             return Vec::new();
         }
-        let Some(indices) = self.forward.get_mut(&name.to_ascii_lowercase()) else {
+        let canonical;
+        let key = if name.iter().any(u8::is_ascii_uppercase) {
+            canonical = name.to_ascii_lowercase();
+            canonical.as_slice()
+        } else {
+            name
+        };
+        let Some(indices) = self.forward.get_mut(key) else {
             return Vec::new();
         };
         let selected: Vec<_> = indices

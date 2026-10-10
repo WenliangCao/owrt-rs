@@ -469,6 +469,14 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream.take_source_diagnostics()
     }
 
+    #[cfg(target_os = "linux")]
+    /// Source warnings, socket diagnostics and server notices share the owner.
+    pub fn has_pending_notices(&self) -> bool {
+        !self.source_warnings.is_empty()
+            || !self.server_notices.is_empty()
+            || self.upstream.has_source_diagnostics()
+    }
+
     pub fn local_config(&self) -> &DnsConfig {
         &self.local.config
     }

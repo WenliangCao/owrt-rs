@@ -964,7 +964,15 @@ impl<R: Random> UpstreamResolver<R> {
     /// Configure before dropping startup privileges. Bind failures are returned
     /// by server ID so check_servers can remove only the affected servers.
     pub fn take_source_diagnostics(&mut self) -> Vec<SourceSocketDiagnostic> {
+        if self.source_diagnostics.is_empty() {
+            return Vec::new();
+        }
         self.source_diagnostics.drain(..).collect()
+    }
+
+    #[cfg(target_os = "linux")]
+    pub(crate) fn has_source_diagnostics(&self) -> bool {
+        !self.source_diagnostics.is_empty()
     }
 
     pub fn socket_settings(&self) -> SocketSettings {

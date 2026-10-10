@@ -4328,6 +4328,9 @@ impl SinglePoll {
         let Some(daemon) = &mut parent.daemon else {
             return;
         };
+        if !daemon.has_pending_notices() {
+            return;
+        }
         for warning in daemon.take_source_warnings() {
             logger.emit(LogEvent::new(
                 Service::Dns,

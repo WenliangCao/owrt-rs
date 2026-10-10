@@ -1112,7 +1112,9 @@ impl Cache {
     }
 
     fn invalid(&self, slot: usize, now: i64) -> bool {
-        self.policy.expired(self.entry(slot).unwrap().expires, now) || self.outdated_cname(slot)
+        let entry = self.entry(slot).unwrap();
+        self.policy.expired(entry.expires, now)
+            || (entry.record.kind == Kind::Cname && self.outdated_cname(slot))
     }
 
     fn remove(&mut self, slot: usize) {

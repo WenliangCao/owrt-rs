@@ -892,7 +892,15 @@ fn add_local_records_for_name(
     cache: Option<&Cache>,
     notices: &mut QueryEvents,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
-    let key = dotted_key(name);
+    // Only configured RR loops compare this key; address sources use name.
+    let records = &config.records;
+    let needs_key = !records.txt.is_empty()
+        || !records.raw.is_empty()
+        || !records.ptr.is_empty()
+        || !records.mx.is_empty()
+        || !records.srv.is_empty()
+        || !records.naptr.is_empty();
+    let key = if needs_key { dotted_key(name) } else { Vec::new() };
     let mut rows = Vec::new();
     let mut owned = false;
     let mut synthetic_reverse_name = None;
@@ -994,7 +1002,7 @@ fn add_local_records_for_name(
     }
 
     let name = synthetic_reverse_name.as_deref().unwrap_or(name);
-    let key = if synthetic_reverse_name.is_some() {
+    let key = if needs_key && synthetic_reverse_name.is_some() {
         dotted_key(name)
     } else {
         key
