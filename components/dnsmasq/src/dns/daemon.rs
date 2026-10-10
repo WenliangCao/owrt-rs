@@ -1190,9 +1190,9 @@ impl<R: Random> DnsDaemon<R> {
         external_local: Option<&LocalDnsService>,
         doctor: Option<&mut ReplyDoctor<'_>>,
     ) -> Result<Vec<ClientResponse>, DaemonError> {
-        let policy = self.policy.clone();
+        let policy = &self.policy;
         let events = self.upstream.poll_with_filter(wait, move |packet| {
-            ignore_reply(packet, &policy).unwrap_or(false)
+            ignore_reply(packet, policy).unwrap_or(false)
         });
         let events = match events {
             Ok(events) => events,

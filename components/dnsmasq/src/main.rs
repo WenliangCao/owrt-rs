@@ -1641,7 +1641,9 @@ fn run_inner(
         #[cfg(target_os = "linux")]
         poll.step_route_events();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        poll.step_dhcp_files();
+        if poll.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some()) {
+            poll.step_dhcp_files();
+        }
         #[cfg(target_os = "linux")]
         poll.step_dns_files();
         #[cfg(target_os = "linux")]
@@ -1836,7 +1838,8 @@ fn run_inner(
                 || poll.tftp_pending_interfaces());
         }
         // Address events and HUP both publish before new DNS admission.
-        let signaled = !poll.reload_in_progress()
+        let signaled = RELOAD_REQUESTED.load(Ordering::Acquire) != 0
+            && !poll.reload_in_progress()
             && RELOAD_REQUESTED.fetch_update(Ordering::AcqRel, Ordering::Acquire,
                 |count| count.checked_sub(1)).is_ok();
         poll.process_reload_before_dns(runtime.scalar.local_ttl, signaled)?;
@@ -3192,7 +3195,9 @@ impl SinglePoll {
                     break;
                 }
                 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-                self.step_dhcp_files();
+                if self.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some()) {
+                    self.step_dhcp_files();
+                }
                 self.step_dns_files();
                 self.step_hosts_files();
                 if std::mem::take(&mut self.full_reload_pending) {
@@ -4296,14 +4301,22 @@ impl SinglePoll {
             self.neighbors_ready = true;
             self.advance_neighbors();
         }
-        self.step_tcp_clients();
+        if !self.clients.is_empty() {
+            self.step_tcp_clients();
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        self.step_dhcp();
+        if self.dhcp.is_some() || self.helper.is_some() || self.pending_delivery.is_some()
+            || self.helper_init.is_some() || self.helper_init_error.is_some() || self.helper_init_end
+        {
+            self.step_dhcp();
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.step_neighbors();
         self.step_edns_udp();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        self.step_tftp();
+        if self.tftp_ready || self.tftp.as_ref().is_some_and(TftpListener::has_pending_work) {
+            self.step_tftp();
+        }
         #[cfg(target_os = "linux")]
         self.log_dns_diagnostics();
         Ok(())
@@ -5676,9 +5689,13 @@ impl SinglePoll {
         self.poll_udp_completions();
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         self.advance_neighbors();
-        self.step_tcp_clients();
+        if !self.clients.is_empty() {
+            self.step_tcp_clients();
+        }
         self.step_edns_udp();
-        self.step_tftp();
+        if self.tftp_ready || self.tftp.as_ref().is_some_and(TftpListener::has_pending_work) {
+            self.step_tftp();
+        }
         // Early DNS/TCP timers or any listener activity must not consume an
         // ICMP quarter-second timeout. Only the full idle poll counts as one.
         self.log_dns_diagnostics();
