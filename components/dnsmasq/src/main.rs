@@ -71,8 +71,7 @@ static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static SIGNAL_WAKE_WRITE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
-// Like C, return to the owner after one ready UDP packet.
-const UDP_PACKETS_PER_TURN: usize = 1;
+const UDP_PACKETS_PER_TURN: usize = 16;
 const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
 
 #[cfg(target_os = "linux")]
@@ -8055,7 +8054,7 @@ mod tests {
 
     #[test]
     fn udp_turn_budget_is_bounded_for_service_fairness() {
-        assert!(UDP_PACKETS_PER_TURN >= 1);
+        assert!(UDP_PACKETS_PER_TURN > 1);
         assert!(UDP_PACKETS_PER_TURN <= 64);
     }
 
