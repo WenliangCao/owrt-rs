@@ -3847,6 +3847,36 @@ impl SinglePoll {
             }
             if let Some(due) = self.route_retry_at { wake_at(due); }
 
+            // C's fd-sorted poll set puts DHCP before later DNS listeners.
+            // Descriptor order does not change the dispatch order in step().
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let dhcp_fd_start = fds.len();
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if let Some(dhcp) = &self.dhcp {
+                if self.dhcp_packet_work_allowed() {
+                    let interfaces_pending = dhcp.provider.as_ref()
+                        .is_some_and(|provider| provider.borrow().packet_interfaces_pending());
+                    if !interfaces_pending {
+                        dhcp.listener.append_poll_fds(&mut fds);
+                    }
+                }
+                if let Some(provider) = dhcp.provider.as_ref()
+                    .filter(|_| self.dhcp_packet_work_allowed()) {
+                    let provider = provider.borrow();
+                    // Packet interface dumps share the file owner, but their
+                    // readiness must also resume the DHCP transaction.
+                    provider.append_packet_interface_fds(&mut fds);
+                    if provider.packet_interfaces_runnable() {
+                        wake_at(now);
+                    }
+                    if let Some(due) = provider.next_maintenance() {
+                        wake_at(due);
+                    }
+                }
+            }
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            let dhcp_fd_end = fds.len();
+
             // The normal owner waits on network and file descriptors in one
             // set.  `step` still performs bounded nonblocking work after the
             // wait returns; readiness is deliberately not consumed here.
@@ -3947,33 +3977,6 @@ impl SinglePoll {
                     revents: 0,
                 });
             }
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let dhcp_fd_start = fds.len();
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            if let Some(dhcp) = &self.dhcp {
-                if self.dhcp_packet_work_allowed() {
-                    let interfaces_pending = dhcp.provider.as_ref()
-                        .is_some_and(|provider| provider.borrow().packet_interfaces_pending());
-                    if !interfaces_pending {
-                        dhcp.listener.append_poll_fds(&mut fds);
-                    }
-                }
-                if let Some(provider) = dhcp.provider.as_ref()
-                    .filter(|_| self.dhcp_packet_work_allowed()) {
-                    let provider = provider.borrow();
-                    // Packet interface dumps share the file owner, but their
-                    // readiness must also resume the DHCP transaction.
-                    provider.append_packet_interface_fds(&mut fds);
-                    if provider.packet_interfaces_runnable() {
-                        wake_at(now);
-                    }
-                    if let Some(due) = provider.next_maintenance() {
-                        wake_at(due);
-                    }
-                }
-            }
-            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            let dhcp_fd_end = fds.len();
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(helper) = &self.helper {
                 for (fd, events) in helper.poll_fds() {
@@ -6049,7 +6052,7 @@ impl SinglePoll {
         let mut metrics = Metrics::default();
         write_dhcp_metrics(&mut metrics, &provider);
         self.probe_metrics = Some(metrics);
-        dhcp.output.fill(0);
+        // Each reply serializer initializes the entire transmitted prefix.
         let events = Rc::clone(&self.parent_events);
         let results = {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {

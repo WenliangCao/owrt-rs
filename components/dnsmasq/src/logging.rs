@@ -469,18 +469,17 @@ impl Logger {
                 self.echo_queue.push_back(Record::new(bytes));
             }
         }
+        let mut pid = None;
         if self.queue.len() >= self.limit {
             self.lost = self.lost.wrapping_add(1);
         } else {
-            self.queue.push_back(self.format_record(
-                event.service,
-                event.priority,
-                message,
-            ));
+            let record = self.format_record(event.service, event.priority, message);
+            pid = Some(record.pid);
+            self.queue.push_back(record);
         }
         // C retries a down connection on my_syslog, not every owner poll.
         self.connection_good = true;
-        self.flush_ready();
+        self.flush_ready_with_pid(pid);
     }
 
     /// log.c::die echoes only the first critical record, with a leading blank
@@ -580,6 +579,12 @@ impl Logger {
     /// Safe both after readiness and once per owner step: every write is
     /// nonblocking and a finite budget bounds short-write/EINTR/reconnect work.
     pub fn flush_ready(&mut self) {
+        self.flush_ready_with_pid(None);
+    }
+
+    // Only emit supplies a PID, captured while formatting in this same call.
+    // External flushes obtain the current PID before examining queued records.
+    fn flush_ready_with_pid(&mut self, mut pid: Option<u32>) {
         if let Some(echo) = self.echo {
             drain_echo(echo, &mut self.echo_queue);
         }
@@ -628,7 +633,7 @@ impl Logger {
             };
             // An early owner may survive daemon fork. Never deliver records
             // already queued by another process, matching log.c's PID guard.
-            if record.pid != std::process::id() {
+            if record.pid != *pid.get_or_insert_with(std::process::id) {
                 self.queue.pop_front();
                 continue;
             }
@@ -789,6 +794,26 @@ impl Logger {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn immediate_and_external_flushes_discard_inherited_records() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-log-pid-{}", std::process::id()));
+        let config = LoggingConfig { file: Some(path.clone()), ..Default::default() };
+        let (mut logger, _) = Logger::start(&config, &ProcessConfig::default(), None).unwrap();
+        let inherited = || Record { bytes: b"inherited\n".to_vec(), offset: 0, pid: 0 };
+        logger.queue.push_back(inherited());
+        logger.flush_ready();
+        assert!(std::fs::read(&path).unwrap().is_empty());
+
+        logger.limit = 2;
+        logger.queue.push_back(inherited());
+        logger.emit(LogEvent::new(Service::Dns, Priority::Info, b"current".to_vec()));
+        let text = std::fs::read_to_string(&path).unwrap();
+        assert!(!text.contains("inherited"));
+        assert!(text.contains(&format!("dnsmasq[{}]: current\n", std::process::id())));
+        assert!(logger.queue.is_empty());
+        std::fs::remove_file(path).unwrap();
+    }
 
     #[test]
     fn accepted_tcp_records_keep_the_old_file_after_parent_reopen() {
