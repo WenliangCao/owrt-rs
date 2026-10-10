@@ -3633,7 +3633,7 @@ mod startup_tests {
         let fixture = RunnableFilesFixture::new("interfaces");
         let mut provider = fixture.provider(None);
         provider.start_interface_owner().unwrap();
-        assert!(!provider.prepare_packet_interfaces().unwrap());
+        provider.interface_owner.as_mut().unwrap().begin().unwrap();
         assert!(provider.packet_interfaces_pending());
         assert!(!provider.files_runnable());
         let mut fds = Vec::new();
@@ -3642,6 +3642,8 @@ mod startup_tests {
         provider.append_packet_interface_fds(&mut fds);
         assert_eq!(fds.len(), 1);
         assert!((0..64).any(|_| {
+            fds.clear();
+            provider.append_packet_interface_fds(&mut fds);
             owrt_ubus::sys::poll_fds(&mut fds, 100).unwrap();
             provider.prepare_packet_interfaces().unwrap()
         }));
@@ -3650,8 +3652,9 @@ mod startup_tests {
         assert!(!provider.packet_addresses().unwrap().is_empty());
         provider.finish_packet_interfaces();
         assert!(provider.packet_addresses().is_err(), "one packet cannot lend its snapshot to the next");
-        assert!(!provider.prepare_packet_interfaces().unwrap(), "the next packet starts a new dump");
-        assert!(provider.packet_interfaces_pending());
+        let ready = provider.prepare_packet_interfaces().unwrap();
+        assert_eq!(provider.packet_interfaces_pending(), !ready);
+        assert_eq!(provider.packet_addresses().is_ok(), ready);
     }
 
     #[test]

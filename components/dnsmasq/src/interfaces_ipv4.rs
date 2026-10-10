@@ -48,6 +48,12 @@ enum State {
     Read,
 }
 
+enum Advance {
+    Pending,
+    Progress,
+    Complete(Vec<Ipv4Interface>),
+}
+
 /// A fresh, ordered IPv4 address dump for one DHCP packet. Partial dumps never
 /// escape. Call begin once, then step from the existing owner until Some(rows).
 /// Any hard error discards the partial dump; callers may begin a new request.
@@ -137,21 +143,29 @@ impl Ipv4Snapshot {
         }
     }
 
-    /// At most one send or one received datagram per call. The ioctl control
-    /// socket is borrowed, so row decoding needs no spare process descriptor.
+    /// At most three send/datagram actions per call, stopping at the first
+    /// would-block or interruption. The common send/data/DONE exchange fits
+    /// one owner turn; larger dumps still yield without publishing partial rows.
     pub fn step(&mut self, control: &UdpSocket) -> io::Result<Option<Vec<Ipv4Interface>>> {
-        let result = self.advance(control);
-        if result.is_err() {
-            self.rows.clear();
-            self.interface_flags.clear();
-            self.state = State::Idle;
+        for _ in 0..3 {
+            match self.advance(control) {
+                Ok(Advance::Progress) => {}
+                Ok(Advance::Pending) => return Ok(None),
+                Ok(Advance::Complete(rows)) => return Ok(Some(rows)),
+                Err(error) => {
+                    self.rows.clear();
+                    self.interface_flags.clear();
+                    self.state = State::Idle;
+                    return Err(error);
+                }
+            }
         }
-        result
+        Ok(None)
     }
 
-    fn advance(&mut self, control: &UdpSocket) -> io::Result<Option<Vec<Ipv4Interface>>> {
+    fn advance(&mut self, control: &UdpSocket) -> io::Result<Advance> {
         if self.state == State::Idle {
-            return Ok(None);
+            return Ok(Advance::Pending);
         }
         if self.state != State::Read {
             // C's nlmsghdr + rtgenmsg structure is padded to 20 bytes.
@@ -181,11 +195,11 @@ impl Ipv4Snapshot {
                 return match error.kind() {
                     io::ErrorKind::WouldBlock => {
                         self.state = State::SendBlocked;
-                        Ok(None)
+                        Ok(Advance::Pending)
                     }
                     io::ErrorKind::Interrupted => {
                         self.state = State::Send;
-                        Ok(None)
+                        Ok(Advance::Pending)
                     }
                     _ => Err(error),
                 };
@@ -194,7 +208,7 @@ impl Ipv4Snapshot {
                 return Err(io::ErrorKind::WriteZero.into());
             }
             self.state = State::Read;
-            return Ok(None);
+            return Ok(Advance::Progress);
         }
         let mut peer = Address::default();
         let mut peer_length = 12;
@@ -240,7 +254,7 @@ impl Ipv4Snapshot {
             return pending_read_error();
         }
         if !kernel || peer_length != 12 || peer.family != 16 || peer.pid != 0 {
-            return Ok(None);
+            return Ok(Advance::Progress);
         }
         if got != needed || got as usize > self.bytes.len() {
             return Err(malformed());
@@ -259,16 +273,16 @@ impl Ipv4Snapshot {
         if done {
             self.state = State::Idle;
             self.interface_flags.clear();
-            return Ok(Some(std::mem::take(&mut self.rows)));
+            return Ok(Advance::Complete(std::mem::take(&mut self.rows)));
         }
-        Ok(None)
+        Ok(Advance::Progress)
     }
 }
 
-fn pending_read_error() -> io::Result<Option<Vec<Ipv4Interface>>> {
+fn pending_read_error() -> io::Result<Advance> {
     let error = io::Error::last_os_error();
     match error.kind() {
-        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted => Ok(None),
+        io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted => Ok(Advance::Pending),
         _ => Err(error),
     }
 }
@@ -658,6 +672,48 @@ mod tests {
             .raw_os_error(),
             Some(19)
         );
+    }
+
+    #[test]
+    fn owner_turn_bounds_consumed_datagrams_and_retains_only_pending_rows() {
+        use std::os::unix::net::UnixDatagram;
+
+        let control = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let mut snapshot = Ipv4Snapshot::new().unwrap();
+        let (reader, writer) = UnixDatagram::pair().unwrap();
+        reader.set_nonblocking(true).unwrap();
+        let probe = reader.try_clone().unwrap();
+        snapshot.fd = reader.into();
+        snapshot.state = State::Read;
+        snapshot.interface_flags.push((1, 9));
+        snapshot.rows.push(Ipv4Interface {
+            index: 1,
+            address: Ipv4Addr::LOCALHOST,
+            netmask: Ipv4Addr::BROADCAST,
+            broadcast: Ipv4Addr::UNSPECIFIED,
+            loopback: true,
+        });
+        // Untrusted datagrams still consume budget, but cannot publish rows.
+        for byte in 1..=4 {
+            writer.send(&[byte]).unwrap();
+        }
+        assert!(snapshot.step(&control).unwrap().is_none());
+        let mut byte = [0];
+        assert_eq!(probe.recv(&mut byte).unwrap(), 1);
+        assert_eq!(byte, [4], "one turn consumed exactly three datagrams");
+        assert_eq!(snapshot.rows.len(), 1);
+        assert!(snapshot.busy());
+        assert!(matches!(
+            snapshot.advance(&control).unwrap(),
+            Advance::Pending
+        ));
+        assert_eq!(snapshot.rows.len(), 1, "EAGAIN retains an unpublished dump");
+
+        snapshot.fd = std::fs::File::open("/dev/null").unwrap().into();
+        assert!(snapshot.step(&control).is_err());
+        assert!(!snapshot.busy());
+        assert!(snapshot.rows.is_empty());
+        assert!(snapshot.interface_flags.is_empty());
     }
 
     fn complete(snapshot: &mut Ipv4Snapshot, control: &UdpSocket) -> Vec<Ipv4Interface> {

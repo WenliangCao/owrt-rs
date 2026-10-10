@@ -1107,6 +1107,7 @@ fn run_inner(
             provider,
             listener,
             pxe_next: false,
+            output: vec![0; 16_384],
         })
     } else {
         None
@@ -2023,6 +2024,7 @@ struct DhcpService {
     provider: Option<Rc<RefCell<DhcpProvider>>>,
     listener: DhcpSocketListener,
     pxe_next: bool,
+    output: Vec<u8>,
 }
 
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
@@ -5936,18 +5938,20 @@ impl SinglePoll {
         if !self.dhcp_packet_work_allowed() {
             return;
         }
-        if !self.dhcp_ready {
-            let input_pending = self
+        // The main wait already witnessed DHCP/PXE input or the fresh dump's
+        // progress. No other owner consumes the queued packet between turns.
+        let input_pending = self.dhcp_ready || self
                 .dhcp
                 .as_ref()
                 .is_some_and(|dhcp| dhcp.listener.has_input().unwrap_or(false));
+        if !input_pending {
             let maintenance_due = self
                 .dhcp
                 .as_ref()
                 .and_then(|dhcp| dhcp.provider.as_ref())
                 .and_then(|provider| provider.try_borrow().ok()?.next_maintenance())
                 .is_some_and(|deadline| deadline <= Instant::now());
-            if !input_pending && !maintenance_due {
+            if !maintenance_due {
                 return;
             }
         }
@@ -5986,8 +5990,8 @@ impl SinglePoll {
             report_dhcp_maintenance(&report, self.logger.as_mut());
         }
         // Leave input in the kernel until a fresh address generation arrives.
-        // Each turn advances at most one netlink datagram without a blocking wait.
-        if !dhcp.listener.has_input().unwrap_or(false)
+        // A bounded nonblocking send/data/DONE exchange may finish in this turn.
+        if !input_pending
             || match provider.prepare_packet_interfaces() {
                 Ok(ready) => !ready,
                 Err(error) => {
@@ -6010,7 +6014,7 @@ impl SinglePoll {
         let mut metrics = Metrics::default();
         write_dhcp_metrics(&mut metrics, &provider);
         self.probe_metrics = Some(metrics);
-        let mut output = vec![0; 16_384];
+        dhcp.output.fill(0);
         let events = Rc::clone(&self.parent_events);
         let results = {
             let mut sink = |kind, fields: DhcpEventFields<'_>, logging| {
@@ -6037,7 +6041,7 @@ impl SinglePoll {
                 selected,
                 &mut provider,
                 &[],
-                &mut output,
+                &mut dhcp.output,
                 || STOP_REQUESTED.load(Ordering::Acquire),
             );
             // A probe can take several seconds. Never carry its address dump
@@ -6052,7 +6056,7 @@ impl SinglePoll {
                     selected,
                     &mut provider,
                     &[],
-                    &mut output,
+                    &mut dhcp.output,
                     || STOP_REQUESTED.load(Ordering::Acquire),
                 )
             } else {
@@ -7058,7 +7062,8 @@ mod tests {
         let listener = DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(), DhcpListener::Dhcp, &[]).unwrap();
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.connect(listener.local_addr().unwrap()).unwrap();
-        owner.dhcp = Some(DhcpService { provider: Some(Rc::new(RefCell::new(provider))), listener, pxe_next: false });
+        owner.dhcp = Some(DhcpService { provider: Some(Rc::new(RefCell::new(provider))), listener,
+            pxe_next: false, output: vec![0; 16_384] });
         peer
     }
 
@@ -7167,20 +7172,20 @@ mod tests {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     #[test]
-    fn pending_packet_snapshot_wakes_from_its_dump_instead_of_unread_dhcp() {
+    fn packet_snapshot_controls_dhcp_wait_until_publication() {
         let mut owner = test_owner(DnsConfig::default(), None);
         let mut provider = DhcpProvider::new(DhcpConfig { no_ping: true, lease_read_only: true,
             ..Default::default() }, Vec::new(), 0, || false).unwrap();
         provider.initialize(now_seconds());
         provider.start_interface_owner().unwrap();
-        assert!(!provider.prepare_packet_interfaces().unwrap());
+        let snapshot_ready = provider.prepare_packet_interfaces().unwrap();
         let peer = attach_test_dhcp(&mut owner, provider);
         peer.send(b"queued-dhcp").unwrap();
         let mut socket_fds = Vec::new();
         owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut socket_fds);
         owner.wait_for_files().unwrap();
-        assert!(!owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
-            "the packet cannot be consumed before its fresh dump completes");
+        assert_eq!(owner.poll_fds.iter().any(|fd| socket_fds.iter().any(|socket| socket.fd == fd.fd)),
+            snapshot_ready, "only a complete fresh dump enables the packet listener");
         assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
         for _ in 0..16 {
             owner.step_dhcp();
@@ -7578,6 +7583,7 @@ mod tests {
             provider: Some(Rc::new(RefCell::new(provider))),
             listener: DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(),
                 DhcpListener::Dhcp, &[]).unwrap(), pxe_next: false,
+            output: vec![0; 16_384],
         });
         owner.helper = Some(ready_test_helper());
         let now = Instant::now();
@@ -8078,6 +8084,7 @@ mod tests {
                 provider: Some(Rc::new(RefCell::new(provider))),
                 listener,
                 pxe_next: false,
+                output: vec![0; 16_384],
             }),
             None,
             None,

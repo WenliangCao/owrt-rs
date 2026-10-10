@@ -196,7 +196,7 @@ impl DeviceBinding {
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 struct OwnerSender<'a, S> {
     dump: crate::dump::DumpHandle,
-    dump_source: SocketAddr,
+    dump_source: Option<SocketAddr>,
     socket: &'a mut S,
     pending: &'a mut Option<PendingReply>,
     listener: Listener,
@@ -211,12 +211,9 @@ impl<S: super::runtime::DatagramSender> super::runtime::DatagramSender for Owner
         super::runtime::DatagramSender::prepare_destination(self.socket, destination)
     }
     fn send(&mut self, bytes: &[u8], destination: &super::runtime::Destination) -> io::Result<()> {
-        self.dump.udp(
-            crate::dump::DHCP,
-            bytes,
-            self.dump_source,
-            destination.address,
-        );
+        if let Some(source) = self.dump_source {
+            self.dump.udp(crate::dump::DHCP, bytes, source, destination.address);
+        }
         match super::runtime::DatagramSender::send(self.socket, bytes, destination) {
             Err(error)
                 if matches!(
@@ -666,7 +663,8 @@ impl SocketListener {
         };
         let mut sender = OwnerSender {
             dump: self.dump.clone(),
-            dump_source: socket.local_addr()?,
+            dump_source: self.dump.enabled(crate::dump::DHCP)
+                .then(|| socket.local_addr()).transpose()?,
             socket,
             pending: &mut self.pending_reply,
             listener,
@@ -1042,7 +1040,7 @@ mod tests {
         };
         let mut sender = OwnerSender {
             dump: crate::dump::DumpHandle::default(),
-            dump_source: "0.0.0.0:67".parse().unwrap(),
+            dump_source: None,
             socket: &mut socket,
             pending: &mut pending,
             listener: Listener::Pxe,
