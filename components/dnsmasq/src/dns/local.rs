@@ -689,7 +689,10 @@ fn expire_lease_lookups(
 
 fn dotted_key(name: &[u8]) -> Vec<u8> {
     wire_name(name)
-        .map(|name| name.to_ascii_lowercase())
+        .map(|mut name| {
+            name.make_ascii_lowercase();
+            name
+        })
         .unwrap_or_default()
 }
 

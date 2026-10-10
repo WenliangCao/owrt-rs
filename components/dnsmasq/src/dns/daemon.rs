@@ -1193,7 +1193,8 @@ impl<R: Random> DnsDaemon<R> {
                 return Err(error.into());
             }
         };
-        Ok(self.finish_upstream_events_with_doctor(events, unix_seconds(), external_local, doctor))
+        let now = if events.is_empty() { 0 } else { unix_seconds() };
+        Ok(self.finish_upstream_events_with_doctor(events, now, external_local, doctor))
     }
 
     #[cfg(test)]

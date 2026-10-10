@@ -1016,9 +1016,15 @@ impl Cache {
         now: i64,
         round_robin: bool,
     ) -> Vec<EntryId> {
-        let key = name.canonical_wire();
+        let canonical;
+        let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
+            canonical = name.canonical_wire();
+            canonical.as_slice()
+        } else {
+            name.as_wire()
+        };
         let mut found = Vec::new();
-        let indices = self.names_for(&key).cloned().unwrap_or_default();
+        let indices = self.names_for(key).cloned().unwrap_or_default();
         for &slot in indices.iter() {
             if self.invalid(slot, now) {
                 self.remove(slot);
@@ -1028,7 +1034,7 @@ impl Cache {
             {
                 self.unlink(slot);
                 self.link_head(slot);
-                found.push(slot);
+                found.push(self.id(slot));
             }
         }
         // The iteration snapshot must not force an otherwise unique Many
@@ -1037,9 +1043,11 @@ impl Cache {
         if round_robin && found.len() > 1 {
             // Move subsequent matching entries before the first match, leaving
             // unrelated kinds in their positions relative to that first match.
-            self.names_for_mut(&key).unwrap().rotate_matches(&found);
+            let slots: Vec<_> = found.iter().map(|id| id.slot).collect();
+            self.names_for_mut(key).unwrap().rotate_matches(&slots);
         }
-        found.into_iter().rev().map(|slot| self.id(slot)).collect()
+        found.reverse();
+        found
     }
 
     /// Lookup records for a DNS question, including an NXDOMAIN marker.

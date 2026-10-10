@@ -584,6 +584,9 @@ impl<R: Random> UpstreamResolver<R> {
     /// Borrow readiness interests without waiting or advancing any query.
     /// Used by the service owner while DHCP temporarily owns its state.
     pub fn append_poll_fds(&self, fds: &mut Vec<PollFd>, deadline: Instant) -> Instant {
+        if self.no_timer_or_socket_work() && self.events.is_empty() {
+            return deadline;
+        }
         let now = Instant::now();
         let mut deadline = self.next_wakeup(deadline);
         if !self.events.is_empty() {
@@ -713,6 +716,10 @@ impl<R: Random> UpstreamResolver<R> {
     where
         F: Fn(&[u8], &super::forward::Pending) -> bool,
     {
+        if self.no_timer_or_socket_work() {
+            self.consume_releases();
+            return Ok(self.events.drain(..).collect());
+        }
         let call_deadline = Instant::now()
             .checked_add(max_wait)
             .unwrap_or_else(Instant::now);
@@ -870,6 +877,13 @@ impl<R: Random> UpstreamResolver<R> {
 
     fn milliseconds(&self) -> u32 {
         self.clock_origin.elapsed().as_millis() as u32
+    }
+
+    fn no_timer_or_socket_work(&self) -> bool {
+        self.transactions.is_empty()
+            && self.sockets.is_empty()
+            && self.loop_sends.is_empty()
+            && self.dispatcher.table().is_empty()
     }
 
     fn next_wakeup(&self, mut deadline: Instant) -> Instant {

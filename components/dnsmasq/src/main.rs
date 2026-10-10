@@ -2143,6 +2143,7 @@ struct SinglePoll {
     edns_max: u16,
     m6b: M6bDiagnostics,
     udp_buffer: Vec<u8>,
+    udp_budget: usize,
     #[cfg(target_os = "linux")]
     signal_wake_read: Option<OwnedFd>,
     #[cfg(target_os = "linux")]
@@ -3021,6 +3022,7 @@ impl SinglePoll {
             edns_max,
             m6b: M6bDiagnostics::new(listener_count),
             udp_buffer: vec![0; 65_535],
+            udp_budget: UDP_PACKETS_PER_TURN,
             #[cfg(target_os = "linux")]
             signal_wake_read: None,
             #[cfg(target_os = "linux")]
@@ -3416,6 +3418,11 @@ impl SinglePoll {
         let Some(files) = &mut self.dns_files else {
             return;
         };
+        if !watch_ready && !files.has_work() {
+            self.files_runnable = false;
+            self.log_dns_diagnostics();
+            return;
+        }
         let was_initializing = files.initializing();
         let step = files.step_with_watch_readiness(watch_ready);
         let initial_finished = was_initializing && !files.initializing();
@@ -4042,6 +4049,15 @@ impl SinglePoll {
                     return Err(error);
                 }
             };
+            let waited = started.elapsed();
+            // A sleeping listener usually has one new packet. Skip its
+            // speculative final receive; an immediate poll keeps batching
+            // queued traffic within the existing fairness bound.
+            self.udp_budget = if waited >= Duration::from_micros(5) {
+                1
+            } else {
+                UDP_PACKETS_PER_TURN
+            };
             let file_ready = fds[..file_fd_count].iter().any(|fd| fd.revents != 0);
             let network_ready = fds[network_fd_start..].iter().any(|fd| fd.revents != 0);
             let signal_ready = signal_fd_index
@@ -4085,7 +4101,7 @@ impl SinglePoll {
             self.m6b.record_wait(
                 timeout,
                 ready,
-                started.elapsed(),
+                waited,
                 network_ready,
                 file_ready,
                 signal_ready,
@@ -4225,7 +4241,7 @@ impl SinglePoll {
         // Bound work per turn.  This keeps a busy UDP socket from starving
         // DHCP, TFTP, reload and TCP admission.
         let listeners = self.listeners.len();
-        let mut udp_budget = UDP_PACKETS_PER_TURN;
+        let mut udp_budget = self.udp_budget;
         for index in 0..listeners {
             if udp_budget != 0 {
                 let mut batch = 0;
