@@ -23,9 +23,11 @@ import time
 
 from dns_service_probe import answer as ordinary_upstream_answer, exact_read, name as wire_name, query, read_name, rr, semantics
 from m2_rootfs import bind_unix_socket, STOCK_SHA256, command, image_path, prepare, process_identity, sha256
+from m5_dhcp_tags_options import comparable_reply, inform_clock_witness, primary_options
 
 DEPENDENCIES = ['dns_service_probe.py', 'm2_rootfs.py', 'run_isolated.sh',
-                'm5_logging_requirements.json']
+                'm5_logging_requirements.json', 'm5_dhcp_tags_options.py',
+                'dhcp_boot_service_diff.py']
 FACILITIES = {'kern': 0, 'user': 8, 'mail': 16, 'daemon': 24, 'auth': 32,
               'security': 32, 'syslog': 40, 'lpr': 48, 'news': 56, 'uucp': 64,
               'cron': 72, 'authpriv': 80, 'ftp': 88, 'local0': 128, 'local1': 136,
@@ -1306,7 +1308,7 @@ def dhcp_packet(kind, xid, *, mac='0200000000aa', address=None, ciaddr='0.0.0.0'
     return bytes(data)
 
 
-def dhcp_sequence(query_origin=False):
+def dhcp_sequence(leasefile, query_origin=False):
     rows, trace = [], []
     steps = [
         ('bootp', 0, {}, 0),
@@ -1328,12 +1330,15 @@ def dhcp_sequence(query_origin=False):
             xid = 0x1200 + index
             request = dhcp_packet(kind, xid, **fields)
             client.settimeout(.15 if expected is None else 1)
+            lease_before = leasefile.read_text() if kind == 8 and leasefile.exists() else ''
+            before_ns = time.time_ns()
             client.sendto(request, ('255.255.255.255', 67))
             response = None
             while True:
                 try: received = client.recv(65535)
                 except socket.timeout: break
                 if len(received) >= 240 and received[4:8] == request[4:8]: response = received; break
+            after_ns = time.time_ns()
             if expected is None and response is not None: raise AssertionError(('ignored DHCP replied', label))
             if expected is not None:
                 if response is None: raise AssertionError(('missing DHCP reply', label))
@@ -1351,9 +1356,42 @@ def dhcp_sequence(query_origin=False):
                     answer, raw = exchange(name, kind, port=16509)
                     rows.append({'label': 'dns-' + name, 'response': answer})
                     trace.append(dict(raw, label='dns-' + name))
-            rows.append({'label': label, 'reply': response.hex() if response is not None else None})
-            trace.append({'label': label, 'request': request.hex(), 'reply': response.hex() if response is not None else None})
+            observed = {'label': label, 'reply': response.hex() if response is not None else None}
+            raw = dict(observed, request=request.hex())
+            if kind == 8 and response is not None:
+                clock = inform_clock_witness(lease_before, {'kind': kind, **fields}, before_ns, after_ns)
+                observed['inform_clock'] = clock
+                raw['inform_clock'] = clock
+            rows.append(observed)
+            trace.append(raw)
     return rows, trace
+
+
+def normalize_dhcp_inform(row, detail):
+    """Validate the actual expiry/clock, then omit only elapsed INFORM time."""
+    for exchange in row.get('dhcp', []):
+        if exchange.get('label') != 'inform':
+            continue
+        response = bytes.fromhex(exchange['reply'])
+        event = {'kind': 8, 'ciaddr': '127.0.0.10'}
+        clock = exchange.pop('inform_clock')
+        exchange['reply'] = comparable_reply(response, event, clock)
+        options = [option for option in primary_options(response)['rows'] if option['code'] == 51]
+        assert len(options) == 1, 'fixture INFORM must report its existing lease'
+        remaining = int(options[0]['value'], 16)
+        # util.c::prettyprint_time, applied only after the wire time was
+        # validated against this side's pre-request lease and clock interval.
+        duration = 'infinite' if remaining == 0xffffffff else ''.join(
+            str(value) + suffix for value, suffix in [
+                (remaining // 86400, 'd'), (remaining // 3600 % 24, 'h'),
+                (remaining // 60 % 60, 'm'), (remaining % 60, 's')] if value)
+        xid = int.from_bytes(response[4:8], 'big')
+        pattern = re.compile(r'(?m)^([^\n]*dnsmasq-dhcp(?:\[[^\]\n]+\])?: ' + str(xid)
+            + r' sent size:  4 option: 51 lease-time  )([^\n]*)(?=\n|$)')
+        messages = list(pattern.finditer(row['stderr']))
+        assert len(messages) == int(detail), 'INFORM lease-time log count differs'
+        assert all(match[2] == duration for match in messages), 'INFORM lease-time log differs from its wire value'
+        row['stderr'] = pattern.sub(lambda match: match[1] + '<INFORM-remaining>', row['stderr'])
 
 
 def run(root, side, case, out):
@@ -1561,7 +1599,7 @@ def run(root, side, case, out):
                         receiver.drain()
                         time.sleep(.005)
                 if case.get('dhcp_probes'):
-                    rows, raw = dhcp_sequence(case.get('dhcp_query_origin', False))
+                    rows, raw = dhcp_sequence(folder / 'leases', case.get('dhcp_query_origin', False))
                     observed['dhcp'] = rows; trace['dhcp'] = raw
                 if case.get('tftp_probes'):
                     rows, raw = tftp_sequence(case['tftp_probes'], out, receiver)
@@ -2677,6 +2715,14 @@ def compare(reference, candidate, case, reference_only=False):
     if reference_only:
         return failures
     left, right = copy.deepcopy(reference), copy.deepcopy(candidate)
+    if case.get('dhcp_probes'):
+        for side, row in [('c', left), ('rust', right)]:
+            try:
+                normalize_dhcp_inform(row, case.get('detail_dhcp', False))
+            except (AssertionError, KeyError, ValueError) as error:
+                failures.append({'kind': 'INFORM-expiry-clock-or-log', 'side': side, 'error': str(error)})
+        if failures:
+            return failures
     if case['id'] == 'query-forward-ordinary':
         for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
             failures.extend({'kind': 'actual-cache-seed-read-phase', 'side': side, 'error': error}
@@ -2791,6 +2837,31 @@ def controls():
     row = {'ready': True, 'exit': 0, 'forced': False, 'syslog': [], 'files': {},
            'file_metadata': {}, 'dns': [], 'stdout': '', 'stderr': 'dnsmasq: value\n'}
     result = {}
+    def inform_row(remaining, second, name=b'client'):
+        packet = bytearray(240); packet[0] = 2
+        packet[4:8] = (4611).to_bytes(4, 'big'); packet[236:240] = bytes.fromhex('63825363')
+        packet += bytes([53, 1, 5, 51, 4]) + remaining.to_bytes(4, 'big')
+        packet += bytes([12, len(name)]) + name + b'\xff'
+        clock = inform_clock_witness('1600 aa 127.0.0.10 client *\n',
+            {'kind': 8, 'ciaddr': '127.0.0.10'}, second * 10**9 + 100, second * 10**9 + 200)
+        duration = '10m' if remaining == 600 else '9m59s'
+        return {'dhcp': [{'label': 'inform', 'reply': packet.hex(), 'inform_clock': clock}],
+            'stderr': 'dnsmasq-dhcp[1]: 4610 sent size:  4 option: 51 lease-time  10m\n'
+                + 'dnsmasq-dhcp[1]: 4611 sent size:  4 option: 51 lease-time  ' + duration + '\n'}
+    def normalized_inform(row):
+        row = copy.deepcopy(row); normalize_dhcp_inform(row, True); return row
+    c_inform, r_inform = inform_row(600, 1000), inform_row(599, 1001)
+    result['INFORM-independent-clock-phases'] = normalized_inform(c_inform) == normalized_inform(r_inform)
+    for label, bad in [('wrong-wire-time', inform_row(599, 1000)),
+                       ('wrong-log-time', dict(r_inform, stderr=r_inform['stderr'].replace('9m59s', '10m')))]:
+        try: normalized_inform(bad)
+        except (AssertionError, KeyError, ValueError): result['INFORM-' + label] = True
+        else: result['INFORM-' + label] = False
+    result['INFORM-other-option-kept'] = normalized_inform(c_inform) != normalized_inform(inform_row(599, 1001, b'changed'))
+    result['INFORM-fresh-ACK-time-kept'] = normalized_inform(c_inform) != normalized_inform(
+        dict(r_inform, stderr=r_inform['stderr'].replace('4610 sent size:  4 option: 51 lease-time  10m',
+            '4610 sent size:  4 option: 51 lease-time  9m59s')))
+    assert all(value for key, value in result.items() if key.startswith('INFORM-'))
     quiet_case = {'id': 'quiet-control', 'kind': 'run', 'dhcp_probes': True, 'quiet_dhcp': True, 'detail_dhcp': False}
     quiet = dict(row, stderr='dnsmasq-dhcp[1]: DHCPRELEASE(lo) 127.0.0.10 02:00:00:00:00:aa unknown lease\n'
                               'dnsmasq-dhcp[1]: DHCPDECLINE(lo) 127.0.0.10 02:00:00:00:00:aa client declines\n'
