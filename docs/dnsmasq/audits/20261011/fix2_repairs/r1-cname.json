@@ -1,0 +1,4849 @@
+{
+  "schema_version": 1,
+  "scope": "R1 dynamic-CNAME configured-terminal closure for the final SDK payload, original RD/DO controls and related cache unit evidence. This does not claim that the concurrently running complete-family suite passed.",
+  "source_commit": "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+  "source_identity": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/source-qualified-identity.json",
+    "sha256": "f741414c957d93f9f675c29158eb2e424f0061f077d64fe9095b7a9cd094c505",
+    "bytes": 20948
+  },
+  "source_digest": "92f32cf1cd239fdce865c9ce937ffb8aa69ed90fa17950767c87ad5b2ab6a6ca",
+  "source_files_verified_remote_and_local": 177,
+  "SDK_payload": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+    "sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+    "bytes": 2054939
+  },
+  "exact_image_C": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+    "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "bytes": 269305
+  },
+  "product_sources": {
+    "components/dnsmasq/src/dns/cache_engine.rs": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/components/dnsmasq/src/dns/cache_engine.rs",
+      "sha256": "6451225c6a537c1141d5e45eed4f1fb943f10b822e7cb500eba579ba6c2dd4ae",
+      "bytes": 107226
+    },
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/components/dnsmasq/src/dns/daemon_cache_tests.rs",
+      "sha256": "6bacb81e88691e50860a244b5c03e6e0812e0ca7f53b65eacccec38f8255eae2",
+      "bytes": 27951
+    },
+    "components/dnsmasq/src/dns/local.rs": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/components/dnsmasq/src/dns/local.rs",
+      "sha256": "019f06d3b69c978ac6d9add03d0c9598926626f0953c415371ff0a4cb10802ed",
+      "bytes": 93251
+    },
+    "components/dnsmasq/src/dns/cache.rs": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/components/dnsmasq/src/dns/cache.rs",
+      "sha256": "b6698fe484d0e4fe2cb1a6bc85b0c7b2b6f9340e9c5d74daf3a2cb1c9eda1777",
+      "bytes": 52138
+    }
+  },
+  "controller": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/validation-qualified.py",
+    "sha256": "2615676ec279e0b0c5ddd2ff58ac12b3e857ebf48367937a3c7c269c6a136724",
+    "bytes": 9569
+  },
+  "frozen_plan": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/plan.json",
+    "sha256": "c0ef4af0f7dc5a40e560626e799311e4829d94028f0a9e515850b25ec8b964b4",
+    "bytes": 176809
+  },
+  "commands": {
+    "R1-cname": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/fix2/dns/cname_compat.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/r1-cname",
+        "--require-match"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/fix2/dns/cname_compat.py",
+        "sha256": "9fc8ad7d1f7e079c8d7880d48c3c648925ed9f7ec84e12c47861583dcc29b55f",
+        "bytes": 6984
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/r1-cname/result.json",
+        "sha256": "7b25e235fc42112bf3eac5ff98d6f4c51e44d57fc0ce357c8e1ccebf2c073cc1",
+        "bytes": 186122
+      }
+    },
+    "R1-flags": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/fix2/dns/cname_flags.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/r1-flags",
+        "--require-match"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/fix2/dns/cname_flags.py",
+        "sha256": "002d3675f405e97eb96c4c4e27deb8710cd67845177debe6c040042edc793e3e",
+        "bytes": 6892
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/r1-flags/result.json",
+        "sha256": "cd95bce329c565a06556a1998c1fcbe2db5f0d841a219525d5c063b1decdf6a4",
+        "bytes": 201076
+      }
+    },
+    "hosts-original": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/original"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+        "sha256": "afc8f8e083285ffab47d14c206f0c4344d41f1cc1171d5052cd02bc52321c8cd",
+        "bytes": 5153
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/functional-qualified/original/result.json",
+        "sha256": "148074cc1dacdc753c380b21a46bdb338f9917c74f7c19490e7865506645a5c8",
+        "bytes": 50573
+      }
+    }
+  },
+  "R1_configured_terminal_cases": {
+    "passed": true,
+    "cases_expected": 20,
+    "cases_completed": 20,
+    "strict_checks": [
+      {
+        "id": "original-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "original-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "original-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "original-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-txt-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-txt-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-txt-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-txt-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "both-txt-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "both-txt-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "both-txt-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "both-txt-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-mx-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-mx-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-mx-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-mx-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-srv-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-srv-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-srv-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "terminal-srv-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      }
+    ],
+    "cases": [
+      {
+        "id": "original-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "original-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "original-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "original-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-txt-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-txt-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-txt-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-txt-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "both-txt-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "both-txt-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "both-txt-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "both-txt-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 0,
+              "data": "0c6c6f63616c2d746172676574"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "local-target"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574",
+          "rust": "43218580000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c0280010000100000000000d0c6c6f63616c2d746172676574"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-mx-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              15,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 15,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a0a6c6f63616c2d6d61696c047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "preference": 10,
+            "target": "local-mail.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400",
+          "rust": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-mx-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              15,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 15,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a0a6c6f63616c2d6d61696c047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "preference": 10,
+            "target": "local-mail.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400",
+          "rust": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-mx-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              15,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 15,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a0a6c6f63616c2d6d61696c047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "preference": 10,
+            "target": "local-mail.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400",
+          "rust": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-mx-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              15,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 15,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a0a6c6f63616c2d6d61696c047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "preference": 10,
+            "target": "local-mail.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400",
+          "rust": "43218580000100020000000005616c696173047465737400000f0001c00c0005000100000258000d06746172676574047465737400c028000f0001000000000013000a0a6c6f63616c2d6d61696c047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-srv-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              33,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 33,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "priority": 10,
+            "weight": 0,
+            "port": 8443,
+            "target": "local-service.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400",
+          "rust": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-srv-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              33,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 33,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "priority": 10,
+            "weight": 0,
+            "port": 8443,
+            "target": "local-service.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400",
+          "rust": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-srv-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              33,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 33,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "priority": 10,
+            "weight": 0,
+            "port": 8443,
+            "target": "local-service.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400",
+          "rust": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "terminal-srv-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 34176,
+          "question": [
+            [
+              "alias.test",
+              33,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 33,
+              "class": 1,
+              "ttl": 0,
+              "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "priority": 10,
+            "weight": 0,
+            "port": 8443,
+            "target": "local-service.test"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400",
+          "rust": "43218580000100020000000005616c69617304746573740000210001c00c0005000100000258000d06746172676574047465737400c0280021000100000000001a000a000020fb0d6c6f63616c2d73657276696365047465737400"
+        },
+        "upstream_queries_by_side": {
+          "c": 1,
+          "rust": 1
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      }
+    ]
+  },
+  "RD_DO_controls": {
+    "passed": true,
+    "cases_expected": 16,
+    "cases_completed": 16,
+    "strict_checks": [
+      {
+        "id": "rd0-doFalse-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doFalse-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doFalse-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doFalse-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doTrue-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doTrue-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doTrue-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd0-doTrue-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doFalse-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doFalse-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doFalse-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doFalse-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doTrue-debugFalse-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doTrue-debugFalse-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doTrue-debugTrue-tcpFalse",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      },
+      {
+        "id": "rd1-doTrue-debugTrue-tcpTrue",
+        "answers_equal": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "upstream_queries_equal": true,
+        "both_healthy": true
+      }
+    ],
+    "cases": [
+      {
+        "id": "rd0-doFalse-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doFalse-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "tcp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                0
+              ],
+              "records": []
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doFalse-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doFalse-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "tcp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                0
+              ],
+              "records": []
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doTrue-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doTrue-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "tcp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doTrue-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd0-doTrue-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "tcp",
+            "query": {
+              "flags": 0,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doFalse-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doFalse-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doFalse-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doFalse-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 2,
+          "rust": 2
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doTrue-debugFalse-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doTrue-debugFalse-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "tcp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doTrue-debugTrue-tcpFalse",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "id": "rd1-doTrue-debugTrue-tcpTrue",
+        "C_R_answer_equal": true,
+        "C_R_warm_answers_equal": true,
+        "C_R_upstream_sequence_equal": true,
+        "wire_equal": true,
+        "answer_common_C_R": {
+          "flags": 33152,
+          "question": [
+            [
+              "alias.test",
+              16,
+              1
+            ]
+          ],
+          "counts": [
+            2,
+            0,
+            0
+          ],
+          "records": [
+            {
+              "name": "alias.test",
+              "type": 5,
+              "class": 1,
+              "ttl": 600,
+              "data": "target.test"
+            },
+            {
+              "name": "target.test",
+              "type": 16,
+              "class": 1,
+              "ttl": 600,
+              "data": "0f757073747265616d2d76616c756521"
+            }
+          ]
+        },
+        "answer_RDATA_semantics": [
+          {
+            "target": "target.test"
+          },
+          {
+            "TXT": "upstream-value!"
+          }
+        ],
+        "wire_by_side": {
+          "c": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521",
+          "rust": "43218180000100020000000005616c69617304746573740000100001c00c0005000100000258000d0674617267657404746573740006746172676574047465737400001000010000025800100f757073747265616d2d76616c756521"
+        },
+        "upstream_queries_by_side": {
+          "c": 3,
+          "rust": 3
+        },
+        "upstream_sequence_common_C_R": [
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  1,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "udp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "target.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ]
+            }
+          },
+          {
+            "transport": "tcp",
+            "query": {
+              "flags": 256,
+              "question": [
+                [
+                  "alias.test",
+                  16,
+                  1
+                ]
+              ],
+              "counts": [
+                0,
+                0,
+                1
+              ],
+              "records": [
+                {
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 32768,
+                  "data": ""
+                }
+              ]
+            }
+          }
+        ],
+        "health_by_side": {
+          "c": {
+            "alive": true,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "alive": true,
+            "cleanup_exit": 0
+          }
+        }
+      }
+    ]
+  },
+  "original_hosts_control": {
+    "passed": true,
+    "query_pairs": 62,
+    "rows": [
+      {
+        "mode": "addn-hosts",
+        "C_R_alive": true,
+        "query_pairs": 24,
+        "C_R_wire_equal": true
+      },
+      {
+        "mode": "hostsdir",
+        "C_R_alive": true,
+        "query_pairs": 24,
+        "C_R_wire_equal": true
+      },
+      {
+        "mode": "dump-cnames",
+        "C_R_alive": true,
+        "query_pairs": 4,
+        "C_R_wire_equal": true
+      },
+      {
+        "mode": "cache-enabled-malformed-additional",
+        "C_R_alive": true,
+        "query_pairs": 10,
+        "C_R_wire_equal": true
+      }
+    ],
+    "note": "Response wires and process health match. This receipt does not claim complete cache-dump text identity."
+  },
+  "final_units": {
+    "raw_receipt": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/build-units-qualified/result.json",
+      "sha256": "dbf37088c5b3663cf90dc245926a5f8171f5e8bc52c292a08854a1cf107ee8a8",
+      "bytes": 30191
+    },
+    "lib_log": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/build-units-qualified/lib-dnsmasq_rs.log",
+      "sha256": "5c74bea821e4a357ec07c35913b5d86f5d3ea5e045c5c52d0a5ab768fb56dfed",
+      "bytes": 73092
+    },
+    "bin_log": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/build-units-qualified/bin-dnsmasq-rs.log",
+      "sha256": "b140ab67f0a111f9eac27a96c0fa14b42f2d3cfd1cf761faac72955cf0d2d2d4",
+      "bytes": 7206
+    },
+    "counts": {
+      "passed": 840,
+      "failed": 0,
+      "ignored_not_run": 23
+    },
+    "commands": {
+      "lib-dnsmasq_rs": {
+        "name": "lib-dnsmasq_rs",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "-c",
+          "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+          "unit",
+          "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/tests-qualified/lib-dnsmasq_rs",
+          "--test-threads=1"
+        ],
+        "started": 1791756302.809008,
+        "returncode": 0,
+        "elapsed_seconds": 3.9602880477905273,
+        "log_sha256": "5c74bea821e4a357ec07c35913b5d86f5d3ea5e045c5c52d0a5ab768fb56dfed",
+        "elf_sha256": "79ae17f4242bd2f2df53620286e2588dbe669573a9400379bcdd829738e1de88",
+        "counts": {
+          "passed": 764,
+          "failed": 0,
+          "ignored": 20,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      },
+      "bin-dnsmasq-rs": {
+        "name": "bin-dnsmasq-rs",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "-c",
+          "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+          "unit",
+          "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/tests-qualified/bin-dnsmasq-rs",
+          "--test-threads=1"
+        ],
+        "started": 1791756306.8416116,
+        "returncode": 0,
+        "elapsed_seconds": 4.1028783321380615,
+        "log_sha256": "b140ab67f0a111f9eac27a96c0fa14b42f2d3cfd1cf761faac72955cf0d2d2d4",
+        "elf_sha256": "77885256dbd087b887bb4cd440e1f288a04e01b51446ee8595d1ee77f1b71247",
+        "counts": {
+          "passed": 76,
+          "failed": 0,
+          "ignored": 3,
+          "measured": 0,
+          "filtered_out": 0
+        }
+      }
+    },
+    "required_semantic_tests": [
+      {
+        "name": "dns::daemon::cache_tests::cached_cname_dynamic_terminal_uses_configured_txt_mx_srv_before_cached_type",
+        "passed": true,
+        "scope": "Configured TXT/MX/SRV win over a cached terminal RR; MX/SRV Additional draws cached A; query-log origin and RD/DO bypass remain correct."
+      },
+      {
+        "name": "dns::daemon::cache_tests::configured_cname_terminal_keeps_negative_soa_before_mail_additional",
+        "passed": true,
+        "scope": "For a configured mail terminal with an NX target, Authority SOA precedes mail Additional records."
+      },
+      {
+        "name": "dns::cache_engine::tests::reverse_synth_precedes_generic_negatives_and_keeps_positive_ip_priority",
+        "passed": true,
+        "scope": "Reverse synthesis discards the old reverse-zone SOA and positive reverse-cache addresses retain their priority."
+      },
+      {
+        "name": "dns::daemon::cache_tests::cached_nxdomain_does_not_mask_new_dhcp_address",
+        "passed": true,
+        "scope": "A newly published DHCP address remains visible despite an older NXDOMAIN marker."
+      },
+      {
+        "name": "dns::daemon::cache_tests::cached_cname_precedes_alias_local_txt_with_the_cache_expiry_policy",
+        "passed": true,
+        "scope": "Cached CNAME still precedes alias-local TXT under normal expiry and configured stale policies."
+      }
+    ],
+    "profile_boundary": "The complete units execute distinct test-profile binaries; the 20/16 daemon probes execute the SDK release payload."
+  },
+  "retained_first_attempt": {
+    "source_commit": "4fcfd7f084c7d8639bad741bc3fb2c10fd5b7cd3",
+    "raw_receipt": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/build-units/result.json",
+      "sha256": "d335b9e2c8dd0a67baa3611d2ae47c86a400e69c1ba428f6bd1021026eb0994c",
+      "bytes": 28845
+    },
+    "lib_log": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/build-units/lib-dnsmasq_rs.log",
+      "sha256": "143dce0c7e92b530d110bb7d434fdaf48660bdd4543d1a9255ebacc8f8b9c2ae",
+      "bytes": 73631
+    },
+    "lib_counts": {
+      "passed": 763,
+      "failed": 1,
+      "ignored": 20
+    },
+    "lib_returncode": 101,
+    "bin_executed": false,
+    "failed_test": "dns::cache_engine::tests::reverse_synth_precedes_generic_negatives_and_keeps_positive_ip_priority",
+    "diagnosis": "The assertion was the Authority RR count (observed 1, expected 0), not AA. The first general local-terminal call synthesized a PTR and then appended the old reverse-zone NX SOA. C is_rev_synth replaces the name cursor, so that footer no longer belongs to this answer.",
+    "repair_commit": "74d210d2987a65def5b2077b6aedb36f45a07f6d",
+    "repair": "Keep the pre-existing reverse-cache/reverse-synthesis branch before the new ordinary configured-terminal call. Preserve test expectations; the final full suite passes this test.",
+    "diagnostic_method": "Source reading plus local focused cache suites; no separate diagnostic script or private local-test log was produced."
+  },
+  "implementation": {
+    "initial_commit": "4fcfd7f084c7d8639bad741bc3fb2c10fd5b7cd3",
+    "corrective_commit": "74d210d2987a65def5b2077b6aedb36f45a07f6d",
+    "description": "After following a dynamic CNAME to its non-alias terminal, reuse append_local_terminal before generic type-cache fallback. The same cache supplies mail Additional and candidate precedence; existing RD/DO and alias-local ordering are retained. Negative SOA is written before Additional, while the specialized reverse-synthesis path remains responsible for its rewritten name cursor.",
+    "matching_C_basis": {
+      "rfc1035.c:1754-1806": "Follow usable CNAME entries and replace the answer name before local terminal lookup.",
+      "rfc1035.c:1809-1836,2178-2225": "Configured TXT, MX and SRV loops inspect that replaced name before final dynamic generic RR fallback.",
+      "rfc1035.c:2380-2445": "Append retained negative Authority before MX/SRV Additional. Reverse synthesis earlier rewrites the lookup name.",
+      "rfc1035_sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222"
+    }
+  },
+  "limitations": [
+    "The 20-case daemon matrix covers TXT/MX/SRV target-only, alias-plus-target TXT and original already-cached target TXT in UDP/TCP and ordinary/debug modes.",
+    "The 16-case RD/DO matrix uses the original alias-local/configured control and an unsigned dynamic target. It is not a full DNSSEC implementation qualification.",
+    "Additional-address and retained-SOA ordering are frozen-clock unit checks in the final complete suite; they are not separately asserted as new daemon oracle cases here.",
+    "No new tests or load were executed while deriving this receipt; only retained files and source identities were read.",
+    "No performance or all-families claim is inferred from these targeted passes."
+  ]
+}
