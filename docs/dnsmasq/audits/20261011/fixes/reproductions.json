@@ -1,0 +1,1043 @@
+{
+  "scope": "Derived observations from the final immutable source-02 product and the eleven completed isolated functional jobs. Synthetic addresses/names only; no packet hex, device dumps, secrets or ELF bytes. The 22 full families are intentionally not assessed in this file.",
+  "source_commit": "4a72e24544bc50ef2a71d0e05032fbd9b3dd9721",
+  "source_root": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02",
+  "artifact": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/pie-02/dnsmasq-rs",
+    "sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3"
+  },
+  "build": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/pie-02/build.json",
+    "sha256": "02be772b1c7c3189e3c3552237004e938bf0dec89698b5e635f62b53f75fb8cb"
+  },
+  "reference_c": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+    "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+  },
+  "matching_native_c": {
+    "path": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+    "sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431"
+  },
+  "image_musl_loader": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+    "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+  },
+  "legacy_launcher": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/legacy-probe.py",
+    "sha256": "dcf6bb87788d9441d61a7576d405082218c31dc2d8327b3924ab86d339f201d8"
+  },
+  "image_launch_helper": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/m2_rootfs.py",
+    "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3"
+  },
+  "evidence": {
+    "signals": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/signals/result.json",
+        "sha256": "d0a9b0b02d143b99b382ba8c52d12f4c05e02bd0d28869c6f00c0dbc07fbacda"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 8.737361669540405
+    },
+    "dhcp": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dhcp-result.json",
+        "sha256": "279d3df72905aceacdebfb8a24feffce6c567929b56cf4684ce7e4baeefe3bfc"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/audit_20261011_dhcp.py",
+        "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.5377202033996582
+    },
+    "config": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/config/result.json",
+        "sha256": "dd27fdab34c7765a9d52f1fe53b1e6a6cde84af394be953ac538134eea322759"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/audit_20261011_config.py",
+        "sha256": "fcf7cdaf10546bf86755e67026395cd0fdb0d1dc619b0cc1592ee943ae535beb"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 10.181002855300903
+    },
+    "hosts": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/hosts/result.json",
+        "sha256": "866e2404cc7b30edca70da2ff0a11bf074a6db92f2e50f8e86f1eaa3c58ab5b9"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "sha256": "7aa6494b2266059e4750d6978ab4727786b0a33ae7b9574eb1d1dcc2b4c33971"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 5.179282903671265
+    },
+    "dns-error": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dns-error/result.json",
+        "sha256": "94cd435ce6bdc53980862c7c05c82d5b88763acb464fc0027a866e142dc4ad3e"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/audit_20261011_dns.py",
+        "sha256": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.7286098003387451
+    },
+    "dhcp-dns": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dhcp-dns/summary.json",
+        "sha256": "b057d55c0997d597e353e79225a101c439bd6fcac66457043f102fa566ea3eb2"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/dhcp_dns_diff.py",
+        "sha256": "de48a307723122ebb122701dc18a265a08077905805585df71a581ae6b77d9fe"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 17.1054048538208
+    },
+    "dhcp-reverse": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dhcp-reverse/result.json",
+        "sha256": "956f0f55a48a876a9c51600caacb46181b0d1ad2d4d77346e6be5a80b06abaa5"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/dhcp_reverse_name_diff.py",
+        "sha256": "205591fd7f78023ff935cd84805002746b07cc1e2adb3c3b95c1d254bac06231"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.2805600166320801
+    },
+    "dns-tcp": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dns-tcp/summary.json",
+        "sha256": "1bc4f804ae4f81197e7ab9b781828abb70e0d5773155b8bea00899df3c992fda"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/dns_tcp_daemon_diff.py",
+        "sha256": "eaaa2dcbdef682dceccc34521a07c2a0f6465ceb0b40119665a1e26e9363779c"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.2356410026550293
+    },
+    "dns-reload": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dns-reload/summary.json",
+        "sha256": "5f5e1a500129100552b0874cc39c99d8987619feca2d3c23189bfbc1fdd5e4c7"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/dns_reload_diff.py",
+        "sha256": "4158678550ee7d88884d0af191a17e3b34d3c2464690484ef79b7b5dd5c2cb14"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 0.25818824768066406
+    },
+    "hosts-generation": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/private/final-hosts-generation/summary.json",
+        "sha256": "6d41e75393e473a6e70971ca93440f9815e1aead2651aa0ccb19acbe3d647041"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/dns_hosts_generation_diff.py",
+        "sha256": "e6024f68833c79d60c3eda6c61d28213c1b7c295db23eca48fbd5b60e308872e"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.6577587127685547
+    },
+    "dhcp-range-service": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/dhcp-range-service/result.json",
+        "sha256": "5cc75b260efedd39053967707e16011d33775d5343c116b04248a98da309fd1a"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/m5_dhcp_range.py",
+        "sha256": "cf0e64320c0856f202de114a2242854c8eeffe008c42716641878ab25dbbfa88"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 354.1928219795227
+    }
+  },
+  "findings": {
+    "A01": {
+      "status": "reproduction_passed",
+      "evidence": "signals",
+      "signal_cases": 12,
+      "implementations": [
+        "exact-image C",
+        "matching-source native C",
+        "Rust"
+      ],
+      "dump_runs": 3,
+      "dumps_per_run": 2,
+      "all_dump_semantics_equal": true,
+      "shared_dump": {
+        "cache": [
+          [
+            150,
+            0,
+            2
+          ],
+          [
+            150,
+            0,
+            2
+          ]
+        ],
+        "queries": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "tcp": [
+          [
+            0,
+            0,
+            30
+          ],
+          [
+            0,
+            0,
+            30
+          ]
+        ],
+        "server": [
+          [
+            3,
+            0,
+            0,
+            2
+          ],
+          [
+            3,
+            0,
+            0,
+            2
+          ]
+        ],
+        "host_rows": 2,
+        "cached_rows": 2
+      },
+      "alarm_runs": 3,
+      "shared_alarm_observation": {
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      },
+      "diagnostic_boundary": "C blockdata allocator-pool line is implementation-specific and is not fabricated by Rust.",
+      "shared_signal_observations": {
+        "SIGHUP": {
+          "dns_before": true,
+          "exit_status_after_signal": null,
+          "dns_after": true,
+          "pidfile_exists_after_signal": true
+        },
+        "SIGUSR2": {
+          "dns_before": true,
+          "exit_status_after_signal": null,
+          "dns_after": true,
+          "pidfile_exists_after_signal": true
+        },
+        "SIGUSR1": {
+          "dns_before": true,
+          "exit_status_after_signal": null,
+          "dns_after": true,
+          "pidfile_exists_after_signal": true
+        },
+        "SIGALRM": {
+          "dns_before": true,
+          "exit_status_after_signal": null,
+          "dns_after": true,
+          "pidfile_exists_after_signal": true
+        }
+      }
+    },
+    "A02": {
+      "status": "reproduction_passed",
+      "evidence": "dhcp",
+      "observations": [
+        {
+          "case": "multi-mac-static-handoff",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 3
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "dual",
+              "rapid_commit_option_80_present": false,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 1,
+                "mac": 2
+              },
+              "reply_type": 2,
+              "address": "127.0.0.30",
+              "hostname_option_12": "dual",
+              "rapid_commit_option_80_present": false,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "dual",
+              "rapid_commit_option_80_present": false,
+              "leases": [
+                [
+                  "02:00:00:00:00:02",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "dual",
+              "rapid_commit_option_80_present": false,
+              "leases": [
+                [
+                  "02:00:00:00:00:02",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "dual"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "claimed",
+            "untrusted",
+            "02-00-00-00-00-01"
+          ]
+        }
+      ]
+    },
+    "A03": {
+      "status": "reproduction_passed",
+      "evidence": "dhcp",
+      "observations": [
+        {
+          "case": "rapid-range-ignore-wanted-false",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false,
+                "name": "untrusted"
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "",
+              "rapid_commit_option_80_present": true,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "claimed",
+            "untrusted",
+            "02-00-00-00-00-01",
+            "30.0.0.127.in-addr.arpa"
+          ]
+        },
+        {
+          "case": "rapid-range-ignore-wanted-true",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true,
+                "name": "untrusted"
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "",
+              "rapid_commit_option_80_present": true,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "claimed",
+            "untrusted",
+            "02-00-00-00-00-01",
+            "30.0.0.127.in-addr.arpa"
+          ]
+        },
+        {
+          "case": "rapid-range-generate-wanted-false",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "02-00-00-00-00-01",
+              "rapid_commit_option_80_present": true,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "02-00-00-00-00-01",
+              "type": 1,
+              "value": "127.0.0.30"
+            },
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "02-00-00-00-00-01"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "claimed",
+            "untrusted"
+          ]
+        },
+        {
+          "case": "rapid-range-generate-wanted-true",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "02-00-00-00-00-01",
+              "rapid_commit_option_80_present": true,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "02-00-00-00-00-01",
+              "type": 1,
+              "value": "127.0.0.30"
+            },
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "02-00-00-00-00-01"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "claimed",
+            "untrusted"
+          ]
+        }
+      ]
+    },
+    "A04": {
+      "status": "reproduction_passed",
+      "evidence": "dhcp",
+      "observations": [
+        {
+          "case": "hosts-authoritative-request",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "authoritative",
+              "rapid_commit_option_80_present": false,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "authoritative",
+              "type": 1,
+              "value": "127.0.0.30"
+            },
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "authoritative"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "claimed",
+            "untrusted",
+            "02-00-00-00-00-01"
+          ]
+        },
+        {
+          "case": "hosts-authoritative-rapid",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "authoritative",
+              "rapid_commit_option_80_present": true,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "authoritative",
+              "type": 1,
+              "value": "127.0.0.30"
+            },
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "authoritative"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "claimed",
+            "untrusted",
+            "02-00-00-00-00-01"
+          ]
+        }
+      ]
+    },
+    "A05": {
+      "status": "reproduction_passed",
+      "evidence": "config",
+      "affected_directives": 11,
+      "positive_controls": 1,
+      "scope": "The original 11 startup blockers plus no-ident control. Further configuration and interface side effects belong to the separately reported full families.",
+      "directives": [
+        "no-ident",
+        "quiet-ra",
+        "quiet-dhcp6",
+        "no-dhcpv6-interface=lo",
+        "enable-ra",
+        "auth-ttl=60",
+        "auth-soa=1",
+        "auth-server=ns.audit.test,lo",
+        "auth-sec-servers=ns.audit.test",
+        "auth-peer=192.0.2.1",
+        "dnssec-debug",
+        "dnssec-no-timecheck"
+      ],
+      "shared_observation": {
+        "c_rust_syntax_pass": true,
+        "c_rust_port_zero_start": true,
+        "c_rust_dns_wire_equal": true,
+        "local_a": "192.0.2.42",
+        "normal_exit": true
+      }
+    },
+    "A06": {
+      "status": "reproduction_passed",
+      "evidence": "hosts",
+      "paired_conditions": 3,
+      "daemon_runs": 6,
+      "synthetic_input": "one valid host plus 48 MiB of short comments",
+      "observations": [
+        {
+          "implementation": "c-image",
+          "address_space_limit_mib": 0,
+          "reload": false,
+          "hosts_bytes": 50331669,
+          "memory": {
+            "VmPeak_kib": 1332,
+            "VmHWM_kib": 1112,
+            "VmRSS_kib": 1112
+          },
+          "exit_before_cleanup": null,
+          "cleanup_exit": 0,
+          "before_expected_a": true,
+          "after_expected_a": true
+        },
+        {
+          "implementation": "rust",
+          "address_space_limit_mib": 0,
+          "reload": false,
+          "hosts_bytes": 50331669,
+          "memory": {
+            "VmPeak_kib": 2932,
+            "VmHWM_kib": 2652,
+            "VmRSS_kib": 2652
+          },
+          "exit_before_cleanup": null,
+          "cleanup_exit": 0,
+          "before_expected_a": true,
+          "after_expected_a": true
+        },
+        {
+          "implementation": "c-image",
+          "address_space_limit_mib": 32,
+          "reload": false,
+          "hosts_bytes": 50331669,
+          "memory": {
+            "VmPeak_kib": 1332,
+            "VmHWM_kib": 1116,
+            "VmRSS_kib": 1116
+          },
+          "exit_before_cleanup": null,
+          "cleanup_exit": 0,
+          "before_expected_a": true,
+          "after_expected_a": true
+        },
+        {
+          "implementation": "rust",
+          "address_space_limit_mib": 32,
+          "reload": false,
+          "hosts_bytes": 50331669,
+          "memory": {
+            "VmPeak_kib": 2932,
+            "VmHWM_kib": 2656,
+            "VmRSS_kib": 2656
+          },
+          "exit_before_cleanup": null,
+          "cleanup_exit": 0,
+          "before_expected_a": true,
+          "after_expected_a": true
+        },
+        {
+          "implementation": "c-image",
+          "address_space_limit_mib": 32,
+          "reload": true,
+          "hosts_bytes": 50331669,
+          "memory": {
+            "VmPeak_kib": 1332,
+            "VmHWM_kib": 1116,
+            "VmRSS_kib": 1116
+          },
+          "exit_before_cleanup": null,
+          "cleanup_exit": 0,
+          "before_expected_a": true,
+          "after_expected_a": true
+        },
+        {
+          "implementation": "rust",
+          "address_space_limit_mib": 32,
+          "reload": true,
+          "hosts_bytes": 50331669,
+          "memory": {
+            "VmPeak_kib": 2936,
+            "VmHWM_kib": 2660,
+            "VmRSS_kib": 2660
+          },
+          "exit_before_cleanup": null,
+          "cleanup_exit": 0,
+          "before_expected_a": true,
+          "after_expected_a": true
+        }
+      ],
+      "scope": "RLIMIT_AS virtual-address-space experiment on Oracle; not target-device OOM or broad resource-budget acceptance."
+    },
+    "A09": {
+      "status": "reproduction_passed",
+      "evidence": "dhcp",
+      "observations": [
+        {
+          "case": "client-hostname-request",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "claimed",
+              "rapid_commit_option_80_present": false,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "claimed",
+              "type": 1,
+              "value": "127.0.0.30"
+            },
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "claimed"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "untrusted",
+            "02-00-00-00-00-01"
+          ]
+        },
+        {
+          "case": "client-hostname-rapid",
+          "c_rust_equal": true,
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply_type": 5,
+              "address": "127.0.0.30",
+              "hostname_option_12": "claimed",
+              "rapid_commit_option_80_present": true,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "normal_exit": true,
+          "dns_records": [
+            {
+              "query": "claimed",
+              "type": 1,
+              "value": "127.0.0.30"
+            },
+            {
+              "query": "30.0.0.127.in-addr.arpa",
+              "type": 12,
+              "value": "claimed"
+            }
+          ],
+          "dns_refused_without_answers": [
+            "authoritative",
+            "untrusted",
+            "02-00-00-00-00-01"
+          ]
+        }
+      ]
+    },
+    "A10": {
+      "status": "reproduction_passed",
+      "evidence": "dns-error",
+      "malformed_inputs": 7,
+      "valid_controls": 1,
+      "transports": [
+        "udp",
+        "tcp"
+      ],
+      "compared": 16,
+      "matched": 16,
+      "input_names": [
+        "host-a",
+        "multi-question",
+        "multi-question-compressed",
+        "zero-question",
+        "self-pointer",
+        "outside-pointer",
+        "bitstring-label",
+        "overlong-name"
+      ],
+      "malformed_shared_result": {
+        "status": "reply",
+        "wire_equal": true,
+        "flags": "0x8185",
+        "answers": 0
+      },
+      "valid_control_shared_result": {
+        "status": "reply",
+        "wire_equal": true,
+        "flags": "0x8580",
+        "answers": 1
+      }
+    }
+  },
+  "dhcp_inventory_note": "A02/A03/A04/A09 share one 9-case, 18-daemon corpus. Findings link overlapping control cases; do not sum their observations as independent extra tests.",
+  "supplementary_suites": [
+    {
+      "suite": "dhcp-dns",
+      "status": "passed",
+      "compared": 34,
+      "matched": 34,
+      "evidence": "dhcp-dns"
+    },
+    {
+      "suite": "dhcp-reverse",
+      "status": "passed",
+      "scenarios": 7,
+      "compared": 28,
+      "matched": 28,
+      "unexecuted": 0,
+      "daemon_runs": 14,
+      "evidence": "dhcp-reverse",
+      "identity_note": "The legacy result labels kind as native-glibc, but its 097a9e21... hash and the recorded adapter identify the exact image AArch64 musl ELF."
+    },
+    {
+      "suite": "dns-tcp",
+      "status": "passed",
+      "checks_passed": 15,
+      "checks_failed": 0,
+      "replies": 116,
+      "calibration": {
+        "equal_passed": 1,
+        "injected_failures_detected": 4
+      },
+      "evidence": "dns-tcp"
+    },
+    {
+      "suite": "dns-reload",
+      "status": "passed",
+      "checks_passed": 23,
+      "checks_failed": 0,
+      "calibration": {
+        "equal_passed": 1,
+        "injected_failures_detected": 6
+      },
+      "evidence": "dns-reload"
+    },
+    {
+      "suite": "hosts-generation",
+      "status": "passed",
+      "rounds": 2,
+      "queries_per_side": 204,
+      "queries_both_sides": 408,
+      "mismatches": 0,
+      "transition_errors": 0,
+      "normalization": "C-inventory-validated initial RRset permutation is one seed per process and identical generation input; exact C transition model thereafter; no per-reply sorting",
+      "evidence": "hosts-generation"
+    },
+    {
+      "suite": "dhcp-range-service",
+      "status": "passed",
+      "compared_cases": 76,
+      "unexecuted": 0,
+      "evidence": "dhcp-range-service",
+      "scope": "Default service corpus, including address selection, ICMP conflict/probe/cache/failure and lifecycle. This supplements the registry range family, whose command runs syntax only."
+    }
+  ],
+  "first_pass_and_repairs": {
+    "debug_tcp_lease": {
+      "initial": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/dhcp-dns-01/summary.json",
+        "sha256": "5ec30d68fd7f9271cf77bd159c688defc277e661eaaccd7fc183a3fccd12bec4"
+      },
+      "old_main_baseline": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/dhcp-dns-main-baseline-01/summary.json",
+        "sha256": "568f3c4becb901057e92487861d6f9d495a047469dab5eb15482b2274bf95ae7"
+      },
+      "initial_elf_sha256": "3b70500739b44eccd38a62404b485e2182d4b314c2294de805a2ae495d75253c",
+      "old_main_elf_sha256": "791a7c33987fbb21887c51041f27722b9cc1bd8bd4cffab0fc03a292517fb10f",
+      "matching_native_c_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "matched_before": 33,
+      "compared": 34,
+      "same_baseline_mismatch": true,
+      "case": "ack-fqdn-tcp",
+      "observed": {
+        "c_rcode": 0,
+        "c_answers": [
+          {
+            "section": "answer",
+            "name": "client1.leases.test",
+            "type": 1,
+            "class": 1,
+            "ttl": 5,
+            "data": "127.0.0.10"
+          }
+        ],
+        "rust_rcode": 3,
+        "rust_answers": []
+      },
+      "cause": "In --no-daemon debug TCP handling, cache lookup could use an outdated daemon lease view and return an older negative record before the newly published DHCP name. The unchanged old-main ELF reproduces it.",
+      "product_fix_commit": "78c0f86c",
+      "fix": "Resolve current published local names before TCP negative-cache answers and supply the active local view.",
+      "final_evidence": "dhcp-dns",
+      "matched_after": 34
+    },
+    "lease_name_short_timeout": {
+      "initial": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/dhcp-families-01/m5_option_matrix_lease_names/result.json",
+        "sha256": "f830f883cb3ed82102e549e5dfcd5e96b5e24e6e79c4d8e0affbfeae4de18753"
+      },
+      "unchanged_full_recheck": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/dhcp-lease-names-recheck-01/m5_option_matrix_lease_names/result.json",
+        "sha256": "5bad25157f8afa7676aee84e48eb33661a4a143e4fbc3b88c1368f92334936c7"
+      },
+      "initial_events": [
+        "clid-off-same-id-other-mac:initial:dhcp",
+        "clid-off-same-id-other-mac:changed:dhcp"
+      ],
+      "observed": "Two 0.4-second ACK receive timeouts while lease identities/names were already correct; unchanged targeted and complete reruns did not reproduce them. No proven causal attribution to load or infrastructure is claimed. Original failures remain retained.",
+      "full_recheck_scenarios": 47
+    },
+    "tools": [
+      {
+        "change": "Use the pinned image musl loader for dynamic PIE in legacy host-side daemon harnesses.",
+        "reason": "Oracle lacks the target interpreter at its host absolute path. The adapter rewrites only subprocess executable argv for the two pinned product paths; original packets, comparison assertions and ELF identities remain unchanged.",
+        "evidence": {
+          "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/legacy-probe.py",
+          "sha256": "dcf6bb87788d9441d61a7576d405082218c31dc2d8327b3924ab86d339f201d8"
+        }
+      },
+      {
+        "change": "Add optional --c-identity to dhcp_reverse_name_diff.",
+        "reason": "The old helper had migrated its C hash from native C to the exact image, making the historical native command fail identity validation before daemon startup. The option reuses the existing strict image-runner/library verifier. Final validation uses the real exact-image path through the generic loader adapter.",
+        "tool": {
+          "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-02/tools/dnsmasq/dhcp_reverse_name_diff.py",
+          "sha256": "205591fd7f78023ff935cd84805002746b07cc1e2adb3c3b95c1d254bac06231"
+        }
+      },
+      {
+        "change": "Adapt allocator probes to dynamic musl symbol addresses and verify mapped ELF inode/hash. Increase the regular hosts witness from 1 MiB to 16 MiB.",
+        "reason": "PIE imports realloc rather than retaining a static symbol; after streaming, the regular-file witness must span enough bounded read turns to observe owner progress. These are harness adaptations, not weakened packet or state comparisons.",
+        "commit": "4a72e245"
+      },
+      {
+        "change": "Split the fresh-connection DNS-file fixture into a UDP population query and an explicit TCP cache-hit expectation.",
+        "reason": "The UDP observation populates the parent cache, so the following TCP query should not require another upstream transaction.",
+        "commit": "4a72e245"
+      },
+      {
+        "change": "Correct the UBus family preflight template key from image_root to canonical image.",
+        "reason": "The first final family invocation failed in argv expansion before any family started; the separate retry records the correction and executes the same family requirements.",
+        "evidence": {
+          "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/final-functional/family-retry.json",
+          "sha256": "e131cf42d162de2f264112fc1ee08965b66e665926337260cf545465db02175c"
+        }
+      }
+    ]
+  },
+  "full_families": "Reported separately after their completion; no pending family is marked passed here.",
+  "out_of_scope": "A07 PIE tradeoff and final hardening/performance evidence are reported separately. A08 resource acceptance, physical-router deployment and GitHub publication are outside this file."
+}
