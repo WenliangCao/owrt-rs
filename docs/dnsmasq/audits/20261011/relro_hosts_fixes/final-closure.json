@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "task_workload_processes": [],
+  "other_matching_workloads_count": 0,
+  "method": "Read /proc cmdline with frozen m5_final_validation.family_processes, exclude this command ancestry; require no task-root workloads.",
+  "main_expected": "be531cee49e366bb5044443d473944dbea45b87e",
+  "state_sha256": "2a76fd38b4d4aaee8de1c53f4f8532dd1c657bcdd15f8577cebadc690cf0ec0a"
+}
