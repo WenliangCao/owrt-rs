@@ -17,6 +17,8 @@ import struct
 import subprocess
 import time
 
+from m2_rootfs import image_elf_command
+
 STOCK_SHA256 = '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87'
 
 
@@ -237,7 +239,7 @@ def main():
               'c_sha256': sha(stock), 'rust_sha256': sha(args.rust), 'tool_sha256': sha(__file__), 'cases': []}
     for case in cases():
         rows = {side: execute(binary, case, out / f'{case["name"]}-{side}')
-                for side, binary in [('c', c), ('rust', [str(args.rust.resolve())])]}
+                for side, binary in [('c', c), ('rust', image_elf_command(image, args.rust))]}
         report['cases'].append({'name': case['name'], **rows, 'match': rows['c'] == rows['rust']})
     report['case_count'] = len(report['cases'])
     report['matched'] = sum(row['match'] for row in report['cases'])

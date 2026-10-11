@@ -276,6 +276,8 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--local-only", action="store_true")
     parser.add_argument("--cases", help="Comma-separated local case names for focused rechecks")
+    parser.add_argument("--require-match", action="store_true",
+                        help="Fail unless every selected C/Rust response matches")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     root = prepare(args.image_root, None, args.out, args.rust)
@@ -302,6 +304,9 @@ def main():
     result = {"scope": __doc__, "timestamp": time.time(), "c_sha256": sha256(root / "usr/sbin/dnsmasq"), "rust_sha256": sha256(root / "usr/sbin/dnsmasq-rs"), "tool_sha256": sha256(Path(__file__)), "profiles": profiles}
     (args.out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({label: {"cases": len(profile["cases"]), "differences": [{"name": row["name"], "protocol": row["protocol"], "query_hex": row["query_hex"]} for row in profile["cases"] if not row["same_client_result"]]} for label, profile in profiles.items()}, indent=2))
+    if args.require_match and any(not row["same_client_result"]
+                                  for profile in profiles.values() for row in profile["cases"]):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
