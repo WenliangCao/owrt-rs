@@ -1,0 +1,187 @@
+{
+  "status": "complete",
+  "started": 1791733650.8440893,
+  "windows": [
+    {
+      "id": "udp-hit-r1-main",
+      "started": 1791733650.8491275,
+      "returncode": 0,
+      "ended": 1791733697.3588173
+    },
+    {
+      "id": "udp-hit-r1-fix",
+      "started": 1791733697.3642879,
+      "returncode": 0,
+      "ended": 1791733743.817083
+    },
+    {
+      "id": "tcp-hit-r1-main",
+      "started": 1791733743.8233356,
+      "returncode": 0,
+      "ended": 1791733790.3377876
+    },
+    {
+      "id": "tcp-hit-r1-fix",
+      "started": 1791733790.3439777,
+      "returncode": 0,
+      "ended": 1791733836.9181774
+    },
+    {
+      "id": "tcp-miss-r1-main",
+      "started": 1791733836.9238296,
+      "returncode": 0,
+      "ended": 1791733882.6435366
+    },
+    {
+      "id": "tcp-miss-r1-fix",
+      "started": 1791733882.6497984,
+      "returncode": 0,
+      "ended": 1791733928.368785
+    },
+    {
+      "id": "dhcp-lease-r1-main",
+      "started": 1791733928.37504,
+      "returncode": 0,
+      "ended": 1791733974.0991514
+    },
+    {
+      "id": "dhcp-lease-r1-fix",
+      "started": 1791733974.1048763,
+      "returncode": 0,
+      "ended": 1791734019.8203528
+    },
+    {
+      "id": "reload-concurrent-r1-main",
+      "started": 1791734019.8260403,
+      "returncode": 0,
+      "ended": 1791734065.5557833
+    },
+    {
+      "id": "reload-concurrent-r1-fix",
+      "started": 1791734065.5615165,
+      "returncode": 0,
+      "ended": 1791734111.298398
+    },
+    {
+      "id": "udp-hit-r2-fix",
+      "started": 1791734111.3047621,
+      "returncode": 0,
+      "ended": 1791734157.8533273
+    },
+    {
+      "id": "udp-hit-r2-main",
+      "started": 1791734157.8590686,
+      "returncode": 0,
+      "ended": 1791734204.4038327
+    },
+    {
+      "id": "tcp-hit-r2-fix",
+      "started": 1791734204.4095142,
+      "returncode": 0,
+      "ended": 1791734250.8883154
+    },
+    {
+      "id": "tcp-hit-r2-main",
+      "started": 1791734250.893958,
+      "returncode": 0,
+      "ended": 1791734297.3727014
+    },
+    {
+      "id": "tcp-miss-r2-fix",
+      "started": 1791734297.3783607,
+      "returncode": 0,
+      "ended": 1791734343.0800045
+    },
+    {
+      "id": "tcp-miss-r2-main",
+      "started": 1791734343.0856607,
+      "returncode": 0,
+      "ended": 1791734388.8055065
+    },
+    {
+      "id": "dhcp-lease-r2-fix",
+      "started": 1791734388.8118353,
+      "returncode": 0,
+      "ended": 1791734434.546822
+    },
+    {
+      "id": "dhcp-lease-r2-main",
+      "started": 1791734434.5525362,
+      "returncode": 0,
+      "ended": 1791734480.3009703
+    },
+    {
+      "id": "reload-concurrent-r2-fix",
+      "started": 1791734480.3068402,
+      "returncode": 0,
+      "ended": 1791734526.0513973
+    },
+    {
+      "id": "reload-concurrent-r2-main",
+      "started": 1791734526.057199,
+      "returncode": 0,
+      "ended": 1791734571.79424
+    },
+    {
+      "id": "udp-hit-r3-main",
+      "started": 1791734571.8000715,
+      "returncode": 0,
+      "ended": 1791734618.3312445
+    },
+    {
+      "id": "udp-hit-r3-fix",
+      "started": 1791734618.3377242,
+      "returncode": 0,
+      "ended": 1791734664.8813174
+    },
+    {
+      "id": "tcp-hit-r3-main",
+      "started": 1791734664.8870635,
+      "returncode": 0,
+      "ended": 1791734711.4301553
+    },
+    {
+      "id": "tcp-hit-r3-fix",
+      "started": 1791734711.435955,
+      "returncode": 0,
+      "ended": 1791734757.9318135
+    },
+    {
+      "id": "tcp-miss-r3-main",
+      "started": 1791734757.9381597,
+      "returncode": 0,
+      "ended": 1791734803.6381953
+    },
+    {
+      "id": "tcp-miss-r3-fix",
+      "started": 1791734803.644641,
+      "returncode": 0,
+      "ended": 1791734849.3340383
+    },
+    {
+      "id": "dhcp-lease-r3-main",
+      "started": 1791734849.3404768,
+      "returncode": 0,
+      "ended": 1791734895.0834842
+    },
+    {
+      "id": "dhcp-lease-r3-fix",
+      "started": 1791734895.089286,
+      "returncode": 0,
+      "ended": 1791734940.8219054
+    },
+    {
+      "id": "reload-concurrent-r3-main",
+      "started": 1791734940.827685,
+      "returncode": 0,
+      "ended": 1791734986.5777671
+    },
+    {
+      "id": "reload-concurrent-r3-fix",
+      "started": 1791734986.583635,
+      "returncode": 0,
+      "ended": 1791735032.3281665
+    }
+  ],
+  "ended": 1791735032.3287394
+}

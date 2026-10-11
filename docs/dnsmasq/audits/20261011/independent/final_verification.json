@@ -1,0 +1,457 @@
+{
+  "source_commit": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+  "source_files_rechecked": 182,
+  "changed_source_files": [],
+  "performance": {
+    "perf": {
+      "run_sha256": "d17ee8d5cc6a9579cfe9c7d4e8a715695419052d3bc4d828297b8e4e28a5e7e4",
+      "summary_sha256": "7cd245138aa8a8d93220f9e75915b5add211a80dec71d92e918a4da8ee53579f",
+      "plan_sha256": "c57586aa14ea3a5a2392c1ba3a04660b23fa20ab2c6064264b133007e27e478c",
+      "all_frozen_assets_verified": true,
+      "windows": 30,
+      "all_raw_hashes_verified": true,
+      "upstream": {}
+    },
+    "perf-udp-miss": {
+      "run_sha256": "465263894d6a73f5f6aa130766f55f72a7099e529fe2abb2554ab404a0f663f1",
+      "summary_sha256": "5073001a897f1f7a2d8ce3ef17ca8846eebc4e082a7fc874b3a57a0e2e12a566",
+      "plan_sha256": "dbd4c151f479db3dea7be76b1783bdd2eb93ea92ff97c0b44b0a99e2333ba9da",
+      "all_frozen_assets_verified": true,
+      "windows": 6,
+      "all_raw_hashes_verified": true,
+      "upstream": {
+        "udp-miss-r1-main": {
+          "schema": 1,
+          "epoch_ns": 1459694467052015,
+          "disabled": false,
+          "total": {
+            "requests": 200000,
+            "replies": 200000,
+            "generated_replies": 200000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 200000,
+            "tcp_requests": 0
+          },
+          "requests": 200000,
+          "disabled_requests": 0,
+          "invalid_queries": 0,
+          "phases": {
+            "setup_warmup": {
+              "requests": 50000,
+              "replies": 50000,
+              "generated_replies": 50000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 50000,
+              "tcp_requests": 0
+            },
+            "steady": {
+              "requests": 150000,
+              "replies": 150000,
+              "generated_replies": 150000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 150000,
+              "tcp_requests": 0
+            },
+            "saturation": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "fault": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "recovery": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            }
+          }
+        },
+        "udp-miss-r1-fix": {
+          "schema": 1,
+          "epoch_ns": 1459740147573362,
+          "disabled": false,
+          "total": {
+            "requests": 200000,
+            "replies": 200000,
+            "generated_replies": 200000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 200000,
+            "tcp_requests": 0
+          },
+          "requests": 200000,
+          "disabled_requests": 0,
+          "invalid_queries": 0,
+          "phases": {
+            "setup_warmup": {
+              "requests": 50000,
+              "replies": 50000,
+              "generated_replies": 50000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 50000,
+              "tcp_requests": 0
+            },
+            "steady": {
+              "requests": 150000,
+              "replies": 150000,
+              "generated_replies": 150000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 150000,
+              "tcp_requests": 0
+            },
+            "saturation": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "fault": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "recovery": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            }
+          }
+        },
+        "udp-miss-r2-fix": {
+          "schema": 1,
+          "epoch_ns": 1459785838650268,
+          "disabled": false,
+          "total": {
+            "requests": 200000,
+            "replies": 200000,
+            "generated_replies": 200000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 200000,
+            "tcp_requests": 0
+          },
+          "requests": 200000,
+          "disabled_requests": 0,
+          "invalid_queries": 0,
+          "phases": {
+            "setup_warmup": {
+              "requests": 50000,
+              "replies": 50000,
+              "generated_replies": 50000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 50000,
+              "tcp_requests": 0
+            },
+            "steady": {
+              "requests": 150000,
+              "replies": 150000,
+              "generated_replies": 150000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 150000,
+              "tcp_requests": 0
+            },
+            "saturation": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "fault": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "recovery": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            }
+          }
+        },
+        "udp-miss-r2-main": {
+          "schema": 1,
+          "epoch_ns": 1459831551300944,
+          "disabled": false,
+          "total": {
+            "requests": 200000,
+            "replies": 200000,
+            "generated_replies": 200000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 200000,
+            "tcp_requests": 0
+          },
+          "requests": 200000,
+          "disabled_requests": 0,
+          "invalid_queries": 0,
+          "phases": {
+            "setup_warmup": {
+              "requests": 50000,
+              "replies": 50000,
+              "generated_replies": 50000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 50000,
+              "tcp_requests": 0
+            },
+            "steady": {
+              "requests": 150000,
+              "replies": 150000,
+              "generated_replies": 150000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 150000,
+              "tcp_requests": 0
+            },
+            "saturation": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "fault": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "recovery": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            }
+          }
+        },
+        "udp-miss-r3-main": {
+          "schema": 1,
+          "epoch_ns": 1459877287740211,
+          "disabled": false,
+          "total": {
+            "requests": 200000,
+            "replies": 200000,
+            "generated_replies": 200000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 200000,
+            "tcp_requests": 0
+          },
+          "requests": 200000,
+          "disabled_requests": 0,
+          "invalid_queries": 0,
+          "phases": {
+            "setup_warmup": {
+              "requests": 50000,
+              "replies": 50000,
+              "generated_replies": 50000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 50000,
+              "tcp_requests": 0
+            },
+            "steady": {
+              "requests": 150000,
+              "replies": 150000,
+              "generated_replies": 150000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 150000,
+              "tcp_requests": 0
+            },
+            "saturation": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "fault": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "recovery": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            }
+          }
+        },
+        "udp-miss-r3-fix": {
+          "schema": 1,
+          "epoch_ns": 1459922983617574,
+          "disabled": false,
+          "total": {
+            "requests": 199994,
+            "replies": 199994,
+            "generated_replies": 199994,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 199994,
+            "tcp_requests": 0
+          },
+          "requests": 199994,
+          "disabled_requests": 0,
+          "invalid_queries": 0,
+          "phases": {
+            "setup_warmup": {
+              "requests": 50000,
+              "replies": 50000,
+              "generated_replies": 50000,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 50000,
+              "tcp_requests": 0
+            },
+            "steady": {
+              "requests": 149994,
+              "replies": 149994,
+              "generated_replies": 149994,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 149994,
+              "tcp_requests": 0
+            },
+            "saturation": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "fault": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            },
+            "recovery": {
+              "requests": 0,
+              "replies": 0,
+              "generated_replies": 0,
+              "disabled_requests": 0,
+              "dropped_requests": 0,
+              "invalid_queries": 0,
+              "udp_requests": 0,
+              "tcp_requests": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "live_dnsmasq_or_loadgen": [],
+  "ssh_main_client_exit_observation": 255,
+  "ssh_main_client_message": "connection reset by peer after windows; remote complete receipts and all raw hashes verified; no workload rerun",
+  "finished_at_epoch": 1791735469.9519582,
+  "ssh_supplementary_client_cleanup": {
+    "local_pid": 70600,
+    "action": "SIGTERM to the remaining local SSH client after remote processes exited and complete receipts were verified",
+    "client_exit": 255,
+    "remote_windows_complete": 6,
+    "remote_workload_rerun": false
+  }
+}

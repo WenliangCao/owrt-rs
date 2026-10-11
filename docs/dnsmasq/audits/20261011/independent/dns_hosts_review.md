@@ -37,7 +37,7 @@ sudo -n sh /home/ubuntu/dnsmasq-fix-independent-20261011/source/tools/dnsmasq/ru
 
 ## 低影响差异
 
-- **P3，stale 元数据兼容性，已复现，未证实新引入**：使用 `neg-ttl=1,use-stale-cache=30` 先缓存 `client AAAA NXDOMAIN`，等待 2.1 秒，经 DHCP ACK 发布 `client A 127.0.0.30`，随后带 EDNS 的 TCP A 查询。C 和 fix 都正确返回 DHCP A；C 的 OPT 含 EDE 3（stale answer），fix 无 EDE。`-k/-d` 均一致。新 TCP 顺序在 local answer 成功时没有 `CachedAnswer.stale` 来源（`main.rs:2802,2835`）。这是旧 NXDOMAIN stale 位在 C 先行查找中的可见副作用，不应夸大为 DHCP A 解析失败。该实验上游仅监听 UDP，**没有验证 TCP stale-refresh 成功、连接关闭或最终缓存内容**。证据：[脚本](dns_hosts_stale.py)、[结果](dns_hosts_stale.json)。
+- **已观察 EDE 元数据差异，复核后不判缺陷**：使用 `neg-ttl=1,use-stale-cache=30` 先缓存 `client AAAA NXDOMAIN`，等待 2.1 秒，经 DHCP ACK 发布 `client A 127.0.0.30`，随后带 EDNS 的 TCP A 查询。C 和 fix 都正确返回 DHCP A；C 的 OPT 含 EDE 3（stale answer），fix 无 EDE。`-k/-d` 均一致。新 TCP 顺序在 local answer 成功时没有 `CachedAnswer.stale` 来源（`main.rs:2802,2835`）。这是旧 NXDOMAIN stale 位在 C 先行查找中的可见副作用：最终答案没有使用过期 RR。没有证据要求复制该可能误导的 EDE，也没有消费者受损证据；主审复核撤销初审的 P3 候选，不计入缺陷清单。该实验上游仅监听 UDP，**没有验证 TCP stale-refresh 成功、连接关闭或最终缓存内容**。证据：[脚本](dns_hosts_stale.py)、[结果](dns_hosts_stale.json)。
 - **P3，addn-hosts 错误诊断遗漏，既有问题，已复现**：普通 `--addn-hosts` 中 100,000 字节的非法名称，C 报 `bad name ... line 6`，fix 仅报 accepted names 数；相同文件经 `--hostsdir` 读取时两者都报错。`Hosts::read_from` 在 `hosts.rs:312` 丢弃 invalid 回调。合法记录仍正常加载，故不是本次流式读取功能的阻塞项。证据：[脚本](dns_hosts_probe.py)、[结果](dns_hosts_probe.json)。
 - SIGUSR1 配置 host 的 flags 中 C 为 `4FRI   HC`，fix 为 `4FRI    C`；来源仍显示 config，未发现业务计数或解析影响。non-terminal、C allocator pool 数字未输出属于原报告已公开的表示差异，不计为新缺陷。
 
