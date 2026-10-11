@@ -1,0 +1,969 @@
+{
+  "scope": "A07 scoped linkage-cost screen; not M6 qualification or router performance evidence",
+  "plan_sha256": "52ade99cbdec903f752adbc6ca3b085d1d59513b2723b97a69be9bedbc2e37a2",
+  "windows": [
+    {
+      "id": "udp-hit-r1-static",
+      "profile": "udp-hit",
+      "variant": "static",
+      "round": 1,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 12.300853447126283,
+        "p95_ns": 22280
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "b943a424bdde8b82594c57afe144d3c69c06daa2e2778f7b4ffdd2fe0b12b0de",
+      "raw_inputs": {
+        "result.json": "cdd9c0cc55068a65bfd6333fdd88a0fbebec788a59d6c5ed9a1e81ea863bc5c2",
+        "load.json": "9e2a813e14d48ce4ae11ec5a9c0295bc6facc2198d1f39719ff786407d08c450",
+        "epoch.json": "9131418dc80585853208c84b975d77e4a56685fc48ad77ee31cbb9530d1b7bff",
+        "resources.json": "877634f94f4eef6d77cfa91c866998accbfbfb0c22f936e0b07e8807eeff5ba5",
+        "load.latencies.bin": "4c9bfe2e426c6137138da3389066bba5f6344c50cec4aefa79ba643adc558daa",
+        "load.send-lag.bin": "9b503c0b5080d67fa565438be84dc53fbe60f41992320db1cc41050fba791f6e"
+      }
+    },
+    {
+      "id": "udp-hit-r1-pie",
+      "profile": "udp-hit",
+      "variant": "pie",
+      "round": 1,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 12.482775520001601,
+        "p95_ns": 22200
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "3c1fb00912f77374e0691cfba4e56e24c0fe141939da431c6caa500e550c832d",
+      "raw_inputs": {
+        "result.json": "530bcb2d1ecfcee054b2d6a4267286fa64032fb4ea2ec486ab70f4e0ed067392",
+        "load.json": "ab372ca0dfaf3e44c6accfe273498c5573fb07376c5cdae7359a80129b35fdce",
+        "epoch.json": "e1bbdb007da57dd48b5f9849720852e878e68819f399742deb184f4dcedc4220",
+        "resources.json": "bfa364c5873a50c0aeb799fcd921c5cd3a20171bb7dd8cd273818b9d233cb73c",
+        "load.latencies.bin": "b1998acd9cfd7a6ec9368f12995c2c660810d7ad82de5a5b7659ff04d67aad8f",
+        "load.send-lag.bin": "e94d6905e5fc86ad9357f2c4cfdc24f9dd741d1c0051dbe3a12680897b83c910"
+      }
+    },
+    {
+      "id": "tcp-miss-r1-static",
+      "profile": "tcp-miss",
+      "variant": "static",
+      "round": 1,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 94.40930674897805,
+        "p95_ns": 620005
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "f42ec9b421138773009dbdff510f8994b47f8d039c280e8589aa8b91e7ac5cb4",
+      "raw_inputs": {
+        "result.json": "acad3e1fa365f820ff94d3ab245787118375c746221456ce30d18ed50a9799e3",
+        "load.json": "981a8ac3dc0941a4aa9d0ae9802b5c718a7346881153f88cac59badb64b7f09b",
+        "epoch.json": "4d600e912351b2853251ea368a41fc86042115274f5e58232304063db5032cf0",
+        "resources.json": "65e20b6e8086420b86fd04117ef6462073a3da3f8c7245fe65cef4822deb2ba0",
+        "load.latencies.bin": "a28c1f336cd8309015b8b258274edd0a59a0be687f360a40fc38f8b4da99f43f",
+        "load.send-lag.bin": "2fcd91e4729fb9af5d560707524ea932650192947cce697b8213ce7b793c6cc2"
+      }
+    },
+    {
+      "id": "tcp-miss-r1-pie",
+      "profile": "tcp-miss",
+      "variant": "pie",
+      "round": 1,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 95.51454220827979,
+        "p95_ns": 596005
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "4bf7bccccb6ea14c656171b96cc4e82362b66eb011849f0ec437f08bda21f02e",
+      "raw_inputs": {
+        "result.json": "5c5f0ce3d70b93a7e0f9ea7aeb8c39225bc5da1dad50e283fc386394ba8b3f5f",
+        "load.json": "f20182d4cb3ed32384da3a53e1aaed189ea033892a076e08e287b8750f957569",
+        "epoch.json": "452289bf77bac6fc45b048f3b23b0a00d1f38bcd4e088b2ce06de6632679cf9d",
+        "resources.json": "7719416829af06a47eaa7df89a0830b580994be5cff9b5c485cefe5ca653662a",
+        "load.latencies.bin": "490ea7d33bdc67f0bc2995a546023f0af3aabc70a29dc3455799c7b0ea465333",
+        "load.send-lag.bin": "ad84ba11a8661b7fb1bfc89598c54f7bc685f53f50390c22f62f32f28f9993a5"
+      }
+    },
+    {
+      "id": "dhcp-lease-r1-static",
+      "profile": "dhcp-lease",
+      "variant": "static",
+      "round": 1,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 540.9866666666667,
+        "p95_ns": 3085025
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "a1c2e621bdf012c53a71cb47cbea8ac4e3f02198d38122d5a805c4a42cd1c278",
+      "raw_inputs": {
+        "result.json": "a5ee8c7e4897cf5022c2ed7a8034c22dea3c47802e032b71c9dc31186346fe5f",
+        "load.json": "4ac07152ad38a728d2071fdc0ff01161cd054eba7d53f73e4424478a43335118",
+        "epoch.json": "1f573ec3b186f3afcd186ca5a27e0ab06404a01ce08c4a5a5e7871bc9e43d691",
+        "resources.json": "d1b0eca96b05cf45367a9d087d06d11bdb8d3797eb3ea6597bcd88cb52e46afd",
+        "load.latencies.bin": "975a344512fbcf13db6ce195e44c2c839e7c43b105a9859937d633703749df99",
+        "load.send-lag.bin": "0e78c5537925e26a8f6c4477bbf1d46600ec3177adc3465663dd2cc32d79fccc"
+      }
+    },
+    {
+      "id": "dhcp-lease-r1-pie",
+      "profile": "dhcp-lease",
+      "variant": "pie",
+      "round": 1,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 571.6483333333333,
+        "p95_ns": 3240346
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "548c33219fb230ef59deb4ad83ec47da4b26f4d0e536d0b5e46ae07666dcc305",
+      "raw_inputs": {
+        "result.json": "c08c0f226753242ee5e74594fb1b785ed8469d356be81501fb2b22e7a2b9ccc2",
+        "load.json": "5c70f70163778a585a41541efbecd6c079eac874e8670142227731729945106e",
+        "epoch.json": "b39078c51c1464eb2d5f551288fb986a30fa52b42e5f9d70e174f62e34c1f30c",
+        "resources.json": "082317d150a2ac0897d3b9cd22aa9c62d0c3b49030f57a6f5065eb9faa9126b2",
+        "load.latencies.bin": "8947f4e5b0a1f932ea96933c4cfb19d828fba2e56c30af6bcdfac449a5ec7edc",
+        "load.send-lag.bin": "11b14bdad49a92953b7f4b1b71edaab5f66f3a8d2d7a775dceaff2b969470eff"
+      }
+    },
+    {
+      "id": "reload-concurrent-r1-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 1,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.219833333333334,
+        "p95_ns": 71160
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "0b96d0d299a31a2f3b8f9d6fb55af627b03e58b3873b42d278f4a0b5db25b52b",
+      "raw_inputs": {
+        "result.json": "9fd42cb85a5aef56a150f6726befb8856891e90ff917679cee589cee5d21108f",
+        "load.json": "7683f2d14e9beca3c32bd8a14e44798b7c5ff52346d20ddd9041feaa8d5e187b",
+        "epoch.json": "92d8bacb4b433936a896f5ed4610c9496c4c34d516b95e0fcfef408227147ebd",
+        "resources.json": "a6e4b955e9e4601195fb27579a6630270a649f7c0be4bffb4477ad1f1130979d",
+        "load.latencies.bin": "f94e45076d88e20f5487881c006762aafd9e78d14389f5f2551e87e2c6ef5a3a",
+        "load.send-lag.bin": "4132e101c656c25d85620df89b3deddbb084c1a318f1c2c1b7d3bf7a5f6eac8c"
+      }
+    },
+    {
+      "id": "reload-concurrent-r1-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 1,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 28.105433333333334,
+        "p95_ns": 83521
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "a5e7252eabfff11965a4701675e3cda6c157fe800a21ae809a836704aa7ef200",
+      "raw_inputs": {
+        "result.json": "f4ed7ae38c61a4166c2254a648420323995ab778826f39f602877ff869b20599",
+        "load.json": "21c00e9ec6ae417eeb04b8167fa7296a22b16fb90adaeaa7f92a93e843f9c172",
+        "epoch.json": "80c81d00d9ab92bf614ed9f04fea08e0bb9e93cc87be967061cf0f42d59d0e2c",
+        "resources.json": "71d8e64585b0d6dda2eeafe604f44e68153088aa71160921124d2ac201542912",
+        "load.latencies.bin": "a0a0f33b196a0c5675b70d8783a4aa943ceae84b40ab74c745be611726aacab3",
+        "load.send-lag.bin": "90ff797eec6e05f0c9a3310234370cf0edcdad99b9db0313f0a16a1928343f2a"
+      }
+    },
+    {
+      "id": "udp-hit-r2-pie",
+      "profile": "udp-hit",
+      "variant": "pie",
+      "round": 2,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 13.116504724876792,
+        "p95_ns": 22921
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "47328317a06005cd0f0af94b09c338fc4114277de83b652315b75cda14a56b61",
+      "raw_inputs": {
+        "result.json": "620e9456265e61d478afc87d0e9a23ca1fb78ed83483f773b3212c18e870c227",
+        "load.json": "a235d866c40d16d8ade0da402bcb9cd0f71d1c4d95590f46f88a9f699ab6d65e",
+        "epoch.json": "0bfbf35e69b26cde5fab6470a3560e4c5d1dea1f9fb17678890b8a020ae7a3f3",
+        "resources.json": "adb3747fa2a688e67158eb0cd1be695ba0ab20acdac84c765bd1ed1ad811d03c",
+        "load.latencies.bin": "bfcf553ea1c459cdb07f47f61776f2b7b4b839ab2f755b7e138f039af1f2d806",
+        "load.send-lag.bin": "eb6caeeac523ac790018083679cc7d353ed51200c94cba670abbe20036428b1c"
+      }
+    },
+    {
+      "id": "udp-hit-r2-static",
+      "profile": "udp-hit",
+      "variant": "static",
+      "round": 2,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 12.416562212473163,
+        "p95_ns": 22321
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "ff21f5b30a3251e61f5f79e92a10029e475500c360ba5f149c625d7d35a02fe7",
+      "raw_inputs": {
+        "result.json": "156cfcc24b71e93a19d00b72766e3dff8ff44fee6008e94d40057ff9416ae358",
+        "load.json": "974494c6907f0a1870ea72401b03acc265db906028b94bbb93a6f53982ce92bb",
+        "epoch.json": "38ac8602467d98c488615f937ddc4f25d9774ea0c98f6243efd460e0725b7fe3",
+        "resources.json": "75edc224009f2b0b8d0a6f58f766c52566b748ef48816d8604fe49fe0736d3b4",
+        "load.latencies.bin": "63271e79f9975f7f96f56f42f662d671451d2e28e8d69440f04098e9736fd2a3",
+        "load.send-lag.bin": "558a0ae54f375a82384ff23122630724240815934565db82f031a7d34baebd8c"
+      }
+    },
+    {
+      "id": "tcp-miss-r2-pie",
+      "profile": "tcp-miss",
+      "variant": "pie",
+      "round": 2,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 96.90364992740199,
+        "p95_ns": 682806
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "8c92de073063dbe0c5b2f88e68b01c829b21a81320e148eebfae785724d2f7d3",
+      "raw_inputs": {
+        "result.json": "ad7900389e8ba0b7e69e01a2bf76e76b586f782460f66c9b6ec9aef0532a10ea",
+        "load.json": "082333bfdada3753bf3982be6208aa511603478774e3a59e9472b5db74521b88",
+        "epoch.json": "b676c0a8e0cef59003165e90e877a5123bc755f150a39b4e2980bd38ca98c3e0",
+        "resources.json": "a27667a65992ea921a3954fbbc1bca25fb61e4b53f193e2e3ce1418a3e33c34f",
+        "load.latencies.bin": "f80b12df177822c3ec0072fd69f29cb2f4ee983929f7c166d7159c6640486d11",
+        "load.send-lag.bin": "8f5b1180e993e3e47029bddaa0e8dbf95d73f29b009dda6fabbd0ae2ff57e984"
+      }
+    },
+    {
+      "id": "tcp-miss-r2-static",
+      "profile": "tcp-miss",
+      "variant": "static",
+      "round": 2,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 94.83318372481821,
+        "p95_ns": 679006
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "5a453aeae8b79d22e7cc4c673ffc976fa941a91c277dbd80791c91842c954ff7",
+      "raw_inputs": {
+        "result.json": "2c12e33dd3081da2c908f24609029f463bcbc5c45c2cf56eb6f7621c351d79ff",
+        "load.json": "88b24277762a83af4cf66902748882afd67542e9843acd8928ac9b06daec6500",
+        "epoch.json": "6ea0bdc1d5f517d91945cd6e820dadddb2dc2c77780ae18c1d512bdeed799c4c",
+        "resources.json": "e85b5fef67c0a3ef1f221f76941ac0206f579179d5c7c761e9a7c74f91c727af",
+        "load.latencies.bin": "caee55a01ca7fdd4ebe61da10aca779e6583a04d0194c308c8e049a0569c23d3",
+        "load.send-lag.bin": "5d7e2972dd95027d09309830a18e89f2fb28c6ee78c27f36041d37134923db87"
+      }
+    },
+    {
+      "id": "dhcp-lease-r2-pie",
+      "profile": "dhcp-lease",
+      "variant": "pie",
+      "round": 2,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 553.5683333333334,
+        "p95_ns": 3298947
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "ae01279824531c08915a276885271d0b047a91572fbdece50780db85defe1c50",
+      "raw_inputs": {
+        "result.json": "c09e0bb1bb19bdefacd99519c714eba5458634d70c8ec62e16b833c094d3d1fe",
+        "load.json": "aa5d7214c158765382c8b3a1bcb1b43e4962e3ccec433e486edcfa9a5919d676",
+        "epoch.json": "0d7ae9d86ef6980ed26d6d5d878fef6357bd0557797c6ef0c2d184fc58286639",
+        "resources.json": "cc8ccc25926ef08af13a996aa191160958235e5069af4e116b5b2b5694116e39",
+        "load.latencies.bin": "954943a0cc2b6aab6a6ab246cdf24c6d58345ab451dd92b002afabd810aeec13",
+        "load.send-lag.bin": "28f92f0c533765f6b97f199b87664c660bc44a38b20205906c041e97cd603990"
+      }
+    },
+    {
+      "id": "dhcp-lease-r2-static",
+      "profile": "dhcp-lease",
+      "variant": "static",
+      "round": 2,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 554.4216666666666,
+        "p95_ns": 3154506
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "554da2dc155246ae45c7c381141d9e0007e973342ded5d1e54e7307e04320b11",
+      "raw_inputs": {
+        "result.json": "fe03a1b432ea7fe8ce48850c91e91421ee2fc4ec1cc223d4820f1be81f24ae0e",
+        "load.json": "7a18fc6d9aff5a890f743b4df96f601e637b059393052b50ede5a5056b28a5a2",
+        "epoch.json": "d5748f8eca22fd89de8533d6b0d1f4465b2ebd655a3568543eb6016a63ea5edb",
+        "resources.json": "13a867eee06cdfe4d110507cd1f85c86c37ea84c41873eac983d3fd52104777f",
+        "load.latencies.bin": "4dfd749c994a592c42e3ec5134bb54e6f295ea53a88b4f733d4adc9525d373fb",
+        "load.send-lag.bin": "f65be9245e38c01a3c6cb7cf17a425704b18c8d9e248f689431823d5f246f356"
+      }
+    },
+    {
+      "id": "reload-concurrent-r2-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 2,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 27.152433333333335,
+        "p95_ns": 85441
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "30de30d2fa5d55b6c8656b6664829e5c11799c655097a9a7b6b7b34a3131d709",
+      "raw_inputs": {
+        "result.json": "2191cc61e1909933f3562102fd3aae6fa59681dd814f7eb97b8d1923af04ff0b",
+        "load.json": "aa9e99d4319c03dfcdab3fc346f1943ed592d51b1dd7781aac237df508de30e7",
+        "epoch.json": "9fd695fa249ce971dd14b8c8d8c991389bc6228e8133c800fc31e3007986b5f5",
+        "resources.json": "124f72da97f0827e35eed2d25eecec3d07f25c5c49351e297c66d6e99ee47a2a",
+        "load.latencies.bin": "dbd7c933cb742cfd4da42599c92f2b2028884502c6d94221b2f8cb746fa0271c",
+        "load.send-lag.bin": "4a2ee15944137889ab87adf278d1cfe7f8418ba5b4157fe868ff52eea194a27e"
+      }
+    },
+    {
+      "id": "reload-concurrent-r2-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 2,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.378033333333335,
+        "p95_ns": 70401
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "6376b410bb2e916b7bd9630f4d1c1581076bd627de564b147d23265fc159960e",
+      "raw_inputs": {
+        "result.json": "80978b458d9432723fadf46706c1c1ab59baa721077ff1a513b34f5c0c160a6a",
+        "load.json": "ad264ddbb77c5341b51d41ef3fe8562d14cb14030935183f7b19078201331663",
+        "epoch.json": "f078b265e3f51b47a7ebe0b510703902e0fad0cdd1d42598e2feef4c1c4f8ee7",
+        "resources.json": "18aa4a17470201db1ef0ffac5069e05ec747af880d4533f62c4ed93a2129f8d0",
+        "load.latencies.bin": "c689319fb49f80fa235ea8ea1e2af5acc4df22634f658484dcd74c3a64e4b8a0",
+        "load.send-lag.bin": "e03f4b08ebd2c3ef17cd777f8af65ad4579b7f2b708d1c06237bc39aa1375960"
+      }
+    },
+    {
+      "id": "udp-hit-r3-static",
+      "profile": "udp-hit",
+      "variant": "static",
+      "round": 3,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 12.327356682058378,
+        "p95_ns": 22161
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "67baf239a9f2f73110a86933570bb3c3f26214cab41f07911797665b595ab836",
+      "raw_inputs": {
+        "result.json": "eb197370059db706717be08e30633282f6316d5f781cc4ca0e245b91034c574c",
+        "load.json": "c111817f7027e688d4ec5cfd7d24ebf731c6ba4e7af1b1d6319899f7a6c8964a",
+        "epoch.json": "96c1b2aabf9d9c36aa5ebf3d0683606100595c8d7dfc17845236f9e4c154f764",
+        "resources.json": "e26e3c9caf6877410103712da41dbb244cb33a264e4c65e22591bbcb8ff4c100",
+        "load.latencies.bin": "5daa91a015c651bbddb9407401a918d3b98cd1aeecf0d86708bed596ae7778f4",
+        "load.send-lag.bin": "0f645adbd360a092c6493c79322347990c2b361007eee8abb8c8fa778506da50"
+      }
+    },
+    {
+      "id": "udp-hit-r3-pie",
+      "profile": "udp-hit",
+      "variant": "pie",
+      "round": 3,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 12.984903999706615,
+        "p95_ns": 22561
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "c7fe1aee53553b28a98d12eaf1502409e5cc787bc94b709f42e5698a41a70d26",
+      "raw_inputs": {
+        "result.json": "1de2fa84111c843c2358f0cfc40d1aefa126f7b9af49f88420913f56da9cf59c",
+        "load.json": "b9450d88d7cbea961bd53faa07643c9c9a4104ad52435f8d66114007cd59184d",
+        "epoch.json": "7c851d6e1eb0fcfcda142e5491d75765a4b7b0169be7b4f80dba99c27effd7bd",
+        "resources.json": "c9c4bff5ce822679f9fa9e0e7a0015a4e1bf05bb50fdffd388057ee1423e4fde",
+        "load.latencies.bin": "30acb4c8302d3add60b43a1ef54b5d01967bbdfdaf66b777412e7726aaaedd34",
+        "load.send-lag.bin": "f351b0b381289f0d6c49af6f5d0b3ff51f58fb7e56fb2e3c02fa46390c69d163"
+      }
+    },
+    {
+      "id": "tcp-miss-r3-static",
+      "profile": "tcp-miss",
+      "variant": "static",
+      "round": 3,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 94.76929420405983,
+        "p95_ns": 539365
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "876e9f3f3d4efb96801ebf41e1b7eab6e44e678e08b876ab77bb47d6e9297b08",
+      "raw_inputs": {
+        "result.json": "b70f4b785be1f6ae4165ec09dfb44021a7f88bee3ff63a555e131c3faf08afb4",
+        "load.json": "714432400afbddff6a391fb2019d228d41fea651d5b355ae7fe780bc07c0e050",
+        "epoch.json": "867cbb2937cdc2140a3474eb6385120313ad38402a0ad22f03761c855d4a98f5",
+        "resources.json": "64e70cfb706f09d7e29f5f2e35b566abcd65849819ade1ffa48fdc603aa3de37",
+        "load.latencies.bin": "bfc44534ed488cec7b6b9b7bda79176932e956c2943ef21dea24ffbf99bdd66c",
+        "load.send-lag.bin": "b99eb4f49e8d6dc6e1249443789534600b27506372d168897c17a87e4b590b6e"
+      }
+    },
+    {
+      "id": "tcp-miss-r3-pie",
+      "profile": "tcp-miss",
+      "variant": "pie",
+      "round": 3,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 96.9172140558871,
+        "p95_ns": 678565
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "10c966d0ec9eb564e1ba7c479a1ffda33d74f172fd2d6f7f991abd3ff64fa5d2",
+      "raw_inputs": {
+        "result.json": "afa50b72b7fabca1a7e7641d17078c7650d10a640a432199452bdc2fd060ac12",
+        "load.json": "4b3311829016ac6b2f3e8b11eab5f39bd3877a37c463331e2767a2fe927975a2",
+        "epoch.json": "82e0030df9368d49e3dbfe6c3aef6ac8d9082a25b58f85cd1f4c4b8e1962af16",
+        "resources.json": "a55a785850eb5f4deb2864c274c711e792e23d1f83e4c6e6cced0a11852b909c",
+        "load.latencies.bin": "a2a031b2f58b635c682ec3271d24f8550a0e6f5ce973e132f436d620b652392d",
+        "load.send-lag.bin": "c9f383b4f70d08dbb754c57d2b797865e84e5928345915f36c4424133dc09d86"
+      }
+    },
+    {
+      "id": "dhcp-lease-r3-static",
+      "profile": "dhcp-lease",
+      "variant": "static",
+      "round": 3,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 492.91333333333336,
+        "p95_ns": 3156066
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "db65d04a849aac4888df880c0c1878826aab57e57d0b14bf6b499edbb694abb4",
+      "raw_inputs": {
+        "result.json": "4f76442e4de5b81bbb42f88414bebd569d75bf93c55191a8099e8a61fccc902f",
+        "load.json": "6a0588091a4cb2934003c510b341ccd552210d06f102c1c476e840e887b30e9d",
+        "epoch.json": "1698c8741eafd83e00610a34e743eb56bd72245d00185e1ab70b41cad5ef2367",
+        "resources.json": "66d3d8cdfa15e493ce19202135ddc60751569f735f3350f9151ae468f25af9b2",
+        "load.latencies.bin": "3749a11f0b7c05539719f59c9528579f7936ad1e69b2529e47348689244229ad",
+        "load.send-lag.bin": "9c16fb701afe1be64149b9d31fcd3be60759b1dce72670040182e332795da0ba"
+      }
+    },
+    {
+      "id": "dhcp-lease-r3-pie",
+      "profile": "dhcp-lease",
+      "variant": "pie",
+      "round": 3,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 545.6683333333333,
+        "p95_ns": 3185547
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "3ddf0e14ba3d4526acdb80481db22fbc55c9740fed5236a1324122ff807477c0",
+      "raw_inputs": {
+        "result.json": "09321514225b866de1cd66051805553978883781ca81252fdaa143f77ee10bab",
+        "load.json": "f072ac36f1846e2551a5b3c236781dd413223e18c242bf4e0c7359d24f62f4f7",
+        "epoch.json": "5e11ac2c84c54929678173473d7e1679eb7e50bf3363ccff527cfec09a29c5fc",
+        "resources.json": "a3eac0ae96cd5b0a008ba00e3192855bad29b355a71800612d00e9efcef43e7e",
+        "load.latencies.bin": "f6bcce68432b5367357e442a76525b54aa3f7ed8d0ecaddd2d03bd44ad65f625",
+        "load.send-lag.bin": "e5311d6bb63c974ccbf3a54a18a93c40dcecbc0ec471337b1d0240cd2c56ee5f"
+      }
+    },
+    {
+      "id": "reload-concurrent-r3-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 3,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.926166666666667,
+        "p95_ns": 70681
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "be0aa1528fa89383745ac857a08df3461c87af9659ccf73cf738371de9b19a39",
+      "raw_inputs": {
+        "result.json": "56393fad4989fedbac37477f305c5a35bd3c71e11ad88db380cbbdd435d67255",
+        "load.json": "94e650af2d7c513e9668faa43e5e6d1f503a0f4e108cfeb06257fa845b1bd109",
+        "epoch.json": "644bf6aa8e08887a2570c5d36b5585a11acf76a9d968befae3463b4a52a55d0e",
+        "resources.json": "926705a4d1f0dd4ebbdd39a69a937a0dd1f1f4a5988a5e67871a06918be2ff67",
+        "load.latencies.bin": "9be0c422a419de52afcf3db72a3e8859831b92cdb1c69095c5d4063f762e71c1",
+        "load.send-lag.bin": "fb9f6c546f8a5517f450ba8c3d0d791bbf62aee6dd3e09ebb8758013d611df77"
+      }
+    },
+    {
+      "id": "reload-concurrent-r3-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 3,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 27.006933333333333,
+        "p95_ns": 70760
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "1d80a6af5280eb1e5dd8722a22f82287ba8843bdba37dccd63c34bab456065f4",
+      "raw_inputs": {
+        "result.json": "42ca96cfecd02f45a16531c948469a9a844eda056b4a34372714708cc1cfddd1",
+        "load.json": "10b76e4bad939c43173ab32ffde7ca4e71cac771e904740f905d7595a9cf4b33",
+        "epoch.json": "6344fb923c1309ddd07af3e931ff807156764ab5255e770c2d1e4edbab70aa57",
+        "resources.json": "3770e65355f64d785289f9430d9b1fd4037d59c90ef7d1f258a59498e4f94d81",
+        "load.latencies.bin": "6137e60aa0b37a5683a05179141b763d8f9aa98798e00e5c89060d10f6ed6a23",
+        "load.send-lag.bin": "ea3ef8de158e7d889d0d27f0d0d06d92df1ecb5405baf974b85df1b8d954b0ab"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "profile": "udp-hit",
+      "metric": "cpu_us_per_correct",
+      "static_rounds": [
+        12.300853447126283,
+        12.416562212473163,
+        12.327356682058378
+      ],
+      "pie_rounds": [
+        12.482775520001601,
+        13.116504724876792,
+        12.984903999706615
+      ],
+      "static_median": 12.327356682058378,
+      "pie_median": 12.984903999706615,
+      "relative_delta": 0.053340495826266876,
+      "static_W": 0.009386340342961508,
+      "pie_W": 0.04880507433012288,
+      "max_W": 0.04880507433012288,
+      "worse_direction_rounds": 3,
+      "regression_flag": false
+    },
+    {
+      "profile": "udp-hit",
+      "metric": "p95_ns",
+      "static_rounds": [
+        22280,
+        22321,
+        22161
+      ],
+      "pie_rounds": [
+        22200,
+        22921,
+        22561
+      ],
+      "static_median": 22280,
+      "pie_median": 22561,
+      "relative_delta": 0.012612208258527824,
+      "static_W": 0.00718132854578097,
+      "pie_W": 0.03195780328886131,
+      "max_W": 0.03195780328886131,
+      "worse_direction_rounds": 2,
+      "regression_flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "cpu_us_per_correct",
+      "static_rounds": [
+        94.40930674897805,
+        94.83318372481821,
+        94.76929420405983
+      ],
+      "pie_rounds": [
+        95.51454220827979,
+        96.90364992740199,
+        96.9172140558871
+      ],
+      "static_median": 94.76929420405983,
+      "pie_median": 96.90364992740199,
+      "relative_delta": 0.022521595642006176,
+      "static_W": 0.004472724835614533,
+      "pie_W": 0.014474912437850984,
+      "max_W": 0.014474912437850984,
+      "worse_direction_rounds": 3,
+      "regression_flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "p95_ns",
+      "static_rounds": [
+        620005,
+        679006,
+        539365
+      ],
+      "pie_rounds": [
+        596005,
+        682806,
+        678565
+      ],
+      "static_median": 620005,
+      "pie_median": 678565,
+      "relative_delta": 0.09445085120281282,
+      "static_W": 0.22522560301933048,
+      "pie_W": 0.12791847501713174,
+      "max_W": 0.22522560301933048,
+      "worse_direction_rounds": 2,
+      "regression_flag": false
+    },
+    {
+      "profile": "dhcp-lease",
+      "metric": "cpu_us_per_correct",
+      "static_rounds": [
+        540.9866666666667,
+        554.4216666666666,
+        492.91333333333336
+      ],
+      "pie_rounds": [
+        571.6483333333333,
+        553.5683333333334,
+        545.6683333333333
+      ],
+      "static_median": 540.9866666666667,
+      "pie_median": 553.5683333333334,
+      "relative_delta": 0.023256888647902763,
+      "static_W": 0.11369657909005755,
+      "pie_W": 0.04693187531801256,
+      "max_W": 0.11369657909005755,
+      "worse_direction_rounds": 2,
+      "regression_flag": false
+    },
+    {
+      "profile": "dhcp-lease",
+      "metric": "p95_ns",
+      "static_rounds": [
+        3085025,
+        3154506,
+        3156066
+      ],
+      "pie_rounds": [
+        3240346,
+        3298947,
+        3185547
+      ],
+      "static_median": 3154506,
+      "pie_median": 3240346,
+      "relative_delta": 0.02721186772191908,
+      "static_W": 0.022520483397400416,
+      "pie_W": 0.03499626274478096,
+      "max_W": 0.03499626274478096,
+      "worse_direction_rounds": 3,
+      "regression_flag": false
+    },
+    {
+      "profile": "reload-concurrent",
+      "metric": "cpu_us_per_correct",
+      "static_rounds": [
+        27.219833333333334,
+        27.378033333333335,
+        27.926166666666667
+      ],
+      "pie_rounds": [
+        28.105433333333334,
+        27.152433333333335,
+        27.006933333333333
+      ],
+      "static_median": 27.378033333333335,
+      "pie_median": 27.152433333333335,
+      "relative_delta": -0.008240182822968789,
+      "static_W": 0.02579927216588481,
+      "pie_W": 0.04045677919597143,
+      "max_W": 0.04045677919597143,
+      "worse_direction_rounds": 1,
+      "regression_flag": false
+    },
+    {
+      "profile": "reload-concurrent",
+      "metric": "p95_ns",
+      "static_rounds": [
+        71160,
+        70401,
+        70681
+      ],
+      "pie_rounds": [
+        83521,
+        85441,
+        70760
+      ],
+      "static_median": 70681,
+      "pie_median": 83521,
+      "relative_delta": 0.18166126681852268,
+      "static_W": 0.010738387968478091,
+      "pie_W": 0.1757761521054585,
+      "max_W": 0.1757761521054585,
+      "worse_direction_rounds": 3,
+      "regression_flag": true
+    }
+  ],
+  "errors": [],
+  "limited_windows": [],
+  "complete": true,
+  "accepted": false,
+  "elf_size": {
+    "static_bytes": 1998888,
+    "pie_bytes": 1925712,
+    "ratio": 0.9633916457550398,
+    "passed": true
+  },
+  "verdict": "reject_or_document_targeted_followup"
+}

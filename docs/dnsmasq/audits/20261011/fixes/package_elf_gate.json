@@ -1,0 +1,92 @@
+{
+  "scope": "Existing frozen ELF files only; no product execution, rebuild, package creation or APK lifecycle run.",
+  "recorded_at_utc": "2026-10-11T12:38:17.819286+00:00",
+  "package_gate_tool": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/package-elf-gate-inputs-01/build_package.py",
+    "sha256": "457dcb8cdb82452c0d6fcbef1f47be487b30fd0ba4a01ef2184adf15f5f159f8"
+  },
+  "driver": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/package-elf-gate-inputs-01/verify_package_elf_gate.py",
+    "sha256": "de5894bddfab4bca6389860c2a6d3efcddf2d4e0c3229d5112a871cb112ed5aa"
+  },
+  "readelf": {
+    "path": "/usr/bin/aarch64-linux-gnu-readelf",
+    "sha256": "6bca2bbd23b072db9e9a19ae0e65cf7b7c15c08a3c2cf01dd56453e1ac9340b1",
+    "version": "GNU readelf (GNU Binutils for Ubuntu) 2.42"
+  },
+  "cases": [
+    {
+      "variant": "pie",
+      "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/pie-02/dnsmasq-rs",
+      "sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "bytes": 1925712,
+      "accepted": true,
+      "expected_accepted": true,
+      "error": null,
+      "layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "interpreter": "/lib/ld-musl-aarch64.so.1",
+        "needed": [
+          "libc.so",
+          "libgcc_s.so.1"
+        ],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "readelf_command": [
+        "/usr/bin/aarch64-linux-gnu-readelf",
+        "-W",
+        "-h",
+        "-l",
+        "-d",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/pie-02/dnsmasq-rs"
+      ],
+      "readelf_exit_status": 0,
+      "readelf_output_path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/package-elf-gate-01/pie.readelf.txt",
+      "readelf_output_sha256": "3a70ffa712d71519f043b886e65ce962e376e388ea21c4e6a5827847978220ab",
+      "readelf_stderr": "",
+      "passed": true
+    },
+    {
+      "variant": "static",
+      "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-02/dnsmasq-rs",
+      "sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "bytes": 1998888,
+      "accepted": false,
+      "expected_accepted": false,
+      "error": "package ELF must be AArch64 ET_DYN",
+      "layout": null,
+      "readelf_command": [
+        "/usr/bin/aarch64-linux-gnu-readelf",
+        "-W",
+        "-h",
+        "-l",
+        "-d",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-02/dnsmasq-rs"
+      ],
+      "readelf_exit_status": 0,
+      "readelf_output_path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/package-elf-gate-01/static.readelf.txt",
+      "readelf_output_sha256": "d911bba6903b1a46788b7dc6d8b7179c96bfb4b705bd69c43ff6678a322f0ef9",
+      "readelf_stderr": "",
+      "passed": true
+    }
+  ],
+  "local_unit_receipt": {
+    "command": [
+      "python3",
+      "tools/dnsmasq/test_build_package.py"
+    ],
+    "cwd": "/Users/USER/Developer/owrt-control-plane-rs",
+    "exit_status": 0,
+    "tests": 18,
+    "duration_seconds": 2.556,
+    "tool_output": "..................\n----------------------------------------------------------------------\nRan 18 tests in 2.556s\n\nOK\n",
+    "source": "Verbatim earlier local tool result, chunk_id 4c2bc8; no original redirected log file. Not rerun by this driver."
+  },
+  "passed": true
+}

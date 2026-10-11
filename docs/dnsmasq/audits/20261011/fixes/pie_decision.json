@@ -1,0 +1,54 @@
+{
+  "decision": "adopt dynamic PIE for release builds",
+  "scope": "A07 linkage choice only; no A08 optimization, new APK qualification or router deployment",
+  "artifact_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+  "source_commit": "4a72e24544bc50ef2a71d0e05032fbd9b3dd9721",
+  "rationale": "ELF is 3.66% smaller and restores observed ASLR/RELRO/NX. The original 24-window screen retains accepted=false for reload p95. A predeclared six-window targeted confirmation and all six retained reload pairs trigger no regression flag under the unchanged 10%/max-W/all-directions rule. A small latency cost remains visible and is accepted; no performance-equivalence claim.",
+  "initial_screen": {
+    "file": "pie_cost_initial.json",
+    "sha256": "7b21bb76b49773a607ff9f431b60c49325b31c733a686fbb4be330e0dbb380a0",
+    "accepted": false
+  },
+  "targeted_confirmation": {
+    "file": "pie_reload_confirmation.json",
+    "sha256": "fb3cd9933e74c773dc8d8e2dc3884e1a4b7a21c06840e2c54908c3766b76bf10",
+    "adoptable": true
+  },
+  "initial_plan": {
+    "file": "pie_cost_plan.json",
+    "sha256": "52ade99cbdec903f752adbc6ca3b085d1d59513b2723b97a69be9bedbc2e37a2"
+  },
+  "confirmation_plan": {
+    "file": "pie_reload_plan.json",
+    "sha256": "1dbad356793b3998cb3288e60330ac844d38e2ea1e1ab172ba1c008797d55d59"
+  },
+  "package_gate": {
+    "file": "package_elf_gate.json",
+    "sha256": "41f37040d8ecf59cd375c16105023832336230bf5c8a16410aa9008e288306f9",
+    "passed": true
+  },
+  "selected_flags": [
+    "-Ctarget-feature=-crt-static",
+    "-Clink-self-contained=no",
+    "-Clink-arg=-pie"
+  ],
+  "recipe_dependency": "+libgcc",
+  "apk_dependency": "libgcc1",
+  "pack_relative_relocs": "Removed from recipe to match measured linkage strategy, not because image musl lacks RELR support.",
+  "test_harness": "Existing static unit/diagnostic linkage retained.",
+  "build_tool_files": {
+    "packaging/openwrt/owrt-dnsmasq/Makefile": "c8b0154138268639f3830308654b572f127a525c8f565ff1b6a20c05904a8bc0",
+    "tools/dnsmasq/oracle_build.sh": "bf947c214cbf9a925490fc9eff3e40b57eb5dc491db1884cccd67eba3b37e86a",
+    "tools/dnsmasq/build_package.py": "457dcb8cdb82452c0d6fcbef1f47be487b30fd0ba4a01ef2184adf15f5f159f8",
+    "tools/dnsmasq/test_build_package.py": "3e4a0e882dae701be622dd91bb97198186784909242b24026a827432af38a040"
+  },
+  "post_run_foreign_workloads": [],
+  "limits": [
+    "Oracle measurements do not establish Cortex-A53 performance.",
+    "The original failed screen is preserved, not reclassified as passing.",
+    "Range/median W is sensitive to extremes; all windows remain in evidence.",
+    "Only reload was repeated; preceding workload history differs from the initial screen.",
+    "New builds can differ by path remapping and SDK packaging; the frozen ELF hash remains mandatory.",
+    "No package creation, installation, upgrade, rollback or procd/ujail lifecycle validation was performed."
+  ]
+}

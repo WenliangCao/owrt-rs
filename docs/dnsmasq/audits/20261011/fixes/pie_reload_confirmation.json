@@ -1,0 +1,626 @@
+{
+  "scope": "A07 targeted reload confirmation only; not M6 qualification, equivalence proof or router performance evidence",
+  "original_summary": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/pie-screen-02-final/summary.json",
+    "sha256": "7b21bb76b49773a607ff9f431b60c49325b31c733a686fbb4be330e0dbb380a0"
+  },
+  "original_screen_accepted": false,
+  "plan_sha256": "1dbad356793b3998cb3288e60330ac844d38e2ea1e1ab172ba1c008797d55d59",
+  "errors": [],
+  "limited_windows": [],
+  "windows": [
+    {
+      "id": "reload-concurrent-r4-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 4,
+      "evidence_group": "confirmation",
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 26.523366666666668,
+        "p95_ns": 83721
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "2d9c282b36768ad718101a1f006d9dadc34d9f299fc2ec5918cf9fcb21bc84c4",
+      "raw_inputs": {
+        "result.json": "9155b820017855ca651729b4a896564cfc4c28cdea9f52adf0151eb91efdb38d",
+        "load.json": "cfd5458458ecf1778a4944a9d186ac0f456dccdda194f3509077cc01d3bbad10",
+        "epoch.json": "3b1ba96accfef98ae7375b8d1a86e02d334aa488649ff7886929f3806481838d",
+        "resources.json": "615577dd686c76a39ab13629f0c77892b50a0c60c39942b718587a441c32b065",
+        "load.latencies.bin": "96c92c7d74e0fb5696a5e139b59d18b51b16f58892313605b885c39359543629",
+        "load.send-lag.bin": "e02d31b3cf05b3e05486845530f515532f06da1e00aae848838dfd2dbf6dc1e0"
+      }
+    },
+    {
+      "id": "reload-concurrent-r4-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 4,
+      "evidence_group": "confirmation",
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 29.946566666666666,
+        "p95_ns": 82321
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "9bfceb7b067acb1c179df4e91101f93560a541344a83ef4145b20644409e21df",
+      "raw_inputs": {
+        "result.json": "9c9fd692d5eab20683cd80af51a0a8c73d71e76f6ece4d3926079606a94b766a",
+        "load.json": "1b58a33b8ec0bfbdc554fab2bd09e7a62956ea8944492134696f55e92e389484",
+        "epoch.json": "f59bdd573cfdd11fbfab36549ffdcb4fbf316c60e6b8221353a70fea1c0d8af7",
+        "resources.json": "c291b40555f5d891dc5ec2328d89384fa2c320ced419defe6278d073c7d00b16",
+        "load.latencies.bin": "4850785f9381f6928ef482fd472ec88e8ea288270243b29d70d78033553c6d98",
+        "load.send-lag.bin": "c60f9683c22c6a8d951f239b7d58abe4bb396d5a94d81e0506404e0a242619e2"
+      }
+    },
+    {
+      "id": "reload-concurrent-r5-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 5,
+      "evidence_group": "confirmation",
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.807233333333333,
+        "p95_ns": 71760
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "6fab1102e33f32fb2b3c8979f37e6cf4df724c79ea6e928b70d4441d87ccbf9a",
+      "raw_inputs": {
+        "result.json": "10cf4745c0bd99e34d81117535f822db4ab902701f724d15a5c68ab8a4aa7ef4",
+        "load.json": "9801db3699dad144be50439b36e556ad5ffcb028875ca6801c4b10f60d0a6fda",
+        "epoch.json": "309e77d0b71eb3b5b74235bed47f65d274e2f46377dfea326c85122a6a9f7a03",
+        "resources.json": "0b0975d349ea69edb658faab64fe971a10693ba497026a4e0352cacbde050b66",
+        "load.latencies.bin": "e08b2f5217707407cb53eb91703dd7e1a825ecb912745b2b83c456bd97ddca66",
+        "load.send-lag.bin": "37659158569ff414ed8c4e284598ec2289977b9f211ffd209f4835d95de97f9d"
+      }
+    },
+    {
+      "id": "reload-concurrent-r5-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 5,
+      "evidence_group": "confirmation",
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 27.2191,
+        "p95_ns": 71801
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "d7ca7385a99594d638847affda07fe0bde8198d2f9454f105d8a2ee21a30a7e6",
+      "raw_inputs": {
+        "result.json": "fc02a3a87eccd724286556113628cefc2528633c7788b61ee86bf0155de2015c",
+        "load.json": "0e439866471eb29b2e04b7ca26d16ed6ee104d3d1c4784f729746c64ffff27b1",
+        "epoch.json": "2bf916c26be0df06c9fbd651790ba730cd64816d12ac96b68d4c1cb0c4077736",
+        "resources.json": "e76871f51d2ddfe989b6dc8a954d72ed0a58dc7c80a7b31886ee3527be9e97f0",
+        "load.latencies.bin": "d2d871a8f34f5ad968c1b936c69aa08ba10bc7e6147c30bc34e6543f40b1a43e",
+        "load.send-lag.bin": "3c41636b5dd2ffdc3edd8a3e59754e1f5c6e49ce8a307599eba93a78060a3df3"
+      }
+    },
+    {
+      "id": "reload-concurrent-r6-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 6,
+      "evidence_group": "confirmation",
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 26.9244,
+        "p95_ns": 72681
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "19c6b282e27cda776e2da9668bcfaaf38d67a5597069e79a74fb2f7bffc2ffc4",
+      "raw_inputs": {
+        "result.json": "b2ef0035d8f57afec8fb778dc8cad6fb1a5ae82eb066bd6eb48e29eba6d30052",
+        "load.json": "1bd1b15f235624d3884c99b5b1de48f8f4d592e4cdf6af0b3f626dfb5f40ed0c",
+        "epoch.json": "81559a3b55aca071e53ef5567ca5be0ee59aa1e665ccf0f9717288c3c38b6ca3",
+        "resources.json": "b3c22e6c9c249244aef2f2326b4932603a59c758c07b2cec4fcd51d3386003be",
+        "load.latencies.bin": "a63077edfdb2c9549aa431bff77c3e52dfa830a0b7dcdd9c343698368b6fc127",
+        "load.send-lag.bin": "f3f68eb8c47dcdfd4736d543a718f05a205959b47283e02a2724a57457b8a285"
+      }
+    },
+    {
+      "id": "reload-concurrent-r6-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 6,
+      "evidence_group": "confirmation",
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.580266666666667,
+        "p95_ns": 72321
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "848ad7d46ca1b10c78397adc438471a4df4eb48dad29c49d1a7c22b26a30baa3",
+      "raw_inputs": {
+        "result.json": "a3e9e91faaa4d0630c97bf113a96fb0141a83c01342ab2cec094bd44ba0a6874",
+        "load.json": "640e60f00740ae0b635dcb6a06f7dea7e58f987487e1beb905e52a5799d6d0c2",
+        "epoch.json": "549fe05466d02cfed0c17b7fb57fe40cf91c00f060f8bdb11b4b20aff212cc62",
+        "resources.json": "dee163612695aa85afbc0356dd3ca1d20887d79d7ef851725482874a7c179277",
+        "load.latencies.bin": "6c502d70553914cc765f355cfcba463abdde704492558634a8c7ecb181c4b565",
+        "load.send-lag.bin": "a4f751495e2fee584b32b56d5053713576701ba00ddd859eb988f45c89e00312"
+      }
+    }
+  ],
+  "comparisons": {
+    "original_three": [
+      {
+        "metric": "cpu_us_per_correct",
+        "round_numbers": [
+          1,
+          2,
+          3
+        ],
+        "static_rounds": [
+          27.219833333333334,
+          27.378033333333335,
+          27.926166666666667
+        ],
+        "pie_rounds": [
+          28.105433333333334,
+          27.152433333333335,
+          27.006933333333333
+        ],
+        "static_median": 27.378033333333335,
+        "pie_median": 27.152433333333335,
+        "relative_delta": -0.008240182822968789,
+        "static_W": 0.02579927216588481,
+        "pie_W": 0.04045677919597143,
+        "max_W": 0.04045677919597143,
+        "worse_direction_rounds": 1,
+        "paired_rounds": 3,
+        "regression_flag": false
+      },
+      {
+        "metric": "p95_ns",
+        "round_numbers": [
+          1,
+          2,
+          3
+        ],
+        "static_rounds": [
+          71160,
+          70401,
+          70681
+        ],
+        "pie_rounds": [
+          83521,
+          85441,
+          70760
+        ],
+        "static_median": 70681,
+        "pie_median": 83521,
+        "relative_delta": 0.18166126681852268,
+        "static_W": 0.010738387968478091,
+        "pie_W": 0.1757761521054585,
+        "max_W": 0.1757761521054585,
+        "worse_direction_rounds": 3,
+        "paired_rounds": 3,
+        "regression_flag": true
+      }
+    ],
+    "confirmation_three": [
+      {
+        "metric": "cpu_us_per_correct",
+        "round_numbers": [
+          4,
+          5,
+          6
+        ],
+        "static_rounds": [
+          29.946566666666666,
+          27.807233333333333,
+          27.580266666666667
+        ],
+        "pie_rounds": [
+          26.523366666666668,
+          27.2191,
+          26.9244
+        ],
+        "static_median": 27.807233333333333,
+        "pie_median": 26.9244,
+        "relative_delta": -0.03174833406655586,
+        "static_W": 0.08509656360395433,
+        "pie_W": 0.025840253945615618,
+        "max_W": 0.08509656360395433,
+        "worse_direction_rounds": 0,
+        "paired_rounds": 3,
+        "regression_flag": false
+      },
+      {
+        "metric": "p95_ns",
+        "round_numbers": [
+          4,
+          5,
+          6
+        ],
+        "static_rounds": [
+          82321,
+          71760,
+          72321
+        ],
+        "pie_rounds": [
+          83721,
+          71801,
+          72681
+        ],
+        "static_median": 72321,
+        "pie_median": 72681,
+        "relative_delta": 0.00497780727589503,
+        "static_W": 0.1460295073353521,
+        "pie_W": 0.1640043477662663,
+        "max_W": 0.1640043477662663,
+        "worse_direction_rounds": 3,
+        "paired_rounds": 3,
+        "regression_flag": false
+      }
+    ],
+    "combined_six": [
+      {
+        "metric": "cpu_us_per_correct",
+        "round_numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "static_rounds": [
+          27.219833333333334,
+          27.378033333333335,
+          27.926166666666667,
+          29.946566666666666,
+          27.807233333333333,
+          27.580266666666667
+        ],
+        "pie_rounds": [
+          28.105433333333334,
+          27.152433333333335,
+          27.006933333333333,
+          26.523366666666668,
+          27.2191,
+          26.9244
+        ],
+        "static_median": 27.69375,
+        "pie_median": 27.079683333333335,
+        "relative_delta": -0.0221734747611525,
+        "static_W": 0.09846024223275403,
+        "pie_W": 0.05842264280539959,
+        "max_W": 0.09846024223275403,
+        "worse_direction_rounds": 1,
+        "paired_rounds": 6,
+        "regression_flag": false
+      },
+      {
+        "metric": "p95_ns",
+        "round_numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "static_rounds": [
+          71160,
+          70401,
+          70681,
+          82321,
+          71760,
+          72321
+        ],
+        "pie_rounds": [
+          83521,
+          85441,
+          70760,
+          83721,
+          71801,
+          72681
+        ],
+        "static_median": 71460.0,
+        "pie_median": 78101.0,
+        "relative_delta": 0.09293310943184996,
+        "static_W": 0.16680660509375875,
+        "pie_W": 0.18797454578046377,
+        "max_W": 0.18797454578046377,
+        "worse_direction_rounds": 6,
+        "paired_rounds": 6,
+        "regression_flag": false
+      }
+    ]
+  },
+  "complete": true,
+  "adoptable": true,
+  "limitations": [
+    "No flag is not a proof of performance equivalence.",
+    "Range/median W is sensitive to extreme samples; all samples are retained.",
+    "Only reload is repeated, so preceding workload history differs from the original four-profile screen."
+  ],
+  "elf_size": {
+    "static_bytes": 1998888,
+    "pie_bytes": 1925712,
+    "ratio": 0.9633916457550398,
+    "passed": true
+  },
+  "original_windows": [
+    {
+      "id": "reload-concurrent-r1-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 1,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.219833333333334,
+        "p95_ns": 71160
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "0b96d0d299a31a2f3b8f9d6fb55af627b03e58b3873b42d278f4a0b5db25b52b",
+      "raw_inputs": {
+        "result.json": "9fd42cb85a5aef56a150f6726befb8856891e90ff917679cee589cee5d21108f",
+        "load.json": "7683f2d14e9beca3c32bd8a14e44798b7c5ff52346d20ddd9041feaa8d5e187b",
+        "epoch.json": "92d8bacb4b433936a896f5ed4610c9496c4c34d516b95e0fcfef408227147ebd",
+        "resources.json": "a6e4b955e9e4601195fb27579a6630270a649f7c0be4bffb4477ad1f1130979d",
+        "load.latencies.bin": "f94e45076d88e20f5487881c006762aafd9e78d14389f5f2551e87e2c6ef5a3a",
+        "load.send-lag.bin": "4132e101c656c25d85620df89b3deddbb084c1a318f1c2c1b7d3bf7a5f6eac8c"
+      },
+      "evidence_group": "original"
+    },
+    {
+      "id": "reload-concurrent-r1-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 1,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 28.105433333333334,
+        "p95_ns": 83521
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "a5e7252eabfff11965a4701675e3cda6c157fe800a21ae809a836704aa7ef200",
+      "raw_inputs": {
+        "result.json": "f4ed7ae38c61a4166c2254a648420323995ab778826f39f602877ff869b20599",
+        "load.json": "21c00e9ec6ae417eeb04b8167fa7296a22b16fb90adaeaa7f92a93e843f9c172",
+        "epoch.json": "80c81d00d9ab92bf614ed9f04fea08e0bb9e93cc87be967061cf0f42d59d0e2c",
+        "resources.json": "71d8e64585b0d6dda2eeafe604f44e68153088aa71160921124d2ac201542912",
+        "load.latencies.bin": "a0a0f33b196a0c5675b70d8783a4aa943ceae84b40ab74c745be611726aacab3",
+        "load.send-lag.bin": "90ff797eec6e05f0c9a3310234370cf0edcdad99b9db0313f0a16a1928343f2a"
+      },
+      "evidence_group": "original"
+    },
+    {
+      "id": "reload-concurrent-r2-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 2,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 27.152433333333335,
+        "p95_ns": 85441
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "30de30d2fa5d55b6c8656b6664829e5c11799c655097a9a7b6b7b34a3131d709",
+      "raw_inputs": {
+        "result.json": "2191cc61e1909933f3562102fd3aae6fa59681dd814f7eb97b8d1923af04ff0b",
+        "load.json": "aa9e99d4319c03dfcdab3fc346f1943ed592d51b1dd7781aac237df508de30e7",
+        "epoch.json": "9fd695fa249ce971dd14b8c8d8c991389bc6228e8133c800fc31e3007986b5f5",
+        "resources.json": "124f72da97f0827e35eed2d25eecec3d07f25c5c49351e297c66d6e99ee47a2a",
+        "load.latencies.bin": "dbd7c933cb742cfd4da42599c92f2b2028884502c6d94221b2f8cb746fa0271c",
+        "load.send-lag.bin": "4a2ee15944137889ab87adf278d1cfe7f8418ba5b4157fe868ff52eea194a27e"
+      },
+      "evidence_group": "original"
+    },
+    {
+      "id": "reload-concurrent-r2-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 2,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.378033333333335,
+        "p95_ns": 70401
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "6376b410bb2e916b7bd9630f4d1c1581076bd627de564b147d23265fc159960e",
+      "raw_inputs": {
+        "result.json": "80978b458d9432723fadf46706c1c1ab59baa721077ff1a513b34f5c0c160a6a",
+        "load.json": "ad264ddbb77c5341b51d41ef3fe8562d14cb14030935183f7b19078201331663",
+        "epoch.json": "f078b265e3f51b47a7ebe0b510703902e0fad0cdd1d42598e2feef4c1c4f8ee7",
+        "resources.json": "18aa4a17470201db1ef0ffac5069e05ec747af880d4533f62c4ed93a2129f8d0",
+        "load.latencies.bin": "c689319fb49f80fa235ea8ea1e2af5acc4df22634f658484dcd74c3a64e4b8a0",
+        "load.send-lag.bin": "e03f4b08ebd2c3ef17cd777f8af65ad4579b7f2b708d1c06237bc39aa1375960"
+      },
+      "evidence_group": "original"
+    },
+    {
+      "id": "reload-concurrent-r3-static",
+      "profile": "reload-concurrent",
+      "variant": "static",
+      "round": 3,
+      "actual_elf_sha256": "2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549",
+      "metrics": {
+        "cpu_us_per_correct": 27.926166666666667,
+        "p95_ns": 70681
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "be0aa1528fa89383745ac857a08df3461c87af9659ccf73cf738371de9b19a39",
+      "raw_inputs": {
+        "result.json": "56393fad4989fedbac37477f305c5a35bd3c71e11ad88db380cbbdd435d67255",
+        "load.json": "94e650af2d7c513e9668faa43e5e6d1f503a0f4e108cfeb06257fa845b1bd109",
+        "epoch.json": "644bf6aa8e08887a2570c5d36b5585a11acf76a9d968befae3463b4a52a55d0e",
+        "resources.json": "926705a4d1f0dd4ebbdd39a69a937a0dd1f1f4a5988a5e67871a06918be2ff67",
+        "load.latencies.bin": "9be0c422a419de52afcf3db72a3e8859831b92cdb1c69095c5d4063f762e71c1",
+        "load.send-lag.bin": "fb9f6c546f8a5517f450ba8c3d0d791bbf62aee6dd3e09ebb8758013d611df77"
+      },
+      "evidence_group": "original"
+    },
+    {
+      "id": "reload-concurrent-r3-pie",
+      "profile": "reload-concurrent",
+      "variant": "pie",
+      "round": 3,
+      "actual_elf_sha256": "bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3",
+      "metrics": {
+        "cpu_us_per_correct": 27.006933333333333,
+        "p95_ns": 70760
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0,
+        "aux_reload": 0,
+        "aux_tftp": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "analysis_sha256": "1d80a6af5280eb1e5dd8722a22f82287ba8843bdba37dccd63c34bab456065f4",
+      "raw_inputs": {
+        "result.json": "42ca96cfecd02f45a16531c948469a9a844eda056b4a34372714708cc1cfddd1",
+        "load.json": "10b76e4bad939c43173ab32ffde7ca4e71cac771e904740f905d7595a9cf4b33",
+        "epoch.json": "6344fb923c1309ddd07af3e931ff807156764ab5255e770c2d1e4edbab70aa57",
+        "resources.json": "3770e65355f64d785289f9430d9b1fd4037d59c90ef7d1f258a59498e4f94d81",
+        "load.latencies.bin": "6137e60aa0b37a5683a05179141b763d8f9aa98798e00e5c89060d10f6ed6a23",
+        "load.send-lag.bin": "ea3ef8de158e7d889d0d27f0d0d06d92df1ecb5405baf974b85df1b8d954b0ab"
+      },
+      "evidence_group": "original"
+    }
+  ],
+  "rejection_flags": [],
+  "verdict": "original_signal_not_sustained_under_this_confirmation"
+}
