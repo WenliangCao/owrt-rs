@@ -9,6 +9,7 @@ fn queued_client(config: DnsConfig) -> (SinglePoll, TcpStream) {
     let (stream, address) = listener.accept().unwrap();
     stream.set_nonblocking(true).unwrap();
     owner.finish_tcp_accept(PendingInterfaceTcp {
+        auth_query: false,
         query_ids: Default::default(), stream, peer: address, local_network: None,
         mac: None, mac_ready: false, mac_deferred: false, accept_clock: now_seconds(),
     });
@@ -91,6 +92,7 @@ fn tail_dump_completion_resumes_udp_and_interface_held_accept() {
     let (stream, address) = listener.accept().unwrap();
     stream.set_nonblocking(true).unwrap();
     owner.pending_interface_tcp = Some(PendingInterfaceTcp {
+        auth_query: false,
         query_ids: Default::default(), stream, peer: address, local_network: None,
         mac: None, mac_ready: false, mac_deferred: false, accept_clock: now_seconds(),
     });
