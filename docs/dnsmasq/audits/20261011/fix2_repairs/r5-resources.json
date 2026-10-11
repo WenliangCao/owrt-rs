@@ -1,0 +1,4913 @@
+{
+  "finding": "R5",
+  "passed": true,
+  "source_commit": "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "scope": "Finite startup-memory comparison only, separate from load/performance screening and production RAM acceptance.",
+  "raw_result": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/result.json",
+    "sha256": "57ff66e8e040351f5e7b1906f94c0e4637730aa477dd3a7a4027698b62ba071e",
+    "bytes": 75945
+  },
+  "command_receipt": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified-command.json",
+    "sha256": "38519df18ab65cf050bab590366c559c369cc7ced414f217821768fbe2d80f5e",
+    "bytes": 1612
+  },
+  "command": {
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/fix2/build/startup_resources.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified",
+      "--source-commit",
+      "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+      "--image-root",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--main",
+      "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/main-release/dnsmasq-rs",
+      "--rust",
+      "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/release-qualified/dnsmasq-rs",
+      "--out",
+      "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified",
+      "--require-main-level"
+    ],
+    "source_commit": "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+    "tool_sha256": "9fed41da6088713ddf1c1354ddcaabd7eed232a492e11e84a261446525409f98",
+    "main_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+    "release_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+    "started": 1791756373.1055663,
+    "passed": true,
+    "returncode": 0,
+    "result_sha256": "57ff66e8e040351f5e7b1906f94c0e4637730aa477dd3a7a4027698b62ba071e",
+    "ended": 1791756390.5555534,
+    "main_level": {
+      "peaks_kib": {
+        "main": [
+          10832,
+          10832,
+          10828
+        ],
+        "head": [
+          10892,
+          10620,
+          10792
+        ]
+      },
+      "median_delta_kib": -40,
+      "passed": true
+    }
+  },
+  "plan": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/plan.json",
+    "sha256": "78f974ebe58f3492e44c4bbce9f57e7bae4b8040b3b0dcdfb9618075946ca230",
+    "bytes": 1787
+  },
+  "probe": {
+    "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/source-qualified/docs/dnsmasq/audits/20261011/fix2/build/startup_resources.py",
+    "sha256": "9fed41da6088713ddf1c1354ddcaabd7eed232a492e11e84a261446525409f98",
+    "bytes": 9642
+  },
+  "variants": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    },
+    "main": {
+      "path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/main-release/dnsmasq-rs",
+      "sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "bytes": 1970216
+    },
+    "head": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/release-qualified/dnsmasq-rs",
+      "sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "bytes": 2056672
+    }
+  },
+  "counts": [
+    0,
+    1000,
+    10000
+  ],
+  "orders": [
+    [
+      "c",
+      "main",
+      "head"
+    ],
+    [
+      "main",
+      "head",
+      "c"
+    ],
+    [
+      "head",
+      "c",
+      "main"
+    ]
+  ],
+  "configs": {
+    "0": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/hostrecords-0.conf",
+      "sha256": "04c374fb63fe9fd1dca46758e110b6d1e47599fbf900179d0a94cd8f491aafd7",
+      "bytes": 165
+    },
+    "1000": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/hostrecords-1000.conf",
+      "sha256": "495d494f34ae67595b9554fdefecf55a84b516a3f1acd99cf213da31946e230f",
+      "bytes": 34165
+    },
+    "10000": {
+      "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/hostrecords-10000.conf",
+      "sha256": "4df6ee10570d4f958c7f89d8e7569e229dc449d0eabd97db29fb7cd0e33da4ab",
+      "bytes": 340165
+    }
+  },
+  "measurement": "Kernel VmHWM plus five post-initial-cache-reload, post-single-UDP-query idle VmRSS/smaps RSS/PSS samples (KiB); no sustained traffic or injected resource limits",
+  "prerequisites": {},
+  "runs": [
+    {
+      "variant": "c",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20664190803654492,
+          "VmHWM_kib": 1104,
+          "VmRSS_kib": 1104,
+          "VmData_kib": 80,
+          "Pss_kib": 1096,
+          "Rss_smaps_kib": 1104,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.30709253903478384,
+          "VmHWM_kib": 1104,
+          "VmRSS_kib": 1104,
+          "VmData_kib": 80,
+          "Pss_kib": 1096,
+          "Rss_smaps_kib": 1104,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.4075487700756639,
+          "VmHWM_kib": 1104,
+          "VmRSS_kib": 1104,
+          "VmData_kib": 80,
+          "Pss_kib": 1096,
+          "Rss_smaps_kib": 1104,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.5080090800765902,
+          "VmHWM_kib": 1104,
+          "VmRSS_kib": 1104,
+          "VmData_kib": 80,
+          "Pss_kib": 1096,
+          "Rss_smaps_kib": 1104,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.6084968710783869,
+          "VmHWM_kib": 1104,
+          "VmRSS_kib": 1104,
+          "VmData_kib": 80,
+          "Pss_kib": 1096,
+          "Rss_smaps_kib": 1104,
+          "Private_Dirty_kib": 108
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00557336607016623,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1104,
+      "VmRSS_kib": 1104,
+      "VmRSS_kib_range": [
+        1104,
+        1104
+      ],
+      "VmData_kib": 80,
+      "VmData_kib_range": [
+        80,
+        80
+      ],
+      "Pss_kib": 1096,
+      "Pss_kib_range": [
+        1096,
+        1096
+      ],
+      "Rss_smaps_kib": 1104,
+      "Rss_smaps_kib_range": [
+        1104,
+        1104
+      ],
+      "exit": 0,
+      "log_sha256": "5a8d46e7429adb602ac3f6a9f27a0ca1780a0828bee4a098ef69bd7df9b45c7c",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-0-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/result.json",
+        "sha256": "76287424273ef622be852d4636f756c1e769b7be6c7badaafa217a65d9c95ba5",
+        "bytes": 2271
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-0.status",
+            "sha256": "80c847181cf2863c13d83b6f9f3ea950e82f55ceea9d5755f800400962e4ff6a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-0.smaps_rollup",
+            "sha256": "3a5af5584c3498443cabc443e7a74c3616bfe9ba337b89d2435337de0a2d6480",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-1.status",
+            "sha256": "80c847181cf2863c13d83b6f9f3ea950e82f55ceea9d5755f800400962e4ff6a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-1.smaps_rollup",
+            "sha256": "3a5af5584c3498443cabc443e7a74c3616bfe9ba337b89d2435337de0a2d6480",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-2.status",
+            "sha256": "80c847181cf2863c13d83b6f9f3ea950e82f55ceea9d5755f800400962e4ff6a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-2.smaps_rollup",
+            "sha256": "3a5af5584c3498443cabc443e7a74c3616bfe9ba337b89d2435337de0a2d6480",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-3.status",
+            "sha256": "80c847181cf2863c13d83b6f9f3ea950e82f55ceea9d5755f800400962e4ff6a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-3.smaps_rollup",
+            "sha256": "3a5af5584c3498443cabc443e7a74c3616bfe9ba337b89d2435337de0a2d6480",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-4.status",
+            "sha256": "80c847181cf2863c13d83b6f9f3ea950e82f55ceea9d5755f800400962e4ff6a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-c/sample-4.smaps_rollup",
+            "sha256": "3a5af5584c3498443cabc443e7a74c3616bfe9ba337b89d2435337de0a2d6480",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2081362009048462,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.30854927096515894,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.40901486203074455,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.5094907330349088,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.60994380293414,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005713406950235367,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1924,
+      "VmRSS_kib": 1924,
+      "VmRSS_kib_range": [
+        1924,
+        1924
+      ],
+      "VmData_kib": 184,
+      "VmData_kib_range": [
+        184,
+        184
+      ],
+      "Pss_kib": 1916,
+      "Pss_kib_range": [
+        1916,
+        1916
+      ],
+      "Rss_smaps_kib": 1924,
+      "Rss_smaps_kib_range": [
+        1924,
+        1924
+      ],
+      "exit": 0,
+      "log_sha256": "96519277fd60e53ef85b2286e3915d60588e3a03d032d6b03a80959c2eee7eee",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-0-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/result.json",
+        "sha256": "959106aed1694da3668fee47104c44b97525466d1835720f5438f879fca23234",
+        "bytes": 2291
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-0.status",
+            "sha256": "4c1287133b3ec80763a664cf5c504c8cadc3ae2842d3c01f10308d92a0d7c3be",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-0.smaps_rollup",
+            "sha256": "15c6d3e50805cf75327a572e6d5be44768c8f99ecfa7237639c81cd7f6d847d6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-1.status",
+            "sha256": "4c1287133b3ec80763a664cf5c504c8cadc3ae2842d3c01f10308d92a0d7c3be",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-1.smaps_rollup",
+            "sha256": "15c6d3e50805cf75327a572e6d5be44768c8f99ecfa7237639c81cd7f6d847d6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-2.status",
+            "sha256": "4c1287133b3ec80763a664cf5c504c8cadc3ae2842d3c01f10308d92a0d7c3be",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-2.smaps_rollup",
+            "sha256": "15c6d3e50805cf75327a572e6d5be44768c8f99ecfa7237639c81cd7f6d847d6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-3.status",
+            "sha256": "4c1287133b3ec80763a664cf5c504c8cadc3ae2842d3c01f10308d92a0d7c3be",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-3.smaps_rollup",
+            "sha256": "15c6d3e50805cf75327a572e6d5be44768c8f99ecfa7237639c81cd7f6d847d6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-4.status",
+            "sha256": "4c1287133b3ec80763a664cf5c504c8cadc3ae2842d3c01f10308d92a0d7c3be",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-main/sample-4.smaps_rollup",
+            "sha256": "15c6d3e50805cf75327a572e6d5be44768c8f99ecfa7237639c81cd7f6d847d6",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.21305352193303406,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.313848955091089,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.4144479469396174,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.5149578580167145,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.6153939280193299,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.010800888994708657,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2004,
+      "VmRSS_kib": 2004,
+      "VmRSS_kib_range": [
+        2004,
+        2004
+      ],
+      "VmData_kib": 144,
+      "VmData_kib_range": [
+        144,
+        144
+      ],
+      "Pss_kib": 1996,
+      "Pss_kib_range": [
+        1996,
+        1996
+      ],
+      "Rss_smaps_kib": 2004,
+      "Rss_smaps_kib_range": [
+        2004,
+        2004
+      ],
+      "exit": 0,
+      "log_sha256": "57f234606464ca68ad8b65d6ef7f521d5f3cf1c379764fe848fd04d80050cbf8",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-0-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/result.json",
+        "sha256": "1dc28721b3da9d20e811d04118c33c81480faf45a798b47f632e0b99ffe76be8",
+        "bytes": 2289
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-0.status",
+            "sha256": "c9b4f63cd92b7422080e34922623ffcb45134738e1ea96eff2597a6f592bfa1c",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-0.smaps_rollup",
+            "sha256": "ccdf13cc328bedf25e260d48da9bbce4978bd0d7948723ca3d451c42e2fa271f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-1.status",
+            "sha256": "c9b4f63cd92b7422080e34922623ffcb45134738e1ea96eff2597a6f592bfa1c",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-1.smaps_rollup",
+            "sha256": "ccdf13cc328bedf25e260d48da9bbce4978bd0d7948723ca3d451c42e2fa271f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-2.status",
+            "sha256": "c9b4f63cd92b7422080e34922623ffcb45134738e1ea96eff2597a6f592bfa1c",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-2.smaps_rollup",
+            "sha256": "ccdf13cc328bedf25e260d48da9bbce4978bd0d7948723ca3d451c42e2fa271f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-3.status",
+            "sha256": "c9b4f63cd92b7422080e34922623ffcb45134738e1ea96eff2597a6f592bfa1c",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-3.smaps_rollup",
+            "sha256": "ccdf13cc328bedf25e260d48da9bbce4978bd0d7948723ca3d451c42e2fa271f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-4.status",
+            "sha256": "c9b4f63cd92b7422080e34922623ffcb45134738e1ea96eff2597a6f592bfa1c",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-0-head/sample-4.smaps_rollup",
+            "sha256": "ccdf13cc328bedf25e260d48da9bbce4978bd0d7948723ca3d451c42e2fa271f",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20686923107132316,
+          "VmHWM_kib": 1320,
+          "VmRSS_kib": 1320,
+          "VmData_kib": 304,
+          "Pss_kib": 1312,
+          "Rss_smaps_kib": 1320,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.30741730192676187,
+          "VmHWM_kib": 1320,
+          "VmRSS_kib": 1320,
+          "VmData_kib": 304,
+          "Pss_kib": 1312,
+          "Rss_smaps_kib": 1320,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.40794865298084915,
+          "VmHWM_kib": 1320,
+          "VmRSS_kib": 1320,
+          "VmData_kib": 304,
+          "Pss_kib": 1312,
+          "Rss_smaps_kib": 1320,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.5084890450816602,
+          "VmHWM_kib": 1320,
+          "VmRSS_kib": 1320,
+          "VmData_kib": 304,
+          "Pss_kib": 1312,
+          "Rss_smaps_kib": 1320,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.6089727559592575,
+          "VmHWM_kib": 1320,
+          "VmRSS_kib": 1320,
+          "VmData_kib": 304,
+          "Pss_kib": 1312,
+          "Rss_smaps_kib": 1320,
+          "Private_Dirty_kib": 316
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00579224806278944,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1320,
+      "VmRSS_kib": 1320,
+      "VmRSS_kib_range": [
+        1320,
+        1320
+      ],
+      "VmData_kib": 304,
+      "VmData_kib_range": [
+        304,
+        304
+      ],
+      "Pss_kib": 1312,
+      "Pss_kib_range": [
+        1312,
+        1312
+      ],
+      "Rss_smaps_kib": 1320,
+      "Rss_smaps_kib_range": [
+        1320,
+        1320
+      ],
+      "exit": 0,
+      "log_sha256": "ad3d9069a8dc5f1e233f745b9e9190b245c5f2a5e218c8e5ffa0c3b7144cf0f0",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-1000-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/result.json",
+        "sha256": "3482e8bf38f138ddf6eb32a77de19be64e4f6c30dd4c8ee8b0265913ab370f3c",
+        "bytes": 2276
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-0.status",
+            "sha256": "f34489ae11177b6719489d35200c4f788ce4a4af2dfd62d9cb84e39a14227b9b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-0.smaps_rollup",
+            "sha256": "3ecbe81c266f8b9046f4a3698ec922d5fd679b6ca5ff584576afc07a2fa0b6a3",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-1.status",
+            "sha256": "f34489ae11177b6719489d35200c4f788ce4a4af2dfd62d9cb84e39a14227b9b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-1.smaps_rollup",
+            "sha256": "3ecbe81c266f8b9046f4a3698ec922d5fd679b6ca5ff584576afc07a2fa0b6a3",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-2.status",
+            "sha256": "f34489ae11177b6719489d35200c4f788ce4a4af2dfd62d9cb84e39a14227b9b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-2.smaps_rollup",
+            "sha256": "3ecbe81c266f8b9046f4a3698ec922d5fd679b6ca5ff584576afc07a2fa0b6a3",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-3.status",
+            "sha256": "f34489ae11177b6719489d35200c4f788ce4a4af2dfd62d9cb84e39a14227b9b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-3.smaps_rollup",
+            "sha256": "3ecbe81c266f8b9046f4a3698ec922d5fd679b6ca5ff584576afc07a2fa0b6a3",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-4.status",
+            "sha256": "f34489ae11177b6719489d35200c4f788ce4a4af2dfd62d9cb84e39a14227b9b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-c/sample-4.smaps_rollup",
+            "sha256": "3ecbe81c266f8b9046f4a3698ec922d5fd679b6ca5ff584576afc07a2fa0b6a3",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20805247989483178,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.30867215199396014,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.4092808240093291,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.5098393750376999,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.6103505259379745,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.0057797678746283054,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2836,
+      "VmRSS_kib": 2836,
+      "VmRSS_kib_range": [
+        2836,
+        2836
+      ],
+      "VmData_kib": 1156,
+      "VmData_kib_range": [
+        1156,
+        1156
+      ],
+      "Pss_kib": 2828,
+      "Pss_kib_range": [
+        2828,
+        2828
+      ],
+      "Rss_smaps_kib": 2836,
+      "Rss_smaps_kib_range": [
+        2836,
+        2836
+      ],
+      "exit": 0,
+      "log_sha256": "9c4a4729691a561d3c998ce947fc72a628f7eeb5ca8f131d3efa676a07b7a7fa",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-1000-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/result.json",
+        "sha256": "29fb7bde266437c1497dde24f6fdf61d88707fd32bc870449b0d25db58bd4810",
+        "bytes": 2298
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-0.status",
+            "sha256": "01d0204cf1fb7829cefdb6ee38e6fe8d4b57515d3ce2cfc2cb108daed43a4e91",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-0.smaps_rollup",
+            "sha256": "fe2c76fe2ee31561846cbadb82fc02ed9c310b05b31ba1c81cf8d55ff346efa1",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-1.status",
+            "sha256": "01d0204cf1fb7829cefdb6ee38e6fe8d4b57515d3ce2cfc2cb108daed43a4e91",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-1.smaps_rollup",
+            "sha256": "fe2c76fe2ee31561846cbadb82fc02ed9c310b05b31ba1c81cf8d55ff346efa1",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-2.status",
+            "sha256": "01d0204cf1fb7829cefdb6ee38e6fe8d4b57515d3ce2cfc2cb108daed43a4e91",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-2.smaps_rollup",
+            "sha256": "fe2c76fe2ee31561846cbadb82fc02ed9c310b05b31ba1c81cf8d55ff346efa1",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-3.status",
+            "sha256": "01d0204cf1fb7829cefdb6ee38e6fe8d4b57515d3ce2cfc2cb108daed43a4e91",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-3.smaps_rollup",
+            "sha256": "fe2c76fe2ee31561846cbadb82fc02ed9c310b05b31ba1c81cf8d55ff346efa1",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-4.status",
+            "sha256": "01d0204cf1fb7829cefdb6ee38e6fe8d4b57515d3ce2cfc2cb108daed43a4e91",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-main/sample-4.smaps_rollup",
+            "sha256": "fe2c76fe2ee31561846cbadb82fc02ed9c310b05b31ba1c81cf8d55ff346efa1",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2082502820994705,
+          "VmHWM_kib": 2916,
+          "VmRSS_kib": 2916,
+          "VmData_kib": 1072,
+          "Pss_kib": 2908,
+          "Rss_smaps_kib": 2916,
+          "Private_Dirty_kib": 2908
+        },
+        {
+          "elapsed_seconds": 0.3087909130845219,
+          "VmHWM_kib": 2916,
+          "VmRSS_kib": 2916,
+          "VmData_kib": 1072,
+          "Pss_kib": 2908,
+          "Rss_smaps_kib": 2916,
+          "Private_Dirty_kib": 2908
+        },
+        {
+          "elapsed_seconds": 0.40924690407700837,
+          "VmHWM_kib": 2916,
+          "VmRSS_kib": 2916,
+          "VmData_kib": 1072,
+          "Pss_kib": 2908,
+          "Rss_smaps_kib": 2916,
+          "Private_Dirty_kib": 2908
+        },
+        {
+          "elapsed_seconds": 0.5099016560707241,
+          "VmHWM_kib": 2916,
+          "VmRSS_kib": 2916,
+          "VmData_kib": 1072,
+          "Pss_kib": 2908,
+          "Rss_smaps_kib": 2916,
+          "Private_Dirty_kib": 2908
+        },
+        {
+          "elapsed_seconds": 0.6103936471045017,
+          "VmHWM_kib": 2916,
+          "VmRSS_kib": 2916,
+          "VmData_kib": 1072,
+          "Pss_kib": 2908,
+          "Rss_smaps_kib": 2916,
+          "Private_Dirty_kib": 2908
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005868809064850211,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2916,
+      "VmRSS_kib": 2916,
+      "VmRSS_kib_range": [
+        2916,
+        2916
+      ],
+      "VmData_kib": 1072,
+      "VmData_kib_range": [
+        1072,
+        1072
+      ],
+      "Pss_kib": 2908,
+      "Pss_kib_range": [
+        2908,
+        2908
+      ],
+      "Rss_smaps_kib": 2916,
+      "Rss_smaps_kib_range": [
+        2916,
+        2916
+      ],
+      "exit": 0,
+      "log_sha256": "142a7b910a3f1105d367ce246792571c4c530b5ec6e11ed64fdfb48093fa49ab",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-1000-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/result.json",
+        "sha256": "9beded9b59eef664d00638f547fe7967484482e1c81e44a03095347f11a55f64",
+        "bytes": 2294
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-0.status",
+            "sha256": "7b45066bc882dacc2bc2061e4517c50f5d4ff94d529012d4a8cbdff58531982d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-0.smaps_rollup",
+            "sha256": "d5b73b3cef7c534d648d6846021a1770e68bda214cb55bee9b934f66830e1996",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-1.status",
+            "sha256": "7b45066bc882dacc2bc2061e4517c50f5d4ff94d529012d4a8cbdff58531982d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-1.smaps_rollup",
+            "sha256": "d5b73b3cef7c534d648d6846021a1770e68bda214cb55bee9b934f66830e1996",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-2.status",
+            "sha256": "7b45066bc882dacc2bc2061e4517c50f5d4ff94d529012d4a8cbdff58531982d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-2.smaps_rollup",
+            "sha256": "d5b73b3cef7c534d648d6846021a1770e68bda214cb55bee9b934f66830e1996",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-3.status",
+            "sha256": "7b45066bc882dacc2bc2061e4517c50f5d4ff94d529012d4a8cbdff58531982d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-3.smaps_rollup",
+            "sha256": "d5b73b3cef7c534d648d6846021a1770e68bda214cb55bee9b934f66830e1996",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-4.status",
+            "sha256": "7b45066bc882dacc2bc2061e4517c50f5d4ff94d529012d4a8cbdff58531982d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-1000-head/sample-4.smaps_rollup",
+            "sha256": "d5b73b3cef7c534d648d6846021a1770e68bda214cb55bee9b934f66830e1996",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.27327073900960386,
+          "VmHWM_kib": 3128,
+          "VmRSS_kib": 3128,
+          "VmData_kib": 2132,
+          "Pss_kib": 3120,
+          "Rss_smaps_kib": 3128,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.3738084100186825,
+          "VmHWM_kib": 3128,
+          "VmRSS_kib": 3128,
+          "VmData_kib": 2132,
+          "Pss_kib": 3120,
+          "Rss_smaps_kib": 3128,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.4744457630440593,
+          "VmHWM_kib": 3128,
+          "VmRSS_kib": 3128,
+          "VmData_kib": 2132,
+          "Pss_kib": 3120,
+          "Rss_smaps_kib": 3128,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.5749689938966185,
+          "VmHWM_kib": 3128,
+          "VmRSS_kib": 3128,
+          "VmData_kib": 2132,
+          "Pss_kib": 3120,
+          "Rss_smaps_kib": 3128,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.6754915849305689,
+          "VmHWM_kib": 3128,
+          "VmRSS_kib": 3128,
+          "VmData_kib": 2132,
+          "Pss_kib": 3120,
+          "Rss_smaps_kib": 3128,
+          "Private_Dirty_kib": 2112
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.0720739159733057,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 3128,
+      "VmRSS_kib": 3128,
+      "VmRSS_kib_range": [
+        3128,
+        3128
+      ],
+      "VmData_kib": 2132,
+      "VmData_kib_range": [
+        2132,
+        2132
+      ],
+      "Pss_kib": 3120,
+      "Pss_kib_range": [
+        3120,
+        3120
+      ],
+      "Rss_smaps_kib": 3128,
+      "Rss_smaps_kib_range": [
+        3128,
+        3128
+      ],
+      "exit": 0,
+      "log_sha256": "00105b439c94e3d8cb7f414ef1fedab020941e62c7b1013513c5966699c60e19",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-10000-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/result.json",
+        "sha256": "9b711c8250212eb50ed6cf21e008ef4081cd457238de9538eab2421c5bd1ed8c",
+        "bytes": 2288
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-0.status",
+            "sha256": "5a42fcdd2f3e2d4f1fb62cefaf20377d30387638e18c8406dbbfe223e07ec42c",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-0.smaps_rollup",
+            "sha256": "367561a064d05a894d733489999c29694df8eb6d6f577d767fb6897ee16b3759",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-1.status",
+            "sha256": "5a42fcdd2f3e2d4f1fb62cefaf20377d30387638e18c8406dbbfe223e07ec42c",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-1.smaps_rollup",
+            "sha256": "367561a064d05a894d733489999c29694df8eb6d6f577d767fb6897ee16b3759",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-2.status",
+            "sha256": "5a42fcdd2f3e2d4f1fb62cefaf20377d30387638e18c8406dbbfe223e07ec42c",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-2.smaps_rollup",
+            "sha256": "367561a064d05a894d733489999c29694df8eb6d6f577d767fb6897ee16b3759",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-3.status",
+            "sha256": "5a42fcdd2f3e2d4f1fb62cefaf20377d30387638e18c8406dbbfe223e07ec42c",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-3.smaps_rollup",
+            "sha256": "367561a064d05a894d733489999c29694df8eb6d6f577d767fb6897ee16b3759",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-4.status",
+            "sha256": "5a42fcdd2f3e2d4f1fb62cefaf20377d30387638e18c8406dbbfe223e07ec42c",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-c/sample-4.smaps_rollup",
+            "sha256": "367561a064d05a894d733489999c29694df8eb6d6f577d767fb6897ee16b3759",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.22856725007295609,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.3294596839696169,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.43022463703528047,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.5309892310760915,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.6338705609086901,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.026116495952010155,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10832,
+      "VmRSS_kib": 10340,
+      "VmRSS_kib_range": [
+        10340,
+        10340
+      ],
+      "VmData_kib": 8996,
+      "VmData_kib_range": [
+        8996,
+        8996
+      ],
+      "Pss_kib": 10332,
+      "Pss_kib_range": [
+        10332,
+        10332
+      ],
+      "Rss_smaps_kib": 10340,
+      "Rss_smaps_kib_range": [
+        10340,
+        10340
+      ],
+      "exit": 0,
+      "log_sha256": "9b8f9648bf76bcb8f5a3edc80af780a4f0aed7bb5b5e621e650239faad05f791",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-10000-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/result.json",
+        "sha256": "50055191b4d8eebbdf9d2e5a37942deeb327f9aa8bdbb30f8b854a129604675d",
+        "bytes": 2334
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-0.status",
+            "sha256": "dd497ea1f528f00be2166160822783b521c4cdf5be6e9dd39bd43ab52e5aaf76",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-0.smaps_rollup",
+            "sha256": "5232ad9fe5cfd1c24a29edefeb872fd45570b666c359fff70f303d0b6e6a84f6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-1.status",
+            "sha256": "788e0c65ee9f648d3a8ee2ef6cb17038bed49258715ab4fbbda1cda23e51fe94",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-1.smaps_rollup",
+            "sha256": "5232ad9fe5cfd1c24a29edefeb872fd45570b666c359fff70f303d0b6e6a84f6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-2.status",
+            "sha256": "788e0c65ee9f648d3a8ee2ef6cb17038bed49258715ab4fbbda1cda23e51fe94",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-2.smaps_rollup",
+            "sha256": "5232ad9fe5cfd1c24a29edefeb872fd45570b666c359fff70f303d0b6e6a84f6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-3.status",
+            "sha256": "788e0c65ee9f648d3a8ee2ef6cb17038bed49258715ab4fbbda1cda23e51fe94",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-3.smaps_rollup",
+            "sha256": "5232ad9fe5cfd1c24a29edefeb872fd45570b666c359fff70f303d0b6e6a84f6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-4.status",
+            "sha256": "788e0c65ee9f648d3a8ee2ef6cb17038bed49258715ab4fbbda1cda23e51fe94",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-main/sample-4.smaps_rollup",
+            "sha256": "5232ad9fe5cfd1c24a29edefeb872fd45570b666c359fff70f303d0b6e6a84f6",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.238806335022673,
+          "VmHWM_kib": 10892,
+          "VmRSS_kib": 10412,
+          "VmData_kib": 8936,
+          "Pss_kib": 10404,
+          "Rss_smaps_kib": 10412,
+          "Private_Dirty_kib": 10404
+        },
+        {
+          "elapsed_seconds": 0.33950228709727526,
+          "VmHWM_kib": 10892,
+          "VmRSS_kib": 10412,
+          "VmData_kib": 8936,
+          "Pss_kib": 10404,
+          "Rss_smaps_kib": 10412,
+          "Private_Dirty_kib": 10404
+        },
+        {
+          "elapsed_seconds": 0.44021003996022046,
+          "VmHWM_kib": 10892,
+          "VmRSS_kib": 10412,
+          "VmData_kib": 8936,
+          "Pss_kib": 10404,
+          "Rss_smaps_kib": 10412,
+          "Private_Dirty_kib": 10404
+        },
+        {
+          "elapsed_seconds": 0.5409319929312915,
+          "VmHWM_kib": 10892,
+          "VmRSS_kib": 10412,
+          "VmData_kib": 8936,
+          "Pss_kib": 10404,
+          "Rss_smaps_kib": 10412,
+          "Private_Dirty_kib": 10404
+        },
+        {
+          "elapsed_seconds": 0.641614424996078,
+          "VmHWM_kib": 10892,
+          "VmRSS_kib": 10412,
+          "VmData_kib": 8936,
+          "Pss_kib": 10404,
+          "Rss_smaps_kib": 10412,
+          "Private_Dirty_kib": 10404
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.036191778955981135,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10892,
+      "VmRSS_kib": 10412,
+      "VmRSS_kib_range": [
+        10412,
+        10412
+      ],
+      "VmData_kib": 8936,
+      "VmData_kib_range": [
+        8936,
+        8936
+      ],
+      "Pss_kib": 10404,
+      "Pss_kib_range": [
+        10404,
+        10404
+      ],
+      "Rss_smaps_kib": 10412,
+      "Rss_smaps_kib_range": [
+        10412,
+        10412
+      ],
+      "exit": 0,
+      "log_sha256": "f08a9b2c804414474a09ab1e6852ed9350f56d8b50c29b58a3cc27d4e486c982",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-10000-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/result.json",
+        "sha256": "2616980435d2e49c22c1e11f7421ee74c2aaa6514360574e656ae53ece38b67a",
+        "bytes": 2330
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-0.status",
+            "sha256": "b788b16524f5bfd9c8c8be1457cedff521f14057fbe89c99ba1c4fefd44b6113",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-0.smaps_rollup",
+            "sha256": "5db33833c36217059c396fc7fff07ce036c0402d3a7d394a78b3cb1ee9ea1ff5",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-1.status",
+            "sha256": "b788b16524f5bfd9c8c8be1457cedff521f14057fbe89c99ba1c4fefd44b6113",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-1.smaps_rollup",
+            "sha256": "5db33833c36217059c396fc7fff07ce036c0402d3a7d394a78b3cb1ee9ea1ff5",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-2.status",
+            "sha256": "b788b16524f5bfd9c8c8be1457cedff521f14057fbe89c99ba1c4fefd44b6113",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-2.smaps_rollup",
+            "sha256": "5db33833c36217059c396fc7fff07ce036c0402d3a7d394a78b3cb1ee9ea1ff5",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-3.status",
+            "sha256": "b788b16524f5bfd9c8c8be1457cedff521f14057fbe89c99ba1c4fefd44b6113",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-3.smaps_rollup",
+            "sha256": "5db33833c36217059c396fc7fff07ce036c0402d3a7d394a78b3cb1ee9ea1ff5",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-4.status",
+            "sha256": "b788b16524f5bfd9c8c8be1457cedff521f14057fbe89c99ba1c4fefd44b6113",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r1-10000-head/sample-4.smaps_rollup",
+            "sha256": "5db33833c36217059c396fc7fff07ce036c0402d3a7d394a78b3cb1ee9ea1ff5",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2079825601540506,
+          "VmHWM_kib": 1920,
+          "VmRSS_kib": 1920,
+          "VmData_kib": 184,
+          "Pss_kib": 1912,
+          "Rss_smaps_kib": 1920,
+          "Private_Dirty_kib": 1912
+        },
+        {
+          "elapsed_seconds": 0.3085398720577359,
+          "VmHWM_kib": 1920,
+          "VmRSS_kib": 1920,
+          "VmData_kib": 184,
+          "Pss_kib": 1912,
+          "Rss_smaps_kib": 1920,
+          "Private_Dirty_kib": 1912
+        },
+        {
+          "elapsed_seconds": 0.4090127821546048,
+          "VmHWM_kib": 1920,
+          "VmRSS_kib": 1920,
+          "VmData_kib": 184,
+          "Pss_kib": 1912,
+          "Rss_smaps_kib": 1920,
+          "Private_Dirty_kib": 1912
+        },
+        {
+          "elapsed_seconds": 0.5096063741948456,
+          "VmHWM_kib": 1920,
+          "VmRSS_kib": 1920,
+          "VmData_kib": 184,
+          "Pss_kib": 1912,
+          "Rss_smaps_kib": 1920,
+          "Private_Dirty_kib": 1912
+        },
+        {
+          "elapsed_seconds": 0.6100962050259113,
+          "VmHWM_kib": 1920,
+          "VmRSS_kib": 1920,
+          "VmData_kib": 184,
+          "Pss_kib": 1912,
+          "Rss_smaps_kib": 1920,
+          "Private_Dirty_kib": 1912
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005741768050938845,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1920,
+      "VmRSS_kib": 1920,
+      "VmRSS_kib_range": [
+        1920,
+        1920
+      ],
+      "VmData_kib": 184,
+      "VmData_kib_range": [
+        184,
+        184
+      ],
+      "Pss_kib": 1912,
+      "Pss_kib_range": [
+        1912,
+        1912
+      ],
+      "Rss_smaps_kib": 1920,
+      "Rss_smaps_kib_range": [
+        1920,
+        1920
+      ],
+      "exit": 0,
+      "log_sha256": "bc1c33c77db25da0dc959615fb31fd574658f07bf16fa581fdbce7b21a466871",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-0-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/result.json",
+        "sha256": "0a2c21517fa915e4f51359581dcb19efbe7c11001e939c4cd2cc274b7172e202",
+        "bytes": 2291
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-0.status",
+            "sha256": "e5d0d22c4655e3f4249e3f6e4fad1d4b8427254f6fcde0369c908030af8f0147",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-0.smaps_rollup",
+            "sha256": "480bac97fac9385f84e9c1aa4425f7a0529d5265bd877f4a20e9b733aec47f94",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-1.status",
+            "sha256": "e5d0d22c4655e3f4249e3f6e4fad1d4b8427254f6fcde0369c908030af8f0147",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-1.smaps_rollup",
+            "sha256": "480bac97fac9385f84e9c1aa4425f7a0529d5265bd877f4a20e9b733aec47f94",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-2.status",
+            "sha256": "e5d0d22c4655e3f4249e3f6e4fad1d4b8427254f6fcde0369c908030af8f0147",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-2.smaps_rollup",
+            "sha256": "480bac97fac9385f84e9c1aa4425f7a0529d5265bd877f4a20e9b733aec47f94",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-3.status",
+            "sha256": "e5d0d22c4655e3f4249e3f6e4fad1d4b8427254f6fcde0369c908030af8f0147",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-3.smaps_rollup",
+            "sha256": "480bac97fac9385f84e9c1aa4425f7a0529d5265bd877f4a20e9b733aec47f94",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-4.status",
+            "sha256": "e5d0d22c4655e3f4249e3f6e4fad1d4b8427254f6fcde0369c908030af8f0147",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-main/sample-4.smaps_rollup",
+            "sha256": "480bac97fac9385f84e9c1aa4425f7a0529d5265bd877f4a20e9b733aec47f94",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20802640006877482,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.3085731111932546,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.40910510206595063,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.5096768541261554,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        },
+        {
+          "elapsed_seconds": 0.610228565055877,
+          "VmHWM_kib": 2004,
+          "VmRSS_kib": 2004,
+          "VmData_kib": 144,
+          "Pss_kib": 1996,
+          "Rss_smaps_kib": 2004,
+          "Private_Dirty_kib": 1996
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005689206998795271,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2004,
+      "VmRSS_kib": 2004,
+      "VmRSS_kib_range": [
+        2004,
+        2004
+      ],
+      "VmData_kib": 144,
+      "VmData_kib_range": [
+        144,
+        144
+      ],
+      "Pss_kib": 1996,
+      "Pss_kib_range": [
+        1996,
+        1996
+      ],
+      "Rss_smaps_kib": 2004,
+      "Rss_smaps_kib_range": [
+        2004,
+        2004
+      ],
+      "exit": 0,
+      "log_sha256": "8ca0b130b7f4f1bc475e93262a4a1da2f3d34f73255b0203a340151c5eb7c784",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-0-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/result.json",
+        "sha256": "a2d0254f587bcd52adbe0108352dda29e6ea61be52fc6d9fb82a3fc384942839",
+        "bytes": 2290
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-0.status",
+            "sha256": "66d92031f78bef5ab2ed8e83bd2b51cab306937fdfcd25ac1aa3e146a4687872",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-0.smaps_rollup",
+            "sha256": "318b9f214a07f800660f0db323edae96fb91544719a77cd3e6908304113ad518",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-1.status",
+            "sha256": "66d92031f78bef5ab2ed8e83bd2b51cab306937fdfcd25ac1aa3e146a4687872",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-1.smaps_rollup",
+            "sha256": "318b9f214a07f800660f0db323edae96fb91544719a77cd3e6908304113ad518",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-2.status",
+            "sha256": "66d92031f78bef5ab2ed8e83bd2b51cab306937fdfcd25ac1aa3e146a4687872",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-2.smaps_rollup",
+            "sha256": "318b9f214a07f800660f0db323edae96fb91544719a77cd3e6908304113ad518",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-3.status",
+            "sha256": "66d92031f78bef5ab2ed8e83bd2b51cab306937fdfcd25ac1aa3e146a4687872",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-3.smaps_rollup",
+            "sha256": "318b9f214a07f800660f0db323edae96fb91544719a77cd3e6908304113ad518",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-4.status",
+            "sha256": "66d92031f78bef5ab2ed8e83bd2b51cab306937fdfcd25ac1aa3e146a4687872",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-head/sample-4.smaps_rollup",
+            "sha256": "318b9f214a07f800660f0db323edae96fb91544719a77cd3e6908304113ad518",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2068868710193783,
+          "VmHWM_kib": 1124,
+          "VmRSS_kib": 1124,
+          "VmData_kib": 80,
+          "Pss_kib": 1116,
+          "Rss_smaps_kib": 1124,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.3073668610304594,
+          "VmHWM_kib": 1124,
+          "VmRSS_kib": 1124,
+          "VmData_kib": 80,
+          "Pss_kib": 1116,
+          "Rss_smaps_kib": 1124,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.40787593205459416,
+          "VmHWM_kib": 1124,
+          "VmRSS_kib": 1124,
+          "VmData_kib": 80,
+          "Pss_kib": 1116,
+          "Rss_smaps_kib": 1124,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.5083759229164571,
+          "VmHWM_kib": 1124,
+          "VmRSS_kib": 1124,
+          "VmData_kib": 80,
+          "Pss_kib": 1116,
+          "Rss_smaps_kib": 1124,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.6089152749627829,
+          "VmHWM_kib": 1124,
+          "VmRSS_kib": 1124,
+          "VmData_kib": 80,
+          "Pss_kib": 1116,
+          "Rss_smaps_kib": 1124,
+          "Private_Dirty_kib": 108
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005821127910166979,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1124,
+      "VmRSS_kib": 1124,
+      "VmRSS_kib_range": [
+        1124,
+        1124
+      ],
+      "VmData_kib": 80,
+      "VmData_kib_range": [
+        80,
+        80
+      ],
+      "Pss_kib": 1116,
+      "Pss_kib_range": [
+        1116,
+        1116
+      ],
+      "Rss_smaps_kib": 1124,
+      "Rss_smaps_kib_range": [
+        1124,
+        1124
+      ],
+      "exit": 0,
+      "log_sha256": "57d80b181db58cbe93e0e9c233bacc3860a2882dc0e2728bf9d163acf029b786",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-0-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/result.json",
+        "sha256": "60b1e8d536ae7b6a1fc9e4598f1910c972993ad79c137e148201cfdcf9a6ca33",
+        "bytes": 2271
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-0.status",
+            "sha256": "3975c59086cb67de81e8fd2be2d00da7bfb856c879f36048668a6350b77507d7",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-0.smaps_rollup",
+            "sha256": "6c4d4ee5ff74596fcb3ac3197b56213177324e0ed61e172a59e605b899e31309",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-1.status",
+            "sha256": "3975c59086cb67de81e8fd2be2d00da7bfb856c879f36048668a6350b77507d7",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-1.smaps_rollup",
+            "sha256": "6c4d4ee5ff74596fcb3ac3197b56213177324e0ed61e172a59e605b899e31309",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-2.status",
+            "sha256": "3975c59086cb67de81e8fd2be2d00da7bfb856c879f36048668a6350b77507d7",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-2.smaps_rollup",
+            "sha256": "6c4d4ee5ff74596fcb3ac3197b56213177324e0ed61e172a59e605b899e31309",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-3.status",
+            "sha256": "3975c59086cb67de81e8fd2be2d00da7bfb856c879f36048668a6350b77507d7",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-3.smaps_rollup",
+            "sha256": "6c4d4ee5ff74596fcb3ac3197b56213177324e0ed61e172a59e605b899e31309",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-4.status",
+            "sha256": "3975c59086cb67de81e8fd2be2d00da7bfb856c879f36048668a6350b77507d7",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-0-c/sample-4.smaps_rollup",
+            "sha256": "6c4d4ee5ff74596fcb3ac3197b56213177324e0ed61e172a59e605b899e31309",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2080123999621719,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.3086752318777144,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.40928098396398127,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.5098608559928834,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        },
+        {
+          "elapsed_seconds": 0.6104795678984374,
+          "VmHWM_kib": 2836,
+          "VmRSS_kib": 2836,
+          "VmData_kib": 1156,
+          "Pss_kib": 2828,
+          "Rss_smaps_kib": 2836,
+          "Private_Dirty_kib": 2828
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.0057809678837656975,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2836,
+      "VmRSS_kib": 2836,
+      "VmRSS_kib_range": [
+        2836,
+        2836
+      ],
+      "VmData_kib": 1156,
+      "VmData_kib_range": [
+        1156,
+        1156
+      ],
+      "Pss_kib": 2828,
+      "Pss_kib_range": [
+        2828,
+        2828
+      ],
+      "Rss_smaps_kib": 2836,
+      "Rss_smaps_kib_range": [
+        2836,
+        2836
+      ],
+      "exit": 0,
+      "log_sha256": "eb7b6fe5a61afa17e29c7fbbb487b1dffa1fa18c069a532ec220431fcaf01f83",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-1000-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/result.json",
+        "sha256": "130a0a46af820c2069384c27362e4baef21ec9759f4f50833710c80a8ba24a3d",
+        "bytes": 2297
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-0.status",
+            "sha256": "6c97ef90d774a44993fc3b61afca33474c780ae99515edf1a8be8529cc8322a6",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-0.smaps_rollup",
+            "sha256": "252b497b1a4dab8cab1a215f0ddd8ce3cf48743fb68ebf3cb6f2b8bc65dd9c08",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-1.status",
+            "sha256": "6c97ef90d774a44993fc3b61afca33474c780ae99515edf1a8be8529cc8322a6",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-1.smaps_rollup",
+            "sha256": "252b497b1a4dab8cab1a215f0ddd8ce3cf48743fb68ebf3cb6f2b8bc65dd9c08",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-2.status",
+            "sha256": "6c97ef90d774a44993fc3b61afca33474c780ae99515edf1a8be8529cc8322a6",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-2.smaps_rollup",
+            "sha256": "252b497b1a4dab8cab1a215f0ddd8ce3cf48743fb68ebf3cb6f2b8bc65dd9c08",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-3.status",
+            "sha256": "6c97ef90d774a44993fc3b61afca33474c780ae99515edf1a8be8529cc8322a6",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-3.smaps_rollup",
+            "sha256": "252b497b1a4dab8cab1a215f0ddd8ce3cf48743fb68ebf3cb6f2b8bc65dd9c08",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-4.status",
+            "sha256": "6c97ef90d774a44993fc3b61afca33474c780ae99515edf1a8be8529cc8322a6",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-main/sample-4.smaps_rollup",
+            "sha256": "252b497b1a4dab8cab1a215f0ddd8ce3cf48743fb68ebf3cb6f2b8bc65dd9c08",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2080129198729992,
+          "VmHWM_kib": 2816,
+          "VmRSS_kib": 2816,
+          "VmData_kib": 1072,
+          "Pss_kib": 2808,
+          "Rss_smaps_kib": 2816,
+          "Private_Dirty_kib": 2808
+        },
+        {
+          "elapsed_seconds": 0.3085536318831146,
+          "VmHWM_kib": 2816,
+          "VmRSS_kib": 2816,
+          "VmData_kib": 1072,
+          "Pss_kib": 2808,
+          "Rss_smaps_kib": 2816,
+          "Private_Dirty_kib": 2808
+        },
+        {
+          "elapsed_seconds": 0.40907062287442386,
+          "VmHWM_kib": 2816,
+          "VmRSS_kib": 2816,
+          "VmData_kib": 1072,
+          "Pss_kib": 2808,
+          "Rss_smaps_kib": 2816,
+          "Private_Dirty_kib": 2808
+        },
+        {
+          "elapsed_seconds": 0.5096704547759145,
+          "VmHWM_kib": 2816,
+          "VmRSS_kib": 2816,
+          "VmData_kib": 1072,
+          "Pss_kib": 2808,
+          "Rss_smaps_kib": 2816,
+          "Private_Dirty_kib": 2808
+        },
+        {
+          "elapsed_seconds": 0.6101226848550141,
+          "VmHWM_kib": 2816,
+          "VmRSS_kib": 2816,
+          "VmData_kib": 1072,
+          "Pss_kib": 2808,
+          "Rss_smaps_kib": 2816,
+          "Private_Dirty_kib": 2808
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005711967824026942,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2816,
+      "VmRSS_kib": 2816,
+      "VmRSS_kib_range": [
+        2816,
+        2816
+      ],
+      "VmData_kib": 1072,
+      "VmData_kib_range": [
+        1072,
+        1072
+      ],
+      "Pss_kib": 2808,
+      "Pss_kib_range": [
+        2808,
+        2808
+      ],
+      "Rss_smaps_kib": 2816,
+      "Rss_smaps_kib_range": [
+        2816,
+        2816
+      ],
+      "exit": 0,
+      "log_sha256": "93417993fb1ac06833d67087910e0379d0fc4ece8167602178663df621c80488",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-1000-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/result.json",
+        "sha256": "504965c039373928fa60e832144f8e3da501e5eed89bc286f47421bd38052169",
+        "bytes": 2294
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-0.status",
+            "sha256": "223741afcea9651167ada8b8071d8d63c2a3d75a217cb2bc00c55b6e7e1caaab",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-0.smaps_rollup",
+            "sha256": "a1d99bf7fe298aa67f2e63c6326fe248a04d14629ac00445aee0a62e2dd889e6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-1.status",
+            "sha256": "223741afcea9651167ada8b8071d8d63c2a3d75a217cb2bc00c55b6e7e1caaab",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-1.smaps_rollup",
+            "sha256": "a1d99bf7fe298aa67f2e63c6326fe248a04d14629ac00445aee0a62e2dd889e6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-2.status",
+            "sha256": "223741afcea9651167ada8b8071d8d63c2a3d75a217cb2bc00c55b6e7e1caaab",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-2.smaps_rollup",
+            "sha256": "a1d99bf7fe298aa67f2e63c6326fe248a04d14629ac00445aee0a62e2dd889e6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-3.status",
+            "sha256": "223741afcea9651167ada8b8071d8d63c2a3d75a217cb2bc00c55b6e7e1caaab",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-3.smaps_rollup",
+            "sha256": "a1d99bf7fe298aa67f2e63c6326fe248a04d14629ac00445aee0a62e2dd889e6",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-4.status",
+            "sha256": "223741afcea9651167ada8b8071d8d63c2a3d75a217cb2bc00c55b6e7e1caaab",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-head/sample-4.smaps_rollup",
+            "sha256": "a1d99bf7fe298aa67f2e63c6326fe248a04d14629ac00445aee0a62e2dd889e6",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20675990916788578,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.30725706019438803,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.40781813208013773,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.5084225640166551,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.6089807951357216,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005667927209287882,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1324,
+      "VmRSS_kib": 1324,
+      "VmRSS_kib_range": [
+        1324,
+        1324
+      ],
+      "VmData_kib": 304,
+      "VmData_kib_range": [
+        304,
+        304
+      ],
+      "Pss_kib": 1316,
+      "Pss_kib_range": [
+        1316,
+        1316
+      ],
+      "Rss_smaps_kib": 1324,
+      "Rss_smaps_kib_range": [
+        1324,
+        1324
+      ],
+      "exit": 0,
+      "log_sha256": "a2281dc9d7c18a32c5e137991a48e108f1f33034a24fe2925f2fc681b6d08e6c",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-1000-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/result.json",
+        "sha256": "cd0156ff78069e5d6dbb7f453fa1934af9388311fef373912790b0570a1a7561",
+        "bytes": 2277
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-0.status",
+            "sha256": "3a60b3fbb2ddaace50eb9f790047a05112a7bfcbd872e700f1ae48b90c3f3ce8",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-0.smaps_rollup",
+            "sha256": "56bb3b8fca1883bce099bd46fe30b95a20bae1eebb7bec86b9623e2d8d4d5164",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-1.status",
+            "sha256": "3a60b3fbb2ddaace50eb9f790047a05112a7bfcbd872e700f1ae48b90c3f3ce8",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-1.smaps_rollup",
+            "sha256": "56bb3b8fca1883bce099bd46fe30b95a20bae1eebb7bec86b9623e2d8d4d5164",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-2.status",
+            "sha256": "3a60b3fbb2ddaace50eb9f790047a05112a7bfcbd872e700f1ae48b90c3f3ce8",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-2.smaps_rollup",
+            "sha256": "56bb3b8fca1883bce099bd46fe30b95a20bae1eebb7bec86b9623e2d8d4d5164",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-3.status",
+            "sha256": "3a60b3fbb2ddaace50eb9f790047a05112a7bfcbd872e700f1ae48b90c3f3ce8",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-3.smaps_rollup",
+            "sha256": "56bb3b8fca1883bce099bd46fe30b95a20bae1eebb7bec86b9623e2d8d4d5164",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-4.status",
+            "sha256": "3a60b3fbb2ddaace50eb9f790047a05112a7bfcbd872e700f1ae48b90c3f3ce8",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-1000-c/sample-4.smaps_rollup",
+            "sha256": "56bb3b8fca1883bce099bd46fe30b95a20bae1eebb7bec86b9623e2d8d4d5164",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.22839392814785242,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.3291662810370326,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.42990003409795463,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.5305675070267171,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.6312419390305877,
+          "VmHWM_kib": 10832,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.02593701402656734,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10832,
+      "VmRSS_kib": 10340,
+      "VmRSS_kib_range": [
+        10340,
+        10340
+      ],
+      "VmData_kib": 8996,
+      "VmData_kib_range": [
+        8996,
+        8996
+      ],
+      "Pss_kib": 10332,
+      "Pss_kib_range": [
+        10332,
+        10332
+      ],
+      "Rss_smaps_kib": 10340,
+      "Rss_smaps_kib_range": [
+        10340,
+        10340
+      ],
+      "exit": 0,
+      "log_sha256": "87941506682c6defbc73cb4c35a63305732d4b18a343e974639e2aa8efde80c2",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-10000-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/result.json",
+        "sha256": "e7a62bd53348eb08f85a2caec9bd455d86ede1f375f8b2dc364790d7a9003dab",
+        "bytes": 2333
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-0.status",
+            "sha256": "4ab8af19afe743be364fc89be007743902373b9acb3ed81aa90067bb023b3276",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-0.smaps_rollup",
+            "sha256": "89db75eb64c1861701603a9c634232f8f78125eefa73cacea1b2f9f54f0a6a2d",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-1.status",
+            "sha256": "4ab8af19afe743be364fc89be007743902373b9acb3ed81aa90067bb023b3276",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-1.smaps_rollup",
+            "sha256": "89db75eb64c1861701603a9c634232f8f78125eefa73cacea1b2f9f54f0a6a2d",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-2.status",
+            "sha256": "4ab8af19afe743be364fc89be007743902373b9acb3ed81aa90067bb023b3276",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-2.smaps_rollup",
+            "sha256": "89db75eb64c1861701603a9c634232f8f78125eefa73cacea1b2f9f54f0a6a2d",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-3.status",
+            "sha256": "4ab8af19afe743be364fc89be007743902373b9acb3ed81aa90067bb023b3276",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-3.smaps_rollup",
+            "sha256": "89db75eb64c1861701603a9c634232f8f78125eefa73cacea1b2f9f54f0a6a2d",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-4.status",
+            "sha256": "4ab8af19afe743be364fc89be007743902373b9acb3ed81aa90067bb023b3276",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-main/sample-4.smaps_rollup",
+            "sha256": "89db75eb64c1861701603a9c634232f8f78125eefa73cacea1b2f9f54f0a6a2d",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2398885830771178,
+          "VmHWM_kib": 10620,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8936,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.3405365759972483,
+          "VmHWM_kib": 10620,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8936,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.44127716892398894,
+          "VmHWM_kib": 10620,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8936,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.5421352831181139,
+          "VmHWM_kib": 10620,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8936,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.6429015160538256,
+          "VmHWM_kib": 10620,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8936,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.03732850891537964,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10620,
+      "VmRSS_kib": 10340,
+      "VmRSS_kib_range": [
+        10340,
+        10340
+      ],
+      "VmData_kib": 8936,
+      "VmData_kib_range": [
+        8936,
+        8936
+      ],
+      "Pss_kib": 10332,
+      "Pss_kib_range": [
+        10332,
+        10332
+      ],
+      "Rss_smaps_kib": 10340,
+      "Rss_smaps_kib_range": [
+        10340,
+        10340
+      ],
+      "exit": 0,
+      "log_sha256": "d185ba9c5ddbb70d4120fae8251757aadc22c9b185f784ca3e264d40af17e9d4",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-10000-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/result.json",
+        "sha256": "bb6e675e2fb8128f460a6d69667d3a5d5d7d50fbdd882345bd596d38ef3788ab",
+        "bytes": 2330
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-0.status",
+            "sha256": "389e3153c1f3bf468cd7c5e3654691d998989ddf0ded4c4b83a2942318d9604a",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-0.smaps_rollup",
+            "sha256": "8d14c45d8a6630493652966766d631889b391d3012f0b422238ef4c96dcca183",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-1.status",
+            "sha256": "389e3153c1f3bf468cd7c5e3654691d998989ddf0ded4c4b83a2942318d9604a",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-1.smaps_rollup",
+            "sha256": "8d14c45d8a6630493652966766d631889b391d3012f0b422238ef4c96dcca183",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-2.status",
+            "sha256": "389e3153c1f3bf468cd7c5e3654691d998989ddf0ded4c4b83a2942318d9604a",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-2.smaps_rollup",
+            "sha256": "8d14c45d8a6630493652966766d631889b391d3012f0b422238ef4c96dcca183",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-3.status",
+            "sha256": "389e3153c1f3bf468cd7c5e3654691d998989ddf0ded4c4b83a2942318d9604a",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-3.smaps_rollup",
+            "sha256": "8d14c45d8a6630493652966766d631889b391d3012f0b422238ef4c96dcca183",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-4.status",
+            "sha256": "389e3153c1f3bf468cd7c5e3654691d998989ddf0ded4c4b83a2942318d9604a",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-head/sample-4.smaps_rollup",
+            "sha256": "8d14c45d8a6630493652966766d631889b391d3012f0b422238ef4c96dcca183",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.28319730213843286,
+          "VmHWM_kib": 3096,
+          "VmRSS_kib": 3096,
+          "VmData_kib": 2132,
+          "Pss_kib": 3088,
+          "Rss_smaps_kib": 3096,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.3838115739636123,
+          "VmHWM_kib": 3096,
+          "VmRSS_kib": 3096,
+          "VmData_kib": 2132,
+          "Pss_kib": 3088,
+          "Rss_smaps_kib": 3096,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.48447476606816053,
+          "VmHWM_kib": 3096,
+          "VmRSS_kib": 3096,
+          "VmData_kib": 2132,
+          "Pss_kib": 3088,
+          "Rss_smaps_kib": 3096,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.5851176779251546,
+          "VmHWM_kib": 3096,
+          "VmRSS_kib": 3096,
+          "VmData_kib": 2132,
+          "Pss_kib": 3088,
+          "Rss_smaps_kib": 3096,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.6857639509253204,
+          "VmHWM_kib": 3096,
+          "VmRSS_kib": 3096,
+          "VmData_kib": 2132,
+          "Pss_kib": 3088,
+          "Rss_smaps_kib": 3096,
+          "Private_Dirty_kib": 2116
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.08195039792917669,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 3096,
+      "VmRSS_kib": 3096,
+      "VmRSS_kib_range": [
+        3096,
+        3096
+      ],
+      "VmData_kib": 2132,
+      "VmData_kib_range": [
+        2132,
+        2132
+      ],
+      "Pss_kib": 3088,
+      "Pss_kib_range": [
+        3088,
+        3088
+      ],
+      "Rss_smaps_kib": 3096,
+      "Rss_smaps_kib_range": [
+        3096,
+        3096
+      ],
+      "exit": 0,
+      "log_sha256": "d5c760f119bff5566e995f21bedab4f86737cd998ac8e0ab971365dd9dbba598",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-10000-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/result.json",
+        "sha256": "be2bf1900d62f5a629184cfdd1a7ea08d2101f065c1c3fdeffaa81432bf87089",
+        "bytes": 2290
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-0.status",
+            "sha256": "d8c543fc4b7855233954a95795aff6ff8cd1e4bfa8356d328f04064a89631359",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-0.smaps_rollup",
+            "sha256": "2a4c5992bb8b37c4677d44fe6dd04f06ad72f25d8f034c1a7ad3d07445517795",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-1.status",
+            "sha256": "d8c543fc4b7855233954a95795aff6ff8cd1e4bfa8356d328f04064a89631359",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-1.smaps_rollup",
+            "sha256": "2a4c5992bb8b37c4677d44fe6dd04f06ad72f25d8f034c1a7ad3d07445517795",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-2.status",
+            "sha256": "d8c543fc4b7855233954a95795aff6ff8cd1e4bfa8356d328f04064a89631359",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-2.smaps_rollup",
+            "sha256": "2a4c5992bb8b37c4677d44fe6dd04f06ad72f25d8f034c1a7ad3d07445517795",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-3.status",
+            "sha256": "d8c543fc4b7855233954a95795aff6ff8cd1e4bfa8356d328f04064a89631359",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-3.smaps_rollup",
+            "sha256": "2a4c5992bb8b37c4677d44fe6dd04f06ad72f25d8f034c1a7ad3d07445517795",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-4.status",
+            "sha256": "d8c543fc4b7855233954a95795aff6ff8cd1e4bfa8356d328f04064a89631359",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r2-10000-c/sample-4.smaps_rollup",
+            "sha256": "2a4c5992bb8b37c4677d44fe6dd04f06ad72f25d8f034c1a7ad3d07445517795",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20789899909868836,
+          "VmHWM_kib": 1976,
+          "VmRSS_kib": 1976,
+          "VmData_kib": 144,
+          "Pss_kib": 1968,
+          "Rss_smaps_kib": 1976,
+          "Private_Dirty_kib": 1968
+        },
+        {
+          "elapsed_seconds": 0.30849827104248106,
+          "VmHWM_kib": 1976,
+          "VmRSS_kib": 1976,
+          "VmData_kib": 144,
+          "Pss_kib": 1968,
+          "Rss_smaps_kib": 1976,
+          "Private_Dirty_kib": 1968
+        },
+        {
+          "elapsed_seconds": 0.40904402220621705,
+          "VmHWM_kib": 1976,
+          "VmRSS_kib": 1976,
+          "VmData_kib": 144,
+          "Pss_kib": 1968,
+          "Rss_smaps_kib": 1976,
+          "Private_Dirty_kib": 1968
+        },
+        {
+          "elapsed_seconds": 0.509500693064183,
+          "VmHWM_kib": 1976,
+          "VmRSS_kib": 1976,
+          "VmData_kib": 144,
+          "Pss_kib": 1968,
+          "Rss_smaps_kib": 1976,
+          "Private_Dirty_kib": 1968
+        },
+        {
+          "elapsed_seconds": 0.6099939642008394,
+          "VmHWM_kib": 1976,
+          "VmRSS_kib": 1976,
+          "VmData_kib": 144,
+          "Pss_kib": 1968,
+          "Rss_smaps_kib": 1976,
+          "Private_Dirty_kib": 1968
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005585606209933758,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1976,
+      "VmRSS_kib": 1976,
+      "VmRSS_kib_range": [
+        1976,
+        1976
+      ],
+      "VmData_kib": 144,
+      "VmData_kib_range": [
+        144,
+        144
+      ],
+      "Pss_kib": 1968,
+      "Pss_kib_range": [
+        1968,
+        1968
+      ],
+      "Rss_smaps_kib": 1976,
+      "Rss_smaps_kib_range": [
+        1976,
+        1976
+      ],
+      "exit": 0,
+      "log_sha256": "920e3526c4dc28539ab9465c2271c940cb4ccc056e50f7e8550eac1a340795e2",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-0-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/result.json",
+        "sha256": "c26721bf93c5171a038c2c64002496f4fd4d17aab51282c5f9b853f73b09a208",
+        "bytes": 2291
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-0.status",
+            "sha256": "af12bbed840f4a99f53c43c15adfd0e68e133a605f47ebd5785dadb6b948e809",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-0.smaps_rollup",
+            "sha256": "20d750086d9dfb22f89c04adfb1ac5d91cb7a94cd6965c395f6afe500f8fb0e2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-1.status",
+            "sha256": "af12bbed840f4a99f53c43c15adfd0e68e133a605f47ebd5785dadb6b948e809",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-1.smaps_rollup",
+            "sha256": "20d750086d9dfb22f89c04adfb1ac5d91cb7a94cd6965c395f6afe500f8fb0e2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-2.status",
+            "sha256": "af12bbed840f4a99f53c43c15adfd0e68e133a605f47ebd5785dadb6b948e809",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-2.smaps_rollup",
+            "sha256": "20d750086d9dfb22f89c04adfb1ac5d91cb7a94cd6965c395f6afe500f8fb0e2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-3.status",
+            "sha256": "af12bbed840f4a99f53c43c15adfd0e68e133a605f47ebd5785dadb6b948e809",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-3.smaps_rollup",
+            "sha256": "20d750086d9dfb22f89c04adfb1ac5d91cb7a94cd6965c395f6afe500f8fb0e2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-4.status",
+            "sha256": "af12bbed840f4a99f53c43c15adfd0e68e133a605f47ebd5785dadb6b948e809",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-head/sample-4.smaps_rollup",
+            "sha256": "20d750086d9dfb22f89c04adfb1ac5d91cb7a94cd6965c395f6afe500f8fb0e2",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2066953091416508,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.3073220611549914,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.40786133194342256,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.508323643123731,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.6087926339823753,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.0057081670965999365,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1088,
+      "VmRSS_kib": 1088,
+      "VmRSS_kib_range": [
+        1088,
+        1088
+      ],
+      "VmData_kib": 80,
+      "VmData_kib_range": [
+        80,
+        80
+      ],
+      "Pss_kib": 1080,
+      "Pss_kib_range": [
+        1080,
+        1080
+      ],
+      "Rss_smaps_kib": 1088,
+      "Rss_smaps_kib_range": [
+        1088,
+        1088
+      ],
+      "exit": 0,
+      "log_sha256": "f66261b031432713c8c8c12d0927d7271609768700d0261f1af16298addc68f3",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-0-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/result.json",
+        "sha256": "5eb6950f60a40dc62681e6bd284d63a0a3ecc7941541d1383de487fafc31fe49",
+        "bytes": 2271
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-0.status",
+            "sha256": "b722e8d64ca7c0484e4facc9feca5bab469eb8ccf07f1733ac5f71804bfca73a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-0.smaps_rollup",
+            "sha256": "f210c1cf57093540a6fc57a768729dd1d506072929d300f1ce17d458cd4a6712",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-1.status",
+            "sha256": "b722e8d64ca7c0484e4facc9feca5bab469eb8ccf07f1733ac5f71804bfca73a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-1.smaps_rollup",
+            "sha256": "f210c1cf57093540a6fc57a768729dd1d506072929d300f1ce17d458cd4a6712",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-2.status",
+            "sha256": "b722e8d64ca7c0484e4facc9feca5bab469eb8ccf07f1733ac5f71804bfca73a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-2.smaps_rollup",
+            "sha256": "f210c1cf57093540a6fc57a768729dd1d506072929d300f1ce17d458cd4a6712",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-3.status",
+            "sha256": "b722e8d64ca7c0484e4facc9feca5bab469eb8ccf07f1733ac5f71804bfca73a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-3.smaps_rollup",
+            "sha256": "f210c1cf57093540a6fc57a768729dd1d506072929d300f1ce17d458cd4a6712",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-4.status",
+            "sha256": "b722e8d64ca7c0484e4facc9feca5bab469eb8ccf07f1733ac5f71804bfca73a",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-c/sample-4.smaps_rollup",
+            "sha256": "f210c1cf57093540a6fc57a768729dd1d506072929d300f1ce17d458cd4a6712",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2078320391010493,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.30839271005243063,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.40898842201568186,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.509433533065021,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        },
+        {
+          "elapsed_seconds": 0.6099682841449976,
+          "VmHWM_kib": 1924,
+          "VmRSS_kib": 1924,
+          "VmData_kib": 184,
+          "Pss_kib": 1916,
+          "Rss_smaps_kib": 1924,
+          "Private_Dirty_kib": 1916
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00557144614867866,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1924,
+      "VmRSS_kib": 1924,
+      "VmRSS_kib_range": [
+        1924,
+        1924
+      ],
+      "VmData_kib": 184,
+      "VmData_kib_range": [
+        184,
+        184
+      ],
+      "Pss_kib": 1916,
+      "Pss_kib_range": [
+        1916,
+        1916
+      ],
+      "Rss_smaps_kib": 1924,
+      "Rss_smaps_kib_range": [
+        1924,
+        1924
+      ],
+      "exit": 0,
+      "log_sha256": "eea082b976ac6b7fe4386ade46d0062c2187bb9ef5bf5f4fc09e68807170f4ce",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-0-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/result.json",
+        "sha256": "efcceec48ee1f459ff24e8ac9f6d377125ecad867b4ef62edf7246ce62fa4558",
+        "bytes": 2291
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-0.status",
+            "sha256": "a74ad5e460d8ef7f5d9f086a7edc1eec328a040b51ecec1dc93bd33e1de38d85",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-0.smaps_rollup",
+            "sha256": "5ff7e05e9d653b9e9f0f2faaec3cedd909c2ad01958395cd9abf11f838ea2772",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-1.status",
+            "sha256": "a74ad5e460d8ef7f5d9f086a7edc1eec328a040b51ecec1dc93bd33e1de38d85",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-1.smaps_rollup",
+            "sha256": "5ff7e05e9d653b9e9f0f2faaec3cedd909c2ad01958395cd9abf11f838ea2772",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-2.status",
+            "sha256": "a74ad5e460d8ef7f5d9f086a7edc1eec328a040b51ecec1dc93bd33e1de38d85",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-2.smaps_rollup",
+            "sha256": "5ff7e05e9d653b9e9f0f2faaec3cedd909c2ad01958395cd9abf11f838ea2772",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-3.status",
+            "sha256": "a74ad5e460d8ef7f5d9f086a7edc1eec328a040b51ecec1dc93bd33e1de38d85",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-3.smaps_rollup",
+            "sha256": "5ff7e05e9d653b9e9f0f2faaec3cedd909c2ad01958395cd9abf11f838ea2772",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-4.status",
+            "sha256": "a74ad5e460d8ef7f5d9f086a7edc1eec328a040b51ecec1dc93bd33e1de38d85",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-0-main/sample-4.smaps_rollup",
+            "sha256": "5ff7e05e9d653b9e9f0f2faaec3cedd909c2ad01958395cd9abf11f838ea2772",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2130860819015652,
+          "VmHWM_kib": 2928,
+          "VmRSS_kib": 2928,
+          "VmData_kib": 1072,
+          "Pss_kib": 2920,
+          "Rss_smaps_kib": 2928,
+          "Private_Dirty_kib": 2920
+        },
+        {
+          "elapsed_seconds": 0.31355847301892936,
+          "VmHWM_kib": 2928,
+          "VmRSS_kib": 2928,
+          "VmData_kib": 1072,
+          "Pss_kib": 2920,
+          "Rss_smaps_kib": 2928,
+          "Private_Dirty_kib": 2920
+        },
+        {
+          "elapsed_seconds": 0.41407018387690187,
+          "VmHWM_kib": 2928,
+          "VmRSS_kib": 2928,
+          "VmData_kib": 1072,
+          "Pss_kib": 2920,
+          "Rss_smaps_kib": 2928,
+          "Private_Dirty_kib": 2920
+        },
+        {
+          "elapsed_seconds": 0.5146666560322046,
+          "VmHWM_kib": 2928,
+          "VmRSS_kib": 2928,
+          "VmData_kib": 1072,
+          "Pss_kib": 2920,
+          "Rss_smaps_kib": 2928,
+          "Private_Dirty_kib": 2920
+        },
+        {
+          "elapsed_seconds": 0.6151841268874705,
+          "VmHWM_kib": 2928,
+          "VmRSS_kib": 2928,
+          "VmData_kib": 1072,
+          "Pss_kib": 2920,
+          "Rss_smaps_kib": 2928,
+          "Private_Dirty_kib": 2920
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.010642967885360122,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2928,
+      "VmRSS_kib": 2928,
+      "VmRSS_kib_range": [
+        2928,
+        2928
+      ],
+      "VmData_kib": 1072,
+      "VmData_kib_range": [
+        1072,
+        1072
+      ],
+      "Pss_kib": 2920,
+      "Pss_kib_range": [
+        2920,
+        2920
+      ],
+      "Rss_smaps_kib": 2928,
+      "Rss_smaps_kib_range": [
+        2928,
+        2928
+      ],
+      "exit": 0,
+      "log_sha256": "d91624db4f2ae6dda1bbbf644dcee1ae3d7c3572cecc8cdeac0f9d6f339dc9a5",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-1000-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/result.json",
+        "sha256": "70267dc0d83e80ed41364026e2623da78b19fe54be25af66105015d4a967d558",
+        "bytes": 2295
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-0.status",
+            "sha256": "7ebacc9ba3a26c540c68f6b76c616c4bcd7da4b65c57ca43ec3ecfaef171ee7d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-0.smaps_rollup",
+            "sha256": "63f9c5d793eb4bdcab79d2e306f1c798343637fd4ce4598e28bba62df6b9edde",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-1.status",
+            "sha256": "7ebacc9ba3a26c540c68f6b76c616c4bcd7da4b65c57ca43ec3ecfaef171ee7d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-1.smaps_rollup",
+            "sha256": "63f9c5d793eb4bdcab79d2e306f1c798343637fd4ce4598e28bba62df6b9edde",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-2.status",
+            "sha256": "7ebacc9ba3a26c540c68f6b76c616c4bcd7da4b65c57ca43ec3ecfaef171ee7d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-2.smaps_rollup",
+            "sha256": "63f9c5d793eb4bdcab79d2e306f1c798343637fd4ce4598e28bba62df6b9edde",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-3.status",
+            "sha256": "7ebacc9ba3a26c540c68f6b76c616c4bcd7da4b65c57ca43ec3ecfaef171ee7d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-3.smaps_rollup",
+            "sha256": "63f9c5d793eb4bdcab79d2e306f1c798343637fd4ce4598e28bba62df6b9edde",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-4.status",
+            "sha256": "7ebacc9ba3a26c540c68f6b76c616c4bcd7da4b65c57ca43ec3ecfaef171ee7d",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-head/sample-4.smaps_rollup",
+            "sha256": "63f9c5d793eb4bdcab79d2e306f1c798343637fd4ce4598e28bba62df6b9edde",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20659222779795527,
+          "VmHWM_kib": 1240,
+          "VmRSS_kib": 1240,
+          "VmData_kib": 304,
+          "Pss_kib": 1232,
+          "Rss_smaps_kib": 1240,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.3070552989374846,
+          "VmHWM_kib": 1240,
+          "VmRSS_kib": 1240,
+          "VmData_kib": 304,
+          "Pss_kib": 1232,
+          "Rss_smaps_kib": 1240,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.4075491698458791,
+          "VmHWM_kib": 1240,
+          "VmRSS_kib": 1240,
+          "VmData_kib": 304,
+          "Pss_kib": 1232,
+          "Rss_smaps_kib": 1240,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.5079839997924864,
+          "VmHWM_kib": 1240,
+          "VmRSS_kib": 1240,
+          "VmData_kib": 304,
+          "Pss_kib": 1232,
+          "Rss_smaps_kib": 1240,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.6084585909266025,
+          "VmHWM_kib": 1240,
+          "VmRSS_kib": 1240,
+          "VmData_kib": 304,
+          "Pss_kib": 1232,
+          "Rss_smaps_kib": 1240,
+          "Private_Dirty_kib": 316
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00555092585273087,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1240,
+      "VmRSS_kib": 1240,
+      "VmRSS_kib_range": [
+        1240,
+        1240
+      ],
+      "VmData_kib": 304,
+      "VmData_kib_range": [
+        304,
+        304
+      ],
+      "Pss_kib": 1232,
+      "Pss_kib_range": [
+        1232,
+        1232
+      ],
+      "Rss_smaps_kib": 1240,
+      "Rss_smaps_kib_range": [
+        1240,
+        1240
+      ],
+      "exit": 0,
+      "log_sha256": "4ad1f7cbef8bad0ced302f6ca5a039c78e443ec486082004a21e6f61ceadc419",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-1000-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/result.json",
+        "sha256": "3ca863d7dc561e9279244d4a86933ebd1c9cac454e8520a1cf6c0ef454af9459",
+        "bytes": 2274
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-0.status",
+            "sha256": "1a157a37ae87462b3904026daa062a2e1f220dcc7564e1729bcb839d65555c4b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-0.smaps_rollup",
+            "sha256": "f02bbf875a79cfc725e97c34c8546a8c634f6f38f632f2a2400bb711b91c89e9",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-1.status",
+            "sha256": "1a157a37ae87462b3904026daa062a2e1f220dcc7564e1729bcb839d65555c4b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-1.smaps_rollup",
+            "sha256": "f02bbf875a79cfc725e97c34c8546a8c634f6f38f632f2a2400bb711b91c89e9",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-2.status",
+            "sha256": "1a157a37ae87462b3904026daa062a2e1f220dcc7564e1729bcb839d65555c4b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-2.smaps_rollup",
+            "sha256": "f02bbf875a79cfc725e97c34c8546a8c634f6f38f632f2a2400bb711b91c89e9",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-3.status",
+            "sha256": "1a157a37ae87462b3904026daa062a2e1f220dcc7564e1729bcb839d65555c4b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-3.smaps_rollup",
+            "sha256": "f02bbf875a79cfc725e97c34c8546a8c634f6f38f632f2a2400bb711b91c89e9",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-4.status",
+            "sha256": "1a157a37ae87462b3904026daa062a2e1f220dcc7564e1729bcb839d65555c4b",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-c/sample-4.smaps_rollup",
+            "sha256": "f02bbf875a79cfc725e97c34c8546a8c634f6f38f632f2a2400bb711b91c89e9",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2077589980326593,
+          "VmHWM_kib": 2832,
+          "VmRSS_kib": 2832,
+          "VmData_kib": 1156,
+          "Pss_kib": 2824,
+          "Rss_smaps_kib": 2832,
+          "Private_Dirty_kib": 2824
+        },
+        {
+          "elapsed_seconds": 0.30822894908487797,
+          "VmHWM_kib": 2832,
+          "VmRSS_kib": 2832,
+          "VmData_kib": 1156,
+          "Pss_kib": 2824,
+          "Rss_smaps_kib": 2832,
+          "Private_Dirty_kib": 2824
+        },
+        {
+          "elapsed_seconds": 0.4088396611623466,
+          "VmHWM_kib": 2832,
+          "VmRSS_kib": 2832,
+          "VmData_kib": 1156,
+          "Pss_kib": 2824,
+          "Rss_smaps_kib": 2832,
+          "Private_Dirty_kib": 2824
+        },
+        {
+          "elapsed_seconds": 0.5094293321017176,
+          "VmHWM_kib": 2832,
+          "VmRSS_kib": 2832,
+          "VmData_kib": 1156,
+          "Pss_kib": 2824,
+          "Rss_smaps_kib": 2832,
+          "Private_Dirty_kib": 2824
+        },
+        {
+          "elapsed_seconds": 0.6099539641290903,
+          "VmHWM_kib": 2832,
+          "VmRSS_kib": 2832,
+          "VmData_kib": 1156,
+          "Pss_kib": 2824,
+          "Rss_smaps_kib": 2832,
+          "Private_Dirty_kib": 2824
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.0055505260825157166,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2832,
+      "VmRSS_kib": 2832,
+      "VmRSS_kib_range": [
+        2832,
+        2832
+      ],
+      "VmData_kib": 1156,
+      "VmData_kib_range": [
+        1156,
+        1156
+      ],
+      "Pss_kib": 2824,
+      "Pss_kib_range": [
+        2824,
+        2824
+      ],
+      "Rss_smaps_kib": 2832,
+      "Rss_smaps_kib_range": [
+        2832,
+        2832
+      ],
+      "exit": 0,
+      "log_sha256": "cc28e83e5a35285df5920a886d31c17a2d83489a928afe685c6b89a6b5b98bfa",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-1000-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/result.json",
+        "sha256": "03c936b1b6df252ca1af05a0da4a277cc5d4e94e4d0e15911dccc02f00db5d7c",
+        "bytes": 2297
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-0.status",
+            "sha256": "70471a91b30462e11eddc560a0a4a31f480533a271186959ba3a45ae9f8b630a",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-0.smaps_rollup",
+            "sha256": "121548ad166249648211dbb749728cec2f1cf49f040b6b5ab2a53b14f4f8b1d2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-1.status",
+            "sha256": "70471a91b30462e11eddc560a0a4a31f480533a271186959ba3a45ae9f8b630a",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-1.smaps_rollup",
+            "sha256": "121548ad166249648211dbb749728cec2f1cf49f040b6b5ab2a53b14f4f8b1d2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-2.status",
+            "sha256": "70471a91b30462e11eddc560a0a4a31f480533a271186959ba3a45ae9f8b630a",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-2.smaps_rollup",
+            "sha256": "121548ad166249648211dbb749728cec2f1cf49f040b6b5ab2a53b14f4f8b1d2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-3.status",
+            "sha256": "70471a91b30462e11eddc560a0a4a31f480533a271186959ba3a45ae9f8b630a",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-3.smaps_rollup",
+            "sha256": "121548ad166249648211dbb749728cec2f1cf49f040b6b5ab2a53b14f4f8b1d2",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-4.status",
+            "sha256": "70471a91b30462e11eddc560a0a4a31f480533a271186959ba3a45ae9f8b630a",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-1000-main/sample-4.smaps_rollup",
+            "sha256": "121548ad166249648211dbb749728cec2f1cf49f040b6b5ab2a53b14f4f8b1d2",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "head",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "samples": [
+        {
+          "elapsed_seconds": 0.23865981283597648,
+          "VmHWM_kib": 10792,
+          "VmRSS_kib": 10440,
+          "VmData_kib": 8936,
+          "Pss_kib": 10432,
+          "Rss_smaps_kib": 10440,
+          "Private_Dirty_kib": 10432
+        },
+        {
+          "elapsed_seconds": 0.339375606039539,
+          "VmHWM_kib": 10792,
+          "VmRSS_kib": 10440,
+          "VmData_kib": 8936,
+          "Pss_kib": 10432,
+          "Rss_smaps_kib": 10440,
+          "Private_Dirty_kib": 10432
+        },
+        {
+          "elapsed_seconds": 0.4400505980011076,
+          "VmHWM_kib": 10792,
+          "VmRSS_kib": 10440,
+          "VmData_kib": 8936,
+          "Pss_kib": 10432,
+          "Rss_smaps_kib": 10440,
+          "Private_Dirty_kib": 10432
+        },
+        {
+          "elapsed_seconds": 0.5407621108461171,
+          "VmHWM_kib": 10792,
+          "VmRSS_kib": 10440,
+          "VmData_kib": 8936,
+          "Pss_kib": 10432,
+          "Rss_smaps_kib": 10440,
+          "Private_Dirty_kib": 10432
+        },
+        {
+          "elapsed_seconds": 0.6414233830291778,
+          "VmHWM_kib": 10792,
+          "VmRSS_kib": 10440,
+          "VmData_kib": 8936,
+          "Pss_kib": 10432,
+          "Rss_smaps_kib": 10440,
+          "Private_Dirty_kib": 10432
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.036121458979323506,
+      "actual_exe_sha256": "ddca7761d87bc2cfab65b140597502d191420172707981c9858588c5a6e6415c",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10792,
+      "VmRSS_kib": 10440,
+      "VmRSS_kib_range": [
+        10440,
+        10440
+      ],
+      "VmData_kib": 8936,
+      "VmData_kib_range": [
+        8936,
+        8936
+      ],
+      "Pss_kib": 10432,
+      "Pss_kib_range": [
+        10432,
+        10432
+      ],
+      "Rss_smaps_kib": 10440,
+      "Rss_smaps_kib_range": [
+        10440,
+        10440
+      ],
+      "exit": 0,
+      "log_sha256": "39f5c1e629561047b596b5226e9de3aaa47e1ea63c2338126541f847dd4816fd",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-10000-head",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/result.json",
+        "sha256": "f84ac9be39e456fd42eff39975e5f4afb53656578ecbd545e6c8c2dd9db6436a",
+        "bytes": 2330
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-0.status",
+            "sha256": "fe6b4cf1ad567585ae000312c9166a55808a1cc1314c1a8ca73f00c4e019560b",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-0.smaps_rollup",
+            "sha256": "aadbe363a0ee9d1ed223a5f9f219b313e873758eb3d17d866f05bb12e7a0b73f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-1.status",
+            "sha256": "fe6b4cf1ad567585ae000312c9166a55808a1cc1314c1a8ca73f00c4e019560b",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-1.smaps_rollup",
+            "sha256": "aadbe363a0ee9d1ed223a5f9f219b313e873758eb3d17d866f05bb12e7a0b73f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-2.status",
+            "sha256": "fe6b4cf1ad567585ae000312c9166a55808a1cc1314c1a8ca73f00c4e019560b",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-2.smaps_rollup",
+            "sha256": "aadbe363a0ee9d1ed223a5f9f219b313e873758eb3d17d866f05bb12e7a0b73f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-3.status",
+            "sha256": "fe6b4cf1ad567585ae000312c9166a55808a1cc1314c1a8ca73f00c4e019560b",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-3.smaps_rollup",
+            "sha256": "aadbe363a0ee9d1ed223a5f9f219b313e873758eb3d17d866f05bb12e7a0b73f",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-4.status",
+            "sha256": "fe6b4cf1ad567585ae000312c9166a55808a1cc1314c1a8ca73f00c4e019560b",
+            "bytes": 1121
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-head/sample-4.smaps_rollup",
+            "sha256": "aadbe363a0ee9d1ed223a5f9f219b313e873758eb3d17d866f05bb12e7a0b73f",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "c",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2731062578968704,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.3736799298785627,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.4743059219326824,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.5748792728409171,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.6754180248826742,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2112
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.07180831395089626,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 3124,
+      "VmRSS_kib": 3124,
+      "VmRSS_kib_range": [
+        3124,
+        3124
+      ],
+      "VmData_kib": 2132,
+      "VmData_kib_range": [
+        2132,
+        2132
+      ],
+      "Pss_kib": 3116,
+      "Pss_kib_range": [
+        3116,
+        3116
+      ],
+      "Rss_smaps_kib": 3124,
+      "Rss_smaps_kib_range": [
+        3124,
+        3124
+      ],
+      "exit": 0,
+      "log_sha256": "6be1fa1bafec43994fc606690c4f912ddb7916176d465d4e50d54b525fd816ec",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-10000-c",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/result.json",
+        "sha256": "6cbed08277d06c84837899791c124b2a55b22e3c170d4e34b1d6d679237d174d",
+        "bytes": 2288
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-0.status",
+            "sha256": "9f45572c390c986cc6f07762150da7e61e5a7ba17baf32c7b6efac083c796318",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-0.smaps_rollup",
+            "sha256": "baefef2cefc828d9864360546c044e3bd4b6076ac86c69ecae91275aee0ad68c",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-1.status",
+            "sha256": "9f45572c390c986cc6f07762150da7e61e5a7ba17baf32c7b6efac083c796318",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-1.smaps_rollup",
+            "sha256": "baefef2cefc828d9864360546c044e3bd4b6076ac86c69ecae91275aee0ad68c",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-2.status",
+            "sha256": "9f45572c390c986cc6f07762150da7e61e5a7ba17baf32c7b6efac083c796318",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-2.smaps_rollup",
+            "sha256": "baefef2cefc828d9864360546c044e3bd4b6076ac86c69ecae91275aee0ad68c",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-3.status",
+            "sha256": "9f45572c390c986cc6f07762150da7e61e5a7ba17baf32c7b6efac083c796318",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-3.smaps_rollup",
+            "sha256": "baefef2cefc828d9864360546c044e3bd4b6076ac86c69ecae91275aee0ad68c",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-4.status",
+            "sha256": "9f45572c390c986cc6f07762150da7e61e5a7ba17baf32c7b6efac083c796318",
+            "bytes": 1118
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-c/sample-4.smaps_rollup",
+            "sha256": "baefef2cefc828d9864360546c044e3bd4b6076ac86c69ecae91275aee0ad68c",
+            "bytes": 698
+          }
+        }
+      ]
+    },
+    {
+      "variant": "main",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "samples": [
+        {
+          "elapsed_seconds": 0.23675543791614473,
+          "VmHWM_kib": 10828,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.33739938982762396,
+          "VmHWM_kib": 10828,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.4381416628602892,
+          "VmHWM_kib": 10828,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.5388747358229011,
+          "VmHWM_kib": 10828,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        },
+        {
+          "elapsed_seconds": 0.6395143680274487,
+          "VmHWM_kib": 10828,
+          "VmRSS_kib": 10340,
+          "VmData_kib": 8996,
+          "Pss_kib": 10332,
+          "Rss_smaps_kib": 10340,
+          "Private_Dirty_kib": 10332
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.034244922921061516,
+      "actual_exe_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10828,
+      "VmRSS_kib": 10340,
+      "VmRSS_kib_range": [
+        10340,
+        10340
+      ],
+      "VmData_kib": 8996,
+      "VmData_kib_range": [
+        8996,
+        8996
+      ],
+      "Pss_kib": 10332,
+      "Pss_kib_range": [
+        10332,
+        10332
+      ],
+      "Rss_smaps_kib": 10340,
+      "Rss_smaps_kib_range": [
+        10340,
+        10340
+      ],
+      "exit": 0,
+      "log_sha256": "0eaac8fdedc2c892f189673464cd00be6a5f6ea0d255b458b9995ee253243594",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-10000-main",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/result.json",
+        "sha256": "032aad3fdff8df05704fef303a72cdac0cb291e58886f27b44e833dab42bb9f3",
+        "bytes": 2334
+      },
+      "sample_files": [
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-0.status",
+            "sha256": "ed5290a0981e66ce387dc0048184e015cff4ad3a68655c303a0130588e863238",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-0.smaps_rollup",
+            "sha256": "d0b71ea9895c05b7b04000f4c213b1bbf7fa7265b190fa761dab24ae68445f40",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-1.status",
+            "sha256": "ed5290a0981e66ce387dc0048184e015cff4ad3a68655c303a0130588e863238",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-1.smaps_rollup",
+            "sha256": "d0b71ea9895c05b7b04000f4c213b1bbf7fa7265b190fa761dab24ae68445f40",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-2.status",
+            "sha256": "ed5290a0981e66ce387dc0048184e015cff4ad3a68655c303a0130588e863238",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-2.smaps_rollup",
+            "sha256": "d0b71ea9895c05b7b04000f4c213b1bbf7fa7265b190fa761dab24ae68445f40",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-3.status",
+            "sha256": "ed5290a0981e66ce387dc0048184e015cff4ad3a68655c303a0130588e863238",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-3.smaps_rollup",
+            "sha256": "d0b71ea9895c05b7b04000f4c213b1bbf7fa7265b190fa761dab24ae68445f40",
+            "bytes": 698
+          }
+        },
+        {
+          "status": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-4.status",
+            "sha256": "ed5290a0981e66ce387dc0048184e015cff4ad3a68655c303a0130588e863238",
+            "bytes": 1123
+          },
+          "smaps_rollup": {
+            "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-qualified/r3-10000-main/sample-4.smaps_rollup",
+            "sha256": "d0b71ea9895c05b7b04000f4c213b1bbf7fa7265b190fa761dab24ae68445f40",
+            "bytes": 698
+          }
+        }
+      ]
+    }
+  ],
+  "summaries": [
+    {
+      "host_record_count": 0,
+      "variants": {
+        "c": {
+          "VmHWM_kib": {
+            "round_values": [
+              1104,
+              1124,
+              1088
+            ],
+            "median": 1104
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              1104,
+              1124,
+              1088
+            ],
+            "median": 1104
+          },
+          "Pss_kib": {
+            "round_values": [
+              1096,
+              1116,
+              1080
+            ],
+            "median": 1096
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              1104,
+              1124,
+              1088
+            ],
+            "median": 1104
+          }
+        },
+        "main": {
+          "VmHWM_kib": {
+            "round_values": [
+              1924,
+              1920,
+              1924
+            ],
+            "median": 1924
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              1924,
+              1920,
+              1924
+            ],
+            "median": 1924
+          },
+          "Pss_kib": {
+            "round_values": [
+              1916,
+              1912,
+              1916
+            ],
+            "median": 1916
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              1924,
+              1920,
+              1924
+            ],
+            "median": 1924
+          }
+        },
+        "head": {
+          "VmHWM_kib": {
+            "round_values": [
+              2004,
+              2004,
+              1976
+            ],
+            "median": 2004
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              2004,
+              2004,
+              1976
+            ],
+            "median": 2004
+          },
+          "Pss_kib": {
+            "round_values": [
+              1996,
+              1996,
+              1968
+            ],
+            "median": 1996
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              2004,
+              2004,
+              1976
+            ],
+            "median": 2004
+          }
+        }
+      },
+      "candidate_minus_main_kib": {
+        "VmHWM_kib": 80,
+        "VmRSS_kib": 80,
+        "Pss_kib": 80,
+        "Rss_smaps_kib": 80
+      },
+      "all_nine_answers_identical": true
+    },
+    {
+      "host_record_count": 1000,
+      "variants": {
+        "c": {
+          "VmHWM_kib": {
+            "round_values": [
+              1320,
+              1324,
+              1240
+            ],
+            "median": 1320
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              1320,
+              1324,
+              1240
+            ],
+            "median": 1320
+          },
+          "Pss_kib": {
+            "round_values": [
+              1312,
+              1316,
+              1232
+            ],
+            "median": 1312
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              1320,
+              1324,
+              1240
+            ],
+            "median": 1320
+          }
+        },
+        "main": {
+          "VmHWM_kib": {
+            "round_values": [
+              2836,
+              2836,
+              2832
+            ],
+            "median": 2836
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              2836,
+              2836,
+              2832
+            ],
+            "median": 2836
+          },
+          "Pss_kib": {
+            "round_values": [
+              2828,
+              2828,
+              2824
+            ],
+            "median": 2828
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              2836,
+              2836,
+              2832
+            ],
+            "median": 2836
+          }
+        },
+        "head": {
+          "VmHWM_kib": {
+            "round_values": [
+              2916,
+              2816,
+              2928
+            ],
+            "median": 2916
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              2916,
+              2816,
+              2928
+            ],
+            "median": 2916
+          },
+          "Pss_kib": {
+            "round_values": [
+              2908,
+              2808,
+              2920
+            ],
+            "median": 2908
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              2916,
+              2816,
+              2928
+            ],
+            "median": 2916
+          }
+        }
+      },
+      "candidate_minus_main_kib": {
+        "VmHWM_kib": 80,
+        "VmRSS_kib": 80,
+        "Pss_kib": 80,
+        "Rss_smaps_kib": 80
+      },
+      "all_nine_answers_identical": true
+    },
+    {
+      "host_record_count": 10000,
+      "variants": {
+        "c": {
+          "VmHWM_kib": {
+            "round_values": [
+              3128,
+              3096,
+              3124
+            ],
+            "median": 3124
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              3128,
+              3096,
+              3124
+            ],
+            "median": 3124
+          },
+          "Pss_kib": {
+            "round_values": [
+              3120,
+              3088,
+              3116
+            ],
+            "median": 3116
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              3128,
+              3096,
+              3124
+            ],
+            "median": 3124
+          }
+        },
+        "main": {
+          "VmHWM_kib": {
+            "round_values": [
+              10832,
+              10832,
+              10828
+            ],
+            "median": 10832
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              10340,
+              10340,
+              10340
+            ],
+            "median": 10340
+          },
+          "Pss_kib": {
+            "round_values": [
+              10332,
+              10332,
+              10332
+            ],
+            "median": 10332
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              10340,
+              10340,
+              10340
+            ],
+            "median": 10340
+          }
+        },
+        "head": {
+          "VmHWM_kib": {
+            "round_values": [
+              10892,
+              10620,
+              10792
+            ],
+            "median": 10792
+          },
+          "VmRSS_kib": {
+            "round_values": [
+              10412,
+              10340,
+              10440
+            ],
+            "median": 10412
+          },
+          "Pss_kib": {
+            "round_values": [
+              10404,
+              10332,
+              10432
+            ],
+            "median": 10404
+          },
+          "Rss_smaps_kib": {
+            "round_values": [
+              10412,
+              10340,
+              10440
+            ],
+            "median": 10412
+          }
+        }
+      },
+      "candidate_minus_main_kib": {
+        "VmHWM_kib": -40,
+        "VmRSS_kib": 72,
+        "Pss_kib": 72,
+        "Rss_smaps_kib": 72
+      },
+      "all_nine_answers_identical": true
+    }
+  ],
+  "checks": {
+    "complete_inventory_27": true,
+    "samples_per_run": 5,
+    "total_samples": 135,
+    "all_sample_fields_match_raw_proc_files": true,
+    "all_actual_elf_hashes_match": true,
+    "all_answers_correct": true,
+    "all_answers_identical_within_record_count": true,
+    "all_exits_zero": true,
+    "all_logs_match_recorded_hashes": true
+  },
+  "decision": {
+    "host_record_count": 10000,
+    "main_median_VmHWM_kib": 10832,
+    "candidate_median_VmHWM_kib": 10792,
+    "candidate_minus_main_kib": -40,
+    "predeclared_tolerance_kib": 256,
+    "passed": true,
+    "criterion": "Candidate 10,000-record median kernel VmHWM minus main median must be <=256 KiB, as stored in the plan before runs.",
+    "limitation": "256 KiB is the predeclared allowance for checking removal of the added startup peak; it is not a project/device RAM budget or an equivalence claim against C."
+  },
+  "retained_history": [
+    {
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-01/result.json",
+        "sha256": "310aaccbd7c5050c51299ad712692cd540ab027343515a062fe41b7a046e0fb8",
+        "bytes": 75714
+      },
+      "source_commit": "4fcfd7f084c7d8639bad741bc3fb2c10fd5b7cd3",
+      "recorded_status": "complete",
+      "recorded_passed": true,
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+        "head": "585582979f02567c92075b7831893a7d47776169f4ff3bba2e64c4cf94067ced"
+      },
+      "role": "Retained earlier source experiment; not the final qualification."
+    },
+    {
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix2-repair-20261011/private/startup-resources-final/result.json",
+        "sha256": "927cf9fd9a627ab11733bc14ef1bd919ea08d205e022e211724b3a6b24849b45",
+        "bytes": 75822
+      },
+      "source_commit": "74d210d2987a65def5b2077b6aedb36f45a07f6d",
+      "recorded_status": "complete",
+      "recorded_passed": true,
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+        "head": "bed7c85376e2728ef365a1d3802f89b743ff7a15c275b991c402492b80e3c2ae"
+      },
+      "role": "Retained earlier source experiment; not the final qualification."
+    }
+  ],
+  "limitations": [
+    "Uses same-source Oracle release build, not the differently stripped SDK package ELF; both are separately identified in build evidence.",
+    "Each process completed initial cache reload, answered one UDP query, then produced five idle samples; no sustained traffic, saturation, or injected memory limits.",
+    "VmHWM is the kernel peak; per-run idle RSS/PSS are medians of five samples, then summary medians span three runs. The result does not close CPU/latency performance or target-router resource acceptance."
+  ]
+}
