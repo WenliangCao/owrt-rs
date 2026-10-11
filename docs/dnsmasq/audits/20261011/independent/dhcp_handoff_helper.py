@@ -2,6 +2,30 @@
 """Independent DHCP wire scenarios; reuse the established isolated transport only."""
 import argparse, hashlib, json, os, socket, struct, sys
 from pathlib import Path
+def normalize_renewal_timers(event, reply):
+    """Validate this fixture's independent C/Rust renewal fuzz before comparing."""
+    if not (event['kind'] == 3 and event.get('wanted', True) is False
+            and event.get('server') is None
+            and event.get('ciaddr') not in (None, '0.0.0.0')):
+        return
+    # The fixture has a 1h range, no timer overrides. REQUEST can shorten it.
+    lease = min(3600, max(120, event.get('lease_time', 3600)))
+    if not reply or reply.get('message_type') != 5:
+        raise ValueError('RENEW did not receive ACK')
+    options = reply['options']
+    if any(len(options.get(code, '')) != 8 for code in ['51', '58', '59']):
+        raise ValueError('RENEW lease/T1/T2 must each contain four bytes')
+    values = {code: int(options[code], 16) for code in ['51', '58', '59']}
+    # rfc2131.c:1486,2776-2780: limit rand16() to T1/8 and subtract
+    # that same value from T1 and T2. Keep the granted lease exact.
+    fuzz = lease // 2 - values['58']
+    if not (values['51'] == lease and 0 <= fuzz <= lease // 16
+            and values['59'] == lease * 7 // 8 - fuzz):
+        raise ValueError(f'invalid RENEW timer relation: {values}')
+    options['58'] = (lease // 2).to_bytes(4, 'big').hex()
+    options['59'] = (lease * 7 // 8).to_bytes(4, 'big').hex()
+
+
 p=argparse.ArgumentParser(); p.add_argument('--source',type=Path,required=True); p.add_argument('--rust',type=Path,required=True); p.add_argument('--image-root',type=Path,required=True); p.add_argument('--out',type=Path,required=True); a=p.parse_args()
 sys.path.insert(0,str(a.source/'tools/dnsmasq'))
 import audit_20261011_dhcp as base
@@ -89,6 +113,8 @@ for case_name,event in cases:
         rows[side]['helper_events_full']=helper_before_stop
     def normalized(row):
         row=json.loads(json.dumps(row))
+        for event in row['events']:
+            normalize_renewal_timers(event['input'], event['reply'])
         for event in row['helper_events_full']:
             for key in ['DNSMASQ_LEASE_EXPIRES','DNSMASQ_TIME_REMAINING']:
                 event['env'].pop(key,None)
