@@ -426,7 +426,7 @@ def run_config_contract(f, side):
     # in image ubus_init after a successful connection. Preserve that defect.
     path = f.out / "ubus-empty.conf"
     path.write_bytes(common + b"enable-ubus=\n")
-    child, log = f.spawn([str(binary), "--keep-in-foreground", "-C", str(path)], side + "-empty")
+    child, log = f.spawn(prefix + [b"--keep-in-foreground", b"-C", os.fsencode(path)], side + "-empty")
     child.wait(3)
     observed["empty-activation"] = {"exit": child.returncode, "log": log.read_bytes().hex()}
     f.daemon = None
