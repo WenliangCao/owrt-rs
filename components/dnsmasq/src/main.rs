@@ -6570,39 +6570,79 @@ fn emit_hosts_read_notices(
         return;
     };
     let hosts = &mut parent.local.hosts;
-    for (source, names) in hosts.take_read_reports() {
-        if let (Some(path), Some(logger)) = (hosts.source_name(source), logger.as_mut()) {
-            logger.emit(dnsmasq_rs::logging::startup::hosts_read(path, names));
-        }
+    use dnsmasq_rs::hosts::ReadReport;
+    use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+    for report in hosts.take_read_reports() {
+        let Some(logger) = logger.as_mut() else {
+            continue;
+        };
+        let event = match report {
+            ReadReport::Complete { source, names } => {
+                let Some(path) = hosts.source_name(source) else {
+                    continue;
+                };
+                dnsmasq_rs::logging::startup::hosts_read(path, names)
+            }
+            ReadReport::BadToken {
+                source,
+                line,
+                address,
+            } => {
+                let Some(path) = hosts.source_name(source) else {
+                    continue;
+                };
+                let mut message = if address {
+                    b"bad address at ".to_vec()
+                } else {
+                    b"bad name at ".to_vec()
+                };
+                message.extend_from_slice(path);
+                message.extend_from_slice(format!(" line {line}").as_bytes());
+                LogEvent::new(Service::Dns, Priority::Error, message)
+            }
+            ReadReport::Error(message) => LogEvent::new(Service::Dns, Priority::Error, message),
+        };
+        logger.emit(event);
     }
 }
 
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
-    let mut read = |path: &Path, source: u32| {
-        let bytes = match std::fs::read(path) {
-            Ok(bytes) => bytes,
+    fn report_error(hosts: &mut Hosts, action: &[u8], path: &Path, error: io::Error) {
+        let mut message = action.to_vec();
+        message.extend_from_slice(path.as_os_str().as_encoded_bytes());
+        message.extend_from_slice(b": ");
+        let error = error.to_string();
+        message.extend_from_slice(
+            error
+                .split(" (os error ")
+                .next()
+                .unwrap_or(&error)
+                .as_bytes(),
+        );
+        hosts.report_read_error(message);
+    }
+    fn read(hosts: &mut Hosts, config: &DnsConfig, path: &Path, source: u32, ttl: u32) {
+        let file = match std::fs::File::open(path) {
+            Ok(file) => file,
             Err(error) => {
-                eprintln!(
-                    "dnsmasq-rs: failed to load names from {}: {error}",
-                    path.display()
-                );
+                report_error(hosts, b"failed to load names from ", path, error);
                 return;
             }
         };
         hosts.set_source_name(source, path.as_os_str().as_encoded_bytes().to_vec());
-        let _ = hosts.read(&bytes, source, local_ttl, config.expand_hosts, |address| {
+        let _ = hosts.read_from(file, source, ttl, config.expand_hosts, |address| {
             config
                 .domain_for_address(address)
                 .ok()
                 .flatten()
                 .map(ToOwned::to_owned)
         });
-    };
+    }
+    let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
     // addn-hosts files remain active in dnsmasq.
     if !config.no_hosts {
-        read(Path::new("/etc/hosts"), 0);
+        read(&mut hosts, config, Path::new("/etc/hosts"), 0, local_ttl);
     }
     // expand_filelist appends directory members after explicit files. Its
     // alphasort order matters when multiple names compete for PTR ownership.
@@ -6610,16 +6650,13 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
     for (index, path) in config.addn_hosts.iter().enumerate() {
         let Some(path) = path else { continue };
         if !path.is_dir() {
-            read(path, (index + 1) as u32);
+            read(&mut hosts, config, path, (index + 1) as u32, local_ttl);
             continue;
         }
         let entries = match std::fs::read_dir(path) {
             Ok(entries) => entries,
             Err(error) => {
-                eprintln!(
-                    "dnsmasq-rs: cannot access directory {}: {error}",
-                    path.display()
-                );
+                report_error(&mut hosts, b"cannot access directory ", path, error);
                 continue;
             }
         };
@@ -6642,7 +6679,13 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
         directory_files.extend(files);
     }
     for (index, path) in directory_files.iter().enumerate() {
-        read(path, (config.addn_hosts.len() + index + 1) as u32);
+        read(
+            &mut hosts,
+            config,
+            path,
+            (config.addn_hosts.len() + index + 1) as u32,
+            local_ttl,
+        );
     }
     hosts
 }

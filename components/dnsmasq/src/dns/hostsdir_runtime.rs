@@ -3,7 +3,7 @@
 
 use super::HostSource;
 use crate::config::dns::DnsConfig;
-use crate::hosts::{visit_hosts, Hosts, ReadStats};
+use crate::hosts::{Hosts, HostsParser, ReadStats};
 use owrt_ubus::sys::PollFd;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read};
@@ -37,8 +37,7 @@ pub struct HostsRead {
     wait_readiness: bool,
     config: DnsConfig,
     loaded: HostsLoad,
-    line: Vec<u8>,
-    line_number: usize,
+    parser: HostsParser,
 }
 
 impl HostsRead {
@@ -59,8 +58,7 @@ impl HostsRead {
                 stats: ReadStats::default(),
                 bad_lines: Vec::new(),
             },
-            line: Vec::new(),
-            line_number: 0,
+            parser: HostsParser::default(),
         })
     }
 
@@ -78,10 +76,9 @@ impl HostsRead {
         !self.wait_readiness
     }
 
-    fn consume_line(&mut self) {
-        self.line_number += 1;
-        let stats = visit_hosts(
-            &self.line,
+    fn consume(&mut self, bytes: &[u8]) {
+        self.parser.feed(
+            bytes,
             self.config.expand_hosts,
             |address| {
                 self.config
@@ -91,16 +88,24 @@ impl HostsRead {
                     .map(ToOwned::to_owned)
             },
             |name, address| self.loaded.records.push((name, address)),
+            |line, address| {
+                if self
+                    .loaded
+                    .bad_lines
+                    .last()
+                    .is_none_or(|entry| entry.0 != line)
+                {
+                    self.loaded.bad_lines.push((line, 0, 0));
+                }
+                let entry = self.loaded.bad_lines.last_mut().unwrap();
+                if address {
+                    entry.1 += 1;
+                } else {
+                    entry.2 += 1;
+                }
+            },
         );
-        self.loaded.stats.accepted += stats.accepted;
-        self.loaded.stats.bad_addresses += stats.bad_addresses;
-        self.loaded.stats.bad_names += stats.bad_names;
-        if stats.bad_addresses != 0 || stats.bad_names != 0 {
-            self.loaded
-                .bad_lines
-                .push((self.line_number, stats.bad_addresses, stats.bad_names));
-        }
-        self.line.clear();
+        self.loaded.stats = self.parser.stats;
     }
 
     /// EOF and read errors complete the received prefix, including a partial
@@ -127,17 +132,9 @@ impl HostsRead {
             }
             Err(_) => 0,
         };
-        for &byte in &bytes[..length] {
-            if byte == b'\n' {
-                self.consume_line();
-            } else {
-                self.line.push(byte);
-            }
-        }
+        self.consume(&bytes[..length]);
         if length == 0 {
-            if !self.line.is_empty() {
-                self.consume_line();
-            }
+            self.consume(b"\n");
             Ok(true)
         } else {
             Ok(false)

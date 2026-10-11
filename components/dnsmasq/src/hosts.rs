@@ -3,6 +3,7 @@
 //! reloading it cannot accidentally discard leases.
 
 use std::collections::{HashMap, HashSet};
+use std::io::Read;
 use std::net::IpAddr;
 
 /// Exact no-IDN check_name/canonicalise behavior. Preserve case, strip one
@@ -55,13 +56,27 @@ pub struct ReadStats {
     pub bad_names: usize,
 }
 
+#[derive(Clone, Debug)]
+pub enum ReadReport {
+    Complete {
+        source: u32,
+        names: usize,
+    },
+    BadToken {
+        source: u32,
+        line: usize,
+        address: bool,
+    },
+    Error(Vec<u8>),
+}
+
 /// One reload generation. Address and name indexes remain live after bulk
 /// load; C discards its bulk reverse index and scans every bucket for PTR.
 #[derive(Clone, Default)]
 pub struct Hosts {
     entries: Vec<Host>,
     sources: HashMap<u32, Vec<u8>>,
-    read_reports: Vec<(u32, usize)>,
+    read_reports: Vec<ReadReport>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<IpAddr, usize>,
     non_terminals: HashSet<Vec<u8>>,
@@ -94,10 +109,14 @@ impl Hosts {
             .or((source == 0).then_some(b"/etc/hosts".as_slice()))
     }
 
-    /// Completed read_hostsfile calls, in loader order. The owner emits their
-    /// startup/reload notices, then clears this finite generation metadata.
-    pub fn take_read_reports(&mut self) -> Vec<(u32, usize)> {
+    /// Read diagnostics and completion notices, in loader order. The owner
+    /// emits them at the startup/reload stage, then clears this metadata.
+    pub fn take_read_reports(&mut self) -> Vec<ReadReport> {
         std::mem::take(&mut self.read_reports)
+    }
+
+    pub fn report_read_error(&mut self, message: Vec<u8>) {
+        self.read_reports.push(ReadReport::Error(message));
     }
 
     /// Current static address order without the lookup/round-robin mutation.
@@ -263,7 +282,7 @@ impl Hosts {
         selected.into_iter().map(|id| &self.entries[id]).collect()
     }
 
-    /// The caller opens the file and records any I/O errors before this method.
+    /// The caller opens the file and records any open errors before this method.
     /// `domain` implements get_domain/get_domain6 (including address ranges).
     pub fn read(
         &mut self,
@@ -273,13 +292,151 @@ impl Hosts {
         expand: bool,
         domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
     ) -> ReadStats {
+        self.read_from(input, source, ttl, expand, domain)
+    }
+
+    /// Like C gettok, EOF or a read error completes the received prefix. The
+    /// token and input buffers stay bounded regardless of line or file length.
+    pub fn read_from(
+        &mut self,
+        mut input: impl Read,
+        source: u32,
+        ttl: u32,
+        expand: bool,
+        mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+    ) -> ReadStats {
+        let mut parser = HostsParser::default();
         let mut inserted = 0;
-        let mut stats = visit_hosts(input, expand, domain, |name, address| {
-            inserted += usize::from(self.insert_with_origin(name, address, ttl, source, false));
-        });
+        let mut errors = Vec::new();
+        let mut buffer = [0; 8192];
+        let mut consume = |parser: &mut HostsParser, bytes: &[u8]| {
+            parser.feed(
+                bytes,
+                expand,
+                &mut domain,
+                |name, address| {
+                    inserted +=
+                        usize::from(self.insert_with_origin(name, address, ttl, source, false));
+                },
+                |line, address| {
+                    errors.push(ReadReport::BadToken {
+                        source,
+                        line,
+                        address,
+                    })
+                },
+            );
+        };
+        while let Ok(length) = input.read(&mut buffer) {
+            if length == 0 {
+                break;
+            }
+            consume(&mut parser, &buffer[..length]);
+        }
+        consume(&mut parser, b"\n");
+        let mut stats = parser.stats;
         stats.inserted = inserted;
-        self.read_reports.push((source, stats.accepted));
+        self.read_reports.extend(errors);
+        self.read_reports.push(ReadReport::Complete {
+            source,
+            names: stats.accepted,
+        });
         stats
+    }
+}
+
+/// cache.c gettok retains at most MAXDNAMESTR - 1 bytes and consumes the rest.
+/// Keeping token state, rather than a whole line, also bounds long comments and
+/// tokens in regular files, FIFOs and incremental hostsdir reads.
+pub(crate) struct HostsParser {
+    token: [u8; 502],
+    token_len: usize,
+    comment: bool,
+    line: usize,
+    first: bool,
+    address: Option<IpAddr>,
+    suffix: Option<Vec<u8>>,
+    pub stats: ReadStats,
+}
+
+impl Default for HostsParser {
+    fn default() -> Self {
+        Self {
+            token: [0; 502],
+            token_len: 0,
+            comment: false,
+            line: 1,
+            first: true,
+            address: None,
+            suffix: None,
+            stats: ReadStats::default(),
+        }
+    }
+}
+
+impl HostsParser {
+    /// Feed a final newline on EOF/read error to complete a partial last token.
+    pub fn feed(
+        &mut self,
+        input: &[u8],
+        expand: bool,
+        mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+        mut emit: impl FnMut(Vec<u8>, IpAddr),
+        mut invalid: impl FnMut(usize, bool),
+    ) {
+        for &byte in input {
+            if !self.comment {
+                // C isspace includes vertical tab as well as Rust's ASCII set.
+                if byte == b'#' || byte.is_ascii_whitespace() || byte == 0x0b {
+                    if self.token_len != 0 {
+                        let value = self.token[..self.token_len]
+                            .split(|&b| b == 0)
+                            .next()
+                            .unwrap_or_default();
+                        if self.first {
+                            self.first = false;
+                            self.address = std::str::from_utf8(value)
+                                .ok()
+                                .and_then(|value| value.parse::<IpAddr>().ok());
+                            self.suffix = self.address.and_then(&mut domain);
+                            if self.address.is_none() {
+                                self.stats.bad_addresses += 1;
+                                invalid(self.line, true);
+                            }
+                        } else if let Some(address) = self.address {
+                            if let Some(name) = canonicalise(value) {
+                                if expand && !value.contains(&b'.') {
+                                    if let Some(suffix) = &self.suffix {
+                                        let mut expanded = name.clone();
+                                        expanded.push(b'.');
+                                        expanded.extend_from_slice(suffix);
+                                        self.stats.accepted += 1;
+                                        emit(expanded, address);
+                                    }
+                                }
+                                self.stats.accepted += 1;
+                                emit(name, address);
+                            } else {
+                                self.stats.bad_names += 1;
+                                invalid(self.line, false);
+                            }
+                        }
+                        self.token_len = 0;
+                    }
+                    self.comment = byte == b'#';
+                } else if self.token_len < self.token.len() {
+                    self.token[self.token_len] = byte;
+                    self.token_len += 1;
+                }
+            }
+            if byte == b'\n' {
+                self.comment = false;
+                self.first = true;
+                self.address = None;
+                self.suffix = None;
+                self.line += 1;
+            }
+        }
     }
 }
 
@@ -291,54 +448,10 @@ pub fn visit_hosts(
     mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
     mut emit: impl FnMut(Vec<u8>, IpAddr),
 ) -> ReadStats {
-    let mut stats = ReadStats::default();
-    for line in input.split(|&b| b == b'\n') {
-        let line = line.split(|&b| b == b'#').next().unwrap_or_default();
-        let mut tokens = line
-            .split(|b| b.is_ascii_whitespace())
-            .filter(|v| !v.is_empty());
-        let Some(address) = tokens.next() else {
-            continue;
-        };
-        // gettok retains at most MAXDNAMESTR - 1 = 502 bytes, then C
-        // consumers see the prefix before an embedded NUL.
-        let token = |v: &[u8]| {
-            v[..v.len().min(502)]
-                .split(|&b| b == 0)
-                .next()
-                .unwrap_or_default()
-                .to_vec()
-        };
-        let address = token(address);
-        let Some(address) = std::str::from_utf8(&address)
-            .ok()
-            .and_then(|v| v.parse::<IpAddr>().ok())
-        else {
-            stats.bad_addresses += 1;
-            continue;
-        };
-        let suffix = domain(address);
-        for value in tokens {
-            let value = token(value);
-            let fqdn = value.contains(&b'.');
-            let Some(name) = canonicalise(&value) else {
-                stats.bad_names += 1;
-                continue;
-            };
-            if expand && !fqdn {
-                if let Some(suffix) = &suffix {
-                    let mut expanded = name.clone();
-                    expanded.push(b'.');
-                    expanded.extend_from_slice(suffix);
-                    stats.accepted += 1;
-                    emit(expanded, address);
-                }
-            }
-            stats.accepted += 1;
-            emit(name, address);
-        }
-    }
-    stats
+    let mut parser = HostsParser::default();
+    parser.feed(input, expand, &mut domain, &mut emit, |_, _| {});
+    parser.feed(b"\n", expand, domain, emit, |_, _| {});
+    parser.stats
 }
 
 #[cfg(test)]

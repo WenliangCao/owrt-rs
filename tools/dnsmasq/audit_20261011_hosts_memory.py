@@ -12,6 +12,8 @@ import struct
 import subprocess
 import time
 
+from m2_rootfs import image_elf_command
+
 
 def query():
     packet = struct.pack("!6H", 0x1234, 0x100, 1, 0, 0, 0)
@@ -112,16 +114,32 @@ def main():
     c_binary = root / "usr/sbin/dnsmasq"
     implementations = [("c-image", [str(root / "lib/libc.so"), "--library-path",
                         f"{root}/lib:{root}/usr/lib", str(c_binary)]),
-                       ("rust", [str(args.rust)])]
+                       ("rust", image_elf_command(root, args.rust))]
     rows = [run_case(label, command, args.out, limit, reload)
             for limit, reload in ((0, False), (32, False), (32, True))
             for label, command in implementations]
-    result = {"isolated": True, "synthetic_input": "one valid host plus 48 MiB of short comments",
+    failures = []
+    for index in range(0, len(rows), 2):
+        c, rust = rows[index:index + 2]
+        case = {"address_space_limit_mib": c["address_space_limit_mib"], "reload": c["reload"]}
+        for side in (c, rust):
+            if not all(side[phase]["expected_a"] for phase in ("before", "after")):
+                failures.append({**case, "kind": "missing-host", "implementation": side["implementation"]})
+            if side["exit_before_cleanup"] is not None or side["cleanup_exit"] != 0:
+                failures.append({**case, "kind": "daemon-exit", "implementation": side["implementation"]})
+        for phase in ("before", "after"):
+            if c[phase] != rust[phase]:
+                failures.append({**case, "kind": "wire-mismatch", "phase": phase,
+                                 "c": c[phase], "rust": rust[phase]})
+    result = {"isolated": True, "failures": failures,
+              "paired_cases_passed": len(rows) // 2 if not failures else None, "synthetic_input": "one valid host plus 48 MiB of short comments",
               "binary_sha256": {"c-image": hashlib.sha256(c_binary.read_bytes()).hexdigest(),
                                 "rust": hashlib.sha256(args.rust.read_bytes()).hexdigest()},
               "cases": rows}
     (args.out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
+    if failures:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
