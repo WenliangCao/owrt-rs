@@ -601,23 +601,6 @@ impl CacheContext<'_> {
                         stale |= nx_target.is_some_and(|id| {
                             cache.get(id).is_some_and(|entry| entry.is_stale(now))
                         });
-                        // rfc1035.c follows CNAMEs before the configured RR
-                        // loops, regardless of the cache entry which keeps
-                        // the alias alive. A dynamic A target can therefore
-                        // terminate at a configured TXT, MX or SRV answer.
-                        if let Some(flags) = append_local_terminal(
-                            &mut writer,
-                            local,
-                            &terminal_name,
-                            question,
-                            header,
-                            now,
-                            owner_offset,
-                            cache,
-                            nx_target,
-                        )? {
-                            return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
-                        }
                         if question.rrtype == 12 {
                             if let Some(address) =
                                 super::local::arpa_address(&terminal_name.dnsmasq_bytes())
@@ -653,6 +636,26 @@ impl CacheContext<'_> {
                             )? {
                                 return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
                             }
+                        }
+                        // Keep reverse address/synthesis above: is_rev_synth
+                        // changes C's name cursor and discards the old zone's
+                        // negative SOA. It is not an ordinary local RR footer.
+                        // rfc1035.c follows CNAMEs before the configured RR
+                        // loops, regardless of the cache entry which keeps
+                        // the alias alive. A dynamic A target can therefore
+                        // terminate at a configured TXT, MX or SRV answer.
+                        if let Some(flags) = append_local_terminal(
+                            &mut writer,
+                            local,
+                            &terminal_name,
+                            question,
+                            header,
+                            now,
+                            owner_offset,
+                            cache,
+                            nx_target,
+                        )? {
+                            return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
                         }
                         if local.config.filter_win2k && question.rrtype == 6 {
                             record_windows_filter(local, &terminal_name);
