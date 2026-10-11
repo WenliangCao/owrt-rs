@@ -103,7 +103,7 @@ def run(command,options,qtype,tcp,debug,folder,warm_txt=False,query_flags=0x100,
  row['log']=(folder/'daemon.log').read_text();return row
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--image-root',type=pathlib.Path,required=True);p.add_argument('--rust',type=pathlib.Path,required=True);p.add_argument('--main',type=pathlib.Path);p.add_argument('--out',type=pathlib.Path,required=True);a=p.parse_args();assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1';a.out.mkdir(parents=True,exist_ok=False)
+ p=argparse.ArgumentParser();p.add_argument('--image-root',type=pathlib.Path,required=True);p.add_argument('--rust',type=pathlib.Path,required=True);p.add_argument('--main',type=pathlib.Path);p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--require-match',action='store_true');a=p.parse_args();assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1';a.out.mkdir(parents=True,exist_ok=False)
  cmds={'c':[str(a.image_root/'lib/libc.so'),'--library-path',f'{a.image_root}/lib:{a.image_root}/usr/lib',str(a.image_root/'usr/sbin/dnsmasq')],'rust':[str(a.rust)]}
  if a.main:cmds['main']=[str(a.main)]
  cases=[(f'rd{rd}-do{do}',16,['--txt-record=alias.test,alias-local'],True,rd*0x100,do) for rd in (0,1) for do in (False,True)]
@@ -113,5 +113,17 @@ def main():
    for tcp in (False,True):
     key=f'{ident}-debug{debug}-tcp{tcp}';rows={side:run(cmd,opts,k,tcp,debug,a.out/(key+'-'+side),warm,flags,do) for side,cmd in cmds.items()}
     result['cases'].append({'id':key,'matched':rows['c']['answer']==rows['rust']['answer'],'observed':rows});(a.out/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+ if a.require_match:
+  checks=[]
+  for case in result['cases']:
+   c,rust=case['observed']['c'],case['observed']['rust']
+   checks.append({'id':case['id'],'answers_equal':c['answer']==rust['answer'],
+    'warm_A_equal':c['warm_A']==rust['warm_A'],'warm_TXT_equal':c.get('warm_TXT')==rust.get('warm_TXT'),
+    'upstream_queries_equal':c['upstream']==rust['upstream'],
+    'both_healthy':all(row['alive'] and row['exit']==0 for row in (c,rust))})
+  result['strict_checks']=checks
+  result['passed']=len(checks)==16 and all(value for row in checks for key,value in row.items() if key!='id')
+  (a.out/'result.json').write_text(json.dumps(result,indent=2)+'\n')
  print(json.dumps({'cases':len(result['cases']),'mismatches':[r['id'] for r in result['cases'] if not r['matched']]},indent=2))
+ if a.require_match and not result['passed']:raise SystemExit(1)
 if __name__=='__main__':main()

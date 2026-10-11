@@ -572,6 +572,8 @@ impl CacheContext<'_> {
                                     header,
                                     now,
                                     owner_offset,
+                                    cache,
+                                    None,
                                 )?
                                 else {
                                     return Ok(CachedAnswer {
@@ -596,6 +598,26 @@ impl CacheContext<'_> {
                         let nx_target = (target_entry.record.kind == Kind::NxDomain
                             && target_entry.record.negative)
                             .then_some(target);
+                        stale |= nx_target.is_some_and(|id| {
+                            cache.get(id).is_some_and(|entry| entry.is_stale(now))
+                        });
+                        // rfc1035.c follows CNAMEs before the configured RR
+                        // loops, regardless of the cache entry which keeps
+                        // the alias alive. A dynamic A target can therefore
+                        // terminate at a configured TXT, MX or SRV answer.
+                        if let Some(flags) = append_local_terminal(
+                            &mut writer,
+                            local,
+                            &terminal_name,
+                            question,
+                            header,
+                            now,
+                            owner_offset,
+                            cache,
+                            nx_target,
+                        )? {
+                            return Ok(finish_cached_answer_flags(writer, Some(flags), stale)?);
+                        }
                         if question.rrtype == 12 {
                             if let Some(address) =
                                 super::local::arpa_address(&terminal_name.dnsmasq_bytes())
@@ -1677,6 +1699,8 @@ fn append_local_terminal(
     header: Header,
     now: i64,
     owner_offset: u16,
+    cache: &mut Cache,
+    negative: Option<super::cache::EntryId>,
 ) -> Result<Option<u16>, CacheError> {
     let mut query = PacketWriter::new(header.id, header.flags, u16::MAX as usize)?;
     query.question(target, question.rrtype, question.class)?;
@@ -1686,13 +1710,14 @@ fn append_local_terminal(
         local_ttl: local.local_ttl,
         max_packet: u16::MAX as usize,
     };
-    let Some(answer) = answerer.answer_on_network_with_interface_cache(
+    let Some(answer) = answerer.answer_with_query_events(
         &query.finish(),
         &mut local.leases,
         now,
         local.local_network,
-        None,
+        Some(cache),
         &local.interfaces,
+        local.query_logging,
     )?
     else {
         return Ok(None);
@@ -1700,10 +1725,21 @@ fn append_local_terminal(
     if answer.forward_rule {
         return Ok(None);
     }
+    for event in answer.query_events {
+        local.record_query_event(event);
+    }
     let message = Message::parse(&answer.packet)?;
     let mut previous_name = target.clone();
     let mut previous_offset = owner_offset;
     for section in [Section::Answer, Section::Authority, Section::Additional] {
+        if matches!(section, Section::Authority) {
+            if let Some(id) = negative {
+                match append_negative_authority(writer, cache, id, now) {
+                    Ok(_) | Err(WireError::Full) => {}
+                    Err(error) => return Err(error.into()),
+                }
+            }
+        }
         for record in message.records(section) {
             let owner = record.name()?;
             let data = record.canonical_rdata()?;
@@ -1741,7 +1777,14 @@ fn append_local_terminal(
             }
         }
     }
-    Ok(Some(message.header.flags))
+    // A filterwin2k terminal has no local RR of its own, but the retained
+    // CNAME prefix keeps answer_request's initial authoritative bit.
+    let flags = if message.header.answers == 0 && local.config.filter_win2k {
+        message.header.flags | 0x0400
+    } else {
+        message.header.flags
+    };
+    Ok(Some(flags))
 }
 
 /// Select the first IN SOA in the authority section whose owner is a label

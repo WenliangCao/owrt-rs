@@ -206,6 +206,175 @@ fn cached_nxdomain_does_not_mask_new_dhcp_address() {
 }
 
 #[test]
+fn cached_cname_dynamic_terminal_uses_configured_txt_mx_srv_before_cached_type() {
+    for (qtype, directive, expected_data) in [
+        (
+            16,
+            "txt-record=target.test,local-target",
+            b"\x0clocal-target".to_vec(),
+        ),
+        (
+            15,
+            "mx-host=target.test,mail.test,10",
+            [
+                10u16.to_be_bytes().as_slice(),
+                Name::from_ascii("mail.test").unwrap().as_wire(),
+            ]
+            .concat(),
+        ),
+        (
+            33,
+            "srv-host=target.test,mail.test,8443,10,0",
+            [
+                &[0, 10, 0, 0, 32, 251],
+                Name::from_ascii("mail.test").unwrap().as_wire(),
+            ]
+            .concat(),
+        ),
+    ] {
+        let mut daemon = daemon();
+        daemon.local.config.cache_rr.push(qtype);
+        daemon
+            .local
+            .config
+            .apply(
+                &crate::config::lex_line(directive.as_bytes())
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        daemon.local.query_logging = true;
+        daemon.cache_reply_at(&chain_reply(1, false), 100);
+        // The target's local record must win even if the requested upstream
+        // type and the MX/SRV Additional address are already cached.
+        let mut upstream = packet("target.test", qtype, 0x8180);
+        let data = if qtype == 16 {
+            b"\x08upstream".to_vec()
+        } else {
+            expected_data.clone()
+        };
+        upstream
+            .record_at(Section::Answer, 12, qtype, 1, 60, &data)
+            .unwrap();
+        daemon.cache_reply_at(&upstream.finish(), 100);
+        let mut mail = packet("mail.test", 1, 0x8180);
+        mail.record_at(Section::Answer, 12, 1, 1, 90, &[192, 0, 2, 90])
+            .unwrap();
+        daemon.cache_reply_at(&mail.finish(), 100);
+        let answer = cached(&mut daemon, "alias.test", qtype, 101).unwrap();
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(message.header.flags, 0x8580);
+        let records: Vec<_> = message.records(Section::Answer).collect();
+        assert_eq!(records.len(), 3);
+        assert_eq!(
+            records[2].name().unwrap(),
+            Name::from_ascii("target.test").unwrap()
+        );
+        assert_eq!(records[2].rrtype, qtype);
+        assert_eq!(records[2].ttl, 0);
+        assert_eq!(records[2].canonical_rdata().unwrap(), expected_data);
+        let extra: Vec<_> = message.records(Section::Additional).collect();
+        assert_eq!(extra.len(), usize::from(qtype != 16));
+        if qtype != 16 {
+            assert_eq!(
+                extra[0].name().unwrap(),
+                Name::from_ascii("mail.test").unwrap()
+            );
+            assert_eq!(extra[0].rdata, [192, 0, 2, 90]);
+            assert_eq!(extra[0].ttl, 89);
+        }
+        assert!(daemon.local.take_query_events().iter().any(|event| {
+            event.flags & crate::query_logging::CONFIG != 0
+                && event.name.as_deref() == Some(b"target.test")
+        }));
+        // The dynamic CNAME itself still requires RD and rejects DO before
+        // its configured terminal can answer.
+        for (flags, dnssec) in [(0, false), (0x100, true)] {
+            let mut query = packet("alias.test", qtype, flags);
+            if dnssec {
+                query
+                    .record(
+                        Section::Additional,
+                        &Name::from_ascii("").unwrap(),
+                        41,
+                        1232,
+                        0x8000,
+                        &[],
+                    )
+                    .unwrap();
+            }
+            let query = query.finish();
+            let question = super::super::forward::Question::parse(&query).unwrap();
+            assert!(daemon
+                .cached_answer_at(&query, &question, 101)
+                .unwrap()
+                .is_none());
+        }
+    }
+}
+
+#[test]
+fn configured_cname_terminal_keeps_negative_soa_before_mail_additional() {
+    let mut daemon = daemon();
+    daemon
+        .local
+        .config
+        .apply(
+            &crate::config::lex_line(b"mx-host=target.test,mail.test,10")
+                .unwrap()
+                .unwrap(),
+        )
+        .unwrap();
+    let mut reply = packet("alias.test", 1, 0x8183);
+    reply
+        .record_at(
+            Section::Answer,
+            12,
+            5,
+            1,
+            60,
+            Name::from_ascii("target.test").unwrap().as_wire(),
+        )
+        .unwrap();
+    let mut soa = Name::from_ascii("ns.test").unwrap().as_wire().to_vec();
+    soa.extend_from_slice(Name::from_ascii("hostmaster.test").unwrap().as_wire());
+    for value in [1u32, 2, 3, 4, 60] {
+        soa.extend_from_slice(&value.to_be_bytes());
+    }
+    reply
+        .record(
+            Section::Authority,
+            &Name::from_ascii("test").unwrap(),
+            6,
+            1,
+            60,
+            &soa,
+        )
+        .unwrap();
+    daemon.cache_reply_at(&reply.finish(), 100);
+    let mut mail = packet("mail.test", 1, 0x8180);
+    mail.record_at(Section::Answer, 12, 1, 1, 90, &[192, 0, 2, 90])
+        .unwrap();
+    daemon.cache_reply_at(&mail.finish(), 100);
+    let answer = cached(&mut daemon, "alias.test", 15, 101).unwrap();
+    let message = Message::parse(&answer).unwrap();
+    assert_eq!(message.header.flags, 0x8580);
+    assert_eq!(
+        message
+            .records(Section::Answer)
+            .map(|row| row.rrtype)
+            .collect::<Vec<_>>(),
+        [5, 15]
+    );
+    let authority = message.records(Section::Authority).next().unwrap();
+    assert_eq!(authority.rrtype, 6);
+    assert_eq!(authority.name().unwrap(), Name::from_ascii("test").unwrap());
+    let additional = message.records(Section::Additional).next().unwrap();
+    assert_eq!(additional.rrtype, 1);
+    assert_eq!(additional.rdata, [192, 0, 2, 90]);
+}
+
+#[test]
 fn malformed_replacement_keeps_prefix_removal_but_zero_ttl_stops_before_removal() {
     for ttl in [0, 53] {
         let mut daemon = daemon();
