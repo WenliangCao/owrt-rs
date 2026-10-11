@@ -36,6 +36,7 @@ impl Policy {
         selected_dns
             .listen_addresses
             .clone_from(&dns.listen_addresses);
+        selected_dns.auth.clone_from(&dns.auth);
         selected_dns.bind_dynamic = dns.bind_dynamic;
         selected_dns.bind_interfaces = dns.bind_interfaces;
         let dns = selected_dns;
@@ -87,7 +88,13 @@ impl Policy {
                                 _ => true,
                             }
                     })
-                    .is_none_or(|row| self.tftp_interface(row.link_name()))
+                    .is_none_or(|row| {
+                        // network.c disables TFTP on an auth interface unless
+                        // a dedicated enable-tftp interface list overrides it.
+                        (!self.config.interfaces.is_empty()
+                            || !self.dns.auth.selected(row.address, &row.name))
+                            && self.tftp_interface(row.link_name())
+                    })
             });
         }
         addresses
@@ -116,7 +123,7 @@ impl Policy {
         if !self.config.interfaces.is_empty() {
             return if self.tftp_interface(name) { Admission::Accept } else { Admission::Reject };
         }
-        if crate::listeners::udp_acl_name(&self.dns, datagram.local_address, name, loopback) {
+        if crate::listeners::udp_acl_name(&self.dns, datagram.local_address, name, loopback, false) {
             return if self.tftp_interface(name) { Admission::Accept } else { Admission::Reject };
         }
         if !self.dns.bind_dynamic {

@@ -16,6 +16,12 @@ from pathlib import Path
 from m2_rootfs import command, prepare, sha256
 
 
+A05 = [
+    "quiet-ra", "quiet-dhcp6", "no-dhcpv6-interface=lo", "enable-ra",
+    "auth-ttl=60", "auth-soa=1", "auth-server=ns.audit.test,lo",
+    "auth-sec-servers=ns.audit.test", "auth-peer=192.0.2.1",
+    "dnssec-debug", "dnssec-no-timecheck",
+]
 INACTIVE = [
     "quiet-ra", "quiet-dhcp6", "no-dhcpv6-interface=lo", "enable-ra",
     "auth-ttl=60", "auth-soa=1", "auth-server=ns.audit.test,lo",
@@ -93,11 +99,14 @@ def main():
     parser.add_argument("--image-root", required=True, type=Path)
     parser.add_argument("--rust", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--a05-only", action="store_true",
+                        help="assert A05's 11 runtime regressions and the no-ident control")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     root = prepare(args.image_root, None, args.out, args.rust)
     rows = []
-    for index, directive in enumerate(["no-ident", *INACTIVE, *INTEGER]):
+    cases = ["no-ident", *(A05 if args.a05_only else [*INACTIVE, *INTEGER])]
+    for index, directive in enumerate(cases):
         path = f"/m2/case-{index}.conf"
         (root / path.lstrip("/")).write_text("port=0\nno-hosts\nno-resolv\n" + directive + "\n")
         row = {"directive": directive, "syntax": {}}
@@ -111,7 +120,21 @@ def main():
                     "host-record=audit.test,192.0.2.42\n" + directive + "\n")
                 row["dns"] = {side: invoke_dns(root, side, path) for side in ("c", "rust")}
         rows.append(row)
-    result = {"scope": __doc__, "timestamp": time.time(),
+    failures = []
+    if args.a05_only:
+        for row in rows:
+            for side in ("c", "rust"):
+                if row["syntax"][side]["exit"] != 0:
+                    failures.append(f'{row["directive"]}: {side} syntax rejected')
+                if not row["startup"][side]["alive_after_300ms"] or row["startup"][side]["exit"] != 0:
+                    failures.append(f'{row["directive"]}: {side} startup failed')
+                dns = row.get("dns", {}).get(side, {})
+                if not dns.get("alive_before_term") or not dns.get("expected_local_a") or dns.get("exit") != 0:
+                    failures.append(f'{row["directive"]}: {side} DNS failed')
+            if row.get("dns", {}).get("c", {}).get("response_hex") != row.get("dns", {}).get("rust", {}).get("response_hex"):
+                failures.append(f'{row["directive"]}: DNS wire mismatch')
+    result = {"scope": "A05 runtime compatibility" if args.a05_only else __doc__,
+              "timestamp": time.time(), "failures": failures,
               "c_sha256": sha256(root / "usr/sbin/dnsmasq"),
               "rust_sha256": sha256(root / "usr/sbin/dnsmasq-rs"),
               "tool_sha256": sha256(Path(__file__)), "rows": rows}
@@ -119,8 +142,10 @@ def main():
     print(json.dumps({"cases": len(rows), "syntax_differences": [r["directive"] for r in rows
           if r["syntax"]["c"]["exit"] != r["syntax"]["rust"]["exit"]],
           "startup_differences": [r["directive"] for r in rows if "startup" in r
-          and r["startup"]["c"]["alive_after_300ms"] != r["startup"]["rust"]["alive_after_300ms"]]}))
+          and r["startup"]["c"]["alive_after_300ms"] != r["startup"]["rust"]["alive_after_300ms"]],
+          "failures": failures}))
+    return int(bool(failures))
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -44,7 +44,8 @@ fn name_allowed(config: &DnsConfig, name: &[u8], loopback: bool) -> bool {
             .any(|pattern| name_matches(pattern, name, loopback))
 }
 pub fn selected(config: &DnsConfig, interface: &DnsInterface) -> bool {
-    if config.listen_addresses.contains(&interface.address) {
+    if config.listen_addresses.contains(&interface.address)
+        || config.auth.selected(interface.address, &interface.name) {
         return true;
     }
     if config
@@ -63,6 +64,7 @@ fn explicit_access(config: &DnsConfig) -> bool {
     !config.interfaces.is_empty()
         || !config.excluded_interfaces.is_empty()
         || !config.listen_addresses.is_empty()
+        || config.auth.server_present
 }
 
 /// C checks unused interface names after opening static bound listeners.
@@ -236,8 +238,10 @@ pub fn udp_source_allowed(config: &DnsConfig, interfaces: &[DnsInterface], peer:
 }
 
 /// network.c:iface_check uses the current kernel name, not an old index list.
-pub fn udp_acl_name(config: &DnsConfig, destination: IpAddr, name: &[u8], loopback: bool) -> bool {
-    if config.listen_addresses.contains(&destination) {
+pub fn udp_acl_name(config: &DnsConfig, destination: IpAddr, name: &[u8], loopback: bool,
+                    auth: bool) -> bool {
+    if config.listen_addresses.contains(&destination)
+        || auth && config.auth.selected(destination, name) {
         return true; // A literal match wins over except-interface.
     }
     name_allowed(config, name, loopback)
@@ -300,6 +304,7 @@ pub fn admit_tcp(
         return selected_destination;
     };
     config.listen_addresses.contains(&destination.ip())
+        || config.auth.selected(destination.ip(), name)
         || name_allowed(config, name, loopback)
         || loopback && selected_destination
 }
@@ -348,7 +353,7 @@ pub fn admit(
             .iter()
             .filter(|interface| interface.index == ingress)
             .any(|interface| {
-                let allowed = name_allowed(config, interface.link_name(), interface.loopback);
+                let allowed = udp_acl_name(config, destination, interface.link_name(), interface.loopback, true);
                 // C's loopback and label exceptions retain locally originated DNS
                 // queries to a configured address even when ingress is loopback.
                 allowed

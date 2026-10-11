@@ -4,6 +4,7 @@
 //! each option. Callers must reject `ScalarConfig::apply`'s unhandled options
 //! until their owning subsystem implements them.
 
+pub mod auth;
 pub mod dhcp;
 pub mod dhcp_network;
 pub mod dhcp_pxe;

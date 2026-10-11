@@ -204,6 +204,8 @@ pub struct DhcpConfig {
     pub ignore_names: Vec<TagPredicate>,
     pub force_broadcast: Vec<TagPredicate>,
     pub no_dhcp_interfaces: Vec<Option<Vec<u8>>>,
+    /// The no-DHCPv6 image still uses these flags for bound TFTP and whichdevice.
+    pub no_dhcp6_interfaces: Vec<Option<Vec<u8>>>,
     /// Only the dual-family spelling vetoes wildcard TFTP admission.
     pub no_tftp_interfaces: Vec<Option<Vec<u8>>>,
     pub no_ping: bool,
@@ -254,6 +256,7 @@ impl Default for DhcpConfig {
             ignore_names: Vec::new(),
             force_broadcast: Vec::new(),
             no_dhcp_interfaces: Vec::new(),
+            no_dhcp6_interfaces: Vec::new(),
             no_tftp_interfaces: Vec::new(),
             no_ping: false,
             quiet_dhcp: false,
@@ -451,14 +454,19 @@ impl DhcpConfig {
                 self.force_broadcast
                     .insert(0, TagPredicate::parse(argument)?);
             }
-            b"no-dhcp-interface" | b"no-dhcpv4-interface" => {
+            b"no-dhcp-interface" | b"no-dhcpv4-interface" | b"no-dhcpv6-interface" => {
                 for value in argument.ok_or(Error("missing parameter"))?.split(b',') {
                     let value = value.decoded();
                     let name = (!value.is_empty()).then_some(value);
                     if directive.name == b"no-dhcp-interface" {
                         self.no_tftp_interfaces.insert(0, name.clone());
                     }
-                    self.no_dhcp_interfaces.insert(0, name);
+                    if directive.name != b"no-dhcpv4-interface" {
+                        self.no_dhcp6_interfaces.insert(0, name.clone());
+                    }
+                    if directive.name != b"no-dhcpv6-interface" {
+                        self.no_dhcp_interfaces.insert(0, name);
+                    }
                 }
             }
             b"no-ping" => self.no_ping = true,

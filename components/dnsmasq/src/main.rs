@@ -614,7 +614,10 @@ fn load(args: &[OsString]) -> Result<(Action, Runtime), loader::LoadError> {
         dump: Default::default(),
     };
     let action = loader::load(args, Path::new("/etc/dnsmasq.conf"), |directive, _| {
-        if directive.name == b"log-malloc" {
+        // These booleans are accepted by option.c but their consumers are
+        // compiled out in the exact NO_DHCP6/NO_DNSSEC image.
+        if matches!(directive.name.as_slice(), b"log-malloc" | b"quiet-ra" | b"quiet-dhcp6"
+            | b"enable-ra" | b"dnssec-debug" | b"dnssec-no-timecheck") {
             return Ok(());
         }
         if runtime.logging.apply(directive)?
@@ -1133,7 +1136,8 @@ fn run_inner(
         match TftpListener::bind_config(
             &tftp_config,
             &daemon_config,
-            &runtime.dhcp.no_dhcp_interfaces,
+            &runtime.dhcp.no_dhcp_interfaces.iter()
+                .chain(&runtime.dhcp.no_dhcp6_interfaces).cloned().collect::<Vec<_>>(),
             &runtime.dhcp.no_tftp_interfaces,
             identity.runtime_uid(&runtime.process),
             if dns_enabled {
@@ -2065,9 +2069,11 @@ fn dhcp_device_name(
             let name = interface.link_name();
             DeviceInterface {
                 name,
-                dhcp4_ok: !interface.loopback && !excluded(&dhcp.no_dhcp_interfaces, name),
+                dhcp4_ok: !interface.loopback && !config.auth.selected(interface.address, &interface.name)
+                    && !excluded(&dhcp.no_dhcp_interfaces, name),
                 // whichdevice still sees C's dhcp6_ok in the no-DHCPv6 image.
-                dhcp6_ok: !interface.loopback && !excluded(&dhcp.no_tftp_interfaces, name),
+                dhcp6_ok: !interface.loopback && !config.auth.selected(interface.address, &interface.name)
+                    && !excluded(&dhcp.no_dhcp6_interfaces, name),
             }
         })
         .collect();
@@ -2512,6 +2518,7 @@ struct PendingInterfaceTcp {
     mac_ready: bool,
     mac_deferred: bool,
     accept_clock: i64,
+    auth_query: bool,
 }
 
 enum ClientMacLookup {
@@ -2557,6 +2564,7 @@ struct TcpDnsWork {
         dnsmasq_rs::query_logging::QueryEvent,
     )>,
     peer: SocketAddr,
+    auth_query: bool,
     stream: Option<TcpStream>,
     service: LocalDnsService,
     forward: TcpDnsService,
@@ -2609,7 +2617,7 @@ impl TcpDnsWork {
             self.query_ids.next(true, Some(self.peer))
         };
         if self.service.query_logging {
-            if let Some(event) = dnsmasq_rs::query_logging::QueryEvent::request(query, self.peer) {
+            if let Some(event) = dnsmasq_rs::query_logging::QueryEvent::request(query, self.peer, self.auth_query) {
                 self.query_events.push((self.query_context, event));
             }
         }
@@ -4497,7 +4505,7 @@ impl SinglePoll {
             // This is also the implicit loopback name in C's interface list.
             // A failed flags lookup disables only that rule and its exception.
             let loopback = udp.ingress_loopback(&name).is_ok_and(|value| value);
-            if listeners::udp_acl_name(&self.config, incoming.destination, &name[..length], loopback) {
+            if listeners::udp_acl_name(&self.config, incoming.destination, &name[..length], loopback, true) {
                 return UdpAdmission::Accept;
             }
             // C still checks the IPv4 label exception against the new list.
@@ -4638,9 +4646,23 @@ impl SinglePoll {
         }
         #[cfg(target_os = "linux")]
         if self.query_logging.enabled {
+            let mut auth = false;
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if self.config.auth.has_interfaces() {
+                auth = if (self.config.bind_interfaces || self.config.bind_dynamic)
+                    && incoming.destination.is_ipv4() {
+                    self.interfaces.borrow().iter().any(|row| row.address == incoming.destination
+                        && self.config.auth.selected(row.address, &row.name))
+                } else {
+                    udp.ingress_name(incoming.interface).is_ok_and(|name| {
+                        let length = name.iter().position(|byte| *byte == 0).unwrap_or(name.len());
+                        self.config.auth.selected(incoming.destination, &name[..length])
+                    })
+                };
+            }
             if let (Some(logger), Some(event)) = (
                 &mut self.logger,
-                dnsmasq_rs::query_logging::QueryEvent::request(&query, incoming.peer),
+                dnsmasq_rs::query_logging::QueryEvent::request(&query, incoming.peer, auth),
             ) {
                 if let Some(event) =
                     dnsmasq_rs::logging::query::format(self.query_logging, query_context, &event)
@@ -5152,6 +5174,17 @@ impl SinglePoll {
             return;
         }
         let local_network = listeners::local_network(&interfaces, destination.ip());
+        let auth_query = if let Some((name, _)) = &ingress {
+            self.config.auth.selected(destination.ip(), name)
+        } else {
+            interfaces.iter().any(|row| row.address == destination.ip()
+                && match destination {
+                    SocketAddr::V6(address) if address.ip().is_unicast_link_local() =>
+                        address.scope_id() == row.index,
+                    _ => true,
+                }
+                && self.config.auth.selected(row.address, &row.name))
+        };
         drop(interfaces);
         if stream.set_nonblocking(true).is_err() {
             return;
@@ -5186,6 +5219,7 @@ impl SinglePoll {
             mac_ready,
             mac_deferred,
             accept_clock: now_seconds(),
+            auth_query,
         };
         self.enumerate_interface_records();
         if self.interface_work_pending() {
@@ -5205,6 +5239,7 @@ impl SinglePoll {
             mac_ready,
             mac_deferred,
             accept_clock,
+            auth_query,
         } = pending;
         let mut parent = match self.service.try_borrow_mut() {
             Ok(parent) => parent,
@@ -5266,6 +5301,7 @@ impl SinglePoll {
                 query_context: Default::default(),
                 query_events: Vec::new(),
                 peer,
+                auth_query,
                 stream: Some(stream),
                 cache_view,
                 cache_negative,
@@ -7025,6 +7061,7 @@ mod tests {
         owner.finish_tcp_accept(PendingInterfaceTcp {
             query_ids: Default::default(), stream, peer: address, local_network: None,
             mac: None, mac_ready: true, mac_deferred: false, accept_clock: now_seconds(),
+            auth_query: false,
         });
         assert_eq!(owner.clients.len(), 1);
         peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
@@ -8018,7 +8055,7 @@ mod tests {
             work.query_events.push((work.query_context,
                 dnsmasq_rs::query_logging::QueryEvent::warning(b"stale-work warning before release".to_vec())));
             work.query_events.push((work.query_context,
-                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer).unwrap()));
+                dnsmasq_rs::query_logging::QueryEvent::request(&query, work.peer, work.auth_query).unwrap()));
             Arc::downgrade(&work.service.leases)
         };
         // Test readiness drives nonblocking I/O. The real owner poll is covered

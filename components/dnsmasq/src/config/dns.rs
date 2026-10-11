@@ -132,6 +132,7 @@ pub struct DnsConfig {
     /// pick the first suffix match (specificity and RR family both matter).
     pub rules: Vec<ServerRule>,
     pub listen_addresses: Vec<IpAddr>,
+    pub auth: super::auth::AuthConfig,
     pub interfaces: Vec<Option<Vec<u8>>>,
     pub excluded_interfaces: Vec<Option<Vec<u8>>>,
     pub resolv_files: Vec<PathBuf>,
@@ -191,6 +192,7 @@ impl Default for DnsConfig {
             synth_domains: super::synth_domain::SynthConfig::default(),
             rules: Vec::new(),
             listen_addresses: Vec::new(),
+            auth: Default::default(),
             interfaces: Vec::new(),
             excluded_interfaces: Vec::new(),
             resolv_files: vec![PathBuf::from("/etc/resolv.conf")],
@@ -610,6 +612,9 @@ impl DnsConfig {
     /// Return false for an option owned by another/unimplemented subsystem.
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         validate_directive(directive)?;
+        if self.auth.apply(directive)? {
+            return Ok(true);
+        }
         // Required-argument arms below follow validate_directive; optional
         // arms keep their explicit Option handling instead of assuming a value.
         let arg = directive.argument.as_ref();
@@ -883,6 +888,7 @@ impl DnsConfig {
         if !self.interfaces.is_empty()
             || !self.excluded_interfaces.is_empty()
             || !self.listen_addresses.is_empty()
+            || self.auth.server_present
         {
             self.local_service_net = false;
             self.local_service_host = false;

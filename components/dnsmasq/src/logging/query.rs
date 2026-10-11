@@ -102,13 +102,14 @@ impl QueryEvent {
         }
     }
     /// receive_query/tcp_request's admitted request, before local/forward work.
-    pub fn request(packet: &[u8], client: SocketAddr) -> Option<Self> {
+    pub fn request(packet: &[u8], client: SocketAddr, auth: bool) -> Option<Self> {
         let header = crate::dns::wire::Header::parse(packet).ok()?;
         if header.flags & 0x8000 != 0 {
             return None;
         }
         if header.opcode() != 0 {
-            let mut event = Self::address(QUERY | CONFIG, b"", client.ip(), None);
+            let mut event = Self::address(QUERY | CONFIG | if auth { AUTHORITATIVE } else { 0 },
+                                          b"", client.ip(), None);
             event.name = None;
             event.kind = u16::from(header.opcode());
             return Some(event);
@@ -117,7 +118,8 @@ impl QueryEvent {
             return None;
         }
         let question = crate::dns::forward::Question::parse(packet).ok()?;
-        let mut event = Self::address(QUERY, &question.name.dnsmasq_bytes(), client.ip(), None);
+        let mut event = Self::address(QUERY | if auth { AUTH | AUTHORITATIVE } else { 0 },
+                                      &question.name.dnsmasq_bytes(), client.ip(), None);
         event.kind = question.rrtype;
         Some(event)
     }
