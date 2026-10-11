@@ -125,7 +125,12 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     let directory = root.join("hosts");
     std::fs::create_dir_all(&directory).unwrap();
     std::fs::write(directory.join("one"), b"192.0.2.42 ready.test\n").unwrap();
-    let resolver = root.join("resolver");
+    // Resolver polling watches its parent directory. Keep later lease/FIFO
+    // setup outside that watch so the idle-wait assertion measures only the
+    // deliberately blocked packet and helper sources, not an unrelated event.
+    let resolver_dir = root.join("resolvers");
+    std::fs::create_dir(&resolver_dir).unwrap();
+    let resolver = resolver_dir.join("resolver");
     std::fs::write(&resolver, b"nameserver 192.0.2.53\n").unwrap();
     let mut config = config();
     config.no_resolv = false;
