@@ -3574,6 +3574,17 @@ impl SinglePoll {
                 self.hosts_notice(dnsmasq_rs::logging::Priority::Error, error.to_string());
             }
             self.scan_hosts_dirs(false);
+            #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+            if !self.hosts_work_pending() {
+                // EVENT_INIT updates restored lease names after cache_reload,
+                // including configurations with no hostsdir work to finish.
+                if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+                    report_dhcp_maintenance(
+                        &provider.borrow_mut().hosts_changed(now_seconds()),
+                        self.logger.as_mut(),
+                    );
+                }
+            }
         }
         if step.initial_cache_reload && self.log_cleared_cache {
             if let Some(logger) = &mut self.logger {
@@ -5839,7 +5850,13 @@ impl SinglePoll {
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn step_helper(&mut self) {
-        if self.pending_delivery.is_none() && self.helper_init.is_none() {
+        if self.pending_delivery.is_none()
+            && self.helper_init.is_none()
+            && !self.files_initializing()
+        {
+            // C completes its initial resolver read before the first helper
+            // queue turn. Keep the pre-Init callback frozen until then; helper
+            // initialization, pipe progress and reaping still run below.
             let hosts_pending = self.hosts_work_pending();
             self.pending_delivery = self.dhcp.as_ref().and_then(|dhcp| {
                 let mut provider = dhcp.provider.as_ref()?.try_borrow_mut().ok()?;
