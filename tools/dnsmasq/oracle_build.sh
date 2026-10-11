@@ -77,9 +77,11 @@ export STAGING_DIR="$toolchain"
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$toolchain/bin/aarch64-openwrt-linux-musl-gcc"
 export RUSTFLAGS="--remap-path-prefix=$source_dir=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no"
 if [ "$build_kind" = release ]; then
-    # The shipped daemon uses the image's musl/libgcc and restores PIE.
+    # Keep the shipped daemon static and select the matching PIE startup.
     # Test and diagnostic binaries retain their existing static linkage.
-    export RUSTFLAGS="$RUSTFLAGS -Ctarget-feature=-crt-static -Clink-self-contained=no -Clink-arg=-pie"
+    export DNSMASQ_STATIC_PIE_CC="$CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER"
+    export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$source_dir/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"
+    export RUSTFLAGS="$RUSTFLAGS -Crelocation-model=pie -Ctarget-feature=+crt-static"
 fi
 # Optional fault/attribution evidence. Only this fresh output can receive the
 # map; it stays outside shipped artifacts and under the same build lock.

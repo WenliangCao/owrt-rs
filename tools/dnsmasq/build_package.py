@@ -226,7 +226,7 @@ def audit_metadata(metadata, package_release=PACKAGE_RELEASE):
                 f"APK metadata {field} does not identify {expected}")
     for field, values in {
         "provides": ("dnsmasq-any",),
-        "depends": ("libc", "libubus20251202", "libgcc1"),
+        "depends": ("libc", "libubus20251202"),
     }.items():
         block = re.search(rf"^  {field}:.*?(?=^  [a-z]|^# data block|\Z)", metadata,
                           re.MULTILINE | re.DOTALL)
@@ -239,11 +239,11 @@ def audit_metadata(metadata, package_release=PACKAGE_RELEASE):
             "arch": ARCH, "provides": ["dnsmasq-any"],
             "replacement": f"same package name dnsmasq, newer release {identity}",
             "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
-            "depends": ["libc", "libubus20251202", "libgcc1"]}
+            "depends": ["libc", "libubus20251202"]}
 
 
 def audit_elf(data, readelf_text):
-    """Check the image-specific PIE layout; runtime ASLR/RELRO is a separate gate."""
+    """Check static PIE layout; runtime ASLR/RELRO is a separate gate."""
     require(len(data) >= 64 and data[:7] == b"\x7fELF\x02\x01\x01",
             "package ELF must be ELF64 little-endian")
     require(struct.unpack_from("<HH", data, 16) == (3, 183),
@@ -259,28 +259,23 @@ def audit_elf(data, readelf_text):
     loads = [row for row in headers if row[0] == 1]
     require(loads and all(row[5] <= row[6] and row[1] & 3 != 3 for row in loads),
             "package ELF has invalid or writable-executable LOAD segments")
-    interpreters = [data[row[2]:row[2] + row[5]] for row in headers if row[0] == 3]
-    interpreter = "/lib/ld-musl-aarch64.so.1"
-    require(interpreters == [interpreter.encode() + b"\0"],
-            "package ELF must use the exact image musl interpreter")
+    require(not any(row[0] == 3 for row in headers),
+            "static PIE must not have a program interpreter")
     stacks = [row for row in headers if row[0] == 0x6474e551]
     require(len(stacks) == 1 and stacks[0][1] & 1 == 0,
             "package ELF must have a non-executable GNU_STACK")
     require(any(row[0] == 0x6474e552 and row[6] > 0 for row in headers),
             "package ELF must have a nonempty GNU_RELRO segment")
     needed = re.findall(r"\(NEEDED\)\s+Shared library: \[([^\]]+)\]", readelf_text)
-    require(sorted(needed) == ["libc.so", "libgcc_s.so.1"],
-            "package ELF dependencies must be exactly image libc and libgcc")
+    require(not needed, "static PIE must not depend on shared libraries")
     flags = re.search(r"\(FLAGS_1\)\s+Flags:\s*([^\n]+)", readelf_text)
     flags = set(flags.group(1).split()) if flags else set()
     require("PIE" in flags, "package ELF must have the PIE dynamic flag")
-    require("NOW" in flags or "(BIND_NOW)" in readelf_text,
-            "package ELF must use immediate binding")
     require("TEXTREL" not in readelf_text, "package ELF must not use text relocations")
     require(not re.search(r"\((?:RPATH|RUNPATH)\)", readelf_text),
             "package ELF must not override the image library search path")
-    return {"type": "ET_DYN", "machine": "AArch64", "interpreter": interpreter,
-            "needed": sorted(needed), "pie": True, "bind_now": True,
+    return {"type": "ET_DYN", "machine": "AArch64", "linkage": "static-pie", "interpreter": None,
+            "needed": [], "pie": True, "bind_now": "NOW" in flags or "(BIND_NOW)" in readelf_text,
             "gnu_relro": True, "nx_stack": True, "writable_executable_load": False,
             "runtime_protections_verified": False}
 

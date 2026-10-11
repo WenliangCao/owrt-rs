@@ -137,10 +137,9 @@ class PackageBuildTests(unittest.TestCase):
   name: dnsmasq
   version: 2.93-r2
   arch: aarch64_cortex-a53
-  depends: # 3 items
+  depends: # 2 items
     - libc
     - libubus20251202
-    - libgcc1
   provides: # 1 items
     - dnsmasq-any
 scripts:
@@ -153,7 +152,7 @@ scripts:
             with self.subTest(script=script), self.assertRaisesRegex(ValueError, script):
                 package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
         with self.assertRaisesRegex(ValueError, "depends"):
-            package.audit_metadata(metadata.replace("    - libgcc1\n", ""))
+            package.audit_metadata(metadata.replace("    - libc\n", ""))
 
     def test_pie_elf_gate_rejects_linkage_and_protection_regressions(self):
         data = bytearray(512)
@@ -165,26 +164,26 @@ scripts:
         headers = [
             (1, 5, 0, 0, 0, 448, 448, 4096),
             (1, 6, 448, 448, 448, 64, 64, 4096),
-            (3, 4, 384, 384, 384, len(interpreter), len(interpreter), 1),
+            (0, 4, 384, 384, 384, len(interpreter), len(interpreter), 1),
             (0x6474e551, 6, 0, 0, 0, 0, 0, 16),
             (0x6474e552, 4, 448, 448, 448, 64, 64, 1),
         ]
         for index, row in enumerate(headers):
             struct.pack_into("<IIQQQQQQ", data, 64 + index * 56, *row)
         data[384:384 + len(interpreter)] = interpreter
-        dynamic = """ 0x1 (NEEDED) Shared library: [libgcc_s.so.1]
- 0x1 (NEEDED) Shared library: [libc.so]
- 0x18 (BIND_NOW)
+        dynamic = """ 0x18 (BIND_NOW)
  0x6ffffffb (FLAGS_1) Flags: NOW PIE
 """
         result = package.audit_elf(data, dynamic)
-        self.assertEqual(result["needed"], ["libc.so", "libgcc_s.so.1"])
+        self.assertEqual(result["needed"], [])
+        self.assertIsNone(result["interpreter"])
         self.assertFalse(result["runtime_protections_verified"])
+        no_binding = dynamic.replace(" 0x18 (BIND_NOW)\n", "").replace("NOW PIE", "PIE")
+        self.assertFalse(package.audit_elf(data, no_binding)["bind_now"])
         mutations = [
             ("static ET_EXEC", 16, "<H", 2),
             ("wrong architecture", 18, "<H", 62),
-            ("missing interpreter", 64 + 2 * 56, "<I", 0),
-            ("wrong interpreter", 384, "<B", ord("x")),
+            ("dynamic interpreter", 64 + 2 * 56, "<I", 3),
             ("executable stack", 64 + 3 * 56 + 4, "<I", 7),
             ("missing stack", 64 + 3 * 56, "<I", 0),
             ("missing RELRO", 64 + 4 * 56, "<I", 0),
@@ -199,15 +198,52 @@ scripts:
             with self.subTest(label=label), self.assertRaises(ValueError):
                 package.audit_elf(changed, dynamic)
         for label, changed in [
-            ("missing library", dynamic.replace(" 0x1 (NEEDED) Shared library: [libgcc_s.so.1]\n", "")),
-            ("extra library", dynamic + " 0x1 (NEEDED) Shared library: [libunexpected.so]\n"),
+            ("shared library", dynamic + " 0x1 (NEEDED) Shared library: [libc.so]\n"),
             ("missing PIE", dynamic.replace("NOW PIE", "NOW")),
-            ("lazy binding", dynamic.replace(" 0x18 (BIND_NOW)\n", "").replace("NOW PIE", "PIE")),
             ("text relocation", dynamic + " 0x16 (TEXTREL)\n"),
             ("library search override", dynamic + " 0x1d (RUNPATH) Library runpath: [/tmp]\n"),
         ]:
             with self.subTest(label=label), self.assertRaises(ValueError):
                 package.audit_elf(data, changed)
+
+    def test_static_pie_linker_only_rewrites_pinned_startup_inputs(self):
+        helper = package.ROOT / "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            crt = root / "rustlib/aarch64-unknown-linux-musl/lib/self-contained"
+            crt.mkdir(parents=True)
+            names = ("crt1.o", "crtbegin.o", "crtend.o", "rcrt1.o", "crtbeginS.o", "crtendS.o")
+            for name in names:
+                (crt / name).touch()
+            (root / "crt1.o").touch()
+            (root / "rcrt1.o").touch()
+            compiler = root / "sdk-gcc"
+            compiler.write_text(f"#!{sys.executable}\nimport json,sys\nprint(json.dumps(sys.argv[1:]))\n")
+            compiler.chmod(0o755)
+            environment = dict(os.environ, DNSMASQ_STATIC_PIE_CC=str(compiler))
+            args = [str(crt / "crt1.o"), str(crt / "crtbegin.o"), "input.o",
+                    "-static", "-no-pie", "-static-libgcc", "-Wl,-z,relro", str(crt / "crtend.o")]
+            def invoke(arguments, env=environment):
+                return subprocess.run([sys.executable, str(helper), *arguments],
+                                      env=env, text=True, capture_output=True)
+            result = invoke(args)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), [str(crt / "rcrt1.o"), str(crt / "crtbeginS.o"),
+                "input.o", "-static-pie", "-static-libgcc", "-Wl,-z,relro", str(crt / "crtendS.o")])
+            for label, changed in [
+                ("no static", [arg for arg in args if arg != "-static"]),
+                ("duplicate static", [*args, "-static"]),
+                ("dynamic PIE", [*args, "-pie"]),
+                ("response file", [*args, "@hidden-arguments"]),
+                ("missing startup", args[1:]),
+                ("duplicate startup", [*args, str(crt / "crt1.o")]),
+                ("unrecognized startup source", [str(root / "crt1.o"), *args[1:]]),
+            ]:
+                with self.subTest(label=label):
+                    self.assertNotEqual(invoke(changed).returncode, 0)
+            (crt / "rcrt1.o").unlink()
+            self.assertNotEqual(invoke(args).returncode, 0)
+            self.assertNotEqual(invoke(args, dict(environment, DNSMASQ_STATIC_PIE_CC="")).returncode, 0)
 
     def test_frozen_elf_requires_full_source_sdk_and_binary_identity(self):
         source = {"components/dnsmasq/src/main.rs": "a" * 64,

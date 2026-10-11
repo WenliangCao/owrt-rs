@@ -38,7 +38,7 @@ define Package/dnsmasq
   CATEGORY:=Base system
   TITLE:=Rust dnsmasq replacement
   URL:=https://github.com/openwrt/openwrt
-  DEPENDS:=@(aarch64) +libubus20251202 +libgcc +@BUSYBOX_CONFIG_PIDOF
+  DEPENDS:=@(aarch64) +libubus20251202 +@BUSYBOX_CONFIG_PIDOF
   USERID:=dnsmasq=453:dnsmasq=453
 endef
 
@@ -81,8 +81,9 @@ define Build/Compile
 	CARGO_PROFILE_RELEASE_PANIC=abort \
 	CC_aarch64_unknown_linux_musl="$(TARGET_CC_NOCACHE)" \
 	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
-	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
-	RUSTFLAGS="-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Ctarget-feature=-crt-static -Clink-self-contained=no -Clink-arg=-pie" \
+	DNSMASQ_STATIC_PIE_CC="$(TARGET_CC_NOCACHE)" \
+	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(CURDIR)/static-pie-linker.py" \
+	RUSTFLAGS="-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static" \
 	$(V1_CARGO) build --release --frozen --manifest-path $(PKG_BUILD_DIR)/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir $(PKG_BUILD_DIR)/dnsmasq/target
 endef
 endif
