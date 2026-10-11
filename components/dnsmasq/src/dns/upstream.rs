@@ -236,6 +236,18 @@ impl Random for OsRandom {
     }
 }
 
+/// C server counters retained for the SIGUSR1 operational dump. They follow
+/// live server IDs, so replacing a resolver does not inherit retired totals.
+#[derive(Clone, Copy, Default)]
+pub(crate) struct ServerCounters {
+    pub queries: u32,
+    pub retries: u32,
+    pub failed: u32,
+    pub nxdomain: u32,
+    pub latency: u32,
+    moving_latency: u32,
+}
+
 struct Transaction {
     deadline: Instant,
     sockets: HashMap<ServerId, SocketToken>,
@@ -292,6 +304,7 @@ pub struct UpstreamResolver<R = OsRandom> {
     receive_buffer: Vec<u8>,
     socket_settings: SocketSettings,
     source_bindings: HashMap<ServerId, SourceSpec>,
+    server_counters: HashMap<ServerId, ServerCounters>,
     reply_servers: HashMap<ServerId, SocketAddr>,
     server_sockets: HashMap<ServerId, SocketToken>,
     pool_finger: usize,
@@ -368,6 +381,7 @@ impl<R: Random> UpstreamResolver<R> {
             receive_buffer: vec![0; receive_capacity],
             socket_settings: SocketSettings::default(),
             source_bindings: HashMap::new(),
+            server_counters: HashMap::new(),
             reply_servers: HashMap::new(),
             server_sockets: HashMap::new(),
             pool_finger: 0,
@@ -526,6 +540,25 @@ impl<R: Random> UpstreamResolver<R> {
         });
     }
 
+    pub(crate) fn server_counters(&self, id: ServerId) -> ServerCounters {
+        self.server_counters.get(&id).copied().unwrap_or_default()
+    }
+
+    pub(crate) fn note_reply_rcode(&mut self, server: ServerId, rcode: u16) {
+        if rcode == 3 {
+            let counters = self.server_counters.entry(server).or_default();
+            counters.nxdomain = counters.nxdomain.wrapping_add(1);
+        }
+    }
+
+    fn note_retry(&mut self, id: QueryId, failed: bool) {
+        if let Some(server) = self.dispatcher.table().get(id).and_then(|query| query.sent_to) {
+            let counters = self.server_counters.entry(server).or_default();
+            let value = if failed { &mut counters.failed } else { &mut counters.retries };
+            *value = value.wrapping_add(1);
+        }
+    }
+
     pub fn set_query_logging(&mut self, config: crate::config::logging::QueryLogging) {
         self.query_logging = config;
     }
@@ -674,6 +707,7 @@ impl<R: Random> UpstreamResolver<R> {
             tokens: Vec::new(),
         });
         if let (Some(packet), Some(plan)) = (submitted.packet, submitted.send_plan) {
+            self.note_retry(id, false);
             if let Err(error) = self.send_plan(id, &packet, &plan) {
                 self.cancel(id);
                 return Err(error);
@@ -827,6 +861,9 @@ impl<R: Random> UpstreamResolver<R> {
             self.invalidate_udp_resend();
         }
         self.dispatcher.replace_groups(groups, removed);
+        for id in removed {
+            self.server_counters.remove(id);
+        }
         for owned in self.sockets.values_mut() {
             if owned.origin.is_some_and(|origin| removed.contains(&origin)) {
                 owned.origin = None;
@@ -945,6 +982,7 @@ impl<R: Random> UpstreamResolver<R> {
             // fast_retry restores each stash into the shared packet before
             // forward_query. Only a new successful send establishes a save.
             self.invalidate_udp_resend();
+            self.note_retry(plan.id, false);
             match self.send_plan_without_client(plan.id, &plan.packet, &plan.send_plan) {
                 Ok(()) => self.dispatcher.retry_finished(plan.id),
                 Err(error) => {
@@ -1333,6 +1371,8 @@ impl<R: Random> UpstreamResolver<R> {
             );
             match result {
                 Ok(length) if length == packet.len() => {
+                    let counters = self.server_counters.entry(server).or_default();
+                    counters.queries = counters.queries.wrapping_add(1);
                     self.saved_udp_packet.clear();
                     self.saved_udp_packet.extend_from_slice(packet);
                     self.saved_udp = Some(SavedUdpQuery { server, socket: token, destination: address });
@@ -1584,6 +1624,7 @@ impl<R: Random> UpstreamResolver<R> {
             match self.dispatcher.complete_reply(matched) {
                 Some(ReplyAction::Wait) => {}
                 Some(ReplyAction::Retry) => {
+                    self.note_retry(id, true);
                     let Some(plan) = self.dispatcher.plan_after_error(id, unix_seconds()) else {
                         break;
                     };
@@ -1602,6 +1643,15 @@ impl<R: Random> UpstreamResolver<R> {
                     }
                 }
                 Some(ReplyAction::Deliver) => {
+                    let elapsed = self.milliseconds().wrapping_sub(
+                        self.dispatcher.table().get(id).unwrap().last_sent_ms);
+                    let counters = self.server_counters.entry(matched.server).or_default();
+                    counters.moving_latency = if counters.latency == 0 {
+                        elapsed.wrapping_mul(128)
+                    } else {
+                        counters.moving_latency.wrapping_add(elapsed).wrapping_sub(counters.latency)
+                    };
+                    counters.latency = counters.moving_latency / 128;
                     let packet = self.receive_buffer[..length].to_vec();
                     let pending = self.dispatcher.finish(id).expect("matched query exists");
                     self.transactions.remove(&id);

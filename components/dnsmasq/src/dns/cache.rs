@@ -364,6 +364,15 @@ impl Cache {
         }
     }
 
+    pub(crate) fn capacity(&self) -> usize {
+        self.slots.len()
+    }
+
+    pub(crate) fn entries(&self) -> impl Iterator<Item = &Entry> {
+        (0..self.slots.len()).filter_map(|slot| self.entry(slot))
+            .filter(|entry| entry.committed)
+    }
+
     pub fn policy(&self) -> Policy {
         self.policy
     }

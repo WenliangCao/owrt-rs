@@ -1549,6 +1549,13 @@ impl LocalProvider {
         report
     }
 
+    /// Delivered external SIGALRM events use the same maintenance path as
+    /// elapsed lease timers, even when the next scheduled timer is later.
+    pub fn request_alarms(&mut self, count: usize) {
+        self.pending_alarms = self.pending_alarms.saturating_add(
+            count.min(u32::MAX as usize) as u32);
+    }
+
     /// Perform expiry and retry maintenance even when no DHCP packet arrives.
     /// The caller owns returned removals/name losses until cleanup completes.
     pub fn tick(&mut self, now: i64) -> Option<MaintenanceReport> {

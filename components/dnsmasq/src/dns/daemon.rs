@@ -39,6 +39,9 @@ use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+#[path = "daemon_dump.rs"]
+mod dump;
+
 fn source_error_text(error: &io::Error) -> String {
     #[cfg(target_os = "linux")]
     {
@@ -1251,12 +1254,24 @@ impl<R: Random> DnsDaemon<R> {
                     }
                 };
             let mut projected_truncated = false;
+            let mut counted_reply = false;
             for (index, recipient) in reply.recipients.iter().enumerate() {
-                if !recipient.client.reply_requested {
+                if !recipient.client.reply_requested && counted_reply {
                     continue;
                 }
                 match self.recipient_packet(&reply, recipient, rcode) {
                     Ok(Some((packet, clipped))) => {
+                        // C counts the post-policy RCODE once before copying
+                        // recipients, including a replyless stale refresh.
+                        if !counted_reply {
+                            if let Ok(header) = Header::parse(&packet) {
+                                self.upstream.note_reply_rcode(reply.server, header.flags & 15);
+                            }
+                            counted_reply = true;
+                        }
+                        if !recipient.client.reply_requested {
+                            continue;
+                        }
                         projected_truncated |= clipped;
                         // return_reply logs an extra recipient after its full
                         // answer send; an upstream TC packet still fits here.

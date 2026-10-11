@@ -67,10 +67,21 @@ static STOP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static RELOAD_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static DEBUG_MODE: AtomicBool = AtomicBool::new(false);
 static LOG_REOPEN_REQUESTED: AtomicUsize = AtomicUsize::new(0);
+static CACHE_DUMP_REQUESTED: AtomicUsize = AtomicUsize::new(0);
+static ALARM_REQUESTED: AtomicUsize = AtomicUsize::new(0);
 #[cfg(target_os = "linux")]
 static SIGNAL_WAKE_WRITE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
 // SIGHUP is 1 on the supported Linux and Darwin hosts.
 const SIGHUP: i32 = 1;
+#[cfg(target_os = "linux")]
+const SIGUSR1: i32 = 10;
+#[cfg(target_os = "linux")]
+const SIGUSR2: i32 = 12;
+#[cfg(not(target_os = "linux"))]
+const SIGUSR1: i32 = 30;
+#[cfg(not(target_os = "linux"))]
+const SIGUSR2: i32 = 31;
+const SIGALRM: i32 = 14;
 const UDP_PACKETS_PER_TURN: usize = 16;
 const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
 
@@ -141,6 +152,20 @@ extern "C" fn request_reload(_signal: i32) {
 
 extern "C" fn request_log_reopen(_signal: i32) {
     let _ = LOG_REOPEN_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+        Some(count.saturating_add(1))
+    });
+    wake_signal_waiter();
+}
+
+extern "C" fn request_cache_dump(_signal: i32) {
+    let _ = CACHE_DUMP_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
+        Some(count.saturating_add(1))
+    });
+    wake_signal_waiter();
+}
+
+extern "C" fn request_alarm(_signal: i32) {
+    let _ = ALARM_REQUESTED.fetch_update(Ordering::Release, Ordering::Relaxed, |count| {
         Some(count.saturating_add(1))
     });
     wake_signal_waiter();
@@ -347,6 +372,7 @@ struct ParentEvents {
     local_answered: u32,
     stale_answered: u32,
     tcp_active: usize,
+    tcp_high_water: usize,
 }
 
 impl ParentEvents {
@@ -374,6 +400,7 @@ impl ParentEvents {
             local_answered: 0,
             stale_answered: 0,
             tcp_active: 0,
+            tcp_high_water: 0,
         })
     }
 
@@ -870,7 +897,9 @@ fn run_inner(
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGINT, request_interrupt);
     owrt_ubus::sys::set_signal_handler(owrt_ubus::sys::SIGTERM, request_stop);
     owrt_ubus::sys::set_signal_handler(SIGHUP, request_reload);
-    owrt_ubus::sys::set_signal_handler(12, request_log_reopen);
+    owrt_ubus::sys::set_signal_handler(SIGUSR2, request_log_reopen);
+    owrt_ubus::sys::set_signal_handler(SIGUSR1, request_cache_dump);
+    owrt_ubus::sys::set_signal_handler(SIGALRM, request_alarm);
     // dnsmasq.c allocates `edns_pktsz + MAXDNAME + RRFIXEDSZ` as scratch space.
     // TCP uses this frame limit; UDP admission enforces edns_pktsz itself.
     let packet_limit = usize::from(runtime.scalar.edns_packet_max) + 255 + 10;
@@ -3845,6 +3874,8 @@ impl SinglePoll {
             // and queues are the authority, fd readiness is only the wakeup.
             let mut runnable = STOP_REQUESTED.load(Ordering::Acquire)
                 || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0
+                || CACHE_DUMP_REQUESTED.load(Ordering::Acquire) != 0
+                || ALARM_REQUESTED.load(Ordering::Acquire) != 0
                 || (RELOAD_REQUESTED.load(Ordering::Acquire) != 0
                     && !self.reload_in_progress());
             if !self.interface_work_pending() {
@@ -4178,6 +4209,41 @@ impl SinglePoll {
         metrics
     }
 
+    fn process_diagnostic_signals(&mut self) {
+        // As with EVENT_ALARM, enqueue maintenance even before the relative
+        // lease timer is due. The existing owner gates keep it behind reloads.
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
+            if let Ok(mut provider) = provider.try_borrow_mut() {
+                let count = ALARM_REQUESTED.swap(0, Ordering::AcqRel);
+                provider.request_alarms(count);
+            }
+        } else {
+            ALARM_REQUESTED.store(0, Ordering::Release);
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        ALARM_REQUESTED.store(0, Ordering::Release);
+        if CACHE_DUMP_REQUESTED.fetch_update(Ordering::AcqRel, Ordering::Acquire,
+            |count| count.checked_sub(1)).is_err() {
+            return;
+        }
+        #[cfg(target_os = "linux")]
+        {
+            let mut event = self.parent_events.borrow_mut();
+            let metrics = self.metrics(&event);
+            let parent = self.service.borrow();
+            if let (Some(daemon), Some(logger)) = (&parent.daemon, &mut self.logger) {
+                daemon.dump_cache(now_seconds(), &metrics, event.tcp_high_water,
+                    self.tcp_limit, DEBUG_MODE.load(Ordering::Relaxed), |line| {
+                        logger.emit(dnsmasq_rs::logging::LogEvent::new(
+                            dnsmasq_rs::logging::Service::Dns,
+                            dnsmasq_rs::logging::Priority::Info, line.into_bytes()));
+                    });
+                event.tcp_high_water = event.tcp_active;
+            }
+        }
+    }
+
     fn process_ubus_if_ready(&mut self) -> io::Result<()> {
         let pending_or_retry = {
             let event = self.parent_events.borrow();
@@ -4233,6 +4299,7 @@ impl SinglePoll {
                 logger.flush_ready();
             }
         }
+        self.process_diagnostic_signals();
         // C drains subscription/metrics requests before processing DHCP.
         // This also applies to port=0, where no DNS listener can drain UBus.
         #[cfg(target_os = "linux")]
@@ -5282,6 +5349,7 @@ impl SinglePoll {
         forward.set_query_logging(self.query_logging.enabled);
         if let Ok(mut event) = self.parent_events.try_borrow_mut() {
             event.tcp_active = event.tcp_active.saturating_add(1);
+            event.tcp_high_water = event.tcp_high_water.max(event.tcp_active);
         }
         self.clients.push(PollTcpClient {
             #[cfg(target_os = "linux")]
@@ -6181,7 +6249,9 @@ impl SinglePoll {
         let now = Instant::now();
         self.arp_awake |= self.full_reload_pending
             || RELOAD_REQUESTED.load(Ordering::Acquire) != 0
-            || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0;
+            || LOG_REOPEN_REQUESTED.load(Ordering::Acquire) != 0
+            || CACHE_DUMP_REQUESTED.load(Ordering::Acquire) != 0
+            || ALARM_REQUESTED.load(Ordering::Acquire) != 0;
         let mut fds = Vec::new();
         // A normal C TCP child owns its logger readiness. It does not wake
         // the parent's ARP loop until cache import or its actual completion.
@@ -6901,18 +6971,22 @@ mod tests {
     fn delivered_signal_counters_wake_even_without_a_pipe_byte() {
         let mut owner = test_owner(DnsConfig::default(), None);
         assert!(owner.signal_wake_read.is_none());
-        for event in 0..3 {
+        for event in 0..5 {
             let before = match event {
                 0 => usize::from(STOP_REQUESTED.swap(true, Ordering::AcqRel)),
                 1 => LOG_REOPEN_REQUESTED.swap(1, Ordering::AcqRel),
-                _ => RELOAD_REQUESTED.swap(1, Ordering::AcqRel),
+                2 => RELOAD_REQUESTED.swap(1, Ordering::AcqRel),
+                3 => CACHE_DUMP_REQUESTED.swap(1, Ordering::AcqRel),
+                _ => ALARM_REQUESTED.swap(1, Ordering::AcqRel),
             };
             let started = Instant::now();
             let result = owner.wait_for_files();
             match event {
                 0 => STOP_REQUESTED.store(before != 0, Ordering::Release),
                 1 => LOG_REOPEN_REQUESTED.store(before, Ordering::Release),
-                _ => RELOAD_REQUESTED.store(before, Ordering::Release),
+                2 => RELOAD_REQUESTED.store(before, Ordering::Release),
+                3 => CACHE_DUMP_REQUESTED.store(before, Ordering::Release),
+                _ => ALARM_REQUESTED.store(before, Ordering::Release),
             }
             result.unwrap();
             assert!(started.elapsed() < Duration::from_millis(50),
