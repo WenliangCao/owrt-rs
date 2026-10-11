@@ -1,0 +1,45 @@
+{
+  "elf_sha256": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+  "commands": [
+    {
+      "name": "hosts-memory",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/release/dnsmasq-rs",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/post-checks/hosts-memory"
+      ],
+      "started": 1791753393.766105,
+      "returncode": 0,
+      "elapsed_seconds": 5.2738237380981445,
+      "log_sha256": "8fc175336c8737b64c9c05f816eca08441b7d0184ebf2716b1a44b2ac662dea3",
+      "result_sha256": "8fc175336c8737b64c9c05f816eca08441b7d0184ebf2716b1a44b2ac662dea3"
+    },
+    {
+      "name": "alarm",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/post_checks.py",
+        "alarm"
+      ],
+      "started": 1791753399.0408921,
+      "returncode": 0,
+      "elapsed_seconds": 0.4659762382507324,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_sha256": "3ce549eb8b0c253180001f286af1cf668d93d41ddb96b4233fe5d28575a4b646"
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,31 @@
+{
+  "source_directory": "/Users/USER/Developer/owrt-control-plane-rs/private/network-research-20260929/dns/dnsmasq-2.93-openwrt/src",
+  "files": {
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "rfc2131.c": "14f2e10792ef6108aeb7b69e551f089ba287c8c84d39ea178a5f33acd2038c2c",
+    "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763",
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "network.c": "8229872d30a2fb2d86ec9a9e550e51fbb8d8d97926e7a02b0137f2a7b40c40c9",
+    "option.c": "bdcd4c532b66560fb2b197470fe7ebbfe387d4ab3cd5372932591ce260e30bed",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+    "inotify.c": "6a5b0239b9c9fbb1ca0bf638e18efd32914c88d4899602c030b23cf8221b96a7"
+  },
+  "existing_reference_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "scope": "patched matching source reused and rehashed; firmware/archive not re-extracted in this audit",
+  "openwrt": "25.12.5",
+  "package": "dnsmasq",
+  "version": "2.93-r1",
+  "variant": "nodhcpv6",
+  "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+  "archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+  "copts": [
+    "-DHAVE_UBUS",
+    "-DHAVE_POLL_H",
+    "-DNO_DHCP6",
+    "-DNO_AUTH",
+    "-DNO_IPSET",
+    "-DNO_ID"
+  ],
+  "matched_existing_identity": true
+}

@@ -1,0 +1,331 @@
+{
+  "status": "complete",
+  "started": 1791751989.237144,
+  "windows": [
+    {
+      "id": "udp-hit-r1-main",
+      "started": 1791751989.252035,
+      "returncode": 0,
+      "ended": 1791752015.757181
+    },
+    {
+      "id": "udp-hit-r1-fix",
+      "started": 1791752015.7721078,
+      "returncode": 0,
+      "ended": 1791752042.2787201
+    },
+    {
+      "id": "udp-hit-r1-c",
+      "started": 1791752042.2934859,
+      "returncode": 0,
+      "ended": 1791752068.80312
+    },
+    {
+      "id": "udp-miss-r1-main",
+      "started": 1791752068.8178701,
+      "returncode": 0,
+      "ended": 1791752094.5276058
+    },
+    {
+      "id": "udp-miss-r1-fix",
+      "started": 1791752094.5428555,
+      "returncode": 0,
+      "ended": 1791752120.2503564
+    },
+    {
+      "id": "udp-miss-r1-c",
+      "started": 1791752120.265723,
+      "returncode": 0,
+      "ended": 1791752145.9897685
+    },
+    {
+      "id": "tcp-hit-r1-main",
+      "started": 1791752146.004559,
+      "returncode": 0,
+      "ended": 1791752172.5217228
+    },
+    {
+      "id": "tcp-hit-r1-fix",
+      "started": 1791752172.5365276,
+      "returncode": 0,
+      "ended": 1791752199.0574744
+    },
+    {
+      "id": "tcp-hit-r1-c",
+      "started": 1791752199.0722232,
+      "returncode": 0,
+      "ended": 1791752225.5905206
+    },
+    {
+      "id": "tcp-miss-r1-main",
+      "started": 1791752225.6052642,
+      "returncode": 0,
+      "ended": 1791752251.3156598
+    },
+    {
+      "id": "tcp-miss-r1-fix",
+      "started": 1791752251.3301904,
+      "returncode": 0,
+      "ended": 1791752277.045085
+    },
+    {
+      "id": "tcp-miss-r1-c",
+      "started": 1791752277.059979,
+      "returncode": 0,
+      "ended": 1791752302.8223448
+    },
+    {
+      "id": "dhcp-lease-r1-main",
+      "started": 1791752302.8377645,
+      "returncode": 0,
+      "ended": 1791752328.5820224
+    },
+    {
+      "id": "dhcp-lease-r1-fix",
+      "started": 1791752328.5968995,
+      "returncode": 0,
+      "ended": 1791752354.3354313
+    },
+    {
+      "id": "dhcp-lease-r1-c",
+      "started": 1791752354.3500896,
+      "returncode": 0,
+      "ended": 1791752380.0808482
+    },
+    {
+      "id": "reload-tftp-r1-main",
+      "started": 1791752380.0956345,
+      "returncode": 0,
+      "ended": 1791752405.8351638
+    },
+    {
+      "id": "reload-tftp-r1-fix",
+      "started": 1791752405.850314,
+      "returncode": 0,
+      "ended": 1791752431.616528
+    },
+    {
+      "id": "reload-tftp-r1-c",
+      "started": 1791752431.6312556,
+      "returncode": 0,
+      "ended": 1791752457.3725345
+    },
+    {
+      "id": "udp-hit-r2-fix",
+      "started": 1791752457.3873572,
+      "returncode": 0,
+      "ended": 1791752483.9244268
+    },
+    {
+      "id": "udp-hit-r2-c",
+      "started": 1791752483.9392436,
+      "returncode": 0,
+      "ended": 1791752510.4233823
+    },
+    {
+      "id": "udp-hit-r2-main",
+      "started": 1791752510.4383452,
+      "returncode": 0,
+      "ended": 1791752536.9286113
+    },
+    {
+      "id": "udp-miss-r2-fix",
+      "started": 1791752536.943555,
+      "returncode": 0,
+      "ended": 1791752562.6673055
+    },
+    {
+      "id": "udp-miss-r2-c",
+      "started": 1791752562.682679,
+      "returncode": 0,
+      "ended": 1791752588.4022067
+    },
+    {
+      "id": "udp-miss-r2-main",
+      "started": 1791752588.4175825,
+      "returncode": 0,
+      "ended": 1791752614.137901
+    },
+    {
+      "id": "tcp-hit-r2-fix",
+      "started": 1791752614.1533616,
+      "returncode": 0,
+      "ended": 1791752640.6895444
+    },
+    {
+      "id": "tcp-hit-r2-c",
+      "started": 1791752640.7048779,
+      "returncode": 0,
+      "ended": 1791752667.2524965
+    },
+    {
+      "id": "tcp-hit-r2-main",
+      "started": 1791752667.2680876,
+      "returncode": 0,
+      "ended": 1791752693.8543758
+    },
+    {
+      "id": "tcp-miss-r2-fix",
+      "started": 1791752693.8697395,
+      "returncode": 0,
+      "ended": 1791752719.586172
+    },
+    {
+      "id": "tcp-miss-r2-c",
+      "started": 1791752719.6008868,
+      "returncode": 0,
+      "ended": 1791752745.3552682
+    },
+    {
+      "id": "tcp-miss-r2-main",
+      "started": 1791752745.3699455,
+      "returncode": 0,
+      "ended": 1791752771.0909727
+    },
+    {
+      "id": "dhcp-lease-r2-fix",
+      "started": 1791752771.1058104,
+      "returncode": 0,
+      "ended": 1791752796.8437564
+    },
+    {
+      "id": "dhcp-lease-r2-c",
+      "started": 1791752796.858558,
+      "returncode": 0,
+      "ended": 1791752822.576976
+    },
+    {
+      "id": "dhcp-lease-r2-main",
+      "started": 1791752822.5917237,
+      "returncode": 0,
+      "ended": 1791752848.314423
+    },
+    {
+      "id": "reload-tftp-r2-fix",
+      "started": 1791752848.3297448,
+      "returncode": 0,
+      "ended": 1791752874.0526783
+    },
+    {
+      "id": "reload-tftp-r2-c",
+      "started": 1791752874.0675323,
+      "returncode": 0,
+      "ended": 1791752899.7886534
+    },
+    {
+      "id": "reload-tftp-r2-main",
+      "started": 1791752899.803378,
+      "returncode": 0,
+      "ended": 1791752925.5463274
+    },
+    {
+      "id": "udp-hit-r3-c",
+      "started": 1791752925.5612268,
+      "returncode": 0,
+      "ended": 1791752952.0262601
+    },
+    {
+      "id": "udp-hit-r3-main",
+      "started": 1791752952.0411253,
+      "returncode": 0,
+      "ended": 1791752978.6099458
+    },
+    {
+      "id": "udp-hit-r3-fix",
+      "started": 1791752978.6254754,
+      "returncode": 0,
+      "ended": 1791753005.1530986
+    },
+    {
+      "id": "udp-miss-r3-c",
+      "started": 1791753005.1687672,
+      "returncode": 0,
+      "ended": 1791753030.8908136
+    },
+    {
+      "id": "udp-miss-r3-main",
+      "started": 1791753030.9062557,
+      "returncode": 0,
+      "ended": 1791753056.620929
+    },
+    {
+      "id": "udp-miss-r3-fix",
+      "started": 1791753056.635681,
+      "returncode": 0,
+      "ended": 1791753082.352687
+    },
+    {
+      "id": "tcp-hit-r3-c",
+      "started": 1791753082.3681004,
+      "returncode": 0,
+      "ended": 1791753108.85601
+    },
+    {
+      "id": "tcp-hit-r3-main",
+      "started": 1791753108.8707547,
+      "returncode": 0,
+      "ended": 1791753135.3994334
+    },
+    {
+      "id": "tcp-hit-r3-fix",
+      "started": 1791753135.4143238,
+      "returncode": 0,
+      "ended": 1791753161.9524286
+    },
+    {
+      "id": "tcp-miss-r3-c",
+      "started": 1791753161.967354,
+      "returncode": 0,
+      "ended": 1791753187.7328534
+    },
+    {
+      "id": "tcp-miss-r3-main",
+      "started": 1791753187.7483735,
+      "returncode": 0,
+      "ended": 1791753213.4713767
+    },
+    {
+      "id": "tcp-miss-r3-fix",
+      "started": 1791753213.4861925,
+      "returncode": 0,
+      "ended": 1791753239.2022185
+    },
+    {
+      "id": "dhcp-lease-r3-c",
+      "started": 1791753239.217083,
+      "returncode": 0,
+      "ended": 1791753264.9622893
+    },
+    {
+      "id": "dhcp-lease-r3-main",
+      "started": 1791753264.977181,
+      "returncode": 0,
+      "ended": 1791753290.7019217
+    },
+    {
+      "id": "dhcp-lease-r3-fix",
+      "started": 1791753290.716914,
+      "returncode": 0,
+      "ended": 1791753316.4698162
+    },
+    {
+      "id": "reload-tftp-r3-c",
+      "started": 1791753316.4846032,
+      "returncode": 0,
+      "ended": 1791753342.2330592
+    },
+    {
+      "id": "reload-tftp-r3-main",
+      "started": 1791753342.2482245,
+      "returncode": 0,
+      "ended": 1791753368.0037138
+    },
+    {
+      "id": "reload-tftp-r3-fix",
+      "started": 1791753368.0185905,
+      "returncode": 0,
+      "ended": 1791753393.7593868
+    }
+  ],
+  "ended": 1791753393.760093
+}

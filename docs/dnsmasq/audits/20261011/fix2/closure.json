@@ -1,0 +1,20 @@
+{
+  "checks": {
+    "fix": true,
+    "main": true,
+    "performance_assets": true,
+    "performance_raw_inputs": true,
+    "post_checks": true,
+    "startup_resources": true,
+    "sdk_elf_identity": true,
+    "image": true,
+    "no_task_processes": true,
+    "build_lock_available": true
+  },
+  "passed": true,
+  "remaining_task_processes": [],
+  "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "performance_summary_sha256": "78f8ddbb888580dc999dc68b481c5898e7c9e8da4acbcb0dde062e8bf0b5d39a",
+  "performance_plan_sha256": "ad861c0052e51b63e80cfac079f7d54130fdc7611256e667e01de5544892d545"
+}

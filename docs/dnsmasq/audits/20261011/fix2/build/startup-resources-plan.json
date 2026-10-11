@@ -1,0 +1,55 @@
+{
+  "scope": "Additional startup resource hypothesis check; not part of frozen 54-window performance screening",
+  "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "script_sha256": "79729ad7dd7515ed4a537857fad1b260b21bb42a26bba672363df33409a29e85",
+  "counts": [
+    0,
+    1000,
+    10000
+  ],
+  "orders": [
+    [
+      "c",
+      "main",
+      "head"
+    ],
+    [
+      "main",
+      "head",
+      "c"
+    ],
+    [
+      "head",
+      "c",
+      "main"
+    ]
+  ],
+  "argv": [
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/startup_resources.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/source",
+    "--image-root",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--rust",
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/release/dnsmasq-rs",
+    "--main",
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/main-release/dnsmasq-rs",
+    "--out",
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/startup-resources-01",
+    "--performance-status",
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/performance/run.json",
+    "--post-checks-status",
+    "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/post-checks/result.json"
+  ],
+  "prerequisites": {
+    "performance": "ddd8a5c7b84af22690eb7078506bb06c63eedf789113ee73b2cb2672ef3934e8",
+    "postchecks": "299b5d5a726a8e8635fe608da8c874b83daa047cfb2aee87c30e8086b31d9840"
+  },
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+    "head": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060"
+  },
+  "measurement": "Kernel VmHWM plus five post-initial-cache-reload, post-single-UDP-query idle VmRSS/smaps RSS/PSS samples (KiB); no sustained traffic or injected resource limits"
+}

@@ -1,0 +1,25 @@
+{
+  "rows": [
+    {
+      "implementation": "c",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "ack": 5,
+      "lease_absent_before_alarm": true,
+      "lease_persisted_after_alarm": true,
+      "lease_dump_seen": true,
+      "daemon_alive": true,
+      "dns_after": true
+    },
+    {
+      "implementation": "fix",
+      "binary_sha256": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+      "ack": 5,
+      "lease_absent_before_alarm": true,
+      "lease_persisted_after_alarm": true,
+      "lease_dump_seen": true,
+      "daemon_alive": true,
+      "dns_after": true
+    }
+  ],
+  "passed": true
+}

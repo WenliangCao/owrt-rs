@@ -1,0 +1,694 @@
+{
+  "scope": "Additional normal startup resource check, separate from frozen 54-window performance screening",
+  "status": "complete",
+  "passed": true,
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+    "head": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060"
+  },
+  "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "runs": 27,
+  "evidence_sha256": {
+    "startup-resources.json": "b7335361af81132b050403269b1528bdf4172745ffd0af51038b72b486657df3",
+    "startup-resources-plan.json": "212e3b7d83e4f41c9a7529f7e0d6c42695276ea434384a3d525fc7a70124f70c",
+    "startup_resources.py": "79729ad7dd7515ed4a537857fad1b260b21bb42a26bba672363df33409a29e85",
+    "startup-resource-queue.json": "45e8857a967d1f532cb88ab021be44591b514be804ce6036081182caab0008ef"
+  },
+  "groups": [
+    {
+      "host_records": 0,
+      "variants": {
+        "c": {
+          "VmHWM_kib": {
+            "values": [
+              1036,
+              1116,
+              1124
+            ],
+            "median": 1116,
+            "range": [
+              1036,
+              1124
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              1036,
+              1116,
+              1124
+            ],
+            "median": 1116,
+            "range": [
+              1036,
+              1124
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              1028,
+              1108,
+              1116
+            ],
+            "median": 1108,
+            "range": [
+              1028,
+              1116
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              80,
+              80,
+              80
+            ],
+            "median": 80,
+            "range": [
+              80,
+              80
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              1036,
+              1116,
+              1124
+            ],
+            "median": 1116,
+            "range": [
+              1036,
+              1124
+            ]
+          },
+          "idle_samples_unchanged": true
+        },
+        "main": {
+          "VmHWM_kib": {
+            "values": [
+              1924,
+              1920,
+              1924
+            ],
+            "median": 1924,
+            "range": [
+              1920,
+              1924
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              1924,
+              1920,
+              1924
+            ],
+            "median": 1924,
+            "range": [
+              1920,
+              1924
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              1916,
+              1912,
+              1916
+            ],
+            "median": 1916,
+            "range": [
+              1912,
+              1916
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              184,
+              184,
+              184
+            ],
+            "median": 184,
+            "range": [
+              184,
+              184
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              1924,
+              1920,
+              1924
+            ],
+            "median": 1924,
+            "range": [
+              1920,
+              1924
+            ]
+          },
+          "idle_samples_unchanged": true
+        },
+        "head": {
+          "VmHWM_kib": {
+            "values": [
+              2008,
+              1952,
+              1988
+            ],
+            "median": 1988,
+            "range": [
+              1952,
+              2008
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              2008,
+              1952,
+              1988
+            ],
+            "median": 1988,
+            "range": [
+              1952,
+              2008
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              2000,
+              1944,
+              1980
+            ],
+            "median": 1980,
+            "range": [
+              1944,
+              2000
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              144,
+              144,
+              144
+            ],
+            "median": 144,
+            "range": [
+              144,
+              144
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              2008,
+              1952,
+              1988
+            ],
+            "median": 1988,
+            "range": [
+              1952,
+              2008
+            ]
+          },
+          "idle_samples_unchanged": true
+        }
+      },
+      "head_minus_main": {
+        "VmHWM_kib": {
+          "delta_kib": 64,
+          "percent": 3.3264033264033266
+        },
+        "VmRSS_kib": {
+          "delta_kib": 64,
+          "percent": 3.3264033264033266
+        },
+        "Pss_kib": {
+          "delta_kib": 64,
+          "percent": 3.3402922755741082
+        },
+        "VmData_kib": {
+          "delta_kib": -40,
+          "percent": -21.739130434782606
+        },
+        "Rss_smaps_kib": {
+          "delta_kib": 64,
+          "percent": 3.3264033264033266
+        }
+      },
+      "wire_answer_equal": true
+    },
+    {
+      "host_records": 1000,
+      "variants": {
+        "c": {
+          "VmHWM_kib": {
+            "values": [
+              1312,
+              1332,
+              1328
+            ],
+            "median": 1328,
+            "range": [
+              1312,
+              1332
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              1312,
+              1332,
+              1328
+            ],
+            "median": 1328,
+            "range": [
+              1312,
+              1332
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              1304,
+              1324,
+              1320
+            ],
+            "median": 1320,
+            "range": [
+              1304,
+              1324
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              304,
+              304,
+              304
+            ],
+            "median": 304,
+            "range": [
+              304,
+              304
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              1312,
+              1332,
+              1328
+            ],
+            "median": 1328,
+            "range": [
+              1312,
+              1332
+            ]
+          },
+          "idle_samples_unchanged": true
+        },
+        "main": {
+          "VmHWM_kib": {
+            "values": [
+              2836,
+              2836,
+              2836
+            ],
+            "median": 2836,
+            "range": [
+              2836,
+              2836
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              2836,
+              2836,
+              2836
+            ],
+            "median": 2836,
+            "range": [
+              2836,
+              2836
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              2828,
+              2828,
+              2828
+            ],
+            "median": 2828,
+            "range": [
+              2828,
+              2828
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              1156,
+              1156,
+              1156
+            ],
+            "median": 1156,
+            "range": [
+              1156,
+              1156
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              2836,
+              2836,
+              2836
+            ],
+            "median": 2836,
+            "range": [
+              2836,
+              2836
+            ]
+          },
+          "idle_samples_unchanged": true
+        },
+        "head": {
+          "VmHWM_kib": {
+            "values": [
+              3156,
+              3056,
+              3132
+            ],
+            "median": 3132,
+            "range": [
+              3056,
+              3156
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              2952,
+              2912,
+              2864
+            ],
+            "median": 2912,
+            "range": [
+              2864,
+              2952
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              2944,
+              2904,
+              2856
+            ],
+            "median": 2904,
+            "range": [
+              2856,
+              2944
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              1124,
+              1124,
+              1124
+            ],
+            "median": 1124,
+            "range": [
+              1124,
+              1124
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              2952,
+              2912,
+              2864
+            ],
+            "median": 2912,
+            "range": [
+              2864,
+              2952
+            ]
+          },
+          "idle_samples_unchanged": true
+        }
+      },
+      "head_minus_main": {
+        "VmHWM_kib": {
+          "delta_kib": 296,
+          "percent": 10.437235543018343
+        },
+        "VmRSS_kib": {
+          "delta_kib": 76,
+          "percent": 2.6798307475317307
+        },
+        "Pss_kib": {
+          "delta_kib": 76,
+          "percent": 2.6874115983026803
+        },
+        "VmData_kib": {
+          "delta_kib": -32,
+          "percent": -2.768166089965396
+        },
+        "Rss_smaps_kib": {
+          "delta_kib": 76,
+          "percent": 2.6798307475317307
+        }
+      },
+      "wire_answer_equal": true
+    },
+    {
+      "host_records": 10000,
+      "variants": {
+        "c": {
+          "VmHWM_kib": {
+            "values": [
+              3132,
+              3116,
+              3120
+            ],
+            "median": 3120,
+            "range": [
+              3116,
+              3132
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              3132,
+              3116,
+              3120
+            ],
+            "median": 3120,
+            "range": [
+              3116,
+              3132
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              3124,
+              3108,
+              3112
+            ],
+            "median": 3112,
+            "range": [
+              3108,
+              3124
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              2132,
+              2132,
+              2132
+            ],
+            "median": 2132,
+            "range": [
+              2132,
+              2132
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              3132,
+              3116,
+              3120
+            ],
+            "median": 3120,
+            "range": [
+              3116,
+              3132
+            ]
+          },
+          "idle_samples_unchanged": true
+        },
+        "main": {
+          "VmHWM_kib": {
+            "values": [
+              10832,
+              10828,
+              10832
+            ],
+            "median": 10832,
+            "range": [
+              10828,
+              10832
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              10340,
+              10336,
+              10340
+            ],
+            "median": 10340,
+            "range": [
+              10336,
+              10340
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              10332,
+              10328,
+              10332
+            ],
+            "median": 10332,
+            "range": [
+              10328,
+              10332
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              8996,
+              8996,
+              8996
+            ],
+            "median": 8996,
+            "range": [
+              8996,
+              8996
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              10340,
+              10336,
+              10340
+            ],
+            "median": 10340,
+            "range": [
+              10336,
+              10340
+            ]
+          },
+          "idle_samples_unchanged": true
+        },
+        "head": {
+          "VmHWM_kib": {
+            "values": [
+              14200,
+              14200,
+              14220
+            ],
+            "median": 14200,
+            "range": [
+              14200,
+              14220
+            ]
+          },
+          "VmRSS_kib": {
+            "values": [
+              10576,
+              10516,
+              10532
+            ],
+            "median": 10532,
+            "range": [
+              10516,
+              10576
+            ]
+          },
+          "Pss_kib": {
+            "values": [
+              10568,
+              10508,
+              10524
+            ],
+            "median": 10524,
+            "range": [
+              10508,
+              10568
+            ]
+          },
+          "VmData_kib": {
+            "values": [
+              9076,
+              9076,
+              9076
+            ],
+            "median": 9076,
+            "range": [
+              9076,
+              9076
+            ]
+          },
+          "Rss_smaps_kib": {
+            "values": [
+              10576,
+              10516,
+              10532
+            ],
+            "median": 10532,
+            "range": [
+              10516,
+              10576
+            ]
+          },
+          "idle_samples_unchanged": true
+        }
+      },
+      "head_minus_main": {
+        "VmHWM_kib": {
+          "delta_kib": 3368,
+          "percent": 31.093057607090113
+        },
+        "VmRSS_kib": {
+          "delta_kib": 192,
+          "percent": 1.8568665377175941
+        },
+        "Pss_kib": {
+          "delta_kib": 192,
+          "percent": 1.8583042973286945
+        },
+        "VmData_kib": {
+          "delta_kib": 80,
+          "percent": 0.8892841262783557
+        },
+        "Rss_smaps_kib": {
+          "delta_kib": 192,
+          "percent": 1.8568665377175941
+        }
+      },
+      "wire_answer_equal": true
+    }
+  ],
+  "finding": {
+    "severity": "P2",
+    "classification": "confirmed newly introduced startup peak-memory regression for larger normal host-record configurations",
+    "observed": "At 10000 records, median VmHWM grows 10832 to 14200 KiB (+3368 KiB / 31.09%); baseline at 0 records grows only 64 KiB; settled VmRSS grows 10340 to 10532 KiB (+192 KiB).",
+    "source_basis": [
+      "main.rs:884 configured_hosts creates the first generation",
+      "main.rs:935 hosts.clone copies it",
+      "main.rs:3572 new initial_cache_reload calls reload_hosts_data",
+      "main.rs:3193 read_hosts_with_notices rebuilds configured_hosts (main.rs:6820)",
+      "main.rs:3203 hosts.clone completes before daemon.reload_hosts assignment frees its old generation",
+      "main.rs:3204 frees the other old generation",
+      "hosts.rs:61 derives Clone over owned entry/index collections",
+      "dns/daemon.rs:746 replaces old daemon hosts"
+    ],
+    "limitations": [
+      "No OOM or client loss was observed; all 27 daemons answered once and exited 0",
+      "No allocator or instrumented product build used; redundant generations are the source-supported explanation, not isolated with a code mutation",
+      "Kernel VmHWM and one normal-startup configuration family only, not complete startup/memory qualification",
+      "No startup time conclusion; readiness log polling has 5 ms granularity",
+      "No changes to frozen 54-window performance screening"
+    ]
+  }
+}
