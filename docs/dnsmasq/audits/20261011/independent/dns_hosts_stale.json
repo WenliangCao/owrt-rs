@@ -1,0 +1,85 @@
+{
+  "rust_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+  "cases": [
+    {
+      "side": "c",
+      "debug": false,
+      "stale": false,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "rust",
+      "debug": false,
+      "stale": false,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "c",
+      "debug": false,
+      "stale": true,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000006000f00020003",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "rust",
+      "debug": false,
+      "stale": true,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "c",
+      "debug": true,
+      "stale": false,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "rust",
+      "debug": true,
+      "stale": false,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "c",
+      "debug": true,
+      "stale": true,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000006000f00020003",
+      "upstream_after_tcp": [],
+      "alive": true
+    },
+    {
+      "side": "rust",
+      "debug": true,
+      "stale": true,
+      "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+      "ack": 5,
+      "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+      "upstream_after_tcp": [],
+      "alive": true
+    }
+  ]
+}

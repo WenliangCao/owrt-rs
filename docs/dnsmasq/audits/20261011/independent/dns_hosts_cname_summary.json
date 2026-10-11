@@ -1,0 +1,245 @@
+{
+  "scope": "exact image / main / fix independently rebuilt daemon CNAME precedence regression",
+  "configuration": [
+    "cache-size=32",
+    "cache-rr=TXT",
+    "txt-record=alias.test,alias-local",
+    "server=127.0.0.1#15354"
+  ],
+  "checks": [
+    {
+      "debug": false,
+      "main_equals_exact_c_tcp": true,
+      "fix_differs_from_main_tcp": true,
+      "all_warm_A_replies_equal": true,
+      "all_warm_TXT_replies_equal": true,
+      "all_direct_target_TXT_equal": true,
+      "all_only_two_upstream_queries": true
+    },
+    {
+      "debug": true,
+      "main_equals_exact_c_tcp": true,
+      "fix_differs_from_main_tcp": true,
+      "all_warm_A_replies_equal": true,
+      "all_warm_TXT_replies_equal": true,
+      "all_direct_target_TXT_equal": true,
+      "all_only_two_upstream_queries": true
+    }
+  ],
+  "rows": [
+    {
+      "side": "c",
+      "debug": false,
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "alive": true,
+      "tcp_txt_alias": {
+        "id": 4660,
+        "flags": 33152,
+        "questions": [
+          [
+            "alias.test",
+            16,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "alias.test",
+            "type": 5,
+            "class": 1,
+            "ttl": 600,
+            "data": "target.test"
+          },
+          {
+            "section": "answer",
+            "name": "target.test",
+            "type": 16,
+            "class": 1,
+            "ttl": 600,
+            "data": "0f7461726765742d757073747265616d"
+          }
+        ],
+        "flags_hex": "0x8180",
+        "full_hex": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+      },
+      "upstream_query_count": 2
+    },
+    {
+      "side": "rust",
+      "debug": false,
+      "sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "alive": true,
+      "tcp_txt_alias": {
+        "id": 4660,
+        "flags": 34176,
+        "questions": [
+          [
+            "alias.test",
+            16,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "alias.test",
+            "type": 16,
+            "class": 1,
+            "ttl": 0,
+            "data": "0b616c6961732d6c6f63616c"
+          }
+        ],
+        "flags_hex": "0x8580",
+        "full_hex": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c"
+      },
+      "upstream_query_count": 2
+    },
+    {
+      "side": "main",
+      "debug": false,
+      "sha256": "18a692e088bb67a730c809c9eb2263f1eb9cedaa044e6c9b0e579e64ce1010f7",
+      "alive": true,
+      "tcp_txt_alias": {
+        "id": 4660,
+        "flags": 33152,
+        "questions": [
+          [
+            "alias.test",
+            16,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "alias.test",
+            "type": 5,
+            "class": 1,
+            "ttl": 600,
+            "data": "target.test"
+          },
+          {
+            "section": "answer",
+            "name": "target.test",
+            "type": 16,
+            "class": 1,
+            "ttl": 600,
+            "data": "0f7461726765742d757073747265616d"
+          }
+        ],
+        "flags_hex": "0x8180",
+        "full_hex": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+      },
+      "upstream_query_count": 2
+    },
+    {
+      "side": "c",
+      "debug": true,
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "alive": true,
+      "tcp_txt_alias": {
+        "id": 4660,
+        "flags": 33152,
+        "questions": [
+          [
+            "alias.test",
+            16,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "alias.test",
+            "type": 5,
+            "class": 1,
+            "ttl": 600,
+            "data": "target.test"
+          },
+          {
+            "section": "answer",
+            "name": "target.test",
+            "type": 16,
+            "class": 1,
+            "ttl": 600,
+            "data": "0f7461726765742d757073747265616d"
+          }
+        ],
+        "flags_hex": "0x8180",
+        "full_hex": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+      },
+      "upstream_query_count": 2
+    },
+    {
+      "side": "rust",
+      "debug": true,
+      "sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "alive": true,
+      "tcp_txt_alias": {
+        "id": 4660,
+        "flags": 34176,
+        "questions": [
+          [
+            "alias.test",
+            16,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "alias.test",
+            "type": 16,
+            "class": 1,
+            "ttl": 0,
+            "data": "0b616c6961732d6c6f63616c"
+          }
+        ],
+        "flags_hex": "0x8580",
+        "full_hex": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c"
+      },
+      "upstream_query_count": 2
+    },
+    {
+      "side": "main",
+      "debug": true,
+      "sha256": "18a692e088bb67a730c809c9eb2263f1eb9cedaa044e6c9b0e579e64ce1010f7",
+      "alive": true,
+      "tcp_txt_alias": {
+        "id": 4660,
+        "flags": 33152,
+        "questions": [
+          [
+            "alias.test",
+            16,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "alias.test",
+            "type": 5,
+            "class": 1,
+            "ttl": 600,
+            "data": "target.test"
+          },
+          {
+            "section": "answer",
+            "name": "target.test",
+            "type": 16,
+            "class": 1,
+            "ttl": 600,
+            "data": "0f7461726765742d757073747265616d"
+          }
+        ],
+        "flags_hex": "0x8180",
+        "full_hex": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+      },
+      "upstream_query_count": 2
+    }
+  ],
+  "script_sha256": "d43cfabddb040a8acf865c34d5f6e4ef26da605962d59c6f84c7947ea5554107",
+  "raw_evidence_sha256": "bded72b65fab07c03a734bbe07e4b53424f659a6dce08915185721c3be2241b6"
+}

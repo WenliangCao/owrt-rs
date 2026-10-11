@@ -1,0 +1,298 @@
+{
+  "rust_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rows": [
+    {
+      "mode": "addn-hosts",
+      "c": {
+        "one.test": {
+          "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "vertical.test": {
+          "udp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201"
+        },
+        "page.test": {
+          "udp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "carriage.test": {
+          "udp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "nul.test": {
+          "udp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202"
+        },
+        "ignored.test": {
+          "udp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203",
+          "tcp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203"
+        },
+        "after.test": {
+          "udp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202"
+        },
+        "next.test": {
+          "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+          "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+        },
+        "final.test": {
+          "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+          "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+        },
+        "qd0": {
+          "udp": "123481850000000000000000",
+          "tcp": "123481850000000000000000"
+        },
+        "qd2": {
+          "udp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001",
+          "tcp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001"
+        },
+        "badlabel": {
+          "udp": "TimeoutError",
+          "tcp": "EOFError"
+        },
+        "alive": true,
+        "dump": "dnsmasq[3]: started, version 2.93 cachesize 150\ndnsmasq[3]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[3]: warning: no upstream servers configured\ndnsmasq[3]: bad name at /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts line 6\ndnsmasq[3]: read /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts - 9 names\ndnsmasq[3]: query[A] ready.test from 127.0.0.1\ndnsmasq[3]: config ready.test is 192.0.2.123\ndnsmasq[3]: query[A] one.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts one.test is 192.0.2.1\ndnsmasq[4]: query[A] one.test from 127.0.0.1\ndnsmasq[4]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts one.test is 192.0.2.1\ndnsmasq[3]: query[A] vertical.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts vertical.test is 192.0.2.1\ndnsmasq[5]: query[A] vertical.test from 127.0.0.1\ndnsmasq[5]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts vertical.test is 192.0.2.1\ndnsmasq[3]: query[A] page.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts page.test is 192.0.2.1\ndnsmasq[6]: query[A] page.test from 127.0.0.1\ndnsmasq[6]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts page.test is 192.0.2.1\ndnsmasq[3]: query[A] carriage.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts carriage.test is 192.0.2.1\ndnsmasq[7]: query[A] carriage.test from 127.0.0.1\ndnsmasq[7]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts carriage.test is 192.0.2.1\ndnsmasq[3]: query[A] nul.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts nul.test is 192.0.2.2\ndnsmasq[8]: query[A] nul.test from 127.0.0.1\ndnsmasq[8]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts nul.test is 192.0.2.2\ndnsmasq[3]: query[A] ignored.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts ignored.test is 192.0.2.3\ndnsmasq[9]: query[A] ignored.test from 127.0.0.1\ndnsmasq[9]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts ignored.test is 192.0.2.3\ndnsmasq[3]: query[A] after.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts after.test is 192.0.2.2\ndnsmasq[10]: query[A] after.test from 127.0.0.1\ndnsmasq[10]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts after.test is 192.0.2.2\ndnsmasq[3]: query[A] next.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts next.test is 192.0.2.4\ndnsmasq[11]: query[A] next.test from 127.0.0.1\ndnsmasq[11]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts next.test is 192.0.2.4\ndnsmasq[3]: query[A] final.test from 127.0.0.1\ndnsmasq[3]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts final.test is 192.0.2.5\ndnsmasq[12]: query[A] final.test from 127.0.0.1\ndnsmasq[12]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts final.test is 192.0.2.5\ndnsmasq[3]: config error is REFUSED (EDE: invalid data)\ndnsmasq[13]: config error is REFUSED (EDE: invalid data)\ndnsmasq[3]: config error is REFUSED (EDE: invalid data)\ndnsmasq[14]: config error is REFUSED (EDE: invalid data)\ndnsmasq[3]: config error is REFUSED (EDE: invalid data)\ndnsmasq[15]: config error is REFUSED (EDE: invalid data)\ndnsmasq[3]: time 1791733237\ndnsmasq[3]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[3]: queries forwarded 0, queries answered locally 12\ndnsmasq[3]: pool memory in use 0, max 144, allocated 2400\ndnsmasq[3]: child processes for TCP requests: in use 0, highest since last SIGUSR1 2, max allowed 30.\ndnsmasq[3]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[3]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[3]: final.test                     192.0.2.5                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: next.test                      192.0.2.4                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: ready.test                     192.0.2.123                              4FRI   HC                           config                                  \ndnsmasq[3]: carriage.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: vertical.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: page.test                      192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: after.test                     192.0.2.2                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: test                                                                    !F I   HC                          \ndnsmasq[3]: ignored.test                   192.0.2.3                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: one.test                       192.0.2.1                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[3]: nul.test                       192.0.2.2                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\n"
+      },
+      "rust": {
+        "one.test": {
+          "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "vertical.test": {
+          "udp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201"
+        },
+        "page.test": {
+          "udp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "carriage.test": {
+          "udp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "nul.test": {
+          "udp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202"
+        },
+        "ignored.test": {
+          "udp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203",
+          "tcp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203"
+        },
+        "after.test": {
+          "udp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202"
+        },
+        "next.test": {
+          "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+          "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+        },
+        "final.test": {
+          "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+          "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+        },
+        "qd0": {
+          "udp": "123481850000000000000000",
+          "tcp": "123481850000000000000000"
+        },
+        "qd2": {
+          "udp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001",
+          "tcp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001"
+        },
+        "badlabel": {
+          "udp": "TimeoutError",
+          "tcp": "EOFError"
+        },
+        "alive": true,
+        "dump": "dnsmasq[16]: started, version 2.93 cachesize 150\ndnsmasq[16]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[16]: warning: no upstream servers configured\ndnsmasq[16]: read /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts - 9 names\ndnsmasq[16]: query[A] ready.test from 127.0.0.1\ndnsmasq[16]: config ready.test is 192.0.2.123\ndnsmasq[16]: query[A] one.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts one.test is 192.0.2.1\ndnsmasq[16]: query[A] one.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts one.test is 192.0.2.1\ndnsmasq[16]: query[A] vertical.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts vertical.test is 192.0.2.1\ndnsmasq[16]: query[A] vertical.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts vertical.test is 192.0.2.1\ndnsmasq[16]: query[A] page.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts page.test is 192.0.2.1\ndnsmasq[16]: query[A] page.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts page.test is 192.0.2.1\ndnsmasq[16]: query[A] carriage.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts carriage.test is 192.0.2.1\ndnsmasq[16]: query[A] carriage.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts carriage.test is 192.0.2.1\ndnsmasq[16]: query[A] nul.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts nul.test is 192.0.2.2\ndnsmasq[16]: query[A] nul.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts nul.test is 192.0.2.2\ndnsmasq[16]: query[A] ignored.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts ignored.test is 192.0.2.3\ndnsmasq[16]: query[A] ignored.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts ignored.test is 192.0.2.3\ndnsmasq[16]: query[A] after.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts after.test is 192.0.2.2\ndnsmasq[16]: query[A] after.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts after.test is 192.0.2.2\ndnsmasq[16]: query[A] next.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts next.test is 192.0.2.4\ndnsmasq[16]: query[A] next.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts next.test is 192.0.2.4\ndnsmasq[16]: query[A] final.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts final.test is 192.0.2.5\ndnsmasq[16]: query[A] final.test from 127.0.0.1\ndnsmasq[16]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hosts final.test is 192.0.2.5\ndnsmasq[16]: config error is REFUSED (EDE: invalid data)\ndnsmasq[16]: config error is REFUSED (EDE: invalid data)\ndnsmasq[16]: config error is REFUSED (EDE: invalid data)\ndnsmasq[16]: config error is REFUSED (EDE: invalid data)\ndnsmasq[16]: time 1791733238\ndnsmasq[16]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[16]: queries forwarded 0, queries answered locally 12\ndnsmasq[16]: child processes for TCP requests: in use 0, highest since last SIGUSR1 1, max allowed 30.\ndnsmasq[16]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[16]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[16]: ready.test                     192.0.2.123                              4FRI    C                           config                                  \ndnsmasq[16]: one.test                       192.0.2.1                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: vertical.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: page.test                      192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: carriage.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: nul.test                       192.0.2.2                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: after.test                     192.0.2.2                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: ignored.test                   192.0.2.3                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: next.test                      192.0.2.4                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[16]: final.test                     192.0.2.5                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\n"
+      }
+    },
+    {
+      "mode": "hostsdir",
+      "c": {
+        "one.test": {
+          "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "vertical.test": {
+          "udp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201"
+        },
+        "page.test": {
+          "udp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "carriage.test": {
+          "udp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "nul.test": {
+          "udp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202"
+        },
+        "ignored.test": {
+          "udp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203",
+          "tcp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203"
+        },
+        "after.test": {
+          "udp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202"
+        },
+        "next.test": {
+          "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+          "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+        },
+        "final.test": {
+          "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+          "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+        },
+        "qd0": {
+          "udp": "123481850000000000000000",
+          "tcp": "123481850000000000000000"
+        },
+        "qd2": {
+          "udp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001",
+          "tcp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001"
+        },
+        "badlabel": {
+          "udp": "TimeoutError",
+          "tcp": "EOFError"
+        },
+        "alive": true,
+        "dump": "dnsmasq[17]: started, version 2.93 cachesize 150\ndnsmasq[17]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[17]: warning: no upstream servers configured\ndnsmasq[17]: cleared cache\ndnsmasq[17]: bad name at /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file line 6\ndnsmasq[17]: read /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file - 9 names\ndnsmasq[17]: query[A] ready.test from 127.0.0.1\ndnsmasq[17]: config ready.test is 192.0.2.123\ndnsmasq[17]: query[A] one.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file one.test is 192.0.2.1\ndnsmasq[18]: query[A] one.test from 127.0.0.1\ndnsmasq[18]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file one.test is 192.0.2.1\ndnsmasq[17]: query[A] vertical.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file vertical.test is 192.0.2.1\ndnsmasq[19]: query[A] vertical.test from 127.0.0.1\ndnsmasq[19]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file vertical.test is 192.0.2.1\ndnsmasq[17]: query[A] page.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file page.test is 192.0.2.1\ndnsmasq[20]: query[A] page.test from 127.0.0.1\ndnsmasq[20]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file page.test is 192.0.2.1\ndnsmasq[17]: query[A] carriage.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file carriage.test is 192.0.2.1\ndnsmasq[21]: query[A] carriage.test from 127.0.0.1\ndnsmasq[21]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file carriage.test is 192.0.2.1\ndnsmasq[17]: query[A] nul.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file nul.test is 192.0.2.2\ndnsmasq[22]: query[A] nul.test from 127.0.0.1\ndnsmasq[22]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file nul.test is 192.0.2.2\ndnsmasq[17]: query[A] ignored.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file ignored.test is 192.0.2.3\ndnsmasq[23]: query[A] ignored.test from 127.0.0.1\ndnsmasq[23]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file ignored.test is 192.0.2.3\ndnsmasq[17]: query[A] after.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file after.test is 192.0.2.2\ndnsmasq[24]: query[A] after.test from 127.0.0.1\ndnsmasq[24]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file after.test is 192.0.2.2\ndnsmasq[17]: query[A] next.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file next.test is 192.0.2.4\ndnsmasq[25]: query[A] next.test from 127.0.0.1\ndnsmasq[25]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file next.test is 192.0.2.4\ndnsmasq[17]: query[A] final.test from 127.0.0.1\ndnsmasq[17]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file final.test is 192.0.2.5\ndnsmasq[26]: query[A] final.test from 127.0.0.1\ndnsmasq[26]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file final.test is 192.0.2.5\ndnsmasq[17]: config error is REFUSED (EDE: invalid data)\ndnsmasq[27]: config error is REFUSED (EDE: invalid data)\ndnsmasq[17]: config error is REFUSED (EDE: invalid data)\ndnsmasq[28]: config error is REFUSED (EDE: invalid data)\ndnsmasq[17]: config error is REFUSED (EDE: invalid data)\ndnsmasq[29]: config error is REFUSED (EDE: invalid data)\ndnsmasq[17]: time 1791733239\ndnsmasq[17]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[17]: queries forwarded 0, queries answered locally 12\ndnsmasq[17]: pool memory in use 0, max 144, allocated 2400\ndnsmasq[17]: child processes for TCP requests: in use 0, highest since last SIGUSR1 2, max allowed 30.\ndnsmasq[17]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[17]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[17]: test                                                                    !F I   HC                          \ndnsmasq[17]: ready.test                     192.0.2.123                              4FRI   HC                           config                                  \ndnsmasq[17]: carriage.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: next.test                      192.0.2.4                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: after.test                     192.0.2.2                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: one.test                       192.0.2.1                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: page.test                      192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: vertical.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: final.test                     192.0.2.5                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: ignored.test                   192.0.2.3                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[17]: nul.test                       192.0.2.2                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\n"
+      },
+      "rust": {
+        "one.test": {
+          "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "vertical.test": {
+          "udp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201"
+        },
+        "page.test": {
+          "udp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "carriage.test": {
+          "udp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201",
+          "tcp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201"
+        },
+        "nul.test": {
+          "udp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202"
+        },
+        "ignored.test": {
+          "udp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203",
+          "tcp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203"
+        },
+        "after.test": {
+          "udp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202",
+          "tcp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202"
+        },
+        "next.test": {
+          "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+          "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+        },
+        "final.test": {
+          "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+          "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+        },
+        "qd0": {
+          "udp": "123481850000000000000000",
+          "tcp": "123481850000000000000000"
+        },
+        "qd2": {
+          "udp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001",
+          "tcp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001"
+        },
+        "badlabel": {
+          "udp": "TimeoutError",
+          "tcp": "EOFError"
+        },
+        "alive": true,
+        "dump": "dnsmasq[30]: started, version 2.93 cachesize 150\ndnsmasq[30]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[30]: warning: no upstream servers configured\ndnsmasq[30]: cleared cache\ndnsmasq[30]: bad name at /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file line 6\ndnsmasq[30]: read /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file - 9 names\ndnsmasq[30]: query[A] ready.test from 127.0.0.1\ndnsmasq[30]: config ready.test is 192.0.2.123\ndnsmasq[30]: query[A] one.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file one.test is 192.0.2.1\ndnsmasq[30]: query[A] one.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file one.test is 192.0.2.1\ndnsmasq[30]: query[A] vertical.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file vertical.test is 192.0.2.1\ndnsmasq[30]: query[A] vertical.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file vertical.test is 192.0.2.1\ndnsmasq[30]: query[A] page.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file page.test is 192.0.2.1\ndnsmasq[30]: query[A] page.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file page.test is 192.0.2.1\ndnsmasq[30]: query[A] carriage.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file carriage.test is 192.0.2.1\ndnsmasq[30]: query[A] carriage.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file carriage.test is 192.0.2.1\ndnsmasq[30]: query[A] nul.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file nul.test is 192.0.2.2\ndnsmasq[30]: query[A] nul.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file nul.test is 192.0.2.2\ndnsmasq[30]: query[A] ignored.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file ignored.test is 192.0.2.3\ndnsmasq[30]: query[A] ignored.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file ignored.test is 192.0.2.3\ndnsmasq[30]: query[A] after.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file after.test is 192.0.2.2\ndnsmasq[30]: query[A] after.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file after.test is 192.0.2.2\ndnsmasq[30]: query[A] next.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file next.test is 192.0.2.4\ndnsmasq[30]: query[A] next.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file next.test is 192.0.2.4\ndnsmasq[30]: query[A] final.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file final.test is 192.0.2.5\ndnsmasq[30]: query[A] final.test from 127.0.0.1\ndnsmasq[30]: /home/ubuntu/dnsmasq-fix-independent-20261011/private/dns_hosts_probe-02/hostsdir/file final.test is 192.0.2.5\ndnsmasq[30]: config error is REFUSED (EDE: invalid data)\ndnsmasq[30]: config error is REFUSED (EDE: invalid data)\ndnsmasq[30]: config error is REFUSED (EDE: invalid data)\ndnsmasq[30]: config error is REFUSED (EDE: invalid data)\ndnsmasq[30]: time 1791733240\ndnsmasq[30]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[30]: queries forwarded 0, queries answered locally 12\ndnsmasq[30]: child processes for TCP requests: in use 0, highest since last SIGUSR1 1, max allowed 30.\ndnsmasq[30]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[30]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[30]: ready.test                     192.0.2.123                              4FRI    C                           config                                  \ndnsmasq[30]: one.test                       192.0.2.1                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: vertical.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: page.test                      192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: carriage.test                  192.0.2.1                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: nul.test                       192.0.2.2                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: after.test                     192.0.2.2                                4F I   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: ignored.test                   192.0.2.3                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: next.test                      192.0.2.4                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\ndnsmasq[30]: final.test                     192.0.2.5                                4FRI   H                            /home/ubuntu/dnsmasq-fix-independent-202\n"
+      }
+    },
+    {
+      "mode": "dump-cnames",
+      "c": {
+        "valid": {
+          "udp": "1234858000010002000000000576616c696405616c696173076578616d706c650000010001c00c00050001000000000015046465657006746172676574076578616d706c6500c03100010001000000000004c0000202",
+          "tcp": "1234858000010002000000000576616c696405616c696173076578616d706c650000010001c00c00050001000000000015046465657006746172676574076578616d706c6500c03100010001000000000004c0000202"
+        },
+        "missing": {
+          "udp": "123485800001000100000000076d697373696e6705616c696173076578616d706c650000010001c00c0005000100000000001706616273656e7406746172676574076578616d706c6500",
+          "tcp": "123485800001000100000000076d697373696e6705616c696173076578616d706c650000010001c00c0005000100000000001706616273656e7406746172676574076578616d706c6500"
+        },
+        "alive": true,
+        "dump": "dnsmasq[31]: started, version 2.93 cachesize 150\ndnsmasq[31]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[31]: warning: no upstream servers configured\ndnsmasq[31]: cleared cache\ndnsmasq[31]: query[A] ready.test from 127.0.0.1\ndnsmasq[31]: config ready.test is 192.0.2.123\ndnsmasq[31]: query[A] valid.alias.example from 127.0.0.1\ndnsmasq[31]: config valid.alias.example is <CNAME>\ndnsmasq[31]: config deep.target.example is 192.0.2.2\ndnsmasq[32]: query[A] valid.alias.example from 127.0.0.1\ndnsmasq[32]: config valid.alias.example is <CNAME>\ndnsmasq[32]: config deep.target.example is 192.0.2.2\ndnsmasq[31]: query[A] missing.alias.example from 127.0.0.1\ndnsmasq[31]: config missing.alias.example is <CNAME>\ndnsmasq[33]: query[A] missing.alias.example from 127.0.0.1\ndnsmasq[33]: config missing.alias.example is <CNAME>\ndnsmasq[31]: time 1791733240\ndnsmasq[31]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[31]: queries forwarded 0, queries answered locally 3\ndnsmasq[31]: pool memory in use 0, max 48, allocated 2400\ndnsmasq[31]: child processes for TCP requests: in use 1, highest since last SIGUSR1 2, max allowed 30.\ndnsmasq[31]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[31]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[31]: example                                                                 !F I    C                          \ndnsmasq[31]: deep.target.example            192.0.2.2                                4FRI   HC                           config                                  \ndnsmasq[31]: ready.test                     192.0.2.123                              4FRI   HC                           config                                  \ndnsmasq[31]: test                                                                    !F I   HC                          \ndnsmasq[31]: missing.alias.example          absent.target.example                    CF I    C                          \ndnsmasq[31]: alias.example                                                           !F I    C                          \ndnsmasq[31]: target.example                                                          !F I   HC                          \ndnsmasq[31]: valid.alias.example            deep.target.example                      CF I    C                          \n"
+      },
+      "rust": {
+        "valid": {
+          "udp": "1234858000010002000000000576616c696405616c696173076578616d706c650000010001c00c00050001000000000015046465657006746172676574076578616d706c6500c03100010001000000000004c0000202",
+          "tcp": "1234858000010002000000000576616c696405616c696173076578616d706c650000010001c00c00050001000000000015046465657006746172676574076578616d706c6500c03100010001000000000004c0000202"
+        },
+        "missing": {
+          "udp": "123485800001000100000000076d697373696e6705616c696173076578616d706c650000010001c00c0005000100000000001706616273656e7406746172676574076578616d706c6500",
+          "tcp": "123485800001000100000000076d697373696e6705616c696173076578616d706c650000010001c00c0005000100000000001706616273656e7406746172676574076578616d706c6500"
+        },
+        "alive": true,
+        "dump": "dnsmasq[34]: started, version 2.93 cachesize 150\ndnsmasq[34]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[34]: warning: no upstream servers configured\ndnsmasq[34]: cleared cache\ndnsmasq[34]: query[A] ready.test from 127.0.0.1\ndnsmasq[34]: config ready.test is 192.0.2.123\ndnsmasq[34]: query[A] valid.alias.example from 127.0.0.1\ndnsmasq[34]: config valid.alias.example is <CNAME>\ndnsmasq[34]: config deep.target.example is 192.0.2.2\ndnsmasq[34]: query[A] valid.alias.example from 127.0.0.1\ndnsmasq[34]: config valid.alias.example is <CNAME>\ndnsmasq[34]: config deep.target.example is 192.0.2.2\ndnsmasq[34]: query[A] missing.alias.example from 127.0.0.1\ndnsmasq[34]: config missing.alias.example is <CNAME>\ndnsmasq[34]: query[A] missing.alias.example from 127.0.0.1\ndnsmasq[34]: config missing.alias.example is <CNAME>\ndnsmasq[34]: time 1791733241\ndnsmasq[34]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[34]: queries forwarded 0, queries answered locally 3\ndnsmasq[34]: child processes for TCP requests: in use 1, highest since last SIGUSR1 1, max allowed 30.\ndnsmasq[34]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[34]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[34]: ready.test                     192.0.2.123                              4FRI    C                           config                                  \ndnsmasq[34]: deep.target.example            192.0.2.2                                4FRI    C                           config                                  \ndnsmasq[34]: valid.alias.example            deep.target.example                      CF I    C                           config                                  \ndnsmasq[34]: missing.alias.example          absent.target.example                    CF I    C                           config                                  \n"
+      }
+    },
+    {
+      "mode": "cache-enabled-malformed-additional",
+      "c": {
+        "missing-additional": {
+          "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+          "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+        },
+        "00002904d00000000000": {
+          "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+          "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+        },
+        "c0ff002904d0000000000000": {
+          "udp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e",
+          "tcp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e"
+        },
+        "00002904d000000000000000002904d000000000": {
+          "udp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e",
+          "tcp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e"
+        },
+        "67617262616765": {
+          "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+          "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+        },
+        "alive": true,
+        "dump": "dnsmasq[35]: started, version 2.93 cachesize 150\ndnsmasq[35]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[35]: warning: no upstream servers configured\ndnsmasq[35]: cleared cache\ndnsmasq[35]: query[A] ready.test from 127.0.0.1\ndnsmasq[35]: config ready.test is 192.0.2.123\ndnsmasq[35]: query[A] upstream.test from 127.0.0.1\ndnsmasq[35]: config error is REFUSED (EDE: not ready)\ndnsmasq[36]: query[A] upstream.test from 127.0.0.1\ndnsmasq[36]: config error is REFUSED (EDE: not ready)\ndnsmasq[35]: query[A] upstream.test from 127.0.0.1\ndnsmasq[35]: config error is REFUSED (EDE: not ready)\ndnsmasq[37]: query[A] upstream.test from 127.0.0.1\ndnsmasq[37]: config error is REFUSED (EDE: not ready)\ndnsmasq[35]: query[A] upstream.test from 127.0.0.1\ndnsmasq[35]: config error is REFUSED (EDE: not ready)\ndnsmasq[38]: query[A] upstream.test from 127.0.0.1\ndnsmasq[38]: config error is REFUSED (EDE: not ready)\ndnsmasq[35]: query[A] upstream.test from 127.0.0.1\ndnsmasq[35]: config error is REFUSED (EDE: not ready)\ndnsmasq[39]: query[A] upstream.test from 127.0.0.1\ndnsmasq[39]: config error is REFUSED (EDE: not ready)\ndnsmasq[35]: query[A] upstream.test from 127.0.0.1\ndnsmasq[35]: config error is REFUSED (EDE: not ready)\ndnsmasq[40]: query[A] upstream.test from 127.0.0.1\ndnsmasq[40]: config error is REFUSED (EDE: not ready)\ndnsmasq[35]: time 1791733242\ndnsmasq[35]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[35]: queries forwarded 0, queries answered locally 6\ndnsmasq[35]: pool memory in use 0, max 96, allocated 2400\ndnsmasq[35]: child processes for TCP requests: in use 1, highest since last SIGUSR1 2, max allowed 30.\ndnsmasq[35]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[35]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[35]: ready.test                     192.0.2.123                              4FRI   HC                           config                                  \ndnsmasq[35]: test                                                                    !F I   HC                          \n"
+      },
+      "rust": {
+        "missing-additional": {
+          "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+          "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+        },
+        "00002904d00000000000": {
+          "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+          "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+        },
+        "c0ff002904d0000000000000": {
+          "udp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e",
+          "tcp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e"
+        },
+        "00002904d000000000000000002904d000000000": {
+          "udp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e",
+          "tcp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e"
+        },
+        "67617262616765": {
+          "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+          "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+        },
+        "alive": true,
+        "dump": "dnsmasq[41]: started, version 2.93 cachesize 150\ndnsmasq[41]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[41]: warning: no upstream servers configured\ndnsmasq[41]: cleared cache\ndnsmasq[41]: query[A] ready.test from 127.0.0.1\ndnsmasq[41]: config ready.test is 192.0.2.123\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: query[A] upstream.test from 127.0.0.1\ndnsmasq[41]: config error is REFUSED (EDE: not ready)\ndnsmasq[41]: time 1791733242\ndnsmasq[41]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[41]: queries forwarded 0, queries answered locally 6\ndnsmasq[41]: child processes for TCP requests: in use 1, highest since last SIGUSR1 1, max allowed 30.\ndnsmasq[41]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[41]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[41]: ready.test                     192.0.2.123                              4FRI    C                           config                                  \n"
+      }
+    }
+  ]
+}

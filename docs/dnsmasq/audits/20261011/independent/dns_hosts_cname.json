@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "side": "c",
+      "debug": false,
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "warm_reply": "12348180000100020000000005616c69617304746573740000010001c00c0005000100000258000d067461726765740474657374000674617267657404746573740000010001000002580004c000024d",
+      "warm_target": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+      "replies": {
+        "alias.test": {
+          "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+        },
+        "target.test": {
+          "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+        }
+      },
+      "upstream": [
+        "a7b80100000100000000000105616c6961730474657374000001000100002904d0000000000000",
+        "1d4301000001000000000001067461726765740474657374000010000100002904d0000000000000"
+      ],
+      "alive": true,
+      "log": "dnsmasq[4]: started, version 2.93 cachesize 32\ndnsmasq[4]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[4]: using nameserver 127.0.0.1#15354\ndnsmasq[4]: cleared cache\ndnsmasq[4]: query[A] ready.test from 127.0.0.1\ndnsmasq[4]: config ready.test is 192.0.2.123\ndnsmasq[4]: query[A] alias.test from 127.0.0.1\ndnsmasq[4]: forwarded alias.test to 127.0.0.1#15354\ndnsmasq[4]: reply alias.test is <CNAME>\ndnsmasq[4]: reply target.test is 192.0.2.77\ndnsmasq[4]: query[TXT] target.test from 127.0.0.1\ndnsmasq[4]: forwarded target.test to 127.0.0.1#15354\ndnsmasq[4]: reply target.test is target-upstream\ndnsmasq[5]: query[TXT] alias.test from 127.0.0.1\ndnsmasq[5]: cached alias.test is <CNAME>\ndnsmasq[5]: cached target.test is target-upstream\ndnsmasq[4]: query[TXT] alias.test from 127.0.0.1\ndnsmasq[4]: cached alias.test is <CNAME>\ndnsmasq[4]: cached target.test is target-upstream\ndnsmasq[6]: query[TXT] target.test from 127.0.0.1\ndnsmasq[6]: cached target.test is target-upstream\ndnsmasq[4]: query[TXT] target.test from 127.0.0.1\ndnsmasq[4]: cached target.test is target-upstream\ndnsmasq[4]: time 1791733573\ndnsmasq[4]: cache size 32, 0/3 cache insertions re-used unexpired cache entries.\ndnsmasq[4]: queries forwarded 2, queries answered locally 3\ndnsmasq[4]: pool memory in use 48, max 96, allocated 2400\ndnsmasq[4]: child processes for TCP requests: in use 0, highest since last SIGUSR1 1, max allowed 30.\ndnsmasq[4]: server 127.0.0.1#15354: queries sent 2, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\ndnsmasq[4]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[4]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[4]: alias.test                     target.test                              CF         Sun Oct 11 15:56:13 2026\ndnsmasq[4]: target.test                    192.0.2.77                               4F         Sun Oct 11 15:56:13 2026\ndnsmasq[4]: target.test                    <TXT>                                    TF         Sun Oct 11 15:56:13 2026\ndnsmasq[4]: ready.test                     192.0.2.123                              4FRI   HC                           config                                  \ndnsmasq[4]: test                                                                    !F I   HC                          \n"
+    },
+    {
+      "side": "rust",
+      "debug": false,
+      "sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "warm_reply": "12348180000100020000000005616c69617304746573740000010001c00c0005000100000258000d067461726765740474657374000674617267657404746573740000010001000002580004c000024d",
+      "warm_target": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+      "replies": {
+        "alias.test": {
+          "tcp_txt": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c",
+          "udp_txt": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c"
+        },
+        "target.test": {
+          "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+        }
+      },
+      "upstream": [
+        "50da0100000100000000000105616c6961730474657374000001000100002904d0000000000000",
+        "e30301000001000000000001067461726765740474657374000010000100002904d0000000000000"
+      ],
+      "alive": true,
+      "log": "dnsmasq[8]: started, version 2.93 cachesize 32\ndnsmasq[8]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[8]: using nameserver 127.0.0.1#15354\ndnsmasq[8]: cleared cache\ndnsmasq[8]: query[A] ready.test from 127.0.0.1\ndnsmasq[8]: config ready.test is 192.0.2.123\ndnsmasq[8]: query[A] alias.test from 127.0.0.1\ndnsmasq[8]: forwarded alias.test to 127.0.0.1#15354\ndnsmasq[8]: reply alias.test is <CNAME>\ndnsmasq[8]: reply target.test is 192.0.2.77\ndnsmasq[8]: query[TXT] target.test from 127.0.0.1\ndnsmasq[8]: forwarded target.test to 127.0.0.1#15354\ndnsmasq[8]: reply target.test is target-upstream\ndnsmasq[8]: query[TXT] alias.test from 127.0.0.1\ndnsmasq[8]: config alias.test is <TXT>\ndnsmasq[8]: query[TXT] alias.test from 127.0.0.1\ndnsmasq[8]: config alias.test is <TXT>\ndnsmasq[8]: query[TXT] target.test from 127.0.0.1\ndnsmasq[8]: cached target.test is target-upstream\ndnsmasq[8]: query[TXT] target.test from 127.0.0.1\ndnsmasq[8]: cached target.test is target-upstream\ndnsmasq[8]: time 1791733574\ndnsmasq[8]: cache size 32, 0/3 cache insertions re-used unexpired cache entries.\ndnsmasq[8]: queries forwarded 2, queries answered locally 3\ndnsmasq[8]: child processes for TCP requests: in use 0, highest since last SIGUSR1 1, max allowed 30.\ndnsmasq[8]: server 127.0.0.1#15354: queries sent 2, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\ndnsmasq[8]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[8]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[8]: ready.test                     192.0.2.123                              4FRI    C                           config                                  \ndnsmasq[8]: target.test                    <TXT>                                    TF         Sun Oct 11 15:56:14 2026\ndnsmasq[8]: target.test                    192.0.2.77                               4F         Sun Oct 11 15:56:14 2026\ndnsmasq[8]: alias.test                     target.test                              CF         Sun Oct 11 15:56:14 2026\n"
+    },
+    {
+      "side": "main",
+      "debug": false,
+      "sha256": "18a692e088bb67a730c809c9eb2263f1eb9cedaa044e6c9b0e579e64ce1010f7",
+      "warm_reply": "12348180000100020000000005616c69617304746573740000010001c00c0005000100000258000d067461726765740474657374000674617267657404746573740000010001000002580004c000024d",
+      "warm_target": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+      "replies": {
+        "alias.test": {
+          "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c"
+        },
+        "target.test": {
+          "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+        }
+      },
+      "upstream": [
+        "6d0b0100000100000000000105616c6961730474657374000001000100002904d0000000000000",
+        "810c01000001000000000001067461726765740474657374000010000100002904d0000000000000"
+      ],
+      "alive": true,
+      "log": "dnsmasq[10]: started, version 2.93 cachesize 32\ndnsmasq[10]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[10]: using nameserver 127.0.0.1#15354\ndnsmasq[10]: cleared cache\ndnsmasq[10]: query[A] ready.test from 127.0.0.1\ndnsmasq[10]: config ready.test is 192.0.2.123\ndnsmasq[10]: query[A] alias.test from 127.0.0.1\ndnsmasq[10]: forwarded alias.test to 127.0.0.1#15354\ndnsmasq[10]: reply alias.test is <CNAME>\ndnsmasq[10]: reply target.test is 192.0.2.77\ndnsmasq[10]: query[TXT] target.test from 127.0.0.1\ndnsmasq[10]: forwarded target.test to 127.0.0.1#15354\ndnsmasq[10]: reply target.test is target-upstream\ndnsmasq[10]: query[TXT] alias.test from 127.0.0.1\ndnsmasq[10]: cached alias.test is <CNAME>\ndnsmasq[10]: cached target.test is target-upstream\ndnsmasq[10]: query[TXT] alias.test from 127.0.0.1\ndnsmasq[10]: config alias.test is <TXT>\ndnsmasq[10]: query[TXT] target.test from 127.0.0.1\ndnsmasq[10]: cached target.test is target-upstream\ndnsmasq[10]: query[TXT] target.test from 127.0.0.1\ndnsmasq[10]: cached target.test is target-upstream\n"
+    },
+    {
+      "side": "c",
+      "debug": true,
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "warm_reply": "12348180000100020000000005616c69617304746573740000010001c00c0005000100000258000d067461726765740474657374000674617267657404746573740000010001000002580004c000024d",
+      "warm_target": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+      "replies": {
+        "alias.test": {
+          "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+        },
+        "target.test": {
+          "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+        }
+      },
+      "upstream": [
+        "03da0100000100000000000105616c6961730474657374000001000100002904d0000000000000",
+        "c60e01000001000000000001067461726765740474657374000010000100002904d0000000000000"
+      ],
+      "alive": true,
+      "log": "Oct 11 15:46:15 dnsmasq[12]: started, version 2.93 cachesize 32\nOct 11 15:46:15 dnsmasq[12]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\nOct 11 15:46:15 dnsmasq[12]: using nameserver 127.0.0.1#15354\nOct 11 15:46:15 dnsmasq[12]: cleared cache\nOct 11 15:46:15 dnsmasq[12]: query[A] ready.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: config ready.test is 192.0.2.123\nOct 11 15:46:15 dnsmasq[12]: query[A] alias.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: forwarded alias.test to 127.0.0.1#15354\nOct 11 15:46:15 dnsmasq[12]: reply alias.test is <CNAME>\nOct 11 15:46:15 dnsmasq[12]: reply target.test is 192.0.2.77\nOct 11 15:46:15 dnsmasq[12]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: forwarded target.test to 127.0.0.1#15354\nOct 11 15:46:15 dnsmasq[12]: reply target.test is target-upstream\nOct 11 15:46:15 dnsmasq[12]: query[TXT] alias.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: cached alias.test is <CNAME>\nOct 11 15:46:15 dnsmasq[12]: cached target.test is target-upstream\nOct 11 15:46:15 dnsmasq[12]: query[TXT] alias.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: cached alias.test is <CNAME>\nOct 11 15:46:15 dnsmasq[12]: cached target.test is target-upstream\nOct 11 15:46:15 dnsmasq[12]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: cached target.test is target-upstream\nOct 11 15:46:15 dnsmasq[12]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[12]: cached target.test is target-upstream\nOct 11 15:46:15 dnsmasq[12]: time 1791733575\nOct 11 15:46:15 dnsmasq[12]: cache size 32, 0/3 cache insertions re-used unexpired cache entries.\nOct 11 15:46:15 dnsmasq[12]: queries forwarded 2, queries answered locally 3\nOct 11 15:46:15 dnsmasq[12]: pool memory in use 48, max 96, allocated 2400\nOct 11 15:46:15 dnsmasq[12]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\nOct 11 15:46:15 dnsmasq[12]: server 127.0.0.1#15354: queries sent 2, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\nOct 11 15:46:15 dnsmasq[12]: Host                           Address                                  Flags      Expires                  Source\nOct 11 15:46:15 dnsmasq[12]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\nOct 11 15:46:15 dnsmasq[12]: ready.test                     192.0.2.123                              4FRI   HC                           config                                  \nOct 11 15:46:15 dnsmasq[12]: test                                                                    !F I   HC                          \nOct 11 15:46:15 dnsmasq[12]: alias.test                     target.test                              CF         Sun Oct 11 15:56:15 2026\nOct 11 15:46:15 dnsmasq[12]: target.test                    192.0.2.77                               4F         Sun Oct 11 15:56:15 2026\nOct 11 15:46:15 dnsmasq[12]: target.test                    <TXT>                                    TF         Sun Oct 11 15:56:15 2026\n"
+    },
+    {
+      "side": "rust",
+      "debug": true,
+      "sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "warm_reply": "12348180000100020000000005616c69617304746573740000010001c00c0005000100000258000d067461726765740474657374000674617267657404746573740000010001000002580004c000024d",
+      "warm_target": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+      "replies": {
+        "alias.test": {
+          "tcp_txt": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c",
+          "udp_txt": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c"
+        },
+        "target.test": {
+          "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+        }
+      },
+      "upstream": [
+        "a7450100000100000000000105616c6961730474657374000001000100002904d0000000000000",
+        "315e01000001000000000001067461726765740474657374000010000100002904d0000000000000"
+      ],
+      "alive": true,
+      "log": "Oct 11 15:46:15 dnsmasq[14]: started, version 2.93 cachesize 32\nOct 11 15:46:15 dnsmasq[14]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\nOct 11 15:46:15 dnsmasq[14]: using nameserver 127.0.0.1#15354\nOct 11 15:46:15 dnsmasq[14]: cleared cache\nOct 11 15:46:15 dnsmasq[14]: query[A] ready.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: config ready.test is 192.0.2.123\nOct 11 15:46:15 dnsmasq[14]: query[A] alias.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: forwarded alias.test to 127.0.0.1#15354\nOct 11 15:46:15 dnsmasq[14]: reply alias.test is <CNAME>\nOct 11 15:46:15 dnsmasq[14]: reply target.test is 192.0.2.77\nOct 11 15:46:15 dnsmasq[14]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: forwarded target.test to 127.0.0.1#15354\nOct 11 15:46:15 dnsmasq[14]: reply target.test is target-upstream\nOct 11 15:46:15 dnsmasq[14]: query[TXT] alias.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: config alias.test is <TXT>\nOct 11 15:46:15 dnsmasq[14]: query[TXT] alias.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: config alias.test is <TXT>\nOct 11 15:46:15 dnsmasq[14]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: cached target.test is target-upstream\nOct 11 15:46:15 dnsmasq[14]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:15 dnsmasq[14]: cached target.test is target-upstream\nOct 11 15:46:15 dnsmasq[14]: time 1791733575\nOct 11 15:46:15 dnsmasq[14]: cache size 32, 0/3 cache insertions re-used unexpired cache entries.\nOct 11 15:46:15 dnsmasq[14]: queries forwarded 2, queries answered locally 3\nOct 11 15:46:15 dnsmasq[14]: child processes for TCP requests: in use 0, highest since last SIGUSR1 1, max allowed 30.\nOct 11 15:46:15 dnsmasq[14]: server 127.0.0.1#15354: queries sent 2, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\nOct 11 15:46:15 dnsmasq[14]: Host                           Address                                  Flags      Expires                  Source\nOct 11 15:46:15 dnsmasq[14]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\nOct 11 15:46:15 dnsmasq[14]: ready.test                     192.0.2.123                              4FRI    C                           config                                  \nOct 11 15:46:15 dnsmasq[14]: target.test                    <TXT>                                    TF         Sun Oct 11 15:56:15 2026\nOct 11 15:46:15 dnsmasq[14]: target.test                    192.0.2.77                               4F         Sun Oct 11 15:56:15 2026\nOct 11 15:46:15 dnsmasq[14]: alias.test                     target.test                              CF         Sun Oct 11 15:56:15 2026\n"
+    },
+    {
+      "side": "main",
+      "debug": true,
+      "sha256": "18a692e088bb67a730c809c9eb2263f1eb9cedaa044e6c9b0e579e64ce1010f7",
+      "warm_reply": "12348180000100020000000005616c69617304746573740000010001c00c0005000100000258000d067461726765740474657374000674617267657404746573740000010001000002580004c000024d",
+      "warm_target": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+      "replies": {
+        "alias.test": {
+          "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "12348580000100010000000005616c69617304746573740000100001c00c0010000100000000000c0b616c6961732d6c6f63616c"
+        },
+        "target.test": {
+          "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+          "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+        }
+      },
+      "upstream": [
+        "b6aa0100000100000000000105616c6961730474657374000001000100002904d0000000000000",
+        "5c7f01000001000000000001067461726765740474657374000010000100002904d0000000000000"
+      ],
+      "alive": true,
+      "log": "Oct 11 15:46:16 dnsmasq[16]: started, version 2.93 cachesize 32\nOct 11 15:46:16 dnsmasq[16]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\nOct 11 15:46:16 dnsmasq[16]: using nameserver 127.0.0.1#15354\nOct 11 15:46:16 dnsmasq[16]: cleared cache\nOct 11 15:46:16 dnsmasq[16]: query[A] ready.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: config ready.test is 192.0.2.123\nOct 11 15:46:16 dnsmasq[16]: query[A] alias.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: forwarded alias.test to 127.0.0.1#15354\nOct 11 15:46:16 dnsmasq[16]: reply alias.test is <CNAME>\nOct 11 15:46:16 dnsmasq[16]: reply target.test is 192.0.2.77\nOct 11 15:46:16 dnsmasq[16]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: forwarded target.test to 127.0.0.1#15354\nOct 11 15:46:16 dnsmasq[16]: reply target.test is target-upstream\nOct 11 15:46:16 dnsmasq[16]: query[TXT] alias.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: cached alias.test is <CNAME>\nOct 11 15:46:16 dnsmasq[16]: cached target.test is target-upstream\nOct 11 15:46:16 dnsmasq[16]: query[TXT] alias.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: config alias.test is <TXT>\nOct 11 15:46:16 dnsmasq[16]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: cached target.test is target-upstream\nOct 11 15:46:16 dnsmasq[16]: query[TXT] target.test from 127.0.0.1\nOct 11 15:46:16 dnsmasq[16]: cached target.test is target-upstream\n"
+    }
+  ]
+}
