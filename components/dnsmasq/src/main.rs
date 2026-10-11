@@ -2787,8 +2787,12 @@ impl TcpDnsWork {
         let answered = if self.cache_debug {
             let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
             let daemon = owner.daemon.as_mut().ok_or(())?;
-            let cached = if decoration.cacheable {
-                Some(daemon.tcp_current_answer(&query, now).map_err(|_| ())?)
+            let local_answer = daemon
+                .local_tcp_answer(&query, &mut self.service, now)
+                .ok()
+                .flatten();
+            let cached = if local_answer.is_none() && decoration.cacheable {
+                Some(daemon.tcp_current_answer(&query, &mut self.service, now).map_err(|_| ())?)
             } else {
                 None
             };
@@ -2796,14 +2800,21 @@ impl TcpDnsWork {
                 self.service.record_query_event(event);
             }
             stale = cached.as_ref().is_some_and(|answer| answer.stale);
-            cached.and_then(|answer| answer.packet).or_else(|| {
-                daemon
-                    .local_tcp_answer(&query, &mut self.service, now)
-                    .ok()
-                    .flatten()
-            })
+            local_answer.or_else(|| cached.and_then(|answer| answer.packet))
         } else {
-            let cached = if decoration.cacheable {
+            // Like UDP, let the local lookup resolve typed hosts/DHCP entries
+            // against the cache first. A retained NXDOMAIN must not mask a
+            // subsequently published DHCP A record on TCP.
+            let local_answer =
+                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_answer(
+                    self.cache_view.as_mut(),
+                    &query,
+                    &mut self.service,
+                    now,
+                )
+                .ok()
+                .flatten();
+            let cached = if local_answer.is_none() && decoration.cacheable {
                 self.cache_view
                     .as_mut()
                     .map(|cache| {
@@ -2822,16 +2833,7 @@ impl TcpDnsWork {
                 None
             };
             stale = cached.as_ref().is_some_and(|answer| answer.stale);
-            cached.and_then(|answer| answer.packet).or_else(|| {
-                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_answer(
-                    self.cache_view.as_mut(),
-                    &query,
-                    &mut self.service,
-                    now,
-                )
-                .ok()
-                .flatten()
-            })
+            local_answer.or_else(|| cached.and_then(|answer| answer.packet))
         };
         self.collect_local_query_events();
         if let Some(packet) = answered {

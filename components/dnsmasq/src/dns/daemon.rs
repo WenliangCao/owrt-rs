@@ -1782,6 +1782,7 @@ impl<R: Random> DnsDaemon<R> {
     pub fn tcp_current_answer(
         &mut self,
         query: &[u8],
+        local: &mut LocalDnsService,
         now: i64,
     ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
@@ -1794,7 +1795,7 @@ impl<R: Random> DnsDaemon<R> {
         Self::tcp_view_answer(
             cache,
             query,
-            &mut self.local,
+            local,
             now,
             self.negative_cache,
             self.negative_ttl,
