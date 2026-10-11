@@ -3,6 +3,9 @@
 //! The source and acceptance ledger lives in `docs/dnsmasq`. Individual tested
 //! modules do not yet constitute a service or a compatible package replacement.
 
+#[path = "logging/address.rs"]
+mod address_logging;
+
 pub mod config;
 pub mod dhcp;
 pub mod dns;

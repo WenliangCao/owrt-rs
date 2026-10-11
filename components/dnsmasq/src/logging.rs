@@ -10,7 +10,6 @@ use std::collections::VecDeque;
 use std::ffi::{c_char, c_int, c_void, CStr};
 use std::fs::{File, OpenOptions};
 use std::io::{self, Write};
-use std::net::SocketAddr;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
@@ -89,60 +88,7 @@ impl From<LogStartError> for StartupError {
     }
 }
 
-/// util.c::prettyprint_addr, excluding the separately formatted port.
-pub fn address_text(address: SocketAddr) -> Vec<u8> {
-    // ADDRSTRLEN is INET6_ADDRSTRLEN (46). Use the image libc's rendering,
-    // including its IPv4-compatible IPv6 spelling.
-    let mut output = [0u8; 46];
-    match address {
-        // SAFETY: each octet array lives through this synchronous libc call;
-        // output is writable for INET6_ADDRSTRLEN including its terminating NUL.
-        SocketAddr::V4(address) => unsafe {
-            inet_ntop(
-                2,
-                address.ip().octets().as_ptr().cast(),
-                output.as_mut_ptr().cast(),
-                46,
-            );
-        },
-        SocketAddr::V6(address) => {
-            let family = if cfg!(target_os = "macos") { 30 } else { 10 };
-            // SAFETY: the IPv6 octets and 46-byte destination remain live for
-            // the call; family is the platform's AF_INET6 value.
-            unsafe {
-                inet_ntop(
-                    family,
-                    address.ip().octets().as_ptr().cast(),
-                    output.as_mut_ptr().cast(),
-                    46,
-                );
-            }
-        }
-    }
-    let mut value = output[..output
-        .iter()
-        .position(|byte| *byte == 0)
-        .unwrap_or(output.len())]
-        .to_vec();
-    if let SocketAddr::V6(address) = address {
-        if address.scope_id() != 0 {
-            let mut name = [0u8; 16];
-            // SAFETY: name has the Linux IF_NAMESIZE capacity; libc writes
-            // only within it and returns NULL for an absent interface.
-            if !unsafe { if_indextoname(address.scope_id(), name.as_mut_ptr().cast()) }.is_null() {
-                let name = &name[..name
-                    .iter()
-                    .position(|byte| *byte == 0)
-                    .unwrap_or(name.len())];
-                if value.len() + name.len() + 2 <= 46 {
-                    value.push(b'%');
-                    value.extend_from_slice(name);
-                }
-            }
-        }
-    }
-    value
-}
+pub use crate::address_logging::address_text;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Service {
@@ -1081,13 +1027,6 @@ unsafe extern "C" {
     fn socket(domain: c_int, kind: c_int, protocol: c_int) -> c_int;
     fn connect(fd: c_int, address: *const c_void, length: u32) -> c_int;
     fn write(fd: c_int, bytes: *const c_void, length: usize) -> isize;
-    fn if_indextoname(index: u32, name: *mut c_char) -> *mut c_char;
-    fn inet_ntop(
-        family: i32,
-        address: *const c_void,
-        output: *mut c_char,
-        length: u32,
-    ) -> *const c_char;
 }
 
 /// log_start failure reaches fatal_event/die before a logging destination is

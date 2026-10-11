@@ -48,7 +48,7 @@ impl<R: Random> DnsDaemon<R> {
         }
         for (address, (total, count)) in servers {
             emit(format!("server {}#{}: queries sent {}, retried {}, failed {}, nxdomain replies {}, avg. latency {}ms",
-                address.ip(), address.port(), total.queries, total.retries, total.failed,
+                String::from_utf8_lossy(&crate::address_logging::address_text(address)), address.port(), total.queries, total.retries, total.failed,
                 total.nxdomain, total.latency / count));
         }
         if !debug && !self.query_logging.enabled { return; }
@@ -136,4 +136,42 @@ fn expiry(expires: Option<i64>) -> String {
         }
     }
     expires.to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::{Ipv6Addr, SocketAddrV6};
+
+    #[test]
+    fn server_dump_preserves_scope_and_c_fallback() {
+        let interface = if cfg!(target_os = "macos") { b"lo0".as_slice() } else { b"lo".as_slice() };
+        let scope = crate::config::dns::endpoints::scope_index(interface).unwrap();
+        let link_local: Ipv6Addr = "fe80::1".parse().unwrap();
+        let servers = [
+            "127.0.0.1:15354".parse().unwrap(),
+            "[2001:db8::1]:53".parse().unwrap(),
+            SocketAddr::V6(SocketAddrV6::new(link_local, 53, 0, scope)),
+            // util.c::prettyprint_addr omits a scope whose interface vanished.
+            SocketAddr::V6(SocketAddrV6::new(link_local, 53, 0, u32::MAX)),
+        ];
+        let daemon = DnsDaemon::new(DnsConfig::default(), Hosts::new(), &servers,
+            DaemonOptions::default()).unwrap();
+        let mut lines = Vec::new();
+        daemon.dump_cache(&daemon.local, 0, &Metrics::default(), 0, 20, false,
+            |line| lines.push(line));
+        let actual: Vec<_> = lines.iter().filter(|line| line.starts_with("server ")).collect();
+        let expected = [
+            "127.0.0.1#15354".to_string(),
+            "2001:db8::1#53".to_string(),
+            format!("fe80::1%{}#53", String::from_utf8_lossy(interface)),
+            "fe80::1#53".to_string(),
+        ];
+        assert_eq!(actual.len(), expected.len());
+        for address in expected {
+            assert!(actual.iter().any(|line| **line == format!(
+                "server {address}: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms")),
+                "missing {address}: {actual:?}");
+        }
+    }
 }
