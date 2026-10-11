@@ -1,0 +1,558 @@
+{
+  "schema": "dnsmasq-runtime-relro-evidence-v1",
+  "date": "2026-10-11",
+  "source_commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+  "final_sdk_elf_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+  "scope": "Final SDK artifact after startup-order repair; complete main-executable PT_GNU_RELRO mapping and real local DNS health in isolated exact-image C/R processes",
+  "prior_evidence": {
+    "path": "relro_maps.json",
+    "preserved": true,
+    "role": "Initial fix (55191b6e...) and expected-failure calibration of the preceding SDK ELF (e099e180...); neither is presented as the final artifact."
+  },
+  "paths": {
+    "$ORACLE_RUN": "isolated relro-hosts run root on oracle",
+    "$IMAGE_ROOT": "exact OpenWrt 25.12.5 image rootfs"
+  },
+  "method": {
+    "probe": "../independent/build_protections_probe.py",
+    "mode": "--require-relro",
+    "load_bias": "Identify the actual executable by SHA-256, device and inode. Derive bias from its offset-zero mapping and PT_LOAD virtual address; require one consistent bias across every file-backed PT_LOAD start.",
+    "relro_range": "Every page intersecting [bias+p_vaddr, bias+p_vaddr+p_memsz): floor start and ceil end using the observed SC_PAGE_SIZE. Require complete VMA coverage, r present and w absent.",
+    "alignment": "Both C and Rust final RELRO ends are page aligned. A ceil inspection on an unaligned end is not a recommendation to protect a page that also contains mutable data.",
+    "health": "Each of three starts per implementation completes a UDP local-A query before the maps snapshot and TCP local-A query after it; all six UDP/TCP wire answers are identical and all daemons exit zero.",
+    "page_encoding": [
+      "virtual page address",
+      "actual /proc/PID/maps permissions"
+    ]
+  },
+  "derived_cross_check": "Each stored page permission was independently matched to its raw maps row; all final RELRO pages are r--p and belong to the recorded actual executable device/inode. The SDK payload SHA and result SHA were reread and matched to the final controller record.",
+  "final_verification": {
+    "command": {
+      "id": "F04-relro",
+      "argv": [
+        "sh",
+        "$ORACLE_RUN/source-final/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "$ORACLE_RUN/source-final/docs/dnsmasq/audits/20261011/independent/build_protections_probe.py",
+        "$ORACLE_RUN/source-final",
+        "$ORACLE_RUN/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "$ORACLE_RUN/private/functional-final/relro",
+        "--image-root",
+        "$IMAGE_ROOT",
+        "--require-relro"
+      ],
+      "result": "$ORACLE_RUN/private/functional-final/relro/result.json",
+      "custom_check": "relro",
+      "timeout_seconds": 1800,
+      "passed": true,
+      "started": 1791749490.2241697,
+      "returncode": 0,
+      "result_sha256": "aef1f1f8d69093ca95ed220c5dace686f3b773b9ffd5f9f855fabab5e955b28d",
+      "elapsed_seconds": 3.0862221717834473
+    },
+    "observation": {
+      "tool_sha256": "b1a7b64022fc4777985ad3c81b4b2d9e4bc1f23776a84be3ccb2eda7c039fe30",
+      "require_relro": true,
+      "page_size": 4096,
+      "passed": true,
+      "dns_answers_match": true,
+      "failures": [],
+      "variants": {
+        "c": {
+          "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "size": 269305,
+          "elf_type": 3,
+          "relro_vaddr": 254824,
+          "relro_memsz": 11416,
+          "distinct_bases": 3,
+          "has_interpreter": true,
+          "runs": [
+            {
+              "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "actual_elf_identity": {
+                "device": [
+                  0,
+                  65
+                ],
+                "inode": 3457699
+              },
+              "base": "0xbcff0f4a8000",
+              "load_bias": "0xbcff0f4a8000",
+              "relro_start": "0xbcff0f4e6368",
+              "relro_end": "0xbcff0f4e9000",
+              "page_start": "0xbcff0f4e6000",
+              "page_end": "0xbcff0f4e9000",
+              "relro_start_page_aligned": false,
+              "relro_end_page_aligned": true,
+              "relro_readonly": true,
+              "stack_permissions": "rw-p",
+              "wx_mappings": [],
+              "mapped_files": [
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libc.so",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libgcc_s.so.1",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libubox.so.20260213",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libubus.so.20251202",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/usr/sbin/dnsmasq"
+              ],
+              "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "exit": 0,
+              "failures": [],
+              "relro_pages": [
+                [
+                  "0xbcff0f4e6000",
+                  "r--p"
+                ],
+                [
+                  "0xbcff0f4e7000",
+                  "r--p"
+                ],
+                [
+                  "0xbcff0f4e8000",
+                  "r--p"
+                ]
+              ]
+            },
+            {
+              "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "actual_elf_identity": {
+                "device": [
+                  0,
+                  65
+                ],
+                "inode": 3457699
+              },
+              "base": "0xc3eedfc09000",
+              "load_bias": "0xc3eedfc09000",
+              "relro_start": "0xc3eedfc47368",
+              "relro_end": "0xc3eedfc4a000",
+              "page_start": "0xc3eedfc47000",
+              "page_end": "0xc3eedfc4a000",
+              "relro_start_page_aligned": false,
+              "relro_end_page_aligned": true,
+              "relro_readonly": true,
+              "stack_permissions": "rw-p",
+              "wx_mappings": [],
+              "mapped_files": [
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libc.so",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libgcc_s.so.1",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libubox.so.20260213",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libubus.so.20251202",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/usr/sbin/dnsmasq"
+              ],
+              "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "exit": 0,
+              "failures": [],
+              "relro_pages": [
+                [
+                  "0xc3eedfc47000",
+                  "r--p"
+                ],
+                [
+                  "0xc3eedfc48000",
+                  "r--p"
+                ],
+                [
+                  "0xc3eedfc49000",
+                  "r--p"
+                ]
+              ]
+            },
+            {
+              "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "actual_elf_identity": {
+                "device": [
+                  0,
+                  65
+                ],
+                "inode": 3457699
+              },
+              "base": "0xbeef3c14e000",
+              "load_bias": "0xbeef3c14e000",
+              "relro_start": "0xbeef3c18c368",
+              "relro_end": "0xbeef3c18f000",
+              "page_start": "0xbeef3c18c000",
+              "page_end": "0xbeef3c18f000",
+              "relro_start_page_aligned": false,
+              "relro_end_page_aligned": true,
+              "relro_readonly": true,
+              "stack_permissions": "rw-p",
+              "wx_mappings": [],
+              "mapped_files": [
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libc.so",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libgcc_s.so.1",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libubox.so.20260213",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/lib/libubus.so.20251202",
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/usr/sbin/dnsmasq"
+              ],
+              "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "exit": 0,
+              "failures": [],
+              "relro_pages": [
+                [
+                  "0xbeef3c18c000",
+                  "r--p"
+                ],
+                [
+                  "0xbeef3c18d000",
+                  "r--p"
+                ],
+                [
+                  "0xbeef3c18e000",
+                  "r--p"
+                ]
+              ]
+            }
+          ]
+        },
+        "rust": {
+          "sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+          "size": 2054939,
+          "elf_type": 3,
+          "relro_vaddr": 2007504,
+          "relro_memsz": 44592,
+          "distinct_bases": 3,
+          "has_interpreter": false,
+          "runs": [
+            {
+              "actual_elf_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+              "actual_elf_identity": {
+                "device": [
+                  0,
+                  65
+                ],
+                "inode": 8133502
+              },
+              "base": "0xe30df7a22000",
+              "load_bias": "0xe30df7a22000",
+              "relro_start": "0xe30df7c0c1d0",
+              "relro_end": "0xe30df7c17000",
+              "page_start": "0xe30df7c0c000",
+              "page_end": "0xe30df7c17000",
+              "relro_start_page_aligned": false,
+              "relro_end_page_aligned": true,
+              "relro_readonly": true,
+              "stack_permissions": "rw-p",
+              "wx_mappings": [],
+              "mapped_files": [
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/usr/sbin/dnsmasq-rs"
+              ],
+              "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "exit": 0,
+              "failures": [],
+              "relro_pages": [
+                [
+                  "0xe30df7c0c000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c0d000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c0e000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c0f000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c10000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c11000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c12000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c13000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c14000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c15000",
+                  "r--p"
+                ],
+                [
+                  "0xe30df7c16000",
+                  "r--p"
+                ]
+              ]
+            },
+            {
+              "actual_elf_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+              "actual_elf_identity": {
+                "device": [
+                  0,
+                  65
+                ],
+                "inode": 8133502
+              },
+              "base": "0xff579e6c4000",
+              "load_bias": "0xff579e6c4000",
+              "relro_start": "0xff579e8ae1d0",
+              "relro_end": "0xff579e8b9000",
+              "page_start": "0xff579e8ae000",
+              "page_end": "0xff579e8b9000",
+              "relro_start_page_aligned": false,
+              "relro_end_page_aligned": true,
+              "relro_readonly": true,
+              "stack_permissions": "rw-p",
+              "wx_mappings": [],
+              "mapped_files": [
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/usr/sbin/dnsmasq-rs"
+              ],
+              "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "exit": 0,
+              "failures": [],
+              "relro_pages": [
+                [
+                  "0xff579e8ae000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8af000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b0000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b1000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b2000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b3000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b4000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b5000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b6000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b7000",
+                  "r--p"
+                ],
+                [
+                  "0xff579e8b8000",
+                  "r--p"
+                ]
+              ]
+            },
+            {
+              "actual_elf_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+              "actual_elf_identity": {
+                "device": [
+                  0,
+                  65
+                ],
+                "inode": 8133502
+              },
+              "base": "0xfc53a1b37000",
+              "load_bias": "0xfc53a1b37000",
+              "relro_start": "0xfc53a1d211d0",
+              "relro_end": "0xfc53a1d2c000",
+              "page_start": "0xfc53a1d21000",
+              "page_end": "0xfc53a1d2c000",
+              "relro_start_page_aligned": false,
+              "relro_end_page_aligned": true,
+              "relro_readonly": true,
+              "stack_permissions": "rw-p",
+              "wx_mappings": [],
+              "mapped_files": [
+                "$ORACLE_RUN/private/functional-final/relro/image/rootfs/usr/sbin/dnsmasq-rs"
+              ],
+              "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+              "exit": 0,
+              "failures": [],
+              "relro_pages": [
+                [
+                  "0xfc53a1d21000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d22000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d23000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d24000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d25000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d26000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d27000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d28000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d29000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d2a000",
+                  "r--p"
+                ],
+                [
+                  "0xfc53a1d2b000",
+                  "r--p"
+                ]
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "raw_evidence": [
+    {
+      "path": "private/functional-final/relro/c-0.log",
+      "sha256": "96519277fd60e53ef85b2286e3915d60588e3a03d032d6b03a80959c2eee7eee",
+      "bytes": 363
+    },
+    {
+      "path": "private/functional-final/relro/c-0.maps",
+      "sha256": "0b6b0e593d1b9e18590a36cb4c4f928ed09030148b8c167c1aff98b7e9738cdf",
+      "bytes": 3047
+    },
+    {
+      "path": "private/functional-final/relro/c-0.smaps",
+      "sha256": "ca245c6115b2889e9fdbd592bcec9c6d34202da0700d94b2322f7559abaa9578",
+      "bytes": 698
+    },
+    {
+      "path": "private/functional-final/relro/c-1.log",
+      "sha256": "ad3d9069a8dc5f1e233f745b9e9190b245c5f2a5e218c8e5ffa0c3b7144cf0f0",
+      "bytes": 363
+    },
+    {
+      "path": "private/functional-final/relro/c-1.maps",
+      "sha256": "6ce146cc6ab0a917d36c424357ae0f9c6737879feb9ef195ad06725921be0be3",
+      "bytes": 3047
+    },
+    {
+      "path": "private/functional-final/relro/c-1.smaps",
+      "sha256": "20622de617331fea6533140688b94be203bd80a232d68e07c28fc737e4886a1b",
+      "bytes": 698
+    },
+    {
+      "path": "private/functional-final/relro/c-2.log",
+      "sha256": "142a7b910a3f1105d367ce246792571c4c530b5ec6e11ed64fdfb48093fa49ab",
+      "bytes": 363
+    },
+    {
+      "path": "private/functional-final/relro/c-2.maps",
+      "sha256": "b07795a55810827e0e43d3ed64290d532d351554dcb01855bf5572527559e79e",
+      "bytes": 3047
+    },
+    {
+      "path": "private/functional-final/relro/c-2.smaps",
+      "sha256": "30d690a1b41838382467f5908bd6f68bbbc23e9a154721aa4d26fffe592b6e43",
+      "bytes": 698
+    },
+    {
+      "path": "private/functional-final/relro/c.readelf",
+      "sha256": "e030de93b39015b5ab6a9e460cb32ced9aaba45455e45796e57229a2c5d9d018",
+      "bytes": 3485
+    },
+    {
+      "path": "private/functional-final/relro/result.json",
+      "sha256": "aef1f1f8d69093ca95ed220c5dace686f3b773b9ffd5f9f855fabab5e955b28d",
+      "bytes": 22592
+    },
+    {
+      "path": "private/functional-final/relro/rust-0.log",
+      "sha256": "f08a9b2c804414474a09ab1e6852ed9350f56d8b50c29b58a3cc27d4e486c982",
+      "bytes": 363
+    },
+    {
+      "path": "private/functional-final/relro/rust-0.maps",
+      "sha256": "8ca14af4aa0e280c00cc1b41987c7eae589d1c72385f106acc3bfb3346d47f9c",
+      "bytes": 1134
+    },
+    {
+      "path": "private/functional-final/relro/rust-0.smaps",
+      "sha256": "61c5f72341e03eb03eff6de1bf6e7c6cea27a9bc442175274c2516717a1f2db2",
+      "bytes": 698
+    },
+    {
+      "path": "private/functional-final/relro/rust-1.log",
+      "sha256": "bc1c33c77db25da0dc959615fb31fd574658f07bf16fa581fdbce7b21a466871",
+      "bytes": 363
+    },
+    {
+      "path": "private/functional-final/relro/rust-1.maps",
+      "sha256": "f5479194bb28ae29a8c3e16236b0b40e52c014aef671513f081fd453ccea68d7",
+      "bytes": 1134
+    },
+    {
+      "path": "private/functional-final/relro/rust-1.smaps",
+      "sha256": "f256808fd25543742bcb3a2848a96edddbe1e856302edd3ecaecd62ecba3dd45",
+      "bytes": 698
+    },
+    {
+      "path": "private/functional-final/relro/rust-2.log",
+      "sha256": "8ca0b130b7f4f1bc475e93262a4a1da2f3d34f73255b0203a340151c5eb7c784",
+      "bytes": 363
+    },
+    {
+      "path": "private/functional-final/relro/rust-2.maps",
+      "sha256": "e5dee77f0d6a231e97c9968ee58754159d09fa08c72bebc6f9a8b11f12214578",
+      "bytes": 1134
+    },
+    {
+      "path": "private/functional-final/relro/rust-2.smaps",
+      "sha256": "ac1326f82a9ad65c3c4caf957e6bb9da3e5c28ca1310951a6ba70b4ac5c79333",
+      "bytes": 698
+    },
+    {
+      "path": "private/functional-final/relro/rust.readelf",
+      "sha256": "7889eee26b71813a9cd52d0b0c5a2a5121bb529d97a64ad410856b775a54181c",
+      "bytes": 2788
+    }
+  ],
+  "limits": [
+    "The mappings prove runtime page permissions at the observed service state, not absence of exploitable bugs.",
+    "This evidence covers the main executable RELRO range, not every loaded shared library in C.",
+    "No extra test run was used to produce this derived record; before and final runs retain their original outcomes."
+  ]
+}
