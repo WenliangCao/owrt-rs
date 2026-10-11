@@ -427,6 +427,8 @@ USR1 不输出 C blockdata allocator 池数字或内部 non-terminal 占位，�
 
 ### A07 的取舍
 
+历史选型说明：本节的动态 PIE 选择已由后文的 [static-pie 复核](#static-pie-final)取代；以下测量和首次失败记录保留。
+
 **采用动态 PIE，A07 修复。** 使用 `-Ctarget-feature=-crt-static -Clink-self-contained=no -Clink-arg=-pie`。体积代价可接受；性能存在下面记录的小幅延迟代价，首次筛查信号经定向确认后未持续达到预设回退门槛，因此接受这项取舍。完整决定及构建文件身份见 [PIE 取舍记录](audits/20261011/fixes/pie_decision.json)。
 
 同源静态与 PIE 按冻结计划执行 UDP 命中、TCP 未命中、DHCP 和并发重载，三轮交替顺序，共24窗；每窗预热10秒、测量30秒，未做饱和测试。所有窗口的行为和测量方法有效，没有生成器限制。预设回退规则是：中位数增加超过10%、超过两组最大 W，且各配对轮全部同向；W=(最大值−最小值)/中位数。
@@ -482,3 +484,49 @@ USR1 不输出 C blockdata allocator 池数字或内部 non-terminal 占位，�
 这项结论限定于本轮修复与验证范围，不将整个 dnsmasq 的生产替代验收宣布完成。原报告关于 A08 资源预算及部署边界的限制继续有效。
 
 上文没有覆盖的物理路由器、真实客户端、目标内核压力、整个APK/procd/ujail部署生命周期、长期soak等范围仍未据此自动验收。原审计的A08资源差距本轮没有优化或豁免。
+
+<a id="static-pie-final"></a>
+
+## 2026-10-11 A07 复核：保持静态链接，采用 static-pie
+
+**本节取代前一节采用动态 PIE 的决定。最终选择 static-pie，撤销新增的直接 `libgcc1` 依赖。** 按用户本轮要求，dnsmasq 沿用 [0017 号决定](../decisions/0017-release-profile-opt3-static.md)的静态发布策略；该决定当时覆盖六个组件。其设备测量是含启动的 UCI 调用，不能直接当作 dnsmasq UDP 稳态 CPU 结果；同样，前一轮 Oracle 上的动态 PIE 对照也不足以绕过这项既有决定。
+
+### 可行性与最小构建改动
+
+固定 Rust 1.98.1、`aarch64-unknown-linux-musl`、匹配 SDK/BFD 上，static-pie **可行，但仅有两个 Rust 参数不够**：
+
+| 实际尝试 | 结果 |
+| --- | --- |
+| `-Crelocation-model=pie -Ctarget-feature=+crt-static` | 编译成功，但 rustc 选择普通静态启动文件并传入 `-static -no-pie`，最终仍为 `ET_EXEC`。 |
+| 仅追加 `-static-pie` 给链接器 | 可生成 `ET_DYN`，但没有纠正启动对象，三次启动均 SIGSEGV；不能把 ELF 类型当作成功。 |
+| 正确选择 static-pie 启动对象和链接参数 | 完整 dnsmasq 为 `ET_DYN`、无 `PT_INTERP`、无 `DT_NEEDED`，实际启动与 ASLR 验证通过。 |
+
+发布构建保留上述两个 Rust 参数，并共用一个39行的[链接适配器](../../packaging/openwrt/owrt-dnsmasq/static-pie-linker.py)：将独立的 `-static` 换成 `-static-pie`，移除独立的 `-no-pie`，把 Rust 自带的 `crt1.o/crtbegin.o/crtend.o` 换为同目录 `rcrt1.o/crtbeginS.o/crtendS.o`。其余链接参数与顺序保持不变；输入、对象来源或替代文件不符合固定契约就失败，不静默退回普通静态 ELF。无需改编译器、自定义 target、nightly、重编 std 或修改组件运行时源码。[rustc 的链接选项说明](https://doc.rust-lang.org/rustc/codegen-options/index.html#relocation-model)也区分代码生成模型和最终链接行为；本结论以实际链接输入和产物为准。
+
+两个版本的 `libc.a`、`libunwind.a`、`crti.o`、`crtn.o` 均逐字节相同；此工具链的 `crtbeginS/crtendS` 与原对象也逐字节相同，在所比较的启动／静态库输入中，新增的是负责自身重定位的 `rcrt1.o`；这里不把全部 ELF 增长归因于该对象。保留 opt3、原静态库及现有单测构建方式。Makefile 和 Oracle release 构建均使用这个适配器；原有 `libubus` 包合同依赖不变，没有新增共享库需求。
+
+### 产物与实际保护
+
+| 项目 | 原静态基线 | 最终 static-pie |
+| --- | --- | --- |
+| ELF SHA256 | `2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549` | `e1eb80e30b2a28da516bcd1a26baeb548e4baa8926d904b32689b7bbe2b41fcd` |
+| ELF 大小 | 1,998,888 B | 2,052,576 B（+53,688 B，约+2.69%） |
+| 类型／解释器／共享库 | ET_EXEC／无／无 | ET_DYN／无／无 |
+| 三次真实启动 | 固定 `0x400000` | 三个不同映射基址 |
+| 栈执行权限／WX LOAD | 无／无 | 无／无 |
+| GNU_RELRO 区间实际只读 | 否 | 否 |
+
+**ASLR 已恢复；full RELRO 没有实现。** `/proc/PID/maps` 证明，两种静态 musl 产物的 GNU_RELRO 覆盖页仍可写。这里保持了原静态策略的行为，没有继承动态 PIE 的实际只读 RELRO；也不与 C 的完整运行时保护等同。检查实际 `/proc/PID/exe` SHA 和映射文件，确认运行的正是上述 ELF，且没有映射共享库。
+
+构建快照为 `16144937c85f6682329bcb77bdaa815f6d72e620`，目录为 Oracle 的 `/home/ubuntu/dnsmasq-audit-fix-20261011/source-03`。167个组件文件与已修复的 `4a72e245` 快照相同。原始失败尝试、构建参数、静态库身份、实际映射和包门检查见 [构建与保护证据](audits/20261011/fixes/static_pie/build_protection.json)。
+
+### 最终验证与范围
+
+- 新 ELF 的11组原复现／补充回归全部通过：信号12例，DHCP9例，配置12例，hosts三对条件，异常DNS16个组合；DHCP/DNS34、反向名称28、TCP15项检查／116个答包、重载23项检查、hosts generation两轮、DHCP range76服务场景。结果绑定新 ELF，见 [static-pie 复现证据](audits/20261011/fixes/static_pie/reproductions.json)。
+- 按与上一轮相同的注册清单及既有例外判据，**22/22 个受影响完整族、43/43 个命令通过，零失败**；本轮未做失败项替换或缩减清单。覆盖日志329场景、完整缓存／接口／文件／UBus／DHCP／TFTP等族，见 [static-pie 完整回归](audits/20261011/fixes/static_pie/families.json)。此处不表示全部44族或整个部署生命周期通过。
+- 直接受影响的包工具测试 **20/20通过**，包括链接适配器输入检查、真实Make配方解析SDK裸编译器路径、静态PIE布局和直接依赖检查。普通单测的组件源码及构建参数均未变，保留上一轮lib757＋bin74通过／23个ignored的证据，没有将它冒称为新static-pie单测结果。
+- 验证结束后再次核对167个组件文件、产物SHA、同次构建link.map及所有命令结果身份；没有遗留相关测试负载。
+
+包校验要求 AArch64 ET_DYN、无解释器及共享库依赖、NX、GNU_RELRO 结构、无 WX/TEXTREL，并继续核对冻结源码／SDK／ELF 身份；不把 GNU_RELRO 结构或 BIND_NOW 标志伪称为静态运行时只读保护。普通静态 ELF 和前一轮动态 PIE 都被新门拒绝。包元数据另明确拒绝直接 `libgcc`／`libgcc1` 依赖，包括版本限定形式，不限制原有依赖的传递依赖。
+
+由于 static-pie 已可行并被采用，未触发“不可行后做真机动态／静态 UDP CPU 对照”的条件。本轮没有访问或修改物理路由器，也没有将动态 PIE 或 UCI 的历史性能数字当作 static-pie 的 CPU 证明。没有新增真机性能、APK 安装／升级／回滚或部署资格；[0018 号决定](../decisions/0018-canonical-build-host-ci.md)的 canonical 发布边界不变。A08 仍未优化，修复仍留在 `fix/audit-20261011`，不自行合入 main 或推送 GitHub。

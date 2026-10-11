@@ -44,7 +44,7 @@
       "Remove standalone -no-pie.",
       "Replace Rust self-contained crt1/crtbegin/crtend objects with rcrt1/crtbeginS/crtendS, preserving all other argument order."
     ],
-    "boundary": "Fail closed on unexpected CRT source/missing replacement, duplicate static/CRT, shared/PIE requests or response files. No custom target, compiler patch, nightly build, rebuilt std or product runtime code."
+    "boundary": "Fail closed on unexpected CRT source/missing replacement, duplicate static/CRT, shared/PIE requests or response files. No custom target, compiler patch, nightly build, rebuilt std or component runtime-source changes; uses the bundled musl rcrt1 startup."
   },
   "native_runtime_inputs": {
     "static-02": {
