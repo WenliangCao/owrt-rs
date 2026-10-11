@@ -1,0 +1,449 @@
+{
+  "scope": "11 completed original finding reproductions and supplementary suites on the static PIE ELF; full affected-family closure is recorded separately",
+  "source_commit": "16144937c85f6682329bcb77bdaa815f6d72e620",
+  "elf_sha256": "e1eb80e30b2a28da516bcd1a26baeb548e4baa8926d904b32689b7bbe2b41fcd",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "passed": true,
+  "suites": {
+    "signals": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/signals/result.json",
+        "sha256": "1295790db3e88e4aff4e4343a4ff099ee57ed7b7ffdd45215a62cb883ff817a0"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--c-native",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/signals"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 8.846304416656494,
+      "checks": {
+        "passed": true,
+        "signal_cases": 12,
+        "dump_implementations": 3,
+        "alarm_implementations": 3
+      }
+    },
+    "dhcp": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-result.json",
+        "sha256": "fe0a8465d922c359dad401898895c1d62ea47b54060a5117bf0c62e744d5bebe"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_dhcp.py",
+        "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_dhcp.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--source-commit",
+        "16144937c85f6682329bcb77bdaa815f6d72e620",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp",
+        "--report",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-result.json"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.6781227588653564,
+      "checks": {
+        "matched": 9,
+        "failures": [],
+        "case_names": [
+          "multi-mac-static-handoff",
+          "hosts-authoritative-request",
+          "hosts-authoritative-rapid",
+          "client-hostname-request",
+          "client-hostname-rapid",
+          "rapid-range-ignore-wanted-false",
+          "rapid-range-ignore-wanted-true",
+          "rapid-range-generate-wanted-false",
+          "rapid-range-generate-wanted-true"
+        ]
+      }
+    },
+    "config": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/config/result.json",
+        "sha256": "c47b6a9c99879081b363aea49459b2112deb0ae8eaf6493b35c82b9290e4db8c"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_config.py",
+        "sha256": "fcf7cdaf10546bf86755e67026395cd0fdb0d1dc619b0cc1592ee943ae535beb"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_config.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--a05-only",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/config"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 10.300604581832886,
+      "checks": {
+        "cases": 12,
+        "failures": []
+      }
+    },
+    "hosts": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/hosts/result.json",
+        "sha256": "5529f3a527323b79ca75f8b7c738a5412b932070557c5c7ce5f935c2682ccb90"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "sha256": "7aa6494b2266059e4750d6978ab4727786b0a33ae7b9574eb1d1dcc2b4c33971"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/hosts"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 5.2841596603393555,
+      "checks": {
+        "paired_cases": 3,
+        "daemon_cases": 6,
+        "failures": []
+      }
+    },
+    "dns-error": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dns-error/result.json",
+        "sha256": "3c7a11b98714187dc59d3d225a8319515745b35c17d947c534687853420c75b4"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_dns.py",
+        "sha256": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/audit_20261011_dns.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dns-error",
+        "--local-only",
+        "--require-match",
+        "--cases",
+        "host-a,multi-question,multi-question-compressed,zero-question,self-pointer,outside-pointer,bitstring-label,overlong-name"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.8499228954315186,
+      "checks": {
+        "matched": 16,
+        "cases": [
+          {
+            "name": "host-a",
+            "protocol": "udp"
+          },
+          {
+            "name": "host-a",
+            "protocol": "tcp"
+          },
+          {
+            "name": "multi-question",
+            "protocol": "udp"
+          },
+          {
+            "name": "multi-question",
+            "protocol": "tcp"
+          },
+          {
+            "name": "multi-question-compressed",
+            "protocol": "udp"
+          },
+          {
+            "name": "multi-question-compressed",
+            "protocol": "tcp"
+          },
+          {
+            "name": "zero-question",
+            "protocol": "udp"
+          },
+          {
+            "name": "zero-question",
+            "protocol": "tcp"
+          },
+          {
+            "name": "self-pointer",
+            "protocol": "udp"
+          },
+          {
+            "name": "self-pointer",
+            "protocol": "tcp"
+          },
+          {
+            "name": "outside-pointer",
+            "protocol": "udp"
+          },
+          {
+            "name": "outside-pointer",
+            "protocol": "tcp"
+          },
+          {
+            "name": "bitstring-label",
+            "protocol": "udp"
+          },
+          {
+            "name": "bitstring-label",
+            "protocol": "tcp"
+          },
+          {
+            "name": "overlong-name",
+            "protocol": "udp"
+          },
+          {
+            "name": "overlong-name",
+            "protocol": "tcp"
+          }
+        ]
+      }
+    },
+    "dhcp-dns": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-dns/summary.json",
+        "sha256": "b3a5b16734bf0e69e11830c79498141546ab1ca58d60dd3ef86a1028b8793035"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dhcp_dns_diff.py",
+        "sha256": "de48a307723122ebb122701dc18a265a08077905805585df71a581ae6b77d9fe"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-legacy-probe.py",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dhcp_dns_diff.py",
+        "--c",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-dns"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 17.25903844833374,
+      "checks": {
+        "status": "passed",
+        "matched": 34,
+        "mismatches": [],
+        "identity": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "e1eb80e30b2a28da516bcd1a26baeb548e4baa8926d904b32689b7bbe2b41fcd"
+        }
+      }
+    },
+    "dhcp-reverse": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-reverse/result.json",
+        "sha256": "49f6fa06f2bd1eb0a0d075d071e15efc4cf473c23ac868f2af1cb430c249c284"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dhcp_reverse_name_diff.py",
+        "sha256": "205591fd7f78023ff935cd84805002746b07cc1e2adb3c3b95c1d254bac06231"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-legacy-probe.py",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dhcp_reverse_name_diff.py",
+        "--c",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--output",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-reverse"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.38551902770996094,
+      "checks": {
+        "matched": 28,
+        "failures": [],
+        "unexecuted": 0
+      }
+    },
+    "dns-tcp": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dns-tcp/summary.json",
+        "sha256": "b8bcef704522c00dc0333f5be3f2fe24670d3ab9e3b0ae462fef169e512eaa99"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dns_tcp_daemon_diff.py",
+        "sha256": "eaaa2dcbdef682dceccc34521a07c2a0f6465ceb0b40119665a1e26e9363779c"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-legacy-probe.py",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dns_tcp_daemon_diff.py",
+        "--reference",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--output",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dns-tcp"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.3336336612701416,
+      "checks": {
+        "status": "passed",
+        "checks_passed": 15,
+        "checks_failed": 0,
+        "identity": {
+          "reference": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "e1eb80e30b2a28da516bcd1a26baeb548e4baa8926d904b32689b7bbe2b41fcd"
+        },
+        "mismatches": [],
+        "reply_count": 116
+      }
+    },
+    "dns-reload": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dns-reload/summary.json",
+        "sha256": "72d422ded639a9aa3a74ecd0cbc98576b93a7ea83d15f46cd3e7fd7bcb02af64"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dns_reload_diff.py",
+        "sha256": "4158678550ee7d88884d0af191a17e3b34d3c2464690484ef79b7b5dd5c2cb14"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-legacy-probe.py",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dns_reload_diff.py",
+        "--reference",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--output",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dns-reload"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.3857574462890625,
+      "checks": {
+        "status": "passed",
+        "checks_passed": 23,
+        "checks_failed": 0,
+        "identity": {
+          "reference": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "e1eb80e30b2a28da516bcd1a26baeb548e4baa8926d904b32689b7bbe2b41fcd"
+        }
+      }
+    },
+    "hosts-generation": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/private/static-pie-hosts-generation/summary.json",
+        "sha256": "1c1a85f242b187a8aafb4834c9f64c68412a16670b785a702226c21a250d7b6e"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dns_hosts_generation_diff.py",
+        "sha256": "e6024f68833c79d60c3eda6c61d28213c1b7c295db23eca48fbd5b60e308872e"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-legacy-probe.py",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/dns_hosts_generation_diff.py",
+        "--c",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/private/static-pie-hosts-generation",
+        "--reference-build",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.8574528694152832,
+      "checks": {
+        "rounds": 2,
+        "failures": []
+      }
+    },
+    "dhcp-range-service": {
+      "raw": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-range-service/result.json",
+        "sha256": "974dffe68ed3f2fcd4c1a512c69a95a1dbef17e87ef45045a8c7f2e5e0ebfbf6"
+      },
+      "tool": {
+        "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/m5_dhcp_range.py",
+        "sha256": "cf0e64320c0856f202de114a2242854c8eeffe008c42716641878ab25dbbfa88"
+      },
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/source-03/tools/dnsmasq/m5_dhcp_range.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-03/dnsmasq-rs",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-functional-03/dhcp-range-service"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 353.8821589946747,
+      "checks": {
+        "passed": true,
+        "cases": 76,
+        "failures": [],
+        "unexecuted": 0
+      }
+    }
+  },
+  "findings": {
+    "A01": "signals",
+    "A02": "dhcp",
+    "A03": "dhcp",
+    "A04": "dhcp",
+    "A05": "config",
+    "A06": "hosts",
+    "A09": "dhcp",
+    "A10": "dns-error"
+  },
+  "legacy_launcher": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix-20261011/private/static-pie-legacy-probe.py",
+    "sha256": "4e16b01795d17492caa7f7961158c63161860f427507f4da70e673f19c97aeaa"
+  },
+  "legacy_reference_note": "The reverse-name report retains the old native-glibc label, but its reference ELF SHA is the exact image C; the image launcher and command identify the actual loader and ELF."
+}
