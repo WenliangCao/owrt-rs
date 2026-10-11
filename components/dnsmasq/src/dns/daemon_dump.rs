@@ -55,9 +55,11 @@ impl<R: Random> DnsDaemon<R> {
         emit("Host                           Address                                  Flags      Expires                  Source".into());
         emit("------------------------------ ---------------------------------------- ---------- ------------------------ ------------".into());
         for host in local.hosts.entries() {
-            let flags = format!("{}F{}I   {}{} ", if host.address.is_ipv4() { '4' } else { '6' },
+            // cache.c::cache_reload gives configured host-records both F_HOSTS
+            // and F_CONFIG; their positive source UID still names "config".
+            let flags = format!("{}F{}I   H{} ", if host.address.is_ipv4() { '4' } else { '6' },
                 if host.reverse { 'R' } else { ' ' },
-                if host.configured { ' ' } else { 'H' }, if host.configured { 'C' } else { ' ' });
+                if host.configured { 'C' } else { ' ' });
             let source = if host.configured { Some(b"config".as_slice()) }
                 else { local.hosts.source_name(host.source) };
             emit(row(&host.name, &host.address.to_string(), &flags, None, source));
@@ -68,7 +70,9 @@ impl<R: Random> DnsDaemon<R> {
             emit(row(&lease.name, &lease.address.to_string(), &flags, lease.expires, None));
         }
         for cname in &self.local.config.records.cnames {
-            emit(row(&cname.alias, &sanitise(&cname.target), "CF I    C ", None, Some(b"config")));
+            // Configured CNAMEs have F_CONFIG but UID zero, so C's dump has no
+            // Source column for them (cache.c::dump_cache_entry).
+            emit(row(&cname.alias, &sanitise(&cname.target), "CF I    C ", None, None));
         }
         if let Some(cache) = &self.cache {
             use crate::dns::cache::{CnameTarget, Kind};
@@ -141,7 +145,35 @@ fn expiry(expires: Option<i64>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::lex_line;
     use std::net::{Ipv6Addr, SocketAddrV6};
+
+    #[test]
+    fn configured_record_dump_matches_c_flags_and_source() {
+        let mut config = DnsConfig::default();
+        for line in [
+            b"host-record=target.test,192.0.2.42,2001:db8::42".as_slice(),
+            b"cname=alias.test,target.test",
+            b"cname=orphan.test,missing.test",
+        ] {
+            config.apply(&lex_line(line).unwrap().unwrap()).unwrap();
+        }
+        let mut hosts = crate::dns::local::configured_hosts(&config, 0);
+        hosts.set_source_name(2, b"/tmp/addn-hosts".to_vec());
+        hosts.insert(b"file.test".to_vec(), "192.0.2.43".parse().unwrap(), 0, 2);
+        let daemon = DnsDaemon::new(config, hosts, &[], DaemonOptions::default()).unwrap();
+        let mut lines = Vec::new();
+        daemon.dump_cache(&daemon.local, 0, &Metrics::default(), 0, 30, true,
+            |line| lines.push(line));
+        let separator = lines.iter().position(|line| line.starts_with("------------------------------ ")).unwrap();
+        assert_eq!(&lines[separator + 1..], &[
+            format!("{:<30} {:<40} 4FRI   HC  {:<24} {:<40}", "target.test", "192.0.2.42", "", "config"),
+            format!("{:<30} {:<40} 6FRI   HC  {:<24} {:<40}", "target.test", "2001:db8::42", "", "config"),
+            format!("{:<30} {:<40} 4FRI   H   {:<24} {:<40}", "file.test", "192.0.2.43", "", "/tmp/addn-hosts"),
+            format!("{:<30} {:<40} CF I    C  {:<24}", "alias.test", "target.test", ""),
+            format!("{:<30} {:<40} CF I    C  {:<24}", "orphan.test", "missing.test", ""),
+        ]);
+    }
 
     #[test]
     fn server_dump_preserves_scope_and_c_fallback() {
