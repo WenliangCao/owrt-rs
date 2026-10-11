@@ -5,6 +5,14 @@
 //! a DHCP or TFTP option would make a package appear deployable while
 //! dropping configured behavior.
 
+#[cfg(all(
+    target_os = "linux",
+    target_env = "musl",
+    target_pointer_width = "64",
+    target_feature = "crt-static"
+))]
+mod startup_relro;
+
 use dnsmasq_rs::config::dhcp::DhcpConfig;
 use dnsmasq_rs::config::dns::DnsConfig;
 use dnsmasq_rs::config::loader::{self, Action};
@@ -185,6 +193,16 @@ extern "C" fn request_interrupt(_signal: i32) {
 }
 
 fn main() {
+    #[cfg(all(
+        target_os = "linux",
+        target_env = "musl",
+        target_pointer_width = "64",
+        target_feature = "crt-static"
+    ))]
+    if let Err(error) = startup_relro::protect() {
+        eprintln!("dnsmasq: cannot protect GNU_RELRO: {error}");
+        std::process::exit(5);
+    }
     #[cfg(target_os = "linux")]
     {
         unsafe extern "C" {
