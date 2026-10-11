@@ -74,6 +74,29 @@ class Product(Fixture):
         self.raw.append({"side": self.side, "query": packet.hex(), "answer": response.hex(), "tcp": tcp is not None})
         return semantics(response)
 
+    def wait_dns_bound(self):
+        """UBus registration can precede DNS bind; do not lose the seed packet."""
+        deadline = time.monotonic() + 3
+        process = Path(f"/proc/{self.daemon.pid}")
+        while time.monotonic() < deadline:
+            assert self.daemon.poll() is None, "daemon exited before DNS bind"
+            inodes = set()
+            for fd in (process / "fd").iterdir():
+                try:
+                    target = os.readlink(fd)
+                except FileNotFoundError:
+                    continue
+                if target.startswith("socket:["):
+                    inodes.add(target[8:-1])
+            for line in (process / "net/udp").read_text().splitlines()[1:]:
+                fields = line.split()
+                if fields[9] in inodes and int(fields[1].split(":")[1], 16) == 15353:
+                    self.raw.append({"side": self.side, "action": "dns-listener-bound",
+                                     "socket_inode": fields[9]})
+                    return
+            time.sleep(.002)
+        raise TimeoutError("daemon DNS listener did not bind")
+
     def wait_metric(self, field, value):
         deadline = time.monotonic() + 3
         while True:
@@ -630,6 +653,7 @@ def run_lifecycle(f, side):
             f.start_product(side)
             # Registration precedes the image startup/file barrier. Use a real
             # completed service request before measuring retained descriptors.
+            f.wait_dns_bound()
             f.exchange("local.invalid")
             seeded_local = f.metrics()["dns_local_answered"]
             before_fds = len(list(Path(f"/proc/{f.daemon.pid}/fd").iterdir()))
