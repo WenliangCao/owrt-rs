@@ -1,0 +1,764 @@
+{
+  "schema": 1,
+  "audit_date": "2026-10-11",
+  "scope": "Historical Oracle benchmark evidence review; no performance windows or physical-router measurements were run during this audit.",
+  "provenance": {
+    "historical_analysis_path": "/home/ubuntu/dnsmasq-perf-research/private/final23-analysis.json",
+    "historical_analysis_sha256": "1a0f69dee28abb32d9705e8cdd04a644e0ea8b2e85c339660f37562a8a0c739c",
+    "historical_state_sha256": "6a5486200319400b808c14cbca41672e54a28e20316ea576a6e4aa40fa4fd844",
+    "source_equivalence": {
+      "equal": true,
+      "files_compared": 157,
+      "scope": "dnsmasq and ubus Cargo manifests/locks and src/*.rs; byte hashes equal to candidate-23"
+    },
+    "historical_rust": {
+      "bytes": 1970216,
+      "sha256": "98ac292af035e771d15151552f8caadb938f8112ca7264573e51a749ec74e36a"
+    },
+    "fresh_audit_rust": {
+      "bytes": 1970216,
+      "sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448"
+    },
+    "c": {
+      "bytes": 269305,
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    },
+    "identity_warning": "Identical product source and file size do not make the historical and fresh ELF hashes equal; these are historical same-source measurements, not fresh-ELF performance acceptance."
+  },
+  "method": {
+    "windows": 54,
+    "profiles": 9,
+    "implementations": 2,
+    "rounds": 3,
+    "warmup_seconds": 30,
+    "measurement_seconds": 120,
+    "saturation_note": "When configured, saturation occupies the last 30 seconds of the 120-second measurement.",
+    "cpu": "Cgroup process-tree usage_usec boundary delta divided by correct completions in the phase; DHCP unit is complete cycle.",
+    "memory": "Median over three runs of each run's sampled process-tree peak during the phase; samples are approximately 1 second apart.",
+    "rss_caution": "Tree RSS double-counts shared pages in C TCP children. PSS is the fairer total physical-memory comparison.",
+    "latency": "Nearest-rank percentiles of correct requests sent during the phase, including late completions. Medians below are medians of run percentiles.",
+    "throughput_caution": "UDP-hit, TCP-local and TCP-cache saturation are generator-limited; do not infer server capacity from their QPS ratios.",
+    "fault_caution": "Fault phase has zero correct replies, so CPU per correct reply and response percentiles are undefined."
+  },
+  "independent_verification": {
+    "all_54_saved_window_analyses_valid": true,
+    "all_phase_cpu_boundary_arithmetic_and_raw_memory_peaks_match": true,
+    "all_published_current_C_comparison_medians_match": true,
+    "raw_files_hash_verified": 324,
+    "raw_file_total_bytes": 5018346002,
+    "latency_binary_windows_independently_decoded": 8,
+    "latency_spotcheck_profiles": [
+      "udp-hit",
+      "dhcp-lease",
+      "reload-concurrent",
+      "tcp-miss"
+    ],
+    "raw_verification_path": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/performance-review/raw-verification.json",
+    "raw_verification_sha256": "631e283568994319616a9de668342026831e2243f6626ca1a3a7b60bc935d4ed",
+    "audit_script_path": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/audit_performance_20261011.py",
+    "audit_script_sha256": "fe63b46214686d515701ae1ce5a6e858ca62a8db63ed89607844beed5acc442c",
+    "summary_selection": "Nine main phases plus TCP-miss saturation and 60-second drain; full per-window/per-phase values remain in raw-verification.json."
+  },
+  "scenarios": [
+    {
+      "profile": "dhcp-lease",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            473.74916666666667,
+            455.3045833333333,
+            484.7425
+          ],
+          "median": 473.74916666666667
+        },
+        "qps": {
+          "median": 20.0
+        },
+        "p50_us": {
+          "median": 2796.143
+        },
+        "p95_us": {
+          "median": 3336.387
+        },
+        "rss_kib": {
+          "median": 1668
+        },
+        "pss_kib": {
+          "rounds": [
+            1660,
+            1664,
+            1652
+          ],
+          "median": 1660
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            523.0845833333333,
+            525.0375,
+            546.285
+          ],
+          "median": 525.0375
+        },
+        "qps": {
+          "median": 20.0
+        },
+        "p50_us": {
+          "median": 2772.823
+        },
+        "p95_us": {
+          "median": 3169.426
+        },
+        "rss_kib": {
+          "median": 2252
+        },
+        "pss_kib": {
+          "rounds": [
+            2244,
+            2368,
+            2240
+          ],
+          "median": 2244
+        }
+      }
+    },
+    {
+      "profile": "dns-mixed",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            30.812886027204772,
+            31.40614830059495,
+            31.056860669174085
+          ],
+          "median": 31.056860669174085
+        },
+        "qps": {
+          "median": 9993.366666666667
+        },
+        "p50_us": {
+          "median": 21.2
+        },
+        "p95_us": {
+          "median": 129.641
+        },
+        "rss_kib": {
+          "median": 1648
+        },
+        "pss_kib": {
+          "rounds": [
+            1640,
+            1640,
+            1660
+          ],
+          "median": 1640
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            25.831678644678263,
+            26.123968430613722,
+            26.090861899161645
+          ],
+          "median": 26.090861899161645
+        },
+        "qps": {
+          "median": 9995.166666666666
+        },
+        "p50_us": {
+          "median": 21.761
+        },
+        "p95_us": {
+          "median": 92.401
+        },
+        "rss_kib": {
+          "median": 3756
+        },
+        "pss_kib": {
+          "rounds": [
+            3748,
+            3756,
+            3744
+          ],
+          "median": 3748
+        }
+      }
+    },
+    {
+      "profile": "reload-concurrent",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            19.770683333333334,
+            19.526358333333334,
+            20.3017
+          ],
+          "median": 19.770683333333334
+        },
+        "qps": {
+          "median": 1000.0
+        },
+        "p50_us": {
+          "median": 40.0
+        },
+        "p95_us": {
+          "median": 65.401
+        },
+        "rss_kib": {
+          "median": 1640
+        },
+        "pss_kib": {
+          "rounds": [
+            1668,
+            1632,
+            1576
+          ],
+          "median": 1632
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            26.373708333333333,
+            32.32074166666666,
+            27.246025
+          ],
+          "median": 27.246025
+        },
+        "qps": {
+          "median": 1000.0
+        },
+        "p50_us": {
+          "median": 45.88
+        },
+        "p95_us": {
+          "median": 70.881
+        },
+        "rss_kib": {
+          "median": 2452
+        },
+        "pss_kib": {
+          "rounds": [
+            2444,
+            2384,
+            2444
+          ],
+          "median": 2444
+        }
+      }
+    },
+    {
+      "profile": "tcp-cache",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            33.58646461121626,
+            32.43101478016506,
+            33.816037678186234
+          ],
+          "median": 33.58646461121626
+        },
+        "qps": {
+          "median": 9997.988888888889
+        },
+        "p50_us": {
+          "median": 38.6
+        },
+        "p95_us": {
+          "median": 151.961
+        },
+        "rss_kib": {
+          "median": 29900
+        },
+        "pss_kib": {
+          "rounds": [
+            8617,
+            8468,
+            8394
+          ],
+          "median": 8468
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            19.11480831938545,
+            18.881230996959513,
+            19.28142188554097
+          ],
+          "median": 19.11480831938545
+        },
+        "qps": {
+          "median": 9997.533333333333
+        },
+        "p50_us": {
+          "median": 26.16
+        },
+        "p95_us": {
+          "median": 29.56
+        },
+        "rss_kib": {
+          "median": 4952
+        },
+        "pss_kib": {
+          "rounds": [
+            4944,
+            4944,
+            4944
+          ],
+          "median": 4944
+        }
+      }
+    },
+    {
+      "profile": "tcp-local",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            28.988889802668137,
+            26.82141706101093,
+            27.864139138165754
+          ],
+          "median": 27.864139138165754
+        },
+        "qps": {
+          "median": 9997.844444444445
+        },
+        "p50_us": {
+          "median": 32.121
+        },
+        "p95_us": {
+          "median": 103.681
+        },
+        "rss_kib": {
+          "median": 29740
+        },
+        "pss_kib": {
+          "rounds": [
+            4008,
+            3937,
+            3849
+          ],
+          "median": 3937
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            21.839035759457797,
+            21.40170510865845,
+            20.931620008668496
+          ],
+          "median": 21.40170510865845
+        },
+        "qps": {
+          "median": 9997.888888888889
+        },
+        "p50_us": {
+          "median": 27.521
+        },
+        "p95_us": {
+          "median": 37.8
+        },
+        "rss_kib": {
+          "median": 3684
+        },
+        "pss_kib": {
+          "rounds": [
+            3820,
+            3620,
+            3676
+          ],
+          "median": 3676
+        }
+      }
+    },
+    {
+      "profile": "tcp-miss",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            226.17197093363987,
+            225.59157145222719,
+            226.66036256761595
+          ],
+          "median": 226.17197093363987
+        },
+        "qps": {
+          "median": 4417.477777777778
+        },
+        "p50_us": {
+          "median": 1051.849
+        },
+        "p95_us": {
+          "median": 3448.069
+        },
+        "rss_kib": {
+          "median": 20076
+        },
+        "pss_kib": {
+          "rounds": [
+            5605,
+            5484,
+            5330
+          ],
+          "median": 5484
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            95.39496145160034,
+            95.4825756800413,
+            95.0760542512094
+          ],
+          "median": 95.39496145160034
+        },
+        "qps": {
+          "median": 9987.955555555556
+        },
+        "p50_us": {
+          "median": 168.001
+        },
+        "p95_us": {
+          "median": 565.004
+        },
+        "rss_kib": {
+          "median": 18736
+        },
+        "pss_kib": {
+          "rounds": [
+            18728,
+            18560,
+            18788
+          ],
+          "median": 18728
+        }
+      }
+    },
+    {
+      "profile": "tcp-miss",
+      "phase": "saturation",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            215.7672709209238,
+            213.66192424480022,
+            215.92145944388417
+          ],
+          "median": 215.7672709209238
+        },
+        "qps": {
+          "median": 4630.133333333333
+        },
+        "p50_us": {
+          "median": 1077.489
+        },
+        "p95_us": {
+          "median": 3564.069
+        },
+        "rss_kib": {
+          "median": 15424
+        },
+        "pss_kib": {
+          "rounds": [
+            4237,
+            3791,
+            4112
+          ],
+          "median": 4112
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            76.80102288021534,
+            76.8550183106941,
+            76.93171643803599
+          ],
+          "median": 76.8550183106941
+        },
+        "qps": {
+          "median": 12988.766666666666
+        },
+        "p50_us": {
+          "median": 1424.291
+        },
+        "p95_us": {
+          "median": 2169.658
+        },
+        "rss_kib": {
+          "median": 18804
+        },
+        "pss_kib": {
+          "rounds": [
+            18796,
+            18664,
+            18916
+          ],
+          "median": 18796
+        }
+      }
+    },
+    {
+      "profile": "tcp-miss",
+      "phase": "drained-60s",
+      "C": {
+        "rss_kib": {
+          "median": 1668
+        },
+        "pss_kib": {
+          "rounds": [
+            1660,
+            1656,
+            1660
+          ],
+          "median": 1660
+        }
+      },
+      "R3": {
+        "rss_kib": {
+          "median": 12028
+        },
+        "pss_kib": {
+          "rounds": [
+            11640,
+            12020,
+            12272
+          ],
+          "median": 12020
+        }
+      }
+    },
+    {
+      "profile": "udp-hit",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            12.113716804816711,
+            11.745677390384222,
+            11.864530626442638
+          ],
+          "median": 11.864530626442638
+        },
+        "qps": {
+          "median": 9998.077777777778
+        },
+        "p50_us": {
+          "median": 19.681
+        },
+        "p95_us": {
+          "median": 21.52
+        },
+        "rss_kib": {
+          "median": 1668
+        },
+        "pss_kib": {
+          "rounds": [
+            1660,
+            1660,
+            1660
+          ],
+          "median": 1660
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            12.444545330276382,
+            12.347540728557776,
+            12.403266729569603
+          ],
+          "median": 12.403266729569603
+        },
+        "qps": {
+          "median": 9997.855555555556
+        },
+        "p50_us": {
+          "median": 19.88
+        },
+        "p95_us": {
+          "median": 22.2
+        },
+        "rss_kib": {
+          "median": 3368
+        },
+        "pss_kib": {
+          "rounds": [
+            3360,
+            3292,
+            3360
+          ],
+          "median": 3360
+        }
+      }
+    },
+    {
+      "profile": "udp-miss",
+      "phase": "steady",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            95.58662234314953,
+            91.29039942471798,
+            93.38581644602965
+          ],
+          "median": 93.38581644602965
+        },
+        "qps": {
+          "median": 9981.2
+        },
+        "p50_us": {
+          "median": 143.161
+        },
+        "p95_us": {
+          "median": 212.562
+        },
+        "rss_kib": {
+          "median": 1656
+        },
+        "pss_kib": {
+          "rounds": [
+            1652,
+            1644,
+            1648
+          ],
+          "median": 1648
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            72.52895657959444,
+            72.24829597639163,
+            72.18820297205909
+          ],
+          "median": 72.24829597639163
+        },
+        "qps": {
+          "median": 9989.333333333334
+        },
+        "p50_us": {
+          "median": 81.841
+        },
+        "p95_us": {
+          "median": 114.561
+        },
+        "rss_kib": {
+          "median": 3704
+        },
+        "pss_kib": {
+          "rounds": [
+            3692,
+            3708,
+            3696
+          ],
+          "median": 3696
+        }
+      }
+    },
+    {
+      "profile": "upstream-fault",
+      "phase": "before-fault",
+      "C": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            139.44123333333334,
+            159.8488,
+            141.56446666666668
+          ],
+          "median": 141.56446666666668
+        },
+        "qps": {
+          "median": 1000.0
+        },
+        "p50_us": {
+          "median": 179.641
+        },
+        "p95_us": {
+          "median": 216.322
+        },
+        "rss_kib": {
+          "median": 1660
+        },
+        "pss_kib": {
+          "rounds": [
+            1660,
+            1652,
+            1652
+          ],
+          "median": 1652
+        }
+      },
+      "R3": {
+        "cpu_us_per_correct": {
+          "rounds": [
+            93.05113333333334,
+            109.1495,
+            109.14473333333333
+          ],
+          "median": 109.14473333333333
+        },
+        "qps": {
+          "median": 1000.0
+        },
+        "p50_us": {
+          "median": 143.761
+        },
+        "p95_us": {
+          "median": 189.922
+        },
+        "rss_kib": {
+          "median": 3836
+        },
+        "pss_kib": {
+          "rounds": [
+            3828,
+            3868,
+            3812
+          ],
+          "median": 3828
+        }
+      }
+    }
+  ],
+  "limits": [
+    "No new benchmark load was generated; current concurrent unit/differential tests would invalidate a fresh exclusive performance window.",
+    "No new or historical physical-router measurements are imported into this artifact.",
+    "No fresh APK size, flash capacity, boot, power, radio contention, or memory-pressure deployment gate was measured.",
+    "Higher retained PSS is not by itself proof of a memory leak or an out-of-memory failure.",
+    "Performance acceptance thresholds and engineering stop rules are not functional substitution proofs."
+  ],
+  "cost_interpretation": {
+    "cpu": {
+      "udp_hit_overhead_percent": 4.540728327897581,
+      "dhcp_overhead_percent": 10.826052464472236,
+      "reload_overhead_percent": 37.81023417669764,
+      "qualification": "All three CPU medians exceed same-window C; UDP-hit remains below the historical protocol's 10% regression-magnitude threshold. DHCP and reload exceeded that threshold and both groups' observed variability. Other six main phases have lower Rust CPU cost per correct request. This is workload-specific CPU overhead, not proof that the router cannot keep up.",
+      "latency_qualification": "The three costly CPU scenarios did not meet that protocol's p95 regression threshold versus C; DHCP p95 was numerically lower. CPU overhead must not be presented as equal response-latency overhead."
+    },
+    "memory": {
+      "tcp_miss_steady_pss_ratio": 3.415025528811087,
+      "tcp_miss_saturation_pss_ratio": 4.571011673151751,
+      "tcp_miss_drained_60s_pss_c_kib": 1660,
+      "tcp_miss_drained_60s_pss_rust_kib": 12020,
+      "qualification": "TCP-miss used cache size 4096 and 20 clients. At the same offered 10k requests/s, achieved C/Rust throughput differed (4417/9988 QPS); compare these as configured-workload costs, not equal-throughput or per-connection memory. Retained memory reduces RAM headroom, but this evidence alone establishes neither a leak nor OOM. TCP-cache steady PSS is lower in Rust; memory costs are not uniformly worse."
+    },
+    "elf": {
+      "rust_bytes": 1970216,
+      "c_bytes": 269305,
+      "extra_bytes": 1700911,
+      "ratio": 7.315928036984089,
+      "qualification": "The ELF on disk is 7.316 times as large. This is an installed-file/storage cost; ELF ratio is not an APK or squashfs flash-compression ratio. A fresh candidate APK was not measured."
+    }
+  }
+}

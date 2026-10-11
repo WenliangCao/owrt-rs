@@ -1,0 +1,1939 @@
+{
+  "scope": "isolated exact-image ELF/loader service comparison; synthetic loopback v4/v6",
+  "source_commit": "3e7df6c1cc45b74f0430e5460379713900172cb4",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448",
+  "tool_sha256": "887afd677e02fd8f8d877f17e9beb90c8f4c42c1bb55bafedcaca8c083dad1a6",
+  "cases": [
+    {
+      "name": "octet-0",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 0
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 0
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "octet-17",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 17
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 17,
+        "sha256": "3e5718fea51a8f3f5baca61c77afab473c1810f8b9db330273b4011ce92c787e",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 17
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 17,
+        "sha256": "3e5718fea51a8f3f5baca61c77afab473c1810f8b9db330273b4011ce92c787e",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "octet-512",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 0
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 512,
+        "sha256": "110009dcee21620b166f3abfecb5eff7a873be729d1c2d53822e7acc5f34eb9b",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 0
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 512,
+        "sha256": "110009dcee21620b166f3abfecb5eff7a873be729d1c2d53822e7acc5f34eb9b",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "octet-513",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 513,
+        "sha256": "2ac6d9e2b50bdd65511fb4dc0f24b7f6a0c1b2e92d1cf6901df565802e380234",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 513,
+        "sha256": "2ac6d9e2b50bdd65511fb4dc0f24b7f6a0c1b2e92d1cf6901df565802e380234",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "octet-4097",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 512
+          },
+          {
+            "number": 3,
+            "length": 512
+          },
+          {
+            "number": 4,
+            "length": 512
+          },
+          {
+            "number": 5,
+            "length": 512
+          },
+          {
+            "number": 6,
+            "length": 512
+          },
+          {
+            "number": 7,
+            "length": 512
+          },
+          {
+            "number": 8,
+            "length": 512
+          },
+          {
+            "number": 9,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 4097,
+        "sha256": "1e973d029df2b2c66cb42a942c5edb45966f02abaff29fe99410e44d271d0efc",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 512
+          },
+          {
+            "number": 3,
+            "length": 512
+          },
+          {
+            "number": 4,
+            "length": 512
+          },
+          {
+            "number": 5,
+            "length": 512
+          },
+          {
+            "number": 6,
+            "length": 512
+          },
+          {
+            "number": 7,
+            "length": 512
+          },
+          {
+            "number": 8,
+            "length": 512
+          },
+          {
+            "number": 9,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 4097,
+        "sha256": "1e973d029df2b2c66cb42a942c5edb45966f02abaff29fe99410e44d271d0efc",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "netascii-multiblock",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 512
+          },
+          {
+            "number": 3,
+            "length": 512
+          },
+          {
+            "number": 4,
+            "length": 164
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 1700,
+        "sha256": "f47b870dc141d15ab4a358d4ca540ac8f1e6d2f7d83eff786f8be9055a619d41",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 512
+          },
+          {
+            "number": 2,
+            "length": 512
+          },
+          {
+            "number": 3,
+            "length": 512
+          },
+          {
+            "number": 4,
+            "length": 164
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 1700,
+        "sha256": "f47b870dc141d15ab4a358d4ca540ac8f1e6d2f7d83eff786f8be9055a619d41",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "netascii-one-byte-block",
+      "c": {
+        "verified": false,
+        "exception": "TimeoutError('timed out')",
+        "packet_observations": [
+          {
+            "opcode": 6,
+            "options": [
+              "blksize",
+              "1"
+            ]
+          },
+          {
+            "opcode": 3,
+            "block": 1,
+            "bytes": 1,
+            "sha256": "9d1e0e2d9459d06523ad13e28a4093c2316baafe7aec5b25f30eba2e113599c4"
+          },
+          {
+            "opcode": 3,
+            "block": 1,
+            "bytes": 1,
+            "sha256": "9d1e0e2d9459d06523ad13e28a4093c2316baafe7aec5b25f30eba2e113599c4"
+          },
+          {
+            "opcode": 3,
+            "block": 1,
+            "bytes": 1,
+            "sha256": "9d1e0e2d9459d06523ad13e28a4093c2316baafe7aec5b25f30eba2e113599c4"
+          }
+        ],
+        "received_bytes": 1,
+        "received_sha256": "9d1e0e2d9459d06523ad13e28a4093c2316baafe7aec5b25f30eba2e113599c4",
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "1"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 1
+          },
+          {
+            "number": 2,
+            "length": 1
+          },
+          {
+            "number": 3,
+            "length": 1
+          },
+          {
+            "number": 4,
+            "length": 1
+          },
+          {
+            "number": 5,
+            "length": 1
+          },
+          {
+            "number": 6,
+            "length": 1
+          },
+          {
+            "number": 7,
+            "length": 1
+          },
+          {
+            "number": 8,
+            "length": 1
+          },
+          {
+            "number": 9,
+            "length": 1
+          },
+          {
+            "number": 10,
+            "length": 0
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 9,
+        "sha256": "867999252a398a2b8138939d5b48664b82758bae340e5c8bcac639a22464a4ab",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": false
+    },
+    {
+      "name": "window4-multiblock",
+      "c": {
+        "oack": [
+          [
+            "blksize",
+            "32"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 32
+          },
+          {
+            "number": 2,
+            "length": 32
+          },
+          {
+            "number": 3,
+            "length": 32
+          },
+          {
+            "number": 4,
+            "length": 32
+          },
+          {
+            "number": 5,
+            "length": 32
+          },
+          {
+            "number": 6,
+            "length": 32
+          },
+          {
+            "number": 7,
+            "length": 32
+          },
+          {
+            "number": 8,
+            "length": 32
+          },
+          {
+            "number": 9,
+            "length": 32
+          },
+          {
+            "number": 10,
+            "length": 32
+          },
+          {
+            "number": 11,
+            "length": 32
+          },
+          {
+            "number": 12,
+            "length": 32
+          },
+          {
+            "number": 13,
+            "length": 32
+          },
+          {
+            "number": 14,
+            "length": 32
+          },
+          {
+            "number": 15,
+            "length": 32
+          },
+          {
+            "number": 16,
+            "length": 32
+          },
+          {
+            "number": 17,
+            "length": 32
+          },
+          {
+            "number": 18,
+            "length": 32
+          },
+          {
+            "number": 19,
+            "length": 32
+          },
+          {
+            "number": 20,
+            "length": 32
+          },
+          {
+            "number": 21,
+            "length": 32
+          },
+          {
+            "number": 22,
+            "length": 32
+          },
+          {
+            "number": 23,
+            "length": 32
+          },
+          {
+            "number": 24,
+            "length": 32
+          },
+          {
+            "number": 25,
+            "length": 3
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 771,
+        "sha256": "398cc8a909372ba126b671e342b2dd7ce3f9b5da1fc6b44e994bc9a24e20f14b",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "32"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 32
+          },
+          {
+            "number": 2,
+            "length": 32
+          },
+          {
+            "number": 3,
+            "length": 32
+          },
+          {
+            "number": 4,
+            "length": 32
+          },
+          {
+            "number": 5,
+            "length": 32
+          },
+          {
+            "number": 6,
+            "length": 32
+          },
+          {
+            "number": 7,
+            "length": 32
+          },
+          {
+            "number": 8,
+            "length": 32
+          },
+          {
+            "number": 9,
+            "length": 32
+          },
+          {
+            "number": 10,
+            "length": 32
+          },
+          {
+            "number": 11,
+            "length": 32
+          },
+          {
+            "number": 12,
+            "length": 32
+          },
+          {
+            "number": 13,
+            "length": 32
+          },
+          {
+            "number": 14,
+            "length": 32
+          },
+          {
+            "number": 15,
+            "length": 32
+          },
+          {
+            "number": 16,
+            "length": 32
+          },
+          {
+            "number": 17,
+            "length": 32
+          },
+          {
+            "number": 18,
+            "length": 32
+          },
+          {
+            "number": 19,
+            "length": 32
+          },
+          {
+            "number": 20,
+            "length": 32
+          },
+          {
+            "number": 21,
+            "length": 32
+          },
+          {
+            "number": 22,
+            "length": 32
+          },
+          {
+            "number": 23,
+            "length": 32
+          },
+          {
+            "number": 24,
+            "length": 32
+          },
+          {
+            "number": 25,
+            "length": 3
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 771,
+        "sha256": "398cc8a909372ba126b671e342b2dd7ce3f9b5da1fc6b44e994bc9a24e20f14b",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "window32-multiblock",
+      "c": {
+        "oack": [
+          [
+            "blksize",
+            "128"
+          ],
+          [
+            "windowsize",
+            "32"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 128
+          },
+          {
+            "number": 2,
+            "length": 128
+          },
+          {
+            "number": 3,
+            "length": 128
+          },
+          {
+            "number": 4,
+            "length": 128
+          },
+          {
+            "number": 5,
+            "length": 128
+          },
+          {
+            "number": 6,
+            "length": 128
+          },
+          {
+            "number": 7,
+            "length": 128
+          },
+          {
+            "number": 8,
+            "length": 128
+          },
+          {
+            "number": 9,
+            "length": 128
+          },
+          {
+            "number": 10,
+            "length": 128
+          },
+          {
+            "number": 11,
+            "length": 128
+          },
+          {
+            "number": 12,
+            "length": 128
+          },
+          {
+            "number": 13,
+            "length": 128
+          },
+          {
+            "number": 14,
+            "length": 128
+          },
+          {
+            "number": 15,
+            "length": 128
+          },
+          {
+            "number": 16,
+            "length": 128
+          },
+          {
+            "number": 17,
+            "length": 128
+          },
+          {
+            "number": 18,
+            "length": 128
+          },
+          {
+            "number": 19,
+            "length": 128
+          },
+          {
+            "number": 20,
+            "length": 128
+          },
+          {
+            "number": 21,
+            "length": 128
+          },
+          {
+            "number": 22,
+            "length": 128
+          },
+          {
+            "number": 23,
+            "length": 128
+          },
+          {
+            "number": 24,
+            "length": 128
+          },
+          {
+            "number": 25,
+            "length": 128
+          },
+          {
+            "number": 26,
+            "length": 128
+          },
+          {
+            "number": 27,
+            "length": 128
+          },
+          {
+            "number": 28,
+            "length": 128
+          },
+          {
+            "number": 29,
+            "length": 128
+          },
+          {
+            "number": 30,
+            "length": 128
+          },
+          {
+            "number": 31,
+            "length": 128
+          },
+          {
+            "number": 32,
+            "length": 128
+          },
+          {
+            "number": 33,
+            "length": 128
+          },
+          {
+            "number": 34,
+            "length": 128
+          },
+          {
+            "number": 35,
+            "length": 128
+          },
+          {
+            "number": 36,
+            "length": 128
+          },
+          {
+            "number": 37,
+            "length": 128
+          },
+          {
+            "number": 38,
+            "length": 128
+          },
+          {
+            "number": 39,
+            "length": 128
+          },
+          {
+            "number": 40,
+            "length": 128
+          },
+          {
+            "number": 41,
+            "length": 3
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 5123,
+        "sha256": "880bffb1e819c8ec48a735c6ffe039a732e08d265fee68584d7c25668f469c27",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "128"
+          ],
+          [
+            "windowsize",
+            "32"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 128
+          },
+          {
+            "number": 2,
+            "length": 128
+          },
+          {
+            "number": 3,
+            "length": 128
+          },
+          {
+            "number": 4,
+            "length": 128
+          },
+          {
+            "number": 5,
+            "length": 128
+          },
+          {
+            "number": 6,
+            "length": 128
+          },
+          {
+            "number": 7,
+            "length": 128
+          },
+          {
+            "number": 8,
+            "length": 128
+          },
+          {
+            "number": 9,
+            "length": 128
+          },
+          {
+            "number": 10,
+            "length": 128
+          },
+          {
+            "number": 11,
+            "length": 128
+          },
+          {
+            "number": 12,
+            "length": 128
+          },
+          {
+            "number": 13,
+            "length": 128
+          },
+          {
+            "number": 14,
+            "length": 128
+          },
+          {
+            "number": 15,
+            "length": 128
+          },
+          {
+            "number": 16,
+            "length": 128
+          },
+          {
+            "number": 17,
+            "length": 128
+          },
+          {
+            "number": 18,
+            "length": 128
+          },
+          {
+            "number": 19,
+            "length": 128
+          },
+          {
+            "number": 20,
+            "length": 128
+          },
+          {
+            "number": 21,
+            "length": 128
+          },
+          {
+            "number": 22,
+            "length": 128
+          },
+          {
+            "number": 23,
+            "length": 128
+          },
+          {
+            "number": 24,
+            "length": 128
+          },
+          {
+            "number": 25,
+            "length": 128
+          },
+          {
+            "number": 26,
+            "length": 128
+          },
+          {
+            "number": 27,
+            "length": 128
+          },
+          {
+            "number": 28,
+            "length": 128
+          },
+          {
+            "number": 29,
+            "length": 128
+          },
+          {
+            "number": 30,
+            "length": 128
+          },
+          {
+            "number": 31,
+            "length": 128
+          },
+          {
+            "number": 32,
+            "length": 128
+          },
+          {
+            "number": 33,
+            "length": 128
+          },
+          {
+            "number": 34,
+            "length": 128
+          },
+          {
+            "number": 35,
+            "length": 128
+          },
+          {
+            "number": 36,
+            "length": 128
+          },
+          {
+            "number": 37,
+            "length": 128
+          },
+          {
+            "number": 38,
+            "length": 128
+          },
+          {
+            "number": 39,
+            "length": 128
+          },
+          {
+            "number": 40,
+            "length": 128
+          },
+          {
+            "number": 41,
+            "length": 3
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 5123,
+        "sha256": "880bffb1e819c8ec48a735c6ffe039a732e08d265fee68584d7c25668f469c27",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "all-options",
+      "c": {
+        "oack": [
+          [
+            "blksize",
+            "64"
+          ],
+          [
+            "tsize",
+            "1201"
+          ],
+          [
+            "timeout",
+            "1"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 64
+          },
+          {
+            "number": 2,
+            "length": 64
+          },
+          {
+            "number": 3,
+            "length": 64
+          },
+          {
+            "number": 4,
+            "length": 64
+          },
+          {
+            "number": 5,
+            "length": 64
+          },
+          {
+            "number": 6,
+            "length": 64
+          },
+          {
+            "number": 7,
+            "length": 64
+          },
+          {
+            "number": 8,
+            "length": 64
+          },
+          {
+            "number": 9,
+            "length": 64
+          },
+          {
+            "number": 10,
+            "length": 64
+          },
+          {
+            "number": 11,
+            "length": 64
+          },
+          {
+            "number": 12,
+            "length": 64
+          },
+          {
+            "number": 13,
+            "length": 64
+          },
+          {
+            "number": 14,
+            "length": 64
+          },
+          {
+            "number": 15,
+            "length": 64
+          },
+          {
+            "number": 16,
+            "length": 64
+          },
+          {
+            "number": 17,
+            "length": 64
+          },
+          {
+            "number": 18,
+            "length": 64
+          },
+          {
+            "number": 19,
+            "length": 49
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 1201,
+        "sha256": "7abcf14851181490cbc224d2cafec6e82bf839dd48fd8696d2e0b6ee6d178369",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "64"
+          ],
+          [
+            "tsize",
+            "1201"
+          ],
+          [
+            "timeout",
+            "1"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 64
+          },
+          {
+            "number": 2,
+            "length": 64
+          },
+          {
+            "number": 3,
+            "length": 64
+          },
+          {
+            "number": 4,
+            "length": 64
+          },
+          {
+            "number": 5,
+            "length": 64
+          },
+          {
+            "number": 6,
+            "length": 64
+          },
+          {
+            "number": 7,
+            "length": 64
+          },
+          {
+            "number": 8,
+            "length": 64
+          },
+          {
+            "number": 9,
+            "length": 64
+          },
+          {
+            "number": 10,
+            "length": 64
+          },
+          {
+            "number": 11,
+            "length": 64
+          },
+          {
+            "number": 12,
+            "length": 64
+          },
+          {
+            "number": 13,
+            "length": 64
+          },
+          {
+            "number": 14,
+            "length": 64
+          },
+          {
+            "number": 15,
+            "length": 64
+          },
+          {
+            "number": 16,
+            "length": 64
+          },
+          {
+            "number": 17,
+            "length": 64
+          },
+          {
+            "number": 18,
+            "length": 64
+          },
+          {
+            "number": 19,
+            "length": 49
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 1201,
+        "sha256": "7abcf14851181490cbc224d2cafec6e82bf839dd48fd8696d2e0b6ee6d178369",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "unknown-option",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 7
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 7,
+        "sha256": "ed7002b439e9ac845f22357d822bac1444730fbdb6016d3ec9432297b9ec9f73",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 7
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 7,
+        "sha256": "ed7002b439e9ac845f22357d822bac1444730fbdb6016d3ec9432297b9ec9f73",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "case-insensitive-options",
+      "c": {
+        "oack": [
+          [
+            "blksize",
+            "3"
+          ],
+          [
+            "tsize",
+            "7"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 3
+          },
+          {
+            "number": 2,
+            "length": 3
+          },
+          {
+            "number": 3,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 7,
+        "sha256": "ed7002b439e9ac845f22357d822bac1444730fbdb6016d3ec9432297b9ec9f73",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "3"
+          ],
+          [
+            "tsize",
+            "7"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 3
+          },
+          {
+            "number": 2,
+            "length": 3
+          },
+          {
+            "number": 3,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 7,
+        "sha256": "ed7002b439e9ac845f22357d822bac1444730fbdb6016d3ec9432297b9ec9f73",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "netascii-ignored-tsize-window",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 6
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 6,
+        "sha256": "58055bdcc73787eb88c78d36f0b4939e9c5dc1c3ad17e25cc85a6833cf1a0cab",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 6
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 6,
+        "sha256": "58055bdcc73787eb88c78d36f0b4939e9c5dc1c3ad17e25cc85a6833cf1a0cab",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "retry-first-data",
+      "c": {
+        "oack": [
+          [
+            "timeout",
+            "1"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 13
+          }
+        ],
+        "retransmitted_blocks": [
+          1
+        ],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 13,
+        "sha256": "d6edf023bc9698bd369a837350ba92682e571f8641c730968320610c53768c60",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "timeout",
+            "1"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 13
+          }
+        ],
+        "retransmitted_blocks": [
+          1
+        ],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 13,
+        "sha256": "d6edf023bc9698bd369a837350ba92682e571f8641c730968320610c53768c60",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "single-port-window",
+      "c": {
+        "oack": [
+          [
+            "blksize",
+            "128"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 128
+          },
+          {
+            "number": 2,
+            "length": 128
+          },
+          {
+            "number": 3,
+            "length": 128
+          },
+          {
+            "number": 4,
+            "length": 128
+          },
+          {
+            "number": 5,
+            "length": 128
+          },
+          {
+            "number": 6,
+            "length": 128
+          },
+          {
+            "number": 7,
+            "length": 128
+          },
+          {
+            "number": 8,
+            "length": 128
+          },
+          {
+            "number": 9,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": true,
+        "complete": true,
+        "bytes": 1025,
+        "sha256": "3e86eb785ddb8469dd20dcc36d5b82a8f3026f18962c1db3ce65f5cdec227bda",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "128"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 128
+          },
+          {
+            "number": 2,
+            "length": 128
+          },
+          {
+            "number": 3,
+            "length": 128
+          },
+          {
+            "number": 4,
+            "length": 128
+          },
+          {
+            "number": 5,
+            "length": 128
+          },
+          {
+            "number": 6,
+            "length": 128
+          },
+          {
+            "number": 7,
+            "length": 128
+          },
+          {
+            "number": 8,
+            "length": 128
+          },
+          {
+            "number": 9,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": true,
+        "complete": true,
+        "bytes": 1025,
+        "sha256": "3e86eb785ddb8469dd20dcc36d5b82a8f3026f18962c1db3ce65f5cdec227bda",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "bound-ipv4-single-port",
+      "c": {
+        "verified": false,
+        "exception": "TimeoutError('timed out')",
+        "packet_observations": [],
+        "received_bytes": 0,
+        "received_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 0,
+        "send_failures": [
+          "Network unreachable",
+          "Network unreachable"
+        ]
+      },
+      "rust": {
+        "oack": [
+          [
+            "blksize",
+            "128"
+          ],
+          [
+            "windowsize",
+            "4"
+          ]
+        ],
+        "blocks": [
+          {
+            "number": 1,
+            "length": 128
+          },
+          {
+            "number": 2,
+            "length": 128
+          },
+          {
+            "number": 3,
+            "length": 128
+          },
+          {
+            "number": 4,
+            "length": 128
+          },
+          {
+            "number": 5,
+            "length": 128
+          },
+          {
+            "number": 6,
+            "length": 128
+          },
+          {
+            "number": 7,
+            "length": 128
+          },
+          {
+            "number": 8,
+            "length": 128
+          },
+          {
+            "number": 9,
+            "length": 1
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": true,
+        "complete": true,
+        "bytes": 1025,
+        "sha256": "3e86eb785ddb8469dd20dcc36d5b82a8f3026f18962c1db3ce65f5cdec227bda",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": false
+    },
+    {
+      "name": "ipv6-octet",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 12
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 12,
+        "sha256": "de88fd301d5bfc677856a806eb3ebbe950ffdfc21d97146a4faf1aab6530a599",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 12
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "complete": true,
+        "bytes": 12,
+        "sha256": "de88fd301d5bfc677856a806eb3ebbe950ffdfc21d97146a4faf1aab6530a599",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "ipv6-single-port",
+      "c": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 16
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": true,
+        "complete": true,
+        "bytes": 16,
+        "sha256": "ba357ffd4a70e0c25a4795a607d5f2626d3f1711abedec04d5395f4383b20382",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [
+          {
+            "number": 1,
+            "length": 16
+          }
+        ],
+        "retransmitted_blocks": [],
+        "server_single_port": true,
+        "complete": true,
+        "bytes": 16,
+        "sha256": "ba357ffd4a70e0c25a4795a607d5f2626d3f1711abedec04d5395f4383b20382",
+        "content_correct": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "missing-file",
+      "c": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 1,
+        "error_message": "file <ROOT>/missing.bin not found for 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 1,
+        "error_message": "file <ROOT>/missing.bin not found for 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "parent-traversal",
+      "c": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 2,
+        "error_message": "cannot access <ROOT>/../outside.bin: Permission denied",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 2,
+        "error_message": "cannot access <ROOT>/../outside.bin: Permission denied",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "write-request",
+      "c": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 4,
+        "error_message": "unsupported write request from 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 4,
+        "error_message": "unsupported write request from 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "invalid-mode",
+      "c": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 4,
+        "error_message": "unsupported request from 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 4,
+        "error_message": "unsupported request from 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "short-request",
+      "c": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": null,
+        "silent": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": null,
+        "silent": true,
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    },
+    {
+      "name": "empty-filename",
+      "c": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 4,
+        "error_message": "empty filename in request from 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "rust": {
+        "oack": null,
+        "blocks": [],
+        "retransmitted_blocks": [],
+        "server_single_port": false,
+        "error_code": 4,
+        "error_message": "empty filename in request from 127.0.0.1",
+        "verified": true,
+        "exit": 0,
+        "send_failures": []
+      },
+      "match": true
+    }
+  ],
+  "case_count": 24,
+  "matched": 22,
+  "all_verified": false
+}

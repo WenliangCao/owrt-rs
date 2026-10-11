@@ -121,5 +121,8 @@
       "pidfile_exists_after_signal": true,
       "log_after_signal": "dnsmasq[14]: started, version 2.93 cachesize 150\ndnsmasq[14]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[14]: warning: no upstream servers configured\ndnsmasq[14]: cleared cache\n"
     }
-  ]
+  ],
+  "tool": "tools/dnsmasq/audit_20261011_runtime_signals.py",
+  "tool_sha256": "d8f43e2e626f417bb73f3ea0f7c568b9f1e94918371a9ab5de943fbfa4a383a0",
+  "source_commit": "3e7df6c1cc45b74f0430e5460379713900172cb4"
 }

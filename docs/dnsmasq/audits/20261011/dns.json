@@ -1,0 +1,3315 @@
+{
+  "audit_date": "2026-10-11",
+  "scope": "Independent actual-daemon DNS requests in new network/mount/PID namespaces; exact OpenWrt image ELF versus fresh Rust ELF. No product changes or physical router access.",
+  "identities": {
+    "exact_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "fresh_rust_sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448",
+    "baseline_rust_sha256": "791a7c33987fbb21887c51041f27722b9cc1bd8bd4cffab0fc03a292517fb10f",
+    "tool_sha256": "bbe7899a3e7d03e0cd66fee66d17fcc29483410f5c14cfc93232d9ca3e291b2d",
+    "tool": "tools/dnsmasq/audit_20261011_dns.py",
+    "shared_setup": "m2_rootfs.py used only for exact-image identity checking, disposable read-only lower/overlay setup and chroot argv. Query construction, stub upstream, socket clients and comparisons are new.",
+    "private_artifacts": [
+      {
+        "oracle_path": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/dns-first/result.json",
+        "sha256": "f8f587ba3df14075d3b0270bcc50b04a80f040be402c76f11cc1548a2a1b6f4e"
+      },
+      {
+        "oracle_path": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/dns-final/result.json",
+        "sha256": "994d952f7c6be6cb3ce74ab2fef09897e120521e280081215127893dd8ee761b"
+      },
+      {
+        "oracle_path": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/dns-old-baseline/result.json",
+        "sha256": "5c501419ca7ed5f714c53c412b6717706b2fc83a224e769847d424d1211127bc"
+      }
+    ]
+  },
+  "summary": {
+    "final_request_transport_cases": 368,
+    "final_daemon_requests_excluding_readiness_health": 736,
+    "byte_exact_or_same_no_response": 359,
+    "differing_results": 9,
+    "full_runs": 2,
+    "old_baseline_cases": 18,
+    "crashes_or_failed_post_probe_health": 0,
+    "conclusion": "No blocker identified by this DNS slice. Seven unsupported/malformed TCP request cases differ in error reporting, also present in the old baseline. Two unusual compression cases produce a defective exact-C reply and a valid re-encoded Rust reply."
+  },
+  "findings": [
+    {
+      "id": "DNS-TCP-ERROR-REPLY",
+      "priority": "P3",
+      "title": "TCP closes on unsupported/malformed questions before reaching the implemented REFUSED reply path",
+      "observed": "Exact C returns QR/RA/REFUSED (0x8185). Rust closes that client connection without a DNS frame. Other clients remain healthy. The old main-equivalent ELF behaves identically to fresh Rust.",
+      "input_classification": {
+        "multi-question": "Two structurally encoded DNS questions; outside dnsmasq extract_request single-question interface. Not an ordinary supported request.",
+        "multi-question-compressed": "Same unsupported two-question shape using a backwards compression pointer in question 2.",
+        "zero-question": "Empty question section; no ordinary DNS lookup specified.",
+        "self-pointer": "Invalid name: compression cycle.",
+        "outside-pointer": "Invalid name: compression target outside received packet.",
+        "bitstring-label": "Obsolete extended label encoding unsupported by the request decoder.",
+        "overlong-name": "Invalid expanded name: 256 wire bytes, beyond its 255-byte bound."
+      },
+      "source_path": [
+        {
+          "file": "components/dnsmasq/src/dns/daemon.rs",
+          "line": 1735,
+          "observation": "tcp_view_answer eagerly propagates forward::Question::parse failure."
+        },
+        {
+          "file": "components/dnsmasq/src/main.rs",
+          "line": 2783,
+          "observation": "answer_query propagates that cache-view error before run_forward; caller retires connection."
+        },
+        {
+          "file": "components/dnsmasq/src/dns/tcp_service.rs",
+          "line": 529,
+          "observation": "query_error already constructs REFUSED for these inputs, but actual daemon caller does not reach it."
+        },
+        {
+          "file": "private/dnsmasq-rewrite/reference/dnsmasq-2.93/src/forward.c",
+          "line": 2503,
+          "observation": "Exact C extract_request failure records invalid-data EDE and continues to make_local_answer at line 2733."
+        }
+      ],
+      "impact_boundary": "Low-impact compatibility difference on error inputs; not evidence of process DoS, supported lookup failure, security bypass, or a regression introduced by this branch. Whether to preserve C error-response behavior is a policy choice.",
+      "cases": [
+        {
+          "name": "multi-question",
+          "protocol": "tcp",
+          "query_hex": "12340100000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+          "c": {
+            "status": "reply",
+            "hex": "12348185000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+            "length": 53,
+            "header": [
+              4660,
+              33157,
+              2,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "multi-question-compressed",
+          "protocol": "tcp",
+          "query_hex": "12340100000200000000000004686f737405617564697404746573740000010001c00c00010001",
+          "c": {
+            "status": "reply",
+            "hex": "12348185000200000000000004686f737405617564697404746573740000010001c00c00010001",
+            "length": 39,
+            "header": [
+              4660,
+              33157,
+              2,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "zero-question",
+          "protocol": "tcp",
+          "query_hex": "123401000000000000000000",
+          "c": {
+            "status": "reply",
+            "hex": "123481850000000000000000",
+            "length": 12,
+            "header": [
+              4660,
+              33157,
+              0,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "self-pointer",
+          "protocol": "tcp",
+          "query_hex": "123401000001000000000000c00c00010001",
+          "c": {
+            "status": "reply",
+            "hex": "123481850001000000000000c00c00010001",
+            "length": 18,
+            "header": [
+              4660,
+              33157,
+              1,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "outside-pointer",
+          "protocol": "tcp",
+          "query_hex": "123401000001000000000000c0ff00010001",
+          "c": {
+            "status": "reply",
+            "hex": "123481850001000000000000c0ff00010001",
+            "length": 18,
+            "header": [
+              4660,
+              33157,
+              1,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "bitstring-label",
+          "protocol": "tcp",
+          "query_hex": "1234010000010000000000004108610000010001",
+          "c": {
+            "status": "reply",
+            "hex": "1234818500010000000000004108610000010001",
+            "length": 20,
+            "header": [
+              4660,
+              33157,
+              1,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "overlong-name",
+          "protocol": "tcp",
+          "query_hex": "1234010000010000000000003f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613e62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262620000010001",
+          "c": {
+            "status": "reply",
+            "hex": "1234818500010000000000003f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613e62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262620000010001",
+            "length": 272,
+            "header": [
+              4660,
+              33157,
+              1,
+              0,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "eof",
+            "upstream": []
+          },
+          "same_client_result": false
+        }
+      ]
+    },
+    {
+      "id": "DNS-FORWARD-POINTER",
+      "priority": "non-blocking observation",
+      "title": "Rust re-encodes an unusual forward-pointer question while C echoes a now-cyclic compressed question",
+      "observed": "Input question points to a name in trailing data at offset 18. C local answer discards the trailing name and writes its answer at offset 18: the question c012 points to answer owner c00c and loops. Rust expands the question and returns a decodable host A answer. This is not counted as a Rust defect.",
+      "cases": [
+        {
+          "name": "forward-pointer",
+          "protocol": "udp",
+          "query_hex": "123401000001000000000000c0120001000104686f7374056175646974047465737400",
+          "c": {
+            "status": "reply",
+            "hex": "123485800001000100000000c01200010001c00c000100010000003c0004c000022a",
+            "length": 34,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "reply",
+            "hex": "12348580000100010000000004686f737405617564697404746573740000010001c00c000100010000003c0004c000022a",
+            "length": 49,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "same_client_result": false
+        },
+        {
+          "name": "forward-pointer",
+          "protocol": "tcp",
+          "query_hex": "123401000001000000000000c0120001000104686f7374056175646974047465737400",
+          "c": {
+            "status": "reply",
+            "hex": "123485800001000100000000c01200010001c00c000100010000003c0004c000022a",
+            "length": 34,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "rust": {
+            "status": "reply",
+            "hex": "12348580000100010000000004686f737405617564697404746573740000010001c00c000100010000003c0004c000022a",
+            "length": 49,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ],
+            "upstream": []
+          },
+          "same_client_result": false
+        }
+      ]
+    }
+  ],
+  "profiles": {
+    "local": {
+      "request_transport_cases": 116,
+      "same_client_result": 107,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nlocal=/audit.test/\ncname=alias.audit.test,host.audit.test\ncname=chain.audit.test,alias.audit.test\ntxt-record=txt.audit.test,hello\nmx-host=mail.audit.test,host.audit.test,10\nsrv-host=_service._tcp.audit.test,host.audit.test,123,1,2\n",
+      "both_daemons_alive_and_healthy_after": true,
+      "cases": [
+        {
+          "name": "host-a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-any",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-any",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-txt-miss",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "host-txt-miss",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-any",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-any",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-unknown",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "alias-unknown",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "chain-a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "chain-a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "local-miss",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "local-miss",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "txt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "txt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "srv",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "srv",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed-case",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed-case",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "root",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "root",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "unconfigured",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "unconfigured",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "reverse-v4",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "reverse-v4",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-0",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-0",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-2",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-2",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-3",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-3",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-4",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-4",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-254",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-254",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-255",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-255",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-65535",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "non-in-65535",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0000",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0000",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0110",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0110",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0120",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0120",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0150",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0150",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-7800",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-7800",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0900",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0900",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-8100",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "timeout",
+          "rust_status": "timeout",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-8100",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "timeout",
+          "rust_status": "timeout",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0300",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "flags-0300",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "edns",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-do",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-do",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-v1",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-v1",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-size-zero",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-size-zero",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-size-65535",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-size-65535",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-cookie",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-cookie",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-truncated-option",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-truncated-option",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-truncated-rr",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-truncated-rr",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "edns-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 2
+        },
+        {
+          "name": "edns-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 2
+        },
+        {
+          "name": "additional-txt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "additional-txt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "trailing-data",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "trailing-data",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "multi-question",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "multi-question",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "multi-question-compressed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "multi-question-compressed",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "zero-question",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "zero-question",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "answer-in-query",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "answer-in-query",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "authority-in-query",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "authority-in-query",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "forward-pointer",
+          "transport": "udp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "forward-pointer",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "self-pointer",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "self-pointer",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "outside-pointer",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "outside-pointer",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "label-truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "timeout",
+          "rust_status": "timeout",
+          "additional_count": 0
+        },
+        {
+          "name": "label-truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "eof",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "bitstring-label",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bitstring-label",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        },
+        {
+          "name": "binary-label",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "binary-label",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "short-header",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "timeout",
+          "rust_status": "timeout",
+          "additional_count": null
+        },
+        {
+          "name": "short-header",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "timeout",
+          "rust_status": "timeout",
+          "additional_count": null
+        },
+        {
+          "name": "over-udp-limit",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "timeout",
+          "rust_status": "timeout",
+          "additional_count": 0
+        },
+        {
+          "name": "over-udp-limit",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "maximum-name",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "maximum-name",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "overlong-name",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "overlong-name",
+          "transport": "tcp",
+          "same_client_result": false,
+          "c_status": "reply",
+          "rust_status": "eof",
+          "additional_count": 0
+        }
+      ]
+    },
+    "forward": {
+      "request_transport_cases": 84,
+      "same_client_result": 84,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nserver=127.0.0.1#15354\n",
+      "both_daemons_alive_and_healthy_after": true,
+      "cases": [
+        {
+          "name": "a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nonin",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nonin",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nonin",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nonin",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-only",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-only",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-only",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-only",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-nx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-nx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-nx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-nx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-loop",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-loop",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-loop",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-loop",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "mixed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "mixed",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "large",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "large",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "large",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "large",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "ad",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "ad",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "ad",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "ad",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nxdomain",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nxdomain",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nxdomain",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nxdomain",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "servfail",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "servfail",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "servfail",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "servfail",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-owner",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-owner",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-owner",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-owner",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "private",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "private",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "private",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "private",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-version",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-version",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-version",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-version",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "wrong-type",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "wrong-type",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "wrong-type",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "wrong-type",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        }
+      ]
+    },
+    "filter": {
+      "request_transport_cases": 84,
+      "same_client_result": 84,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nserver=127.0.0.1#15354\nfilter-AAAA\nfilter-rr=TXT\n",
+      "both_daemons_alive_and_healthy_after": true,
+      "cases": [
+        {
+          "name": "a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nonin",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nonin",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nonin",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nonin",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-only",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-only",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-only",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-only",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-nx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-nx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-nx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-nx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-loop",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-loop",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-loop",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-loop",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "mixed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "mixed",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "large",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "large",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "large",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "large",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "ad",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "ad",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "ad",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "ad",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nxdomain",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nxdomain",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nxdomain",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nxdomain",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "servfail",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "servfail",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "servfail",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "servfail",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-owner",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-owner",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-owner",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-owner",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "private",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "private",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "private",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "private",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-version",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-version",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-version",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-version",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "wrong-type",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "wrong-type",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "wrong-type",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "wrong-type",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        }
+      ]
+    },
+    "rebind": {
+      "request_transport_cases": 84,
+      "same_client_result": 84,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nserver=127.0.0.1#15354\nstop-dns-rebind\n",
+      "both_daemons_alive_and_healthy_after": true,
+      "cases": [
+        {
+          "name": "a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "a",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "a",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "aaaa",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "aaaa",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nonin",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nonin",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nonin",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nonin",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-only",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-only",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-only",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-only",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-nx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-nx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-nx",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-nx",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-loop",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-loop",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "cname-loop",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "cname-loop",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "mixed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "mixed",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "mixed",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "large",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "large",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "large",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "large",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "truncated",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "truncated",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "ad",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "ad",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "ad",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "ad",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nxdomain",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nxdomain",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "nxdomain",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "nxdomain",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "servfail",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "servfail",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "servfail",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "servfail",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "extra-rdlen",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-owner",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-owner",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "bad-owner",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "bad-owner",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "private",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "private",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "private",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "private",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-version",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-version",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-version",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-version",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "opt-duplicate",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "wrong-type",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "wrong-type",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 0
+        },
+        {
+          "name": "wrong-type",
+          "transport": "udp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        },
+        {
+          "name": "wrong-type",
+          "transport": "tcp",
+          "same_client_result": true,
+          "c_status": "reply",
+          "rust_status": "reply",
+          "additional_count": 1
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Finite synthetic slice, not a protocol proof or exhaustive fuzzer.",
+    "368 paired cases count profile/transport/EDNS variants, not 368 unique semantic behaviors.",
+    "Forwarding uses a deterministic isolated stub upstream; no real resolver or WAN exercised.",
+    "cache-size=0 is intentional to avoid cached state contaminating pair comparisons; dynamic cache aging/coalescing/resend and resource pressure are outside this slice.",
+    "TCP queries use one frame per connection; pipelining and half-close behavior are outside this slice.",
+    "0.3-second no-response timeout bounds the harness; EOF witnesses are immediate connection termination rather than timeout.",
+    "Exact byte comparison intentionally exposes encoding differences; C-defective forward-pointer replies are classified separately."
+  ],
+  "reproduce": {
+    "host": "oracle (isolated AArch64 Linux test host, not the router)",
+    "fresh_command": "sudo -n sh /home/ubuntu/dnsmasq-independent-audit-20261011/source/tools/dnsmasq/run_isolated.sh python3 /home/ubuntu/dnsmasq-independent-audit-20261011/source/tools/dnsmasq/audit_20261011_dns.py --image-root /home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files --rust /home/ubuntu/dnsmasq-independent-audit-20261011/private/release/dnsmasq-rs --out /home/ubuntu/dnsmasq-independent-audit-20261011/private/dns-new-run",
+    "baseline_override": "--rust /home/ubuntu/dnsmasq-tftp-repair-889fe4f5/private/release-opt3/dnsmasq-rs --local-only --cases host-a,multi-question,multi-question-compressed,zero-question,forward-pointer,self-pointer,outside-pointer,bitstring-label,overlong-name",
+    "output_requirement": "Use a fresh --out directory beneath private."
+  }
+}

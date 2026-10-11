@@ -1,0 +1,369 @@
+{
+  "audit_date": "2026-10-11",
+  "source_commit": "3e7df6c1cc45b74f0430e5460379713900172cb4",
+  "branch": "perf/udp-dhcp-reload",
+  "main_at_audit": "f00ad61680f271305367187411f2be2edc1b046c",
+  "source_trees": {
+    "components/dnsmasq": "762c70f65311b376b5a0575e1e82511d36e75ac2",
+    "components/ubus": "dbdb549834a87e8f66d82e43bbceba36de586e23",
+    "packaging/openwrt/owrt-dnsmasq": "f0e138dd21f7c617fc7afcdc46487c293583fcd3"
+  },
+  "host": {
+    "machine": "aarch64",
+    "kernel": "6.17.0-1020-oracle",
+    "physical_router_accessed": false
+  },
+  "build": {
+    "source": "/home/ubuntu/dnsmasq-independent-audit-20261011/source",
+    "kind": "release",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-independent-audit-20261011/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 1970216,
+        "sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448"
+      }
+    ]
+  },
+  "test_build": {
+    "source": "/home/ubuntu/dnsmasq-independent-audit-20261011/source",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-independent-audit-20261011/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 51183864,
+        "sha256": "db344d39f5769777aaa674d0cd36bb977979ce0700c8ba21a80977dc3bedefc2"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 68864168,
+        "sha256": "e6d8524c4da9b4573932dd553cfe07fda15bf1c62092589ddc8e8e41e35eecdf"
+      }
+    ]
+  },
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01), LLVM 22.1.8",
+  "tests": {
+    "lib": {
+      "result": "test result: ok. 757 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 4.02s",
+      "log_sha256": "67404a31abad3b2190bb7f3b646acce2e1a405675fb2e0e8cfe336f6eff5b085",
+      "execution": "run_isolated.sh, --test-threads=1; no ignored diagnostic test executed"
+    },
+    "main": {
+      "result": "test result: ok. 74 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.99s",
+      "log_sha256": "811b08c0280030774d6162c841d0cf65f89fe83ebcdbe1e5be5c1f1f57e33aae",
+      "execution": "run_isolated.sh, --test-threads=1; no ignored diagnostic test executed"
+    }
+  },
+  "reference": {
+    "status": "verified",
+    "identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "source_files": 148,
+    "manifest_sha256": "678ef20eb67cd90878d80f8828c15f32c37060e5803de0507c50ba27220cecc0",
+    "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+    "dependencies": {
+      "libubox": {
+        "source": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components/libubox",
+        "revision": "7dd127841e82eb1cfb61185da37dde7b9bd9ba6d",
+        "library_sha256": "792322b91310f50ffcea8b177e7a077529cf92dd5048ecb05d50ef5778b63243"
+      },
+      "ubus": {
+        "source": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components/ubus",
+        "revision": "24864e7840b3a02a9ef76284a373f6b2f00b8a9b",
+        "library_sha256": "9e8f940a55e285ae379a01fec9977ec0e21c9e3837b99cb717770c1987ee9293"
+      }
+    },
+    "scope": "Existing native C reference identity audit; no network service or target-router claim.",
+    "object_files_verified": 42
+  },
+  "elf": [
+    {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "file_bytes": 269305,
+      "elf_type": "DYN",
+      "machine": 183,
+      "load_file_bytes": 268489,
+      "load_memory_bytes": 269688,
+      "non_load_file_bytes": 816,
+      "section_headers_present": false,
+      "segments": [
+        {
+          "type": "PHDR",
+          "flags": "R--",
+          "offset": 64,
+          "file_bytes": 448,
+          "memory_bytes": 448,
+          "zero_fill": 0,
+          "alignment": 8
+        },
+        {
+          "type": "INTERP",
+          "flags": "R--",
+          "offset": 512,
+          "file_bytes": 26,
+          "memory_bytes": 26,
+          "zero_fill": 0,
+          "alignment": 1
+        },
+        {
+          "type": "LOAD",
+          "flags": "R-X",
+          "offset": 0,
+          "file_bytes": 249912,
+          "memory_bytes": 249912,
+          "zero_fill": 0,
+          "alignment": 4096
+        },
+        {
+          "type": "LOAD",
+          "flags": "RW-",
+          "offset": 250728,
+          "file_bytes": 18577,
+          "memory_bytes": 19776,
+          "zero_fill": 1199,
+          "alignment": 4096
+        },
+        {
+          "type": "DYNAMIC",
+          "flags": "RW-",
+          "offset": 260152,
+          "file_bytes": 544,
+          "memory_bytes": 544,
+          "zero_fill": 0,
+          "alignment": 8
+        },
+        {
+          "type": "GNU_EH_FRAME",
+          "flags": "R--",
+          "offset": 231556,
+          "file_bytes": 2628,
+          "memory_bytes": 2628,
+          "zero_fill": 0,
+          "alignment": 4
+        },
+        {
+          "type": "GNU_STACK",
+          "flags": "RW-",
+          "offset": 0,
+          "file_bytes": 0,
+          "memory_bytes": 0,
+          "zero_fill": 0,
+          "alignment": 16
+        },
+        {
+          "type": "GNU_RELRO",
+          "flags": "R--",
+          "offset": 250728,
+          "file_bytes": 11416,
+          "memory_bytes": 11416,
+          "zero_fill": 0,
+          "alignment": 1
+        }
+      ],
+      "sections": [],
+      "scope": "ELF storage accounting only; memory byte counts are not RSS/PSS/USS or runtime peaks"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/release/dnsmasq-rs",
+      "sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448",
+      "file_bytes": 1970216,
+      "elf_type": "EXEC",
+      "machine": 183,
+      "load_file_bytes": 1967316,
+      "load_memory_bytes": 1971772,
+      "non_load_file_bytes": 2900,
+      "section_headers_present": true,
+      "segments": [
+        {
+          "type": "LOAD",
+          "flags": "R-X",
+          "offset": 0,
+          "file_bytes": 1920596,
+          "memory_bytes": 1920596,
+          "zero_fill": 0,
+          "alignment": 4096
+        },
+        {
+          "type": "LOAD",
+          "flags": "RW-",
+          "offset": 1922200,
+          "file_bytes": 46720,
+          "memory_bytes": 51176,
+          "zero_fill": 4456,
+          "alignment": 4096
+        },
+        {
+          "type": "TLS",
+          "flags": "R--",
+          "offset": 1922200,
+          "file_bytes": 0,
+          "memory_bytes": 48,
+          "zero_fill": 48,
+          "alignment": 8
+        },
+        {
+          "type": "GNU_EH_FRAME",
+          "flags": "R--",
+          "offset": 1803964,
+          "file_bytes": 18084,
+          "memory_bytes": 18084,
+          "zero_fill": 0,
+          "alignment": 4
+        },
+        {
+          "type": "GNU_STACK",
+          "flags": "RW-",
+          "offset": 0,
+          "file_bytes": 0,
+          "memory_bytes": 0,
+          "zero_fill": 0,
+          "alignment": 16
+        },
+        {
+          "type": "GNU_RELRO",
+          "flags": "R--",
+          "offset": 1922200,
+          "file_bytes": 43880,
+          "memory_bytes": 43880,
+          "zero_fill": 0,
+          "alignment": 1
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0,
+          "file_bytes": 0
+        },
+        {
+          "name": ".init",
+          "type": 1,
+          "flags": 6,
+          "size": 16,
+          "file_bytes": 16
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 1713060,
+          "file_bytes": 1713060
+        },
+        {
+          "name": ".fini",
+          "type": 1,
+          "flags": 6,
+          "size": 16,
+          "file_bytes": 16
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 2,
+          "size": 90460,
+          "file_bytes": 90460
+        },
+        {
+          "name": ".eh_frame_hdr",
+          "type": 1,
+          "flags": 2,
+          "size": 18084,
+          "file_bytes": 18084
+        },
+        {
+          "name": ".eh_frame",
+          "type": 1,
+          "flags": 2,
+          "size": 92896,
+          "file_bytes": 92896
+        },
+        {
+          "name": ".gcc_except_table",
+          "type": 1,
+          "flags": 2,
+          "size": 5652,
+          "file_bytes": 5652
+        },
+        {
+          "name": ".tbss",
+          "type": 8,
+          "flags": 1027,
+          "size": 48,
+          "file_bytes": 0
+        },
+        {
+          "name": ".init_array",
+          "type": 14,
+          "flags": 3,
+          "size": 24,
+          "file_bytes": 24
+        },
+        {
+          "name": ".fini_array",
+          "type": 15,
+          "flags": 3,
+          "size": 8,
+          "file_bytes": 8
+        },
+        {
+          "name": ".data.rel.ro",
+          "type": 1,
+          "flags": 3,
+          "size": 43624,
+          "file_bytes": 43624
+        },
+        {
+          "name": ".got",
+          "type": 1,
+          "flags": 3,
+          "size": 224,
+          "file_bytes": 224
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 2840,
+          "file_bytes": 2840
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 4448,
+          "file_bytes": 0
+        },
+        {
+          "name": ".comment",
+          "type": 1,
+          "flags": 48,
+          "size": 61,
+          "file_bytes": 61
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 147,
+          "file_bytes": 147
+        }
+      ],
+      "scope": "ELF storage accounting only; memory byte counts are not RSS/PSS/USS or runtime peaks"
+    }
+  ],
+  "source_equality_to_historical_candidate_23": {
+    "compared": "all files below components/dnsmasq and components/ubus, excluding target",
+    "differences": [],
+    "fresh_elf_matches_historical": false,
+    "meaning": "same component inputs, separately built binaries; historical measurements are not fresh-ELF reruns"
+  }
+}

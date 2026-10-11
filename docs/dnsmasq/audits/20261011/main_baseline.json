@@ -1,0 +1,128 @@
+{
+  "scope": "Historical main-equivalent Rust ELF, three existing isolated differential fixtures; behavior attribution only, no performance comparison.",
+  "main_revision": "f00ad61680f271305367187411f2be2edc1b046c",
+  "historical_source_revision": "889fe4f5c59da514529e31173d346ec93bae03a9",
+  "product_source_equivalence": {
+    "command": "git diff f00ad61680f271305367187411f2be2edc1b046c 889fe4f5c59da514529e31173d346ec93bae03a9 -- components/dnsmasq components/ubus",
+    "output_empty": true
+  },
+  "historical_binary": {
+    "path": "/home/ubuntu/dnsmasq-tftp-repair-889fe4f5/private/release-opt3/dnsmasq-rs",
+    "sha256": "791a7c33987fbb21887c51041f27722b9cc1bd8bd4cffab0fc03a292517fb10f",
+    "bytes": 1966120,
+    "build_metadata": "/home/ubuntu/dnsmasq-tftp-repair-889fe4f5/private/release-opt3/build.json"
+  },
+  "candidate_binary_sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448",
+  "c_image_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "fixture_note": "The unchanged DHCP script hard-codes its source_commit field to the candidate revision. That field is not historical-ELF provenance; this comparison identifies the actual supplied ELF by SHA-256 and archived build metadata.",
+  "raw_evidence": {
+    "signals": {
+      "oracle_result": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/main-baseline-signals/result.json",
+      "sha256": "ea0cac9b6b41fe138f2c7a245b43cdc26c4ac6aec6c800df72881ffec0cd6ddc"
+    },
+    "dhcp": {
+      "oracle_result": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/main-baseline-dhcp/result.json",
+      "sha256": "b2f81c88ee6a7295aef6eb454b26a39853184f6911d467174f016460ae3c0f43"
+    },
+    "config": {
+      "oracle_result": "/home/ubuntu/dnsmasq-independent-audit-20261011/private/main-baseline-config/result.json",
+      "sha256": "5c27666c36bff2fb5c68e91f99be17ad2d8fdff66b7476f449ec3f31e40038e5"
+    }
+  },
+  "signals": {
+    "cases": 12,
+    "matches_candidate": true,
+    "historical_rust": [
+      {
+        "implementation": "rust",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": -10,
+        "dns_after": false,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": -14,
+        "dns_after": false,
+        "pidfile_exists_after_signal": true
+      }
+    ]
+  },
+  "dhcp": {
+    "cases": 9,
+    "all_case_observations_equal_candidate": true,
+    "case_names": [
+      "multi-mac-static-handoff",
+      "hosts-authoritative-request",
+      "hosts-authoritative-rapid",
+      "client-hostname-request",
+      "client-hostname-rapid",
+      "rapid-range-ignore-wanted-false",
+      "rapid-range-ignore-wanted-true",
+      "rapid-range-generate-wanted-false",
+      "rapid-range-generate-wanted-true"
+    ],
+    "confirmed_preexisting_findings": [
+      "Multi-MAC static lease handoff: OFFER succeeds, subsequent REQUESTs receive no reply and retain previous owner.",
+      "Rapid Commit: client hostname option omitted; static hosts authoritative-name selection bypassed.",
+      "Rapid Commit without requested address: range-tag ignore/generate name policies not applied."
+    ]
+  },
+  "config": {
+    "cases": 43,
+    "all_syntax_startup_dns_outcomes_equal_candidate": true,
+    "c_serves_dns_but_historical_rust_rejects": [
+      "quiet-ra",
+      "quiet-dhcp6",
+      "no-dhcpv6-interface=lo",
+      "enable-ra",
+      "auth-ttl=60",
+      "auth-soa=1",
+      "auth-server=ns.audit.test,lo",
+      "auth-sec-servers=ns.audit.test",
+      "auth-peer=192.0.2.1",
+      "dnssec-debug",
+      "dnssec-no-timecheck"
+    ],
+    "syntax_only_differences": [
+      "auth-zone=audit.test",
+      "dnssec",
+      "conntrack",
+      "enable-dbus",
+      "cache-size=2147483648",
+      "cache-size=4294967296",
+      "cache-size=4294967356",
+      "local-ttl=2147483648",
+      "local-ttl=4294967296",
+      "local-ttl=4294967356",
+      "max-tcp-connections=4294967356",
+      "fast-dns-retry=4294967356",
+      "fast-dns-retry=1000,2147483648",
+      "fast-dns-retry=1000,4294968296"
+    ]
+  },
+  "conclusion": "All signal, DHCP and configuration findings covered by these fixtures already reproduce in the historical main-equivalent ELF; these runs do not attribute them as newly introduced by perf/udp-dhcp-reload.",
+  "not_covered": [
+    "Hosts-file memory boundary and DNS compression findings were not run against historical ELF in this comparison.",
+    "No claim of performance equivalence between historical and fresh candidate ELFs."
+  ]
+}
