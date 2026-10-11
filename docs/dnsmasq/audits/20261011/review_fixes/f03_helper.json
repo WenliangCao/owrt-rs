@@ -1,0 +1,3140 @@
+{
+  "finding": "F03",
+  "product_commit": "18cc40367328056f41e237b0d4ff2f23b33a7ef4",
+  "tool_commit": "25cf95f229d63e73741fdefe47fdc45d903c04b6",
+  "product_fix_commit": "9f50b108",
+  "timer_tool_fix_commit": "25cf95f2",
+  "elf": {
+    "path": "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+    "sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580"
+  },
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "passed": true,
+  "scope": "Isolated exact-image C versus real SDK-source-built Rust; actual dhcp-script execution. Five original cases plus ten-case regression; these sets overlap by five cases.",
+  "normalization": [
+    "Exclude only DNSMASQ_LEASE_EXPIRES and DNSMASQ_TIME_REMAINING from helper environment comparison.",
+    "Only RENEW ACK: require exact fixture lease and four-byte options 51/58/59; T1 and T2 must share fuzz in 0..floor(T1_default/8). Normalize only 58/59 after validation.",
+    "All raw responses and helper time values remain in the hashed private result and packet files."
+  ],
+  "runs": [
+    {
+      "group": "functional-02",
+      "name": "helper-original",
+      "raw_path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/helper-original/result.json",
+      "raw_sha256": "0425a99c4a4aae052dd4ce9998f9bf3f310abfda6d21afd165910d16c1bcfd3c",
+      "tool_path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dhcp_handoff_helper.py",
+      "tool_sha256": "ec2cdf209ba2849ddb5f800a17128068d7bf5eb1db8c3989ac42715bdebfad15",
+      "command": {
+        "id": "F03-original-five",
+        "argv": [
+          "sh",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+          "python3",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dhcp_handoff_helper.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02",
+          "--image-root",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+          "--rust",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+          "--out",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/helper-original"
+        ],
+        "returncode": 0,
+        "passed": true
+      },
+      "cases": [
+        {
+          "name": "handoff-rapid-False",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "handoff-rapid-True",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "handoff-renew-False",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "0000062f",
+                    "59": "00000b75"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1583,
+                  "t2_seconds": 2933,
+                  "fuzz": 217,
+                  "fuzz_maximum": 225,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000688",
+                    "59": "00000bce"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1672,
+                  "t2_seconds": 3022,
+                  "fuzz": 128,
+                  "fuzz_maximum": 225,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "handoff-selecting-True",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "replacement"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "replacement"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "rapid-same-mac-requested",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        }
+      ],
+      "passed": true
+    },
+    {
+      "group": "functional-02",
+      "name": "helper-ten",
+      "raw_path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/helper-ten/result.json",
+      "raw_sha256": "9fa6047828ae7f8d540a0f4804401eb4d2d3543e48950f70cf679f9ff453ec2c",
+      "tool_path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/audit_fix_20261011_dhcp_helper.py",
+      "tool_sha256": "80a0e830aee96da9025015ce150d0ad00204a4c9bca2b8ea158407037ff8fdc7",
+      "command": {
+        "id": "F03-helper-ten",
+        "argv": [
+          "sh",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+          "python3",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/audit_fix_20261011_dhcp_helper.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02",
+          "--image-root",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+          "--rust",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+          "--out",
+          "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/helper-ten"
+        ],
+        "returncode": 0,
+        "passed": true
+      },
+      "cases": [
+        {
+          "name": "handoff-rapid-False",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "handoff-rapid-True",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "handoff-renew-False",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000632",
+                    "59": "00000b78"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1586,
+                  "t2_seconds": 2936,
+                  "fuzz": 214,
+                  "fuzz_maximum": 225,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "0000067f",
+                    "59": "00000bc5"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1663,
+                  "t2_seconds": 3013,
+                  "fuzz": 137,
+                  "fuzz_maximum": 225,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "handoff-selecting-True",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "replacement"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:02",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "replacement"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "rapid-same-mac-requested",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "rapid-same-mac-no-requested",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "selecting-same-mac",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "replacement"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "replacement"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "renew-same-mac-script-on-renewal-False",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000708",
+                    "58": "00000345",
+                    "59": "000005e8"
+                  },
+                  "lease_seconds": 1800,
+                  "t1_seconds": 837,
+                  "t2_seconds": 1512,
+                  "fuzz": 63,
+                  "fuzz_maximum": 112,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000708",
+                    "58": "00000314",
+                    "59": "000005b7"
+                  },
+                  "lease_seconds": 1800,
+                  "t1_seconds": 788,
+                  "t2_seconds": 1463,
+                  "fuzz": 112,
+                  "fuzz_maximum": 112,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "renew-same-mac-script-on-renewal-True",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000708",
+                    "58": "00000332",
+                    "59": "000005d5"
+                  },
+                  "lease_seconds": 1800,
+                  "t1_seconds": 818,
+                  "t2_seconds": 1493,
+                  "fuzz": 82,
+                  "fuzz_maximum": 112,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 2,
+                "actions": [
+                  "add",
+                  "old"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  },
+                  {
+                    "argv": [
+                      "old",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_DATA_MISSING": "1",
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_TEST_ISOLATED": "1"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                },
+                {
+                  "packet_index": 1,
+                  "renewal": true,
+                  "options_hex": {
+                    "51": "00000708",
+                    "58": "0000034b",
+                    "59": "000005ee"
+                  },
+                  "lease_seconds": 1800,
+                  "t1_seconds": 843,
+                  "t2_seconds": 1518,
+                  "fuzz": 57,
+                  "fuzz_maximum": 112,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 2,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        },
+        {
+          "name": "new-rapid-no-requested",
+          "recorded_matched": true,
+          "sides": {
+            "c": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 1,
+              "exit": 0
+            },
+            "rust": {
+              "callbacks": {
+                "count": 1,
+                "actions": [
+                  "add"
+                ],
+                "events": [
+                  {
+                    "argv": [
+                      "add",
+                      "02:00:00:00:00:01",
+                      "127.0.0.30",
+                      "dual"
+                    ],
+                    "env": {
+                      "DNSMASQ_INTERFACE": "lo",
+                      "DNSMASQ_LOG_DHCP": "1",
+                      "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                      "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                      "DNSMASQ_TAGS": "pool known lo",
+                      "DNSMASQ_TEST_ISOLATED": "1",
+                      "DNSMASQ_VENDOR_CLASS": "original"
+                    }
+                  }
+                ]
+              },
+              "timers": [
+                {
+                  "packet_index": 0,
+                  "renewal": false,
+                  "options_hex": {
+                    "51": "00000e10",
+                    "58": "00000708",
+                    "59": "00000c4e"
+                  },
+                  "lease_seconds": 3600,
+                  "t1_seconds": 1800,
+                  "t2_seconds": 3150,
+                  "fuzz": 0,
+                  "fuzz_maximum": 0,
+                  "valid_fuzz": true
+                }
+              ],
+              "ack_count": 1,
+              "exit": 0
+            }
+          },
+          "helper_non_time_matched": true,
+          "independent_full_comparison_passed": true
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "retained_first_attempt": {
+    "group": "functional-01",
+    "name": "helper-original",
+    "raw_path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-01/helper-original/result.json",
+    "raw_sha256": "d7505c361aa98306ebe37938cdcbb307b2fb643813b6726e84030341aee59805",
+    "tool_path": "/home/ubuntu/dnsmasq-review-fix-20261011/source/docs/dnsmasq/audits/20261011/independent/dhcp_handoff_helper.py",
+    "tool_sha256": "073750ad674094339136653c899912683c67fb2518349ef3eff812a957b3ddc6",
+    "command": {
+      "id": "F03-original-five",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/docs/dnsmasq/audits/20261011/independent/dhcp_handoff_helper.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-01/helper-original"
+      ],
+      "returncode": 0,
+      "passed": false
+    },
+    "cases": [
+      {
+        "name": "handoff-rapid-False",
+        "recorded_matched": true,
+        "sides": {
+          "c": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_TEST_ISOLATED": "1"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          },
+          "rust": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_TEST_ISOLATED": "1"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          }
+        },
+        "helper_non_time_matched": true
+      },
+      {
+        "name": "handoff-rapid-True",
+        "recorded_matched": true,
+        "sides": {
+          "c": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_TEST_ISOLATED": "1"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          },
+          "rust": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_TEST_ISOLATED": "1"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          }
+        },
+        "helper_non_time_matched": true
+      },
+      {
+        "name": "handoff-renew-False",
+        "recorded_matched": false,
+        "sides": {
+          "c": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_TEST_ISOLATED": "1"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": true,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "0000065d",
+                  "59": "00000ba3"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1629,
+                "t2_seconds": 2979,
+                "fuzz": 171,
+                "fuzz_maximum": 225,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          },
+          "rust": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_TEST_ISOLATED": "1"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": true,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "0000068b",
+                  "59": "00000bd1"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1675,
+                "t2_seconds": 3025,
+                "fuzz": 125,
+                "fuzz_maximum": 225,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          }
+        },
+        "helper_non_time_matched": true
+      },
+      {
+        "name": "handoff-selecting-True",
+        "recorded_matched": true,
+        "sides": {
+          "c": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "replacement"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          },
+          "rust": {
+            "callbacks": {
+              "count": 2,
+              "actions": [
+                "add",
+                "old"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "replacement"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          }
+        },
+        "helper_non_time_matched": true
+      },
+      {
+        "name": "rapid-same-mac-requested",
+        "recorded_matched": true,
+        "sides": {
+          "c": {
+            "callbacks": {
+              "count": 1,
+              "actions": [
+                "add"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          },
+          "rust": {
+            "callbacks": {
+              "count": 1,
+              "actions": [
+                "add"
+              ],
+              "events": [
+                {
+                  "argv": [
+                    "add",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "dual"
+                  ],
+                  "env": {
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+                    "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+                    "DNSMASQ_TAGS": "pool known lo",
+                    "DNSMASQ_TEST_ISOLATED": "1",
+                    "DNSMASQ_VENDOR_CLASS": "original"
+                  }
+                }
+              ]
+            },
+            "timers": [
+              {
+                "packet_index": 0,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              },
+              {
+                "packet_index": 1,
+                "renewal": false,
+                "options_hex": {
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e"
+                },
+                "lease_seconds": 3600,
+                "t1_seconds": 1800,
+                "t2_seconds": 3150,
+                "fuzz": 0,
+                "fuzz_maximum": 0,
+                "valid_fuzz": true
+              }
+            ],
+            "ack_count": 2,
+            "exit": 0
+          }
+        },
+        "helper_non_time_matched": true
+      }
+    ],
+    "retained_status": "failed; not retroactively reclassified as passed",
+    "explanation": "The original probe compared independent random renewal timers directly. The only non-time field difference was second ACK T1/T2: C 1629/2979 (fuzz 171), Rust 1675/3025 (fuzz 125), both valid for a 3600s lease. All five helper callback sequences and non-time environments matched. Tool correction and a new complete run were required; this failed result remains retained."
+  },
+  "counts": {
+    "original_cases": 5,
+    "original_passed": 5,
+    "regression_cases": 10,
+    "regression_passed": 10,
+    "distinct_scenarios": 10
+  },
+  "timer_calibration": {
+    "path": "tools/dnsmasq/test_dhcp_helper_timers.py",
+    "sha256": "4bb6045c0e804d1d8680cb66d2d3a9df3e7deaf77d00e6baaca4912bcb700960",
+    "completed_before_final_run": true,
+    "tests_passed": 4,
+    "checks": [
+      "Valid 3600s/1800s lease timer bounds",
+      "Reject seven invalid timer contracts",
+      "Do not normalize non-RENEW or unrelated options",
+      "Keep extra callbacks, argv, vendor, DATA_MISSING differences visible; original rows unchanged"
+    ]
+  }
+}
