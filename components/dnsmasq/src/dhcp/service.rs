@@ -1226,6 +1226,7 @@ mod tests {
                 },
                 removed: Vec::new(),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             })
         };
         let mut output = vec![0; 548];

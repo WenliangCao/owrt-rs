@@ -719,6 +719,7 @@ impl LocalProvider {
                         reply: Reply::Ignore,
                         removed: Vec::new(),
                         lost_names: Vec::new(),
+                        newly_allocated: false,
                     });
                 };
                 let reply = pxe::proxy_reply(
@@ -850,6 +851,7 @@ impl LocalProvider {
             reply: Reply::Ignore,
             removed: Vec::new(),
             lost_names: Vec::new(),
+            newly_allocated: false,
         })
     }
 
@@ -1738,6 +1740,7 @@ impl LocalProvider {
                     reply: Reply::Ignore,
                     removed: Vec::new(),
                     lost_names: Vec::new(),
+                    newly_allocated: false,
                 })
             }
         };
@@ -1762,6 +1765,7 @@ impl LocalProvider {
                 reply: Reply::Ignore,
                 removed: Vec::new(),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             });
         }
         let interface = dispatch.ingress.interface_index;
@@ -1789,6 +1793,7 @@ impl LocalProvider {
                     reply: Reply::Ignore,
                     removed: Vec::new(),
                     lost_names: Vec::new(),
+                    newly_allocated: false,
                 });
             }
         }
@@ -1843,6 +1848,7 @@ impl LocalProvider {
                 reply: Reply::Ignore,
                 removed: Vec::new(),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             });
         }
 
@@ -2388,7 +2394,6 @@ impl LocalProvider {
                 );
             }
         };
-        let helper_new_lease = existing.is_none();
         let reply_error = RefCell::new(None);
         let mut before_offer = |context: usize, counters: LeaseCounters| {
             // C's DISCOVER record precedes reply-delay and any other service
@@ -2534,8 +2539,14 @@ impl LocalProvider {
                     address, context, ..
                 } = outcome.reply
                 {
+                    // rfc2131.c refreshes one-shot helper metadata only for
+                    // an actual allocation, or REQUEST with option 50. A
+                    // multi-MAC handoff reuses the incumbent lease; DISCOVER
+                    // with rapid commit skips the REQUEST option-50 branch.
                     let do_classes = packet.message_type() != 0
-                        && (helper_new_lease || packet.requested_address().is_some());
+                        && (outcome.newly_allocated
+                            || (packet.message_type() == 3
+                                && packet.requested_address().is_some()));
                     let extra = do_classes.then(|| {
                         let mut tags: Vec<_> =
                             self.request_tags.iter().map(Vec::as_slice).collect();

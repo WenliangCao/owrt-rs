@@ -141,6 +141,8 @@ pub struct Outcome {
     pub reply: Reply,
     pub removed: Vec<Lease>,
     pub lost_names: Vec<NameLost>,
+    /// This transaction allocated a lease record, rather than reusing one.
+    pub newly_allocated: bool,
 }
 
 /// Values at rfc2131.c's ACK/RELEASE log_packet write sites. This is emitted
@@ -194,6 +196,7 @@ impl Outcome {
             reply: Reply::Ignore,
             removed: Vec::new(),
             lost_names: Vec::new(),
+            newly_allocated: false,
         }
     }
 }
@@ -400,7 +403,7 @@ fn transaction(
             allocation_identity.client_id = None;
         }
         match store.allocate(address, allocation_identity) {
-            Ok(()) => {}
+            Ok(()) => output.newly_allocated = true,
             Err(LeaseError::Full) => error = Some(Refusal::NoLeasesLeft),
             Err(error) => return Err(error),
         }
@@ -698,6 +701,7 @@ pub(crate) fn select_discover_counted(
         },
         removed: Vec::new(),
         lost_names: Vec::new(),
+        newly_allocated: false,
     })
 }
 
@@ -880,7 +884,7 @@ pub(crate) fn bootp_counted_logged(
     }
     if existing.is_none() {
         match store.allocate(address, client.clone()) {
-            Ok(()) => {}
+            Ok(()) => output.newly_allocated = true,
             Err(LeaseError::Full) => {
                 return Ok(bootp_finished(
                     output,

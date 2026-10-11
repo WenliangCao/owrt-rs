@@ -389,6 +389,7 @@ where
             return Ok(Outcome {
                 reply: Reply::Ignore,
                 lost_names: LeaseStore::names_lost(&expired),
+                newly_allocated: false,
                 removed: expired,
             });
         }
@@ -477,6 +478,7 @@ where
                     events,
                 ),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             }),
             7 => Ok(Outcome {
                 reply: Reply::Ignore,
@@ -490,6 +492,7 @@ where
                     events,
                 ),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             }),
             8 => state::inform_counted(self.store, self.ranges, request(name), counters, events),
             // The runtime filters PXE, relay, leasequery and unknown routes
@@ -499,6 +502,7 @@ where
                 reply: Reply::Ignore,
                 removed: Vec::new(),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             }),
         };
         let mut outcome = outcome.map_err(|error| RuntimeError::State(format!("{error:?}")))?;
@@ -1982,6 +1986,7 @@ mod tests {
             },
             removed: Vec::new(),
             lost_names: Vec::new(),
+            newly_allocated: false,
         }
     }
 
@@ -2174,6 +2179,7 @@ mod tests {
                     },
                     removed: Vec::new(),
                     lost_names: Vec::new(),
+                    newly_allocated: false,
                 })
             }
             fn network_options(&self, _: &Outcome) -> Option<NetworkOptions> {
@@ -2368,6 +2374,7 @@ mod tests {
                     },
                     removed: Vec::new(),
                     lost_names: Vec::new(),
+                    newly_allocated: false,
                 })
             };
             let mut sender = Sender {
@@ -3219,6 +3226,7 @@ mod tests {
                 reply: Reply::Ignore,
                 removed: Vec::new(),
                 lost_names: Vec::new(),
+                newly_allocated: false,
             })
         };
         let mut buffer = vec![0; 548];
