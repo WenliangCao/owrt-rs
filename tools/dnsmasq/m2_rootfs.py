@@ -48,6 +48,21 @@ def command(root, binary, *args):
     return ['chroot', str(root), binary, *map(str, args)]
 
 
+def image_elf_command(root, binary):
+    """Run a target ELF outside chroot with its image musl, not host libraries.
+
+    The caller still records the actual ELF identity. Static audit baselines
+    execute directly; dynamic PIE candidates need the image interpreter on a
+    glibc build host. This helper does not provide filesystem isolation.
+    """
+    from elf_cost import inspect
+    root, binary = Path(root).resolve(), Path(binary).resolve()
+    if any(segment['type'] == 'INTERP' for segment in inspect(binary)['segments']):
+        return [str(root / 'lib/libc.so'), '--library-path',
+                f'{root}/lib:{root}/usr/lib', str(binary)]
+    return [str(binary)]
+
+
 def image_path(root, relative, follow_leaf=True):
     """Resolve links as chroot would, never as the host filesystem would."""
     root = Path(root).resolve()
