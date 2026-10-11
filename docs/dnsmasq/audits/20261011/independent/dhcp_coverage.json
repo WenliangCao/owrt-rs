@@ -1,0 +1,552 @@
+{
+  "scope": "Fresh branch build versus exact OpenWrt 25.12.5 C ELF, isolated Linux namespaces, synthetic clients; positive wire/lease/DNS coverage. No product modifications.",
+  "source_commit": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+  "suites": [
+    {
+      "name": "extended",
+      "cases": 104,
+      "matched": 104,
+      "failures": [],
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "script_sha256": "bd2064591fd6353ddf4f0bbad34fff25e549ed564af303ebb4e811333b47c5d3",
+      "result_sha256": "f99431444e08ee11a843ae156ab8060778d012bca260fb877e99c7ca93108fbb",
+      "remote_result": "/home/ubuntu/dnsmasq-fix-independent-20261011/private/dhcp-extended-01/result.json",
+      "scenarios": [
+        {
+          "name": "multi-mac-static-handoff",
+          "matched": true
+        },
+        {
+          "name": "hosts-authoritative-request",
+          "matched": true
+        },
+        {
+          "name": "hosts-authoritative-rapid",
+          "matched": true
+        },
+        {
+          "name": "client-hostname-request",
+          "matched": true
+        },
+        {
+          "name": "client-hostname-rapid",
+          "matched": true
+        },
+        {
+          "name": "rapid-range-ignore-wanted-false",
+          "matched": true
+        },
+        {
+          "name": "rapid-range-ignore-wanted-true",
+          "matched": true
+        },
+        {
+          "name": "rapid-range-generate-wanted-false",
+          "matched": true
+        },
+        {
+          "name": "rapid-range-generate-wanted-true",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-636c69656e742e",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-434c49454e54",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-636c69656e7400",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-6261642f6e616d65",
+          "matched": true
+        },
+        {
+          "name": "request-hostname-",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-0-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-0-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-0-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-1-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-1-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-1-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-4-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-4-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-4-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-5-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-5-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-5-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-8-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-8-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-8-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-9-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-9-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-9-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-12-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-12-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-12-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-13-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-13-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "request-fqdn-13-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "request-tag-40",
+          "matched": true
+        },
+        {
+          "name": "request-tag-41",
+          "matched": true
+        },
+        {
+          "name": "request-tag-42",
+          "matched": true
+        },
+        {
+          "name": "request-tag-43",
+          "matched": true
+        },
+        {
+          "name": "request-tag-44",
+          "matched": true
+        },
+        {
+          "name": "request-tag-45",
+          "matched": true
+        },
+        {
+          "name": "request-handoff-None",
+          "matched": true
+        },
+        {
+          "name": "request-handoff-01020000000001",
+          "matched": true
+        },
+        {
+          "name": "request-handoff-00abcd",
+          "matched": true
+        },
+        {
+          "name": "request-retained-49",
+          "matched": true
+        },
+        {
+          "name": "request-retained-50",
+          "matched": true
+        },
+        {
+          "name": "request-retained-51",
+          "matched": true
+        },
+        {
+          "name": "request-configured-name-ignore",
+          "matched": true
+        },
+        {
+          "name": "request-name-matched-ignore",
+          "matched": true
+        },
+        {
+          "name": "request-generate-no-mac",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-636c69656e742e",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-434c49454e54",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-636c69656e7400",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-6261642f6e616d65",
+          "matched": true
+        },
+        {
+          "name": "rapid-hostname-",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-0-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-0-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-0-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-1-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-1-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-1-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-4-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-4-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-4-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-5-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-5-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-5-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-8-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-8-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-8-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-9-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-9-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-9-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-12-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-12-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-12-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-13-636c69656e742e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-13-2e6c616e",
+          "matched": true
+        },
+        {
+          "name": "rapid-fqdn-13-636c69656e742e6f74686572",
+          "matched": true
+        },
+        {
+          "name": "rapid-tag-86",
+          "matched": true
+        },
+        {
+          "name": "rapid-tag-87",
+          "matched": true
+        },
+        {
+          "name": "rapid-tag-88",
+          "matched": true
+        },
+        {
+          "name": "rapid-tag-89",
+          "matched": true
+        },
+        {
+          "name": "rapid-tag-90",
+          "matched": true
+        },
+        {
+          "name": "rapid-tag-91",
+          "matched": true
+        },
+        {
+          "name": "rapid-handoff-None",
+          "matched": true
+        },
+        {
+          "name": "rapid-handoff-01020000000001",
+          "matched": true
+        },
+        {
+          "name": "rapid-handoff-00abcd",
+          "matched": true
+        },
+        {
+          "name": "rapid-retained-95",
+          "matched": true
+        },
+        {
+          "name": "rapid-retained-96",
+          "matched": true
+        },
+        {
+          "name": "rapid-retained-97",
+          "matched": true
+        },
+        {
+          "name": "rapid-configured-name-ignore",
+          "matched": true
+        },
+        {
+          "name": "rapid-name-matched-ignore",
+          "matched": true
+        },
+        {
+          "name": "rapid-generate-no-mac",
+          "matched": true
+        },
+        {
+          "name": "rapid-unavailable-requested-address",
+          "matched": true
+        },
+        {
+          "name": "rapid-previous-name-generated",
+          "matched": true
+        },
+        {
+          "name": "rapid-ignore-keeps-existing",
+          "matched": true
+        }
+      ]
+    },
+    {
+      "name": "context",
+      "cases": 26,
+      "matched": 26,
+      "failures": [],
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "script_sha256": "70ac27f465394acb87d5bf7ef10458af510f23429e68848c74908b1a7bdfe3ca",
+      "result_sha256": "989b0a1f0e2988f04d465c77329b471eb199d5d1e290ed505f8956c1a9897e78",
+      "remote_result": "/home/ubuntu/dnsmasq-fix-independent-20261011/private/dhcp-context-01/result.json",
+      "scenarios": [
+        {
+          "name": "context-False-False-ignore",
+          "matched": true
+        },
+        {
+          "name": "context-False-False-generate",
+          "matched": true
+        },
+        {
+          "name": "context-False-False-both",
+          "matched": true
+        },
+        {
+          "name": "context-False-True-ignore",
+          "matched": true
+        },
+        {
+          "name": "context-False-True-generate",
+          "matched": true
+        },
+        {
+          "name": "context-False-True-both",
+          "matched": true
+        },
+        {
+          "name": "context-False-127.0.0.31-ignore",
+          "matched": true
+        },
+        {
+          "name": "context-False-127.0.0.31-generate",
+          "matched": true
+        },
+        {
+          "name": "context-False-127.0.0.31-both",
+          "matched": true
+        },
+        {
+          "name": "handoff-full-False",
+          "matched": true
+        },
+        {
+          "name": "context-static-name-False-auth.lan",
+          "matched": true
+        },
+        {
+          "name": "context-static-name-False-auth.other",
+          "matched": true
+        },
+        {
+          "name": "context-static-name-False-auth",
+          "matched": true
+        },
+        {
+          "name": "context-True-False-ignore",
+          "matched": true
+        },
+        {
+          "name": "context-True-False-generate",
+          "matched": true
+        },
+        {
+          "name": "context-True-False-both",
+          "matched": true
+        },
+        {
+          "name": "context-True-True-ignore",
+          "matched": true
+        },
+        {
+          "name": "context-True-True-generate",
+          "matched": true
+        },
+        {
+          "name": "context-True-True-both",
+          "matched": true
+        },
+        {
+          "name": "context-True-127.0.0.31-ignore",
+          "matched": true
+        },
+        {
+          "name": "context-True-127.0.0.31-generate",
+          "matched": true
+        },
+        {
+          "name": "context-True-127.0.0.31-both",
+          "matched": true
+        },
+        {
+          "name": "handoff-full-True",
+          "matched": true
+        },
+        {
+          "name": "context-static-name-True-auth.lan",
+          "matched": true
+        },
+        {
+          "name": "context-static-name-True-auth.other",
+          "matched": true
+        },
+        {
+          "name": "context-static-name-True-auth",
+          "matched": true
+        }
+      ]
+    }
+  ]
+}

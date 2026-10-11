@@ -1,0 +1,1476 @@
+{
+  "rust_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "script_sha256": "073750ad674094339136653c899912683c67fb2518349ef3eff812a957b3ddc6",
+  "cases": [
+    {
+      "name": "handoff-rapid-False",
+      "matched": false,
+      "c": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 1,
+              "rapid": true,
+              "wanted": false,
+              "server": null,
+              "ciaddr": null,
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "80": "",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30||"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737166",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_DATA_MISSING": "1",
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737166",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600"
+            }
+          }
+        ]
+      },
+      "rust": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 1,
+              "rapid": true,
+              "wanted": false,
+              "server": null,
+              "ciaddr": null,
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "80": "",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30|replacement|second"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737167",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737167",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "replacement"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "handoff-rapid-True",
+      "matched": false,
+      "c": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 1,
+              "rapid": true,
+              "wanted": true,
+              "server": null,
+              "ciaddr": null,
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "80": "",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30||"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737168",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_DATA_MISSING": "1",
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737168",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600"
+            }
+          }
+        ]
+      },
+      "rust": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 1,
+              "rapid": true,
+              "wanted": true,
+              "server": null,
+              "ciaddr": null,
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "80": "",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30|replacement|second"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737169",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737169",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "replacement"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "handoff-renew-False",
+      "matched": false,
+      "c": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 3,
+              "rapid": false,
+              "wanted": false,
+              "server": null,
+              "ciaddr": "127.0.0.30",
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000696",
+                "59": "00000bdc",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30||"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737170",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_DATA_MISSING": "1",
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737170",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600"
+            }
+          }
+        ]
+      },
+      "rust": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 3,
+              "rapid": false,
+              "wanted": false,
+              "server": null,
+              "ciaddr": "127.0.0.30",
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "0000064e",
+                "59": "00000b94",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30|replacement|second"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737171",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737171",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "replacement"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "handoff-selecting-True",
+      "matched": true,
+      "c": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 3,
+              "rapid": false,
+              "wanted": true,
+              "server": "127.0.0.1",
+              "ciaddr": null,
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30|replacement|second"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737172",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737172",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "replacement"
+            }
+          }
+        ]
+      },
+      "rust": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 3,
+              "rapid": false,
+              "wanted": true,
+              "server": "127.0.0.1",
+              "ciaddr": null,
+              "mac": 2,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:02",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:02|127.0.0.30|replacement|second"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737174",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:02",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737174",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "replacement"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rapid-same-mac-requested",
+      "matched": false,
+      "c": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 1,
+              "rapid": true,
+              "wanted": true,
+              "mac": 1,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "80": "",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737175",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          }
+        ]
+      },
+      "rust": {
+        "events": [
+          {
+            "input": {
+              "kind": 3,
+              "name": "first",
+              "vendor": "original"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          },
+          {
+            "input": {
+              "kind": 1,
+              "rapid": true,
+              "wanted": true,
+              "mac": 1,
+              "name": "second",
+              "vendor": "replacement"
+            },
+            "reply": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "80": "",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "12": "6475616c"
+              },
+              "message_type": 5,
+              "hostname": "dual"
+            },
+            "leases": [
+              [
+                "02:00:00:00:00:01",
+                "127.0.0.30",
+                "dual",
+                "*"
+              ]
+            ],
+            "daemon_alive": true
+          }
+        ],
+        "dns": {
+          "authoritative": {
+            "rcode": 5,
+            "answers": []
+          },
+          "claimed": {
+            "rcode": 5,
+            "answers": []
+          },
+          "untrusted": {
+            "rcode": 5,
+            "answers": []
+          },
+          "02-00-00-00-00-01": {
+            "rcode": 5,
+            "answers": []
+          },
+          "30.0.0.127.in-addr.arpa": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "30.0.0.127.in-addr.arpa",
+                "type": 12,
+                "value": "dual"
+              }
+            ]
+          }
+        },
+        "exit": 0,
+        "state_error_lines": [],
+        "helper_events": [
+          "add|02:00:00:00:00:01|127.0.0.30|original|first",
+          "old|02:00:00:00:00:01|127.0.0.30|replacement|second"
+        ],
+        "helper_events_full": [
+          {
+            "argv": [
+              "add",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737176",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "first",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "original"
+            }
+          },
+          {
+            "argv": [
+              "old",
+              "02:00:00:00:00:01",
+              "127.0.0.30",
+              "dual"
+            ],
+            "env": {
+              "DNSMASQ_INTERFACE": "lo",
+              "DNSMASQ_LEASE_EXPIRES": "1791737176",
+              "DNSMASQ_LOG_DHCP": "1",
+              "DNSMASQ_REQUESTED_OPTIONS": "1,3,6,12,15,51,80",
+              "DNSMASQ_SUPPLIED_HOSTNAME": "second",
+              "DNSMASQ_TAGS": "pool known lo",
+              "DNSMASQ_TEST_ISOLATED": "1",
+              "DNSMASQ_TIME_REMAINING": "3600",
+              "DNSMASQ_VENDOR_CLASS": "replacement"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "scope": "Parsed synthetic packet/lease/DNS and helper argv/DNSMASQ_* observations; raw packets and service logs remain under Oracle private/.",
+  "source_commit": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+  "remote_result": "/home/ubuntu/dnsmasq-fix-independent-20261011/private/dhcp-handoff-helper-04/result.json",
+  "reproduction_script": "dhcp_handoff_helper.py",
+  "observation_gate": "Before sending second request, wait for completed first helper event; after second response keep daemon alive >=1s and require helper output stable >=300ms, snapshot full hook output while daemon is alive, then query DNS and terminate.",
+  "comparison": "Packet options, leases without expiry field, DNS and process status, helper summary and full argv/env; remove DNSMASQ_LEASE_EXPIRES and DNSMASQ_TIME_REMAINING from full-event equality only."
+}
