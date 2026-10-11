@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "scope": "Read-only design basis from matching OpenWrt musl source and actual Rust-provided AArch64 musl startup objects. Runtime protection proof is recorded separately.",
+  "source_commit": "2d9c09ca10b2035fbfb5903d502ce1788b49fc1b",
+  "product_files": {
+    "components/dnsmasq/src/startup_relro.rs": {
+      "path": "${ORACLE_ROOT}/source/components/dnsmasq/src/startup_relro.rs",
+      "sha256": "5045a20238d01abf553bb8bd7ac133071f41137f44bed44278f416c8a0255c60"
+    },
+    "components/dnsmasq/src/main.rs": {
+      "path": "${ORACLE_ROOT}/source/components/dnsmasq/src/main.rs",
+      "sha256": "102331ff2ab243c02fbf9811690aab60bbcc42673779df6a440939d4c716b9d5"
+    },
+    "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py": {
+      "path": "${ORACLE_ROOT}/source/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py",
+      "sha256": "9b04b7a13281414e4b79253a0a9ae8650abafa1645484dd6945e269d0335af58"
+    }
+  },
+  "source_provenance": {
+    "matching_OpenWrt_musl_reference": "OpenWrt matching build tree musl-1.2.5",
+    "matching_source_files": {
+      "crt/rcrt1.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/crt/rcrt1.c",
+        "sha256": "7540730b9b5bb77a7a054ece8312c4316754460c01ebf2e9d3a238d501deee9b"
+      },
+      "ldso/dlstart.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/ldso/dlstart.c",
+        "sha256": "89c13c034fd7e7d2c85b249af04a0c922a658ade2295949dad441e059d8c3d6b"
+      },
+      "src/env/__libc_start_main.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/src/env/__libc_start_main.c",
+        "sha256": "5e5487e579a3c8f14fcb38bb54f2ede10a74f94130ebb9134dcba8d5f28c0cf4"
+      },
+      "src/ldso/dl_iterate_phdr.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/src/ldso/dl_iterate_phdr.c",
+        "sha256": "802a537924c900ff607b65bda465bf66899890b7b0707c0cd55c7b800db20327"
+      },
+      "include/link.h": {
+        "path": "${MATCHING_MUSL_SOURCE}/include/link.h",
+        "sha256": "696718093684a61944d7a00ef39d723b05f691fd2edc895af2c526751c74ff22"
+      },
+      "ldso/dynlink.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/ldso/dynlink.c",
+        "sha256": "7d6d6bfd3aafc7eb3331c37752a37fcf1e568452d2ca5be9009669386571cbbb"
+      },
+      "src/mman/mprotect.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/src/mman/mprotect.c",
+        "sha256": "6086bef900c10b86151f427c007329a6ca843dbd466f19fab432a13dfc4c1b58"
+      },
+      "src/legacy/getpagesize.c": {
+        "path": "${MATCHING_MUSL_SOURCE}/src/legacy/getpagesize.c",
+        "sha256": "afc641eacb6080ffca8c953d9a0ded5be0f7b7b6f9eae3972d2a182d2ec8a6ff"
+      }
+    },
+    "actual_Rust_link_inputs": {
+      "rcrt1.o": {
+        "path": "${RUST_SELF_CONTAINED}/rcrt1.o",
+        "sha256": "e65dadc816775ab1d8d915f7f6fc4baa5080c1bea633b4372ff73e3b7b2df81c"
+      },
+      "libc.a": {
+        "path": "${RUST_SELF_CONTAINED}/libc.a",
+        "sha256": "b03473b6f1efb72f700f561b4407a88885b37e0edb5cdb2a64de0df5499e813f"
+      }
+    },
+    "actual_Rust_archive_members": {
+      "__libc_start_main.lo": {
+        "bytes": 9216,
+        "sha256": "5e6d29c031f305d38cad57b0f9964e5957b94fcc896481d42ab227ab777f2f86"
+      },
+      "dl_iterate_phdr.lo": {
+        "bytes": 4440,
+        "sha256": "49cc478e583c461f04d5a7685ce4e6b323081f3d90492ef73e89695dd73a3e18"
+      },
+      "getpagesize.lo": {
+        "bytes": 3512,
+        "sha256": "e23e274a50b5d5996c17b782df15ca00c184845d54a3c2687a00f8bbb3adc23f"
+      }
+    },
+    "important_distinction": "The Rust build links Rust toolchain self-contained rcrt1.o/libc.a. The matching SDK musl source is a semantic reference, not a claimed source identity for those Rust-provided objects. Their upstream build revision was not independently reconstructed. Actual object disassembly was checked for the relevant startup and ABI behavior."
+  },
+  "startup_order": [
+    {
+      "stage": "static PIE self-relocation",
+      "reference": "crt/rcrt1.c:1-3 includes ldso/dlstart.c; dlstart.c:128-162 processes REL/RELA/RELR before calling stage2",
+      "actual_object": "rcrt1.o _start_c shows all relocation loops before branching to __dls2"
+    },
+    {
+      "stage": "libc initialization",
+      "reference": "crt/rcrt1.c:11-13 calls __libc_start_main; src/env/__libc_start_main.c:23-40 and 72-86 establish auxv/page size/TLS/stack guard",
+      "actual_object": "__libc_start_main.lo calls __init_libc before libc_start_main_stage2"
+    },
+    {
+      "stage": "constructors then application",
+      "reference": "src/env/__libc_start_main.c:59-65,89-95 runs _init/init_array before application main",
+      "actual_object": "__libc_start_main.lo has __libc_start_init call before indirect main call"
+    },
+    {
+      "stage": "centralized protection",
+      "reference": "components/dnsmasq/src/main.rs invokes startup_relro::protect before umask, argument collection and service initialization",
+      "conclusion": "The application hook runs after static self-relocation and libc constructors, before this daemon starts services. It does not claim protection during earlier libc/Rust runtime initialization."
+    }
+  ],
+  "ABI_and_load_bias": {
+    "dl_phdr_info_prefix": "repr(C): uintptr_t dlpi_addr, char *dlpi_name, Elf64_Phdr *dlpi_phdr, uint16_t dlpi_phnum; 32-byte prefix on the supported 64-bit target",
+    "full_musl_callback_info_bytes": 64,
+    "Elf64_Phdr_bytes": 56,
+    "reference": "include/link.h:21-29,47; src/ldso/dl_iterate_phdr.c:19-44",
+    "actual_object": "dl_iterate_phdr.lo passes size 0x40, stores phnum with a 16-bit store, and calls the callback once for the main executable",
+    "load_bias": "The static musl helper uses AT_PHDR minus PT_PHDR.p_vaddr when available, or runtime &_DYNAMIC minus PT_DYNAMIC.p_vaddr. This avoids assuming that static PIE has a PT_PHDR header.",
+    "selection": "Only the first main-executable callback is processed; return 1 stops enumeration. The chosen static musl implementation reports only this image."
+  },
+  "page_alignment_policy": {
+    "page_size_API": "getpagesize() -> int; actual getpagesize.lo reads __libc.page_size initialized from AT_PAGESZ",
+    "reference": "src/legacy/getpagesize.c:1-8 and src/env/__libc_start_main.c:28-32",
+    "matching_kernel": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/linux-mediatek_filogic/linux-6.12.94/.config",
+      "sha256": "3a9cc7e085b362cb27c7414d3b4c77e13e8635c36c1a9467bf54c56508a983ba",
+      "selected_entries": [
+        "CONFIG_ARM64_4K_PAGES=y"
+      ]
+    },
+    "algorithm": "Require a valid power-of-two page size, one nonempty PT_GNU_RELRO and checked address addition; floor the start address to a page boundary, require the end already aligned, then call mprotect(PROT_READ) once.",
+    "intentional_policy_difference": "The matching dynamic musl loader floors both RELRO bounds (ldso/dynlink.c:1446-1448). This repair instead rejects a partial final page, avoiding either silently unprotected RELRO bytes or rounding up into mutable .data. The supported matching kernel uses 4 KiB pages."
+  },
+  "failure_boundary": {
+    "missing_or_invalid_layout": "startup failure",
+    "mprotect_failure": "startup failure",
+    "silently_run_unprotected": false,
+    "daemon_exit_code": 5,
+    "exit_code_reference": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/dnsmasq-nodhcpv6/dnsmasq-2.93/src/dnsmasq.h",
+      "sha256": "318942419598f037a97611efbdea5aebba1e384b9a1ba5f7eded091c86e0e228",
+      "lines": [
+        {
+          "line": 211,
+          "text": "#define EC_GOOD        0"
+        },
+        {
+          "line": 212,
+          "text": "#define EC_BADCONF     1"
+        },
+        {
+          "line": 213,
+          "text": "#define EC_BADNET      2"
+        },
+        {
+          "line": 214,
+          "text": "#define EC_FILE        3"
+        },
+        {
+          "line": 215,
+          "text": "#define EC_NOMEM       4"
+        },
+        {
+          "line": 216,
+          "text": "#define EC_MISC        5"
+        },
+        {
+          "line": 217,
+          "text": "#define EC_INIT_OFFSET 10"
+        }
+      ]
+    },
+    "reason": "5 is EC_MISC; 2 is reserved for EC_BADNET. A RELRO setup failure is an internal initialization failure before service start."
+  },
+  "linkage_strategy": {
+    "new_crate_dependency": false,
+    "constructor_hook_added": false,
+    "relocation_model_changed": false,
+    "strategy": "Keep the existing static PIE linker/startup selection. Reuse statically linked musl dl_iterate_phdr/getpagesize/mprotect, with a single centralized application startup hook.",
+    "actual_linkage_evidence": "sdk.json: both APK-extracted ELFs are ET_DYN with no PT_INTERP or DT_NEEDED entries; package metadata adds no direct libgcc/libgcc1 dependency."
+  },
+  "raw_disassembly": {
+    "rcrt1": {
+      "path": "${ORACLE_ROOT}/private/relro-startup-inspection/rcrt1.objdump.txt",
+      "sha256": "a6f8b9f6f809ccd0fa90b249fa4205bf247c8bbc7720570e24a63dec4698a06e",
+      "argv": [
+        "objdump",
+        "-dr",
+        "${RUST_SELF_CONTAINED}/rcrt1.o"
+      ]
+    },
+    "__libc_start_main.lo": {
+      "path": "${ORACLE_ROOT}/private/relro-startup-inspection/__libc_start_main.lo.objdump.txt",
+      "sha256": "d0d5e66347cbcbafba221e2d29894214f3f91547fa749a01b58beba8336add29",
+      "method": "ar p libc.a MEMBER to ephemeral object, objdump -dr; temporary object removed"
+    },
+    "dl_iterate_phdr.lo": {
+      "path": "${ORACLE_ROOT}/private/relro-startup-inspection/dl_iterate_phdr.lo.objdump.txt",
+      "sha256": "80514f8ea10f4d71e2095a6ac56b03cb6bd34e4ccdbe7c46a68e00d6ab56a071",
+      "method": "ar p libc.a MEMBER to ephemeral object, objdump -dr; temporary object removed"
+    },
+    "getpagesize.lo": {
+      "path": "${ORACLE_ROOT}/private/relro-startup-inspection/getpagesize.lo.objdump.txt",
+      "sha256": "99c564d72d828b782904607aceab14029db6a910bff1902bf66f4e7f41abb98d",
+      "method": "ar p libc.a MEMBER to ephemeral object, objdump -dr; temporary object removed"
+    }
+  },
+  "raw_inspection_manifest": {
+    "path": "${ORACLE_ROOT}/private/relro-startup-inspection/inspection.json",
+    "sha256": "4195ae6a2ab7e09fa3c145e099de953e61c8f6658549e921625d74a9ac844fd0"
+  },
+  "limits": [
+    "Source and object inspection establishes the startup order and ABI; it does not substitute for actual runtime maps or a fault probe.",
+    "Static linkage is retained. Full RELRO is not inferred from ELF headers alone.",
+    "No product source, frozen source input, binary, or physical device was modified by this read-only inspection."
+  ],
+  "path_variables": {
+    "ORACLE_ROOT": "/home/ubuntu/dnsmasq-relro-hosts-20261011",
+    "RUST_SELF_CONTAINED": "/home/ubuntu/.rustup/toolchains/1.98.1-aarch64-unknown-linux-gnu/lib/rustlib/aarch64-unknown-linux-musl/lib/self-contained",
+    "MATCHING_MUSL_SOURCE": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/musl-1.2.5"
+  }
+}
