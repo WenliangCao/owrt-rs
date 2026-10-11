@@ -1,0 +1,170 @@
+{
+  "isolated": true,
+  "synthetic_input": "one valid host plus 48 MiB of short comments",
+  "binary_sha256": {
+    "c-image": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448"
+  },
+  "cases": [
+    {
+      "implementation": "c-image",
+      "address_space_limit_mib": 0,
+      "reload": false,
+      "hosts_bytes": 50331669,
+      "before": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "after": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "memory": {
+        "VmPeak_kib": 1332,
+        "VmHWM_kib": 1116,
+        "VmRSS_kib": 1116
+      },
+      "exit_before_cleanup": null,
+      "cleanup_exit": 0,
+      "log": "dnsmasq[3]: started, version 2.93 cachesize 150\ndnsmasq[3]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[3]: warning: no upstream servers configured\ndnsmasq[3]: read <case>/hosts - 1 names\ndnsmasq[3]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "implementation": "rust",
+      "address_space_limit_mib": 0,
+      "reload": false,
+      "hosts_bytes": 50331669,
+      "before": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "after": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "memory": {
+        "VmPeak_kib": 51272,
+        "VmHWM_kib": 50476,
+        "VmRSS_kib": 1856
+      },
+      "exit_before_cleanup": null,
+      "cleanup_exit": 0,
+      "log": "dnsmasq[4]: started, version 2.93 cachesize 150\ndnsmasq[4]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[4]: warning: no upstream servers configured\ndnsmasq[4]: read <case>/hosts - 1 names\ndnsmasq[4]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "implementation": "c-image",
+      "address_space_limit_mib": 32,
+      "reload": false,
+      "hosts_bytes": 50331669,
+      "before": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "after": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "memory": {
+        "VmPeak_kib": 1332,
+        "VmHWM_kib": 1132,
+        "VmRSS_kib": 1132
+      },
+      "exit_before_cleanup": null,
+      "cleanup_exit": 0,
+      "log": "dnsmasq[5]: started, version 2.93 cachesize 150\ndnsmasq[5]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[5]: warning: no upstream servers configured\ndnsmasq[5]: read <case>/hosts - 1 names\ndnsmasq[5]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "implementation": "rust",
+      "address_space_limit_mib": 32,
+      "reload": false,
+      "hosts_bytes": 50331669,
+      "before": {
+        "received": true,
+        "expected_a": false,
+        "rcode": 5,
+        "answers": 0
+      },
+      "after": {
+        "received": true,
+        "expected_a": false,
+        "rcode": 5,
+        "answers": 0
+      },
+      "memory": {
+        "VmPeak_kib": 2224,
+        "VmHWM_kib": 1852,
+        "VmRSS_kib": 1852
+      },
+      "exit_before_cleanup": null,
+      "cleanup_exit": 0,
+      "log": "dnsmasq-rs: failed to load names from <case>/hosts: out of memory\ndnsmasq[6]: started, version 2.93 cachesize 150\ndnsmasq[6]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[6]: warning: no upstream servers configured\ndnsmasq[6]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "implementation": "c-image",
+      "address_space_limit_mib": 32,
+      "reload": true,
+      "hosts_bytes": 50331669,
+      "before": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "after": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "memory": {
+        "VmPeak_kib": 1332,
+        "VmHWM_kib": 1128,
+        "VmRSS_kib": 1128
+      },
+      "exit_before_cleanup": null,
+      "cleanup_exit": 0,
+      "log": "dnsmasq[7]: started, version 2.93 cachesize 150\ndnsmasq[7]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[7]: warning: no upstream servers configured\ndnsmasq[7]: read <case>/hosts - 1 names\ndnsmasq[7]: read <case>/hosts - 1 names\ndnsmasq[7]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "implementation": "rust",
+      "address_space_limit_mib": 32,
+      "reload": true,
+      "hosts_bytes": 50331669,
+      "before": {
+        "received": true,
+        "expected_a": true,
+        "rcode": 0,
+        "answers": 1
+      },
+      "after": {
+        "received": true,
+        "expected_a": false,
+        "rcode": 5,
+        "answers": 0
+      },
+      "memory": {
+        "VmPeak_kib": 2228,
+        "VmHWM_kib": 1860,
+        "VmRSS_kib": 1860
+      },
+      "exit_before_cleanup": null,
+      "cleanup_exit": 0,
+      "log": "dnsmasq[8]: started, version 2.93 cachesize 150\ndnsmasq[8]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[8]: warning: no upstream servers configured\ndnsmasq[8]: read <case>/hosts - 1 names\ndnsmasq[8]: exiting on receipt of SIGTERM\n"
+    }
+  ],
+  "tool": "tools/dnsmasq/audit_20261011_hosts_memory.py",
+  "tool_sha256": "e4919a1e893de339158aca88a81b38eb1e425fbf314b9c1fdb8cd755024d1a68",
+  "source_commit": "3e7df6c1cc45b74f0430e5460379713900172cb4",
+  "limitation": "RLIMIT_AS is a controlled virtual-address-space limit, not a measurement of target RAM exhaustion; no physical router accessed."
+}

@@ -1,0 +1,1330 @@
+{
+  "scope": "Independent exact-image audit of accepted inactive options and integer edges.\n\nRun with run_isolated.sh. This creates only an evidence-owned rootfs overlay;\nit does not modify product files or contact a physical router.\n",
+  "timestamp": 1791710113.876413,
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "331177ba5d2b7d4d1e8fbb65152b7721475a03782e6c629131db719ef7b63448",
+  "tool_sha256": "20f9c2706cebafcbc6e9792290ed02eeeab8ef3be16ca33218224df9ef24ab6b",
+  "rows": [
+    {
+      "directive": "no-ident",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[14]: started, version 2.93 DNS disabled\ndnsmasq[14]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[14]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[15]: started, version 2.93 DNS disabled\ndnsmasq[15]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[15]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[16]: started, version 2.93 cachesize 150\ndnsmasq[16]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[16]: warning: no upstream servers configured\ndnsmasq[16]: cleared cache\ndnsmasq[16]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[17]: started, version 2.93 cachesize 150\ndnsmasq[17]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[17]: warning: no upstream servers configured\ndnsmasq[17]: cleared cache\ndnsmasq[17]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "quiet-ra",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-1.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[20]: started, version 2.93 DNS disabled\ndnsmasq[20]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[20]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-1.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[22]: started, version 2.93 cachesize 150\ndnsmasq[22]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[22]: warning: no upstream servers configured\ndnsmasq[22]: cleared cache\ndnsmasq[22]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-1.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "quiet-dhcp6",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-2.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[26]: started, version 2.93 DNS disabled\ndnsmasq[26]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[26]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-2.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[28]: started, version 2.93 cachesize 150\ndnsmasq[28]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[28]: warning: no upstream servers configured\ndnsmasq[28]: cleared cache\ndnsmasq[28]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-2.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-3.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[32]: started, version 2.93 DNS disabled\ndnsmasq[32]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[32]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-3.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[34]: started, version 2.93 cachesize 150\ndnsmasq[34]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[34]: warning: no upstream servers configured\ndnsmasq[34]: cleared cache\ndnsmasq[34]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-3.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "enable-ra",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-4.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[38]: started, version 2.93 DNS disabled\ndnsmasq[38]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[38]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-4.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[40]: started, version 2.93 cachesize 150\ndnsmasq[40]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[40]: warning: no upstream servers configured\ndnsmasq[40]: cleared cache\ndnsmasq[40]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-4.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-ttl=60",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-5.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[44]: started, version 2.93 DNS disabled\ndnsmasq[44]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[44]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-5.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[46]: started, version 2.93 cachesize 150\ndnsmasq[46]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[46]: warning: no upstream servers configured\ndnsmasq[46]: cleared cache\ndnsmasq[46]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-5.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-soa=1",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-6.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[50]: started, version 2.93 DNS disabled\ndnsmasq[50]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[50]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-6.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[52]: started, version 2.93 cachesize 150\ndnsmasq[52]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[52]: warning: no upstream servers configured\ndnsmasq[52]: cleared cache\ndnsmasq[52]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-6.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-server=ns.audit.test,lo",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-7.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[56]: started, version 2.93 DNS disabled\ndnsmasq[56]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[56]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-7.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[58]: started, version 2.93 cachesize 150\ndnsmasq[58]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[58]: warning: no upstream servers configured\ndnsmasq[58]: cleared cache\ndnsmasq[58]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-7.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-zone=audit.test",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-8.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: authoritative DNS not available: set HAVE_AUTH in src/config.h\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-8.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-sec-servers=ns.audit.test",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-9.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[66]: started, version 2.93 DNS disabled\ndnsmasq[66]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[66]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-9.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[68]: started, version 2.93 cachesize 150\ndnsmasq[68]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[68]: warning: no upstream servers configured\ndnsmasq[68]: cleared cache\ndnsmasq[68]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-9.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-peer=192.0.2.1",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-10.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[72]: started, version 2.93 DNS disabled\ndnsmasq[72]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[72]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-10.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[74]: started, version 2.93 cachesize 150\ndnsmasq[74]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[74]: warning: no upstream servers configured\ndnsmasq[74]: cleared cache\ndnsmasq[74]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-10.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-debug",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-11.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[78]: started, version 2.93 DNS disabled\ndnsmasq[78]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[78]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-11.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[80]: started, version 2.93 cachesize 150\ndnsmasq[80]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[80]: warning: no upstream servers configured\ndnsmasq[80]: cleared cache\ndnsmasq[80]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-11.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-no-timecheck",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-12.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[84]: started, version 2.93 DNS disabled\ndnsmasq[84]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[84]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-12.conf\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[86]: started, version 2.93 cachesize 150\ndnsmasq[86]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[86]: warning: no upstream servers configured\ndnsmasq[86]: cleared cache\ndnsmasq[86]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_before_term": false,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": null,
+          "expected_local_a": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 7 of /m2/case-12.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-check-unsigned",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-13.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-13.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-13.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-13.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-check-unsigned=no",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-14.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-14.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-14.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-14.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-15.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: DNSSEC not available: set HAVE_DNSSEC in src/config.h\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-15.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-timestamp=/m2/timestamp",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-16.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-16.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-16.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-16.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-limits=1,2,3,4",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-17.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-17.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-17.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-17.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "conntrack",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-18.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: conntrack support not available: set HAVE_CONNTRACK in src/config.h\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-18.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "enable-dbus",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-19.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: DBus not available: set HAVE_DBUS in src/config.h\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-19.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dhcp-duid=1,00:01",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-20.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-20.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-20.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-20.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "dhcp-luascript=/m2/script",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: recompile with HAVE_LUASCRIPT defined to enable Lua scripts at line 4 of /m2/case-21.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-21.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: recompile with HAVE_LUASCRIPT defined to enable Lua scripts at line 4 of /m2/case-21.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-21.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "ra-param=lo,10,20",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-22.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-22.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support) at line 4 of /m2/case-22.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-22.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "ipset=/audit.test/audit",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: recompile with HAVE_IPSET defined to enable ipset directives at line 4 of /m2/case-23.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-23.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: recompile with HAVE_IPSET defined to enable ipset directives at line 4 of /m2/case-23.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-23.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "nftset=/audit.test/4#inet#fw4#audit",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: recompile with HAVE_NFTSET defined to enable nftset directives at line 4 of /m2/case-24.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-24.conf\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: recompile with HAVE_NFTSET defined to enable nftset directives at line 4 of /m2/case-24.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of /m2/case-24.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "cache-size=2147483647",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      }
+    },
+    {
+      "directive": "cache-size=2147483648",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: integer exceeds defined C int range at line 4 of /m2/case-26.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "cache-size=4294967296",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: integer exceeds defined C int range at line 4 of /m2/case-27.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "cache-size=4294967356",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: integer exceeds defined C int range at line 4 of /m2/case-28.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "local-ttl=2147483647",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      }
+    },
+    {
+      "directive": "local-ttl=2147483648",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: integer exceeds defined C int range at line 4 of /m2/case-30.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "local-ttl=4294967296",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: integer exceeds defined C int range at line 4 of /m2/case-31.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "local-ttl=4294967356",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: integer exceeds defined C int range at line 4 of /m2/case-32.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "max-tcp-connections=2147483647",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      }
+    },
+    {
+      "directive": "max-tcp-connections=2147483648",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: error at line 4 of /m2/case-34.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-34.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "max-tcp-connections=4294967296",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: error at line 4 of /m2/case-35.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-35.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "max-tcp-connections=4294967356",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-36.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "fast-dns-retry=2147483647",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      }
+    },
+    {
+      "directive": "fast-dns-retry=2147483648",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: error at line 4 of /m2/case-38.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-38.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "fast-dns-retry=4294967296",
+      "syntax": {
+        "c": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq: error at line 4 of /m2/case-39.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-39.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "fast-dns-retry=4294967356",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-40.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "fast-dns-retry=1000,2147483648",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-41.conf\n"
+        }
+      }
+    },
+    {
+      "directive": "fast-dns-retry=1000,4294968296",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 1,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "\ndnsmasq-rs: error at line 4 of /m2/case-42.conf\n"
+        }
+      }
+    }
+  ]
+}
