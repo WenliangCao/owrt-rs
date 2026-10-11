@@ -388,3 +388,97 @@ hotplug/ACL/default-data 文件与精确配方逐字节一致，未发现新的�
 
 这些未覆盖项限制“已经没有其他问题”的判断，不影响由现有可重复反例得出的
 “当前不能完整替代”结论。
+
+## 2026-10-11 修复与验证补记
+
+本节记录 `fix/audit-20261011` 从 `main=be531cee` 开始的修复。上文及原始 JSON 保留为历史审计证据；修复后的状态以本节及 `audits/20261011/fixes/` 为准。范围为 A01–A06、A09、A10，加 A07 的独立取舍；没有进行 A08 优化。没有合并 main、推送 GitHub 或接触物理路由器。
+
+### 行为修复
+
+| 项目 | 修法 | 最终产物验证 |
+| --- | --- | --- |
+| A01 | 信号处理器只记录事件并唤醒既有 owner；USR1 输出实际 cache/queries/server/TCP HWM；debug 或 log-queries 开启时还输出当前 hosts、租约及缓存记录，ALRM进入现有 prune→leasefile→DNS 维护队列。 | 原 12 例继续服务；两次 dump 的缓存／查询／上游／NXDOMAIN 计数与 C 一致；受控 EFBIG 写失败恢复后，ALRM 在自动重试时间到来前恢复租约文件；随后 dump 可见该租约。 |
+| A02 | 以 `existing_id` 判断是否还需分配，已允许接管的多 MAC 静态预约复用旧 lease。 | 第二 MAC 获得 ACK，租约交接与 C 相同。 |
+| A03 | DISCOVER 的选址和提交分开，Rapid Commit 用最终地址／context 获取地址池 tag 后执行名称策略。 | 无 option 50 也正确应用 ignore/generate；option 50 有／无对照均一致。 |
+| A04 | REQUEST 与 Rapid Commit 共用 ACK 名称决策，先采用 hosts 权威名，再处理客户端名称、ignore/generate。 | 租约及 A/PTR 与 C 一致，不再额外发布 claimed。 |
+| A05 | 恢复 11 个配置入口及 C 的语法校验；保留 auth-server 对接口、local-service、TFTP/whichdevice、请求日志的仍有效语义；保留 no-dhcpv6-interface 的相关接口标志。 | 原 11 项加 no-ident 正控制，语法、启动、退出及实际 DNS wire 全部一致。 |
+| A06 | 普通 hosts 以 8 KiB 块读取，普通／hostsdir 共用最多 502 字节 token 的流式解析器；不再保留全文件或整行。打开／目录错误进入现有日志通道；普通坏 token 仍只累计统计，没有新增无界诊断队列。 | 48 MiB 注释＋一条记录，普通启动及 RLIMIT_AS=32 MiB 的启动／HUP 全部正确，C/R应答一致；Rust取消按48MiB文件长度分配的临时输入缓冲；最终峰值RSS为2652–2660KiB。 |
+| A09 | 只在普通 OFFER 抑制客户端 option 12；快速 ACK 保留按 ACK 规则选定的名字。 | Rapid Commit ACK hostname option 与 C 一致。 |
+| A10 | 缓存入口不再因问题解析失败提前关闭 TCP，交由既有请求错误处理；本次七类异常／不受支持输入恢复 REFUSED。 | 七类异常输入及正常控制共16个UDP/TCP组合，C/R答包全部一致且服务健康。 |
+
+USR1 不输出 C blockdata allocator 池数字或内部 non-terminal 占位，记录顺序不承诺一致；它们不代表 Rust 的内存结构。原始日志保留，差分校验真实业务计数、可见记录与维护副作用，不以进程未崩溃代替诊断功能实现。
+
+完整 DHCP/DNS 回归另抓到旧 main 已有的 debug TCP 问题：旧 NXDOMAIN 会遮住后来发布的 DHCP A 记录，初修版和旧 main 对照 ELF 各自与 matching-native C 比较均为33/34，两者都在 `ack-fqdn-tcp` 返回旧 NXDOMAIN。TCP现在与UDP一样先执行了解缓存语义的本地名称查询，再查转发缓存；debug缓存查询使用当前本地视图。最终冻结产物与精确镜像 C 的该完整回归已转为34/34。这是受影响回归实际暴露的补修，不是放宽旧期望。
+
+### 冻结产物与结果
+
+运行代码冻结于 `4a72e24544bc50ef2a71d0e05032fbd9b3dd9721`（后续为验证工具、构建默认选择及报告）。Oracle目录 `/home/ubuntu/dnsmasq-audit-fix-20261011/source-02`；feature-off、opt3、Rust1.98.1、匹配SDK。
+
+- PIE ELF：`bf0eb539b5bc788b635376ab1480b5cfb7e7b56bae838fa0c964794ab9be67d3`。
+- 同源静态对照：`2c475f83983596d2a4e7dd7927f2116bf1fa41e0d8ac6fe6ab66f98950f72549`。
+- C仍为精确镜像 `097a9e21…`；信号组额外保留 matching native C 正控制。
+- 最终单测：lib757、bin74通过，0失败，23个ignored未执行。测试运行体为静态musl harness；实际daemon差分和完整功能族使用上述PIE release ELF。
+- 本轮纳入修复的 A01–A06、A09、A10 定向复现全部通过。补充完整族：DHCP/DNS34、reverse-name28、TCP15检查/116回答、reload23、hosts generation两轮各102查询/侧、DHCP range76服务场景，全部通过。
+- [原复现与补充回归](audits/20261011/fixes/reproductions.json)、[构建／单测／运行时防护](audits/20261011/fixes/build_and_unit.json)。
+
+按预先选定的注册命令及既有例外判据，**22/22 个受影响完整功能族、43/43 个逻辑命令通过**。包含配置与名称选项、DHCP tags／identities／range／files／lease recovery／device binding、listeners、TFTP、日志、CLI、EDNS、DNS cache／interface records／files 及 UBus。最终 logging 为329个场景；UBus完整族通过，350项paired observations、失败为0。每个命令的结果路径、SHA、导出检查项及可用场景清单见 [完整功能族结果](audits/20261011/fixes/families.json)，完整明细见其中指向的原始结果。
+
+闭合记录保留最初43命令中的20个完整通过族，以两次**整个族**重跑替换logging与UBus结果；没有仅重跑失败单例来宣布整个族通过。原始失败文件及SHA仍在同一证据中。这里的“完整”指预先选定的22个受影响族，既有明确记录的C缺陷／溢出输入差异仍按原规则保留；没有宣布全部44族、M5/M6归档程序或部署生命周期通过。
+
+### A07 的取舍
+
+**采用动态 PIE，A07 修复。** 使用 `-Ctarget-feature=-crt-static -Clink-self-contained=no -Clink-arg=-pie`。体积代价可接受；性能存在下面记录的小幅延迟代价，首次筛查信号经定向确认后未持续达到预设回退门槛，因此接受这项取舍。完整决定及构建文件身份见 [PIE 取舍记录](audits/20261011/fixes/pie_decision.json)。
+
+同源静态与 PIE 按冻结计划执行 UDP 命中、TCP 未命中、DHCP 和并发重载，三轮交替顺序，共24窗；每窗预热10秒、测量30秒，未做饱和测试。所有窗口的行为和测量方法有效，没有生成器限制。预设回退规则是：中位数增加超过10%、超过两组最大 W，且各配对轮全部同向；W=(最大值−最小值)/中位数。
+
+原24窗结果如下（CPU为 µs/正确单位，p95为 µs；DHCP单位是完整cycle，其余是DNS query）：
+
+| 场景 | CPU：静态 → PIE（变化） | p95：静态 → PIE（变化） | 回退标记 |
+| --- | --- | --- | --- |
+| udp-hit | 12.327 → 12.985（+5.33%） | 22.280 → 22.561（+1.26%） | 无 |
+| tcp-miss | 94.769 → 96.904（+2.25%） | 620.005 → 678.565（+9.45%） | 无 |
+| dhcp-lease | 540.987 → 553.568（+2.33%） | 3154.506 → 3240.346（+2.72%） | 无 |
+| reload-concurrent | 27.378 → 27.152（-0.82%） | 70.681 → 83.521（+18.17%） | p95 |
+
+原筛查 **accepted=false**：重载p95增加18.17%，最大W为17.58%，3/3配对同向，触发唯一标记；其余七个指标未触发。没有用无生成器限制或正确回答来否定这个延迟信号。[原始24窗结果](audits/20261011/fixes/pie_cost_initial.json)、[原冻结计划](audits/20261011/fixes/pie_cost_plan.json)。
+
+遵照原计划“标记后拒绝或定向复核”的规则，在确认开始前冻结了仅重载的第4–6轮，共6窗。除轮次、种子及输出目录，负载／时长／CPU／工具／ELF不变，继续交替执行顺序。确认组和保留全部数据的六轮合并组，任一组的CPU或p95仍触发相同规则即拒绝；没有追加其他场景或反复重跑至通过。
+
+| 重载数据组 | CPU：静态 → PIE（µs/query） | p95：静态 → PIE（µs） | p95变化／最大W | 回退标记 |
+| --- | --- | --- | --- | --- |
+| 新增第4–6轮 | 27.807 → 26.924 | 72.321 → 72.681 | +0.50%／16.40% | 无 |
+| 保留全部第1–6轮 | 27.694 → 27.080 | 71.460 → 78.101 | +9.29%／18.80% | 无 |
+
+新增6窗同样无行为错误、方法错误或生成器限制。[确认计划](audits/20261011/fixes/pie_reload_plan.json)、[确认与合并结果](audits/20261011/fixes/pie_reload_confirmation.json)保留每轮原始数值、方向及hash。**六组p95均是PIE较高，不能说没有延迟代价**；确认组的增量为0.360 µs，合并中位数增量为6.641 µs。结合未触发持续回退门槛、体积下降和恢复ASLR，认为本轮代价可接受。
+
+“不触发”不等于性能等效；W对极端样本敏感，且只重复重载，前置负载历史不同于初始四场景顺序。原24窗的 `accepted=false` 保持不变，本节不将其称为通过。
+
+动态 PIE 的解释器是镜像 `/lib/ld-musl-aarch64.so.1`，NEEDED 只有镜像已有的 `libc.so`、`libgcc_s.so.1`。三次独立实际启动观察到不同装载基址，RELRO覆盖页实际只读，栈无执行权限，无WX LOAD或TEXTREL。体积从同源静态1,998,888 B降到1,925,712 B，减少73,176 B（约3.66%）。这不是整个APK/flash或相对C的A08成本结论。
+
+默认 release 构建和包配方同步使用这三个链接参数，显式声明 `+libgcc`（APK 名称 `libgcc1`）。包校验从 static-only 改为验证 AArch64 PIE、精确解释器／共享库、NX／RELRO／立即绑定及无 WX／TEXTREL，保留冻结源码、SDK 与最终 ELF 的身份检查。配方移除本轮冻结产物未使用的 `pack-relative-relocs`，使链接策略对齐；这不是宣称目标 musl 不支持 RELR。测试／诊断构建仍沿用原静态链接。
+
+直接受影响的 `python3 tools/dnsmasq/test_build_package.py` 18项通过；真实冻结PIE通过新的ELF门，同源static被按预期拒绝。见 [包工具验证](audits/20261011/fixes/package_elf_gate.json)。这次没有重新生成APK；新构建可能因路径映射等因素产生新SHA，仍须通过冻结ELF身份门，不能把本轮验证自动转给另一份ELF。
+
+链接参数依据 [rustc codegen说明](https://doc.rust-lang.org/rustc/codegen-options/index.html#relocation-model)及本机固定编译器／SDK，最终以ELF和实际映射为判据，不只检查命令行flags。仅在Oracle检查，未测Cortex-A53真机性能；本轮不增加APK安装／升级／回滚或部署资格。
+
+### 失败记录与工具修正
+
+所有首次失败／中断目录保留，没有挑选单条成功记录拼成最终通过：
+
+- 首轮并行 lease-name 两次0.4秒 ACK等待超时未在原样定向、完整重跑中再现；最终受影响族改为串行，不增加请求时限。
+- hostsdir共用流式解析器后，1MiB旧输入太快，采样看不到有效的FD开放期；改为16MiB，保留原先重叠期与健康断言。定向验证19次Rust查询全健康，11次有开放期双端见证。
+- PIE的allocator符号来自镜像共享libc，原静态link-map定位无效；工具改为实际动态符号／映射定位，校验inode和ELF SHA，仍真实注入NULL，未跳过失败边界。
+- dns-files的fresh TCP查询已由前一UDP填充缓存，原配置漏标cache。明确标记后只使用已有的1秒缓存时钟规则，fresh miss、RCODE、回答和上游因果校验不变。
+- 原UBus工具直接执行PIE却缺host musl interpreter；改用精确镜像loader，保留真实ELF身份。一次family启动前占位符`image_root`错误更正为既有`image`，当时没有任何族开始执行。
+- logging 的完整329场景首轮仅 DHCP INFORM option 51／对应日志出现600与599秒差异。匹配C源码使用 expires−now；工具现在保留每侧租约文件与发送／接收时钟，先验证该侧的剩余时间，再对这一字段及对应XID日志做等价比较。五个控制例确认错误wire、错误日志仍失败，其他option和新ACK差异仍保留。原失败不回填为通过。
+- UBus完整族首轮在empty-activation遇到工具自身未定义变量；前面的584检查／69对照不当作完整通过。修正遗漏的image-loader前缀后从头执行整个族，不跳过empty-activation。一次临时工具副本漏保留 `tools/dnsmasq` 层级，令客户端C源码编译在产品启动前失败；保留该记录，恢复原目录布局后再次从头执行整个族。
+- Linux专用TCP单测fixture补齐新增auth字段。构建前误启动的unit命令未实际执行测试；最终只计成功构建后的757＋74结果。
+- 旧source01的长回归在产物被补修替代后受控终止，后代进程清理；它们不具最终资格。最终产物、原复现和完整功能族分别绑定真实ELF与工具hash。
+
+### 本轮结论与边界
+
+**A01–A06、A09、A10 的指定行为缺陷已修复，定向 C/R 差分和受影响完整回归通过；A07 采用动态 PIE，取舍及证据见上节。** 就本轮范围而言，这些问题不再构成替代 C 版的阻断项，修复分支可以进入 main 的独立合并复审。所有修复和证据提交都留在 `fix/audit-20261011`，没有自行合并。
+
+这项结论限定于本轮修复与验证范围，不将整个 dnsmasq 的生产替代验收宣布完成。原报告关于 A08 资源预算及部署边界的限制继续有效。
+
+上文没有覆盖的物理路由器、真实客户端、目标内核压力、整个APK/procd/ujail部署生命周期、长期soak等范围仍未据此自动验收。原审计的A08资源差距本轮没有优化或豁免。
