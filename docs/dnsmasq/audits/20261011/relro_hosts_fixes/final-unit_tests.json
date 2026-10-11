@@ -1,0 +1,260 @@
+{
+  "source_commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+  "passed": true,
+  "result": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/result.json",
+    "bytes": 2867,
+    "sha256": "65da19ed73d8d3100f462cca4a4597bef17b989fb0af6b3e4e8abe763bbd2ca6"
+  },
+  "commands": [
+    {
+      "name": "build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build",
+        "tests"
+      ],
+      "started": 1791749426.7115655,
+      "returncode": 0,
+      "log_sha256": "98048fb4bfb76bb921d0fa261893b7ed2990dce2815d8c941040940df3df8672",
+      "elapsed_seconds": 45.0153968334198,
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build.log",
+        "bytes": 672,
+        "sha256": "98048fb4bfb76bb921d0fa261893b7ed2990dce2815d8c941040940df3df8672"
+      }
+    },
+    {
+      "name": "lib-dnsmasq_rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "started": 1791749471.7276103,
+      "returncode": 0,
+      "log_sha256": "b9954161535e6f067b94a755c5121cb03b0f6aabcce25f294d0b5e58fcc5e762",
+      "elapsed_seconds": 4.022977828979492,
+      "elf_sha256": "12b16419a43a0937d3187b48601131e5e2ebd3e4e8e402e82be0da6a843cf22c",
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/lib-dnsmasq_rs.log",
+        "bytes": 72784,
+        "sha256": "b9954161535e6f067b94a755c5121cb03b0f6aabcce25f294d0b5e58fcc5e762"
+      },
+      "counts": {
+        "passed": 761,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "test_summary": "test result: ok. 761 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 4.00s",
+      "ignored_tests": [
+        "test config::dns::tests::dns_config_acceptance_matches_c ... ignored, requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build",
+        "test config::loader::tests::cli_include_acceptance_matches_c ... ignored, requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build",
+        "test config::records::tests::local_record_acceptance_matches_c ... ignored, requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build",
+        "test config::tests::scalar_config_acceptance_matches_c ... ignored, requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build",
+        "test dhcp::service::tests::device_binding_linux_sockets_retry_and_relay_gate ... ignored, requires an isolated Linux network namespace with CAP_NET_ADMIN",
+        "test dhcp::service::tests::poll_once_is_nonblocking_and_stop_aware ... ignored, requires Linux isolated loopback; run with run_isolated.sh",
+        "test dhcp::service::tests::receive_once_admits_loopback_pktinfo_and_preserves_addresses ... ignored, requires Linux isolated loopback; run with run_isolated.sh",
+        "test dhcp::service::tests::receive_once_rejects_ipv6_for_dhcpv4 ... ignored, requires Linux isolated loopback; run with run_isolated.sh",
+        "test dhcp::service::tests::socket_listener_processes_local_ack_and_replies_to_peer ... ignored, requires Linux isolated loopback; run with run_isolated.sh",
+        "test dns::cache::transfer_tests::exact_c_transfer_probe ... ignored",
+        "test dns::daemon::cache_tests::exact_c_oracle_driver ... ignored, requires DNSMASQ_CACHE_ORACLE_INPUT from cache_answer_diff.py",
+        "test dns::daemon::lease_cache_tests::exact_c_lease_cache_driver ... ignored, requires DNSMASQ_LEASE_CACHE_CONFIG and DNSMASQ_LEASE_CACHE_INPUT from lease_insert_diff.py",
+        "test dns::daemon::stale_tests::exact_c_stale_driver ... ignored, requires DNSMASQ_STALE_CONFIG/INPUT and the exact C baseline",
+        "test interfaces::ipv4_snapshot::tests::isolated_fresh_snapshot_and_primary_address_need_no_spare_descriptor ... ignored, requires a private Linux network namespace and process file limit",
+        "test interfaces::linux::tests::isolated_loopback_snapshot_matches_kernel_configuration ... ignored, requires a private Linux network namespace",
+        "test net::tests::tcp_pktoptions_identifies_loopback_for_both_families ... ignored, requires Linux isolated network namespace; run with run_isolated.sh",
+        "test net::tests::udp_source_and_truncation ... ignored, requires Linux isolated network namespace; run with run_isolated.sh",
+        "test tftp_listener::tests::dedicated_tid_idle_tick_and_cleanup_on_ipv4_and_ipv6 ... ignored, requires tools/dnsmasq/run_isolated.sh network namespace",
+        "test tftp_listener::tests::integrated_dual_stack_shares_capacity_and_pending_mac_does_not_block ... ignored, requires tools/dnsmasq/run_isolated.sh network namespace",
+        "test tftp_listener::tests::port_range_upper_bound_exhaustion_and_zero_start ... ignored, requires tools/dnsmasq/run_isolated.sh network namespace"
+      ]
+    },
+    {
+      "name": "bin-dnsmasq-rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "started": 1791749475.8195708,
+      "returncode": 0,
+      "log_sha256": "5d27038307d223864b394dd3724253d8dbcd43de5cfbf9964ac83d56c83e458f",
+      "elapsed_seconds": 3.9889168739318848,
+      "elf_sha256": "611b128b10ce094b8b53f66b3d59fcf6ebbf34399b21c87198c8c8ee68586bf7",
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/bin-dnsmasq-rs.log",
+        "bytes": 7093,
+        "sha256": "5d27038307d223864b394dd3724253d8dbcd43de5cfbf9964ac83d56c83e458f"
+      },
+      "counts": {
+        "passed": 75,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "test_summary": "test result: ok. 75 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.97s",
+      "ignored_tests": [
+        "test tftp_admission_tests::tftp_label_exception_resumes_the_original_rrq_without_another_packet ... ignored, requires run_isolated.sh network namespace",
+        "test tftp_admission_tests::tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector ... ignored, requires run_isolated.sh network namespace",
+        "test tftp_admission_tests::tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name ... ignored, requires run_isolated.sh network namespace"
+      ]
+    }
+  ],
+  "build_receipt": {
+    "source": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52153680,
+        "sha256": "611b128b10ce094b8b53f66b3d59fcf6ebbf34399b21c87198c8c8ee68586bf7"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 69564704,
+        "sha256": "12b16419a43a0937d3187b48601131e5e2ebd3e4e8e402e82be0da6a843cf22c"
+      }
+    ]
+  },
+  "build_receipt_file": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/build.json",
+    "bytes": 748,
+    "sha256": "039a213c5ada45b8713fb9fdea2d739fab5a881a1125f07edd502263134d8e0c"
+  },
+  "artifacts": [
+    {
+      "target": "dnsmasq-rs",
+      "kind": "bin",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      },
+      "features": [
+        "default"
+      ],
+      "fresh": false,
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/bin-dnsmasq-rs",
+        "bytes": 52153680,
+        "sha256": "611b128b10ce094b8b53f66b3d59fcf6ebbf34399b21c87198c8c8ee68586bf7"
+      },
+      "cargo_executable": {
+        "path": "/home/ubuntu/dnsmasq-cargo-target/aarch64-unknown-linux-musl/debug/deps/dnsmasq_rs-ecdec87c35644af4",
+        "bytes": 52153680,
+        "sha256": "611b128b10ce094b8b53f66b3d59fcf6ebbf34399b21c87198c8c8ee68586bf7"
+      },
+      "machine": "AArch64",
+      "bits": 64
+    },
+    {
+      "target": "dnsmasq_rs",
+      "kind": "lib",
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 2,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      },
+      "features": [
+        "default"
+      ],
+      "fresh": false,
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/lib-dnsmasq_rs",
+        "bytes": 69564704,
+        "sha256": "12b16419a43a0937d3187b48601131e5e2ebd3e4e8e402e82be0da6a843cf22c"
+      },
+      "cargo_executable": {
+        "path": "/home/ubuntu/dnsmasq-cargo-target/aarch64-unknown-linux-musl/debug/deps/dnsmasq_rs-956a5b1c850355ad",
+        "bytes": 69564704,
+        "sha256": "12b16419a43a0937d3187b48601131e5e2ebd3e4e8e402e82be0da6a843cf22c"
+      },
+      "machine": "AArch64",
+      "bits": 64
+    }
+  ],
+  "build_stdout": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/build.stdout",
+    "bytes": 142159,
+    "sha256": "4ea9bd0af988c3a5c0b802e55501564898c44ac656b94f3638edca8be11b1f11"
+  },
+  "cargo_build_log": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/units-final/build/build.log",
+    "bytes": 284,
+    "sha256": "653518a4915f40630d7affcc78d75a863c7d8b009beb26062c8496027f56a39d"
+  },
+  "cargo_profile_summary": "Finished `test` profile [unoptimized + debuginfo] target(s) in 33.25s",
+  "actual_test_profile": {
+    "opt_level": "0",
+    "debuginfo": 2,
+    "debug_assertions": true,
+    "overflow_checks": true,
+    "test": true
+  },
+  "profile_note": "The wrapper receipt records opt_level=3, but compiler-artifact records and the Cargo completion line prove these harnesses were built using the unoptimized test profile (opt_level=0, debuginfo=2). Do not interpret wrapper opt_level=3 as actual test optimization or as a release-artifact qualification.",
+  "tool_files": [
+    {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/oracle_build.sh",
+      "bytes": 13925,
+      "sha256": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+      "bytes": 399,
+      "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+    }
+  ],
+  "isolation": "Each library and binary harness was invoked in its own run_isolated namespace, with a private tmpfs mounted at /tmp and --test-threads=1. Exact invocation argv are retained above.",
+  "attempts": {
+    "build": 1,
+    "library": 1,
+    "binary": 1,
+    "unit_failure_retries": 0
+  },
+  "totals": {
+    "passed": 836,
+    "failed": 0,
+    "ignored": 23,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "limits": [
+    "23 ignored tests were not executed and are not counted as passes.",
+    "This receipt covers ordinary library/binary unit harnesses, not production static-PIE ELF runtime protection or differential daemon families; those have separate evidence."
+  ],
+  "prior_unit_receipt": {
+    "path": "unit_tests.json",
+    "sha256": "73c08d7447d07761cf4a87ad9e7e3e5963b66764d261332f7025ef4efe7c27a6",
+    "source_commit": "2d9c09ca10b2035fbfb5903d502ce1788b49fc1b",
+    "status": "retained unchanged; initial source test run, superseded for final product qualification"
+  },
+  "revision_note": "Final source ec0750b4 includes the F07 hosts initialization integration correction and stronger assertions in an existing bin scheduling test. The ordinary test inventory remains 761 library plus 75 binary passes, with 23 ignored; no final-unit failure/retry occurred."
+}
