@@ -298,6 +298,8 @@ where
     }
 }
 
+type RapidName<'a> = dyn FnMut(Ipv4Addr, usize) -> Result<Option<(Vec<u8>, bool)>, RuntimeError> + 'a;
+
 /// A small state adapter for the local DHCP/BOOTP path.  It owns no socket or
 /// event loop; callers configure contexts/tags and pass it to
 /// [`process`] or `crate::dhcp::service::SocketListener`.  This
@@ -314,6 +316,8 @@ pub struct StateProvider<'a, F> {
     /// name already owned by the lease. Configured/static names still win.
     pub ignore_client_name: bool,
     pub generated_name: Option<&'a [u8]>,
+    /// Rapid commit resolves hostname policy only after DISCOVER selects yiaddr.
+    pub(crate) rapid_name: Option<&'a mut RapidName<'a>>,
     /// Scoped BOOTP permission indexed by the context finally chosen by state.
     pub bootp_contexts: &'a [bool],
     pub domains: Option<&'a crate::config::dhcp::NameDomains>,
@@ -347,6 +351,7 @@ impl<'a, F> StateProvider<'a, F> {
             configured_name: None,
             ignore_client_name: false,
             generated_name: None,
+            rapid_name: None,
             bootp_contexts: &[],
             domains: None,
             environment,
@@ -401,7 +406,7 @@ where
                 // independently of the server's dhcp-authoritative lease policy.
                 authoritative: self.configured_name.is_some(),
             });
-        let request = || Request {
+        let request = |name| Request {
             packet,
             tags: self.tags,
             host: self.host.as_deref(),
@@ -414,28 +419,52 @@ where
             .message_counters
             .as_deref_mut()
             .unwrap_or(&mut discarded_counters);
-        let events = self.event_sink.as_deref_mut();
+        let mut events = self.event_sink.as_deref_mut();
         let outcome = match packet.message_type() {
             0 => state::bootp_counted_logged(
                 self.store,
                 self.ranges,
-                request(),
+                request(name),
                 &mut self.probe,
                 counters,
                 self.bootp_contexts,
                 events,
             ),
-            1 => state::discover_counted(
-                self.store,
-                self.ranges,
-                request(),
-                &mut self.probe,
-                self.quiet_dhcp,
-                counters,
-                events,
-                self.before_offer.as_deref_mut(),
-            ),
-            3 => state::request_counted(self.store, self.ranges, request(), counters, events),
+            1 => {
+                let offer = state::select_discover_counted(
+                    self.store,
+                    self.ranges,
+                    &request(name),
+                    &mut self.probe,
+                    self.quiet_dhcp,
+                    counters,
+                    events.as_deref_mut(),
+                    self.before_offer.as_deref_mut(),
+                )
+                .map_err(|error| RuntimeError::State(format!("{error:?}")))?;
+                let rapid_name = if environment.rapid_commit && packet.option(80, 0).is_some() {
+                    if let (Some(resolve), Reply::Offer { address, context, .. }) =
+                        (self.rapid_name.as_deref_mut(), offer.reply)
+                    {
+                        Some(resolve(address, context)?)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+                let name = rapid_name.as_ref().map_or(name, |resolved| {
+                    resolved.as_ref().map(|(hostname, authoritative)| Name {
+                        hostname,
+                        authoritative: *authoritative,
+                        domains: self.domains,
+                    })
+                });
+                state::finish_discover_counted(
+                    self.store, self.ranges, request(name), offer, counters, events,
+                )
+            }
+            3 => state::request_counted(self.store, self.ranges, request(name), counters, events),
             4 => Ok(Outcome {
                 reply: Reply::Ignore,
                 removed: state::decline_counted_logged(
@@ -462,7 +491,7 @@ where
                 ),
                 lost_names: Vec::new(),
             }),
-            8 => state::inform_counted(self.store, self.ranges, request(), counters, events),
+            8 => state::inform_counted(self.store, self.ranges, request(name), counters, events),
             // The runtime filters PXE, relay, leasequery and unknown routes
             // before this callback. A known but client-only message type is a
             // no-reply state transition in rfc2131.c.

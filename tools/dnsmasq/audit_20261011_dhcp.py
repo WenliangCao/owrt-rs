@@ -16,6 +16,8 @@ import struct
 import subprocess
 import time
 
+from m2_rootfs import image_elf_command
+
 STOCK_SHA256 = '097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87'
 
 
@@ -194,6 +196,7 @@ def main():
     p.add_argument('--image-root', type=Path, required=True)
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--report', type=Path, required=True)
+    p.add_argument('--source-commit')
     args = p.parse_args()
     if os.environ.get('DNSMASQ_TEST_ISOLATED') != '1' or os.geteuid() != 0:
         p.error('root in run_isolated.sh required')
@@ -207,16 +210,24 @@ def main():
     loader = image / 'lib/ld-musl-aarch64.so.1'
     c = [str(loader), '--library-path', f'{image}/lib:{image}/usr/lib', str(stock)]
     report = {'scope': 'private net/mount/pid namespace; exact image C ELF and its musl loader; synthetic loopback DHCP clients',
-              'source_commit': '3e7df6c1cc45b74f0430e5460379713900172cb4',
+              'source_commit': args.source_commit,
               'c_sha256': sha(stock), 'rust_sha256': sha(args.rust), 'tool_sha256': sha(__file__),
-              'cases': []}
+              'cases': [], 'matched': 0, 'failures': []}
     for case in cases():
         rows = {side: execute(binary, case, out / f'{case["name"]}-{side}')
-                for side, binary in [('c', c), ('rust', [str(args.rust.resolve())])]}
-        report['cases'].append({'name': case['name'], **rows})
+                for side, binary in [('c', c), ('rust', image_elf_command(image, args.rust))]}
+        matched = rows['c'] == rows['rust']
+        healthy = all(row['exit'] == 0 and all(event['daemon_alive'] for event in row['events'])
+                      for row in rows.values())
+        report['cases'].append({'name': case['name'], 'matched': matched, **rows})
+        report['matched'] += matched and healthy
+        if not matched or not healthy:
+            report['failures'].append(case['name'])
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
+    if report['failures']:
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':

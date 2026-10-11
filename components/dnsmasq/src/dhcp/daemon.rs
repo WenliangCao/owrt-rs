@@ -2120,34 +2120,6 @@ impl LocalProvider {
             || (packet.message_type() == 1
                 && self.config.rapid_commit
                 && packet.option(80, 0).is_some());
-        let mut name_tags = tags.clone();
-        let ignore_client_name = if ack {
-            // The state machine uses the server-ID suffix of the context
-            // chain for SELECTING, then narrows it by the requested address.
-            let first = if packet.requested_address().is_some() {
-                packet
-                    .server_identifier()
-                    .and_then(|server| ranges.iter().position(|range| range.local == server))
-                    .unwrap_or(0)
-            } else {
-                0
-            };
-            let address = packet
-                .requested_address()
-                .unwrap_or(packet.effective_ciaddr());
-            if let Some(index) = super::allocation::narrow(&ranges[first..], address, &tags) {
-                if let Some(tag) = self.config.ranges[self.selected[first + index].source_index]
-                    .set_tag
-                    .as_deref()
-                {
-                    name_tags.push(tag);
-                }
-            }
-            TagIf::apply_all(&self.config.tag_if, &mut name_tags);
-            self.config.ignore_client_name(&name_tags)
-        } else {
-            false
-        };
         self.reply_hostname = configured_name.map(<[u8]>::to_vec).or(client_name);
         if packet.message_type() == 1
             && !ack
@@ -2159,7 +2131,7 @@ impl LocalProvider {
             // its domain, while offer_hostname still points at that string.
             self.reply_hostname = Some(Vec::new());
         }
-        if packet.message_type() == 1 && packet.option(81, 3).is_none() {
+        if packet.message_type() == 1 && !ack && packet.option(81, 3).is_none() {
             // An ordinary client name alone is not echoed in an OFFER. A
             // configured name must match the full provided name, before strip.
             let provided = packet.client_hostname_full();
@@ -2180,50 +2152,67 @@ impl LocalProvider {
                 self.reply_hostname = Some(name.clone());
             }
         }
-        // dhcp.c host_from_dns supplies an authoritative name for ordinary
-        // ACK, but only a fallback for INFORM. No lookup is done with DNS
-        // disabled. A provider without a static-host source has no match.
-        let reverse_address = match packet.message_type() {
-            3 if configured_name.is_none() => packet
-                .requested_address()
-                .or(Some(packet.effective_ciaddr())),
-            8 if self.reply_hostname.is_none() => Some(packet.effective_ciaddr()),
-            _ => None,
-        }
-        .filter(|address| !address.is_unspecified());
-        let dns_name = if self.dns_port != 0 {
-            if let (Some(address), Some(lookup)) =
-                (reverse_address, self.reverse_host_lookup.as_mut())
-            {
-                lookup(address)
-                    .map_err(|error| RuntimeError::State(error.to_string()))?
-                    .and_then(|name| reverse_hostname(name, self.domains.for_address(address)))
-            } else {
-                None
+        // INFORM only uses hosts as a fallback; ACK name policy below is
+        // shared with rapid commit after DISCOVER has selected its address.
+        if packet.message_type() == 8 && self.reply_hostname.is_none() && self.dns_port != 0 {
+            let address = packet.effective_ciaddr();
+            if !address.is_unspecified() {
+                if let Some(lookup) = self.reverse_host_lookup.as_mut() {
+                    self.reply_hostname = lookup(address)
+                        .map_err(|error| RuntimeError::State(error.to_string()))?
+                        .and_then(|name| reverse_hostname(name, self.domains.for_address(address)));
+                }
             }
+        }
+        let generated_name = (!self.config.generate_names.is_empty())
+            .then(|| generated_hostname(packet, clid))
+            .flatten();
+        let mut ack_name = |address: Ipv4Addr, context: Option<usize>| {
+            // rfc2131.c:1599,1676-1720: the final context supplies its tag
+            // before hosts authority, ignore-names and generated-name policy.
+            let mut name_tags: Vec<_> = self.request_tags.iter().map(Vec::as_slice).collect();
+            if let Some(tag) = context.and_then(|index| {
+                self.config.ranges[self.selected[index].source_index].set_tag.as_deref()
+            }) {
+                name_tags.push(tag);
+            }
+            TagIf::apply_all(&self.config.tag_if, &mut name_tags);
+            let mut name = configured_name.map(<[u8]>::to_vec);
+            let mut authoritative = name.is_some();
+            if !authoritative && self.dns_port != 0 && !address.is_unspecified() {
+                if let Some(lookup) = self.reverse_host_lookup.as_mut() {
+                    name = lookup(address)
+                        .map_err(|error| RuntimeError::State(error.to_string()))?
+                        .and_then(|name| reverse_hostname(name, self.domains.for_address(address)));
+                    authoritative = name.is_some();
+                }
+            }
+            if name.is_none() && !self.config.ignore_client_name(&name_tags) {
+                name = packet.client_hostname();
+            }
+            if name.is_none() && self.config.generate_names.iter().any(|rule| rule.matches(&name_tags)) {
+                name = generated_name.clone();
+            }
+            Ok(name.map(|name| (name, authoritative)))
+        };
+        let request_name = if packet.message_type() == 3 {
+            // SELECTING consumes the server-ID suffix before narrowing.
+            let first = if packet.requested_address().is_some() {
+                packet.server_identifier()
+                    .and_then(|server| ranges.iter().position(|range| range.local == server))
+                    .unwrap_or(0)
+            } else {
+                0
+            };
+            let address = packet.requested_address().unwrap_or(packet.effective_ciaddr());
+            let context = super::allocation::narrow(&ranges[first..], address, &tags)
+                .map(|index| first + index);
+            let name = ack_name(address, context)?;
+            self.reply_hostname = name.as_ref().map(|(name, _)| name.clone());
+            name
         } else {
             None
         };
-        if let Some(name) = &dns_name {
-            self.reply_hostname = Some(name.clone());
-        } else if ignore_client_name && configured_name.is_none() {
-            self.reply_hostname = None;
-        }
-        let generated_name = if ack
-            && self.reply_hostname.is_none()
-            && self
-                .config
-                .generate_names
-                .iter()
-                .any(|rule| rule.matches(&name_tags))
-        {
-            generated_hostname(packet, clid)
-        } else {
-            None
-        };
-        if let Some(name) = &generated_name {
-            self.reply_hostname = Some(name.clone());
-        }
         let bootp_permissions: Vec<bool> = if packet.message_type() == 0
             && !self.config.bootp_dynamic_tags.is_empty()
         {
@@ -2431,6 +2420,11 @@ impl LocalProvider {
                 }
             }
         };
+        let mut rapid_name = |address, context| {
+            let name = ack_name(address, Some(context))?;
+            self.reply_hostname = name.as_ref().map(|(name, _)| name.clone());
+            Ok(name)
+        };
         let mut provider = StateProvider::new(
             &mut self.leases,
             &mut ranges,
@@ -2462,9 +2456,15 @@ impl LocalProvider {
                 }
             },
         );
-        provider.configured_name = dns_name.as_deref().or(configured_name);
-        provider.ignore_client_name = ignore_client_name;
-        provider.generated_name = generated_name.as_deref();
+        provider.configured_name = request_name.as_ref()
+            .filter(|(_, authoritative)| *authoritative)
+            .map(|(name, _)| name.as_slice())
+            .or(configured_name);
+        provider.ignore_client_name = packet.message_type() == 3;
+        provider.generated_name = request_name.as_ref()
+            .filter(|(_, authoritative)| !authoritative)
+            .map(|(name, _)| name.as_slice());
+        provider.rapid_name = Some(&mut rapid_name);
         provider.bootp_contexts = &bootp_permissions;
         provider.domains = Some(&self.domains);
         provider.quiet_dhcp = self.config.quiet_dhcp;
@@ -2473,6 +2473,8 @@ impl LocalProvider {
         provider.before_offer = Some(&mut before_offer);
         let result = provider.resolve(dispatch);
         drop(provider);
+        drop(rapid_name);
+        drop(ack_name);
         drop(before_offer);
         drop(on_event);
         drop(packet_notice);

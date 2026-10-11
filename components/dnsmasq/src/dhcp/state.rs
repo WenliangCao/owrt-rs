@@ -394,7 +394,7 @@ fn transaction(
     {
         error = Some(Refusal::NoUniqueId);
     }
-    if error.is_none() && existing.is_none() {
+    if error.is_none() && existing_id.is_none() {
         let mut allocation_identity = client.clone();
         if request.host.is_some_and(|host| host.ignore_client_id) {
             allocation_identity.client_id = None;
@@ -528,6 +528,31 @@ pub(crate) fn discover_counted(
     store: &mut LeaseStore,
     ranges: &mut [AddressRange],
     request: Request<'_>,
+    probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
+    quiet: bool,
+    counters: &mut MessageCounters,
+    mut events: Option<&mut LogSink<'_>>,
+    before_offer: Option<&mut OfferWait<'_>>,
+) -> Result<Outcome, LeaseError> {
+    let outcome = select_discover_counted(
+        store,
+        ranges,
+        &request,
+        probe,
+        quiet,
+        counters,
+        events.as_deref_mut(),
+        before_offer,
+    )?;
+    finish_discover_counted(store, ranges, request, outcome, counters, events)
+}
+
+/// Select an address before ACK name policy: rapid commit needs the actual
+/// context and yiaddr, which cannot be inferred from DISCOVER option 50.
+pub(crate) fn select_discover_counted(
+    store: &mut LeaseStore,
+    ranges: &mut [AddressRange],
+    request: &Request<'_>,
     mut probe: impl FnMut(Ipv4Addr, u32, LeaseCounters) -> ProbeResult,
     quiet: bool,
     counters: &mut MessageCounters,
@@ -659,16 +684,6 @@ pub(crate) fn discover_counted(
             return Ok(Outcome::ignored());
         }
     }
-    if env.rapid_commit && request.packet.option(80, 0).is_some() {
-        return transaction(store, ranges, request, Some(address), counters, events);
-    }
-    if let Some(events) = events.as_deref_mut() {
-        events(LogEvent::Tags {
-            context: Some(context),
-        });
-    }
-    counters.offer = counters.offer.wrapping_add(1); // :1377
-    log_packet(&mut events, b"DHCPOFFER", Some(address), None, None);
     let lease_time = lease_duration(
         ranges[context].lease_time,
         request.host.and_then(|host| host.lease_time),
@@ -684,6 +699,31 @@ pub(crate) fn discover_counted(
         removed: Vec::new(),
         lost_names: Vec::new(),
     })
+}
+
+/// Complete DISCOVER after the owner has resolved any ACK name policy.
+pub(crate) fn finish_discover_counted(
+    store: &mut LeaseStore,
+    ranges: &[AddressRange],
+    request: Request<'_>,
+    outcome: Outcome,
+    counters: &mut MessageCounters,
+    mut events: Option<&mut LogSink<'_>>,
+) -> Result<Outcome, LeaseError> {
+    let Reply::Offer { address, context, .. } = outcome.reply else {
+        return Ok(outcome);
+    };
+    if request.environment.rapid_commit && request.packet.option(80, 0).is_some() {
+        return transaction(store, ranges, request, Some(address), counters, events);
+    }
+    if let Some(events) = events.as_deref_mut() {
+        events(LogEvent::Tags {
+            context: Some(context),
+        });
+    }
+    counters.offer = counters.offer.wrapping_add(1); // :1377
+    log_packet(&mut events, b"DHCPOFFER", Some(address), None, None);
+    Ok(outcome)
 }
 
 fn discover_failed(
