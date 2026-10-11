@@ -1,0 +1,490 @@
+{
+  "scope": "Independent real OpenWrt SDK package builds using a copied SDK; no product edits, physical router, install/upgrade/rollback or deploy. Oracle SDK host wrappers retained; these are not canonical release qualification.",
+  "head": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+  "main": "be531cee49e366bb5044443d473944dbea45b87e",
+  "sdk_copy": "/home/ubuntu/dnsmasq-fix-independent-20261011/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+  "cases": {
+    "candidate_compile": {
+      "git_commit": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+      "source_digest": "728eb7a5ce76edbe062863f771c019e98de13ee9a852b41ffe000881377673e5",
+      "status": "failed",
+      "error": "command exited 2; see /home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/compile.log",
+      "sdk_recipe_restored": true,
+      "budget": {
+        "schema": 1,
+        "elf_max_bytes": 1000000,
+        "apk_max_bytes": 700000,
+        "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+      },
+      "commands": [
+        [
+          "make",
+          "package/owrt-dnsmasq/prepare",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/sdk-output",
+          "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ],
+        [
+          "make",
+          "package/owrt-dnsmasq/compile",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/sdk-output",
+          "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ]
+      ],
+      "invocation": [
+        "python3",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/source/tools/dnsmasq/build_package.py",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02",
+        "--package-release",
+        "3",
+        "--budget",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/source/tools/dnsmasq/m5_final_budget.json",
+        "--source-commit",
+        "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+        "--source-date-epoch",
+        "1791732284",
+        "--expected-source-digest",
+        "728eb7a5ce76edbe062863f771c019e98de13ee9a852b41ffe000881377673e5",
+        "--expected-elf-sha256",
+        "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84"
+      ],
+      "raw_evidence": {
+        "manifest.json": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/manifest.json",
+          "sha256": "6a1d97478290e39e31e6d159453ffe5386bc0a8e09d8deaee3c96a713295d28f"
+        },
+        "prepare.log": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/prepare.log",
+          "sha256": "7628accac2193fcf2ac663b97dd34a88bd360505dd6eed1e08e7729c35e33e1d"
+        },
+        "compile.log": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/compile.log",
+          "sha256": "00c246ed46931f5f3265380221eb2a918518b1020ae422e86ad53987206b8a80"
+        }
+      },
+      "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "compile_log_excerpts": [
+        {
+          "line": 114,
+          "text": "RUSTUP_HOME=\"/home/ubuntu/.rustup\" CARGO_HOME=\"/home/ubuntu/.cargo\" CARGO_BUILD_TARGET=\"aarch64-unknown-linux-musl\" CARGO_PROFILE_RELEASE_PANIC=abort CC_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc\" AR_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc-ar\" DNSMASQ_STATIC_PIE_CC=\"\" CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=\"/home/ubuntu/dnsmasq-fix-independent-20261011/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq/static-pie-linker.py\" RUSTFLAGS=\"-Cforce-unwind-tables=no --remap-path-prefix=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/package-build=/build --remap-path-prefix=/home/ubuntu/.cargo=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static\" /home/ubuntu/.cargo/bin/cargo build --release --frozen --manifest-path /home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/package-build/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir /home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-independent-package-02/package-build/dnsmasq/target"
+        },
+        {
+          "line": 468,
+          "text": "  = note: DNSMASQ_STATIC_PIE_CC must name the actual SDK compiler"
+        },
+        {
+          "line": 472,
+          "text": "error: could not compile `dnsmasq-rs` (bin \"dnsmasq-rs\") due to 1 previous error; 2 warnings emitted"
+        },
+        {
+          "line": 475,
+          "text": "time: package/owrt-dnsmasq/compile#58.54#2.30#59.32"
+        }
+      ],
+      "elf_and_apk_produced": false,
+      "sdk_file_hashes_equal_shared": true
+    },
+    "main_compile_control": {
+      "git_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+      "source_digest": "b1d2bed48938c8393ce828e10a39583b93711b5915de2adb09b136138266a560",
+      "status": "failed",
+      "error": "packaged ELF differs from the frozen ELF; retain artifact and investigate build inputs",
+      "sdk_recipe_restored": true,
+      "artifact": {
+        "name": "dnsmasq-2.93-r3.apk",
+        "sha256": "a75eca60cb3f8f32e731504c09f7dd423e46593e5de06614e8c415e4cac8eef9",
+        "size": 1087188
+      },
+      "elf": {
+        "sha256": "7aaf8cba8d2e270aee522e1ad98860b374b55b841e3b833c34e22665b5360333",
+        "size": 1968915,
+        "install_path": "/usr/sbin/dnsmasq",
+        "source_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+        "expected_sha256": "18a692e088bb67a730c809c9eb2263f1eb9cedaa044e6c9b0e579e64ce1010f7"
+      },
+      "apk_metadata": {
+        "name": "dnsmasq",
+        "version": "2.93-r3",
+        "arch": "aarch64_cortex-a53",
+        "provides": [
+          "dnsmasq-any"
+        ],
+        "replacement": "same package name dnsmasq, newer release 2.93-r3",
+        "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+        "depends": [
+          "libc",
+          "libubus20251202"
+        ]
+      },
+      "budget": {
+        "schema": 1,
+        "elf_max_bytes": 1000000,
+        "apk_max_bytes": 700000,
+        "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+      },
+      "commands": [
+        [
+          "make",
+          "package/owrt-dnsmasq/prepare",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/sdk-output",
+          "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ],
+        [
+          "make",
+          "package/owrt-dnsmasq/compile",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/sdk-output",
+          "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ]
+      ],
+      "invocation": [
+        "python3",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/tools/dnsmasq/build_package.py",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01",
+        "--package-release",
+        "3",
+        "--budget",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/tools/dnsmasq/m5_final_budget.json",
+        "--source-commit",
+        "be531cee49e366bb5044443d473944dbea45b87e",
+        "--source-date-epoch",
+        "1791711247",
+        "--expected-source-digest",
+        "b1d2bed48938c8393ce828e10a39583b93711b5915de2adb09b136138266a560",
+        "--expected-elf-sha256",
+        "18a692e088bb67a730c809c9eb2263f1eb9cedaa044e6c9b0e579e64ce1010f7"
+      ],
+      "raw_evidence": {
+        "manifest.json": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/manifest.json",
+          "sha256": "ea6f231a669eb65fa55a3591be82500728186302d7cc249192df45f43671a2de"
+        },
+        "prepare.log": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/prepare.log",
+          "sha256": "f345897fa916ff0777b9f2df7ab449877e0b7cedebe70c79ee3897b3309f5b91"
+        },
+        "compile.log": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/compile.log",
+          "sha256": "a6baf3822272b0a6f6a02e6fbe970a461a03ecc18123feaab3a84fcadc32796a"
+        }
+      },
+      "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "compile_log_excerpts": [
+        {
+          "line": 114,
+          "text": "RUSTUP_HOME=\"/home/ubuntu/.rustup\" CARGO_HOME=\"/home/ubuntu/.cargo\" CARGO_BUILD_TARGET=\"aarch64-unknown-linux-musl\" CARGO_PROFILE_RELEASE_PANIC=abort CC_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc\" AR_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc-ar\" CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=\"aarch64-openwrt-linux-musl-gcc\" RUSTFLAGS=\"-Cforce-unwind-tables=no --remap-path-prefix=/home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/package-build=/build --remap-path-prefix=/home/ubuntu/.cargo=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs\" /home/ubuntu/.cargo/bin/cargo build --release --frozen --manifest-path /home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/package-build/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir /home/ubuntu/dnsmasq-fix-independent-20261011/main-build-source/private/build-main-package-01/package-build/dnsmasq/target"
+        },
+        {
+          "line": 477,
+          "text": "    Finished `release` profile [optimized] target(s) in 56.30s"
+        },
+        {
+          "line": 584,
+          "text": "time: package/owrt-dnsmasq/compile#61.53#3.15#62.60"
+        }
+      ],
+      "elf_and_apk_produced": true,
+      "sdk_file_hashes_equal_shared": true
+    },
+    "candidate_frozen_package": {
+      "git_commit": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+      "source_digest": "728eb7a5ce76edbe062863f771c019e98de13ee9a852b41ffe000881377673e5",
+      "status": "failed",
+      "error": "APK size 1113791 exceeds target 700000 bytes; ELF size 2052576 exceeds target 1000000 bytes",
+      "sdk_recipe_restored": true,
+      "artifact": {
+        "name": "dnsmasq-2.93-r3.apk",
+        "sha256": "f8fd32e4f5cfbaa8095b2ef397be390752321fb2ff3472637f54ba8fc5403d6f",
+        "size": 1113791
+      },
+      "elf": {
+        "sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+        "size": 2052576,
+        "install_path": "/usr/sbin/dnsmasq",
+        "source_commit": "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+        "expected_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84"
+      },
+      "apk_metadata": {
+        "name": "dnsmasq",
+        "version": "2.93-r3",
+        "arch": "aarch64_cortex-a53",
+        "provides": [
+          "dnsmasq-any"
+        ],
+        "replacement": "same package name dnsmasq, newer release 2.93-r3",
+        "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+        "depends": [
+          "libc",
+          "libubus20251202"
+        ]
+      },
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "artifact_identity_verified": true,
+      "failure_boundary": "size-target",
+      "budget_checks": {
+        "apk": false,
+        "elf": false
+      },
+      "budget": {
+        "schema": 1,
+        "elf_max_bytes": 1000000,
+        "apk_max_bytes": 700000,
+        "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+      },
+      "commands": [
+        [
+          "make",
+          "package/owrt-dnsmasq/prepare",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/sdk-output",
+          "OWRT_DNSMASQ_FROZEN_ELF=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/frozen-dnsmasq"
+        ],
+        [
+          "make",
+          "package/owrt-dnsmasq/compile",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/sdk-output",
+          "OWRT_DNSMASQ_FROZEN_ELF=/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/frozen-dnsmasq"
+        ]
+      ],
+      "invocation": [
+        "python3",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/source/tools/dnsmasq/build_package.py",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01",
+        "--package-release",
+        "3",
+        "--budget",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/source/tools/dnsmasq/m5_final_budget.json",
+        "--source-commit",
+        "6b8eee96eda8aaa4cc47580530e5f287baeaaaa4",
+        "--source-date-epoch",
+        "1791732284",
+        "--expected-source-digest",
+        "728eb7a5ce76edbe062863f771c019e98de13ee9a852b41ffe000881377673e5",
+        "--expected-elf-sha256",
+        "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+        "--frozen-elf",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/private/release/dnsmasq-rs",
+        "--freeze-manifest",
+        "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-frozen-manifest.json"
+      ],
+      "raw_evidence": {
+        "manifest.json": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/manifest.json",
+          "sha256": "a0c11457be6a1533bd79a7c80efdca9fa0f3f7b759bf5a447048a8969d34a9fb"
+        },
+        "prepare.log": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/prepare.log",
+          "sha256": "a3c2ad17bfaac166f24931d08e45844577f1e615e971df11e81c202de7ef5e55"
+        },
+        "compile.log": {
+          "path": "/home/ubuntu/dnsmasq-fix-independent-20261011/source/private/build-frozen-package-01/compile.log",
+          "sha256": "90a33f231d5a70ae2e185b489d7519eb4003df9b7f0a20dee00bedc2536d7850"
+        }
+      },
+      "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "compile_log_excerpts": [
+        {
+          "line": 208,
+          "text": "time: package/owrt-dnsmasq/compile#5.61#1.69#6.05"
+        }
+      ],
+      "elf_and_apk_produced": true,
+      "sdk_file_hashes_equal_shared": true
+    }
+  },
+  "sdk_make_expansion": {
+    "file_sha256": "fc50744c6108c09a213d85fa6a73411ba081a6774c80e4fc3fbb5d160d0bbc55",
+    "references": [
+      {
+        "line": 245,
+        "text": "define Build/CoreTargets"
+      },
+      {
+        "line": 284,
+        "text": "\t$(Build/Compile)"
+      },
+      {
+        "line": 333,
+        "text": "define Build/DefaultTargets"
+      },
+      {
+        "line": 335,
+        "text": "  $(if $(DUMP),,$(Build/CoreTargets))"
+      },
+      {
+        "line": 341,
+        "text": "define BuildPackage"
+      },
+      {
+        "line": 379,
+        "text": "  $(if $(PKG_HOST_ONLY),,$(call Build/DefaultTargets,$(1)))"
+      }
+    ]
+  },
+  "interpretation": {
+    "candidate_compile": "New regression: generated recipe exports DNSMASQ_STATIC_PIE_CC empty; helper fails before link. No candidate ELF/APK produced by this path.",
+    "main_compile_control": "Both make prepare and compile return zero and APK/ELF pass payload/metadata gates. Overall builder deliberately rejects due to different expected oracle ELF SHA, so this is a successful compilation control, not a passed package audit.",
+    "candidate_frozen_package": "Existing frozen-ELF bypass works and preserves exact new release SHA. Overall builder fails only both existing size budgets. A diagnostic manifest was generated solely to probe packaging; it does not certify behavior, lifecycle or deploy acceptance.",
+    "fixtures": "Unit test uses an empty package.mk and direct Build/Compile recipe expansion; independent eval fixture reproduces empty CC using unchanged product Makefile.",
+    "host_warnings": "SDK wrapper LD_PRELOAD/runas warnings occur in all cases, including successful main compilation; not the cause of candidate empty CC.",
+    "attempt_01": "Initial candidate package attempt only failed before make because the independent SDK copy/archive symlink was not yet complete; omitted from causality proof."
+  },
+  "sdk_files": {
+    ".config": "d171dc5c433ab321ab37162fe40342b6aef4b5f377870fff2a1cb7ab492d6018",
+    "rules.mk": "11a51c7597da4d013e24b3e670e6760f2392e258b90951bba2db2b91154edef5",
+    "include/package.mk": "fc50744c6108c09a213d85fa6a73411ba081a6774c80e4fc3fbb5d160d0bbc55",
+    "include/package-pack.mk": "5aa1d250eca44dc47c650a005b24a09077c5fdd9f61389fccfe9fba206fc525f",
+    "include/feeds.mk": "159d9ac343d638487432874228a9ee3754289cd3850ec61e0867f607537332db",
+    "scripts/rstrip.sh": "89bd54e8ce186f49b881aa0d72919495a15d716e9f69d9b266ab0ca28265d87d",
+    "staging_dir/host/bin/apk": "4081b87131cf08cd7203ff81a3793d22e24ab84e8c714b5cd2fb4edf5a7fa9c3",
+    "staging_dir/host/bin/sstrip": "8a9b88928ed7822a1227943c4ea085561ce02ed5b7ad75e0fae4539d6cdc7049",
+    "staging_dir/host/bin/patchelf": "581308a9cc09c0d57d3277f689107524ee0273131f153e8e7a2fcdcd8591b19e",
+    "staging_dir/host/bin/.apk.bin": "333ac1a66c2d616bedbb3bdf8d1d80fdf4e19f8512e0f4241bf8e865dd710930",
+    "staging_dir/host/bin/.sstrip.bin": "aa0eaf3694af1cfda619463b6bf7ab0e305dbed9bb6b3d1f5bb9ad8fd09fa907",
+    "staging_dir/host/bin/.patchelf.bin": "eacd060d78bb98686a8d9540310eac21df61c9d66653c9cd299f82e7b3427a47",
+    "staging_dir/host/lib/runas.so": "d27b088a36df3c32b8674e4e902ea8ba149cbfb1da7a1c184adf349d00681c20",
+    "staging_dir/host/lib/ld-linux-x86-64.so.2": "fcbc378375d37c0bbdc3472768a83c5174f25bf2bb7006703d68edb1dfd2f52e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/include/stdio.h": "f158cf8fed586a99533f0d16de2f5e0b4678a3b5bd2aac619c1d277e7bc2811b",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/lib/libc.so": "ce740192431b2e7674b6bf9f690302c30083ea5480e2139f8f490460c2287f1e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/lib/crt1.o": "47b44946877c906a27efd904b8db289e1f93b1348ea4b0a6f1186e0ec1b5d5fd",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-addr2line.bin": "9366768fc92b9e07db3ea5c2c948844cb763d6483f55557cdc08b9ee53dcea82",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ar.bin": "0ee106de80ec96329c3d907041ee44c1cc62ce1db26f32ec23c079ca88699e15",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-as.bin": "8a6a13969e370d2971d4e48c2e52d880d359adea0d63bf38003da6da8808ab5a",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-c++.bin": "5b67c8d0beaaa95154f868c346bbdab9da4f5d3e01be78bf86b6e8c63358a6b8",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-c++filt.bin": "8f11abce7ca83ee8a417a6cd9d198288456255960b07e0b0e5aa4547a0250d0c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-cpp.bin": "371b3402612d86b2fb4ef599b9db90eedaa2515267e2f8a8ea504f746adad6f4",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-elfedit.bin": "8b0fd7b65a9ff2af2d90d3425216852050f821c21f2ab33368cc2111f2e337f7",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-g++.bin": "5b67c8d0beaaa95154f868c346bbdab9da4f5d3e01be78bf86b6e8c63358a6b8",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-14.3.0.bin": "b707e08ab8c0921f5cd296154cd3cfb665a4ee32ec10b9e625dfe4092385319f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-ar.bin": "8a99555a7743f532fdae8190511c1dbd509cafba9b1d93b8ce86938b4f2f2109",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-nm.bin": "7aee61469aec6ccf0f4ff3994b653c1a2e9398b55d8a3dedde706256086cf36e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-ranlib.bin": "a8e0259352e463bef131dcd9949c19bda0b1f261319d8beba7895becd28a0e19",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc.bin": "b707e08ab8c0921f5cd296154cd3cfb665a4ee32ec10b9e625dfe4092385319f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcov-dump.bin": "7df5f6060d929ca76f1474f10ff886d5ef0e0894b902385c78f1832225ff6ce2",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcov-tool.bin": "21181c13394092e0493fc686c4a46bb79dfa21a523f79438e9a75a120c1a3336",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcov.bin": "8d7b197076036f2c9d78d9afa9c4ee6b086283fc9a09e0b60ee8085d033e22de",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gdb.bin": "97e6876c73ee15bd6cd0e024136d9ccc1006e90b5d5344de1ae5af68032569f1",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gprof.bin": "a00cc0e7d01cb8f460699968a48e22e3ba011d31ab1a452061cac8e1e051e0e1",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ld.bfd.bin": "b527dd364b1db366fe7fd87616ad9e44c205ca9679a556d4a197c62f743d727f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ld.bin": "b527dd364b1db366fe7fd87616ad9e44c205ca9679a556d4a197c62f743d727f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-lto-dump.bin": "db9ba6963ce514ad644cf22684aee6bf6d6009722934c4063d9537c1e5783189",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-nm.bin": "222d9e887a0ce9e265fc2d6180c6b839c52d6524c4095739df737989ea275aa9",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-objcopy.bin": "123f61f7f8529ba04b68f341419cffebe18cefe0f1d5a8c572b5dfbedbfe0441",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-objdump.bin": "c9c3a1a70a13d1648d6f8504cf330b1b4991bf50a7b227f5b8e3e4a28c0f1baa",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ranlib.bin": "a7ceaac637c2b9fae99a6935a2545ceef5d521a7b13b7093eb8014602373f05d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-readelf.bin": "786b5af4a7b7c677abbb2d3db885b5237311055c637b60a83fce13aaf6760c1c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-size.bin": "aef93b19c78d26333fa1e1117751ebd1e316546f1ece70f8783d29e723021642",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-strings.bin": "c4251b1b57b94df64b066fe9ce2d2f54618de26b59620a2b22338e46dbb10cf2",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-strip.bin": "d23d4e9e5408dd507156ec2fed81747044217ee3a0d2ead5e234b1abc6a1726f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.readelf.bin": "786b5af4a7b7c677abbb2d3db885b5237311055c637b60a83fce13aaf6760c1c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-addr2line": "463e120d6c1fc79467121b2e91ebdbd0ed7e02c17ffdd264c7701c5e0e532459",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ar": "e538e36bdb0272c3017b5e3e3564a70d1e008d1fcca26465fd8edf96b5a3e16e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-as": "401485ed71176d8359d3068b9339c37d9617b7c6c778d886e206f55fc2bc98f0",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-c++": "e90e469432d147f50aa6cfe0d6ac4fdf791b7d56bdd098009871b1ef980f6c0d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-c++filt": "b4bec4ad8ca520779aaec5d0272a46a8f2a7026fe40a28d1ef6167954f709de8",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-cpp": "88aea9f5b2785fc00abe7cca911bbd921521b3ba8d21a62c4f03b108f9b4d8f1",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-elfedit": "f8a4378afc84ee332760db9932cd6c0ddc9820a6289d83839e77a2a2b4585d75",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-g++": "43f19198403f84f99e55bffa3779124fff0ca93793553bd7ca47d2c9baae34d3",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-14.3.0": "de04be105b4ad58648a0b330e87d9a646a83101a86efdd00c4a322589242f685",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-ar": "a0baa10188b052cfcd99028874f9d7b7b0a215f6104cbdcec038e3234f3b7f6c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-nm": "20a14a48126dcd661bfa128c86566598da2e1a127e258e34dbaf2984a9e148d8",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-ranlib": "91522cd9f21f223ea2dd2677b9114e87485cbf2f927eb78b0fc8010ffa549685",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcov": "a2c583b1a72ac13e5b9865373a05e1b2a3a5ef6222f0082c88e4bb60bd0be326",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcov-dump": "bb2ebc8c2e56e66da42bf2d341e1d0eea0065539c6957ec36d6454267ec47c8e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcov-tool": "cc96b7d6a0dbe644b7ab1654d95664a7762afb7c9736cf74af86c993e471063a",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gdb": "af3510cf5c9661c71cac7a3717943e050709af01bb7be21e6492776096c835cd",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gprof": "539f4a899c04da3b1cc9ae987799446fd8967be97e19f368e8184bce97d87429",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ld": "e32879d50e32cae6aa7ca7996714597cbec8106d8c554ba6e737ade45bb72e6f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ld.bfd": "59be81c6750f51edbd04e1f97cb77eb21d8cf740b7aabbd0b1838e4705869f1c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-lto-dump": "51e788998a27275a02baf6f08b8b87228fd94c2118caa9f2112606118cb7fca6",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-addr2line": "463e120d6c1fc79467121b2e91ebdbd0ed7e02c17ffdd264c7701c5e0e532459",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ar": "e538e36bdb0272c3017b5e3e3564a70d1e008d1fcca26465fd8edf96b5a3e16e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-as": "401485ed71176d8359d3068b9339c37d9617b7c6c778d886e206f55fc2bc98f0",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-c++": "e90e469432d147f50aa6cfe0d6ac4fdf791b7d56bdd098009871b1ef980f6c0d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-c++filt": "b4bec4ad8ca520779aaec5d0272a46a8f2a7026fe40a28d1ef6167954f709de8",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-cpp": "88aea9f5b2785fc00abe7cca911bbd921521b3ba8d21a62c4f03b108f9b4d8f1",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-elfedit": "f8a4378afc84ee332760db9932cd6c0ddc9820a6289d83839e77a2a2b4585d75",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-g++": "43f19198403f84f99e55bffa3779124fff0ca93793553bd7ca47d2c9baae34d3",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-14.3.0": "de04be105b4ad58648a0b330e87d9a646a83101a86efdd00c4a322589242f685",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-ar": "a0baa10188b052cfcd99028874f9d7b7b0a215f6104cbdcec038e3234f3b7f6c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-nm": "20a14a48126dcd661bfa128c86566598da2e1a127e258e34dbaf2984a9e148d8",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-ranlib": "91522cd9f21f223ea2dd2677b9114e87485cbf2f927eb78b0fc8010ffa549685",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcov": "a2c583b1a72ac13e5b9865373a05e1b2a3a5ef6222f0082c88e4bb60bd0be326",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcov-dump": "bb2ebc8c2e56e66da42bf2d341e1d0eea0065539c6957ec36d6454267ec47c8e",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcov-tool": "cc96b7d6a0dbe644b7ab1654d95664a7762afb7c9736cf74af86c993e471063a",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gdb": "af3510cf5c9661c71cac7a3717943e050709af01bb7be21e6492776096c835cd",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gprof": "539f4a899c04da3b1cc9ae987799446fd8967be97e19f368e8184bce97d87429",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ld": "e32879d50e32cae6aa7ca7996714597cbec8106d8c554ba6e737ade45bb72e6f",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ld.bfd": "59be81c6750f51edbd04e1f97cb77eb21d8cf740b7aabbd0b1838e4705869f1c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-lto-dump": "51e788998a27275a02baf6f08b8b87228fd94c2118caa9f2112606118cb7fca6",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-nm": "63472eee8b40657886ddbe4a12f909df3014b5d644bb29924d703fc48136b9d1",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-objcopy": "9bcdc1d60e4ca067be18433701841e9c5f8ebf72cbae8047c1ce86617333b5b2",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-objdump": "9633771b5329c877b0926d37da3555980da5d7257d79bc576ed49e9152a5b81d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ranlib": "b33e3e1ef413c5d200014217ccf4c2fea643fd429544149b77623ebcdd7bc06c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-readelf": "248e1287f840ae1bfe08acfde781db82ef510e854911b72c01f85310cc1e63df",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-size": "20d8d4c9994e275b1ee09f620ae3948e1c782b4b007021c088ad713648d3a91d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-strings": "4f37d7ebc416363fe608748a3585e137122e5d32c69ff5e4f8389e788f8bb6e3",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-strip": "1efd99ccc95d1549a5c14e697d47d923260c8e6841b3a2769decbb402daf9ac5",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-nm": "63472eee8b40657886ddbe4a12f909df3014b5d644bb29924d703fc48136b9d1",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-objcopy": "9bcdc1d60e4ca067be18433701841e9c5f8ebf72cbae8047c1ce86617333b5b2",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-objdump": "9633771b5329c877b0926d37da3555980da5d7257d79bc576ed49e9152a5b81d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ranlib": "b33e3e1ef413c5d200014217ccf4c2fea643fd429544149b77623ebcdd7bc06c",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-readelf": "248e1287f840ae1bfe08acfde781db82ef510e854911b72c01f85310cc1e63df",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-size": "20d8d4c9994e275b1ee09f620ae3948e1c782b4b007021c088ad713648d3a91d",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-strings": "4f37d7ebc416363fe608748a3585e137122e5d32c69ff5e4f8389e788f8bb6e3",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-strip": "1efd99ccc95d1549a5c14e697d47d923260c8e6841b3a2769decbb402daf9ac5",
+    "staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/readelf": "8fc34286be8210c7bbc36a0122f9b7ecb62bd89432837a833def8157bae2e5cf"
+  }
+}

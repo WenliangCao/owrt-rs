@@ -1,0 +1,23 @@
+{
+  "recipe_sha256": "b40645ca8143d8bb504d0962bbc42254b9a4a096df8ee79a104a2c4226b7c564",
+  "results": {
+    "direct": {
+      "returncode": 0,
+      "environment": {
+        "DNSMASQ_STATIC_PIE_CC": "/var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/bin/aarch64-openwrt-linux-musl-gcc",
+        "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER": "/Users/USER/Developer/owrt-control-plane-rs/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"
+      },
+      "stdout": "RUSTUP_HOME=\"\" CARGO_HOME=\"\" CARGO_BUILD_TARGET=\"aarch64-unknown-linux-musl\" CARGO_PROFILE_RELEASE_PANIC=abort CC_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc\" AR_aarch64_unknown_linux_musl=\"\" DNSMASQ_STATIC_PIE_CC=\"$(command -v \"aarch64-openwrt-linux-musl-gcc\")\" CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=\"/Users/USER/Developer/owrt-control-plane-rs/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py\" RUSTFLAGS=\"-Cforce-unwind-tables=no --remap-path-prefix=/var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/build=/build --remap-path-prefix==/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static\" /var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/bin/cargo build --release --frozen --manifest-path /var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/build/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir /var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/build/dnsmasq/target\n{\"DNSMASQ_STATIC_PIE_CC\": \"/var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/bin/aarch64-openwrt-linux-musl-gcc\", \"CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER\": \"/Users/USER/Developer/owrt-control-plane-rs/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py\"}\n",
+      "stderr": ""
+    },
+    "BuildPackage-eval": {
+      "returncode": 0,
+      "environment": {
+        "DNSMASQ_STATIC_PIE_CC": "",
+        "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER": "/Users/USER/Developer/owrt-control-plane-rs/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py"
+      },
+      "stdout": "RUSTUP_HOME=\"\" CARGO_HOME=\"\" CARGO_BUILD_TARGET=\"aarch64-unknown-linux-musl\" CARGO_PROFILE_RELEASE_PANIC=abort CC_aarch64_unknown_linux_musl=\"aarch64-openwrt-linux-musl-gcc\" AR_aarch64_unknown_linux_musl=\"\" DNSMASQ_STATIC_PIE_CC=\"\" CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=\"/Users/USER/Developer/owrt-control-plane-rs/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py\" RUSTFLAGS=\"-Cforce-unwind-tables=no --remap-path-prefix=/var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/build=/build --remap-path-prefix==/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static\" /var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/bin/cargo build --release --frozen --manifest-path /var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/build/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir /var/folders/1_/gk23b15x1xsfcdgrdgydcc0h0000gn/T/tmpiqnx4eoc/build/dnsmasq/target\n{\"DNSMASQ_STATIC_PIE_CC\": \"\", \"CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER\": \"/Users/USER/Developer/owrt-control-plane-rs/packaging/openwrt/owrt-dnsmasq/static-pie-linker.py\"}\n",
+      "stderr": ""
+    }
+  }
+}

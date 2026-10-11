@@ -1,0 +1,22 @@
+ad603d71a000-ad603d758000 r-xp 00000000 00:41 3457699                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq
+ad603d758000-ad603d75b000 r--p 0003d000 00:41 3457699                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq
+ad603d75b000-ad603d75d000 rw-p 00040000 00:41 3457699                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq
+ad603d75d000-ad603d75e000 rw-p 00000000 00:00 0
+ad6078398000-ad6078399000 ---p 00000000 00:00 0                          [heap]
+ad6078399000-ad607839a000 rw-p 00000000 00:00 0                          [heap]
+f9d9cea87000-f9d9ceab6000 r-xp 00000000 00:41 3460987                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libgcc_s.so.1
+f9d9ceab6000-f9d9ceab7000 r--p 0001f000 00:41 3460987                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libgcc_s.so.1
+f9d9ceab7000-f9d9ceab8000 rw-p 00020000 00:41 3460987                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libgcc_s.so.1
+f9d9ceab8000-f9d9ceac8000 r-xp 00000000 00:41 3458448                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubox.so.20260213
+f9d9ceac8000-f9d9ceac9000 r--p 0000f000 00:41 3458448                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubox.so.20260213
+f9d9ceac9000-f9d9ceaca000 rw-p 00010000 00:41 3458448                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubox.so.20260213
+f9d9ceaca000-f9d9ceb51000 r-xp 00000000 00:41 3461010                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libc.so
+f9d9ceb59000-f9d9ceb5a000 rw-p 00000000 00:00 0
+f9d9ceb5a000-f9d9ceb60000 r-xp 00000000 00:41 3460869                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubus.so.20251202
+f9d9ceb60000-f9d9ceb61000 r--p 00006000 00:41 3460869                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubus.so.20251202
+f9d9ceb61000-f9d9ceb62000 rw-p 00007000 00:41 3460869                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubus.so.20251202
+f9d9ceb62000-f9d9ceb66000 r--p 00000000 00:00 0                          [vvar]
+f9d9ceb66000-f9d9ceb68000 r-xp 00000000 00:00 0                          [vdso]
+f9d9ceb68000-f9d9ceb6b000 rw-p 0008e000 00:41 3461010                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libc.so
+f9d9ceb6b000-f9d9ceb6d000 rw-p 00000000 00:00 0
+ffffd5b27000-ffffd5b48000 rw-p 00000000 00:00 0                          [stack]

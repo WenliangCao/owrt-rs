@@ -1,0 +1,2136 @@
+{
+  "sha256": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84"
+  },
+  "rows": [
+    {
+      "flags": [
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv6-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcpv4-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp"
+      ],
+      "result": {
+        "c": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "TimeoutError",
+          "v6": "TimeoutError",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--no-dhcp-interface=lo",
+        "--enable-tftp=lo"
+      ],
+      "result": {
+        "c": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "v4": "0003000161756469742d66696c65",
+          "v6": "0003000161756469742d66696c65",
+          "alive": true,
+          "exit": 0
+        }
+      },
+      "equal": true
+    }
+  ]
+}

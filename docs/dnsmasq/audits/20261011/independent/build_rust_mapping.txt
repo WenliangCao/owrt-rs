@@ -1,0 +1,11 @@
+aaaac3887000-aaaac3888000 ---p 00000000 00:00 0                          [heap]
+aaaac3888000-aaaac3889000 rw-p 00000000 00:00 0                          [heap]
+f6cdfdb23000-f6cdfdb3a000 rw-p 00000000 00:00 0
+f6cdfdb3a000-f6cdfdb3b000 ---p 00000000 00:00 0
+f6cdfdb3b000-f6cdfdb3e000 rw-p 00000000 00:00 0
+f6cdfdb3e000-f6cdfdb42000 r--p 00000000 00:00 0                          [vvar]
+f6cdfdb42000-f6cdfdb44000 r-xp 00000000 00:00 0                          [vdso]
+f6cdfdb44000-f6cdfdd2d000 r-xp 00000000 00:41 5300538                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq-rs
+f6cdfdd2d000-f6cdfdd39000 rw-p 001e9000 00:41 5300538                    /home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq-rs
+f6cdfdd39000-f6cdfdd3a000 rw-p 00000000 00:00 0
+ffffdaecf000-ffffdaef0000 rw-p 00000000 00:00 0                          [stack]

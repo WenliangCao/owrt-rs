@@ -1,0 +1,334 @@
+{
+  "isolated": true,
+  "cases": [
+    {
+      "implementation": "c-image",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "signal": "SIGHUP",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[3]: started, version 2.93 cachesize 150\ndnsmasq[3]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[3]: warning: no upstream servers configured\ndnsmasq[3]: cleared cache\ndnsmasq[3]: cleared cache\n"
+    },
+    {
+      "implementation": "c-native",
+      "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "signal": "SIGHUP",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[4]: started, version 2.93 cachesize 150\ndnsmasq[4]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[4]: warning: no upstream servers configured\ndnsmasq[4]: cleared cache\ndnsmasq[4]: cleared cache\n"
+    },
+    {
+      "implementation": "rust",
+      "binary_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "signal": "SIGHUP",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[5]: started, version 2.93 cachesize 150\ndnsmasq[5]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[5]: warning: no upstream servers configured\ndnsmasq[5]: cleared cache\ndnsmasq[5]: cleared cache\n"
+    },
+    {
+      "implementation": "c-image",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "signal": "SIGUSR2",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[6]: started, version 2.93 cachesize 150\ndnsmasq[6]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[6]: warning: no upstream servers configured\ndnsmasq[6]: cleared cache\n"
+    },
+    {
+      "implementation": "c-native",
+      "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "signal": "SIGUSR2",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[7]: started, version 2.93 cachesize 150\ndnsmasq[7]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[7]: warning: no upstream servers configured\ndnsmasq[7]: cleared cache\n"
+    },
+    {
+      "implementation": "rust",
+      "binary_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "signal": "SIGUSR2",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[8]: started, version 2.93 cachesize 150\ndnsmasq[8]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[8]: warning: no upstream servers configured\ndnsmasq[8]: cleared cache\n"
+    },
+    {
+      "implementation": "c-image",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "signal": "SIGUSR1",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[9]: started, version 2.93 cachesize 150\ndnsmasq[9]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[9]: warning: no upstream servers configured\ndnsmasq[9]: cleared cache\ndnsmasq[9]: time 1791733144\ndnsmasq[9]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[9]: queries forwarded 0, queries answered locally 1\ndnsmasq[9]: pool memory in use 0, max 48, allocated 2400\ndnsmasq[9]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\n"
+    },
+    {
+      "implementation": "c-native",
+      "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "signal": "SIGUSR1",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[10]: started, version 2.93 cachesize 150\ndnsmasq[10]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[10]: warning: no upstream servers configured\ndnsmasq[10]: cleared cache\ndnsmasq[10]: time 1791733144\ndnsmasq[10]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[10]: queries forwarded 0, queries answered locally 1\ndnsmasq[10]: pool memory in use 0, max 48, allocated 2400\ndnsmasq[10]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\n"
+    },
+    {
+      "implementation": "rust",
+      "binary_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "signal": "SIGUSR1",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[11]: started, version 2.93 cachesize 150\ndnsmasq[11]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[11]: warning: no upstream servers configured\ndnsmasq[11]: cleared cache\ndnsmasq[11]: time 1791733145\ndnsmasq[11]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[11]: queries forwarded 0, queries answered locally 1\ndnsmasq[11]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\n"
+    },
+    {
+      "implementation": "c-image",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "signal": "SIGALRM",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[12]: started, version 2.93 cachesize 150\ndnsmasq[12]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[12]: warning: no upstream servers configured\ndnsmasq[12]: cleared cache\n"
+    },
+    {
+      "implementation": "c-native",
+      "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "signal": "SIGALRM",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[13]: started, version 2.93 cachesize 150\ndnsmasq[13]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[13]: warning: no upstream servers configured\ndnsmasq[13]: cleared cache\n"
+    },
+    {
+      "implementation": "rust",
+      "binary_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "signal": "SIGALRM",
+      "dns_before": true,
+      "exit_status_after_signal": null,
+      "dns_after": true,
+      "pidfile_exists_after_signal": true,
+      "log_after_signal": "dnsmasq[14]: started, version 2.93 cachesize 150\ndnsmasq[14]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[14]: warning: no upstream servers configured\ndnsmasq[14]: cleared cache\n"
+    }
+  ],
+  "cache_dumps": [
+    {
+      "implementation": "c-image",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "daemon_alive": true,
+      "upstream_queries": 3,
+      "dump": {
+        "cache": [
+          [
+            150,
+            0,
+            2
+          ],
+          [
+            150,
+            0,
+            2
+          ]
+        ],
+        "queries": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "tcp": [
+          [
+            0,
+            0,
+            30
+          ],
+          [
+            0,
+            0,
+            30
+          ]
+        ],
+        "server": [
+          [
+            3,
+            0,
+            0,
+            2
+          ],
+          [
+            3,
+            0,
+            0,
+            2
+          ]
+        ],
+        "host_rows": 2,
+        "cached_rows": 2
+      }
+    },
+    {
+      "implementation": "c-native",
+      "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "daemon_alive": true,
+      "upstream_queries": 3,
+      "dump": {
+        "cache": [
+          [
+            150,
+            0,
+            2
+          ],
+          [
+            150,
+            0,
+            2
+          ]
+        ],
+        "queries": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "tcp": [
+          [
+            0,
+            0,
+            30
+          ],
+          [
+            0,
+            0,
+            30
+          ]
+        ],
+        "server": [
+          [
+            3,
+            0,
+            0,
+            2
+          ],
+          [
+            3,
+            0,
+            0,
+            2
+          ]
+        ],
+        "host_rows": 2,
+        "cached_rows": 2
+      }
+    },
+    {
+      "implementation": "rust",
+      "binary_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "daemon_alive": true,
+      "upstream_queries": 3,
+      "dump": {
+        "cache": [
+          [
+            150,
+            0,
+            2
+          ],
+          [
+            150,
+            0,
+            2
+          ]
+        ],
+        "queries": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "tcp": [
+          [
+            0,
+            0,
+            30
+          ],
+          [
+            0,
+            0,
+            30
+          ]
+        ],
+        "server": [
+          [
+            3,
+            0,
+            0,
+            2
+          ],
+          [
+            3,
+            0,
+            0,
+            2
+          ]
+        ],
+        "host_rows": 2,
+        "cached_rows": 2
+      }
+    }
+  ],
+  "alarm_maintenance": [
+    {
+      "implementation": "c-image",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "ack": 5,
+      "lease_absent_before_alarm": true,
+      "lease_persisted_after_alarm": true,
+      "lease_dump_seen": true,
+      "daemon_alive": true,
+      "dns_after": true
+    },
+    {
+      "implementation": "c-native",
+      "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "ack": 5,
+      "lease_absent_before_alarm": true,
+      "lease_persisted_after_alarm": true,
+      "lease_dump_seen": true,
+      "daemon_alive": true,
+      "dns_after": true
+    },
+    {
+      "implementation": "rust",
+      "binary_sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "ack": 5,
+      "lease_absent_before_alarm": true,
+      "lease_persisted_after_alarm": true,
+      "lease_dump_seen": true,
+      "daemon_alive": true,
+      "dns_after": true
+    }
+  ],
+  "passed": true
+}

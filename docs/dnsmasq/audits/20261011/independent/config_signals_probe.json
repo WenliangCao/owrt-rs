@@ -1,0 +1,2893 @@
+{
+  "source_commit": "",
+  "sha256": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84"
+  },
+  "syntax": [
+    {
+      "directive": "auth-server=",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo/4",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo/6",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo/5",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo/4/6",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,,lo",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,127.0.0.1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,::1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,127.00.0.1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo*",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=,lo",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=\"ns.test,lo\"",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,\"lo/4\"",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo,",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=0",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=-1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=+1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=60",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=2147483648",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=4294967296",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=18446744073709551616",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl= 60",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=\"60 \"",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-ttl=nan",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-soa=",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-soa=1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-soa=1,a,b,c,d,e",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-soa=\"1,2\"",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-soa=a,b,c",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-sec-servers=",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-sec-servers=x",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-sec-servers=x,,y",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-sec-servers=a,b",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=127.0.0.1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=::1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=1.2.3.04",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=127.0.0.1,",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=127.0.0.1,::1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=::ffff:127.0.0.1",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "auth-peer=bad",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "no-dhcpv6-interface=",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo,",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo*",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "no-dhcpv6-interface=\"lo,lo\"",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "quiet-ra",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "quiet-ra=",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "quiet-ra=1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "quiet-dhcp6",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "quiet-dhcp6=",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "quiet-dhcp6=1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "enable-ra",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "enable-ra=",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "enable-ra=1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "dnssec-debug",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "dnssec-debug=",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "dnssec-debug=1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "dnssec-no-timecheck",
+      "result": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "dnssec-no-timecheck=",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    },
+    {
+      "directive": "dnssec-no-timecheck=1",
+      "result": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        },
+        "rust": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: extraneous parameter at line 2 of /home/ubuntu/dnsmasq-fix-independent-20261011/private/config_signals_probe/syntax.conf\n"
+        }
+      },
+      "same_status": true
+    }
+  ],
+  "services": [
+    {
+      "flags": [],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "TimeoutError",
+            "v4-tcp": "",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": ""
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "TimeoutError",
+            "v4-tcp": "ConnectionResetError",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": "ConnectionResetError"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": ""
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": "ConnectionResetError"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": ""
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": "ConnectionResetError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/4",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": ""
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": "ConnectionResetError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "TimeoutError",
+            "v4-tcp": "",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "TimeoutError",
+            "v4-tcp": "ConnectionResetError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,lo/6",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,127.0.0.1",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": ""
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": "ConnectionResetError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,127.0.0.1",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": ""
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "TimeoutError",
+            "v6-tcp": "ConnectionResetError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,::1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,::1",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "TimeoutError",
+            "v4-tcp": "",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "TimeoutError",
+            "v4-tcp": "ConnectionResetError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": false
+    },
+    {
+      "flags": [
+        "--auth-server=ns.test,::1",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/4",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,lo/6",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,127.0.0.1",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,127.0.0.1",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,::1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,::1",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-interfaces",
+        "--auth-server=ns.test,::1",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": []
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/4",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,lo/6",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,127.0.0.1",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,127.0.0.1",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "ConnectionRefusedError",
+            "v6-tcp": "ConnectionRefusedError"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from 127.0.0.1",
+            "auth[A] audit.test from 127.0.0.1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,::1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,::1",
+        "--except-interface=lo"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "ConnectionRefusedError",
+            "v4-tcp": "ConnectionRefusedError",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    },
+    {
+      "flags": [
+        "--bind-dynamic",
+        "--auth-server=ns.test,::1",
+        "--listen-address=127.0.0.1"
+      ],
+      "result": {
+        "c": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        },
+        "rust": {
+          "responses": {
+            "v4-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v4-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-udp": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+            "v6-tcp": "002c48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a"
+          },
+          "exit": 0,
+          "query_logs": [
+            "auth[A] audit.test from ::1",
+            "auth[A] audit.test from ::1"
+          ]
+        }
+      },
+      "equal": true
+    }
+  ],
+  "signals": [
+    {
+      "side": "c",
+      "sink": "file",
+      "signals_sent": 58472,
+      "queries": 14618,
+      "successful_queries": 14618,
+      "dns_before": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "dns_after": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "alive_before_term": true,
+      "exit": 0,
+      "max_latency_s": 0.023060353938490152,
+      "rss_kb": [
+        "1128"
+      ]
+    },
+    {
+      "side": "c",
+      "sink": "broken-pipe",
+      "signals_sent": 23436,
+      "queries": 5859,
+      "successful_queries": 5859,
+      "dns_before": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "dns_after": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "alive_before_term": true,
+      "exit": 0,
+      "max_latency_s": 0.017415466019883752,
+      "rss_kb": [
+        "1132"
+      ]
+    },
+    {
+      "side": "c",
+      "sink": "dev-full",
+      "signals_sent": 34556,
+      "queries": 8639,
+      "successful_queries": 8639,
+      "dns_before": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "dns_after": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "alive_before_term": true,
+      "exit": 0,
+      "max_latency_s": 0.008775433991104364,
+      "rss_kb": [
+        "1128"
+      ]
+    },
+    {
+      "side": "rust",
+      "sink": "file",
+      "signals_sent": 63636,
+      "queries": 15909,
+      "successful_queries": 15909,
+      "dns_before": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "dns_after": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "alive_before_term": true,
+      "exit": 0,
+      "max_latency_s": 0.01020248606801033,
+      "rss_kb": [
+        "1996"
+      ]
+    },
+    {
+      "side": "rust",
+      "sink": "broken-pipe",
+      "signals_sent": 43792,
+      "queries": 10948,
+      "successful_queries": 10948,
+      "dns_before": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "dns_after": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "alive_before_term": true,
+      "exit": 0,
+      "max_latency_s": 0.006786857033148408,
+      "rss_kb": [
+        "2000"
+      ]
+    },
+    {
+      "side": "rust",
+      "sink": "dev-full",
+      "signals_sent": 44948,
+      "queries": 11237,
+      "successful_queries": 11237,
+      "dns_before": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "dns_after": "48518580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+      "alive_before_term": true,
+      "exit": 0,
+      "max_latency_s": 0.0032202270813286304,
+      "rss_kb": [
+        "1992"
+      ]
+    }
+  ]
+}

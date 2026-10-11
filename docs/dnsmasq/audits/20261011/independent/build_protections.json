@@ -1,0 +1,272 @@
+{
+  "tool_sha256": "5254c34a56273dad7503c7e27762de5a8e5d6edc65f8a86a95185810551d3ce7",
+  "scope": "independent C/R actual mappings; image filesystem and isolated host kernel; no router",
+  "variants": {
+    "c": {
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "size": 269305,
+      "elf_type": 3,
+      "relro_vaddr": 254824,
+      "relro_memsz": 11416,
+      "runs": [
+        {
+          "base": "0xad603d71a000",
+          "relro_pages": [
+            {
+              "address": "0xad603d758000",
+              "permissions": "r--p"
+            },
+            {
+              "address": "0xad603d759000",
+              "permissions": "r--p"
+            },
+            {
+              "address": "0xad603d75a000",
+              "permissions": "r--p"
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libc.so",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libgcc_s.so.1",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubox.so.20260213",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubus.so.20251202",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq"
+          ]
+        },
+        {
+          "base": "0xb132dc807000",
+          "relro_pages": [
+            {
+              "address": "0xb132dc845000",
+              "permissions": "r--p"
+            },
+            {
+              "address": "0xb132dc846000",
+              "permissions": "r--p"
+            },
+            {
+              "address": "0xb132dc847000",
+              "permissions": "r--p"
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libc.so",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libgcc_s.so.1",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubox.so.20260213",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubus.so.20251202",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq"
+          ]
+        },
+        {
+          "base": "0xb87b3e8a4000",
+          "relro_pages": [
+            {
+              "address": "0xb87b3e8e2000",
+              "permissions": "r--p"
+            },
+            {
+              "address": "0xb87b3e8e3000",
+              "permissions": "r--p"
+            },
+            {
+              "address": "0xb87b3e8e4000",
+              "permissions": "r--p"
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libc.so",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libgcc_s.so.1",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubox.so.20260213",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/lib/libubus.so.20251202",
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq"
+          ]
+        }
+      ],
+      "distinct_bases": 3
+    },
+    "rust": {
+      "sha256": "6ef1857c385c277ee00a186312e2bfb4400abd2eeb4c2a3a7ade9e16219c5c84",
+      "size": 2052576,
+      "elf_type": 3,
+      "relro_vaddr": 2003456,
+      "relro_memsz": 44544,
+      "runs": [
+        {
+          "base": "0xf6cdfdb44000",
+          "relro_pages": [
+            {
+              "address": "0xf6cdfdd2d000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd2e000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd2f000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd30000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd31000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd32000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd33000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd34000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd35000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd36000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf6cdfdd37000",
+              "permissions": "rw-p"
+            }
+          ],
+          "relro_readonly": false,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq-rs"
+          ]
+        },
+        {
+          "base": "0xf16be719a000",
+          "relro_pages": [
+            {
+              "address": "0xf16be7383000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be7384000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be7385000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be7386000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be7387000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be7388000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be7389000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be738a000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be738b000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be738c000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xf16be738d000",
+              "permissions": "rw-p"
+            }
+          ],
+          "relro_readonly": false,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq-rs"
+          ]
+        },
+        {
+          "base": "0xe78dd3572000",
+          "relro_pages": [
+            {
+              "address": "0xe78dd375b000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd375c000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd375d000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd375e000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd375f000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd3760000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd3761000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd3762000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd3763000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd3764000",
+              "permissions": "rw-p"
+            },
+            {
+              "address": "0xe78dd3765000",
+              "permissions": "rw-p"
+            }
+          ],
+          "relro_readonly": false,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-fix-independent-20261011/private/build-protections/image/rootfs/usr/sbin/dnsmasq-rs"
+          ]
+        }
+      ],
+      "distinct_bases": 3
+    }
+  }
+}
