@@ -238,7 +238,7 @@
         "daemon_alive": true,
         "dns_after": true
       },
-      "diagnostic_boundary": "C blockdata allocator-pool line is implementation-specific and is not fabricated by Rust.",
+      "diagnostic_boundary": "Rust does not emit C-specific blockdata allocator-pool numbers or internal non-terminal placeholders, and does not promise C hash-table row order. Record rows require debug or log-queries, as in C; operational summary counters are always dumped.",
       "shared_signal_observations": {
         "SIGHUP": {
           "dns_before": true,
@@ -1019,7 +1019,7 @@
         }
       },
       {
-        "change": "Adapt allocator probes to dynamic musl symbol addresses and verify mapped ELF inode/hash. Increase the regular hosts witness from 1 MiB to 16 MiB.",
+        "change": "Adapt allocator probes to dynamic musl symbol addresses and verify mapped ELF inode/hash. Increase the hostsdir regular-file witness from 1 MiB to 16 MiB.",
         "reason": "PIE imports realloc rather than retaining a static symbol; after streaming, the regular-file witness must span enough bounded read turns to observe owner progress. These are harness adaptations, not weakened packet or state comparisons.",
         "commit": "4a72e245"
       },
@@ -1038,6 +1038,6 @@
       }
     ]
   },
-  "full_families": "Reported separately after their completion; no pending family is marked passed here.",
+  "full_families": "See families.json: 22/22 complete affected families and 43/43 logical commands passed on the same frozen ELF; original failed attempts are retained.",
   "out_of_scope": "A07 PIE tradeoff and final hardening/performance evidence are reported separately. A08 resource acceptance, physical-router deployment and GitHub publication are outside this file."
 }
