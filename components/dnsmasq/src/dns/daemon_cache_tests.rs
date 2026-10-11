@@ -103,6 +103,109 @@ fn cached_cname_local_terminal_uses_the_current_query_network() {
 }
 
 #[test]
+fn cached_cname_precedes_alias_local_txt_with_the_cache_expiry_policy() {
+    for (stale, now, follows_cname) in [
+        (StalePolicy::Disabled, 101, true),
+        (StalePolicy::Disabled, 161, false),
+        (StalePolicy::Seconds(30), 161, true),
+        (StalePolicy::Seconds(30), 191, false),
+        (StalePolicy::Forever, 191, true),
+    ] {
+        let mut daemon = daemon();
+        daemon.enable_cache(32, 0, 0, stale);
+        daemon.local.config.cache_rr.push(16);
+        daemon
+            .local
+            .config
+            .records
+            .txt
+            .push(crate::config::records::RawRecord {
+                name: b"alias.test".to_vec(),
+                rr_type: 16,
+                data: b"\x0balias-local".to_vec(),
+            });
+        daemon.cache_reply_at(&chain_reply(1, false), 100);
+        let mut txt = packet("target.test", 16, 0x8180);
+        txt.record_at(Section::Answer, 12, 16, 1, 600, b"\x0ftarget-upstream")
+            .unwrap();
+        daemon.cache_reply_at(&txt.finish(), 100);
+        let query = packet("alias.test", 16, 0x100).finish();
+        for tcp in [false, true] {
+            let local = if tcp {
+                daemon
+                    .local
+                    .handle_tcp_with_cache(&query, now, daemon.cache.as_mut())
+            } else {
+                daemon
+                    .local
+                    .handle_udp_with_cache(&query, now, daemon.cache.as_mut())
+            }
+            .unwrap();
+            assert_eq!(local.is_none(), follows_cname);
+            let answer = local
+                .or_else(|| cached(&mut daemon, "alias.test", 16, now))
+                .unwrap();
+            let message = Message::parse(&answer).unwrap();
+            let records: Vec<_> = message.records(Section::Answer).collect();
+            assert_eq!(records.len(), if follows_cname { 3 } else { 1 });
+            assert_eq!(
+                records.last().unwrap().rdata,
+                if follows_cname {
+                    b"\x0ftarget-upstream".as_slice()
+                } else {
+                    b"\x0balias-local".as_slice()
+                }
+            );
+        }
+    }
+}
+
+#[test]
+fn cached_nxdomain_does_not_mask_new_dhcp_address() {
+    let mut daemon = daemon();
+    daemon.cache_reply_at(&packet("client.test", 28, 0x8183).finish(), 100);
+    let mut hosts = std::mem::take(&mut daemon.local.hosts);
+    let names = daemon.publish_lease_names(
+        &[crate::dhcp::persistence::DnsLeaseRecord {
+            name: b"client.test",
+            address: "192.0.2.30".parse().unwrap(),
+            expires: Some(3600),
+        }],
+        &mut hosts,
+        &[],
+        super::super::lease_names::LeasePolicy::default(),
+    );
+    daemon.local.hosts = hosts;
+    daemon.local.leases = std::sync::Arc::new(names);
+    assert!(daemon
+        .cache
+        .as_ref()
+        .unwrap()
+        .has_nxdomain(&Name::from_ascii("client.test").unwrap(), 101));
+    let query = packet("client.test", 1, 0x100).finish();
+    for tcp in [false, true] {
+        let answer = if tcp {
+            daemon
+                .local
+                .handle_tcp_with_cache(&query, 101, daemon.cache.as_mut())
+        } else {
+            daemon
+                .local
+                .handle_udp_with_cache(&query, 101, daemon.cache.as_mut())
+        }
+        .unwrap()
+        .unwrap();
+        let message = Message::parse(&answer).unwrap();
+        assert_eq!(message.header.rcode(), 0);
+        assert_eq!(message.header.answers, 1);
+        assert_eq!(
+            message.records(Section::Answer).next().unwrap().rdata,
+            [192, 0, 2, 30]
+        );
+    }
+}
+
+#[test]
 fn malformed_replacement_keeps_prefix_removal_but_zero_ttl_stops_before_removal() {
     for ttl in [0, 53] {
         let mut daemon = daemon();

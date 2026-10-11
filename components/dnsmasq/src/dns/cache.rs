@@ -457,6 +457,19 @@ impl Cache {
         })
     }
 
+    /// A live CNAME changes the lookup name before configured RR processing.
+    /// Leave promotion and expiry removal to the subsequent cache answer.
+    pub fn has_cname(&self, name: &Name, now: i64) -> bool {
+        let key = name.canonical_wire();
+        self.names_for(&key).is_some_and(|slots| {
+            slots.iter().any(|&slot| {
+                self.entry(slot)
+                    .is_some_and(|entry| entry.record.kind == Kind::Cname)
+                    && !self.invalid(slot, now)
+            })
+        })
+    }
+
     /// A generic NX marker is inspected before local interface/synthetic
     /// answers. Owners may defer an initial local answer into CacheContext so
     /// that marker's cached SOA is retained by the final authority footer.

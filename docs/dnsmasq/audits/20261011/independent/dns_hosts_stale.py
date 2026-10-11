@@ -4,14 +4,15 @@ import argparse, hashlib, json, os, pathlib, signal, socket, struct, subprocess,
 from dns_hosts_probe import query, exchange
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--tools',required=True);p.add_argument('--image-root',type=pathlib.Path,required=True);p.add_argument('--rust',type=pathlib.Path,required=True);p.add_argument('--out',type=pathlib.Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--tools',required=True);p.add_argument('--image-root',type=pathlib.Path,required=True);p.add_argument('--rust',type=pathlib.Path,required=True);p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--fresh-only',action='store_true');p.add_argument('--require-match',action='store_true');a=p.parse_args()
+    if a.require_match and not a.fresh_only:p.error('--require-match requires --fresh-only; the stale EDE difference is explicitly outside F02')
     assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1';sys.path.insert(0,a.tools)
     from audit_20261011_dhcp import packet,decode
     a.out.mkdir(parents=True,exist_ok=False)
     cmds={'c':[str(a.image_root/'lib/libc.so'),'--library-path',f'{a.image_root}/lib:{a.image_root}/usr/lib',str(a.image_root/'usr/sbin/dnsmasq')],'rust':[str(a.rust)]}
     result={'rust_sha256':hashlib.sha256(a.rust.read_bytes()).hexdigest(),'cases':[]}
     for debug in [False,True]:
-      for stale in [False,True]:
+      for stale in ([False] if a.fresh_only else [False,True]):
        for side,cmd in cmds.items():
         folder=a.out/f'{side}-debug{debug}-stale{stale}';folder.mkdir();events=[];stop=threading.Event()
         up=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);up.bind(('127.0.0.1',15354));up.settimeout(.05)
@@ -44,6 +45,21 @@ def main():
           try:proc.wait(timeout=3)
           except subprocess.TimeoutExpired:proc.kill();proc.wait()
           stop.set();thread.join();up.close();log.close()
+    if a.require_match:
+      checks=[]
+      for debug in [False,True]:
+        sides={r['side']:r for r in result['cases'] if r['debug']==debug}
+        c,rust=sides['c'],sides['rust']
+        wire=bytes.fromhex(c['tcp_after'])
+        checks.append({'debug':debug,'all_alive':all(r['alive'] for r in (c,rust)),
+          'both_ACK':all(r['ack']==5 for r in (c,rust)),
+          'negative_reply_equal':c['negative_before']==rust['negative_before'],
+          'both_warmed_NXDOMAIN':all(int(r['negative_before'][4:8],16)&15==3 for r in (c,rust)),
+          'TCP_reply_equal':c['tcp_after']==rust['tcp_after'],
+          'C_returns_new_DHCP_A':struct.unpack('!6H',wire[:12])==(0x1234,0x8580,1,1,0,1) and b'\x7f\0\0\x1e' in wire,
+          'no_upstream_after_TCP':all(not r['upstream_after_tcp'] for r in (c,rust))})
+      result['checks']=checks;result['passed']=all(v for row in checks for k,v in row.items() if k!='debug')
     (a.out/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+    if a.require_match and not result['passed']:raise SystemExit(1)
 
 if __name__=='__main__':main()

@@ -255,6 +255,17 @@ impl<'a> LocalAnswerer<'a> {
                 &mut extra_rows,
                 &mut notices,
             );
+        } else if class_in
+            && cache
+                .as_deref()
+                .is_some_and(|cache| cache.has_cname(&question.name, now))
+        {
+            // rfc1035.c:1754-1806 follows cached CNAMEs before TXT and other
+            // local records. Let CacheContext use that chain, including its
+            // RD/DO checks, instead of answering records at the alias owner.
+            // NXDOMAIN alone must not defer typed local answers: a newly
+            // published DHCP A can coexist with an older negative marker.
+            return Ok(None);
         } else if class_in {
             if let Some(name) = wire_to_dotted(&question.name) {
                 let (local_rows, local_owned) = add_local_records_for_name(

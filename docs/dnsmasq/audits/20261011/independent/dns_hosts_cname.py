@@ -3,8 +3,23 @@
 import argparse, hashlib, json, os, pathlib, signal, socket, struct, subprocess, threading, time
 from dns_hosts_probe import query,exchange
 
+def matching_checks(results):
+ checks=[]
+ for debug in [False,True]:
+  sides={r['side']:r for r in results if r['debug']==debug}
+  c,rust=sides['c'],sides['rust']
+  wire=bytes.fromhex(c['replies']['alias.test']['tcp_txt'])
+  checks.append({'debug':debug,
+   'all_alive':all(r['alive'] for r in (c,rust)),
+   'only_two_upstream_queries':all(len(r['upstream'])==2 for r in (c,rust)),
+   'warm_A_equal':c['warm_reply']==rust['warm_reply'],
+   'warm_TXT_equal':c['warm_target']==rust['warm_target'],
+   'all_UDP_TCP_TXT_equal':c['replies']==rust['replies'],
+   'C_alias_has_CNAME_and_TXT':struct.unpack('!6H',wire[:12])==(0x1234,0x8180,1,2,0,0) and wire.endswith(b'\x0ftarget-upstream')})
+ return checks
+
 def main():
- p=argparse.ArgumentParser();p.add_argument('--image-root',type=pathlib.Path,required=True);p.add_argument('--rust',type=pathlib.Path,required=True);p.add_argument('--main',type=pathlib.Path);p.add_argument('--out',type=pathlib.Path,required=True);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--image-root',type=pathlib.Path,required=True);p.add_argument('--rust',type=pathlib.Path,required=True);p.add_argument('--main',type=pathlib.Path);p.add_argument('--out',type=pathlib.Path,required=True);p.add_argument('--require-match',action='store_true');a=p.parse_args()
  assert os.environ.get('DNSMASQ_TEST_ISOLATED')=='1';a.out.mkdir(parents=True,exist_ok=False)
  cmds={'c':[str(a.image_root/'lib/libc.so'),'--library-path',f'{a.image_root}/lib:{a.image_root}/usr/lib',str(a.image_root/'usr/sbin/dnsmasq')],'rust':[str(a.rust)]}
  if a.main:cmds['main']=[str(a.main)]
@@ -46,6 +61,11 @@ def main():
     try:proc.wait(timeout=3)
     except subprocess.TimeoutExpired:proc.kill();proc.wait()
     stop.set();thread.join();up.close();log.close()
- result={'cases':results};(a.out/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps([{k:v for k,v in r.items() if k!='log'} for r in results],indent=2))
+ result={'cases':results}
+ if a.require_match:
+  result['checks']=matching_checks(results)
+  result['passed']=all(v for row in result['checks'] for k,v in row.items() if k!='debug')
+ (a.out/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps([{k:v for k,v in r.items() if k!='log'} for r in results],indent=2))
+ if a.require_match and not result['passed']:raise SystemExit(1)
 
 if __name__=='__main__':main()

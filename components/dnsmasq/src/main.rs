@@ -2802,9 +2802,9 @@ impl TcpDnsWork {
             stale = cached.as_ref().is_some_and(|answer| answer.stale);
             local_answer.or_else(|| cached.and_then(|answer| answer.packet))
         } else {
-            // Like UDP, let the local lookup resolve typed hosts/DHCP entries
-            // against the cache first. A retained NXDOMAIN must not mask a
-            // subsequently published DHCP A record on TCP.
+            // The shared local lookup defers cached CNAMEs to CacheContext,
+            // but keeps a retained NXDOMAIN from masking newly published
+            // hosts/DHCP records. UDP and debug TCP use the same ordering.
             let local_answer =
                 dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_answer(
                     self.cache_view.as_mut(),
