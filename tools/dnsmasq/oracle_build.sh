@@ -76,6 +76,11 @@ toolchain=/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.
 export STAGING_DIR="$toolchain"
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$toolchain/bin/aarch64-openwrt-linux-musl-gcc"
 export RUSTFLAGS="--remap-path-prefix=$source_dir=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no"
+if [ "$build_kind" = release ]; then
+    # The shipped daemon uses the image's musl/libgcc and restores PIE.
+    # Test and diagnostic binaries retain their existing static linkage.
+    export RUSTFLAGS="$RUSTFLAGS -Ctarget-feature=-crt-static -Clink-self-contained=no -Clink-arg=-pie"
+fi
 # Optional fault/attribution evidence. Only this fresh output can receive the
 # map; it stays outside shipped artifacts and under the same build lock.
 case ${ORACLE_BUILD_LINK_MAP:-0} in

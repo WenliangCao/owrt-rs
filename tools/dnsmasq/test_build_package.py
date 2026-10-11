@@ -7,6 +7,7 @@ import io
 import json
 import os
 import signal
+import struct
 import subprocess
 import sys
 import tempfile
@@ -136,9 +137,10 @@ class PackageBuildTests(unittest.TestCase):
   name: dnsmasq
   version: 2.93-r2
   arch: aarch64_cortex-a53
-  depends: # 2 items
+  depends: # 3 items
     - libc
     - libubus20251202
+    - libgcc1
   provides: # 1 items
     - dnsmasq-any
 scripts:
@@ -150,6 +152,62 @@ scripts:
         for script in ("post-install", "pre-deinstall", "post-upgrade"):
             with self.subTest(script=script), self.assertRaisesRegex(ValueError, script):
                 package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
+        with self.assertRaisesRegex(ValueError, "depends"):
+            package.audit_metadata(metadata.replace("    - libgcc1\n", ""))
+
+    def test_pie_elf_gate_rejects_linkage_and_protection_regressions(self):
+        data = bytearray(512)
+        data[:7] = b"\x7fELF\x02\x01\x01"
+        struct.pack_into("<HH", data, 16, 3, 183)
+        struct.pack_into("<Q", data, 32, 64)
+        struct.pack_into("<HH", data, 54, 56, 5)
+        interpreter = b"/lib/ld-musl-aarch64.so.1\0"
+        headers = [
+            (1, 5, 0, 0, 0, 448, 448, 4096),
+            (1, 6, 448, 448, 448, 64, 64, 4096),
+            (3, 4, 384, 384, 384, len(interpreter), len(interpreter), 1),
+            (0x6474e551, 6, 0, 0, 0, 0, 0, 16),
+            (0x6474e552, 4, 448, 448, 448, 64, 64, 1),
+        ]
+        for index, row in enumerate(headers):
+            struct.pack_into("<IIQQQQQQ", data, 64 + index * 56, *row)
+        data[384:384 + len(interpreter)] = interpreter
+        dynamic = """ 0x1 (NEEDED) Shared library: [libgcc_s.so.1]
+ 0x1 (NEEDED) Shared library: [libc.so]
+ 0x18 (BIND_NOW)
+ 0x6ffffffb (FLAGS_1) Flags: NOW PIE
+"""
+        result = package.audit_elf(data, dynamic)
+        self.assertEqual(result["needed"], ["libc.so", "libgcc_s.so.1"])
+        self.assertFalse(result["runtime_protections_verified"])
+        mutations = [
+            ("static ET_EXEC", 16, "<H", 2),
+            ("wrong architecture", 18, "<H", 62),
+            ("missing interpreter", 64 + 2 * 56, "<I", 0),
+            ("wrong interpreter", 384, "<B", ord("x")),
+            ("executable stack", 64 + 3 * 56 + 4, "<I", 7),
+            ("missing stack", 64 + 3 * 56, "<I", 0),
+            ("missing RELRO", 64 + 4 * 56, "<I", 0),
+            ("empty RELRO", 64 + 4 * 56 + 40, "<Q", 0),
+            ("WX load", 64 + 56 + 4, "<I", 7),
+            ("truncated header table", 32, "<Q", len(data)),
+            ("segment outside file", 64 + 56 + 32, "<Q", len(data)),
+        ]
+        for label, offset, fmt, value in mutations:
+            changed = bytearray(data)
+            struct.pack_into(fmt, changed, offset, value)
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                package.audit_elf(changed, dynamic)
+        for label, changed in [
+            ("missing library", dynamic.replace(" 0x1 (NEEDED) Shared library: [libgcc_s.so.1]\n", "")),
+            ("extra library", dynamic + " 0x1 (NEEDED) Shared library: [libunexpected.so]\n"),
+            ("missing PIE", dynamic.replace("NOW PIE", "NOW")),
+            ("lazy binding", dynamic.replace(" 0x18 (BIND_NOW)\n", "").replace("NOW PIE", "PIE")),
+            ("text relocation", dynamic + " 0x16 (TEXTREL)\n"),
+            ("library search override", dynamic + " 0x1d (RUNPATH) Library runpath: [/tmp]\n"),
+        ]:
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                package.audit_elf(data, changed)
 
     def test_frozen_elf_requires_full_source_sdk_and_binary_identity(self):
         source = {"components/dnsmasq/src/main.rs": "a" * 64,
