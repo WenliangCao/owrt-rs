@@ -1,0 +1,1508 @@
+{
+  "schema": "dnsmasq-fix2-r4-evidence-v1",
+  "date": "2026-10-12",
+  "source_commit": "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+  "sdk_elf_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+  "scope": "R4 configured host-record H/C flags and configured CNAME Source; not complete internal dump-table equivalence",
+  "fix_commit": "da0adef0",
+  "comparison_rule": "Declared record row text and multiplicity must match exactly. Full row sequences and internal nonterminal differences remain recorded; no whole-table equivalence is claimed.",
+  "r4_passed": true,
+  "cases_passed": 5,
+  "daemon_runs_healthy": 10,
+  "all_rows_equal": false,
+  "dump": {
+    "command": {
+      "id": "R4-dump",
+      "argv": [
+        "sh",
+        "$ORACLE_RUN/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "$ORACLE_RUN/source-qualified/docs/dnsmasq/audits/20261011/fix2/config/dump_rows.py",
+        "--source",
+        "$ORACLE_RUN/source-qualified",
+        "--image",
+        "$IMAGE_ROOT",
+        "--rust",
+        "$ORACLE_RUN/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+        "--source-revision",
+        "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+        "--out",
+        "$ORACLE_RUN/private/functional-qualified/r4-dump",
+        "--require-match"
+      ],
+      "result": "$ORACLE_RUN/private/functional-qualified/r4-dump/result.json",
+      "custom_check": "r4",
+      "timeout_seconds": 1800,
+      "passed": true,
+      "started": 1791756468.7733157,
+      "returncode": 0,
+      "result_sha256": "a1d84d06a4b9076cdd2c25243b01f74b4f251b39b912fc8a7f2cf776cf914ca9",
+      "elapsed_seconds": 3.1265861988067627
+    },
+    "observation": {
+      "source_revision": "53f08a3e8ca8a202c1d7cac1d99adeffc5de4563",
+      "sha256": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "rust": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "tool": "36b3cda4c667a5bb2d663bc6cb6dc6b4634c20669760865faa99a36c6c23a0a0"
+      },
+      "scope": "R4 explicit host-record flags and configured CNAME Source; internal nonterminal/hash ordering differences retained, not qualified",
+      "rows": [
+        {
+          "case": "orphan-cname",
+          "flags": [
+            "--cname=alias.test,missing.test"
+          ],
+          "result": {
+            "c": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--cname=alias.test,missing.test"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            },
+            "rust": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq-rs",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--cname=alias.test,missing.test"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            }
+          },
+          "comparison": {
+            "r4_passed": true,
+            "errors": [],
+            "expected_declared_rows": 1,
+            "all_rows_equal": false,
+            "declared_sequence_equal": true,
+            "rows": {
+              "c": [
+                {
+                  "raw": "test                                                                    !F I    C                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "alias.test                     missing.test                             CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "missing.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "alias.test                     missing.test                             CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "missing.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ]
+            },
+            "declared_rows": {
+              "c": [
+                {
+                  "raw": "alias.test                     missing.test                             CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "missing.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "alias.test                     missing.test                             CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "missing.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ]
+            },
+            "other_rows": {
+              "c": [
+                {
+                  "raw": "test                                                                    !F I    C                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": []
+            },
+            "scope_difference": [
+              {
+                "kind": "internal-nonterminal-rows",
+                "c": [
+                  {
+                    "raw": "test                                                                    !F I    C                          ",
+                    "name": "test",
+                    "address": "",
+                    "flags": "!F I    C ",
+                    "expires": "                        ",
+                    "source": ""
+                  }
+                ],
+                "rust": []
+              },
+              {
+                "kind": "full-row-sequence",
+                "c": [
+                  "test                                                                    !F I    C                          ",
+                  "alias.test                     missing.test                             CF I    C                          "
+                ],
+                "rust": [
+                  "alias.test                     missing.test                             CF I    C                          "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "case": "resolved-cname",
+          "flags": [
+            "--host-record=target.test,192.0.2.42",
+            "--cname=alias.test,target.test"
+          ],
+          "result": {
+            "c": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,192.0.2.42",
+                "--cname=alias.test,target.test"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            },
+            "rust": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq-rs",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,192.0.2.42",
+                "--cname=alias.test,target.test"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            }
+          },
+          "comparison": {
+            "r4_passed": true,
+            "errors": [],
+            "expected_declared_rows": 2,
+            "all_rows_equal": false,
+            "declared_sequence_equal": true,
+            "rows": {
+              "c": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "alias.test                     target.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "test                                                                    !F I    C                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "alias.test                     target.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ]
+            },
+            "declared_rows": {
+              "c": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "alias.test                     target.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "alias.test                     target.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ]
+            },
+            "other_rows": {
+              "c": [
+                {
+                  "raw": "test                                                                    !F I    C                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": []
+            },
+            "scope_difference": [
+              {
+                "kind": "internal-nonterminal-rows",
+                "c": [
+                  {
+                    "raw": "test                                                                    !F I    C                          ",
+                    "name": "test",
+                    "address": "",
+                    "flags": "!F I    C ",
+                    "expires": "                        ",
+                    "source": ""
+                  }
+                ],
+                "rust": []
+              },
+              {
+                "kind": "full-row-sequence",
+                "c": [
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "alias.test                     target.test                              CF I    C                          ",
+                  "test                                                                    !F I    C                          "
+                ],
+                "rust": [
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "alias.test                     target.test                              CF I    C                          "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "case": "chain-cname",
+          "flags": [
+            "--host-record=target.test,192.0.2.42",
+            "--cname=middle.test,target.test",
+            "--cname=alias.test,middle.test"
+          ],
+          "result": {
+            "c": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,192.0.2.42",
+                "--cname=middle.test,target.test",
+                "--cname=alias.test,middle.test"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            },
+            "rust": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq-rs",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,192.0.2.42",
+                "--cname=middle.test,target.test",
+                "--cname=alias.test,middle.test"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            }
+          },
+          "comparison": {
+            "r4_passed": true,
+            "errors": [],
+            "expected_declared_rows": 3,
+            "all_rows_equal": false,
+            "declared_sequence_equal": false,
+            "rows": {
+              "c": [
+                {
+                  "raw": "alias.test                     middle.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "middle.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "test                                                                    !F I    C                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "middle.test                    target.test                              CF I    C                          ",
+                  "name": "middle.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "middle.test                    target.test                              CF I    C                          ",
+                  "name": "middle.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "alias.test                     middle.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "middle.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ]
+            },
+            "declared_rows": {
+              "c": [
+                {
+                  "raw": "alias.test                     middle.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "middle.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "middle.test                    target.test                              CF I    C                          ",
+                  "name": "middle.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "middle.test                    target.test                              CF I    C                          ",
+                  "name": "middle.test",
+                  "address": "target.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                },
+                {
+                  "raw": "alias.test                     middle.test                              CF I    C                          ",
+                  "name": "alias.test",
+                  "address": "middle.test",
+                  "flags": "CF I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ]
+            },
+            "other_rows": {
+              "c": [
+                {
+                  "raw": "test                                                                    !F I    C                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I    C ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": []
+            },
+            "scope_difference": [
+              {
+                "kind": "internal-nonterminal-rows",
+                "c": [
+                  {
+                    "raw": "test                                                                    !F I    C                          ",
+                    "name": "test",
+                    "address": "",
+                    "flags": "!F I    C ",
+                    "expires": "                        ",
+                    "source": ""
+                  }
+                ],
+                "rust": []
+              },
+              {
+                "kind": "declared-row-order",
+                "c": [
+                  "alias.test                     middle.test                              CF I    C                          ",
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "middle.test                    target.test                              CF I    C                          "
+                ],
+                "rust": [
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "middle.test                    target.test                              CF I    C                          ",
+                  "alias.test                     middle.test                              CF I    C                          "
+                ]
+              },
+              {
+                "kind": "full-row-sequence",
+                "c": [
+                  "alias.test                     middle.test                              CF I    C                          ",
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "test                                                                    !F I    C                          ",
+                  "middle.test                    target.test                              CF I    C                          "
+                ],
+                "rust": [
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "middle.test                    target.test                              CF I    C                          ",
+                  "alias.test                     middle.test                              CF I    C                          "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "case": "configured-dns",
+          "flags": [
+            "--host-record=target.test,192.0.2.42,2001:db8::42",
+            "--address=/suffix.test/192.0.2.43",
+            "--mx-host=mx.test,target.test,10",
+            "--txt-record=txt.test,hello"
+          ],
+          "result": {
+            "c": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,192.0.2.42,2001:db8::42",
+                "--address=/suffix.test/192.0.2.43",
+                "--mx-host=mx.test,target.test,10",
+                "--txt-record=txt.test,hello"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            },
+            "rust": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq-rs",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,192.0.2.42,2001:db8::42",
+                "--address=/suffix.test/192.0.2.43",
+                "--mx-host=mx.test,target.test,10",
+                "--txt-record=txt.test,hello"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            }
+          },
+          "comparison": {
+            "r4_passed": true,
+            "errors": [],
+            "expected_declared_rows": 2,
+            "all_rows_equal": false,
+            "declared_sequence_equal": true,
+            "rows": {
+              "c": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "target.test                    2001:db8::42                             6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "2001:db8::42",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "test                                                                    !F I   HC                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I   HC ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "target.test                    2001:db8::42                             6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "2001:db8::42",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                }
+              ]
+            },
+            "declared_rows": {
+              "c": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "target.test                    2001:db8::42                             6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "2001:db8::42",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "192.0.2.42",
+                  "flags": "4FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "target.test                    2001:db8::42                             6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "2001:db8::42",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                }
+              ]
+            },
+            "other_rows": {
+              "c": [
+                {
+                  "raw": "test                                                                    !F I   HC                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I   HC ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": []
+            },
+            "scope_difference": [
+              {
+                "kind": "internal-nonterminal-rows",
+                "c": [
+                  {
+                    "raw": "test                                                                    !F I   HC                          ",
+                    "name": "test",
+                    "address": "",
+                    "flags": "!F I   HC ",
+                    "expires": "                        ",
+                    "source": ""
+                  }
+                ],
+                "rust": []
+              },
+              {
+                "kind": "full-row-sequence",
+                "c": [
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "target.test                    2001:db8::42                             6FRI   HC                           config                                  ",
+                  "test                                                                    !F I   HC                          "
+                ],
+                "rust": [
+                  "target.test                    192.0.2.42                               4FRI   HC                           config                                  ",
+                  "target.test                    2001:db8::42                             6FRI   HC                           config                                  "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "case": "literal-address",
+          "flags": [
+            "--host-record=target.test,::192.0.2.42"
+          ],
+          "result": {
+            "c": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,::192.0.2.42"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            },
+            "rust": {
+              "argv": [
+                "chroot",
+                "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs",
+                "/usr/sbin/dnsmasq-rs",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--no-resolv",
+                "--port=15353",
+                "--listen-address=127.0.0.1",
+                "--bind-interfaces",
+                "--log-facility=-",
+                "--log-queries",
+                "--host-record=target.test,::192.0.2.42"
+              ],
+              "alive_after_dump": true,
+              "exit": 0
+            }
+          },
+          "comparison": {
+            "r4_passed": true,
+            "errors": [],
+            "expected_declared_rows": 1,
+            "all_rows_equal": false,
+            "declared_sequence_equal": true,
+            "rows": {
+              "c": [
+                {
+                  "raw": "target.test                    ::c000:22a                               6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "::c000:22a",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                },
+                {
+                  "raw": "test                                                                    !F I   HC                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I   HC ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    ::c000:22a                               6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "::c000:22a",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                }
+              ]
+            },
+            "declared_rows": {
+              "c": [
+                {
+                  "raw": "target.test                    ::c000:22a                               6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "::c000:22a",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                }
+              ],
+              "rust": [
+                {
+                  "raw": "target.test                    ::c000:22a                               6FRI   HC                           config                                  ",
+                  "name": "target.test",
+                  "address": "::c000:22a",
+                  "flags": "6FRI   HC ",
+                  "expires": "                        ",
+                  "source": " config                                  "
+                }
+              ]
+            },
+            "other_rows": {
+              "c": [
+                {
+                  "raw": "test                                                                    !F I   HC                          ",
+                  "name": "test",
+                  "address": "",
+                  "flags": "!F I   HC ",
+                  "expires": "                        ",
+                  "source": ""
+                }
+              ],
+              "rust": []
+            },
+            "scope_difference": [
+              {
+                "kind": "internal-nonterminal-rows",
+                "c": [
+                  {
+                    "raw": "test                                                                    !F I   HC                          ",
+                    "name": "test",
+                    "address": "",
+                    "flags": "!F I   HC ",
+                    "expires": "                        ",
+                    "source": ""
+                  }
+                ],
+                "rust": []
+              },
+              {
+                "kind": "full-row-sequence",
+                "c": [
+                  "target.test                    ::c000:22a                               6FRI   HC                           config                                  ",
+                  "test                                                                    !F I   HC                          "
+                ],
+                "rust": [
+                  "target.test                    ::c000:22a                               6FRI   HC                           config                                  "
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "r4_passed": true,
+      "all_rows_equal": false
+    },
+    "raw_evidence": [
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/chain-cname-c.log",
+        "sha256": "e73fad2d7ed6a1e8263440498d8fe11b74014da0ae95c925559bca7d2847486e",
+        "bytes": 1480
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/chain-cname-rust.log",
+        "sha256": "32e19422be70dc64c69c89eacb88f6caccc5947293b74bd96693aec864167d3e",
+        "bytes": 1305
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/configured-dns-c.log",
+        "sha256": "d9056a6128b439b05f0bfcdf4d0f970a1b400d3d636ca56d16a03bbffc1a7853",
+        "bytes": 1400
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/configured-dns-rust.log",
+        "sha256": "b28cc50596df09c3dc16b29f4681f7ce83aae5af9c2ea633eb99026845ebc0aa",
+        "bytes": 1225
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/literal-address-c.log",
+        "sha256": "847f97afa11f67fe077f66e82c561262e61e4da665b6adfc47af654d12a544b8",
+        "bytes": 1238
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/literal-address-rust.log",
+        "sha256": "6fd96a4762ba4bca9898befd913788dffdd68a1d2baaa5cfe24deeda3a9b7980",
+        "bytes": 1063
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/orphan-cname-c.log",
+        "sha256": "4bae5b6e780453cd149887124b6baf1fc9dfe28c71fe9dc7d4e2ef35849bee5d",
+        "bytes": 1197
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/orphan-cname-rust.log",
+        "sha256": "168e94857105571d6e96b292dd0962c0cf1241820bff22e7eb72e7ba4a0c3602",
+        "bytes": 1022
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/resolved-cname-c.log",
+        "sha256": "ff4397be0cee7893ab795d0a26e1c38e2e6687e7dedd0b63ae16881f12546f94",
+        "bytes": 1359
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/resolved-cname-rust.log",
+        "sha256": "df6502eafa7f0c8aa3917066992f0eb601894a5e2f9261de21220d4b7bf98631",
+        "bytes": 1184
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/result.json",
+        "sha256": "a1d84d06a4b9076cdd2c25243b01f74b4f251b39b912fc8a7f2cf776cf914ca9",
+        "bytes": 49374
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/r4-dump/rootfs-identity.json",
+        "sha256": "fad9e704471df6be561d3bf35c7753037c2dc0dd615f3cd909b75c42297597cb",
+        "bytes": 46102
+      }
+    ]
+  },
+  "signals_regression": {
+    "command": {
+      "id": "runtime-signals",
+      "argv": [
+        "sh",
+        "$ORACLE_RUN/source-qualified/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "$ORACLE_RUN/source-qualified/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "--image-root",
+        "$IMAGE_ROOT",
+        "--rust",
+        "$ORACLE_RUN/private/sdk-acquire-qualified/payload/usr/sbin/dnsmasq",
+        "--c-native",
+        "$MATCHING_NATIVE_C",
+        "--out",
+        "$ORACLE_RUN/private/functional-qualified/signals"
+      ],
+      "result": "$ORACLE_RUN/private/functional-qualified/signals/result.json",
+      "custom_check": "signals",
+      "timeout_seconds": 1800,
+      "passed": true,
+      "started": 1791756471.9003024,
+      "returncode": 0,
+      "result_sha256": "6db5a49ca63e572ab40ee28729c47672bf0df6e27e9d5c82aff775b53cbbc369",
+      "elapsed_seconds": 8.869231462478638
+    },
+    "passed": true,
+    "signal_cases": [
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      }
+    ],
+    "cache_dumps": [
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "daemon_alive": true,
+        "upstream_queries": 3,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "daemon_alive": true,
+        "upstream_queries": 3,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "daemon_alive": true,
+        "upstream_queries": 3,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      }
+    ],
+    "alarm_maintenance": [
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "0e3bf08ca23394b0b51fe13467f8fc3af69630c5876682a8e5d37778d38ede88",
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      }
+    ],
+    "raw_evidence": [
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-SIGALRM.log",
+        "sha256": "5a8d46e7429adb602ac3f6a9f27a0ca1780a0828bee4a098ef69bd7df9b45c7c",
+        "bytes": 363
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-SIGHUP.log",
+        "sha256": "818dce085fcf44dc1334c7cb8e9bb814efedd61eac35412679655f9fe099bfda",
+        "bytes": 384
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-SIGUSR1.log",
+        "sha256": "4383238f99757f0e1a6fffaba9b52702883a64471165331d813f2864f1b0f7f3",
+        "bytes": 687
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-SIGUSR2.log",
+        "sha256": "97cf44db1d73507c9671acbb7db6323b658791584d6c1b1731e5dd9c7a1dfee5",
+        "bytes": 358
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-alarm-maintenance.leases",
+        "sha256": "ae8b39bc91d9f091d2d96a8f8bc6eb7bd49fb8cb8bdab10774738205326ef3e6",
+        "bytes": 55
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-alarm-maintenance.log",
+        "sha256": "4067def3a12b678a90fac0e989cf1adac246df76e2622381b77c5de500872ab2",
+        "bytes": 1651
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-image-dump.log",
+        "sha256": "9f537d2d61a3d03e7dd4d24cb6b408b071a4afe3173e0416abe459c2a871a34b",
+        "bytes": 3449
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-SIGALRM.log",
+        "sha256": "96519277fd60e53ef85b2286e3915d60588e3a03d032d6b03a80959c2eee7eee",
+        "bytes": 363
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-SIGHUP.log",
+        "sha256": "ed02277c340c0a8909a042716dc45c7853817899acdd9781abc804f7ed763642",
+        "bytes": 384
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-SIGUSR1.log",
+        "sha256": "a6f073e29ab630a1db5532f78604c544c5ee20480f46c93586fc590c0c4f6650",
+        "bytes": 697
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-SIGUSR2.log",
+        "sha256": "1b20dcb4c8aeed9c6d99dca12c964fcede5e6ff3c44d74664cd5aa122d8c0054",
+        "bytes": 358
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-alarm-maintenance.leases",
+        "sha256": "014249b7b255fca38b1db48bc307ba56da12efa93a6dfff3ebf4d4466ceb40ad",
+        "bytes": 55
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-alarm-maintenance.log",
+        "sha256": "60a9ff04fc1fd5742b118279457d9f0975f5d1b902dabfc63eb70d777c37659f",
+        "bytes": 1652
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/c-native-dump.log",
+        "sha256": "014cb87acabece9f3bb97288dcac4353359d3483f257bef6792b5787f4736ab0",
+        "bytes": 3449
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/result.json",
+        "sha256": "6db5a49ca63e572ab40ee28729c47672bf0df6e27e9d5c82aff775b53cbbc369",
+        "bytes": 12735
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-SIGALRM.log",
+        "sha256": "57f234606464ca68ad8b65d6ef7f521d5f3cf1c379764fe848fd04d80050cbf8",
+        "bytes": 363
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-SIGHUP.log",
+        "sha256": "8d494cc3cd500a1ca1bef033330adf7e7793cab44393a8649e0b8732ca84afd3",
+        "bytes": 384
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-SIGUSR1.log",
+        "sha256": "d840c1b4a09859c183a35af85d509af230b8fac1fdcd5485340e05654aefff4d",
+        "bytes": 639
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-SIGUSR2.log",
+        "sha256": "4b6eba12451fe8db406375c0943f08840f963dbd3bad5febb2aef2c5a44b20c8",
+        "bytes": 358
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-alarm-maintenance.leases",
+        "sha256": "014249b7b255fca38b1db48bc307ba56da12efa93a6dfff3ebf4d4466ceb40ad",
+        "bytes": 55
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-alarm-maintenance.log",
+        "sha256": "9da51ae03b1ba1b1fdfcfe869ae3b0f0db659ab691ff08a7c5c7ef1dbb59b14b",
+        "bytes": 1590
+      },
+      {
+        "path": "$ORACLE_RUN/private/functional-qualified/signals/rust-dump.log",
+        "sha256": "ce5cda26b1da59bfac1bb1ac0c18805f2e74d6106f63edf0a7a08c72cae36a4a",
+        "bytes": 3091
+      }
+    ]
+  },
+  "limits": [
+    "Configured row order and nonterminal rows may differ; all_rows_equal=false is retained.",
+    "Dynamic cache internal allocator layout/hash iteration order is outside this R4 fix.",
+    "All runs use isolated Oracle environments, not a physical router."
+  ]
+}
