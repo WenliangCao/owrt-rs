@@ -1,0 +1,358 @@
+{
+  "schema": 1,
+  "finding": "F01",
+  "scope": "SDK source-build repair only; functional regression, lifecycle and router deployment qualification are reported separately.",
+  "path_variables": {
+    "ORACLE_ROOT": "/home/ubuntu/dnsmasq-review-fix-20261011",
+    "CARGO_HOME": "Oracle user Cargo home",
+    "RUSTUP_HOME": "Oracle user rustup home"
+  },
+  "repair": {
+    "commit": "6b7f109a4de4250080d25cc2e6d4b7500633695d",
+    "recipe": "packaging/openwrt/owrt-dnsmasq/Makefile",
+    "recipe_sha256": "baadd5e484a37f7c07947917b079ff0f107fd409cb604a07d095137b9f0aec4f",
+    "change": "Use shell backticks for compiler lookup so Make BuildPackage eval cannot reinterpret shell command substitution; exercise the BuildPackage eval layer in the package-tool test."
+  },
+  "source": {
+    "commit": "18cc40367328056f41e237b0d4ff2f23b33a7ef4",
+    "input_count": 176,
+    "input_digest": "809de591c563343cb1295b8b4303cdecbfc3f1ecc2e366fd8a4e716d185d9a37",
+    "digest_algorithm": "SHA256 of sorted input-name to SHA256 JSON map with separators comma and colon",
+    "prepared_component_files_verified": 159
+  },
+  "sdk": {
+    "name": "openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+    "archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+    "input_files_digest": "1c5a8201578bdc768de01eaa5d75cda6e43952ee618b7b990cdf1278e9835c67",
+    "inputs_unchanged_after_build": true,
+    "recipe_restored": true
+  },
+  "local_reproduction": {
+    "tool": "docs/dnsmasq/audits/20261011/independent/build_eval_repro.py",
+    "direct_exit_code": 0,
+    "BuildPackage_eval_exit_code": 0,
+    "same_nonempty_absolute_compiler_path": true,
+    "raw_result_sha256": "95bebac1d5df246d718532fce1c67ea0c5746fc4ed689432fe03f25fa5e8d202"
+  },
+  "package_tools_regression": {
+    "command": "python3 -m unittest discover -s tools/dnsmasq -p test_build_package.py",
+    "passed": 20,
+    "failed": 0,
+    "raw_log_sha256": "893bcd2b31d0f790e2df788355e5ccf077f03dc175625fc6d939acf49ba47fd8"
+  },
+  "actual_make_eval_environment": {
+    "observation": "Read the actual Cargo and rustc processes environment during SDK source compilation. Only compiler/build fields were retained.",
+    "processes": [
+      {
+        "pid": 1415701,
+        "process": "cargo"
+      },
+      {
+        "pid": 1415810,
+        "process": "rustc"
+      }
+    ],
+    "DNSMASQ_STATIC_PIE_CC": "${ORACLE_ROOT}/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+    "nonempty_absolute_path": true,
+    "compiler_wrapper_sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+    "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER": "${ORACLE_ROOT}/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq/static-pie-linker.py",
+    "raw_evidence": {
+      "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/live-compiler-environment.json",
+      "sha256": "b1dc0289f8b9ea2b88d8b204bb8c1313d777005e4889078ed919c6ce84a37cdd"
+    }
+  },
+  "source_build": {
+    "mode": "compile-and-package",
+    "frozen_elf_used": false,
+    "actual_make_prepare_exit_code": 0,
+    "actual_make_compile_exit_code": 0,
+    "actual_Rust_source_compilation": true,
+    "commands": [
+      [
+        "make",
+        "package/owrt-dnsmasq/prepare",
+        "V=s",
+        "-j1",
+        "V1_PACKAGE_RELEASE=3",
+        "OWRT_COMPONENTS_SOURCE=${ORACLE_ROOT}/source/private/sdk-source-acquire-02/source/components",
+        "OWRT_DNSMASQ_BUILD_DIR=${ORACLE_ROOT}/source/private/sdk-source-acquire-02/package-build",
+        "OWRT_DNSMASQ_OUTPUT_DIR=${ORACLE_ROOT}/source/private/sdk-source-verify-03/sdk-output",
+        "V1_CARGO=${CARGO_HOME}/bin/cargo",
+        "V1_CARGO_HOME=${CARGO_HOME}",
+        "V1_RUSTUP_HOME=${RUSTUP_HOME}"
+      ],
+      [
+        "make",
+        "package/owrt-dnsmasq/compile",
+        "V=s",
+        "-j1",
+        "V1_PACKAGE_RELEASE=3",
+        "OWRT_COMPONENTS_SOURCE=${ORACLE_ROOT}/source/private/sdk-source-acquire-02/source/components",
+        "OWRT_DNSMASQ_BUILD_DIR=${ORACLE_ROOT}/source/private/sdk-source-acquire-02/package-build",
+        "OWRT_DNSMASQ_OUTPUT_DIR=${ORACLE_ROOT}/source/private/sdk-source-verify-03/sdk-output",
+        "V1_CARGO=${CARGO_HOME}/bin/cargo",
+        "V1_CARGO_HOME=${CARGO_HOME}",
+        "V1_RUSTUP_HOME=${RUSTUP_HOME}"
+      ]
+    ],
+    "profile": "Rust 1.98.1 release, opt3, LTO, feature-off, AArch64 musl static PIE; SDK RSTRIP retained",
+    "checks": {
+      "source_identity": true,
+      "SDK_identity": true,
+      "payload_inventory": true,
+      "APK_metadata": true,
+      "static_PIE_ELF_layout": true,
+      "runtime_RELRO_not_claimed": true
+    },
+    "elf_layout": {
+      "type": "ET_DYN",
+      "machine": "AArch64",
+      "linkage": "static-pie",
+      "interpreter": null,
+      "needed": [],
+      "pie": true,
+      "bind_now": true,
+      "gnu_relro": true,
+      "nx_stack": true,
+      "writable_executable_load": false,
+      "runtime_protections_verified": false
+    },
+    "apk_metadata": {
+      "name": "dnsmasq",
+      "version": "2.93-r3",
+      "arch": "aarch64_cortex-a53",
+      "provides": [
+        "dnsmasq-any"
+      ],
+      "replacement": "same package name dnsmasq, newer release 2.93-r3",
+      "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+      "depends": [
+        "libc",
+        "libubus20251202"
+      ]
+    }
+  },
+  "same_path_clean_rebuild": {
+    "expected_ELF_SHA_locked_before_rebuild": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+    "fixed_source_path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/source",
+    "fixed_build_path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/package-build",
+    "clean_method": "Move the complete prior generated build tree, including SDK stamps, to a retained evidence directory before make prepare; prepare then removes/recreates the original build path and copies checked sources.",
+    "prior_build_tree_retained_at": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/previous-autoremove-tree",
+    "prepare_log_evidence": {
+      "rm_and_create_lines": [
+        77,
+        78
+      ],
+      "source_copy_lines": [
+        81,
+        83
+      ],
+      "prepare_finished_line": 87
+    },
+    "compile_log_evidence": {
+      "Rust_compilation_line": 116,
+      "release_completed_line": 477,
+      "SDK_compile_finished_line": 583
+    },
+    "original": {
+      "elf": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+        "sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "size": 2050843
+      },
+      "apk": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/dnsmasq-2.93-r3.apk",
+        "sha256": "66f2832a24d49e81aa280c28855275ed54b62b2f6c32630a64e1eaba87396af0",
+        "size": 1114083
+      }
+    },
+    "rebuilt": {
+      "elf": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/payload/usr/sbin/dnsmasq",
+        "sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "size": 2050843
+      },
+      "apk": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/dnsmasq-2.93-r3.apk",
+        "sha256": "66f2832a24d49e81aa280c28855275ed54b62b2f6c32630a64e1eaba87396af0",
+        "size": 1114083
+      }
+    },
+    "ELF_byte_identical": true,
+    "APK_byte_identical": true,
+    "strict_expected_identity_check_passed": true,
+    "cross_directory_reproducibility_claimed": false
+  },
+  "budget": {
+    "F05_in_scope": false,
+    "file": "tools/dnsmasq/m5_final_budget.json",
+    "schema": 1,
+    "elf_max_bytes": 1000000,
+    "apk_max_bytes": 700000,
+    "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43",
+    "checks": {
+      "apk": false,
+      "elf": false
+    },
+    "error": "APK size 1114083 exceeds target 700000 bytes; ELF size 2050843 exceeds target 1000000 bytes",
+    "failure_boundary": "size-target",
+    "budget_changed_or_exception_added": false,
+    "overall_package_budget_accepted": false
+  },
+  "final_status": {
+    "F01_source_build_fixed": true,
+    "candidate_identity_verified": true,
+    "manifest_status": "source-build-identity-verified-budget-rejected",
+    "package_acceptance": "rejected by unchanged F05 file-size budgets; not a fully accepted package"
+  },
+  "retained_prior_failures": [
+    {
+      "run": "acquire01",
+      "status": "failed",
+      "failure_boundary": "input-preflight",
+      "explanation": "Rejected before any make stage: the local map had one ignored Python bytecode file absent from Git archive. Before retry, all 176 tracked inputs were checked against the frozen Git blobs.",
+      "raw_evidence": {
+        "acquisition.json": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-01/acquisition.json",
+          "sha256": "f085ff706034418cdc62c950dfb4ebeb3dcdb1bf0d2125636c30b722d1f58c86"
+        }
+      }
+    },
+    {
+      "run": "acquire02",
+      "status": "failed",
+      "failure_boundary": "additional-receipt-read",
+      "explanation": "Actual make prepare/compile and APK extraction succeeded. An extra receipt read then failed because SDK autoremove removed the Cargo target. The original failed manifest is retained. A separate closure binds the retained .pkgdir ELF, processed with exact SDK sstrip -z, to the APK payload.",
+      "raw_evidence": {
+        "acquisition.json": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/acquisition.json",
+          "sha256": "5c360b5583edce2d44a7badf70d41fe8049251c7cf2ddde255613c458bb60e05"
+        },
+        "prepare.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/prepare.log",
+          "sha256": "37496980906c34d7004877163aee883e3c3a4da5f2400acfcb7a1ac24ec584a5"
+        },
+        "compile.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/compile.log",
+          "sha256": "b5138e5a59c4aff9f2ba5551453ec56fdb46688700da6666301f39db93aae24b"
+        },
+        "extract.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/extract.log",
+          "sha256": "20957e9cc53618be70e0d341732a558fec7ed05cd1d8caa97039d9830863dd18"
+        },
+        "elf-readelf.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/elf-readelf.log",
+          "sha256": "c9e8569541fef02112886e2275d4b1d67cfab93c1114a345255d698c4cd59af8"
+        },
+        "apk-metadata.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02/apk-metadata.log",
+          "sha256": "c71d66bff37a09dec10b67eeca0b6792ccd8b5666eb2049b91491d055015495b"
+        }
+      }
+    },
+    {
+      "run": "verify01",
+      "status": "failed",
+      "failure_boundary": "expected-elf-identity",
+      "explanation": "Official build_package.py at a new source/build pathname compiled and packaged successfully. The strict predeclared identity check rejected the different ELF; the budget gate was not reached. No mismatch was allowed.",
+      "raw_evidence": {
+        "manifest.json": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/manifest.json",
+          "sha256": "62c6c7c328cf48dcb9256cd778550d9a55e17d9c7238188d915522746a26af48"
+        },
+        "prepare.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/prepare.log",
+          "sha256": "de73c4c7ab0390bc29dc068dbbdadb9de20e56d38c195d40bbf790695773eb35"
+        },
+        "compile.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/compile.log",
+          "sha256": "e5eaae7e440cc2c17efd7d5ed5ea4ca99004d7cfcd7e66a5b9fc23bf9f1d63db"
+        },
+        "extract.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/extract.log",
+          "sha256": "3ca7ee077290941bd43d35e4a0f10d79c6a4646a05dc536c34f1b73bd6f063ad"
+        },
+        "elf-readelf.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/elf-readelf.log",
+          "sha256": "c9e8569541fef02112886e2275d4b1d67cfab93c1114a345255d698c4cd59af8"
+        },
+        "apk-metadata.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/apk-metadata.log",
+          "sha256": "8ddc4f2ae0acb77946442db82ea387bf48c2cdace2c86de2a6a156050c5eb3fa"
+        },
+        "live-compiler-environment.json": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-01/live-compiler-environment.json",
+          "sha256": "9c48a8751e4319c4cbf32d951d7654c69c097a8b9bfe137633578dd12f5ba4ec"
+        }
+      },
+      "expected_elf_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+      "actual_elf_sha256": "09222a3fbb7e7e220fe11ddfcfad1151ddfa5c6150b97d6b0c8cf54fb9432f81",
+      "budget_evaluated": false
+    },
+    {
+      "run": "verify02",
+      "status": "failed",
+      "failure_boundary": "prepared-source-check",
+      "explanation": "The fixed-path attempt retained SDK stamps after autoremove, so make prepare skipped recreation. The copied-source check rejected missing files before compile. This failed attempt is retained.",
+      "raw_evidence": {
+        "acquisition.json": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-02/acquisition.json",
+          "sha256": "7fcebe307b1b0eb7a7ed8723d0ffa9290aa99f12b4471a382ab099e47b8c4ffb"
+        },
+        "prepare.log": {
+          "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-02/prepare.log",
+          "sha256": "6498be82ee9a54f1c39feeca648489ddaba166e71c18bfac76d6828116870fd2"
+        }
+      }
+    }
+  ],
+  "raw_evidence": {
+    "final": {
+      "acquisition.json": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/acquisition.json",
+        "sha256": "fcbce02a113bb63d0a7e912e58dca50a41498bac83f23001e391505335bcdcff"
+      },
+      "prepare.log": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/prepare.log",
+        "sha256": "261e02e68132724018f199292477a2c3afdcd06157ddff82ab7910cdbc463e55"
+      },
+      "compile.log": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/compile.log",
+        "sha256": "39024b32be91ff2cc53cea1ab0ffd94bce078b4bd52b19fce7d2be43a69d7f1e"
+      },
+      "extract.log": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/extract.log",
+        "sha256": "5ececf319d01d3047807b5d1cd9ee102574e88e47400715d283f739e6f15d485"
+      },
+      "elf-readelf.log": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/elf-readelf.log",
+        "sha256": "c9e8569541fef02112886e2275d4b1d67cfab93c1114a345255d698c4cd59af8"
+      },
+      "apk-metadata.log": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/apk-metadata.log",
+        "sha256": "c71d66bff37a09dec10b67eeca0b6792ccd8b5666eb2049b91491d055015495b"
+      },
+      "live-compiler-environment.json": {
+        "path": "${ORACLE_ROOT}/source/private/sdk-source-verify-03/live-compiler-environment.json",
+        "sha256": "b1dc0289f8b9ea2b88d8b204bb8c1313d777005e4889078ed919c6ce84a37cdd"
+      }
+    },
+    "acquisition02_independent_closure": {
+      "path": "${ORACLE_ROOT}/source/private/sdk-source-acquire-02-closure/closure.json",
+      "sha256": "3d22816983616746479c310e3827ddfda73cda9efa142365c08569123c68f349"
+    },
+    "fixed_rebuild_driver": {
+      "path": "${ORACLE_ROOT}/f01-sdk-fixed-rebuild-03.py",
+      "sha256": "294312da661673cd428184fe9ea48cfcf4568f4cda7a41ff436e19eef47c401a"
+    },
+    "full_derived_receipt": {
+      "path": "${ORACLE_ROOT}/f01-sdk-receipt.json",
+      "sha256": "5fa9fa6e5fe051a8ba40fb0eac9478aac423c85dd0c1c6f7143d1a361d6dac0c"
+    }
+  },
+  "limits": [
+    "Same-path clean source rebuilding is byte-identical; the fresh-path official builder identity rejection remains a failed run.",
+    "Oracle uses retained host wrappers for the pinned x86 SDK. Existing LD_PRELOAD/runas warnings are preserved in raw logs; this is not canonical x86 SDK-host qualification.",
+    "F04, F05 and F07 were not changed. No physical router or package lifecycle action was performed."
+  ]
+}
