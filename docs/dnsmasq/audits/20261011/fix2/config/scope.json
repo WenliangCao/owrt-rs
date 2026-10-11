@@ -1,0 +1,42 @@
+{
+  "sha256": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060"
+  },
+  "rows": [
+    {
+      "args": [
+        "--server=fe80::1%lo"
+      ],
+      "result": {
+        "c": {
+          "alive_after_usr1": true,
+          "exit": 0,
+          "log": "dnsmasq[3]: started, version 2.93 cachesize 150\ndnsmasq[3]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[3]: using nameserver fe80::1%lo#53\ndnsmasq[3]: cleared cache\ndnsmasq[3]: time 1791751601\ndnsmasq[3]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[3]: queries forwarded 0, queries answered locally 0\ndnsmasq[3]: pool memory in use 0, max 0, allocated 0\ndnsmasq[3]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[3]: server fe80::1%lo#53: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\ndnsmasq[3]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_usr1": true,
+          "exit": 0,
+          "log": "dnsmasq[4]: started, version 2.93 cachesize 150\ndnsmasq[4]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[4]: using nameserver fe80::1%lo#53\ndnsmasq[4]: cleared cache\ndnsmasq[4]: time 1791751601\ndnsmasq[4]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[4]: queries forwarded 0, queries answered locally 0\ndnsmasq[4]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[4]: server fe80::1%lo#53: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\ndnsmasq[4]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "args": [
+        "--server=127.0.0.1#15354"
+      ],
+      "result": {
+        "c": {
+          "alive_after_usr1": true,
+          "exit": 0,
+          "log": "dnsmasq[5]: started, version 2.93 cachesize 150\ndnsmasq[5]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[5]: using nameserver 127.0.0.1#15354\ndnsmasq[5]: cleared cache\ndnsmasq[5]: time 1791751602\ndnsmasq[5]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[5]: queries forwarded 0, queries answered locally 0\ndnsmasq[5]: pool memory in use 0, max 0, allocated 0\ndnsmasq[5]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[5]: server 127.0.0.1#15354: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\ndnsmasq[5]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_usr1": true,
+          "exit": 0,
+          "log": "dnsmasq[6]: started, version 2.93 cachesize 150\ndnsmasq[6]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[6]: using nameserver 127.0.0.1#15354\ndnsmasq[6]: cleared cache\ndnsmasq[6]: time 1791751602\ndnsmasq[6]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[6]: queries forwarded 0, queries answered locally 0\ndnsmasq[6]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[6]: server 127.0.0.1#15354: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms\ndnsmasq[6]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    }
+  ]
+}

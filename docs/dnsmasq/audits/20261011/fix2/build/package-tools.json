@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tools/dnsmasq",
+    "-p",
+    "test_build_package.py",
+    "-v"
+  ],
+  "cwd": "/Users/USER/Developer/owrt-control-plane-rs",
+  "exit_code": 0,
+  "elapsed_seconds": 3.235281229019165,
+  "log_sha256": "c526c1c67c5ec0f084ece10c73df9511e803847b0d3b15d2a91a7dbb1ba68b77",
+  "summary": [
+    "----------------------------------------------------------------------",
+    "Ran 20 tests in 3.173s",
+    "",
+    "OK"
+  ],
+  "scope": "local tool/unit fixtures only; real SDK build has separate evidence"
+}

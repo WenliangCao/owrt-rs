@@ -1,0 +1,72 @@
+{
+  "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14",
+  "build": {
+    "source": "/home/ubuntu/dnsmasq-audit-fix2-20261011/source",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix2-20261011/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52166504,
+        "sha256": "0226d2ee07afeaec26713c64b885e4dad2f6699204bda79169c243820bdb87f5"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 69560400,
+        "sha256": "342b454f8c05110cb50a0e5389bf21c291551309c2de33b4ba8d6355180a7641"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "name": "lib-dnsmasq_rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "started": 1791751839.5698643,
+      "elf_sha256": "342b454f8c05110cb50a0e5389bf21c291551309c2de33b4ba8d6355180a7641",
+      "returncode": 0,
+      "elapsed_seconds": 4.093512058258057,
+      "log_sha256": "c40890840ec9dad180a8f25eb154d706cb484309141c9101f532cc9c60a8d98a",
+      "test_summary": [
+        "test result: ok. 761 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 3.99s"
+      ]
+    },
+    {
+      "name": "bin-dnsmasq-rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "started": 1791751843.6644742,
+      "elf_sha256": "0226d2ee07afeaec26713c64b885e4dad2f6699204bda79169c243820bdb87f5",
+      "returncode": 0,
+      "elapsed_seconds": 4.073662757873535,
+      "log_sha256": "ce68c84cc54f3b8f7ccff7273e6c83dfcd401330111d1a35da1a72521d3dd542",
+      "test_summary": [
+        "test result: ok. 75 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.99s"
+      ]
+    }
+  ],
+  "passed": true
+}

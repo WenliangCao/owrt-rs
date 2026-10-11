@@ -1,0 +1,208 @@
+{
+  "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "source_git_blob_verification": {
+    "fix": 182,
+    "main": 177,
+    "matched": true
+  },
+  "units": {
+    "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14",
+    "build": {
+      "source": "/home/ubuntu/dnsmasq-audit-fix2-20261011/source",
+      "kind": "tests",
+      "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix2-20261011/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+      "artifacts": [
+        {
+          "path": "bin-dnsmasq-rs",
+          "bytes": 52166504,
+          "sha256": "0226d2ee07afeaec26713c64b885e4dad2f6699204bda79169c243820bdb87f5"
+        },
+        {
+          "path": "lib-dnsmasq_rs",
+          "bytes": 69560400,
+          "sha256": "342b454f8c05110cb50a0e5389bf21c291551309c2de33b4ba8d6355180a7641"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "name": "lib-dnsmasq_rs",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "-c",
+          "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+          "unit",
+          "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/tests/lib-dnsmasq_rs",
+          "--test-threads=1"
+        ],
+        "started": 1791751839.5698643,
+        "elf_sha256": "342b454f8c05110cb50a0e5389bf21c291551309c2de33b4ba8d6355180a7641",
+        "returncode": 0,
+        "elapsed_seconds": 4.093512058258057,
+        "log_sha256": "c40890840ec9dad180a8f25eb154d706cb484309141c9101f532cc9c60a8d98a",
+        "test_summary": [
+          "test result: ok. 761 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 3.99s"
+        ]
+      },
+      {
+        "name": "bin-dnsmasq-rs",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/home/ubuntu/dnsmasq-audit-fix2-20261011/source/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "-c",
+          "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+          "unit",
+          "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/tests/bin-dnsmasq-rs",
+          "--test-threads=1"
+        ],
+        "started": 1791751843.6644742,
+        "elf_sha256": "0226d2ee07afeaec26713c64b885e4dad2f6699204bda79169c243820bdb87f5",
+        "returncode": 0,
+        "elapsed_seconds": 4.073662757873535,
+        "log_sha256": "ce68c84cc54f3b8f7ccff7273e6c83dfcd401330111d1a35da1a72521d3dd542",
+        "test_summary": [
+          "test result: ok. 75 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 3.99s"
+        ]
+      }
+    ],
+    "passed": true
+  },
+  "tool_tests": {
+    "argv": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/dnsmasq",
+      "-p",
+      "test_build_package.py",
+      "-v"
+    ],
+    "cwd": "/Users/USER/Developer/owrt-control-plane-rs",
+    "exit_code": 0,
+    "elapsed_seconds": 3.235281229019165,
+    "log_sha256": "c526c1c67c5ec0f084ece10c73df9511e803847b0d3b15d2a91a7dbb1ba68b77",
+    "summary": [
+      "----------------------------------------------------------------------",
+      "Ran 20 tests in 3.173s",
+      "",
+      "OK"
+    ],
+    "scope": "local tool/unit fixtures only; real SDK build has separate evidence"
+  },
+  "config": {
+    "syntax_cases": 65,
+    "syntax_mismatches": 0,
+    "services": 54,
+    "service_differences": [
+      [
+        "--except-interface=lo"
+      ],
+      [
+        "--listen-address=127.0.0.1"
+      ],
+      [
+        "--auth-server=ns.test,lo/4",
+        "--except-interface=lo"
+      ],
+      [
+        "--auth-server=ns.test,lo/4",
+        "--listen-address=127.0.0.1"
+      ],
+      [
+        "--auth-server=ns.test,lo/6",
+        "--except-interface=lo"
+      ],
+      [
+        "--auth-server=ns.test,127.0.0.1",
+        "--except-interface=lo"
+      ],
+      [
+        "--auth-server=ns.test,127.0.0.1",
+        "--listen-address=127.0.0.1"
+      ],
+      [
+        "--auth-server=ns.test,::1",
+        "--except-interface=lo"
+      ]
+    ],
+    "service_difference_classification": "C EOF vs Rust reset on rejected TCP; same no-auth control behavior",
+    "tftp_cases": 96
+  },
+  "signals": {
+    "passed": true,
+    "process_cases": 8,
+    "all_normal_exit": true
+  },
+  "cname": {
+    "original_cases": 4,
+    "original_passed": true,
+    "additional_configured_terminal_mismatches": 16,
+    "rd_do_cases": 16,
+    "rd_do_all_match": true
+  },
+  "hosts": {
+    "paired_scenarios": 6,
+    "scope": "addn-hosts file/directory and hostsdir, foreground/debug, startup/HUP; 228 paired queries"
+  },
+  "preserved_harness_failures": [
+    {
+      "remote": "private/dns-hosts/hosts-compat-01/result.json",
+      "sha256": "fe355f59c3f62403e7c41c6af8b406ea9d83b936d389519c9ff64c514cb7a28f",
+      "reason": "debug timestamp/PID normalization missing; query payloads agreed, corrected complete rerun hosts-compat-02",
+      "product_change": false
+    },
+    {
+      "remote": "private/config-signals-01",
+      "reason": "test driver supplied a host pidfile path inside chroot; used --pid-file= and reran complete signal-normal checks in config-signals-02",
+      "product_change": false
+    }
+  ],
+  "inputs": {
+    "build/main-release-sections.txt": "7801b5f68ee28e8f757d3bdc2781e28aaeafc37f41ed64fa1018b06d99366017",
+    "build/package-tools.json": "a6c424938d25010ea96692f6a514fa06383141788289bf382284e42516d7096e",
+    "build/release-sections.txt": "6d620c3a085a687aabfcf24a1f361e06b5141e798edf00e76d51546c732c9583",
+    "build/relro-release.json": "b30ef940fe34114f9085c4a4be1e95a18e47edd83685131772394e8dde333e5a",
+    "build/relro-sdk.json": "8f7f00ee86ddde29c3f266247fbb4fb3bf58d7f1eb5626f993d01c1b6905f716",
+    "build/sdk-acquire.json": "5e0ae9aca6255297e2aa4e1e42c3cf25ca73c548d199ad665af8be7304cbcfc5",
+    "build/sdk-verify.json": "3ef2f0ac6cb3a3b85f46ae85c941f54b6fb5b4222d365a272760a844f7ae0e97",
+    "build/sdk_source_build.py": "b1c8bcc1d076240f1d8f9ab630f5db9853be3112dca7f6c87ddbf7c673563abd",
+    "build/source-identity.json": "227234d1582ab4c64685588fba19c011928dac3fd9a075d9923852696ef81237",
+    "config/a05.json": "fd3c4e7f17f4471b9832b5586965e06a98c68925760dc52d82b1b12a7a140338",
+    "config/config_normal.json": "30e020946a97d587f9c70dee7f6f2d187bcba7f90199dfd96276f65746c93f0c",
+    "config/config_normal.py": "32408d2bbe7a0c5b96aa8cc974b40578938f6c524762e87b1e8dadbe808a5832",
+    "config/dump_rows.json": "149884064a5b40e8d1bfbcade813602454028ba6ff7f79932b3626525cb5e495",
+    "config/dump_rows.py": "32a3f839ab358ffae0da5bd3f6b0b099c1c5989a62e7aa7c5f1bcf7c4f7016a3",
+    "config/scope.json": "892c9621660dbdc26df72ccc52175d95b5c0feef5b095327cd1c1a46222d2012",
+    "config/signal_normal.py": "fde3a2b1e7bd5376c30799bd640562e45e602f312e638bfaded6f4ad5be25339",
+    "config/signals.json": "121451872937eaa84973cf0c5145f883ac536008b6e66f3ae880e87112132423",
+    "config/tftp.json": "2d45208507a7e9d7661d4854ea7d76c8212acaee30b6c36c5ce6dcac82306b2e",
+    "dhcp/hostsdir_helper.py": "44f251957a35c1116439bbd635c6d43b19dcc20e0264d28890b0e292c342a4b0",
+    "dhcp/hostsdir_startup.py": "a8ae3cd45303efdc19eb683d3507dced1431ae18b9552fb52e9ae8ebdaa2547f",
+    "dhcp/summary.json": "b260ac6c2735fd2662b4a383ca2ff460f5b5dab8a6aeb3b9343f82566f841a68",
+    "dns/cname-flags-01.json": "e41d6022b7c2308dab57fd7271090a171fcdab0a0bab76c985ebc1d1b23d68b2",
+    "dns/cname-summary.json": "90c4b6e7325c25ffdda586e7694fc78f5f7e2c1d5b49afd6a4ecac0224c62fc4",
+    "dns/cname_compat.py": "35a213bcdf6cee5e20b840e46e84a3832fd2070c749794fcc412f8922a6482b8",
+    "dns/cname_flags.py": "5a1d2cf9003e1a4d2f77b017c3c57336bb4ebb21276718c4579913d2082103be",
+    "dns/hosts-compat-02.json": "94c0681db01a0a9709d263b960bb2b6e53abf665065e375a370c9970aeca0ef2",
+    "dns/hosts_compat.py": "928143d223d274fa6c408e72979474850e1de54d92942d3272a7a7b07174f233",
+    "identity.json": "3615a0f5dfbd071d9c3a2dacce3d2d7e2978e1a570ba7aaeb3dd13ba3f11a70f",
+    "identity.py": "1af26a67a117fe5cb471dbbb807923f168d91da791f7737ad9ee80585de7abbd",
+    "performance-plan.json": "ad861c0052e51b63e80cfac079f7d54130fdc7611256e667e01de5544892d545",
+    "performance.py": "6b9f57a25eb7d603cc396752c99ab4b992439eaf7368b1cbd44a4410d7e728f6",
+    "unit-tests.json": "e1b26def8904be9a3380a1d03d47b30ae72dc4739c7103aaf549900153c87d50",
+    "unit_driver.py": "428b1ed3424c5dfd0e43b9da04b74b3f9fca1247fb6237bd7ec2a8b268a6a5f7"
+  }
+}

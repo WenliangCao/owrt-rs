@@ -1,0 +1,960 @@
+{
+  "audit_head": "6d001a77f06a0cf0111537507827f5399cb49a14",
+  "baseline_main": "be531cee49e366bb5044443d473944dbea45b87e",
+  "scope": "Oracle isolated normal DHCP/script lifecycle compatibility; no product modifications",
+  "artifacts": [
+    {
+      "path": "dhcp-helper-01.json",
+      "sha256": "a44db216cfc803e34d3214bb0b34bd9999cacfffeccccf49fb2beacc6d3d3f1c",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-helper-01/result.json"
+    },
+    {
+      "path": "dhcp-hostsdir-01.json",
+      "sha256": "87c88a579aecf240edd8e97fbb82672f886c5b9285af37b1f8ecd598116da416",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-hostsdir-01/result.json"
+    },
+    {
+      "path": "dhcp-hostsdir-02.json",
+      "sha256": "ca76dcbfe47e9aa1d59286fa52b9a4a774cdfb16e7d4eb77de38c259da0b36df",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-hostsdir-02/result.json"
+    },
+    {
+      "path": "dhcp-hostsdir-helper-01.json",
+      "sha256": "351f67c790a20ab40207a6070b59a26513237c90071402aa0c9d2e872ce252b6",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-hostsdir-helper-01/result.json"
+    },
+    {
+      "path": "dhcp-hostsdir-main-01.json",
+      "sha256": "2bff20fbab3bed95f326fda040c04ead8625d295d8fd1d3b2cd9fc4a5118edfa",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-hostsdir-main-01/result.json"
+    },
+    {
+      "path": "dhcp-original-01.json",
+      "sha256": "2bc97d339d66a2497df4da77493518df4e9b228e6dcaf9c758fa2ed54491b7ed",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-original-01/result.json"
+    },
+    {
+      "path": "dhcp-startup-01.json",
+      "sha256": "e4468054f072685ef8a26e418bd4f7147bdf6acd7aeaea3075b8e4372447c4e5",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-startup-01/result.json"
+    },
+    {
+      "path": "dhcp-startup-helper-01.json",
+      "sha256": "55cd0fd5449617eaba985353d7a4fb9a763ea2c9895c54dca0c5ddddb868751e",
+      "oracle_path": "/home/ubuntu/dnsmasq-audit-fix2-20261011/private/dhcp-startup-helper-01/result.json"
+    }
+  ],
+  "startup_hostsdir": [
+    {
+      "run": "dhcp-hostsdir-01",
+      "script_sha256": "a8ae3cd45303efdc19eb683d3507dced1431ae18b9552fb52e9ae8ebdaa2547f",
+      "rust_sha256": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "cases": [
+        {
+          "mode": "poll",
+          "reply_equal": false,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476045871536637,
+              "reply_monotonic_ns": 1476045901193722,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476045983025358,
+              "reply_monotonic_ns": 1476045985936862,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "737570706c6965642d77726f6e67"
+                },
+                "message_type": 5,
+                "hostname": "supplied-wrong"
+              },
+              "hosts_open_at_reply": true,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        },
+        {
+          "mode": "no-poll",
+          "reply_equal": true,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476046074379873,
+              "reply_monotonic_ns": 1476046097640825,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476046199817429,
+              "reply_monotonic_ns": 1476046247845186,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        },
+        {
+          "mode": "no-resolv",
+          "reply_equal": true,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476046327754567,
+              "reply_monotonic_ns": 1476046357771255,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476046435525697,
+              "reply_monotonic_ns": 1476046450241899,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "run": "dhcp-hostsdir-02",
+      "script_sha256": "a8ae3cd45303efdc19eb683d3507dced1431ae18b9552fb52e9ae8ebdaa2547f",
+      "rust_sha256": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "cases": [
+        {
+          "mode": "poll",
+          "reply_equal": false,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476084061380378,
+              "reply_monotonic_ns": 1476084090885501,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476084165822681,
+              "reply_monotonic_ns": 1476084170096596,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "737570706c6965642d77726f6e67"
+                },
+                "message_type": 5,
+                "hostname": "supplied-wrong"
+              },
+              "hosts_open_at_reply": true,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        },
+        {
+          "mode": "no-poll",
+          "reply_equal": true,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476084254710735,
+              "reply_monotonic_ns": 1476084278734974,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476084355099885,
+              "reply_monotonic_ns": 1476084370385651,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        },
+        {
+          "mode": "no-resolv",
+          "reply_equal": true,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476084454223624,
+              "reply_monotonic_ns": 1476084478595185,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476084551449508,
+              "reply_monotonic_ns": 1476084565729226,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "run": "dhcp-hostsdir-main-01",
+      "script_sha256": "a8ae3cd45303efdc19eb683d3507dced1431ae18b9552fb52e9ae8ebdaa2547f",
+      "rust_sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "cases": [
+        {
+          "mode": "poll",
+          "reply_equal": false,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476100269388364,
+              "reply_monotonic_ns": 1476100299075049,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476100382314057,
+              "reply_monotonic_ns": 1476100385454323,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "737570706c6965642d77726f6e67"
+                },
+                "message_type": 5,
+                "hostname": "supplied-wrong"
+              },
+              "hosts_open_at_reply": true,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        },
+        {
+          "mode": "no-poll",
+          "reply_equal": false,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476100487970690,
+              "reply_monotonic_ns": 1476100511501645,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476100589913613,
+              "reply_monotonic_ns": 1476100593377521,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "737570706c6965642d77726f6e67"
+                },
+                "message_type": 5,
+                "hostname": "supplied-wrong"
+              },
+              "hosts_open_at_reply": true,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        },
+        {
+          "mode": "no-resolv",
+          "reply_equal": false,
+          "observed": {
+            "c": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476100698903554,
+              "reply_monotonic_ns": 1476100864547003,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "hosts_open_at_reply": false,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            },
+            "rust": {
+              "hosts_bytes": 8388638,
+              "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+              "hosts_open_at_send": true,
+              "send_monotonic_ns": 1476100945866195,
+              "reply_monotonic_ns": 1476100969493350,
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "ffffffff",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "737570706c6965642d77726f6e67"
+                },
+                "message_type": 5,
+                "hostname": "supplied-wrong"
+              },
+              "hosts_open_at_reply": true,
+              "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+              "dns_after": {
+                "rcode": 0,
+                "answers": [
+                  {
+                    "name": "authoritative.test",
+                    "type": 1,
+                    "value": "127.0.0.30"
+                  }
+                ]
+              },
+              "alive": true,
+              "exit": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "verified_fixes": [
+    {
+      "run": "dhcp-helper-01",
+      "passed": true,
+      "cases": 10,
+      "failures": {}
+    },
+    {
+      "run": "dhcp-original-01",
+      "matched": 9,
+      "cases": 9,
+      "failures": []
+    },
+    {
+      "run": "dhcp-startup-01",
+      "passed": true,
+      "checks": {
+        "both_hold_DHCP_until_resolver_complete": true,
+        "both_healthy": true,
+        "DNS_after_equal": true,
+        "ACK_after_equal": true,
+        "C_returns_authoritative_name": true
+      }
+    },
+    {
+      "run": "dhcp-startup-helper-01",
+      "passed": true,
+      "cases": [
+        {
+          "id": "normal-resolv",
+          "matched": true,
+          "callback_count": {
+            "c": 5,
+            "rust": 5
+          },
+          "callbacks_before_resolver_close": {
+            "c": null,
+            "rust": null
+          }
+        },
+        {
+          "id": "large-resolv",
+          "matched": true,
+          "callback_count": {
+            "c": 5,
+            "rust": 5
+          },
+          "callbacks_before_resolver_close": {
+            "c": null,
+            "rust": null
+          }
+        },
+        {
+          "id": "held-fifo",
+          "matched": true,
+          "callback_count": {
+            "c": 5,
+            "rust": 5
+          },
+          "callbacks_before_resolver_close": {
+            "c": 0,
+            "rust": 0
+          }
+        }
+      ]
+    }
+  ],
+  "hostsdir_helper_control": {
+    "c": {
+      "callbacks": 5,
+      "early_callbacks": 0,
+      "DNS_answers": [
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        }
+      ],
+      "alive": true,
+      "exit": 0
+    },
+    "rust": {
+      "callbacks": 5,
+      "early_callbacks": 0,
+      "DNS_answers": [
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        },
+        {
+          "answers": [
+            {
+              "name": "authoritative-one.test",
+              "type": 1,
+              "value": "127.0.0.30"
+            }
+          ],
+          "rcode": 0
+        }
+      ],
+      "alive": true,
+      "exit": 0
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "source_revision": "6d001a77",
+  "sha256": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+    "tool": "32a3f839ab358ffae0da5bd3f6b0b099c1c5989a62e7aa7c5f1bcf7c4f7016a3"
+  },
+  "rows": [
+    {
+      "case": "orphan-cname",
+      "flags": [
+        "--cname=alias.test,missing.test"
+      ],
+      "result": {
+        "c": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[12]: started, version 2.93 cachesize 150\ndnsmasq[12]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[12]: warning: no upstream servers configured\ndnsmasq[12]: cleared cache\ndnsmasq[12]: time 1791751458\ndnsmasq[12]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[12]: queries forwarded 0, queries answered locally 0\ndnsmasq[12]: pool memory in use 0, max 0, allocated 0\ndnsmasq[12]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[12]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[12]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[12]: alias.test                     missing.test                             CF I    C                          \ndnsmasq[12]: test                                                                    !F I    C                          \ndnsmasq[12]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[13]: started, version 2.93 cachesize 150\ndnsmasq[13]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[13]: warning: no upstream servers configured\ndnsmasq[13]: cleared cache\ndnsmasq[13]: time 1791751458\ndnsmasq[13]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[13]: queries forwarded 0, queries answered locally 0\ndnsmasq[13]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[13]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[13]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[13]: alias.test                     missing.test                             CF I    C                           config                                  \ndnsmasq[13]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "case": "resolved-cname",
+      "flags": [
+        "--host-record=target.test,192.0.2.42",
+        "--cname=alias.test,target.test"
+      ],
+      "result": {
+        "c": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[14]: started, version 2.93 cachesize 150\ndnsmasq[14]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[14]: warning: no upstream servers configured\ndnsmasq[14]: cleared cache\ndnsmasq[14]: time 1791751458\ndnsmasq[14]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[14]: queries forwarded 0, queries answered locally 0\ndnsmasq[14]: pool memory in use 0, max 0, allocated 0\ndnsmasq[14]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[14]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[14]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[14]: test                                                                    !F I    C                          \ndnsmasq[14]: target.test                    192.0.2.42                               4FRI   HC                           config                                  \ndnsmasq[14]: alias.test                     target.test                              CF I    C                          \ndnsmasq[14]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[15]: started, version 2.93 cachesize 150\ndnsmasq[15]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[15]: warning: no upstream servers configured\ndnsmasq[15]: cleared cache\ndnsmasq[15]: time 1791751458\ndnsmasq[15]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[15]: queries forwarded 0, queries answered locally 0\ndnsmasq[15]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[15]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[15]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[15]: target.test                    192.0.2.42                               4FRI    C                           config                                  \ndnsmasq[15]: alias.test                     target.test                              CF I    C                           config                                  \ndnsmasq[15]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "case": "chain-cname",
+      "flags": [
+        "--host-record=target.test,192.0.2.42",
+        "--cname=middle.test,target.test",
+        "--cname=alias.test,middle.test"
+      ],
+      "result": {
+        "c": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[16]: started, version 2.93 cachesize 150\ndnsmasq[16]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[16]: warning: no upstream servers configured\ndnsmasq[16]: cleared cache\ndnsmasq[16]: time 1791751459\ndnsmasq[16]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[16]: queries forwarded 0, queries answered locally 0\ndnsmasq[16]: pool memory in use 0, max 0, allocated 0\ndnsmasq[16]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[16]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[16]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[16]: target.test                    192.0.2.42                               4FRI   HC                           config                                  \ndnsmasq[16]: middle.test                    target.test                              CF I    C                          \ndnsmasq[16]: test                                                                    !F I    C                          \ndnsmasq[16]: alias.test                     middle.test                              CF I    C                          \ndnsmasq[16]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[17]: started, version 2.93 cachesize 150\ndnsmasq[17]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[17]: warning: no upstream servers configured\ndnsmasq[17]: cleared cache\ndnsmasq[17]: time 1791751459\ndnsmasq[17]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[17]: queries forwarded 0, queries answered locally 0\ndnsmasq[17]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[17]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[17]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[17]: target.test                    192.0.2.42                               4FRI    C                           config                                  \ndnsmasq[17]: middle.test                    target.test                              CF I    C                           config                                  \ndnsmasq[17]: alias.test                     middle.test                              CF I    C                           config                                  \ndnsmasq[17]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "case": "configured-dns",
+      "flags": [
+        "--host-record=target.test,192.0.2.42,2001:db8::42",
+        "--address=/suffix.test/192.0.2.43",
+        "--mx-host=mx.test,target.test,10",
+        "--txt-record=txt.test,hello"
+      ],
+      "result": {
+        "c": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[18]: started, version 2.93 cachesize 150\ndnsmasq[18]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[18]: warning: no upstream servers configured\ndnsmasq[18]: cleared cache\ndnsmasq[18]: time 1791751459\ndnsmasq[18]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[18]: queries forwarded 0, queries answered locally 0\ndnsmasq[18]: pool memory in use 0, max 0, allocated 0\ndnsmasq[18]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[18]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[18]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[18]: target.test                    192.0.2.42                               4FRI   HC                           config                                  \ndnsmasq[18]: target.test                    2001:db8::42                             6FRI   HC                           config                                  \ndnsmasq[18]: test                                                                    !F I   HC                          \ndnsmasq[18]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[19]: started, version 2.93 cachesize 150\ndnsmasq[19]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[19]: warning: no upstream servers configured\ndnsmasq[19]: cleared cache\ndnsmasq[19]: time 1791751459\ndnsmasq[19]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[19]: queries forwarded 0, queries answered locally 0\ndnsmasq[19]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[19]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[19]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[19]: target.test                    192.0.2.42                               4FRI    C                           config                                  \ndnsmasq[19]: target.test                    2001:db8::42                             6FRI    C                           config                                  \ndnsmasq[19]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "case": "literal-address",
+      "flags": [
+        "--host-record=target.test,::192.0.2.42"
+      ],
+      "result": {
+        "c": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[20]: started, version 2.93 cachesize 150\ndnsmasq[20]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[20]: warning: no upstream servers configured\ndnsmasq[20]: cleared cache\ndnsmasq[20]: time 1791751459\ndnsmasq[20]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[20]: queries forwarded 0, queries answered locally 0\ndnsmasq[20]: pool memory in use 0, max 0, allocated 0\ndnsmasq[20]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[20]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[20]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[20]: target.test                    ::c000:22a                               6FRI   HC                           config                                  \ndnsmasq[20]: test                                                                    !F I   HC                          \ndnsmasq[20]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "alive_after_dump": true,
+          "exit": 0,
+          "log": "dnsmasq[21]: started, version 2.93 cachesize 150\ndnsmasq[21]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[21]: warning: no upstream servers configured\ndnsmasq[21]: cleared cache\ndnsmasq[21]: time 1791751460\ndnsmasq[21]: cache size 150, 0/0 cache insertions re-used unexpired cache entries.\ndnsmasq[21]: queries forwarded 0, queries answered locally 0\ndnsmasq[21]: child processes for TCP requests: in use 0, highest since last SIGUSR1 0, max allowed 30.\ndnsmasq[21]: Host                           Address                                  Flags      Expires                  Source\ndnsmasq[21]: ------------------------------ ---------------------------------------- ---------- ------------------------ ------------\ndnsmasq[21]: target.test                    ::c000:22a                               6FRI    C                           config                                  \ndnsmasq[21]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    }
+  ]
+}

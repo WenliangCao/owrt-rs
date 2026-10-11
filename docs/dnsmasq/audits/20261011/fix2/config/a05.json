@@ -1,0 +1,622 @@
+{
+  "scope": "A05 runtime compatibility",
+  "timestamp": 1791751500.0953639,
+  "failures": [],
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+  "tool_sha256": "fcf7cdaf10546bf86755e67026395cd0fdb0d1dc619b0cc1592ee943ae535beb",
+  "rows": [
+    {
+      "directive": "no-ident",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[14]: started, version 2.93 DNS disabled\ndnsmasq[14]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[14]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[15]: started, version 2.93 DNS disabled\ndnsmasq[15]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[15]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[16]: started, version 2.93 cachesize 150\ndnsmasq[16]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[16]: warning: no upstream servers configured\ndnsmasq[16]: cleared cache\ndnsmasq[16]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[17]: started, version 2.93 cachesize 150\ndnsmasq[17]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[17]: warning: no upstream servers configured\ndnsmasq[17]: cleared cache\ndnsmasq[17]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "quiet-ra",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[20]: started, version 2.93 DNS disabled\ndnsmasq[20]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[20]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[21]: started, version 2.93 DNS disabled\ndnsmasq[21]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[21]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[22]: started, version 2.93 cachesize 150\ndnsmasq[22]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[22]: warning: no upstream servers configured\ndnsmasq[22]: cleared cache\ndnsmasq[22]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[23]: started, version 2.93 cachesize 150\ndnsmasq[23]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[23]: warning: no upstream servers configured\ndnsmasq[23]: cleared cache\ndnsmasq[23]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "quiet-dhcp6",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[26]: started, version 2.93 DNS disabled\ndnsmasq[26]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[26]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[27]: started, version 2.93 DNS disabled\ndnsmasq[27]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[27]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[28]: started, version 2.93 cachesize 150\ndnsmasq[28]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[28]: warning: no upstream servers configured\ndnsmasq[28]: cleared cache\ndnsmasq[28]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[29]: started, version 2.93 cachesize 150\ndnsmasq[29]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[29]: warning: no upstream servers configured\ndnsmasq[29]: cleared cache\ndnsmasq[29]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[32]: started, version 2.93 DNS disabled\ndnsmasq[32]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[32]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[33]: started, version 2.93 DNS disabled\ndnsmasq[33]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[33]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[34]: started, version 2.93 cachesize 150\ndnsmasq[34]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[34]: warning: no upstream servers configured\ndnsmasq[34]: cleared cache\ndnsmasq[34]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[35]: started, version 2.93 cachesize 150\ndnsmasq[35]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[35]: warning: no upstream servers configured\ndnsmasq[35]: cleared cache\ndnsmasq[35]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "enable-ra",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[38]: started, version 2.93 DNS disabled\ndnsmasq[38]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[38]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[39]: started, version 2.93 DNS disabled\ndnsmasq[39]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[39]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[40]: started, version 2.93 cachesize 150\ndnsmasq[40]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[40]: warning: no upstream servers configured\ndnsmasq[40]: cleared cache\ndnsmasq[40]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[41]: started, version 2.93 cachesize 150\ndnsmasq[41]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[41]: warning: no upstream servers configured\ndnsmasq[41]: cleared cache\ndnsmasq[41]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-ttl=60",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[44]: started, version 2.93 DNS disabled\ndnsmasq[44]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[44]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[45]: started, version 2.93 DNS disabled\ndnsmasq[45]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[45]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[46]: started, version 2.93 cachesize 150\ndnsmasq[46]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[46]: warning: no upstream servers configured\ndnsmasq[46]: cleared cache\ndnsmasq[46]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[47]: started, version 2.93 cachesize 150\ndnsmasq[47]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[47]: warning: no upstream servers configured\ndnsmasq[47]: cleared cache\ndnsmasq[47]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-soa=1",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[50]: started, version 2.93 DNS disabled\ndnsmasq[50]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[50]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[51]: started, version 2.93 DNS disabled\ndnsmasq[51]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[51]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[52]: started, version 2.93 cachesize 150\ndnsmasq[52]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[52]: warning: no upstream servers configured\ndnsmasq[52]: cleared cache\ndnsmasq[52]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[53]: started, version 2.93 cachesize 150\ndnsmasq[53]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[53]: warning: no upstream servers configured\ndnsmasq[53]: cleared cache\ndnsmasq[53]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-server=ns.audit.test,lo",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[56]: started, version 2.93 DNS disabled\ndnsmasq[56]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[56]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[57]: started, version 2.93 DNS disabled\ndnsmasq[57]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[57]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[58]: started, version 2.93 cachesize 150\ndnsmasq[58]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[58]: warning: no upstream servers configured\ndnsmasq[58]: cleared cache\ndnsmasq[58]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[59]: started, version 2.93 cachesize 150\ndnsmasq[59]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[59]: warning: no upstream servers configured\ndnsmasq[59]: cleared cache\ndnsmasq[59]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-sec-servers=ns.audit.test",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[62]: started, version 2.93 DNS disabled\ndnsmasq[62]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[62]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[63]: started, version 2.93 DNS disabled\ndnsmasq[63]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[63]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[64]: started, version 2.93 cachesize 150\ndnsmasq[64]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[64]: warning: no upstream servers configured\ndnsmasq[64]: cleared cache\ndnsmasq[64]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[65]: started, version 2.93 cachesize 150\ndnsmasq[65]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[65]: warning: no upstream servers configured\ndnsmasq[65]: cleared cache\ndnsmasq[65]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "auth-peer=192.0.2.1",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[68]: started, version 2.93 DNS disabled\ndnsmasq[68]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[68]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[69]: started, version 2.93 DNS disabled\ndnsmasq[69]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[69]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[70]: started, version 2.93 cachesize 150\ndnsmasq[70]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[70]: warning: no upstream servers configured\ndnsmasq[70]: cleared cache\ndnsmasq[70]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[71]: started, version 2.93 cachesize 150\ndnsmasq[71]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[71]: warning: no upstream servers configured\ndnsmasq[71]: cleared cache\ndnsmasq[71]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-debug",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[74]: started, version 2.93 DNS disabled\ndnsmasq[74]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[74]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[75]: started, version 2.93 DNS disabled\ndnsmasq[75]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[75]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[76]: started, version 2.93 cachesize 150\ndnsmasq[76]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[76]: warning: no upstream servers configured\ndnsmasq[76]: cleared cache\ndnsmasq[76]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[77]: started, version 2.93 cachesize 150\ndnsmasq[77]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[77]: warning: no upstream servers configured\ndnsmasq[77]: cleared cache\ndnsmasq[77]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    },
+    {
+      "directive": "dnssec-no-timecheck",
+      "syntax": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": false,
+          "stdout": "",
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "startup": {
+        "c": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[80]: started, version 2.93 DNS disabled\ndnsmasq[80]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[80]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_after_300ms": true,
+          "stdout": "",
+          "stderr": "dnsmasq[81]: started, version 2.93 DNS disabled\ndnsmasq[81]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[81]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "dns": {
+        "c": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[82]: started, version 2.93 cachesize 150\ndnsmasq[82]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[82]: warning: no upstream servers configured\ndnsmasq[82]: cleared cache\ndnsmasq[82]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "exit": 0,
+          "alive_before_term": true,
+          "query_hex": "01410100000100000000000005617564697404746573740000010001",
+          "response_hex": "01418580000100010000000005617564697404746573740000010001c00c00010001000000000004c000022a",
+          "expected_local_a": true,
+          "stdout": "",
+          "stderr": "dnsmasq[83]: started, version 2.93 cachesize 150\ndnsmasq[83]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[83]: warning: no upstream servers configured\ndnsmasq[83]: cleared cache\ndnsmasq[83]: exiting on receipt of SIGTERM\n"
+        }
+      }
+    }
+  ]
+}

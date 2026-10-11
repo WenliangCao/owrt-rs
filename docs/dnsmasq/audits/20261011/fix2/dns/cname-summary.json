@@ -1,0 +1,2289 @@
+{
+  "classification": "Newly identified pre-existing C compatibility gap; not a newly introduced regression. Original F02 cases pass.",
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "47378bda5776614960c5336a024da9bf22947d82891a5cfc1310065f0634e060",
+    "main": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e"
+  },
+  "script_sha256": "35a213bcdf6cee5e20b840e46e84a3832fd2070c749794fcc412f8922a6482b8",
+  "cases": [
+    {
+      "id": "original-debugFalse-tcpFalse",
+      "C_HEAD_same": true,
+      "C_main_same": false,
+      "HEAD_main_same": false,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              1,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0b616c6961732d6c6f63616c"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "original-debugFalse-tcpTrue",
+      "C_HEAD_same": true,
+      "C_main_same": true,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "original-debugTrue-tcpFalse",
+      "C_HEAD_same": true,
+      "C_main_same": false,
+      "HEAD_main_same": false,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              1,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0b616c6961732d6c6f63616c"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "original-debugTrue-tcpTrue",
+      "C_HEAD_same": true,
+      "C_main_same": true,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-txt-debugFalse-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-txt-debugFalse-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-txt-debugTrue-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-txt-debugTrue-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "both-txt-debugFalse-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": false,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              1,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0b616c6961732d6c6f63616c"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "both-txt-debugFalse-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": false,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              1,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0b616c6961732d6c6f63616c"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "both-txt-debugTrue-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": false,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              1,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0b616c6961732d6c6f63616c"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "both-txt-debugTrue-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": false,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0c6c6f63616c2d746172676574"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "data": "0f757073747265616d2d76616c756521"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                16,
+                1
+              ]
+            ],
+            "counts": [
+              1,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 0,
+                "data": "0b616c6961732d6c6f63616c"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-mx-debugFalse-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a0a6c6f63616c2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-mx-debugFalse-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a0a6c6f63616c2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-mx-debugTrue-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a0a6c6f63616c2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-mx-debugTrue-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a0a6c6f63616c2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                15,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 15,
+                "class": 1,
+                "ttl": 600,
+                "data": "00140d757073747265616d2d6d61696c047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-srv-debugFalse-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-srv-debugFalse-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-srv-debugTrue-tcpFalse",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "id": "terminal-srv-debugTrue-tcpTrue",
+      "C_HEAD_same": false,
+      "C_main_same": false,
+      "HEAD_main_same": true,
+      "sides": {
+        "c": {
+          "answer": {
+            "flags": 34176,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 0,
+                "data": "000a000020fb0d6c6f63616c2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 1,
+          "alive": true,
+          "exit": 0
+        },
+        "rust": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "answer": {
+            "flags": 33152,
+            "question": [
+              [
+                "alias.test",
+                33,
+                1
+              ]
+            ],
+            "counts": [
+              2,
+              0,
+              0
+            ],
+            "records": [
+              {
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "data": "target.test"
+              },
+              {
+                "name": "target.test",
+                "type": 33,
+                "class": 1,
+                "ttl": 600,
+                "data": "0014000001bb10757073747265616d2d73657276696365047465737400"
+              }
+            ]
+          },
+          "upstream_requests": 2,
+          "alive": true,
+          "exit": 0
+        }
+      }
+    }
+  ]
+}
