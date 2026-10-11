@@ -3334,6 +3334,7 @@ impl SinglePoll {
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
     fn dhcp_packet_work_allowed(&self) -> bool {
         !self.interface_work_pending()
+            && !self.files_initializing()
             && self.helper_init.is_none()
             && self.helper_init_error.is_none()
             && RELOAD_REQUESTED.load(Ordering::Acquire) == 0
@@ -5832,9 +5833,10 @@ impl SinglePoll {
         // A full pipe or unready/stopping helper is driven only by its fd.
         if helper.can_enqueue()
             && (self.pending_delivery.is_some()
-                || self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
+                || (self.helper_init.is_none() && !self.files_initializing()
+                    && self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref())
                     .and_then(|provider| provider.try_borrow().ok())
-                    .is_some_and(|provider| provider.has_frozen_script_delivery())
+                    .is_some_and(|provider| provider.has_frozen_script_delivery()))
                 || self.neighbors.as_ref()
                     .is_some_and(|neighbors| neighbors.front_script_change().is_some())
                 || self.tftp.as_ref()
@@ -7735,6 +7737,7 @@ mod tests {
         }
         assert!(owner.files_initializing());
         assert!(!owner.dns_file_work_runnable(), "the opened FIFO waits for input");
+        assert!(!owner.dhcp_packet_work_allowed(), "DHCP must also wait for initial hosts");
         let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         let query = test_dns_query();
@@ -7872,6 +7875,17 @@ mod tests {
         assert!(owner.pending_delivery.is_none());
         assert_eq!(owner.helper_next_due(now), Some(now),
             "the provider's next frozen callback also wakes the owner");
+        owner.dns_files = Some(DnsFiles::new(&DnsConfig::default(), true, false).unwrap());
+        owner.dns_files.as_mut().unwrap().request(ReloadReason::Init);
+        assert!(owner.files_initializing());
+        assert_eq!(owner.helper_next_due(now), None,
+            "a callback blocked by startup files must not busy-poll");
+        owner.step_helper();
+        assert!(owner.pending_delivery.is_none());
+        assert!(owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap()
+            .borrow().has_frozen_script_delivery(), "startup gate retains the callback");
+        owner.dns_files = None;
+        assert_eq!(owner.helper_next_due(now), Some(now));
         owner.step_helper();
         assert_eq!(owner.helper_next_due(now), None);
         finish_test_helper(owner.helper.as_mut().unwrap());
