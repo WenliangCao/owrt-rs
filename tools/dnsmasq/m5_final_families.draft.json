@@ -5063,6 +5063,8 @@
             "{tools}/run_isolated.sh",
             "{python}",
             "{tools}/ubus_daemon_diff.py",
+            "--image-root",
+            "{image_root}",
             "--reference-build",
             "{ubus_reference_build}",
             "--c-sha256",

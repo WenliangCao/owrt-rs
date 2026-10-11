@@ -36,15 +36,20 @@ def trace_allocation(pid,size,kind,offset,output,file_record=True):
         vector=Iovec(ctypes.addressof(registers),ctypes.sizeof(registers))
         ptrace(0x4205 if write else 0x4204,1,ctypes.addressof(vector))
     maps=Path('/proc/'+str(pid)+'/maps').read_text()
-    if kind=='calloc':
+    shared=kind.endswith('-libc');kind=kind.removesuffix('-libc')
+    if kind=='calloc' or shared:
         mapping=next(line for line in maps.splitlines() if line.endswith('/lib/libc.so') and line.split()[2]=='00000000')
         address=int(mapping.split('-')[0],16)+offset
+        mapped_elf=Path('/proc/'+str(pid)+'/root/lib/libc.so')
     else:
         executable=os.readlink('/proc/'+str(pid)+'/exe')
         mapping=next(line for line in maps.splitlines() if line.endswith(executable) and line.split()[2]=='00000000')
         header=subprocess.run(['readelf','-h',executable],capture_output=True,text=True,check=True).stdout
         address=offset if re.search(r'Type:\s+EXEC',header) else int(mapping.split('-')[0],16)+offset
-    report=dict(pid=pid,symbol=kind,symbol_offset=offset,mapping=mapping,address=address,required_size=size,calls=[],injected=False)
+        mapped_elf=Path('/proc/'+str(pid)+'/exe')
+    assert mapped_elf.stat().st_ino==int(mapping.split()[4]),'allocator mapping/ELF inode differs'
+    report=dict(pid=pid,symbol=kind,symbol_offset=offset,mapping=mapping,mapped_elf_sha256=sha256(mapped_elf),
+                address=address,required_size=size,calls=[],injected=False)
     attached=patched=False;original=None
     try:
         ptrace(16);os.waitpid(pid,0);attached=True

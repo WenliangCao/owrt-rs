@@ -24,9 +24,17 @@ from ubus_contract_diff import BUS, OBJECT, Fixture, digest, fields, read_json_l
 from dns_udp_refusal_diff import verify_reference
 from ubus_config_diff import cases as config_cases
 from ubus_doctor_diff import cases as doctor_cases, field
+from m2_rootfs import image_elf_command
 
 
 class Product(Fixture):
+    def product_command(self, side):
+        if side == "C":
+            return [str(self.args.c_binary or self.args.reference_build / "dnsmasq/dnsmasq")]
+        if self.args.image_root is not None:
+            return image_elf_command(self.args.image_root, self.args.rust_binary)
+        return [str(self.args.rust_binary)]
+
     def stop(self, child):
         super().stop(child)
         if child is not None and child is self.daemon:
@@ -48,10 +56,9 @@ class Product(Fixture):
                              "dhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,127.255.255.255,600s\n" if dhcp else "")
                           + f"dhcp-leasefile={lease}\naddn-hosts={self.hosts}\n"
                           + (f"enable-ubus={OBJECT}\n" if bus else "") + extra)
-        binary = (self.args.c_binary or self.args.reference_build / "dnsmasq/dnsmasq") if side == "C" else self.args.rust_binary
         # Both products must reconnect with the same credentials and sink.
         # C-only root overrides hide the private ubusd socket's access policy.
-        command = [str(binary), "--keep-in-foreground", "--conf-file=" + str(config),
+        command = self.product_command(side) + ["--keep-in-foreground", "--conf-file=" + str(config),
                    "--user=root", "--group=root", "--log-facility=-",
                    "--pid-file=" + str(self.out / "pid")]
         self.daemon, self.daemon_log = self.spawn(command, side)
@@ -384,12 +391,12 @@ def run_config_contract(f, side):
     """The image executable, including real registration, observes parser state."""
     observed = {}
     f.side = side
-    binary = f.args.c_binary if side == "C" else f.args.rust_binary
+    prefix = list(map(os.fsencode, f.product_command(side)))
     common = b"no-hosts\nno-resolv\nport=0\nuser=root\ngroup=root\nlog-facility=-\n"
     for index, (label, body, arguments) in enumerate(config_cases()):
         path = f.out / f"ubus-parser-{index:02}.conf"
         path.write_bytes(common + body)
-        command = [os.fsencode(binary), b"--test", b"-C", os.fsencode(path), *arguments]
+        command = prefix + [b"--test", b"-C", os.fsencode(path), *arguments]
         result = subprocess.run(command, capture_output=True, env=f.env, timeout=3)
         observed["syntax-" + label] = {"exit": result.returncode,
                                        "stdout": result.stdout.hex(), "stderr": result.stderr.hex()}
@@ -401,7 +408,7 @@ def run_config_contract(f, side):
                                   b"a" * 1024]):
         path = f.out / "ubus-name.conf"
         path.write_bytes(common + b'enable-ubus="' + name + b'"\n')
-        command = [os.fsencode(binary), b"--keep-in-foreground", b"-C", os.fsencode(path),
+        command = prefix + [b"--keep-in-foreground", b"-C", os.fsencode(path),
                    os.fsencode("--pid-file=" + str(f.out / "name.pid"))]
         child, log = f.spawn(command, side + "-name")
         f.daemon = child
@@ -443,13 +450,13 @@ def run_extended(f, side):
     def record(label, value):
         assert label not in observed
         observed[label] = value
-    binary = f.args.c_binary if side == "C" else f.args.rust_binary
+    prefix = f.product_command(side)
     for suffix in ("", ".dns"):
         holder = hold_object(f, OBJECT + suffix)
         path = f.out / "ubus-collision.conf"
         path.write_text("no-hosts\nno-resolv\nport=15353\nuser=root\ngroup=root\n"
                         "log-facility=-\nenable-ubus=" + OBJECT + "\n")
-        child, log = f.spawn([str(binary), "--keep-in-foreground", "-C", str(path)], side + "-collision")
+        child, log = f.spawn(prefix + ["--keep-in-foreground", "-C", str(path)], side + "-collision")
         child.wait(3)
         record("startup-collision" + suffix, {"exit": child.returncode, "log": log.read_bytes().hex()})
         other = OBJECT + (".dns" if not suffix else "")
@@ -826,6 +833,7 @@ def main():
     parser.add_argument("--c-binary", type=Path, help="optional exact image runner; native build still supplies ubusd/client")
     parser.add_argument("--c-identity", type=Path, help="strict image ELF/library/runner identity for --c-binary")
     parser.add_argument("--rust-binary", type=Path, required=True)
+    parser.add_argument("--image-root", type=Path, help="matching musl loader for a dynamic Rust ELF")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
     parser.add_argument("--suite", choices=("baseline", "extended", "lifecycle", "records", "recovery", "all"), default="baseline")

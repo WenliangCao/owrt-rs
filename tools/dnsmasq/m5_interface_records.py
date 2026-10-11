@@ -432,7 +432,7 @@ def service_cases():
             {'op':'fd-limit','restore':True},files.write('dir/one','192.0.2.9 one.records.test\n'),files.probe('recovered','one.records.test')])
     add('hostsdir-large-owner',hosts_config+'log-facility=-\n',[],'HDIR-EVENT HDIR-CALLER',
         files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[files.probe('initial','one.records.test'),
-            dict(op='write',path='hosts-large',text='',hosts_large=1024*1024),files.probe('new-source','one.records.test')])
+            dict(op='write',path='hosts-large',text='',hosts_large=16*1024*1024),files.probe('new-source','one.records.test')])
     add('hostsdir-actual-queue-overflow',hosts_config,[],'HDIR-EVENT HDIR-CALLER',files={'dir/one':'192.0.2.7 one.records.test\n'},actions=[
         files.probe('initial','one.records.test'),dict(op='write',path='overflow',text='',hosts_overflow=True),
         files.write('dir/one','192.0.2.8 one.records.test\n'),files.probe('recovery-after-overflow','one.records.test')])
@@ -1046,8 +1046,16 @@ def run_service_side(root,side,case,out):
             else:
                 if not case.get('allocator_map'):raise AssertionError('actual Rust allocator map required')
                 symbols=Path(case['allocator_map']).read_text()
-                offset=int(re.search(r'^\s*0x([0-9a-f]+)\s+realloc\s*$',symbols,re.M)[1],16)
-                kind,size='realloc',384
+                symbol=re.search(r'^\s*0x([0-9a-f]+)\s+realloc\s*$',symbols,re.M)
+                if symbol:
+                    offset=int(symbol[1],16);kind='realloc'
+                else:
+                    # Dynamic PIE imports realloc from the pinned image musl.
+                    # Break at its mapped definition, not an absent static symbol.
+                    symbols=subprocess.check_output(['readelf','-Ds',str(image_path(root,'/lib/libc.so'))],text=True)
+                    offset=int(re.search(r'^\s*\d+:\s+([0-9a-f]+).*\brealloc\s*$',symbols,re.M)[1],16)
+                    kind='realloc-libc'
+                size=384
             (out/'allocator-symbols').write_text(symbols)
             tracer=subprocess.Popen([sys.executable,str(Path(__file__).resolve()),'--trace-interface-allocation',str(pid),str(size),kind,str(offset),str(path)])
             files.await_predicate(lambda:Path(str(path)+'.ready').exists() or tracer.poll() is not None,'allocation breakpoint attach')

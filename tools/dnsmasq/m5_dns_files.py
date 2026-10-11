@@ -322,7 +322,8 @@ def scenarios():
         [{'op': 'start-tcp', 'id': 'held', 'name': 'delayed.files.test'}, write('resolv', r2), probe('new-parent'),
          {'op': 'release-tcp', 'server': 0}, {'op': 'receive-tcp', 'id': 'old-pending', 'pending': 'held'},
          probe('published-cache', 'delayed.files.test', cache=True, transports=['udp']),
-         probe('old-connection', transports=['held']), {'op': 'disconnect', 'id': 'held'}, probe('fresh')], cache_size=64)
+         probe('old-connection', transports=['held']), {'op': 'disconnect', 'id': 'held'},
+         probe('fresh', transports=['udp']), probe('fresh', cache=True, transports=['tcp'])], cache_size=64)
     add('tftp-across-resolver-reload', 'STATE-05', dict(initial, **{'payload': 'T' * 1400}),
         [{'op': 'tftp-start', 'id': 'transfer'}, write('resolv', r2), probe('changed'),
          {'op': 'tftp-finish', 'id': 'transfer'}], 'enable-tftp\ntftp-root=/m2/files\n')

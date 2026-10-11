@@ -26,10 +26,11 @@ def fixtures():
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument("--c",type=Path,required=True)
+    p.add_argument("--c-identity",type=Path,help="Validated exact-image runner identity")
     p.add_argument("--rust",type=Path);p.add_argument("--output",type=Path,required=True)
     p.add_argument("--inject-failure",action="store_true");args=p.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED")=="1" and sorted(name for _,name in socket.if_nameindex())==["lo"]
-    identity=verify_reference(args.c,None);out=args.output.resolve();assert "private" in out.parts
+    identity=verify_reference(args.c,args.c_identity);out=args.output.resolve();assert "private" in out.parts
     out.mkdir(parents=True,exist_ok=False);cases=list(fixtures());(out/"plan.json").write_text(json.dumps(cases,indent=2)+"\n")
     report={"reference":identity,"planned":sum(len(row[3]) for row in cases),"compared":0,"matched":0,"failures":[],"runs":[]}
     for label,extra,configured,events in cases:
