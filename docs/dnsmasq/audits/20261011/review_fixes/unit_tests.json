@@ -1,0 +1,189 @@
+{
+  "schema": "dnsmasq-review-fix-unit-evidence-v1",
+  "date": "2026-10-11",
+  "source_commit": "18cc40367328056f41e237b0d4ff2f23b33a7ef4",
+  "source_identity_basis": "Frozen source export used for the SDK candidate and this test build; build receipt records its path, not a Git commit.",
+  "environment": {
+    "host": "oracle",
+    "target": "aarch64-unknown-linux-musl",
+    "physical_router_access": false,
+    "path_placeholders": {
+      "$ORACLE_RUN": "isolated review-fix run root; full private location retained by the task owner",
+      "$ORACLE_CARGO_TARGET": "shared Oracle Cargo target cache"
+    },
+    "selected_bin_attempt": "private mount namespace with a fresh tmpfs /tmp; environment reported by task owner, exact namespace setup command was not retained"
+  },
+  "commands": {
+    "command_not_retained": true,
+    "build_argv": null,
+    "library_argv": null,
+    "initial_binary_argv": null,
+    "selected_binary_argv": null,
+    "reason": "The logs and build receipt do not contain launch argv; noninteractive commands were absent from shell history and exact prior tool calls were not retained. No command has been reconstructed or presented as executed."
+  },
+  "build": {
+    "receipt": {
+      "source": "$ORACLE_RUN/source",
+      "kind": "tests",
+      "cargo_target_dir": "$ORACLE_CARGO_TARGET",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=$ORACLE_RUN/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+      "artifacts": [
+        {
+          "path": "bin-dnsmasq-rs",
+          "bytes": 51934208,
+          "sha256": "7d8ea2fe7a2ffef76d7baaca1659322abe7f9587ed99e8e8ad3118ada9cef507"
+        },
+        {
+          "path": "lib-dnsmasq_rs",
+          "bytes": 69480320,
+          "sha256": "0ca933d37e49d54ab2e12a83afef1f6b3e29a319a61bf64194e67e5fd053d643"
+        }
+      ]
+    },
+    "receipt_file": {
+      "path": "private/unit-build-01/build.json",
+      "bytes": 734,
+      "sha256": "eab2bc962506b854169bc6ce7564bfaee2993417e219261d3c38f0a3525c208e"
+    },
+    "build_logs": [
+      {
+        "path": "private/unit-build-01/build.log",
+        "bytes": 270,
+        "sha256": "cc27e81f2e90c8457f2df709b9dd95dbfcd6c2e862583e5d9ca803617bee28a3"
+      },
+      {
+        "path": "private/unit-build-01/build.stdout",
+        "bytes": 141025,
+        "sha256": "97196766c6eb36d1229c2a42ea5f2f9b4ff19aebe0d8f340b0d35c1f772de357"
+      },
+      {
+        "path": "private/unit-build-01/clean.log",
+        "bytes": 39,
+        "sha256": "19b8b70ca439350b68c83caec4b01084895d574c7a47b74c2cad9aecf0d0b6d3"
+      },
+      {
+        "path": "private/unit-build-01/clean.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "build_wrapper_log": {
+      "path": "private/unit-build-01.log",
+      "bytes": 658,
+      "sha256": "05d86f4277a885d2b27fa2e2c0aafa4390a07f5fd4a001f29d4950592f8700ad"
+    },
+    "artifacts": [
+      {
+        "path": "private/unit-build-01/bin-dnsmasq-rs",
+        "bytes": 51934208,
+        "sha256": "7d8ea2fe7a2ffef76d7baaca1659322abe7f9587ed99e8e8ad3118ada9cef507"
+      },
+      {
+        "path": "private/unit-build-01/lib-dnsmasq_rs",
+        "bytes": 69480320,
+        "sha256": "0ca933d37e49d54ab2e12a83afef1f6b3e29a319a61bf64194e67e5fd053d643"
+      }
+    ],
+    "cargo_profiles": [
+      {
+        "name": "dnsmasq-rs",
+        "kind": [
+          "bin"
+        ],
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": true
+        },
+        "features": [
+          "default"
+        ]
+      },
+      {
+        "name": "dnsmasq_rs",
+        "kind": [
+          "lib"
+        ],
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": true
+        },
+        "features": [
+          "default"
+        ]
+      }
+    ]
+  },
+  "selected_runs": [
+    {
+      "test_binary": "private/unit-build-01/lib-dnsmasq_rs",
+      "path": "private/unit-lib-final.log",
+      "bytes": 72693,
+      "sha256": "053238bf6f14d2430839c56d24286d20aad1c3c90e5affb8b71bedcbfc64e867",
+      "summary": {
+        "status": "ok",
+        "passed": 760,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0,
+        "filtered_out": 0,
+        "elapsed_seconds": 1.11
+      }
+    },
+    {
+      "test_binary": "private/unit-build-01/bin-dnsmasq-rs",
+      "path": "private/unit-bin-private-tmp.log",
+      "bytes": 7002,
+      "sha256": "725a9efb90c32b16324767020af843c52fa55b25cd67ab89275778b6f5294684",
+      "summary": {
+        "status": "ok",
+        "passed": 74,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0,
+        "elapsed_seconds": 2.22
+      }
+    }
+  ],
+  "selected_total": {
+    "passed": 834,
+    "failed": 0,
+    "ignored": 23,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "retained_initial_failure": {
+    "path": "private/unit-bin-final.log",
+    "bytes": 7575,
+    "sha256": "ae5b0596c812f65c3a641ce636338ac910d832592473d56ac65089cd341e97df",
+    "summary": {
+      "status": "FAILED",
+      "passed": 73,
+      "failed": 1,
+      "ignored": 3,
+      "measured": 0,
+      "filtered_out": 0,
+      "elapsed_seconds": 2.26
+    },
+    "test_binary": "private/unit-build-01/bin-dnsmasq-rs",
+    "failed_test": "tests::finished_tcp_log_fifo_retries_without_network_events_and_releases_slot",
+    "diagnostic": "mkfifo: cannot create fifo '/tmp/dnsmasq-ready-log-1': File exists",
+    "assertion": "src/main.rs:8005: mkfifo command returned unsuccessful status",
+    "classification": "invalid fixture environment: a pre-existing FIFO prevented setup; this attempt is retained as failed and is not counted as a passing run",
+    "resolution": "The same test ELF was run with a fresh private /tmp; all 74 ordinary binary tests passed. The original log was not overwritten."
+  },
+  "limits": [
+    "Ignored tests were not executed or counted as passes.",
+    "Ordinary unit harnesses use the test profile and are not the SDK-produced release daemon used for differential service validation.",
+    "Build receipt opt_level=3 is the wrapper setting; the Cargo artifact records correctly show actual test profile opt_level=0, debug assertions and overflow checks enabled.",
+    "This archival step only read existing build artifacts and logs; no test was rerun."
+  ]
+}
