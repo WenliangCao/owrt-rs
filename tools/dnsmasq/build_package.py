@@ -232,6 +232,9 @@ def audit_metadata(metadata, package_release=PACKAGE_RELEASE):
                           re.MULTILINE | re.DOTALL)
         require(block and all(re.search(rf"^    - {re.escape(value)}$", block.group(0), re.MULTILINE)
                               for value in values), f"APK metadata {field} misses required entries")
+        if field == "depends":
+            require(not re.search(r"^    - libgcc(?:1)?(?:[<>=~]|\s*$)", block.group(0), re.MULTILINE),
+                    "static PIE package must not add a direct libgcc/libgcc1 dependency")
     for script in ("post-install", "pre-deinstall", "post-upgrade"):
         require(re.search(rf"^  {script}: \|$", metadata, re.MULTILINE),
                 f"APK metadata misses {script} script")

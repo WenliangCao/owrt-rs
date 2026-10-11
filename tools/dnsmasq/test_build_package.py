@@ -153,6 +153,13 @@ scripts:
                 package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
         with self.assertRaisesRegex(ValueError, "depends"):
             package.audit_metadata(metadata.replace("    - libc\n", ""))
+        for dependency in ("libgcc", "libgcc1", "libgcc1>=14.3.0-r1"):
+            changed = metadata.replace("    - libubus20251202\n",
+                                       f"    - libubus20251202\n    - {dependency}\n")
+            with self.subTest(dependency=dependency), self.assertRaisesRegex(ValueError, "direct libgcc"):
+                package.audit_metadata(changed)
+        package.audit_metadata(metadata.replace("    - libubus20251202\n",
+                                                "    - libubus20251202\n    - libmnl0\n"))
 
     def test_pie_elf_gate_rejects_linkage_and_protection_regressions(self):
         data = bytearray(512)
