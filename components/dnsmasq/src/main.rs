@@ -3359,7 +3359,11 @@ impl SinglePoll {
         }
         #[cfg(target_os = "linux")]
         {
-            self.dns_files.as_ref().is_some_and(DnsFiles::initializing)
+            // Polling resolvers may finish DnsFiles in the same turn that
+            // queues the initial hostsdir scan. C completes that cache_reload
+            // before admitting packets or dispatching restored-lease scripts.
+            (self.hosts_bulk && !self.hosts_full_reload)
+                || self.dns_files.as_ref().is_some_and(DnsFiles::initializing)
         }
         #[cfg(not(target_os = "linux"))]
         {
@@ -7340,7 +7344,7 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    fn attach_test_dhcp(owner: &mut SinglePoll, provider: DhcpProvider) -> std::net::UdpSocket {
+    pub(super) fn attach_test_dhcp(owner: &mut SinglePoll, provider: DhcpProvider) -> std::net::UdpSocket {
         let listener = DhcpSocketListener::bind("127.0.0.1:0".parse().unwrap(), DhcpListener::Dhcp, &[]).unwrap();
         let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
         peer.connect(listener.local_addr().unwrap()).unwrap();
@@ -7775,7 +7779,7 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    fn ready_test_helper() -> Helper {
+    pub(super) fn ready_test_helper() -> Helper {
         let mut helper = Helper::start(HelperConfig {
             script: "/bin/true".into(), script_user: None, debug: false,
         }).unwrap();
@@ -7789,7 +7793,7 @@ mod tests {
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-    fn finish_test_helper(helper: &mut Helper) {
+    pub(super) fn finish_test_helper(helper: &mut Helper) {
         helper.begin_shutdown();
         let deadline = Instant::now() + Duration::from_secs(5);
         while !helper.is_finished() {

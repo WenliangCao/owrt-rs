@@ -2,7 +2,7 @@
 """Bounded normal DHCP compatibility test during initial hostsdir loading."""
 import argparse, hashlib, json, os, signal, socket, subprocess, sys, time
 from pathlib import Path
-p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--rust',type=Path,required=True);p.add_argument('--image-root',type=Path,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--rust',type=Path,required=True);p.add_argument('--image-root',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--require-match',action='store_true');a=p.parse_args()
 assert os.geteuid()==0 and os.environ.get('DNSMASQ_TEST_ISOLATED')=='1'
 assert 'private' in a.out.resolve().parts
 sys.path.insert(0,str(a.source/'tools/dnsmasq'))
@@ -55,3 +55,21 @@ for mode in ['poll','no-poll','no-resolv']:
  report['cases'].append(case)
  (a.out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps([{'mode':r['mode'],'reply_equal':r['reply_equal'],'sides':{s:{k:v[k] for k in ['reply','hosts_open_at_reply','alive','exit']} for s,v in r['observed'].items()}} for r in report['cases']],indent=2))
+
+if a.require_match:
+ failures=[]
+ for case in report['cases']:
+  if not case['reply_equal']:failures.append(case['mode']+': DHCP replies differ')
+  for side,row in case['observed'].items():
+   if (not row['alive'] or row['exit']!=0 or not row['hosts_open_at_send']
+       or row['hosts_open_at_reply'] or row['reply']['message_type']!=5
+       or row['reply']['hostname']!='authoritative'):
+    failures.append(case['mode']+': '+side+' startup ACK/publication ordering failed')
+  if case['observed']['c']['dns_after']!=case['observed']['rust']['dns_after']:
+   failures.append(case['mode']+': published DNS differs')
+  if case['observed']['c']['leases_after']!=case['observed']['rust']['leases_after']:
+   failures.append(case['mode']+': published leases differ')
+ report['passed']=not failures
+ report['failures']=failures
+ (a.out/'result.json').write_text(json.dumps(report,indent=2)+'\n')
+ if failures:raise SystemExit('; '.join(failures))

@@ -117,3 +117,88 @@ fn held_hosts_fifo_keeps_init_finish_blocked_without_spinning_or_losing_dns() {
     drop(owner);
     std::fs::remove_file(path).unwrap();
 }
+
+#[cfg(target_pointer_width = "64")]
+#[test]
+fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publication() {
+    let root = std::env::temp_dir().join(format!("hostsdir-poll-gate-{}", std::process::id()));
+    let directory = root.join("hosts");
+    std::fs::create_dir_all(&directory).unwrap();
+    std::fs::write(directory.join("one"), b"192.0.2.42 ready.test\n").unwrap();
+    let resolver = root.join("resolver");
+    std::fs::write(&resolver, b"nameserver 192.0.2.53\n").unwrap();
+    let mut config = config();
+    config.no_resolv = false;
+    config.resolv_files = vec![resolver];
+    config.hosts_dirs = vec![Some(directory)];
+    let mut owner = owner(config.clone());
+    for _ in 0..16 {
+        owner.step_dns_files();
+        if owner.hosts_work_pending() { break; }
+    }
+    assert!(!owner.dns_files.as_ref().unwrap().initializing(),
+        "ordinary polling completed its resolver before queuing hostsdir");
+    assert!(owner.hosts_bulk && !owner.hosts_full_reload);
+    assert!(owner.files_initializing(), "the initial hostsdir is still unpublished");
+    owner.hosts_full_reload = true;
+    assert!(!owner.files_initializing(), "a runtime full reload is not initial admission");
+    owner.hosts_full_reload = false;
+    owner.step_hosts_files(); // Open the scanned source, retaining its bulk state.
+    assert!(owner.hosts_requests.is_empty() && owner.hosts_read.is_some());
+
+    // Hold the active reader without changing the watched directory. This
+    // isolates admission scheduling from regular-file readiness and inotify.
+    let fifo = root.join("held");
+    assert!(std::process::Command::new("mkfifo").arg(&fifo).status().unwrap().success());
+    owner.hosts_read = Some(HostsRead::open(HostSource { path: fifo.clone(), uid: 1 },
+        &config, 37).unwrap());
+    let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
+    writer.write_all(b"192.0.2.42 ready.test\n").unwrap();
+    owner.step_hosts_files();
+    owner.step_dns_files(); // Clear the cached runnable flag behind held hosts.
+    assert!(!owner.reload_file_work_runnable());
+
+    let leases = root.join("leases");
+    std::fs::write(&leases, b"0 02:00:00:00:00:01 192.0.2.42 restored *\n").unwrap();
+    let mut provider = DhcpProvider::new(DhcpConfig {
+        no_ping: true, script: Some(b"/bin/true".to_vec()),
+        lease_file: Some(leases.as_os_str().as_encoded_bytes().to_vec()),
+        ..Default::default()
+    }, Vec::new(), 0, || false).unwrap();
+    provider.tick(now_seconds()).unwrap();
+    assert!(provider.has_frozen_script_delivery());
+    let peer = super::tests::attach_test_dhcp(&mut owner, provider);
+    peer.send(b"queued-dhcp").unwrap();
+    owner.helper = Some(super::tests::ready_test_helper());
+    let (dns, _) = queued_dns(&mut owner);
+    assert!(!owner.dhcp_packet_work_allowed());
+    assert_eq!(owner.helper_next_due(Instant::now()), None,
+        "a restored callback behind initial hosts cannot request a busy poll");
+    let started = Instant::now();
+    owner.wait_for_files().unwrap();
+    assert!(started.elapsed() >= Duration::from_millis(50),
+        "blocked ready packets and callbacks wait for file progress");
+    let mut dhcp_fds = Vec::new();
+    owner.dhcp.as_ref().unwrap().listener.append_poll_fds(&mut dhcp_fds);
+    assert!(!owner.poll_fds.iter().any(|fd| fd.fd == dns.as_raw_fd()
+        || dhcp_fds.iter().any(|dhcp| dhcp.fd == fd.fd)));
+    owner.step_dhcp();
+    assert!(owner.dhcp.as_ref().unwrap().listener.has_input().unwrap());
+    assert!(owner.pending_delivery.is_none());
+    assert!(owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap()
+        .borrow().has_frozen_script_delivery());
+
+    drop(writer);
+    owner.wait_for_files().unwrap();
+    owner.step_hosts_files();
+    assert!(!owner.hosts_work_pending() && !owner.files_initializing());
+    assert!(owner.dhcp_packet_work_allowed());
+    assert!(owner.helper_next_due(Instant::now()).is_some());
+    owner.wait_for_files().unwrap();
+    owner.step_dhcp();
+    assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap(),
+        "the original queued packet becomes consumable after publication");
+    super::tests::finish_test_helper(owner.helper.as_mut().unwrap());
+    drop(owner);
+    std::fs::remove_dir_all(root).unwrap();
+}
