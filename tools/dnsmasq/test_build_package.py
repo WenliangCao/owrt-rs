@@ -281,6 +281,38 @@ scripts:
             with self.subTest(field=field, value=value), self.assertRaises(ValueError):
                 package.verify_freeze(changed, source, sdk, "1" * 40, "123", "f" * 64)
 
+    def test_release_recipe_resolves_sdk_compiler_from_path(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp).resolve()
+            (root / "rules.mk").write_text("")
+            (root / "package.mk").write_text("")
+            binaries = root / "bin"
+            binaries.mkdir()
+            compiler = binaries / "aarch64-openwrt-linux-musl-gcc"
+            compiler.write_text("#!/bin/sh\nexit 99\n")
+            compiler.chmod(0o755)
+            captured = root / "cargo-environment.json"
+            cargo = binaries / "cargo"
+            cargo.write_text(f"#!{sys.executable}\nimport json,os\nfrom pathlib import Path\n"
+                             "names = ('DNSMASQ_STATIC_PIE_CC', 'CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER')\n"
+                             f"Path({str(captured)!r}).write_text(json.dumps({{name: os.environ[name] for name in names}}))\n")
+            cargo.chmod(0o755)
+            harness = root / "harness.mk"
+            harness.write_text("check:\n\t$(Build/Compile)\n")
+            recipe = package.ROOT / "packaging/openwrt/owrt-dnsmasq/Makefile"
+            result = subprocess.run(["make", "--no-print-directory", "-f", str(recipe), "-f", str(harness),
+                                     f"TOPDIR={root}", f"INCLUDE_DIR={root}", f"PKG_BUILD_DIR={root / 'build'}",
+                                     f"V1_CARGO={cargo}", f"TARGET_CC_NOCACHE={compiler.name}",
+                                     "TARGET_LINKER=bfd", "check"], cwd=recipe.parent,
+                                    env=dict(os.environ, PATH=str(binaries) + os.pathsep + os.environ["PATH"]),
+                                    text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            environment = json.loads(captured.read_text())
+            self.assertEqual(environment["DNSMASQ_STATIC_PIE_CC"], str(compiler))
+            self.assertTrue(Path(environment["DNSMASQ_STATIC_PIE_CC"]).is_absolute())
+            self.assertEqual(environment["CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER"],
+                             str(recipe.parent / "static-pie-linker.py"))
+
     def test_frozen_recipe_never_calls_cargo_or_restrips(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
