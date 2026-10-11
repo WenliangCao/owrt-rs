@@ -1732,7 +1732,16 @@ impl<R: Random> DnsDaemon<R> {
         negative_cache: bool,
         negative_ttl: u64,
     ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
-        let question = super::forward::Question::parse(query)?;
+        let Ok(question) = super::forward::Question::parse(query) else {
+            // Invalid questions cannot hit the cache. Let tcp_request's
+            // existing query-error path send REFUSED instead of closing the
+            // downstream connection on a cache lookup error.
+            return Ok(super::cache_engine::CachedAnswer {
+                packet: None,
+                stale: false,
+                filtered: false,
+            });
+        };
         if super::local::interface_forward_name(&local.config, query).is_some()
             && !cache.has_nxdomain(&question.name, now)
         {
