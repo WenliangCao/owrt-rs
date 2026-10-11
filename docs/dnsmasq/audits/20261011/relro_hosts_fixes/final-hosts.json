@@ -1,0 +1,2285 @@
+{
+  "schema_version": 1,
+  "scope": "F07 ordinary addn-hosts diagnostics and affected init/reload callers. These three completed commands do not stand for the concurrently running complete-family suite.",
+  "source_commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+  "source_identity": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/source-final-identity.json",
+    "sha256": "65491583535de70429611180290e3ed1dce1876c48994479ed55ccc0f1fce6c8",
+    "bytes": 20948
+  },
+  "source_verification": {
+    "source_commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+    "source_digest": "58a8a4fd459806d1029bf891af0ad48b49070701431fcf3a0566d60fcf779f10",
+    "matched_file_count": 177,
+    "local_workspace_inputs_match": true
+  },
+  "source_archive_sha256": "c148192cb21fe19ccb37005a40a4b243ff9fdbdf75b331e29c3a33481b1cd1b8",
+  "artifacts": {
+    "rust_final_sdk_payload": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+      "sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+      "bytes": 2054939
+    },
+    "exact_image_c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    }
+  },
+  "product_sources": {
+    "components/dnsmasq/src/main.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/main.rs",
+      "sha256": "f4c2cbe201cbbbefd9ad5185cb64dcf87656de411d76de9c7a433ca4b78085d1",
+      "bytes": 362898
+    },
+    "components/dnsmasq/src/hosts.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/hosts.rs",
+      "sha256": "080ac4bfb2bb1883e1709e737dddb0a454de47fb659c790be9d92463574f14d4",
+      "bytes": 21624
+    },
+    "components/dnsmasq/src/dns/files_runtime.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dns/files_runtime.rs",
+      "sha256": "86a7b7f19788626fbcfe9dcc3a1f7420caddcf29dcacf36ca07ad2a071741e18",
+      "bytes": 43696
+    },
+    "components/dnsmasq/src/dns/hostsdir_runtime.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dns/hostsdir_runtime.rs",
+      "sha256": "d7f19c5a6a6267acfb4e8c092c0374516f1de4dccfbf23da4c4d70c8a76eed47",
+      "bytes": 5759
+    },
+    "components/dnsmasq/src/dhcp/daemon.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dhcp/daemon.rs",
+      "sha256": "3e7266d8d74eea0814827d871f935f19c12299daa18e915148ffa8c6266f8739",
+      "bytes": 167180
+    },
+    "components/dnsmasq/src/dhcp/lease.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dhcp/lease.rs",
+      "sha256": "0605a92f9f504dd0e75ce2bc93022d2ec6709b557f5d22d5099563213ac9e2a3",
+      "bytes": 52560
+    }
+  },
+  "supporting_tools": {
+    "tools/dnsmasq/m2_rootfs.py": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/m2_rootfs.py",
+      "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "bytes": 15493
+    },
+    "tools/dnsmasq/m5_logging.py": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/m5_logging.py",
+      "sha256": "d07a0767a9860b7ce244ecb1a1ecc6f9a8ec437af60751ff6223d526a7b56763",
+      "bytes": 201105
+    },
+    "tools/dnsmasq/audit_20261011_dhcp.py": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_20261011_dhcp.py",
+      "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+      "bytes": 10332
+    },
+    "docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+      "sha256": "afc8f8e083285ffab47d14c206f0c4344d41f1cc1171d5052cd02bc52321c8cd",
+      "bytes": 5153
+    }
+  },
+  "commands": {
+    "F07-hosts": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_fix_20261011_hosts.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_fix_20261011_hosts.py",
+        "sha256": "dfef669d85cbd182b8d7e781ebd71493e8ad84b110a1c8fa0cc00f8ef508f67b",
+        "bytes": 9778
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/result.json",
+        "sha256": "6b920e19f03ae07a751e69be1ec1401f00d93764d9338071012c48cf1d7ac944",
+        "bytes": 155814
+      }
+    },
+    "F07-original": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+        "sha256": "afc8f8e083285ffab47d14c206f0c4344d41f1cc1171d5052cd02bc52321c8cd",
+        "bytes": 5153
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/result.json",
+        "sha256": "ee10c1e36bcc1de465ceb1c5c28cc6349e05a40658901a410d917318ee57ef0f",
+        "bytes": 50335
+      }
+    },
+    "hosts-memory": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/memory"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "sha256": "7aa6494b2266059e4750d6978ab4727786b0a33ae7b9574eb1d1dcc2b4c33971",
+        "bytes": 6182
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/memory/result.json",
+        "sha256": "0a48d8736bd32f50f3a6c37ae051d1e478f64c9f60b5ceb53b331ad7b9b666f0",
+        "bytes": 6070
+      }
+    }
+  },
+  "directed_diagnostics": {
+    "passed": true,
+    "paired_cases": 8,
+    "paired_startup_reload_phases": 16,
+    "wire_comparisons": 96,
+    "priority_meaning": {
+      "171": "local5 facility (168) + LOG_ERR (3)",
+      "174": "local5 facility (168) + LOG_INFO (6)"
+    },
+    "cases": [
+      {
+        "id": "original-ordinary",
+        "hosts_path": "/m2/f07/hosts with space",
+        "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 9 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 10 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "original-debug",
+        "hosts_path": "/m2/f07/hosts with space",
+        "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 9 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 10 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "multiple-ordinary",
+        "hosts_path": "/m2/f07/hosts with space",
+        "payload_sha256": "aa1b931d95db28dbbb903f71c38c05df6d40cf36b78b4fc360f081605d4a00ee",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 2 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 3 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "multiple-debug",
+        "hosts_path": "/m2/f07/hosts with space",
+        "payload_sha256": "aa1b931d95db28dbbb903f71c38c05df6d40cf36b78b4fc360f081605d4a00ee",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 2 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 3 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "directory-ordinary",
+        "hosts_path": "/m2/f07/directory/hosts with space",
+        "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/directory"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/directory"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/directory/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/directory/hosts with space - 9 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/directory/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/directory/hosts with space - 10 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "directory-debug",
+        "hosts_path": "/m2/f07/directory/hosts with space",
+        "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/directory"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/directory"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/directory/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/directory/hosts with space - 9 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/directory/hosts with space line 6"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/directory/hosts with space - 10 names"
+              }
+            ],
+            "answers": {
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.5"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+              },
+              "next.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.4"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+              },
+              "one.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.1"
+                },
+                "wire_common_C_R_UDP_TCP": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "dhcp-initial-ordinary",
+        "hosts_path": "/m2/f07/hosts with space",
+        "payload_sha256": "81e17a456e2d08f8c0c002b780689e2bfc8897f7901df0d80c005f135b23e307",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 3 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 4 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ],
+        "startup_DHCP": {
+          "decoded_common_C_R": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "00000e10",
+              "58": "00000708",
+              "59": "00000c4e",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "raw_by_side": {
+            "c": {
+              "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+              "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+              "decoded": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              }
+            },
+            "rust": {
+              "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+              "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+              "decoded": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              }
+            }
+          },
+          "domain_test_configured": true
+        }
+      },
+      {
+        "id": "dhcp-initial-debug",
+        "hosts_path": "/m2/f07/hosts with space",
+        "payload_sha256": "81e17a456e2d08f8c0c002b780689e2bfc8897f7901df0d80c005f135b23e307",
+        "C_R_actual_executable_sha256": {
+          "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+        },
+        "C_R_argv": {
+          "c": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ],
+          "rust": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ]
+        },
+        "C_R_cleanup_exit": {
+          "c": 0,
+          "rust": 0
+        },
+        "phases": [
+          {
+            "reload": false,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 3 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              }
+            }
+          },
+          {
+            "reload": true,
+            "C_R_wire_and_notice_sequence_equal": true,
+            "C_and_R_alive": true,
+            "notices_common_C_R": [
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 2"
+              },
+              {
+                "priority": 171,
+                "message": "bad address at /m2/f07/hosts with space line 3"
+              },
+              {
+                "priority": 171,
+                "message": "bad name at /m2/f07/hosts with space line 4"
+              },
+              {
+                "priority": 174,
+                "message": "read /m2/f07/hosts with space - 4 names"
+              }
+            ],
+            "answers": {
+              "good.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.7"
+                },
+                "wire_common_C_R_UDP_TCP": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+              },
+              "final.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.8"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+              },
+              "reloaded.test": {
+                "decoded_common_C_R_UDP_TCP": {
+                  "flags": "0x8580",
+                  "answers": 1,
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "address": "192.0.2.66"
+                },
+                "wire_common_C_R_UDP_TCP": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+              }
+            }
+          }
+        ],
+        "startup_DHCP": {
+          "decoded_common_C_R": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "00000e10",
+              "58": "00000708",
+              "59": "00000c4e",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "raw_by_side": {
+            "c": {
+              "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+              "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+              "decoded": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              }
+            },
+            "rust": {
+              "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+              "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+              "decoded": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              }
+            }
+          },
+          "domain_test_configured": true
+        }
+      }
+    ],
+    "syntax_only_control": {
+      "c": {
+        "argv": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/dev/null",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--no-hosts",
+          "--no-resolv",
+          "--bind-interfaces",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--log-facility=local5",
+          "--host-record=ready.test,192.0.2.123",
+          "--test",
+          "--addn-hosts=/does/not/exist"
+        ],
+        "exit": 0,
+        "stderr": "dnsmasq: syntax check OK.\n"
+      },
+      "rust": {
+        "argv": [
+          "chroot",
+          "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/hosts/image/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/dev/null",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--no-hosts",
+          "--no-resolv",
+          "--bind-interfaces",
+          "--listen-address=127.0.0.1",
+          "--port=15353",
+          "--log-facility=local5",
+          "--host-record=ready.test,192.0.2.123",
+          "--test",
+          "--addn-hosts=/does/not/exist"
+        ],
+        "exit": 0,
+        "stderr": "dnsmasq: syntax check OK.\n"
+      }
+    }
+  },
+  "original_audit_probe": {
+    "passed": true,
+    "wire_comparisons": 62,
+    "modes": [
+      {
+        "mode": "addn-hosts",
+        "C_R_alive": true,
+        "C_R_all_query_wires_equal": true,
+        "wire_common_C_R": {
+          "one.test": {
+            "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+          },
+          "vertical.test": {
+            "udp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201"
+          },
+          "page.test": {
+            "udp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201"
+          },
+          "carriage.test": {
+            "udp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201"
+          },
+          "nul.test": {
+            "udp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202",
+            "tcp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202"
+          },
+          "ignored.test": {
+            "udp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203",
+            "tcp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203"
+          },
+          "after.test": {
+            "udp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202",
+            "tcp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202"
+          },
+          "next.test": {
+            "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+            "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+          },
+          "final.test": {
+            "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+            "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+          },
+          "qd0": {
+            "udp": "123481850000000000000000",
+            "tcp": "123481850000000000000000"
+          },
+          "qd2": {
+            "udp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001",
+            "tcp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001"
+          },
+          "badlabel": {
+            "udp": "TimeoutError",
+            "tcp": "EOFError"
+          }
+        },
+        "bad_name_and_read_messages_by_side": {
+          "c": [
+            "bad name at /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hosts line 6",
+            "read /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hosts - 9 names"
+          ],
+          "rust": [
+            "bad name at /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hosts line 6",
+            "read /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hosts - 9 names"
+          ]
+        }
+      },
+      {
+        "mode": "hostsdir",
+        "C_R_alive": true,
+        "C_R_all_query_wires_equal": true,
+        "wire_common_C_R": {
+          "one.test": {
+            "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+          },
+          "vertical.test": {
+            "udp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "12348580000100010000000008766572746963616c04746573740000010001c00c00010001000000000004c0000201"
+          },
+          "page.test": {
+            "udp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "123485800001000100000000047061676504746573740000010001c00c00010001000000000004c0000201"
+          },
+          "carriage.test": {
+            "udp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201",
+            "tcp": "12348580000100010000000008636172726961676504746573740000010001c00c00010001000000000004c0000201"
+          },
+          "nul.test": {
+            "udp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202",
+            "tcp": "123485800001000100000000036e756c04746573740000010001c00c00010001000000000004c0000202"
+          },
+          "ignored.test": {
+            "udp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203",
+            "tcp": "1234858000010001000000000769676e6f72656404746573740000010001c00c00010001000000000004c0000203"
+          },
+          "after.test": {
+            "udp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202",
+            "tcp": "12348580000100010000000005616674657204746573740000010001c00c00010001000000000004c0000202"
+          },
+          "next.test": {
+            "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+            "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+          },
+          "final.test": {
+            "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+            "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+          },
+          "qd0": {
+            "udp": "123481850000000000000000",
+            "tcp": "123481850000000000000000"
+          },
+          "qd2": {
+            "udp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001",
+            "tcp": "123481850002000000000000036f6e6504746573740000010001036f6e6504746573740000010001"
+          },
+          "badlabel": {
+            "udp": "TimeoutError",
+            "tcp": "EOFError"
+          }
+        },
+        "bad_name_and_read_messages_by_side": {
+          "c": [
+            "bad name at /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hostsdir/file line 6",
+            "read /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hostsdir/file - 9 names"
+          ],
+          "rust": [
+            "bad name at /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hostsdir/file line 6",
+            "read /home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/original/hostsdir/file - 9 names"
+          ]
+        }
+      },
+      {
+        "mode": "dump-cnames",
+        "C_R_alive": true,
+        "C_R_all_query_wires_equal": true,
+        "wire_common_C_R": {
+          "valid": {
+            "udp": "1234858000010002000000000576616c696405616c696173076578616d706c650000010001c00c00050001000000000015046465657006746172676574076578616d706c6500c03100010001000000000004c0000202",
+            "tcp": "1234858000010002000000000576616c696405616c696173076578616d706c650000010001c00c00050001000000000015046465657006746172676574076578616d706c6500c03100010001000000000004c0000202"
+          },
+          "missing": {
+            "udp": "123485800001000100000000076d697373696e6705616c696173076578616d706c650000010001c00c0005000100000000001706616273656e7406746172676574076578616d706c6500",
+            "tcp": "123485800001000100000000076d697373696e6705616c696173076578616d706c650000010001c00c0005000100000000001706616273656e7406746172676574076578616d706c6500"
+          }
+        },
+        "bad_name_and_read_messages_by_side": {
+          "c": [],
+          "rust": []
+        }
+      },
+      {
+        "mode": "cache-enabled-malformed-additional",
+        "C_R_alive": true,
+        "C_R_all_query_wires_equal": true,
+        "wire_common_C_R": {
+          "missing-additional": {
+            "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+            "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+          },
+          "00002904d00000000000": {
+            "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+            "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+          },
+          "c0ff002904d0000000000000": {
+            "udp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e",
+            "tcp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e"
+          },
+          "00002904d000000000000000002904d000000000": {
+            "udp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e",
+            "tcp": "12348185000100000000000108757073747265616d0474657374000001000100002904d0000000000006000f0002000e"
+          },
+          "67617262616765": {
+            "udp": "12348185000100000000000008757073747265616d04746573740000010001",
+            "tcp": "12348185000100000000000008757073747265616d04746573740000010001"
+          }
+        },
+        "bad_name_and_read_messages_by_side": {
+          "c": [],
+          "rust": []
+        }
+      }
+    ],
+    "log_comparison_scope": "Only bad-token and read-completion messages are compared here. Existing allocator-pool, non-terminal row, cache hash order and dump flag representation differences are not asserted equal."
+  },
+  "streaming_memory_boundary": {
+    "passed": true,
+    "paired_cases": 3,
+    "fixture": "one valid host plus 48 MiB of short comments",
+    "cases": [
+      {
+        "address_space_limit_mib": 0,
+        "reload": false,
+        "hosts_bytes": 50331669,
+        "C_R_A_reply_summary_equal_before_after": true,
+        "observations_by_side": {
+          "c": {
+            "implementation": "c-image",
+            "address_space_limit_mib": 0,
+            "reload": false,
+            "hosts_bytes": 50331669,
+            "before": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "after": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "memory": {
+              "VmPeak_kib": 1332,
+              "VmHWM_kib": 1128,
+              "VmRSS_kib": 1128
+            },
+            "exit_before_cleanup": null,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "implementation": "rust",
+            "address_space_limit_mib": 0,
+            "reload": false,
+            "hosts_bytes": 50331669,
+            "before": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "after": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "memory": {
+              "VmPeak_kib": 2312,
+              "VmHWM_kib": 2000,
+              "VmRSS_kib": 2000
+            },
+            "exit_before_cleanup": null,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "address_space_limit_mib": 32,
+        "reload": false,
+        "hosts_bytes": 50331669,
+        "C_R_A_reply_summary_equal_before_after": true,
+        "observations_by_side": {
+          "c": {
+            "implementation": "c-image",
+            "address_space_limit_mib": 32,
+            "reload": false,
+            "hosts_bytes": 50331669,
+            "before": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "after": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "memory": {
+              "VmPeak_kib": 1332,
+              "VmHWM_kib": 1112,
+              "VmRSS_kib": 1112
+            },
+            "exit_before_cleanup": null,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "implementation": "rust",
+            "address_space_limit_mib": 32,
+            "reload": false,
+            "hosts_bytes": 50331669,
+            "before": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "after": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "memory": {
+              "VmPeak_kib": 2312,
+              "VmHWM_kib": 2008,
+              "VmRSS_kib": 2008
+            },
+            "exit_before_cleanup": null,
+            "cleanup_exit": 0
+          }
+        }
+      },
+      {
+        "address_space_limit_mib": 32,
+        "reload": true,
+        "hosts_bytes": 50331669,
+        "C_R_A_reply_summary_equal_before_after": true,
+        "observations_by_side": {
+          "c": {
+            "implementation": "c-image",
+            "address_space_limit_mib": 32,
+            "reload": true,
+            "hosts_bytes": 50331669,
+            "before": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "after": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "memory": {
+              "VmPeak_kib": 1332,
+              "VmHWM_kib": 1112,
+              "VmRSS_kib": 1112
+            },
+            "exit_before_cleanup": null,
+            "cleanup_exit": 0
+          },
+          "rust": {
+            "implementation": "rust",
+            "address_space_limit_mib": 32,
+            "reload": true,
+            "hosts_bytes": 50331669,
+            "before": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "after": {
+              "received": true,
+              "expected_a": true,
+              "rcode": 0,
+              "answers": 1
+            },
+            "memory": {
+              "VmPeak_kib": 2316,
+              "VmHWM_kib": 1988,
+              "VmRSS_kib": 1988
+            },
+            "exit_before_cleanup": null,
+            "cleanup_exit": 0
+          }
+        }
+      }
+    ]
+  },
+  "retained_calibrations": [
+    {
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/f07-calibration-01/result.json",
+        "sha256": "a412d691c985c72637ac843fac1461f26f1e3d17d48a11154a6af086043d20ac",
+        "bytes": 141801
+      },
+      "rust_previous_sdk_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+      "passed": false,
+      "purpose": "Expected failure control on the pre-F07 SDK payload",
+      "cases": [
+        {
+          "id": "original-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "original-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "multiple-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "multiple-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "directory-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "directory-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "dhcp-initial-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch",
+            "startup hosts/DHCP authoritative name mismatch"
+          ],
+          "C_R_domain_test_configured": false,
+          "C_R_hostname_common": "supplied-wrong"
+        },
+        {
+          "id": "dhcp-initial-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch",
+            "startup hosts/DHCP authoritative name mismatch"
+          ],
+          "C_R_domain_test_configured": false,
+          "C_R_hostname_common": "supplied-wrong"
+        }
+      ],
+      "fixture_error": "The first DHCP control omitted domain=test while the hosts name was authoritative.test. Matching dhcp.c::host_from_dns rejects that FQDN without a matching domain, so both C and Rust correctly retained supplied-wrong. This extra failure is a fixture error, not a product difference. The run is retained and not reclassified as passed."
+    },
+    {
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/f07-calibration-02/result.json",
+        "sha256": "7ee7cfd247452cd16ec5723cebe69a46353c647d5143c6beb5e802ebd148be91",
+        "bytes": 142013
+      },
+      "rust_previous_sdk_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+      "passed": false,
+      "purpose": "Expected failure control on the pre-F07 SDK payload",
+      "cases": [
+        {
+          "id": "original-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "original-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "multiple-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "multiple-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "directory-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "directory-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ]
+        },
+        {
+          "id": "dhcp-initial-ordinary",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ],
+          "C_R_domain_test_configured": true,
+          "C_R_hostname_common": "authoritative"
+        },
+        {
+          "id": "dhcp-initial-debug",
+          "failures": [
+            "rust: bad-token diagnostics differ from C source contract",
+            "rust: bad-token diagnostics differ from C source contract",
+            "C/R phase mismatch"
+          ],
+          "C_R_domain_test_configured": true,
+          "C_R_hostname_common": "authoritative"
+        }
+      ],
+      "fixture_correction": "Added domain=test using matching dhcp.c::host_from_dns. All C-side diagnostics, health, wire, DHCP-name and --test controls satisfy the assertions; only the previous Rust payload lacks the bad-token diagnostics."
+    }
+  ],
+  "source_basis": {
+    "cache.c": "read_hostsfile emits LOG_ERR for bad address (line 1469) and every non-OOM bad name (line 1532), then LOG_INFO for accepted names (line 1543).",
+    "dnsmasq.c": "EVENT_INIT (line 1575) calls clear_cache_and_reload, whose cache_reload (line 1839) precedes DHCP refresh. The existing owner init barrier now supplies the logger during ordinary hosts loading.",
+    "memory_design": "Hosts::read_from_with_diagnostics invokes the error sink directly. The previous Hosts.read_reports collection was removed; the parser retains its 8192-byte read buffer and 502-byte token buffer. Logger buffering retains its existing bounded behavior."
+  },
+  "limitations": [
+    "The memory experiment uses one legal host plus 48 MiB of short comments. It is not a benchmark of millions of accepted hosts or an invalid-token log flood.",
+    "The startup DHCP control checks the first actual REQUEST and authoritative hosts-derived hostname in ordinary and debug mode; it does not enumerate all restored-lease/helper startup histories.",
+    "This file closes the three directed F07/streaming commands only. Complete affected-family results and final unit/build qualification are recorded separately.",
+    "No physical router experiment or deployment is represented."
+  ],
+  "earlier_directed_evidence": {
+    "file": "hosts.json",
+    "sha256": "a8c9f36a3b8287f7e75cf0e6265cc0db93ff4c5057161591af4b92da01d4340e",
+    "note": "The earlier 55191b6e payload passed these hosts-only probes but failed the later concrete startup integration controls. That evidence is preserved; final-hosts.json binds the same three directed hosts probes to the repaired 83eb5ad0 payload."
+  },
+  "startup_integration_evidence": {
+    "file": "startup-integration.json",
+    "sha256": "f1231c965ffb69a0e39494e60c95e58b1dd701e436c77268da75410bb3daae97"
+  },
+  "matching_c_source_files": {
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001"
+  }
+}

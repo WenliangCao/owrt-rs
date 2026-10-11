@@ -1,0 +1,2284 @@
+{
+  "schema_version": 1,
+  "scope": "Close the concrete initialization regressions introduced by moving ordinary hosts loading to the logging-ready Init stage. This evidence contains two targeted startup experiments, not the complete-family qualification.",
+  "source_commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+  "source_identity": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/source-final-identity.json",
+    "sha256": "65491583535de70429611180290e3ed1dce1876c48994479ed55ccc0f1fce6c8",
+    "bytes": 20948
+  },
+  "source_verification": {
+    "source_commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+    "source_digest": "58a8a4fd459806d1029bf891af0ad48b49070701431fcf3a0566d60fcf779f10",
+    "matched_file_count": 177,
+    "local_workspace_inputs_match": true
+  },
+  "final_sdk_payload": {
+    "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+    "sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8",
+    "bytes": 2054939
+  },
+  "exact_image_c": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+    "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "bytes": 269305
+  },
+  "before_sdk_sha256": "55191b6ee58ad2fa311546bc5f16ec981b30c2bf56af1e537b4866e4af56850a",
+  "product_sources": {
+    "components/dnsmasq/src/main.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/main.rs",
+      "sha256": "f4c2cbe201cbbbefd9ad5185cb64dcf87656de411d76de9c7a433ca4b78085d1",
+      "bytes": 362898
+    },
+    "components/dnsmasq/src/dns/files_runtime.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dns/files_runtime.rs",
+      "sha256": "86a7b7f19788626fbcfe9dcc3a1f7420caddcf29dcacf36ca07ad2a071741e18",
+      "bytes": 43696
+    },
+    "components/dnsmasq/src/dhcp/daemon.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dhcp/daemon.rs",
+      "sha256": "3e7266d8d74eea0814827d871f935f19c12299daa18e915148ffa8c6266f8739",
+      "bytes": 167180
+    },
+    "components/dnsmasq/src/dhcp/lease.rs": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/components/dnsmasq/src/dhcp/lease.rs",
+      "sha256": "0605a92f9f504dd0e75ce2bc93022d2ec6709b557f5d22d5099563213ac9e2a3",
+      "bytes": 52560
+    }
+  },
+  "final_commands": {
+    "hosts-startup-helper": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_fix_20261011_hosts_startup.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_fix_20261011_hosts_startup.py",
+        "sha256": "7832606f2bb487389d147bf928a39fd8e65835f185ca8abe40e6df6afa05b112",
+        "bytes": 8229
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/result.json",
+        "sha256": "fd8d12bc0689a0d992d9551a927a6da6699f57396e6b1ead09dfc8bd0ba95e51",
+        "bytes": 39170
+      }
+    },
+    "hosts-startup-dhcp": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_fix_20261011_hosts_startup_dhcp.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/audit_fix_20261011_hosts_startup_dhcp.py",
+        "sha256": "25e942514032a900a54a116a99afdfba0e14f60d36d7d1657368d8570f8bfebd",
+        "bytes": 7348
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/source-final/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/result.json",
+        "sha256": "6c31486643e5e73091485cde8acfc919aff03c5db4d5634358b95ab6498591a5",
+        "bytes": 11494
+      }
+    }
+  },
+  "before": {
+    "restored_lease_helper": {
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/result.json",
+        "sha256": "f7e6925f693ca79b2dc31f6316cfb3836dbf5007e3a508680ecfdf49e874bfd4",
+        "bytes": 34533
+      },
+      "recorded_probe_sha256": "d3decc8e90839c99901831c16e215915e0546b3cc71c45430c17e4729f59ceff",
+      "passed": false,
+      "cases": [
+        {
+          "id": "normal-resolv",
+          "matched": false,
+          "observed": {
+            "c": {
+              "argv": [
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+                "--library-path",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-c/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-c/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-c/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-c/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473388686200959
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473388710520921
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473388736159293
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473388761555103
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473388787133275
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+            },
+            "rust": {
+              "argv": [
+                "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-01/payload/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-rust/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-rust/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-rust/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/normal-resolv-rust/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 3,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473390194760014
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473390220388946
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "restored-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473390245412433
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "55191b6ee58ad2fa311546bc5f16ec981b30c2bf56af1e537b4866e4af56850a"
+            }
+          }
+        },
+        {
+          "id": "large-resolv",
+          "matched": false,
+          "observed": {
+            "c": {
+              "argv": [
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+                "--library-path",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-c/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-c/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-c/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-c/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473391722245465
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473391746560866
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473391771375311
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473391796099276
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473391820854681
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+            },
+            "rust": {
+              "argv": [
+                "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-01/payload/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-rust/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-rust/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-rust/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/large-resolv-rust/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 3,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473393234591590
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473393259688638
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "restored-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473393284409443
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "55191b6ee58ad2fa311546bc5f16ec981b30c2bf56af1e537b4866e4af56850a"
+            }
+          }
+        },
+        {
+          "id": "held-fifo",
+          "matched": false,
+          "observed": {
+            "c": {
+              "argv": [
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+                "--library-path",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-c/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-c/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-c/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-c/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473395251578175
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473395276285900
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473395300072537
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473395324995503
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473395350180112
+                }
+              ],
+              "callbacks_before_FIFO_close": 0,
+              "FIFO_writer": {
+                "opened_monotonic_ns": 1473394728625284,
+                "replaced_monotonic_ns": 1473395229121629,
+                "closing_monotonic_ns": 1473395229122829
+              },
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+            },
+            "rust": {
+              "argv": [
+                "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-01/payload/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-rust/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-rust/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-rust/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-02/held-fifo-rust/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 3,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473396267140866
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473396291604829
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "restored-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1473396316258593
+                }
+              ],
+              "callbacks_before_FIFO_close": 3,
+              "FIFO_writer": {
+                "opened_monotonic_ns": 1473396246909939,
+                "replaced_monotonic_ns": 1473396747347683,
+                "closing_monotonic_ns": 1473396747348563
+              },
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "55191b6ee58ad2fa311546bc5f16ec981b30c2bf56af1e537b4866e4af56850a"
+            }
+          }
+        }
+      ]
+    },
+    "DHCP_during_FIFO": {
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/result.json",
+        "sha256": "d25c4fe7ed3b4555205ff9e5eefb54367043bd14f359a68e67fb09dfcc1c1bb7",
+        "bytes": 11375
+      },
+      "recorded_probe_sha256": "65aa6a40557cffd4b722086f6a24c2ed8b1ed1c82a46088ed5598ca48710098c",
+      "passed": false,
+      "checks": {
+        "both_hold_DHCP_until_resolver_complete": false,
+        "both_healthy": true,
+        "DNS_after_equal": true,
+        "ACK_after_equal": false,
+        "C_returns_authoritative_name": true
+      },
+      "observed": {
+        "c": {
+          "argv": [
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+            "--library-path",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+            "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/c/hosts",
+            "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/c/resolv.conf",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/c/leases",
+            "--log-facility=-",
+            "--log-dhcp"
+          ],
+          "writer": {
+            "opened_monotonic_ns": 1473670475719772,
+            "closing_monotonic_ns": 1473670776622863
+          },
+          "request": "01010600771122330000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+          "send_monotonic_ns": 1473670525892268,
+          "early_reply": null,
+          "observation_end_monotonic_ns": 1473670776243540,
+          "reply_after_release": {
+            "wire": "020106007711223300008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c11617574686f72697461746976652d6f6e65ff00",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "ffffffff",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f72697461746976652d6f6e65"
+              },
+              "message_type": 5,
+              "hostname": "authoritative-one"
+            },
+            "monotonic_ns": 1473670779445367
+          },
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative-one.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "alive_before_stop": true,
+          "leases_before_stop": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+          "exit": 0
+        },
+        "rust": {
+          "argv": [
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-01/payload/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+            "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/rust/hosts",
+            "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/rust/resolv.conf",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-dhcp-01/rust/leases",
+            "--log-facility=-",
+            "--log-dhcp"
+          ],
+          "writer": {
+            "opened_monotonic_ns": 1473670789028326,
+            "closing_monotonic_ns": 1473670842234566
+          },
+          "request": "01010600771122330000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+          "send_monotonic_ns": 1473670839173861,
+          "early_reply": {
+            "wire": "020106007711223300008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0e737570706c6965642d77726f6e67ff00000000",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "ffffffff",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "737570706c6965642d77726f6e67"
+              },
+              "message_type": 5,
+              "hostname": "supplied-wrong"
+            },
+            "monotonic_ns": 1473670841905844
+          },
+          "observation_end_monotonic_ns": 1473670841907204,
+          "reply_after_release": null,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative-one.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "alive_before_stop": true,
+          "leases_before_stop": "0 02:00:00:00:00:02 127.0.0.31 restored-two *\n0 02:00:00:00:00:01 127.0.0.30 supplied-wrong *\n",
+          "exit": 0
+        }
+      }
+    }
+  },
+  "final": {
+    "restored_lease_helper": {
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/result.json",
+        "sha256": "fd8d12bc0689a0d992d9551a927a6da6699f57396e6b1ead09dfc8bd0ba95e51",
+        "bytes": 39170
+      },
+      "recorded_probe_sha256": "7832606f2bb487389d147bf928a39fd8e65835f185ca8abe40e6df6afa05b112",
+      "passed": true,
+      "cases": [
+        {
+          "id": "normal-resolv",
+          "matched": true,
+          "observed": {
+            "c": {
+              "argv": [
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+                "--library-path",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-c/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-c/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-c/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-c/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474097342220514
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474097367209721
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474097392581251
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474097417425737
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474097443156870
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+            },
+            "rust": {
+              "argv": [
+                "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-rust/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-rust/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-rust/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/normal-resolv-rust/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474098864376238
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474098888903441
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474098913804728
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474098939468980
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474098964824110
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+            }
+          }
+        },
+        {
+          "id": "large-resolv",
+          "matched": true,
+          "observed": {
+            "c": {
+              "argv": [
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+                "--library-path",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-c/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-c/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-c/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-c/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474100384574986
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474100409155150
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474100434167397
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474100458926682
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474100483999409
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+            },
+            "rust": {
+              "argv": [
+                "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-rust/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-rust/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-rust/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/large-resolv-rust/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474101903444963
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474101928829573
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474101953942941
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474101978857268
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474102003899795
+                }
+              ],
+              "callbacks_before_FIFO_close": null,
+              "FIFO_writer": {},
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+            }
+          }
+        },
+        {
+          "id": "held-fifo",
+          "matched": true,
+          "observed": {
+            "c": {
+              "argv": [
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+                "--library-path",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+                "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-c/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-c/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-c/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-c/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474103919532617
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474103944801506
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474103969246229
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474103993753632
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474104017891472
+                }
+              ],
+              "callbacks_before_FIFO_close": 0,
+              "FIFO_writer": {
+                "opened_monotonic_ns": 1474103397036211,
+                "replaced_monotonic_ns": 1474103897436794,
+                "closing_monotonic_ns": 1474103897437554
+              },
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b"
+            },
+            "rust": {
+              "argv": [
+                "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+                "-C",
+                "/dev/null",
+                "-k",
+                "--user=root",
+                "--group=root",
+                "--pid-file=",
+                "--no-hosts",
+                "--bind-interfaces",
+                "--listen-address=127.0.0.1",
+                "--port=15353",
+                "--no-ping",
+                "--dhcp-authoritative",
+                "--domain=test",
+                "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+                "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-rust/hosts",
+                "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-rust/resolv.conf",
+                "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-rust/leases",
+                "--dhcp-script=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-helper/held-fifo-rust/hook.py",
+                "--log-facility=-",
+                "--log-dhcp"
+              ],
+              "callback_count": 5,
+              "callbacks_full_env_and_order": [
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "restored-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474105437988071
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-two",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474105463262000
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "DNSMASQ_OLD_HOSTNAME": "restored-one",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474105488102606
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:02",
+                    "127.0.0.31",
+                    "authoritative-two"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474105513056292
+                },
+                {
+                  "argv": [
+                    "old",
+                    "02:00:00:00:00:01",
+                    "127.0.0.30",
+                    "authoritative-one"
+                  ],
+                  "env": {
+                    "DNSMASQ_DATA_MISSING": "1",
+                    "DNSMASQ_DOMAIN": "test",
+                    "DNSMASQ_INTERFACE": "lo",
+                    "DNSMASQ_LEASE_EXPIRES": "0",
+                    "DNSMASQ_LOG_DHCP": "1",
+                    "LC_ALL": "C",
+                    "PATH": "/usr/bin:/bin",
+                    "TZ": "UTC"
+                  },
+                  "monotonic_ns": 1474105538476823
+                }
+              ],
+              "callbacks_before_FIFO_close": 0,
+              "FIFO_writer": {
+                "opened_monotonic_ns": 1474104914019372,
+                "replaced_monotonic_ns": 1474105414456956,
+                "closing_monotonic_ns": 1474105414458716
+              },
+              "initial_leases": "0 02:00:00:00:00:01 127.0.0.30 restored-one *\n0 02:00:00:00:00:02 127.0.0.31 restored-two *\n",
+              "hosts": "127.0.0.30 authoritative-one.test\n127.0.0.31 authoritative-two.test\n",
+              "final_lease_file": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+              "DNS_after": {
+                "authoritative-one.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-one.test",
+                      "type": 1,
+                      "value": "127.0.0.30"
+                    }
+                  ]
+                },
+                "authoritative-two.test": {
+                  "rcode": 0,
+                  "answers": [
+                    {
+                      "name": "authoritative-two.test",
+                      "type": 1,
+                      "value": "127.0.0.31"
+                    }
+                  ]
+                }
+              },
+              "alive_before_stop": true,
+              "cleanup_exit": 0,
+              "proc_exe_sha256": "83eb5ad0331908d2ec44211005873b5e62f25606e8308140a050514034e6a1e8"
+            }
+          }
+        }
+      ]
+    },
+    "DHCP_during_FIFO": {
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/result.json",
+        "sha256": "6c31486643e5e73091485cde8acfc919aff03c5db4d5634358b95ab6498591a5",
+        "bytes": 11494
+      },
+      "recorded_probe_sha256": "25e942514032a900a54a116a99afdfba0e14f60d36d7d1657368d8570f8bfebd",
+      "passed": true,
+      "checks": {
+        "both_hold_DHCP_until_resolver_complete": true,
+        "both_healthy": true,
+        "DNS_after_equal": true,
+        "ACK_after_equal": true,
+        "C_returns_authoritative_name": true
+      },
+      "observed": {
+        "c": {
+          "argv": [
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+            "--library-path",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+            "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/c/hosts",
+            "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/c/resolv.conf",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/c/leases",
+            "--log-facility=-",
+            "--log-dhcp"
+          ],
+          "writer": {
+            "opened_monotonic_ns": 1474106611578388,
+            "closing_monotonic_ns": 1474106913410968
+          },
+          "request": "01010600771122330000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+          "send_monotonic_ns": 1474106661762324,
+          "early_reply": null,
+          "observation_end_monotonic_ns": 1474106912133637,
+          "reply_after_release": {
+            "wire": "020106007711223300008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c11617574686f72697461746976652d6f6e65ff00",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "ffffffff",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f72697461746976652d6f6e65"
+              },
+              "message_type": 5,
+              "hostname": "authoritative-one"
+            },
+            "monotonic_ns": 1474106969871875
+          },
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative-one.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "alive_before_stop": true,
+          "leases_before_stop": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+          "exit": 0
+        },
+        "rust": {
+          "argv": [
+            "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.31,255.0.0.0,infinite",
+            "--addn-hosts=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/rust/hosts",
+            "--resolv-file=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/rust/resolv.conf",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-relro-hosts-20261011/private/functional-final/startup-dhcp/rust/leases",
+            "--log-facility=-",
+            "--log-dhcp"
+          ],
+          "writer": {
+            "opened_monotonic_ns": 1474106979669716,
+            "closing_monotonic_ns": 1474107280634129
+          },
+          "request": "01010600771122330000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+          "send_monotonic_ns": 1474107029901652,
+          "early_reply": null,
+          "observation_end_monotonic_ns": 1474107280251765,
+          "reply_after_release": {
+            "wire": "020106007711223300008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c11617574686f72697461746976652d6f6e65ff00",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "ffffffff",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f72697461746976652d6f6e65"
+              },
+              "message_type": 5,
+              "hostname": "authoritative-one"
+            },
+            "monotonic_ns": 1474107318927966
+          },
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative-one.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "alive_before_stop": true,
+          "leases_before_stop": "0 02:00:00:00:00:02 127.0.0.31 authoritative-two *\n0 02:00:00:00:00:01 127.0.0.30 authoritative-one *\n",
+          "exit": 0
+        }
+      },
+      "post_release_wire_equal": true
+    }
+  },
+  "source_basis": {
+    "dnsmasq.c:1098": "Initial poll_resolv completes before entering the main loop.",
+    "dnsmasq.c:1177": "The first helper queue turn can freeze one pre-EVENT_INIT lease callback.",
+    "dnsmasq.c:1264,1319,1334": "The event pipe (including EVENT_INIT) is handled before DHCP packet handling and helper_write.",
+    "dnsmasq.c:1575,1839": "EVENT_INIT calls clear_cache_and_reload; ordinary hosts are reloaded before DHCP configuration/name refresh.",
+    "dhcp.c:1092": "host_from_dns permits an FQDN only when its domain matches get_domain; these fixtures use domain=test.",
+    "hashes": {
+      "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "dhcp.c": "600dc068b0516d7edebcde9b02ae2091a278fc154551106823ddc388170d7001",
+      "lease.c": "4260039af27b40084cbe6dbbae2bb9417fa3a91806ea53f3f6bdd20234cad763"
+    }
+  },
+  "repairs": [
+    {
+      "commit": "317decd8",
+      "change": "After initial ordinary hosts publication, invoke existing provider.hosts_changed when no hostsdir work remains. The existing final hostsdir-publication path handles nonempty directories. Gate provider callback take/freeze on completed file initialization while continuing helper initialization/output/pipe/reaping.",
+      "reason": "The first F07 implementation only refreshed DHCP names from the hostsdir completion path; ordinary-only startup left restored lease names unchanged. Repeated owner turns during resolver input could also snapshot or send later helper events before hosts publication."
+    },
+    {
+      "commit": "ec0750b4dc1c11ca7193da23f4179e2770b2f682",
+      "change": "Gate DHCP packet work and the helper provider wakeup branch on the same files_initializing condition.",
+      "reason": "The held-FIFO control actually received an early Rust ACK using the client name. The wakeup gate prevents a retained callback from making the owner busy-poll while its file prerequisite is blocked."
+    }
+  ],
+  "normalization": {
+    "helper_events": "Every argv element and every environment variable is compared in sequence. Only capture monotonic_ns is excluded; infinite leases avoid expiry/remaining-time normalization. DNSMASQ_DATA_MISSING and DNSMASQ_OLD_HOSTNAME remain in the comparison.",
+    "lease_file": "The probe compares sorted lease lines to avoid ordering-only noise. Raw order is preserved here; final C/R file order also agrees.",
+    "DHCP": "The FIFO controller sends one REQUEST with fixed MAC/XID, observes for 250 ms while holding the writer open, then explicitly releases the input. It does not retransmit. Post-release decoded fields must agree, and the C result must be ACK with authoritative-one."
+  },
+  "retained_fixture_attempt": {
+    "raw_partial_result": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-01/result.json",
+      "sha256": "315019b394047438e9b0659ad46df5992f9b2f970523af859bf6b091202fb91b",
+      "bytes": 22707
+    },
+    "FIFO_C_log": {
+      "path": "/home/ubuntu/dnsmasq-relro-hosts-20261011/private/hosts-startup-01/held-fifo-c/daemon.log",
+      "sha256": "27f58265ce695190fc75a79e769196abcfee17e12ca5e953c4da582daf708dba",
+      "bytes": 910
+    },
+    "completed_comparisons": 2,
+    "reason": "The first FIFO producer closed without replacing the FIFO. C inotify then opened it again and waited for a new writer, so that FIFO arm did not produce a completed callback observation. Its normal and large-resolver arms retain the same real regression, but this attempt is not called a completed three-case run.",
+    "correction": "Before closing the held writer, atomically replace the pathname with an ordinary file containing the same resolver line. Subsequent inotify-driven opens terminate while the original FIFO hold still gives a controlled pre-Init observation window."
+  },
+  "limitations": [
+    "The fixtures restore exactly two infinite leases and use ordinary addn-hosts, domain=test, -k and a controlled helper environment. They are not an exhaustive matrix of all lease-init/script-user/input combinations.",
+    "The full helper environment is retained safely because daemon launch supplies only PATH, LC_ALL and TZ; no session environment or credentials are inherited.",
+    "Explicit image-musl invocation makes libc.so the C /proc/exe entry point. The target C ELF is separately bound by its exact-image SHA; the recorded /proc/exe hash is not mislabeled as the target ELF hash.",
+    "Complete affected helper/helper-shutdown/lease-recovery families and other regression families are recorded separately."
+  ]
+}
