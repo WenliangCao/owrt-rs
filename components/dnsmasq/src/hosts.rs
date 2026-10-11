@@ -58,15 +58,7 @@ pub struct ReadStats {
 
 #[derive(Clone, Debug)]
 pub enum ReadReport {
-    Complete {
-        source: u32,
-        names: usize,
-    },
-    BadToken {
-        source: u32,
-        line: usize,
-        address: bool,
-    },
+    Complete { source: u32, names: usize },
     Error(Vec<u8>),
 }
 
@@ -307,7 +299,6 @@ impl Hosts {
     ) -> ReadStats {
         let mut parser = HostsParser::default();
         let mut inserted = 0;
-        let mut errors = Vec::new();
         let mut buffer = [0; 8192];
         let mut consume = |parser: &mut HostsParser, bytes: &[u8]| {
             parser.feed(
@@ -318,13 +309,7 @@ impl Hosts {
                     inserted +=
                         usize::from(self.insert_with_origin(name, address, ttl, source, false));
                 },
-                |line, address| {
-                    errors.push(ReadReport::BadToken {
-                        source,
-                        line,
-                        address,
-                    })
-                },
+                |_, _| {},
             );
         };
         while let Ok(length) = input.read(&mut buffer) {
@@ -336,7 +321,6 @@ impl Hosts {
         consume(&mut parser, b"\n");
         let mut stats = parser.stats;
         stats.inserted = inserted;
-        self.read_reports.extend(errors);
         self.read_reports.push(ReadReport::Complete {
             source,
             names: stats.accepted,

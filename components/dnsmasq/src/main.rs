@@ -6691,23 +6691,6 @@ fn emit_hosts_read_notices(
                 };
                 dnsmasq_rs::logging::startup::hosts_read(path, names)
             }
-            ReadReport::BadToken {
-                source,
-                line,
-                address,
-            } => {
-                let Some(path) = hosts.source_name(source) else {
-                    continue;
-                };
-                let mut message = if address {
-                    b"bad address at ".to_vec()
-                } else {
-                    b"bad name at ".to_vec()
-                };
-                message.extend_from_slice(path);
-                message.extend_from_slice(format!(" line {line}").as_bytes());
-                LogEvent::new(Service::Dns, Priority::Error, message)
-            }
             ReadReport::Error(message) => LogEvent::new(Service::Dns, Priority::Error, message),
         };
         logger.emit(event);
