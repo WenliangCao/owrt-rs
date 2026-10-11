@@ -1,0 +1,1147 @@
+{
+  "schema_version": 1,
+  "scope": "F02 and F06 directed differential closure plus signal regression, using the final SDK source-built package payload. This file does not claim that the ongoing complete-family run has passed.",
+  "source_commit": "18cc40367328056f41e237b0d4ff2f23b33a7ef4",
+  "artifacts": {
+    "rust_sdk_payload": {
+      "path": "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+      "sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+      "bytes": 2050843
+    },
+    "exact_image_c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    },
+    "matching_native_c_auxiliary_only": {
+      "path": "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+      "sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "bytes": 1650080
+    }
+  },
+  "supporting_tools": [
+    {
+      "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+      "sha256": "afc8f8e083285ffab47d14c206f0c4344d41f1cc1171d5052cd02bc52321c8cd",
+      "bytes": 5153
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/audit_20261011_dhcp.py",
+      "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+      "bytes": 10332
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/m2_rootfs.py",
+      "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "bytes": 15493
+    }
+  ],
+  "probes": {
+    "F02-cached-cname": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dns_hosts_cname.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/cname",
+        "--require-match"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dns_hosts_cname.py",
+        "sha256": "cd892287c2a98cfb8334f233714fbf2de6195e4a6ddc01ab44ee1ae9dfd94a78",
+        "bytes": 4425
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/cname/result.json",
+        "sha256": "5e9dc3180f331d8797810fd7ecc2932da752902e7ce9cbdd70a78963c7cb8326",
+        "bytes": 17549
+      },
+      "raw_logs": [
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/cname/c-debugFalse/daemon.log",
+          "sha256": "1d736ee36871845c70e982428c0261cffd76757002f8def13ae64bd8b29a47ec",
+          "bytes": 2597
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/cname/c-debugTrue/daemon.log",
+          "sha256": "d0728bb259b415e3ffef1adf72c9ce05fe2f3d2a068bd90fc0e5d899923af4c4",
+          "bytes": 3226
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/cname/rust-debugFalse/daemon.log",
+          "sha256": "18da0f4cbd3601d11526c9c35c8ca30976f0beb0b31b1ff5b9b98f758635f4a8",
+          "bytes": 2419
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/cname/rust-debugTrue/daemon.log",
+          "sha256": "122890df010f7b11bbd9c98f4ade7d51eafec269ee1c6bb44cae3bc4cd9fb02f",
+          "bytes": 3014
+        }
+      ]
+    },
+    "F02-published-dhcp": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dns_hosts_stale.py",
+        "--tools",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/negative",
+        "--fresh-only",
+        "--require-match"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/dns_hosts_stale.py",
+        "sha256": "679051db6a8d9825a054c6e0b593f4eed18a0b98a5972fa003c63f0913291afc",
+        "bytes": 4974
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/negative/result.json",
+        "sha256": "32ec7fb8052234753a7c8830544f5464843cd4221171224f67c86e29681bad41",
+        "bytes": 2046
+      },
+      "raw_logs": [
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/negative/c-debugFalse-staleFalse/daemon.log",
+          "sha256": "a88b43e9e672f0d5f76a860a9d82c9d2b5e976a43bc714dc7d71925df5c6311d",
+          "bytes": 854
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/negative/c-debugTrue-staleFalse/daemon.log",
+          "sha256": "9d4a6f57db109cc510aded7803a96d6a0bf58fd0f11f0773646f1e62df369f17",
+          "bytes": 1094
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/negative/rust-debugFalse-staleFalse/daemon.log",
+          "sha256": "dea1b97c1a010d503e38591df59c2afc38412545ce43600d784a137b3058af3f",
+          "bytes": 854
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/negative/rust-debugTrue-staleFalse/daemon.log",
+          "sha256": "16e666074da2ca6d5daab372fc60bea66108e1f30eb585031b3674616a947021",
+          "bytes": 1109
+        }
+      ]
+    },
+    "F06-scoped-dump": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/config_signals_dump_probe.py",
+        "--image",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/scope"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/docs/dnsmasq/audits/20261011/independent/config_signals_dump_probe.py",
+        "sha256": "b687afd9e4eb39e6a0698ce6f970decd0a2042c15040120946365f05babe0ad9",
+        "bytes": 1658
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/scope/result.json",
+        "sha256": "a416e93e49028d7e90dff6db80df6c8a0c079e2cfbc2403d8419cb48850be896",
+        "bytes": 3875
+      },
+      "raw_logs": [
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/scope/0-c.log",
+          "sha256": "ca17ff45b8033549ec8243d73ac6687cc7c2e77c48171040fe5566efc089aca1",
+          "bytes": 782
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/scope/0-rust.log",
+          "sha256": "5c234258946dd4a68d56bfdca498fa83ab4709e0dcc3adfc5d45f9c2e0611b32",
+          "bytes": 729
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/scope/1-c.log",
+          "sha256": "b499e3a22f1eac0c91c0bbd9929e2cc64508f78511c7dbbdeadbc478f9e11d71",
+          "bytes": 786
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/scope/1-rust.log",
+          "sha256": "172f664373eb34cd9da58d90fe036cfbf3bd6ed5b8089ef594191940a08e8540",
+          "bytes": 733
+        }
+      ]
+    },
+    "signals-regression": {
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/source/private/sdk-source-acquire-02/payload/usr/sbin/dnsmasq",
+        "--c-native",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01/dnsmasq/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals"
+      ],
+      "returncode": 0,
+      "controller_check_passed": true,
+      "script": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/audit_20261011_runtime_signals.py",
+        "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+        "bytes": 12826
+      },
+      "isolation_launcher": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/tool-source-02/tools/dnsmasq/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+        "bytes": 399
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/result.json",
+        "sha256": "b0a68373ece714de69bd6b24bc70557f0324c7bf5bd15f6b86a96f7c3bf56e76",
+        "bytes": 12735
+      },
+      "raw_logs": [
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-SIGALRM.log",
+          "sha256": "5a8d46e7429adb602ac3f6a9f27a0ca1780a0828bee4a098ef69bd7df9b45c7c",
+          "bytes": 363
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-SIGHUP.log",
+          "sha256": "818dce085fcf44dc1334c7cb8e9bb814efedd61eac35412679655f9fe099bfda",
+          "bytes": 384
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-SIGUSR1.log",
+          "sha256": "a8eac2f454a569858cba48d722cfa14004b8f9ea19d544936f09a6ad76942753",
+          "bytes": 687
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-SIGUSR2.log",
+          "sha256": "97cf44db1d73507c9671acbb7db6323b658791584d6c1b1731e5dd9c7a1dfee5",
+          "bytes": 358
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-alarm-maintenance.log",
+          "sha256": "4af1171aa3c42060b5c4d5fc840559c03512e2cc16909d014aad820d15ceb6c0",
+          "bytes": 1643
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-dump.log",
+          "sha256": "108e630b599fd00f2104abe615cbd2d73ff28fa10606306fe2dd8e5dad087e8d",
+          "bytes": 3449
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-SIGALRM.log",
+          "sha256": "96519277fd60e53ef85b2286e3915d60588e3a03d032d6b03a80959c2eee7eee",
+          "bytes": 363
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-SIGHUP.log",
+          "sha256": "ed02277c340c0a8909a042716dc45c7853817899acdd9781abc804f7ed763642",
+          "bytes": 384
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-SIGUSR1.log",
+          "sha256": "81b094b198a844e1d1c978dcd67e4071aeb6f465115caec7fafbc3b322df133c",
+          "bytes": 697
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-SIGUSR2.log",
+          "sha256": "1b20dcb4c8aeed9c6d99dca12c964fcede5e6ff3c44d74664cd5aa122d8c0054",
+          "bytes": 358
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-alarm-maintenance.log",
+          "sha256": "5c5a857a7b190b48e440da80c4aebad383317bb52c370fd9ebadd8091669b0e4",
+          "bytes": 1644
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-dump.log",
+          "sha256": "877987d2f0a1355b5e494bc931b4ce72e7ce14d1a82142983be188e8c3627e96",
+          "bytes": 3449
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-SIGALRM.log",
+          "sha256": "57f234606464ca68ad8b65d6ef7f521d5f3cf1c379764fe848fd04d80050cbf8",
+          "bytes": 363
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-SIGHUP.log",
+          "sha256": "8d494cc3cd500a1ca1bef033330adf7e7793cab44393a8649e0b8732ca84afd3",
+          "bytes": 384
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-SIGUSR1.log",
+          "sha256": "98a1db8ed1a7da812c2deb2eba6090e8c225f4fe78b80efd769a8a022fec9cf1",
+          "bytes": 639
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-SIGUSR2.log",
+          "sha256": "4b6eba12451fe8db406375c0943f08840f963dbd3bad5febb2aef2c5a44b20c8",
+          "bytes": 358
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-alarm-maintenance.log",
+          "sha256": "63149d1446f8d43f80be15e34e88083f1b615c3da9369c8dbeb31d2968886e90",
+          "bytes": 1582
+        },
+        {
+          "path": "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-dump.log",
+          "sha256": "bd9a7deb56ca5dea1f0dba1f9a6dfc97612f3869f2838d2acb7b44fc581279c4",
+          "bytes": 3091
+        }
+      ]
+    }
+  },
+  "F02_cached_CNAME": {
+    "passed": true,
+    "checks": [
+      {
+        "debug": false,
+        "all_alive": true,
+        "only_two_upstream_queries": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "all_UDP_TCP_TXT_equal": true,
+        "C_alias_has_CNAME_and_TXT": true
+      },
+      {
+        "debug": true,
+        "all_alive": true,
+        "only_two_upstream_queries": true,
+        "warm_A_equal": true,
+        "warm_TXT_equal": true,
+        "all_UDP_TCP_TXT_equal": true,
+        "C_alias_has_CNAME_and_TXT": true
+      }
+    ],
+    "cases": [
+      {
+        "debug": false,
+        "health": {
+          "c": {
+            "alive": true,
+            "upstream_queries": 2
+          },
+          "rust": {
+            "alive": true,
+            "upstream_queries": 2
+          }
+        },
+        "warm_A_identical": true,
+        "warm_target_TXT_identical": true,
+        "all_UDP_TCP_TXT_wire_identical": true,
+        "alias_TXT": {
+          "decoded_common_c_and_rust": {
+            "id": 4660,
+            "flags": "0x8180",
+            "rcode": 0,
+            "counts": {
+              "question": 1,
+              "answer": 2,
+              "authority": 0,
+              "additional": 0
+            },
+            "questions": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1
+              }
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "target": "target.test"
+              },
+              {
+                "section": "answer",
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "text": [
+                  "target-upstream"
+                ]
+              }
+            ]
+          },
+          "wire_by_side": {
+            "c": {
+              "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+            },
+            "rust": {
+              "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+            }
+          }
+        },
+        "target_TXT_control": {
+          "decoded_common_c_and_rust": {
+            "id": 4660,
+            "flags": "0x8180",
+            "rcode": 0,
+            "counts": {
+              "question": 1,
+              "answer": 1,
+              "authority": 0,
+              "additional": 0
+            },
+            "questions": [
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1
+              }
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "text": [
+                  "target-upstream"
+                ]
+              }
+            ]
+          },
+          "wire_by_side": {
+            "c": {
+              "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+            },
+            "rust": {
+              "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+            }
+          }
+        }
+      },
+      {
+        "debug": true,
+        "health": {
+          "c": {
+            "alive": true,
+            "upstream_queries": 2
+          },
+          "rust": {
+            "alive": true,
+            "upstream_queries": 2
+          }
+        },
+        "warm_A_identical": true,
+        "warm_target_TXT_identical": true,
+        "all_UDP_TCP_TXT_wire_identical": true,
+        "alias_TXT": {
+          "decoded_common_c_and_rust": {
+            "id": 4660,
+            "flags": "0x8180",
+            "rcode": 0,
+            "counts": {
+              "question": 1,
+              "answer": 2,
+              "authority": 0,
+              "additional": 0
+            },
+            "questions": [
+              {
+                "name": "alias.test",
+                "type": 16,
+                "class": 1
+              }
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "alias.test",
+                "type": 5,
+                "class": 1,
+                "ttl": 600,
+                "target": "target.test"
+              },
+              {
+                "section": "answer",
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "text": [
+                  "target-upstream"
+                ]
+              }
+            ]
+          },
+          "wire_by_side": {
+            "c": {
+              "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+            },
+            "rust": {
+              "tcp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "12348180000100020000000005616c69617304746573740000100001c00c0005000100000258000d06746172676574047465737400c028001000010000025800100f7461726765742d757073747265616d"
+            }
+          }
+        },
+        "target_TXT_control": {
+          "decoded_common_c_and_rust": {
+            "id": 4660,
+            "flags": "0x8180",
+            "rcode": 0,
+            "counts": {
+              "question": 1,
+              "answer": 1,
+              "authority": 0,
+              "additional": 0
+            },
+            "questions": [
+              {
+                "name": "target.test",
+                "type": 16,
+                "class": 1
+              }
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "target.test",
+                "type": 16,
+                "class": 1,
+                "ttl": 600,
+                "text": [
+                  "target-upstream"
+                ]
+              }
+            ]
+          },
+          "wire_by_side": {
+            "c": {
+              "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+            },
+            "rust": {
+              "tcp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d",
+              "udp_txt": "1234818000010001000000000674617267657404746573740000100001c00c001000010000025800100f7461726765742d757073747265616d"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "F02_published_DHCP_over_negative": {
+    "passed": true,
+    "checks": [
+      {
+        "debug": false,
+        "all_alive": true,
+        "both_ACK": true,
+        "negative_reply_equal": true,
+        "both_warmed_NXDOMAIN": true,
+        "TCP_reply_equal": true,
+        "C_returns_new_DHCP_A": true,
+        "no_upstream_after_TCP": true
+      },
+      {
+        "debug": true,
+        "all_alive": true,
+        "both_ACK": true,
+        "negative_reply_equal": true,
+        "both_warmed_NXDOMAIN": true,
+        "TCP_reply_equal": true,
+        "C_returns_new_DHCP_A": true,
+        "no_upstream_after_TCP": true
+      }
+    ],
+    "cases": [
+      {
+        "debug": false,
+        "decoded_negative_common_c_and_rust": {
+          "id": 4660,
+          "flags": "0x8183",
+          "rcode": 3,
+          "counts": {
+            "question": 1,
+            "answer": 0,
+            "authority": 0,
+            "additional": 0
+          },
+          "questions": [
+            {
+              "name": "client",
+              "type": 28,
+              "class": 1
+            }
+          ],
+          "records": []
+        },
+        "decoded_TCP_common_c_and_rust": {
+          "id": 4660,
+          "flags": "0x8580",
+          "rcode": 0,
+          "counts": {
+            "question": 1,
+            "answer": 1,
+            "authority": 0,
+            "additional": 1
+          },
+          "questions": [
+            {
+              "name": "client",
+              "type": 1,
+              "class": 1
+            }
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "client",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "address": "127.0.0.30"
+            },
+            {
+              "section": "additional",
+              "name": "",
+              "type": 41,
+              "class": 1232,
+              "ttl": 0,
+              "rdata_hex": ""
+            }
+          ]
+        },
+        "observations_by_side": {
+          "c": {
+            "side": "c",
+            "debug": false,
+            "stale": false,
+            "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+            "ack": 5,
+            "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+            "upstream_after_tcp": [],
+            "alive": true
+          },
+          "rust": {
+            "side": "rust",
+            "debug": false,
+            "stale": false,
+            "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+            "ack": 5,
+            "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+            "upstream_after_tcp": [],
+            "alive": true
+          }
+        }
+      },
+      {
+        "debug": true,
+        "decoded_negative_common_c_and_rust": {
+          "id": 4660,
+          "flags": "0x8183",
+          "rcode": 3,
+          "counts": {
+            "question": 1,
+            "answer": 0,
+            "authority": 0,
+            "additional": 0
+          },
+          "questions": [
+            {
+              "name": "client",
+              "type": 28,
+              "class": 1
+            }
+          ],
+          "records": []
+        },
+        "decoded_TCP_common_c_and_rust": {
+          "id": 4660,
+          "flags": "0x8580",
+          "rcode": 0,
+          "counts": {
+            "question": 1,
+            "answer": 1,
+            "authority": 0,
+            "additional": 1
+          },
+          "questions": [
+            {
+              "name": "client",
+              "type": 1,
+              "class": 1
+            }
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "client",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "address": "127.0.0.30"
+            },
+            {
+              "section": "additional",
+              "name": "",
+              "type": 41,
+              "class": 1232,
+              "ttl": 0,
+              "rdata_hex": ""
+            }
+          ]
+        },
+        "observations_by_side": {
+          "c": {
+            "side": "c",
+            "debug": true,
+            "stale": false,
+            "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+            "ack": 5,
+            "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+            "upstream_after_tcp": [],
+            "alive": true
+          },
+          "rust": {
+            "side": "rust",
+            "debug": true,
+            "stale": false,
+            "negative_before": "12348183000100000000000006636c69656e7400001c0001",
+            "ack": 5,
+            "tcp_after": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+            "upstream_after_tcp": [],
+            "alive": true
+          }
+        }
+      }
+    ]
+  },
+  "F06_scoped_server_statistics": {
+    "passed": true,
+    "cases": [
+      {
+        "args": [
+          "--server=fe80::1%lo"
+        ],
+        "C_R_server_line_equal_without_pid_prefix": true,
+        "observations_by_side": {
+          "c": {
+            "server_line_with_original_prefix": "dnsmasq[3]: server fe80::1%lo#53: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "server_line_without_pid_prefix": "server fe80::1%lo#53: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "alive_after_usr1": true,
+            "exit_after_cleanup": 0
+          },
+          "rust": {
+            "server_line_with_original_prefix": "dnsmasq[4]: server fe80::1%lo#53: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "server_line_without_pid_prefix": "server fe80::1%lo#53: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "alive_after_usr1": true,
+            "exit_after_cleanup": 0
+          }
+        }
+      },
+      {
+        "args": [
+          "--server=127.0.0.1#15354"
+        ],
+        "C_R_server_line_equal_without_pid_prefix": true,
+        "observations_by_side": {
+          "c": {
+            "server_line_with_original_prefix": "dnsmasq[5]: server 127.0.0.1#15354: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "server_line_without_pid_prefix": "server 127.0.0.1#15354: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "alive_after_usr1": true,
+            "exit_after_cleanup": 0
+          },
+          "rust": {
+            "server_line_with_original_prefix": "dnsmasq[6]: server 127.0.0.1#15354: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "server_line_without_pid_prefix": "server 127.0.0.1#15354: queries sent 0, retried 0, failed 0, nxdomain replies 0, avg. latency 0ms",
+            "alive_after_usr1": true,
+            "exit_after_cleanup": 0
+          }
+        }
+      }
+    ]
+  },
+  "signals_regression": {
+    "passed": true,
+    "isolated": true,
+    "outcomes": [
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "signal": "SIGHUP",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "signal": "SIGUSR2",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "signal": "SIGUSR1",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "signal": "SIGALRM",
+        "dns_before": true,
+        "exit_status_after_signal": null,
+        "dns_after": true,
+        "pidfile_exists_after_signal": true
+      }
+    ],
+    "cache_dumps": [
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "daemon_alive": true,
+        "upstream_queries": 3,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "daemon_alive": true,
+        "upstream_queries": 3,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "daemon_alive": true,
+        "upstream_queries": 3,
+        "dump": {
+          "cache": [
+            [
+              150,
+              0,
+              2
+            ],
+            [
+              150,
+              0,
+              2
+            ]
+          ],
+          "queries": [
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "tcp": [
+            [
+              0,
+              0,
+              30
+            ],
+            [
+              0,
+              0,
+              30
+            ]
+          ],
+          "server": [
+            [
+              3,
+              0,
+              0,
+              2
+            ],
+            [
+              3,
+              0,
+              0,
+              2
+            ]
+          ],
+          "host_rows": 2,
+          "cached_rows": 2
+        }
+      }
+    ],
+    "alarm_maintenance": [
+      {
+        "implementation": "c-image",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      },
+      {
+        "implementation": "c-native",
+        "binary_sha256": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      },
+      {
+        "implementation": "rust",
+        "binary_sha256": "e099e180569db342827fde366f3be81dc6d0faed8ca0e1404235b76ffcfd2580",
+        "ack": 5,
+        "lease_absent_before_alarm": true,
+        "lease_persisted_after_alarm": true,
+        "lease_dump_seen": true,
+        "daemon_alive": true,
+        "dns_after": true
+      }
+    ],
+    "complete_server_lines_from_retained_logs": {
+      "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/rust-dump.log": [
+        "dnsmasq[20]: server 127.0.0.1#15354: queries sent 3, retried 0, failed 0, nxdomain replies 2, avg. latency 0ms",
+        "dnsmasq[20]: server 127.0.0.1#15354: queries sent 3, retried 0, failed 0, nxdomain replies 2, avg. latency 0ms"
+      ],
+      "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-image-dump.log": [
+        "dnsmasq[16]: server 127.0.0.1#15354: queries sent 3, retried 0, failed 0, nxdomain replies 2, avg. latency 0ms",
+        "dnsmasq[16]: server 127.0.0.1#15354: queries sent 3, retried 0, failed 0, nxdomain replies 2, avg. latency 0ms"
+      ],
+      "/home/ubuntu/dnsmasq-review-fix-20261011/private/functional-02/signals/c-native-dump.log": [
+        "dnsmasq[18]: server 127.0.0.1#15354: queries sent 3, retried 0, failed 0, nxdomain replies 2, avg. latency 0ms",
+        "dnsmasq[18]: server 127.0.0.1#15354: queries sent 3, retried 0, failed 0, nxdomain replies 2, avg. latency 0ms"
+      ]
+    }
+  },
+  "limitations": [
+    "Exact image C is the behavior authority; native C is an auxiliary signal control.",
+    "F02 daemon reproductions cover ordinary and debug TCP and UDP cached-CNAME TXT controls, plus fresh retained NXDOMAIN followed by actual DHCP publication. They do not exhaust every CNAME/RR/RD/DO/stale combination.",
+    "The published-DHCP probe intentionally uses --fresh-only; the previously excluded stale EDE difference is not claimed fixed.",
+    "F06 daemon probe exercises an existing lo scope and an IPv4 control with zero upstream traffic; other scope forms and counter workloads require their separate regression evidence.",
+    "Only these four selected commands are closed here; the complete affected-family outcome is recorded separately.",
+    "Hashes bind scripts, retained result bytes and supplied ELF files; these probes do not independently attest /proc/PID/exe for every process."
+  ]
+}
