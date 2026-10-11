@@ -160,7 +160,7 @@ def run_alarm_maintenance(label, command, binary, out):
     argv = command + ["-C", "/dev/null", "-k", "--user=root", "--group=root",
         "--port=15353", "--no-resolv", "--no-hosts", "--listen-address=127.0.0.1",
         "--bind-interfaces", "--address=/audit.test/192.0.2.1", "--pid-file=",
-        "--log-facility=-", "--no-ping", "--dhcp-authoritative",
+        "--log-facility=-", "--log-queries", "--no-ping", "--dhcp-authoritative",
         "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h", f"--dhcp-leasefile={leasefile}"]
     # Inherit ignored SIGXFSZ: write(2) returns EFBIG, as a full lease volume
     # would return ENOSPC. The daemon's log is a pipe, unaffected by RLIMIT_FSIZE.
@@ -168,7 +168,7 @@ def run_alarm_maintenance(label, command, binary, out):
                             preexec_fn=lambda: signal.signal(signal.SIGXFSZ, signal.SIG_IGN))
     output = bytearray()
     def collect():
-        while data := proc.stdout.read(4096):
+        while data := proc.stdout.read1(4096):
             output.extend(data)
     thread = threading.Thread(target=collect)
     thread.start()
@@ -198,9 +198,20 @@ def run_alarm_maintenance(label, command, binary, out):
             if "alarm-client" in after:
                 break
             time.sleep(.02)
+        if proc.poll() is None:
+            proc.send_signal(signal.SIGUSR1)
+        deadline = time.monotonic() + 2
+        lease_dump_seen = False
+        while time.monotonic() < deadline and proc.poll() is None:
+            lease_dump_seen = bool(re.search(
+                rb"alarm-client\s+127\.0\.0\.30\s+4FR D", output))
+            if lease_dump_seen:
+                break
+            time.sleep(.02)
         return {"implementation": label, "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
                 "ack": ack["message_type"], "lease_absent_before_alarm": "alarm-client" not in before,
                 "lease_persisted_after_alarm": "alarm-client" in after,
+                "lease_dump_seen": lease_dump_seen,
                 "daemon_alive": proc.poll() is None, "dns_after": query(15353)}
     finally:
         if proc.poll() is None:
@@ -241,7 +252,8 @@ def main():
         and dumps[0]["dump"]["cached_rows"] == 2
         and dumps[0]["dump"]["host_rows"] == 2
         and all(row["ack"] == 5 and row["lease_absent_before_alarm"]
-                and row["lease_persisted_after_alarm"] and row["daemon_alive"] and row["dns_after"]
+                and row["lease_persisted_after_alarm"] and row["lease_dump_seen"]
+                and row["daemon_alive"] and row["dns_after"]
                 for row in maintenance))
     (args.out / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))

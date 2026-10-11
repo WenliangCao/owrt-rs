@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, HashSet};
 impl<R: Random> DnsDaemon<R> {
     pub fn dump_cache(
         &self,
+        local: &LocalDnsService,
         now: i64,
         metrics: &Metrics,
         tcp_high_water: usize,
@@ -31,10 +32,13 @@ impl<R: Random> DnsDaemon<R> {
         // average their moving latency, including records with no replies yet.
         let mut servers = BTreeMap::<SocketAddr, (crate::dns::upstream::ServerCounters, u32)>::new();
         let mut seen = HashSet::new();
-        for server in self.routing.groups().flat_map(|group| &group.servers) {
-            if !seen.insert(server.id) { continue; }
-            let value = self.upstream.server_counters(server.id);
-            let (total, count) = servers.entry(server.address).or_default();
+        let routed = self.routing.groups().flat_map(|group| &group.servers)
+            .map(|server| (server.id, server.address));
+        // Loop-disabled servers remain in C's live list and its diagnostics.
+        for (id, address) in routed.chain(self.upstream.retained_servers()) {
+            if !seen.insert(id) { continue; }
+            let value = self.upstream.server_counters(id);
+            let (total, count) = servers.entry(address).or_default();
             total.queries = total.queries.wrapping_add(value.queries);
             total.retries = total.retries.wrapping_add(value.retries);
             total.failed = total.failed.wrapping_add(value.failed);
@@ -50,15 +54,15 @@ impl<R: Random> DnsDaemon<R> {
         if !debug && !self.query_logging.enabled { return; }
         emit("Host                           Address                                  Flags      Expires                  Source".into());
         emit("------------------------------ ---------------------------------------- ---------- ------------------------ ------------".into());
-        for host in self.local.hosts.entries() {
+        for host in local.hosts.entries() {
             let flags = format!("{}F{}I   {}{} ", if host.address.is_ipv4() { '4' } else { '6' },
                 if host.reverse { 'R' } else { ' ' },
                 if host.configured { ' ' } else { 'H' }, if host.configured { 'C' } else { ' ' });
             let source = if host.configured { Some(b"config".as_slice()) }
-                else { self.local.hosts.source_name(host.source) };
+                else { local.hosts.source_name(host.source) };
             emit(row(&host.name, &host.address.to_string(), &flags, None, source));
         }
-        for lease in self.local.leases.active_entries() {
+        for lease in local.leases.active_entries() {
             let flags = format!("4F{}{}D     ", if lease.reverse { 'R' } else { ' ' },
                 if lease.expires.is_none() { 'I' } else { ' ' });
             emit(row(&lease.name, &lease.address.to_string(), &flags, lease.expires, None));

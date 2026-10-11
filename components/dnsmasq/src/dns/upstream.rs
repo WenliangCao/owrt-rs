@@ -540,6 +540,10 @@ impl<R: Random> UpstreamResolver<R> {
         });
     }
 
+    pub(crate) fn retained_servers(&self) -> impl Iterator<Item = (ServerId, SocketAddr)> + '_ {
+        self.reply_servers.iter().map(|(&id, &address)| (id, address))
+    }
+
     pub(crate) fn server_counters(&self, id: ServerId) -> ServerCounters {
         self.server_counters.get(&id).copied().unwrap_or_default()
     }

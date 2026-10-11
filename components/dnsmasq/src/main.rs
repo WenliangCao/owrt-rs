@@ -4235,7 +4235,7 @@ impl SinglePoll {
             let metrics = self.metrics(&event);
             let parent = self.service.borrow();
             if let (Some(daemon), Some(logger)) = (&parent.daemon, &mut self.logger) {
-                daemon.dump_cache(now_seconds(), &metrics, event.tcp_high_water,
+                daemon.dump_cache(&parent.local, now_seconds(), &metrics, event.tcp_high_water,
                     self.tcp_limit, DEBUG_MODE.load(Ordering::Relaxed), |line| {
                         logger.emit(dnsmasq_rs::logging::LogEvent::new(
                             dnsmasq_rs::logging::Service::Dns,
