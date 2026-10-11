@@ -3190,6 +3190,12 @@ impl SinglePoll {
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
+            // This owner holds both views for the entire synchronous reload.
+            // Release the previous indexes before building the replacement:
+            // EVENT_INIT already has configured hosts in both views, and
+            // retaining those deep copies adds a configuration-sized peak.
+            local.hosts = Hosts::new();
+            daemon.publish_hosts_source(Hosts::new());
             let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
                 #[cfg(target_os = "linux")]
                 if let Some(logger) = self.logger.as_mut() {
