@@ -74,6 +74,7 @@ define Build/Compile
 	test -s $(PKG_BUILD_DIR)/frozen-dnsmasq
 endef
 else
+# Backticks keep this shell substitution intact through BuildPackage's eval.
 define Build/Compile
 	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
 	CARGO_HOME="$(V1_CARGO_HOME)" \
@@ -81,7 +82,7 @@ define Build/Compile
 	CARGO_PROFILE_RELEASE_PANIC=abort \
 	CC_aarch64_unknown_linux_musl="$(TARGET_CC_NOCACHE)" \
 	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
-	DNSMASQ_STATIC_PIE_CC="$$(command -v "$(TARGET_CC_NOCACHE)")" \
+	DNSMASQ_STATIC_PIE_CC="`command -v "$(TARGET_CC_NOCACHE)"`" \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(CURDIR)/static-pie-linker.py" \
 	RUSTFLAGS="-Cforce-unwind-tables=no --remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Crelocation-model=pie -Ctarget-feature=+crt-static" \
 	$(V1_CARGO) build --release --frozen --manifest-path $(PKG_BUILD_DIR)/dnsmasq/Cargo.toml --bin dnsmasq-rs --target-dir $(PKG_BUILD_DIR)/dnsmasq/target
