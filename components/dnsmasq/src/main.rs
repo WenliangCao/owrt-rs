@@ -877,6 +877,15 @@ fn run_inner(
     #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
     let initial_interface_records =
         Arc::new(dnsmasq_rs::dns::interface_records::InterfaceRecords::default());
+    #[cfg(target_os = "linux")]
+    let hosts = if dns_enabled {
+        // C reads ordinary hosts at EVENT_INIT, after logging is available.
+        // This also permits bad-token notices to stream without a startup queue.
+        dnsmasq_rs::dns::local::configured_hosts(&runtime.dns, runtime.scalar.local_ttl)
+    } else {
+        Hosts::new()
+    };
+    #[cfg(not(target_os = "linux"))]
     let hosts = if dns_enabled {
         read_hosts(&runtime.dns, runtime.scalar.local_ttl)
     } else {
@@ -3174,14 +3183,21 @@ impl SinglePoll {
         }
     }
 
-    fn reload_data(&mut self, local_ttl: u32) -> io::Result<()> {
+    fn reload_hosts_data(&mut self, local_ttl: u32) -> io::Result<()> {
         let mut parent = self
             .service
             .try_borrow_mut()
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
-            let hosts = read_hosts(&self.config, local_ttl);
+            let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
+                #[cfg(target_os = "linux")]
+                if let Some(logger) = self.logger.as_mut() {
+                    logger.emit(notice.into_log_event());
+                }
+                #[cfg(not(target_os = "linux"))]
+                let _ = notice;
+            });
             // cache.c:1644: cache_reload borrows the shared packet scratch.
             daemon.invalidate_udp_resend();
             daemon.reload_hosts(hosts.clone());
@@ -3192,11 +3208,13 @@ impl SinglePoll {
                 &local.config.records.cnames,
             ));
         }
-        drop(parent);
+        Ok(())
+    }
+
+    fn reload_data(&mut self, local_ttl: u32) -> io::Result<()> {
+        self.reload_hosts_data(local_ttl)?;
         #[cfg(target_os = "linux")]
         self.scan_hosts_dirs(true);
-        #[cfg(target_os = "linux")]
-        emit_hosts_read_notices(&self.service, &mut self.logger);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if !self.hosts_work_pending() {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
@@ -3509,9 +3527,6 @@ impl SinglePoll {
         initial_finished: bool,
     ) {
         self.hosts_requests.extend(step.hosts_changes);
-        if step.initial_cache_reload {
-            self.scan_hosts_dirs(false);
-        }
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for diagnostic in step.diagnostics {
@@ -3554,7 +3569,11 @@ impl SinglePoll {
             }
         }
         if step.initial_cache_reload {
-            emit_hosts_read_notices(&self.service, &mut self.logger);
+            let local_ttl = self.service.borrow().local.local_ttl;
+            if let Err(error) = self.reload_hosts_data(local_ttl) {
+                self.hosts_notice(dnsmasq_rs::logging::Priority::Error, error.to_string());
+            }
+            self.scan_hosts_dirs(false);
         }
         if step.initial_cache_reload && self.log_cleared_cache {
             if let Some(logger) = &mut self.logger {
@@ -6687,36 +6706,41 @@ fn validate_runtime_ready(scalar: &ScalarConfig, dns: &DnsConfig) -> Result<(), 
     Ok(())
 }
 
+#[derive(Debug, Eq, PartialEq)]
+enum HostsReadNotice {
+    Error(Vec<u8>),
+    Complete { path: Vec<u8>, names: usize },
+}
+
 #[cfg(target_os = "linux")]
-fn emit_hosts_read_notices(
-    service: &Rc<RefCell<ParentDns>>,
-    logger: &mut Option<dnsmasq_rs::logging::Logger>,
-) {
-    let Ok(mut parent) = service.try_borrow_mut() else {
-        return;
-    };
-    let hosts = &mut parent.local.hosts;
-    use dnsmasq_rs::hosts::ReadReport;
-    use dnsmasq_rs::logging::{LogEvent, Priority, Service};
-    for report in hosts.take_read_reports() {
-        let Some(logger) = logger.as_mut() else {
-            continue;
-        };
-        let event = match report {
-            ReadReport::Complete { source, names } => {
-                let Some(path) = hosts.source_name(source) else {
-                    continue;
-                };
-                dnsmasq_rs::logging::startup::hosts_read(path, names)
+impl HostsReadNotice {
+    fn into_log_event(self) -> dnsmasq_rs::logging::LogEvent {
+        use dnsmasq_rs::logging::{LogEvent, Priority, Service};
+        match self {
+            Self::Error(message) => LogEvent::new(Service::Dns, Priority::Error, message),
+            Self::Complete { path, names } => {
+                dnsmasq_rs::logging::startup::hosts_read(&path, names)
             }
-            ReadReport::Error(message) => LogEvent::new(Service::Dns, Priority::Error, message),
-        };
-        logger.emit(event);
+        }
     }
 }
 
+#[cfg(any(test, not(target_os = "linux")))]
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    fn report_error(hosts: &mut Hosts, action: &[u8], path: &Path, error: io::Error) {
+    read_hosts_with_notices(config, local_ttl, |_| {})
+}
+
+fn read_hosts_with_notices(
+    config: &DnsConfig,
+    local_ttl: u32,
+    mut report: impl FnMut(HostsReadNotice),
+) -> Hosts {
+    fn report_error(
+        report: &mut impl FnMut(HostsReadNotice),
+        action: &[u8],
+        path: &Path,
+        error: io::Error,
+    ) {
         let mut message = action.to_vec();
         message.extend_from_slice(path.as_os_str().as_encoded_bytes());
         message.extend_from_slice(b": ");
@@ -6728,30 +6752,64 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
                 .unwrap_or(&error)
                 .as_bytes(),
         );
-        hosts.report_read_error(message);
+        report(HostsReadNotice::Error(message));
     }
-    fn read(hosts: &mut Hosts, config: &DnsConfig, path: &Path, source: u32, ttl: u32) {
+    fn read(
+        hosts: &mut Hosts,
+        config: &DnsConfig,
+        path: &Path,
+        source: u32,
+        ttl: u32,
+        report: &mut impl FnMut(HostsReadNotice),
+    ) {
         let file = match std::fs::File::open(path) {
             Ok(file) => file,
             Err(error) => {
-                report_error(hosts, b"failed to load names from ", path, error);
+                report_error(report, b"failed to load names from ", path, error);
                 return;
             }
         };
         hosts.set_source_name(source, path.as_os_str().as_encoded_bytes().to_vec());
-        let _ = hosts.read_from(file, source, ttl, config.expand_hosts, |address| {
-            config
-                .domain_for_address(address)
-                .ok()
-                .flatten()
-                .map(ToOwned::to_owned)
+        let stats = hosts.read_from_with_diagnostics(
+            file,
+            source,
+            ttl,
+            config.expand_hosts,
+            |address| {
+                config
+                    .domain_for_address(address)
+                    .ok()
+                    .flatten()
+                    .map(ToOwned::to_owned)
+            },
+            |line, address| {
+                let mut message = if address {
+                    b"bad address at ".to_vec()
+                } else {
+                    b"bad name at ".to_vec()
+                };
+                message.extend_from_slice(path.as_os_str().as_encoded_bytes());
+                message.extend_from_slice(format!(" line {line}").as_bytes());
+                report(HostsReadNotice::Error(message));
+            },
+        );
+        report(HostsReadNotice::Complete {
+            path: path.as_os_str().as_encoded_bytes().to_vec(),
+            names: stats.accepted,
         });
     }
     let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
     // addn-hosts files remain active in dnsmasq.
     if !config.no_hosts {
-        read(&mut hosts, config, Path::new("/etc/hosts"), 0, local_ttl);
+        read(
+            &mut hosts,
+            config,
+            Path::new("/etc/hosts"),
+            0,
+            local_ttl,
+            &mut report,
+        );
     }
     // expand_filelist appends directory members after explicit files. Its
     // alphasort order matters when multiple names compete for PTR ownership.
@@ -6759,13 +6817,20 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
     for (index, path) in config.addn_hosts.iter().enumerate() {
         let Some(path) = path else { continue };
         if !path.is_dir() {
-            read(&mut hosts, config, path, (index + 1) as u32, local_ttl);
+            read(
+                &mut hosts,
+                config,
+                path,
+                (index + 1) as u32,
+                local_ttl,
+                &mut report,
+            );
             continue;
         }
         let entries = match std::fs::read_dir(path) {
             Ok(entries) => entries,
             Err(error) => {
-                report_error(&mut hosts, b"cannot access directory ", path, error);
+                report_error(&mut report, b"cannot access directory ", path, error);
                 continue;
             }
         };
@@ -6794,6 +6859,7 @@ fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
             path,
             (config.addn_hosts.len() + index + 1) as u32,
             local_ttl,
+            &mut report,
         );
     }
     hosts
@@ -8360,6 +8426,36 @@ mod tests {
         let hosts = read_hosts(&config, 37);
         assert_eq!(hosts.entries()[0].ttl, 37);
         let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn ordinary_hosts_diagnostics_include_the_source_and_complete_after_errors() {
+        let path = std::env::temp_dir().join(format!("dnsmasq-rs-bad hosts-{}", std::process::id()));
+        std::fs::write(&path, b"# comment\n192.0.2.44 \xff good.test \x01\n").unwrap();
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.addn_hosts.push(Some(path.clone()));
+        let mut notices = Vec::new();
+        let hosts = read_hosts_with_notices(&config, 37, |notice| notices.push(notice));
+        let message = format!("bad name at {} line 2", path.display()).into_bytes();
+        assert_eq!(notices, [
+            HostsReadNotice::Error(message.clone()),
+            HostsReadNotice::Error(message),
+            HostsReadNotice::Complete {
+                path: path.as_os_str().as_encoded_bytes().to_vec(),
+                names: 1,
+            },
+        ]);
+        assert!(hosts.name_exists(b"good.test"));
+        #[cfg(target_os = "linux")]
+        for notice in notices {
+            let expected = match notice {
+                HostsReadNotice::Error(_) => dnsmasq_rs::logging::Priority::Error,
+                HostsReadNotice::Complete { .. } => dnsmasq_rs::logging::Priority::Info,
+            };
+            assert_eq!(notice.into_log_event().priority as i32, expected as i32);
+        }
+        std::fs::remove_file(path).unwrap();
     }
 
     #[test]

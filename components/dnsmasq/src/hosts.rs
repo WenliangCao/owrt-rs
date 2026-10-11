@@ -56,19 +56,12 @@ pub struct ReadStats {
     pub bad_names: usize,
 }
 
-#[derive(Clone, Debug)]
-pub enum ReadReport {
-    Complete { source: u32, names: usize },
-    Error(Vec<u8>),
-}
-
 /// One reload generation. Address and name indexes remain live after bulk
 /// load; C discards its bulk reverse index and scans every bucket for PTR.
 #[derive(Clone, Default)]
 pub struct Hosts {
     entries: Vec<Host>,
     sources: HashMap<u32, Vec<u8>>,
-    read_reports: Vec<ReadReport>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<IpAddr, usize>,
     non_terminals: HashSet<Vec<u8>>,
@@ -99,16 +92,6 @@ impl Hosts {
             .get(&source)
             .map(Vec::as_slice)
             .or((source == 0).then_some(b"/etc/hosts".as_slice()))
-    }
-
-    /// Read diagnostics and completion notices, in loader order. The owner
-    /// emits them at the startup/reload stage, then clears this metadata.
-    pub fn take_read_reports(&mut self) -> Vec<ReadReport> {
-        std::mem::take(&mut self.read_reports)
-    }
-
-    pub fn report_read_error(&mut self, message: Vec<u8>) {
-        self.read_reports.push(ReadReport::Error(message));
     }
 
     /// Current static address order without the lookup/round-robin mutation.
@@ -291,11 +274,25 @@ impl Hosts {
     /// token and input buffers stay bounded regardless of line or file length.
     pub fn read_from(
         &mut self,
+        input: impl Read,
+        source: u32,
+        ttl: u32,
+        expand: bool,
+        domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+    ) -> ReadStats {
+        self.read_from_with_diagnostics(input, source, ttl, expand, domain, |_, _| {})
+    }
+
+    /// Diagnostics are emitted as tokens complete, never accumulated with the
+    /// hosts generation. The boolean distinguishes bad addresses from names.
+    pub fn read_from_with_diagnostics(
+        &mut self,
         mut input: impl Read,
         source: u32,
         ttl: u32,
         expand: bool,
         mut domain: impl FnMut(IpAddr) -> Option<Vec<u8>>,
+        mut invalid: impl FnMut(usize, bool),
     ) -> ReadStats {
         let mut parser = HostsParser::default();
         let mut inserted = 0;
@@ -309,7 +306,7 @@ impl Hosts {
                     inserted +=
                         usize::from(self.insert_with_origin(name, address, ttl, source, false));
                 },
-                |_, _| {},
+                &mut invalid,
             );
         };
         while let Ok(length) = input.read(&mut buffer) {
@@ -321,10 +318,6 @@ impl Hosts {
         consume(&mut parser, b"\n");
         let mut stats = parser.stats;
         stats.inserted = inserted;
-        self.read_reports.push(ReadReport::Complete {
-            source,
-            names: stats.accepted,
-        });
         stats
     }
 }
@@ -535,6 +528,43 @@ mod tests {
         assert_eq!(stats.accepted, 3);
         assert!(!hosts.name_exists(b"host.test"));
         assert!(hosts.name_exists(b"mixed.test"));
+    }
+
+    #[test]
+    fn streaming_errors_keep_token_count_and_line_numbers_across_chunks() {
+        struct Chunks<'a>(&'a [u8]);
+        impl Read for Chunks<'_> {
+            fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
+                let length = self.0.len().min(output.len()).min(31);
+                output[..length].copy_from_slice(&self.0[..length]);
+                self.0 = &self.0[length..];
+                Ok(length)
+            }
+        }
+        let mut input =
+            b"\n# skip\n192.0.2.1 good \xff \x01 last\nbad ignored\n192.0.2.2 ".to_vec();
+        input.extend(std::iter::repeat_n(b'a', 100_000));
+        input.extend_from_slice(b" final\n192.0.2.3 \xff");
+        let mut errors = Vec::new();
+        let mut hosts = Hosts::new();
+        let stats = hosts.read_from_with_diagnostics(
+            Chunks(&input),
+            1,
+            0,
+            false,
+            |_| None,
+            |line, address| errors.push((line, address)),
+        );
+        assert_eq!(
+            errors,
+            [(3, false), (3, false), (4, true), (5, false), (6, false)]
+        );
+        assert_eq!(stats.bad_names, 4);
+        assert_eq!(stats.bad_addresses, 1);
+        assert_eq!(stats.accepted, 3);
+        for name in [b"good".as_slice(), b"last", b"final"] {
+            assert!(hosts.name_exists(name));
+        }
     }
 
     #[test]
