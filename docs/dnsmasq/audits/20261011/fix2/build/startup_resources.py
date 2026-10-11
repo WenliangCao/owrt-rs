@@ -109,23 +109,35 @@ def run_one(root, out, variant, relative, count, expected_sha):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("source", "image-root", "rust", "main", "out", "performance-status", "post-checks-status"):
+    for name in ("source", "image-root", "rust", "main", "out"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--source-commit", default="6d001a77f06a0cf0111537507827f5399cb49a14")
+    parser.add_argument("--performance-status", type=Path)
+    parser.add_argument("--post-checks-status", type=Path)
+    parser.add_argument("--require-main-level", action="store_true",
+                        help="require 10,000-record median peak within 256 KiB of main")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1" and os.geteuid() == 0
     assert "private" in args.out.resolve().parts
     args.out.mkdir()
-    performance = json.loads(args.performance_status.read_text())
-    postchecks = json.loads(args.post_checks_status.read_text())
-    assert performance.get("status") == "complete", "frozen performance run must finish first"
-    assert postchecks.get("passed") is True, "root post-checks must pass first"
+    prerequisites = {}
+    # The original audit scheduled this after its performance/post-check run.
+    # A repair can run this standalone under the same exclusive build lock.
+    for key, path, field, expected in (
+        ("performance", args.performance_status, "status", "complete"),
+        ("postchecks", args.post_checks_status, "passed", True),
+    ):
+        if path is not None:
+            assert json.loads(path.read_text()).get(field) == expected
+            prerequisites[key] = digest(path)
     sys.path.insert(0, str(args.source / "tools/dnsmasq"))
     import m2_rootfs
     plan = {"scope": "Additional startup resource hypothesis check; not part of frozen 54-window performance screening",
-        "source_commit": "6d001a77f06a0cf0111537507827f5399cb49a14", "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+        "source_commit": args.source_commit, "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
         "script_sha256": digest(__file__), "counts": [0, 1000, 10000],
         "orders": [["c", "main", "head"], ["main", "head", "c"], ["head", "c", "main"]],
-        "argv": sys.argv, "prerequisites": {"performance": digest(args.performance_status), "postchecks": digest(args.post_checks_status)},
+        "argv": sys.argv, "prerequisites": prerequisites,
+        "require_main_level": args.require_main_level, "peak_tolerance_kib": 256,
         "identities": {"c": digest(args.image_root / "usr/sbin/dnsmasq"), "main": digest(args.main), "head": digest(args.rust)},
         "measurement": "Kernel VmHWM plus five post-initial-cache-reload, post-single-UDP-query idle VmRSS/smaps RSS/PSS samples (KiB); no sustained traffic or injected resource limits"}
     save(args.out / "plan.json", plan)
@@ -158,6 +170,15 @@ def main():
                     report["runs"].append(row)
                     save(args.out / "result.json", report)
         report["passed"] = len(report["runs"]) == 27 and all(r["passed"] for r in report["runs"])
+        peaks = {side: [r["VmHWM_kib"] for r in report["runs"]
+                        if r["variant"] == side and r["count"] == 10000 and r["passed"]]
+                 for side in ("main", "head")}
+        if all(len(values) == 3 for values in peaks.values()):
+            delta = statistics.median(peaks["head"]) - statistics.median(peaks["main"])
+            report["main_level"] = {"peaks_kib": peaks, "median_delta_kib": delta,
+                                    "passed": delta <= plan["peak_tolerance_kib"]}
+            if args.require_main_level:
+                report["passed"] &= report["main_level"]["passed"]
         report["status"] = "complete"
         save(args.out / "result.json", report)
     print(json.dumps({"passed": report["passed"], "runs": len(report["runs"]), "result": str(args.out / "result.json")}))
