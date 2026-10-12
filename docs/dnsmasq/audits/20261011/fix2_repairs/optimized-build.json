@@ -1,0 +1,763 @@
+{
+  "schema": "dnsmasq-fix2-optimized-build-evidence-v1",
+  "date": "2026-10-12",
+  "source_commit": "368b329e20ba97b3396d2875261af101dd38e87d",
+  "source_digest": "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+  "summary": {
+    "source_build_passed": true,
+    "sdk_clean_rebuild_count": 2,
+    "sdk_elf_and_apk_identical": true,
+    "sdk_elf_sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+    "sdk_elf_bytes": 2054939,
+    "sdk_apk_sha256": "57c510efa9a3dbb60ccf338f27a134a1c82ff6fb1330ea0f49af71253c741f80",
+    "sdk_apk_bytes": 1116400,
+    "oracle_release_sha256": "7794acb0ef6d6af2b81f5cc30d51b94f058b0a3497f3cc6b6f36fcda2816660a",
+    "oracle_release_bytes": 2056672,
+    "unit_passed": 840,
+    "unit_failed": 0,
+    "unit_ignored": 23,
+    "original_budget_passed": false
+  },
+  "prior_evidence": {
+    "path": "build.json",
+    "preserved": true,
+    "role": "Earlier source53 builds/unit qualification plus retained initial product and fixture failures; not the optimized source368b identity."
+  },
+  "method": "Two real SDK source builds in a new fixed workspace, with the first build tree archived before verify; no frozen ELF shortcut. Existing global Cargo lock and SDK recipe lock retained. Oracle release/tests and complete ordinary lib/bin run serially; unit argv use private namespaces and fresh tmpfs /tmp.",
+  "evidence": {
+    "identity": {
+      "source_commit": "368b329e20ba97b3396d2875261af101dd38e87d",
+      "source_date_epoch": "1791788173",
+      "source_digest": "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+      "source_archive_sha256": "0a3f1e7031344823cfbe9963ff057abddca9fa528b795939e76814a45b174a23",
+      "source_input_count": 177
+    },
+    "identity_file": {
+      "path": "$ORACLE_RUN/private/source-optimized-identity.json",
+      "sha256": "ff50c9d40d5147e81b3fa286e20aa7f0b467bacfad21c448cf0e65b526ee4084",
+      "bytes": 20948
+    },
+    "archive_file": {
+      "path": "$ORACLE_RUN/private/source-optimized.tar",
+      "sha256": "0a3f1e7031344823cfbe9963ff057abddca9fa528b795939e76814a45b174a23",
+      "bytes": 84725760
+    },
+    "controller": {
+      "source_commit": "368b329e20ba97b3396d2875261af101dd38e87d",
+      "source_digest": "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+      "source_date_epoch": "1791788173",
+      "controller_sha256": "b554fdc64d016628532160f3f34fed2dff002505faf15edcb33b21caa6595120",
+      "argv": [
+        "$ORACLE_RUN/private/build_units_optimized.py",
+        "--source-commit",
+        "368b329e20ba97b3396d2875261af101dd38e87d",
+        "--source-date-epoch",
+        "1791788173",
+        "--source-digest",
+        "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d"
+      ],
+      "passed": true,
+      "commands": [
+        {
+          "name": "sdk-acquire-optimized",
+          "argv": [
+            "python3",
+            "$ORACLE_RUN/source-optimized/docs/dnsmasq/audits/20261011/fix2/build/sdk_source_build.py",
+            "--source",
+            "$ORACLE_RUN/source-optimized",
+            "--sdk",
+            "$SDK_ROOT",
+            "--workspace",
+            "$ORACLE_RUN/private/sdk-workspace-optimized",
+            "--source-commit",
+            "368b329e20ba97b3396d2875261af101dd38e87d",
+            "--source-date-epoch",
+            "1791788173",
+            "--expected-source-digest",
+            "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+            "--out",
+            "$ORACLE_RUN/private/sdk-acquire-optimized",
+            "--acquire"
+          ],
+          "started": 1791788268.0599983,
+          "returncode": 1,
+          "elapsed_seconds": 87.81656622886658,
+          "log_sha256": "02722c8640025f28c69ea42978d40a614447e3b544c183128492056c3bb3e66e",
+          "manifest_sha256": "86ef2e78fd695dc16880bf6b524734267bac587a877a203625b8785e560d8de8",
+          "status": "source-build-candidate-acquired-budget-rejected",
+          "source_build_passed": true,
+          "elf": {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/payload/usr/sbin/dnsmasq",
+            "sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+            "size": 2054939
+          },
+          "artifact": {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/dnsmasq-2.93-r3.apk",
+            "sha256": "57c510efa9a3dbb60ccf338f27a134a1c82ff6fb1330ea0f49af71253c741f80",
+            "size": 1116400
+          },
+          "budget_error": "APK size 1116400 exceeds target 700000 bytes; ELF size 2054939 exceeds target 1000000 bytes"
+        },
+        {
+          "name": "sdk-verify-optimized",
+          "argv": [
+            "python3",
+            "$ORACLE_RUN/source-optimized/docs/dnsmasq/audits/20261011/fix2/build/sdk_source_build.py",
+            "--source",
+            "$ORACLE_RUN/source-optimized",
+            "--sdk",
+            "$SDK_ROOT",
+            "--workspace",
+            "$ORACLE_RUN/private/sdk-workspace-optimized",
+            "--source-commit",
+            "368b329e20ba97b3396d2875261af101dd38e87d",
+            "--source-date-epoch",
+            "1791788173",
+            "--expected-source-digest",
+            "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+            "--out",
+            "$ORACLE_RUN/private/sdk-verify-optimized",
+            "--expected-elf-sha256",
+            "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105"
+          ],
+          "started": 1791788355.8822992,
+          "returncode": 1,
+          "elapsed_seconds": 88.35827875137329,
+          "log_sha256": "48b1dc3e6b6e84525f62f0a6cd936780fe979f63f1f69556ef508baf11d7ea15",
+          "manifest_sha256": "921238f1195f12c357a8ebf9f0586dc7e7224884d8d79e46506767221a6ede2a",
+          "status": "source-build-identity-verified-budget-rejected",
+          "source_build_passed": true,
+          "elf": {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/payload/usr/sbin/dnsmasq",
+            "sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+            "size": 2054939
+          },
+          "artifact": {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/dnsmasq-2.93-r3.apk",
+            "sha256": "57c510efa9a3dbb60ccf338f27a134a1c82ff6fb1330ea0f49af71253c741f80",
+            "size": 1116400
+          },
+          "budget_error": "APK size 1116400 exceeds target 700000 bytes; ELF size 2054939 exceeds target 1000000 bytes"
+        },
+        {
+          "name": "release-build",
+          "argv": [
+            "sh",
+            "$ORACLE_RUN/source-optimized/tools/dnsmasq/oracle_build.sh",
+            "$ORACLE_RUN/source-optimized",
+            "$ORACLE_RUN/private/release-optimized",
+            "release"
+          ],
+          "started": 1791788444.2460303,
+          "returncode": 0,
+          "elapsed_seconds": 57.40091300010681,
+          "log_sha256": "2c17e05097e16ee45ecdcc32df26a4c71ac6820ba412ad775f3f6287e4239a2f",
+          "build_receipt": {
+            "source": "$ORACLE_RUN/source-optimized",
+            "kind": "release",
+            "cargo_target_dir": "$ORACLE_CARGO_TARGET",
+            "opt_level": "3",
+            "features": "",
+            "rustflags": "--remap-path-prefix=$ORACLE_RUN/source-optimized=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+            "artifacts": [
+              {
+                "path": "dnsmasq-rs",
+                "bytes": 2056672,
+                "sha256": "7794acb0ef6d6af2b81f5cc30d51b94f058b0a3497f3cc6b6f36fcda2816660a"
+              }
+            ]
+          },
+          "receipt_sha256": "d488e8c8b90de7fa94680f78fc332e8ce7415d0436149da5e517b6ebed6065c5"
+        },
+        {
+          "name": "tests-build",
+          "argv": [
+            "sh",
+            "$ORACLE_RUN/source-optimized/tools/dnsmasq/oracle_build.sh",
+            "$ORACLE_RUN/source-optimized",
+            "$ORACLE_RUN/private/tests-optimized",
+            "tests"
+          ],
+          "started": 1791788501.6497984,
+          "returncode": 0,
+          "elapsed_seconds": 33.4057879447937,
+          "log_sha256": "c0437fbff67cddd33f6563e155556eee7dfb4b3f196d0fc8983a204c432ee260",
+          "build_receipt": {
+            "source": "$ORACLE_RUN/source-optimized",
+            "kind": "tests",
+            "cargo_target_dir": "$ORACLE_CARGO_TARGET",
+            "opt_level": "3",
+            "features": "",
+            "rustflags": "--remap-path-prefix=$ORACLE_RUN/source-optimized=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+            "artifacts": [
+              {
+                "path": "bin-dnsmasq-rs",
+                "bytes": 52202648,
+                "sha256": "aaa1752cda46d74fb93fd354f3bddf016cdcf6487c89e90184ea244d66e71054"
+              },
+              {
+                "path": "lib-dnsmasq_rs",
+                "bytes": 69740648,
+                "sha256": "d6583788c0b7d8429b62c81cd706d9659fe7ef0eef66f0989c9a4ddb02f358e9"
+              }
+            ]
+          },
+          "receipt_sha256": "6b610dec4c2770970ebc75513fefd400a06467da4181c111dc4262d94d18370b"
+        },
+        {
+          "name": "lib-dnsmasq_rs",
+          "argv": [
+            "sudo",
+            "-n",
+            "sh",
+            "$ORACLE_RUN/source-optimized/tools/dnsmasq/run_isolated.sh",
+            "sh",
+            "-c",
+            "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+            "unit",
+            "$ORACLE_RUN/private/tests-optimized/lib-dnsmasq_rs",
+            "--test-threads=1"
+          ],
+          "started": 1791788535.1772199,
+          "returncode": 0,
+          "elapsed_seconds": 3.9566986560821533,
+          "log_sha256": "5c74bea821e4a357ec07c35913b5d86f5d3ea5e045c5c52d0a5ab768fb56dfed",
+          "elf_sha256": "d6583788c0b7d8429b62c81cd706d9659fe7ef0eef66f0989c9a4ddb02f358e9",
+          "counts": {
+            "passed": 764,
+            "failed": 0,
+            "ignored": 20,
+            "measured": 0,
+            "filtered_out": 0
+          }
+        },
+        {
+          "name": "bin-dnsmasq-rs",
+          "argv": [
+            "sudo",
+            "-n",
+            "sh",
+            "$ORACLE_RUN/source-optimized/tools/dnsmasq/run_isolated.sh",
+            "sh",
+            "-c",
+            "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+            "unit",
+            "$ORACLE_RUN/private/tests-optimized/bin-dnsmasq-rs",
+            "--test-threads=1"
+          ],
+          "started": 1791788539.2065444,
+          "returncode": 0,
+          "elapsed_seconds": 4.074987173080444,
+          "log_sha256": "6abeb81be9d6ab6dd3c7a3f32602a749d39ecdce8d7f5e861ed6bfc3edada600",
+          "elf_sha256": "aaa1752cda46d74fb93fd354f3bddf016cdcf6487c89e90184ea244d66e71054",
+          "counts": {
+            "passed": 76,
+            "failed": 0,
+            "ignored": 3,
+            "measured": 0,
+            "filtered_out": 0
+          }
+        }
+      ],
+      "sdk_driver_sha256": "b1c8bcc1d076240f1d8f9ab630f5db9853be3112dca7f6c87ddbf7c673563abd",
+      "sdk_elf_sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+      "sdk_apk_sha256": "57c510efa9a3dbb60ccf338f27a134a1c82ff6fb1330ea0f49af71253c741f80",
+      "original_budget_passed": false
+    },
+    "controller_result_file": {
+      "path": "$ORACLE_RUN/private/build-units-optimized/result.json",
+      "sha256": "78c8a1676893f6c1c3c3ab2840638292d4ae76025fe635d8fa5d9047d1375328",
+      "bytes": 30190
+    },
+    "controller_file": {
+      "path": "$ORACLE_RUN/private/build_units_optimized.py",
+      "sha256": "b554fdc64d016628532160f3f34fed2dff002505faf15edcb33b21caa6595120",
+      "bytes": 7102
+    },
+    "controller_log": {
+      "path": "$ORACLE_RUN/private/build-units-optimized.log",
+      "sha256": "d81709d566553718f6ec5d8540847dc62a7c186f9637e739c24117bb693c8b11",
+      "bytes": 375
+    },
+    "launch": {
+      "argv": [
+        "python3",
+        "$ORACLE_RUN/private/build_units_optimized.py",
+        "--source-commit",
+        "368b329e20ba97b3396d2875261af101dd38e87d",
+        "--source-date-epoch",
+        "1791788173",
+        "--source-digest",
+        "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d"
+      ],
+      "pid": 1756925,
+      "controller_sha256": "b554fdc64d016628532160f3f34fed2dff002505faf15edcb33b21caa6595120",
+      "source_identity_file_sha256": "ff50c9d40d5147e81b3fa286e20aa7f0b467bacfad21c448cf0e65b526ee4084"
+    },
+    "sdk": [
+      {
+        "status": "source-build-candidate-acquired-budget-rejected",
+        "source_commit": "368b329e20ba97b3396d2875261af101dd38e87d",
+        "source_date_epoch": "1791788173",
+        "source_digest": "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+        "source_build_passed": true,
+        "frozen_elf": false,
+        "acquire": true,
+        "expected_elf_sha256": null,
+        "fixed_workspace": "$ORACLE_RUN/private/sdk-workspace-optimized",
+        "fixed_source_path": "$ORACLE_RUN/private/sdk-workspace-optimized/source",
+        "fixed_build_path": "$ORACLE_RUN/private/sdk-workspace-optimized/package-build",
+        "driver_sha256": "b1c8bcc1d076240f1d8f9ab630f5db9853be3112dca7f6c87ddbf7c673563abd",
+        "argv": [
+          "$ORACLE_RUN/source-optimized/docs/dnsmasq/audits/20261011/fix2/build/sdk_source_build.py",
+          "--source",
+          "$ORACLE_RUN/source-optimized",
+          "--sdk",
+          "$SDK_ROOT",
+          "--workspace",
+          "$ORACLE_RUN/private/sdk-workspace-optimized",
+          "--source-commit",
+          "368b329e20ba97b3396d2875261af101dd38e87d",
+          "--source-date-epoch",
+          "1791788173",
+          "--expected-source-digest",
+          "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+          "--out",
+          "$ORACLE_RUN/private/sdk-acquire-optimized",
+          "--acquire"
+        ],
+        "commands": [
+          [
+            "make",
+            "package/owrt-dnsmasq/prepare",
+            "V=s",
+            "-j1",
+            "V1_PACKAGE_RELEASE=3",
+            "OWRT_COMPONENTS_SOURCE=$ORACLE_RUN/private/sdk-workspace-optimized/source/components",
+            "OWRT_DNSMASQ_BUILD_DIR=$ORACLE_RUN/private/sdk-workspace-optimized/package-build",
+            "OWRT_DNSMASQ_OUTPUT_DIR=$ORACLE_RUN/private/sdk-acquire-optimized/sdk-output",
+            "V1_CARGO=$CARGO_HOME/bin/cargo",
+            "V1_CARGO_HOME=$CARGO_HOME",
+            "V1_RUSTUP_HOME=$RUSTUP_HOME"
+          ],
+          [
+            "make",
+            "package/owrt-dnsmasq/compile",
+            "V=s",
+            "-j1",
+            "V1_PACKAGE_RELEASE=3",
+            "OWRT_COMPONENTS_SOURCE=$ORACLE_RUN/private/sdk-workspace-optimized/source/components",
+            "OWRT_DNSMASQ_BUILD_DIR=$ORACLE_RUN/private/sdk-workspace-optimized/package-build",
+            "OWRT_DNSMASQ_OUTPUT_DIR=$ORACLE_RUN/private/sdk-acquire-optimized/sdk-output",
+            "V1_CARGO=$CARGO_HOME/bin/cargo",
+            "V1_CARGO_HOME=$CARGO_HOME",
+            "V1_RUSTUP_HOME=$RUSTUP_HOME"
+          ]
+        ],
+        "stages": {
+          "prepare": {
+            "exit_code": 0
+          },
+          "compile": {
+            "exit_code": 0
+          }
+        },
+        "sdk_recipe_path": "$SDK_ROOT/package/owrt-dnsmasq",
+        "sdk_recipe_restored": true,
+        "sdk_inputs_unchanged": true,
+        "source_inputs_unchanged": true,
+        "elf": {
+          "path": "$ORACLE_RUN/private/sdk-acquire-optimized/payload/usr/sbin/dnsmasq",
+          "sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+          "size": 2054939
+        },
+        "artifact": {
+          "path": "$ORACLE_RUN/private/sdk-acquire-optimized/dnsmasq-2.93-r3.apk",
+          "sha256": "57c510efa9a3dbb60ccf338f27a134a1c82ff6fb1330ea0f49af71253c741f80",
+          "size": 1116400
+        },
+        "pre_sdk_strip_elf": {
+          "path": "$ORACLE_RUN/private/sdk-acquire-optimized/dnsmasq-pre-strip",
+          "sha256": "8b3db52be905c4afcab2925ab7c0563265c406f9e2a462d586c6924a72845218",
+          "size": 2056672
+        },
+        "sdk_strip_payload_identity_verified": true,
+        "postprocess_command": [
+          "$SDK_ROOT/staging_dir/host/bin/sstrip",
+          "-z",
+          "$ORACLE_RUN/private/sdk-acquire-optimized/dnsmasq-sdk-sstrip"
+        ],
+        "budget": {
+          "schema": 1,
+          "elf_max_bytes": 1000000,
+          "apk_max_bytes": 700000,
+          "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+        },
+        "budget_checks": {
+          "apk": false,
+          "elf": false
+        },
+        "budget_error": "APK size 1116400 exceeds target 700000 bytes; ELF size 2054939 exceeds target 1000000 bytes",
+        "failure_boundary": "size-target",
+        "elf_layout": {
+          "type": "ET_DYN",
+          "machine": "AArch64",
+          "linkage": "static-pie",
+          "interpreter": null,
+          "needed": [],
+          "pie": true,
+          "bind_now": true,
+          "gnu_relro": true,
+          "nx_stack": true,
+          "writable_executable_load": false,
+          "runtime_protections_verified": false
+        },
+        "apk_metadata": {
+          "name": "dnsmasq",
+          "version": "2.93-r3",
+          "arch": "aarch64_cortex-a53",
+          "provides": [
+            "dnsmasq-any"
+          ],
+          "replacement": "same package name dnsmasq, newer release 2.93-r3",
+          "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+          "depends": [
+            "libc",
+            "libubus20251202"
+          ]
+        },
+        "payload_files": {
+          "etc/config/dhcp": "a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb",
+          "etc/dnsmasq.conf": "1e6ab19c1ae5e70d609ac7b6246541d52042e4dee1892f825266507ef52d7dfd",
+          "etc/hotplug.d/ntp/25-dnsmasqsec": "ad2b44ee9161d2f2e16c0500cc66e5722d460be524f03c3454781532a779007b",
+          "etc/init.d/dnsmasq": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+          "etc/uci-defaults/50-dnsmasq-migrate-ipset.sh": "6affb223dd5a143f9d7f2a5b1284e16a851731d706b71e5dd016f2c010a702f2",
+          "etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh": "8e373e9c7f4e2684a694b1aa0443dc81e47eebb124d9040cb7c2fbd22fad71d4",
+          "lib/apk/packages/dnsmasq.conffiles": "7ee4017614f382579403cd6a522def4fba05543ff378e3e3aa97fb4ca0030dbf",
+          "lib/apk/packages/dnsmasq.conffiles_static": "8de87ce8d2140c19f93522e32e16d6f49d19e12521015adb1a05b148b380987a",
+          "lib/apk/packages/dnsmasq.list": "22d08c6dd16343f1e1df2d2cca25a4f4e5470280d460797008cf85766c87fb37",
+          "lib/apk/packages/dnsmasq.rusers": "c9b36c033c147a7492b0a4d505f7c4f855d4a317a976b167b3a64c8752dd4c4d",
+          "lib/upgrade/keep.d/dnsmasq": "30f2dd76858f25ff3b816d1cc675debed688637373bb1e3091a7947e281e88eb",
+          "usr/lib/dnsmasq/dhcp-script.sh": "62c292e28a1d595b5eff38fcc26170ac9c7036b9631362accaa5983a4e37cf26",
+          "usr/sbin/dnsmasq": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+          "usr/share/acl.d/dnsmasq_acl.json": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+          "usr/share/dnsmasq/dhcpbogushostname.conf": "a9fec9132087a29e864e5cd22ec849e8d7f65056ecbaa2f5e4a021626ea46f85",
+          "usr/share/dnsmasq/rfc6761.conf": "0a12cf2bca81cb16a86829502cf94bdd3cba110e73ce6a49990e775a480d768a"
+        },
+        "manifest": {
+          "path": "$ORACLE_RUN/private/sdk-acquire-optimized/manifest.json",
+          "sha256": "86ef2e78fd695dc16880bf6b524734267bac587a877a203625b8785e560d8de8",
+          "bytes": 62763
+        },
+        "sdk": {
+          "path": "$SDK_ROOT",
+          "archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+          "input_count": 106,
+          "inputs_digest": "1c5a8201578bdc768de01eaa5d75cda6e43952ee618b7b990cdf1278e9835c67"
+        },
+        "logs": [
+          {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/prepare.log",
+            "sha256": "88c3bd5c77541dfce47de15da67e58bd8cc743a9c21441246646d24cc36dd267",
+            "bytes": 14226
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/compile.log",
+            "sha256": "19671bbdbc501c9ca7e84edc023e9ffdd1dfcd9c9c3caac589145803724840c4",
+            "bytes": 68701
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/extract.log",
+            "sha256": "a4dfc3c9ff22f21cf2ac3ee8e3f6b9aefb6a60a5870831f08692084721df2551",
+            "bytes": 106
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/elf-readelf.log",
+            "sha256": "9767584b7383ebe279a45e7b935b94d1d57fe7847d0a974cfca83bee6ac7a5e2",
+            "bytes": 2788
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/apk-metadata.log",
+            "sha256": "106df8b06a6ba44366f93976a87b0afd58d12749acf60b7d88608cb5ff986097",
+            "bytes": 7665
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-acquire-optimized/sstrip-check.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        ]
+      },
+      {
+        "status": "source-build-identity-verified-budget-rejected",
+        "source_commit": "368b329e20ba97b3396d2875261af101dd38e87d",
+        "source_date_epoch": "1791788173",
+        "source_digest": "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+        "source_build_passed": true,
+        "frozen_elf": false,
+        "acquire": false,
+        "expected_elf_sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+        "artifact_identity_verified": true,
+        "apk_byte_identical": true,
+        "fixed_workspace": "$ORACLE_RUN/private/sdk-workspace-optimized",
+        "fixed_source_path": "$ORACLE_RUN/private/sdk-workspace-optimized/source",
+        "fixed_build_path": "$ORACLE_RUN/private/sdk-workspace-optimized/package-build",
+        "driver_sha256": "b1c8bcc1d076240f1d8f9ab630f5db9853be3112dca7f6c87ddbf7c673563abd",
+        "argv": [
+          "$ORACLE_RUN/source-optimized/docs/dnsmasq/audits/20261011/fix2/build/sdk_source_build.py",
+          "--source",
+          "$ORACLE_RUN/source-optimized",
+          "--sdk",
+          "$SDK_ROOT",
+          "--workspace",
+          "$ORACLE_RUN/private/sdk-workspace-optimized",
+          "--source-commit",
+          "368b329e20ba97b3396d2875261af101dd38e87d",
+          "--source-date-epoch",
+          "1791788173",
+          "--expected-source-digest",
+          "5ae9ed6d12fa8022ce26f61bf8ffe1b015a8f5ed8d14ad9146cfda6988291e9d",
+          "--out",
+          "$ORACLE_RUN/private/sdk-verify-optimized",
+          "--expected-elf-sha256",
+          "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105"
+        ],
+        "commands": [
+          [
+            "make",
+            "package/owrt-dnsmasq/prepare",
+            "V=s",
+            "-j1",
+            "V1_PACKAGE_RELEASE=3",
+            "OWRT_COMPONENTS_SOURCE=$ORACLE_RUN/private/sdk-workspace-optimized/source/components",
+            "OWRT_DNSMASQ_BUILD_DIR=$ORACLE_RUN/private/sdk-workspace-optimized/package-build",
+            "OWRT_DNSMASQ_OUTPUT_DIR=$ORACLE_RUN/private/sdk-verify-optimized/sdk-output",
+            "V1_CARGO=$CARGO_HOME/bin/cargo",
+            "V1_CARGO_HOME=$CARGO_HOME",
+            "V1_RUSTUP_HOME=$RUSTUP_HOME"
+          ],
+          [
+            "make",
+            "package/owrt-dnsmasq/compile",
+            "V=s",
+            "-j1",
+            "V1_PACKAGE_RELEASE=3",
+            "OWRT_COMPONENTS_SOURCE=$ORACLE_RUN/private/sdk-workspace-optimized/source/components",
+            "OWRT_DNSMASQ_BUILD_DIR=$ORACLE_RUN/private/sdk-workspace-optimized/package-build",
+            "OWRT_DNSMASQ_OUTPUT_DIR=$ORACLE_RUN/private/sdk-verify-optimized/sdk-output",
+            "V1_CARGO=$CARGO_HOME/bin/cargo",
+            "V1_CARGO_HOME=$CARGO_HOME",
+            "V1_RUSTUP_HOME=$RUSTUP_HOME"
+          ]
+        ],
+        "stages": {
+          "prepare": {
+            "exit_code": 0
+          },
+          "compile": {
+            "exit_code": 0
+          }
+        },
+        "sdk_recipe_path": "$SDK_ROOT/package/owrt-dnsmasq",
+        "sdk_recipe_restored": true,
+        "sdk_inputs_unchanged": true,
+        "source_inputs_unchanged": true,
+        "elf": {
+          "path": "$ORACLE_RUN/private/sdk-verify-optimized/payload/usr/sbin/dnsmasq",
+          "sha256": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+          "size": 2054939
+        },
+        "artifact": {
+          "path": "$ORACLE_RUN/private/sdk-verify-optimized/dnsmasq-2.93-r3.apk",
+          "sha256": "57c510efa9a3dbb60ccf338f27a134a1c82ff6fb1330ea0f49af71253c741f80",
+          "size": 1116400
+        },
+        "pre_sdk_strip_elf": {
+          "path": "$ORACLE_RUN/private/sdk-verify-optimized/dnsmasq-pre-strip",
+          "sha256": "8b3db52be905c4afcab2925ab7c0563265c406f9e2a462d586c6924a72845218",
+          "size": 2056672
+        },
+        "sdk_strip_payload_identity_verified": true,
+        "postprocess_command": [
+          "$SDK_ROOT/staging_dir/host/bin/sstrip",
+          "-z",
+          "$ORACLE_RUN/private/sdk-verify-optimized/dnsmasq-sdk-sstrip"
+        ],
+        "budget": {
+          "schema": 1,
+          "elf_max_bytes": 1000000,
+          "apk_max_bytes": 700000,
+          "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+        },
+        "budget_checks": {
+          "apk": false,
+          "elf": false
+        },
+        "budget_error": "APK size 1116400 exceeds target 700000 bytes; ELF size 2054939 exceeds target 1000000 bytes",
+        "failure_boundary": "size-target",
+        "elf_layout": {
+          "type": "ET_DYN",
+          "machine": "AArch64",
+          "linkage": "static-pie",
+          "interpreter": null,
+          "needed": [],
+          "pie": true,
+          "bind_now": true,
+          "gnu_relro": true,
+          "nx_stack": true,
+          "writable_executable_load": false,
+          "runtime_protections_verified": false
+        },
+        "apk_metadata": {
+          "name": "dnsmasq",
+          "version": "2.93-r3",
+          "arch": "aarch64_cortex-a53",
+          "provides": [
+            "dnsmasq-any"
+          ],
+          "replacement": "same package name dnsmasq, newer release 2.93-r3",
+          "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+          "depends": [
+            "libc",
+            "libubus20251202"
+          ]
+        },
+        "payload_files": {
+          "etc/config/dhcp": "a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb",
+          "etc/dnsmasq.conf": "1e6ab19c1ae5e70d609ac7b6246541d52042e4dee1892f825266507ef52d7dfd",
+          "etc/hotplug.d/ntp/25-dnsmasqsec": "ad2b44ee9161d2f2e16c0500cc66e5722d460be524f03c3454781532a779007b",
+          "etc/init.d/dnsmasq": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+          "etc/uci-defaults/50-dnsmasq-migrate-ipset.sh": "6affb223dd5a143f9d7f2a5b1284e16a851731d706b71e5dd016f2c010a702f2",
+          "etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh": "8e373e9c7f4e2684a694b1aa0443dc81e47eebb124d9040cb7c2fbd22fad71d4",
+          "lib/apk/packages/dnsmasq.conffiles": "7ee4017614f382579403cd6a522def4fba05543ff378e3e3aa97fb4ca0030dbf",
+          "lib/apk/packages/dnsmasq.conffiles_static": "8de87ce8d2140c19f93522e32e16d6f49d19e12521015adb1a05b148b380987a",
+          "lib/apk/packages/dnsmasq.list": "22d08c6dd16343f1e1df2d2cca25a4f4e5470280d460797008cf85766c87fb37",
+          "lib/apk/packages/dnsmasq.rusers": "c9b36c033c147a7492b0a4d505f7c4f855d4a317a976b167b3a64c8752dd4c4d",
+          "lib/upgrade/keep.d/dnsmasq": "30f2dd76858f25ff3b816d1cc675debed688637373bb1e3091a7947e281e88eb",
+          "usr/lib/dnsmasq/dhcp-script.sh": "62c292e28a1d595b5eff38fcc26170ac9c7036b9631362accaa5983a4e37cf26",
+          "usr/sbin/dnsmasq": "3667e0e9659ef05249859727ff254ee2e4a4c2eafdbd3d6cdb1b665d08034105",
+          "usr/share/acl.d/dnsmasq_acl.json": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+          "usr/share/dnsmasq/dhcpbogushostname.conf": "a9fec9132087a29e864e5cd22ec849e8d7f65056ecbaa2f5e4a021626ea46f85",
+          "usr/share/dnsmasq/rfc6761.conf": "0a12cf2bca81cb16a86829502cf94bdd3cba110e73ce6a49990e775a480d768a"
+        },
+        "prior_build_tree_archived": "$ORACLE_RUN/private/sdk-verify-optimized/previous-build-tree",
+        "manifest": {
+          "path": "$ORACLE_RUN/private/sdk-verify-optimized/manifest.json",
+          "sha256": "921238f1195f12c357a8ebf9f0586dc7e7224884d8d79e46506767221a6ede2a",
+          "bytes": 63095
+        },
+        "sdk": {
+          "path": "$SDK_ROOT",
+          "archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+          "input_count": 106,
+          "inputs_digest": "1c5a8201578bdc768de01eaa5d75cda6e43952ee618b7b990cdf1278e9835c67"
+        },
+        "logs": [
+          {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/prepare.log",
+            "sha256": "3f71e4d0b97fe5891c54b2b8c147887c197af9f3ba5f087126feca34fbf5304d",
+            "bytes": 14225
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/compile.log",
+            "sha256": "70e4a0a53fb0d35cb17e32f9e0d9b49aad9db479dd2a8c7630eb499040698d70",
+            "bytes": 68698
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/extract.log",
+            "sha256": "5d93e4cd7723a155ec1c2e4b3e5bea39a35bcd47a05c03af46bc3384f88d7721",
+            "bytes": 105
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/elf-readelf.log",
+            "sha256": "9767584b7383ebe279a45e7b935b94d1d57fe7847d0a974cfca83bee6ac7a5e2",
+            "bytes": 2788
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/apk-metadata.log",
+            "sha256": "106df8b06a6ba44366f93976a87b0afd58d12749acf60b7d88608cb5ff986097",
+            "bytes": 7665
+          },
+          {
+            "path": "$ORACLE_RUN/private/sdk-verify-optimized/sstrip-check.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        ]
+      }
+    ],
+    "release": {
+      "source": "$ORACLE_RUN/source-optimized",
+      "kind": "release",
+      "cargo_target_dir": "$ORACLE_CARGO_TARGET",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=$ORACLE_RUN/source-optimized=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+      "artifacts": [
+        {
+          "path": "dnsmasq-rs",
+          "bytes": 2056672,
+          "sha256": "7794acb0ef6d6af2b81f5cc30d51b94f058b0a3497f3cc6b6f36fcda2816660a"
+        }
+      ]
+    },
+    "release_receipt_file": {
+      "path": "$ORACLE_RUN/private/release-optimized/build.json",
+      "sha256": "d488e8c8b90de7fa94680f78fc332e8ce7415d0436149da5e517b6ebed6065c5",
+      "bytes": 652
+    },
+    "unit_logs": [
+      {
+        "path": "$ORACLE_RUN/private/build-units-optimized/lib-dnsmasq_rs.log",
+        "sha256": "5c74bea821e4a357ec07c35913b5d86f5d3ea5e045c5c52d0a5ab768fb56dfed",
+        "bytes": 73092
+      },
+      {
+        "path": "$ORACLE_RUN/private/build-units-optimized/bin-dnsmasq-rs.log",
+        "sha256": "6abeb81be9d6ab6dd3c7a3f32602a749d39ecdce8d7f5e861ed6bfc3edada600",
+        "bytes": 7206
+      }
+    ],
+    "actual_test_profiles": [
+      {
+        "name": "dnsmasq-rs",
+        "kind": [
+          "bin"
+        ],
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": true
+        },
+        "features": [
+          "default"
+        ]
+      },
+      {
+        "name": "dnsmasq_rs",
+        "kind": [
+          "lib"
+        ],
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 2,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": true
+        },
+        "features": [
+          "default"
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Original ELF/APK budget is unchanged and rejected in both SDK manifests; only source build and identity gates pass.",
+    "Test harnesses use actual opt_level=0, debug assertions and overflow checks; wrapper opt_level=3 is the release default.",
+    "Twenty-three ignored tests were not run or counted as passes.",
+    "SDK payload and Oracle release are separate ELF identities.",
+    "No prior source or evidence output was overwritten. No daemon load was launched by this build/unit controller."
+  ]
+}
