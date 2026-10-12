@@ -303,10 +303,6 @@ impl LocalDnsService {
         now: i64,
         cache: Option<&mut Cache>,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        let opt = find_pseudoheader(query, true)
-            .ok()
-            .and_then(|scan| scan.opt);
-        let do_bit = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         let mut answerer = LocalAnswerer {
             config: &self.config,
             hosts: &mut self.hosts,
@@ -327,6 +323,13 @@ impl LocalDnsService {
         };
         self.query_events.extend(answer.query_events);
         let mut packet = answer.packet;
+        // TCP's local answer limit does not depend on OPT. Only inspect the
+        // response decoration after a local hit; a miss has its own cache or
+        // forwarding EDNS handling and needs no extra scan here.
+        let opt = find_pseudoheader(query, true)
+            .ok()
+            .and_then(|scan| scan.opt);
+        let do_bit = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
         if opt.is_some() {
             append_empty_opt(
                 &mut packet,

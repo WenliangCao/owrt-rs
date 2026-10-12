@@ -460,8 +460,14 @@ impl Cache {
     /// A live CNAME changes the lookup name before configured RR processing.
     /// Leave promotion and expiry removal to the subsequent cache answer.
     pub fn has_cname(&self, name: &Name, now: i64) -> bool {
-        let key = name.canonical_wire();
-        self.names_for(&key).is_some_and(|slots| {
+        let canonical;
+        let key = if name.as_wire().iter().any(u8::is_ascii_uppercase) {
+            canonical = name.canonical_wire();
+            canonical.as_slice()
+        } else {
+            name.as_wire()
+        };
+        self.names_for(key).is_some_and(|slots| {
             slots.iter().any(|&slot| {
                 self.entry(slot)
                     .is_some_and(|entry| entry.record.kind == Kind::Cname)
