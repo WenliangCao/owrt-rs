@@ -1,0 +1,5912 @@
+{
+  "schema": 1,
+  "scope": "Final O1 parsed-query-reuse candidate versus main, six paired TCP rounds and two descriptive UDP guard pairs. New code identity; not repeated selection of an unchanged artifact.",
+  "source_commits": {
+    "main": "be531cee49e366bb5044443d473944dbea45b87e",
+    "final": "a4d7c2150fef01307ffa9d5050f08e416151c316"
+  },
+  "groups": {
+    "main": {
+      "elf": "$AUDIT_RUN/private/main-release/dnsmasq-rs",
+      "sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e",
+      "bytes": 1970216,
+      "build_receipt": "$AUDIT_RUN/private/main-release/build.json",
+      "build": {
+        "source": "$AUDIT_RUN/main-source",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=$AUDIT_RUN/main-source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 1970216,
+            "sha256": "0846cb40b702bc863386441b8c52daf7c0675f023fa7cbb33e471210f3d5918e"
+          }
+        ]
+      }
+    },
+    "post": {
+      "elf": "$RUN/private/release-parsed/dnsmasq-rs",
+      "sha256": "1799be0828dd4f7f0a71bea9db13e713721a572adf1c50f043dada2ce7f3bffc",
+      "bytes": 2056672,
+      "build_receipt": "$RUN/private/release-parsed/build.json",
+      "build": {
+        "source": "$RUN/source-parsed",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=$RUN/source-parsed=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2056672,
+            "sha256": "1799be0828dd4f7f0a71bea9db13e713721a572adf1c50f043dada2ce7f3bffc"
+          }
+        ]
+      }
+    }
+  },
+  "paths": {
+    "$RUN": "/home/ubuntu/dnsmasq-fix2-repair-20261011",
+    "$AUDIT_RUN": "/home/ubuntu/dnsmasq-audit-fix2-20261011",
+    "$IMAGE": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files"
+  },
+  "plan": "performance-final-plan.json",
+  "driver": "performance-final-driver.py",
+  "base_analysis_driver": "performance-before-driver.py",
+  "raw_index": "performance-final-raw-index.json",
+  "original_driver_sha256": "a433779e0e9a5353bd37bd9ace98def8ca24594b4dcd879ab9f61e0bc860c63d",
+  "original_plan_sha256": "77251e1c682a7a0d33f2e0e4ad77e9e344a7b04f01df289376cab9863070284f",
+  "run": {
+    "status": "complete",
+    "started_ns": 1791823944429558059,
+    "windows": [
+      {
+        "id": "tcp-hit-r1-main",
+        "started_ns": 1791823944573871567,
+        "returncode": 0,
+        "ended_ns": 1791824111125643030
+      },
+      {
+        "id": "tcp-hit-r1-post",
+        "started_ns": 1791824111269369694,
+        "returncode": 0,
+        "ended_ns": 1791824277797327751
+      },
+      {
+        "id": "tcp-hit-r2-post",
+        "started_ns": 1791824277939517163,
+        "returncode": 0,
+        "ended_ns": 1791824444499943233
+      },
+      {
+        "id": "tcp-hit-r2-main",
+        "started_ns": 1791824444641623842,
+        "returncode": 0,
+        "ended_ns": 1791824611181092927
+      },
+      {
+        "id": "tcp-hit-r3-main",
+        "started_ns": 1791824611322502333,
+        "returncode": 0,
+        "ended_ns": 1791824777920803519
+      },
+      {
+        "id": "tcp-hit-r3-post",
+        "started_ns": 1791824778062438667,
+        "returncode": 0,
+        "ended_ns": 1791824944591883131
+      },
+      {
+        "id": "udp-miss-r1-main",
+        "started_ns": 1791824944733983238,
+        "returncode": 0,
+        "ended_ns": 1791825110477440619
+      },
+      {
+        "id": "udp-miss-r1-post",
+        "started_ns": 1791825110619726604,
+        "returncode": 0,
+        "ended_ns": 1791825276351311825
+      },
+      {
+        "id": "tcp-hit-r4-post",
+        "started_ns": 1791825276493217205,
+        "returncode": 0,
+        "ended_ns": 1791825443069688526
+      },
+      {
+        "id": "tcp-hit-r4-main",
+        "started_ns": 1791825443211492303,
+        "returncode": 0,
+        "ended_ns": 1791825609781282085
+      },
+      {
+        "id": "tcp-hit-r5-main",
+        "started_ns": 1791825609923348503,
+        "returncode": 0,
+        "ended_ns": 1791825776503189627
+      },
+      {
+        "id": "tcp-hit-r5-post",
+        "started_ns": 1791825776645431565,
+        "returncode": 0,
+        "ended_ns": 1791825943171975108
+      },
+      {
+        "id": "tcp-hit-r6-post",
+        "started_ns": 1791825943313976444,
+        "returncode": 0,
+        "ended_ns": 1791826109886290087
+      },
+      {
+        "id": "tcp-hit-r6-main",
+        "started_ns": 1791826110028795786,
+        "returncode": 0,
+        "ended_ns": 1791826276634822499
+      },
+      {
+        "id": "udp-miss-r2-post",
+        "started_ns": 1791826276777234037,
+        "returncode": 0,
+        "ended_ns": 1791826442508806843
+      },
+      {
+        "id": "udp-miss-r2-main",
+        "started_ns": 1791826442649951210,
+        "returncode": 0,
+        "ended_ns": 1791826608395705760
+      }
+    ],
+    "plan_sha256": "77251e1c682a7a0d33f2e0e4ad77e9e344a7b04f01df289376cab9863070284f",
+    "ready_receipt_sha256": "ca20bad66fc053b49a9c90033524ad1ae5cba9453fa6d5b630df60ce410b665e",
+    "ended_ns": 1791826608537968657
+  },
+  "driver_invocation": {
+    "argv": [
+      "sudo",
+      "-n",
+      "python3",
+      "$RUN/parsed_performance.py",
+      "run",
+      "--out",
+      "$RUN/private/performance-parsed-01",
+      "--ready-receipt",
+      "$RUN/private/performance-parsed-ready.json"
+    ],
+    "driver_sha256": "a433779e0e9a5353bd37bd9ace98def8ca24594b4dcd879ab9f61e0bc860c63d",
+    "plan_sha256": "77251e1c682a7a0d33f2e0e4ad77e9e344a7b04f01df289376cab9863070284f",
+    "ready_receipt_sha256": "ca20bad66fc053b49a9c90033524ad1ae5cba9453fa6d5b630df60ce410b665e",
+    "started_unix": 1791823944.0941465,
+    "status": "completed",
+    "launcher_child_pid": 1962727,
+    "returncode": 0,
+    "finished_unix": 1791826618.9866276,
+    "driver_log_sha256": "4976ae637962b161b65e436f01cc17509420dbe13381927fc462137448da5959"
+  },
+  "measurement": {
+    "idle_seconds": 10,
+    "warmup_seconds": 30,
+    "measured_seconds": 120,
+    "pairs_per_profile": 6,
+    "cpus": {
+      "daemon": 0,
+      "upstream": 1,
+      "generator": 2,
+      "controller": 3
+    },
+    "clients": 20,
+    "drain_seconds": [
+      0,
+      1,
+      5
+    ],
+    "saturation": false,
+    "tracing": false,
+    "idle_subtraction": false,
+    "TCP_rounds": 6,
+    "TCP_variants_per_round": 2,
+    "UDP_guard_pairs": 2,
+    "total_windows": 16
+  },
+  "statistics": {
+    "TCP": "Six same-seed adjacent main/post pairs, three AB and three BA. Paired log-ratio t interval df5 for post/main; retain all per-round and relative-order values.",
+    "estimator": {
+      "primary": "measurement cgroup usage_usec delta / successful completions inside the measurement epoch",
+      "secondary": [
+        "paired absolute microseconds difference",
+        "cgroup user/system microseconds per completion",
+        "raw CPU total and busy fraction",
+        "median pair ratio",
+        "AB and BA groups",
+        "p95 latency",
+        "idle CPU (not subtracted)",
+        "PSS",
+        "send lag",
+        "upstream counts",
+        "per-second cgroup deltas"
+      ],
+      "estimate": "geometric mean of six paired fix/main CPU ratios; 95% t interval on paired log ratios, df=5, t=2.570581835636305",
+      "diagnostic": "all six pair values, median, AB/BA subgroup medians, and exact 64-sign-flip p on mean paired log ratio; p is descriptive only",
+      "decision": [
+        "Lower 95% ratio bound >1: CPU cost increase confirmed for this Oracle workload, even if smaller than 10%.",
+        "Lower bound >1.10: increase above 10% confirmed; point estimate >1.10 without this bound retains magnitude uncertainty.",
+        "CI crossing 1 is unresolved, not proof of noise or no regression. Conflicting median/AB/BA groups require causal follow-up.",
+        "Upper bound <1.10 can bound this tested workload below the 10% scale, but cannot establish zero regression.",
+        "No W/range filter, no all-directions requirement, no pooling request samples as independent runs.",
+        "Intervals are per scenario and rely on paired log-ratio assumptions; not familywise confidence across three scenarios."
+      ],
+      "invalid_data": "Never delete, retry, replace or select windows. Preserve behavior errors and method failures. Report all analyzable values; incomplete/invalid/generator-limited scenarios cannot close the performance question."
+    },
+    "interpretation": "post/main directly measures the final cumulative branch including new parsed-question reuse and upstream-only rule ordering. No individual optimization is causally isolated. Both prior full long-window observations remain unchanged; this is new code, not repeated selection of the same artifact.",
+    "UDP": "Two main/post pairs in opposite order only; report both ratios and counts without inferential CI. The cumulative DNS lookup changes affect UDP too, so this is a guard, not a renewed broad performance-equivalence claim.",
+    "exclusion": "No retries, W filter, direction unanimity requirement, removal or replacement. All invalid observations remain; invalid/incomplete comparisons cannot close the cost question.",
+    "DHCP": "Not rerun: The new changes are DNS lookup changes. Earlier long DHCP evidence remains scoped to its tested workload; no zero-regression claim."
+  },
+  "order_permutations": [
+    [
+      "main",
+      "post"
+    ],
+    [
+      "post",
+      "main"
+    ],
+    [
+      "main",
+      "post"
+    ],
+    [
+      "post",
+      "main"
+    ],
+    [
+      "main",
+      "post"
+    ],
+    [
+      "post",
+      "main"
+    ]
+  ],
+  "complete": true,
+  "window_count": 16,
+  "methodology_behavior_generator_errors": [],
+  "all_windows_valid": true,
+  "TCP_comparison": {
+    "profile": "tcp-hit",
+    "baseline": "main",
+    "candidate": "post",
+    "numerical_pair_keys": "main=selected baseline; fix=selected candidate; these names come from unchanged calibrated estimator",
+    "scenario_valid": true,
+    "pairs": [
+      {
+        "pair": 1,
+        "order": "AB",
+        "main": 36.737716666666664,
+        "fix": 36.291783333333335
+      },
+      {
+        "pair": 2,
+        "order": "BA",
+        "main": 45.11465,
+        "fix": 38.192116666666664
+      },
+      {
+        "pair": 3,
+        "order": "AB",
+        "main": 37.97063333333333,
+        "fix": 36.961216666666665
+      },
+      {
+        "pair": 4,
+        "order": "BA",
+        "main": 36.08988333333333,
+        "fix": 38.1061
+      },
+      {
+        "pair": 5,
+        "order": "AB",
+        "main": 41.162416666666665,
+        "fix": 37.945683333333335
+      },
+      {
+        "pair": 6,
+        "order": "BA",
+        "main": 33.8484,
+        "fix": 36.454433333333334
+      }
+    ],
+    "pair_ratios": [
+      0.9878617025282375,
+      0.8465568649355956,
+      0.9734158590981276,
+      1.0558665332343828,
+      0.9218526609022389,
+      1.0769913299693143
+    ],
+    "median_pair_ratio": 0.9806387808131825,
+    "geometric_mean_ratio": 0.9739176608285146,
+    "paired_log_t_95_ratio_interval": [
+      0.8871720024360851,
+      1.069145112186991
+    ],
+    "mean_absolute_us_delta": -1.1620611111111099,
+    "median_absolute_us_delta": -0.7276749999999979,
+    "order_groups": {
+      "AB": {
+        "ratios": [
+          0.9878617025282375,
+          0.9734158590981276,
+          0.9218526609022389
+        ],
+        "median_ratio": 0.9734158590981276
+      },
+      "BA": {
+        "ratios": [
+          0.8465568649355956,
+          1.0558665332343828,
+          1.0769913299693143
+        ],
+        "median_ratio": 1.0558665332343828
+      }
+    },
+    "descriptive_exact_sign_flip_p": 0.53125,
+    "increased_pairs": 2,
+    "numerical_CI_lower_bound_above_one": false,
+    "numerical_CI_lower_bound_above_1_10": false,
+    "below_10_percent_upper_bound": true,
+    "interpretation": "unresolved; inspect paired/order and causal evidence",
+    "CPU_increase_confirmed": false,
+    "CPU_decrease_confirmed": false
+  },
+  "UDP_guard": {
+    "pairs": [
+      {
+        "pair": 1,
+        "order": [
+          "main",
+          "post"
+        ],
+        "main": 77.0277625,
+        "post": 78.15516666666667,
+        "ratio": 1.0146363353948737,
+        "delta_us": 1.127404166666679
+      },
+      {
+        "pair": 2,
+        "order": [
+          "post",
+          "main"
+        ],
+        "main": 83.05903333333333,
+        "post": 78.18009166666667,
+        "ratio": 0.9412593492740706,
+        "delta_us": -4.8789416666666625
+      }
+    ],
+    "all_windows_valid": true,
+    "median_ratio": 0.9779478423344722,
+    "inferential_CI": null,
+    "conclusion": "descriptive guard only; two opposite-order pairs cannot establish a small regression or equivalence"
+  },
+  "window_metrics": [
+    {
+      "id": "tcp-hit-r1-main",
+      "profile": "tcp-hit",
+      "round": 1,
+      "variant": "main",
+      "position": 0,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695553,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 36.737716666666664,
+        "usage_usec": 36.737716666666664,
+        "user_usec": 1.2696666666666667,
+        "system_usec": 35.46805,
+        "p95_ns": 94680,
+        "cpu_total_us": 2204263,
+        "correct": 60000,
+        "busy_fraction": 0.018368858333333335,
+        "rss_kib": 4952,
+        "pss_kib": 4944,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 68295,
+        "p95": 80576,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2953959
+      },
+      "boundary_capture_lag_ns": [
+        2233896,
+        4630371
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2204263,
+        "user_usec": 76180,
+        "system_usec": 2128083,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1548563043077074,
+        "ended_monotonic_ns": 1548573043517551,
+        "elapsed_seconds": 10.000440477,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1548563043440237,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-f818b061b298b06d",
+          "usage_usec": 224170,
+          "user_usec": 71130,
+          "system_usec": 153039,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1548573044137156,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-f818b061b298b06d",
+          "usage_usec": 224170,
+          "user_usec": 71130,
+          "system_usec": 153039,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1548563043394797,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154856225,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "hwm_kib": 3368,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "pss_kib": 3360,
+            "smaps": {
+              "Pss": 3360,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3360
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1548563043134995,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-f818b061b298b06d",
+            "usage_usec": 224170,
+            "user_usec": 71130,
+            "system_usec": 153039,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "pss_kib": 3360,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1548573044081436,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154856225,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "hwm_kib": 3368,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "pss_kib": 3360,
+            "smaps": {
+              "Pss": 3360,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3360
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1548573043663913,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-f818b061b298b06d",
+            "usage_usec": 224170,
+            "user_usec": 71130,
+            "system_usec": 153039,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "pss_kib": 3360,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1548603046798338,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r1-post",
+      "profile": "tcp-hit",
+      "round": 1,
+      "variant": "post",
+      "position": 1,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695553,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 36.291783333333335,
+        "usage_usec": 36.291783333333335,
+        "user_usec": 12.364783333333333,
+        "system_usec": 23.927,
+        "p95_ns": 90320,
+        "cpu_total_us": 2177507,
+        "correct": 60000,
+        "busy_fraction": 0.018145891666666667,
+        "rss_kib": 4912,
+        "pss_kib": 4904,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 66170,
+        "p95": 78754,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 1963721
+      },
+      "boundary_capture_lag_ns": [
+        500679,
+        1679955
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2177507,
+        "user_usec": 741887,
+        "system_usec": 1435620,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1548729742235677,
+        "ended_monotonic_ns": 1548739742677234,
+        "elapsed_seconds": 10.000441557,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1548729742595040,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-f12bfeb993769538",
+          "usage_usec": 225272,
+          "user_usec": 77401,
+          "system_usec": 147870,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1548739743352320,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-f12bfeb993769538",
+          "usage_usec": 225272,
+          "user_usec": 77401,
+          "system_usec": 147870,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1548729742551159,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154872893,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3332,
+            "hwm_kib": 3332,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1700,
+            "pss_kib": 3324,
+            "smaps": {
+              "Pss": 3324,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3324
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1548729742294957,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-f12bfeb993769538",
+            "usage_usec": 225272,
+            "user_usec": 77401,
+            "system_usec": 147870,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3332,
+            "pss_kib": 3324,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1700,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1548739743297400,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154872893,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3332,
+            "hwm_kib": 3332,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1700,
+            "pss_kib": 3324,
+            "smaps": {
+              "Pss": 3324,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3324
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1548739742861596,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-f12bfeb993769538",
+            "usage_usec": 225272,
+            "user_usec": 77401,
+            "system_usec": 147870,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3332,
+            "pss_kib": 3324,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1700,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1548769746031982,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r2-post",
+      "profile": "tcp-hit",
+      "round": 2,
+      "variant": "post",
+      "position": 0,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695554,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 38.192116666666664,
+        "usage_usec": 38.192116666666664,
+        "user_usec": 10.49,
+        "system_usec": 27.7021,
+        "p95_ns": 92881,
+        "cpu_total_us": 2291527,
+        "correct": 60000,
+        "busy_fraction": 0.019096058333333332,
+        "rss_kib": 4924,
+        "pss_kib": 4916,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 68113,
+        "p95": 80856,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2323642
+      },
+      "boundary_capture_lag_ns": [
+        4847241,
+        3797274
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2291527,
+        "user_usec": 629400,
+        "system_usec": 1662126,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1548896446798913,
+        "ended_monotonic_ns": 1548906447276180,
+        "elapsed_seconds": 10.000477267,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1548896447185596,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-29ca9d68a67edf53",
+          "usage_usec": 222244,
+          "user_usec": 71514,
+          "system_usec": 150730,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1548906447950266,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-29ca9d68a67edf53",
+          "usage_usec": 222244,
+          "user_usec": 71514,
+          "system_usec": 150730,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1548896447137395,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154889560,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3344,
+            "hwm_kib": 3344,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1708,
+            "pss_kib": 3336,
+            "smaps": {
+              "Pss": 3336,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3336
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1548896446854033,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-29ca9d68a67edf53",
+            "usage_usec": 222244,
+            "user_usec": 71514,
+            "system_usec": 150730,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3344,
+            "pss_kib": 3336,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1708,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1548906447896865,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154889560,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3344,
+            "hwm_kib": 3344,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1708,
+            "pss_kib": 3336,
+            "smaps": {
+              "Pss": 3336,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3336
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1548906447507342,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-29ca9d68a67edf53",
+            "usage_usec": 222244,
+            "user_usec": 71514,
+            "system_usec": 150730,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3344,
+            "pss_kib": 3336,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1708,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1548936450654848,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r2-main",
+      "profile": "tcp-hit",
+      "round": 2,
+      "variant": "main",
+      "position": 1,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695554,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 45.11465,
+        "usage_usec": 45.11465,
+        "user_usec": 7.1058,
+        "system_usec": 38.008833333333335,
+        "p95_ns": 96161,
+        "cpu_total_us": 2706879,
+        "correct": 60000,
+        "busy_fraction": 0.022557325,
+        "rss_kib": 4756,
+        "pss_kib": 4748,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 67853,
+        "p95": 80300,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2612366
+      },
+      "boundary_capture_lag_ns": [
+        4825582,
+        4666716
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2706879,
+        "user_usec": 426348,
+        "system_usec": 2280530,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1549063120557840,
+        "ended_monotonic_ns": 1549073120990489,
+        "elapsed_seconds": 10.000432649,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1549063120914403,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-3473a4336115e462",
+          "usage_usec": 222290,
+          "user_usec": 75736,
+          "system_usec": 146554,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1549073121612334,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-3473a4336115e462",
+          "usage_usec": 222290,
+          "user_usec": 75736,
+          "system_usec": 146554,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1549063120868643,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154906231,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549063120613761,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-3473a4336115e462",
+            "usage_usec": 222290,
+            "user_usec": 75736,
+            "system_usec": 146554,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1549073121558814,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154906231,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549073121174731,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-3473a4336115e462",
+            "usage_usec": 222290,
+            "user_usec": 75736,
+            "system_usec": 146554,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1549103125829009,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r3-main",
+      "profile": "tcp-hit",
+      "round": 3,
+      "variant": "main",
+      "position": 0,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695555,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 37.97063333333333,
+        "usage_usec": 37.97063333333333,
+        "user_usec": 5.2233833333333335,
+        "system_usec": 32.74725,
+        "p95_ns": 98001,
+        "cpu_total_us": 2278238,
+        "correct": 60000,
+        "busy_fraction": 0.018985316666666665,
+        "rss_kib": 4948,
+        "pss_kib": 4940,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 68300,
+        "p95": 81279,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2351500
+      },
+      "boundary_capture_lag_ns": [
+        4736826,
+        1430132
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2278238,
+        "user_usec": 313403,
+        "system_usec": 1964835,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1549229854306810,
+        "ended_monotonic_ns": 1549239854797995,
+        "elapsed_seconds": 10.000491185,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1549229854712573,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-47bf32a873b9ff4e",
+          "usage_usec": 228776,
+          "user_usec": 66592,
+          "system_usec": 162184,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1549239855400240,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-47bf32a873b9ff4e",
+          "usage_usec": 228776,
+          "user_usec": 66592,
+          "system_usec": 162184,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1549229854663453,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154922899,
+            "user_ticks": 6,
+            "system_ticks": 16,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549229854360530,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-47bf32a873b9ff4e",
+            "usage_usec": 228776,
+            "user_usec": 66592,
+            "system_usec": 162184,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1549239855349759,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154922899,
+            "user_ticks": 6,
+            "system_ticks": 16,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549239854949676,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-47bf32a873b9ff4e",
+            "usage_usec": 228776,
+            "user_usec": 66592,
+            "system_usec": 162184,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1549269857780619,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r3-post",
+      "profile": "tcp-hit",
+      "round": 3,
+      "variant": "post",
+      "position": 1,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695555,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 36.961216666666665,
+        "usage_usec": 36.961216666666665,
+        "user_usec": 10.818533333333333,
+        "system_usec": 26.142666666666667,
+        "p95_ns": 91120,
+        "cpu_total_us": 2217673,
+        "correct": 60000,
+        "busy_fraction": 0.018480608333333332,
+        "rss_kib": 5004,
+        "pss_kib": 4996,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 66157,
+        "p95": 78907,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 3083509
+      },
+      "boundary_capture_lag_ns": [
+        4043548,
+        3984589
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2217673,
+        "user_usec": 649112,
+        "system_usec": 1568560,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1549396557827785,
+        "ended_monotonic_ns": 1549406558297980,
+        "elapsed_seconds": 10.000470195,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1549396558217949,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-d66dbb6a20588060",
+          "usage_usec": 232443,
+          "user_usec": 86454,
+          "system_usec": 145989,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1549406558958145,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-d66dbb6a20588060",
+          "usage_usec": 232443,
+          "user_usec": 86454,
+          "system_usec": 145989,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1549396558170428,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154939573,
+            "user_ticks": 8,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 23,
+            "rss_kib": 3424,
+            "hwm_kib": 3424,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1788,
+            "pss_kib": 3416,
+            "smaps": {
+              "Pss": 3416,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3416
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549396557883026,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-d66dbb6a20588060",
+            "usage_usec": 232443,
+            "user_usec": 86454,
+            "system_usec": 145989,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 23,
+            "rss_kib": 3424,
+            "pss_kib": 3416,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1788,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1549406558905625,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154939573,
+            "user_ticks": 8,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 23,
+            "rss_kib": 3424,
+            "hwm_kib": 3424,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1788,
+            "pss_kib": 3416,
+            "smaps": {
+              "Pss": 3416,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3416
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549406558497981,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-d66dbb6a20588060",
+            "usage_usec": 232443,
+            "user_usec": 86454,
+            "system_usec": 145989,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 23,
+            "rss_kib": 3424,
+            "pss_kib": 3416,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1788,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1549436565886683,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "udp-miss-r1-main",
+      "profile": "udp-miss",
+      "round": 1,
+      "variant": "main",
+      "position": 0,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695553,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 77.0277625,
+        "usage_usec": 77.0277625,
+        "user_usec": 9.332516666666667,
+        "system_usec": 67.69524583333333,
+        "p95_ns": 105841,
+        "cpu_total_us": 18486663,
+        "correct": 240000,
+        "busy_fraction": 0.154055525,
+        "rss_kib": 3736,
+        "pss_kib": 3728,
+        "fd_count": 13,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 240000,
+        "p50": 55750,
+        "p95": 56723,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 3056428
+      },
+      "boundary_capture_lag_ns": [
+        3821111,
+        3356568
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 18486663,
+        "user_usec": 2239804,
+        "system_usec": 16246859,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1549562425924162,
+        "ended_monotonic_ns": 1549572426381065,
+        "elapsed_seconds": 10.000456903,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1549562426295445,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-71f29baeece1352f",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1549572427047031,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-71f29baeece1352f",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1549562426249324,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154956241,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "hwm_kib": 2224,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "pss_kib": 2216,
+            "smaps": {
+              "Pss": 2216,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2216
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549562425978522,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-71f29baeece1352f",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "pss_kib": 2216,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1549572426947710,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154956241,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "hwm_kib": 2224,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "pss_kib": 2216,
+            "smaps": {
+              "Pss": 2216,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2216
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549572426573947,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-71f29baeece1352f",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "pss_kib": 2216,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1549602429421651,
+        "disabled": false,
+        "total": {
+          "requests": 300000,
+          "replies": 300000,
+          "generated_replies": 300000,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 300000,
+          "tcp_requests": 0
+        },
+        "requests": 300000,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 60000,
+            "replies": 60000,
+            "generated_replies": 60000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 60000,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 240000,
+            "replies": 240000,
+            "generated_replies": 240000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 240000,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "udp-miss-r1-post",
+      "profile": "udp-miss",
+      "round": 1,
+      "variant": "post",
+      "position": 1,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695553,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 78.15516666666667,
+        "usage_usec": 78.15516666666667,
+        "user_usec": 40.01488333333333,
+        "system_usec": 38.140279166666666,
+        "p95_ns": 98681,
+        "cpu_total_us": 18757240,
+        "correct": 240000,
+        "busy_fraction": 0.15631033333333333,
+        "rss_kib": 3784,
+        "pss_kib": 3776,
+        "fd_count": 13,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 240000,
+        "p50": 55900,
+        "p95": 56575,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2720304
+      },
+      "boundary_capture_lag_ns": [
+        2212369,
+        307665
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 18757240,
+        "user_usec": 9603572,
+        "system_usec": 9153667,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1549728307811804,
+        "ended_monotonic_ns": 1549738308279148,
+        "elapsed_seconds": 10.000467344,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1549728308195207,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-de1d19bc89b333c6",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1549738308856553,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-de1d19bc89b333c6",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1549728308147926,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154972829,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2280,
+            "hwm_kib": 2280,
+            "rss_anon_kib": 560,
+            "rss_file_kib": 1720,
+            "pss_kib": 2272,
+            "smaps": {
+              "Pss": 2272,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2272
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549728307867284,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-de1d19bc89b333c6",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2280,
+            "pss_kib": 2272,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 560,
+            "rss_file_kib": 1720,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1549738308805913,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154972829,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2280,
+            "hwm_kib": 2280,
+            "rss_anon_kib": 560,
+            "rss_file_kib": 1720,
+            "pss_kib": 2272,
+            "smaps": {
+              "Pss": 2272,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2272
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549738308467470,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-de1d19bc89b333c6",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2280,
+            "pss_kib": 2272,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 560,
+            "rss_file_kib": 1720,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1549768311256013,
+        "disabled": false,
+        "total": {
+          "requests": 300000,
+          "replies": 300000,
+          "generated_replies": 300000,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 300000,
+          "tcp_requests": 0
+        },
+        "requests": 300000,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 60000,
+            "replies": 60000,
+            "generated_replies": 60000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 60000,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 240000,
+            "replies": 240000,
+            "generated_replies": 240000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 240000,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r4-post",
+      "profile": "tcp-hit",
+      "round": 4,
+      "variant": "post",
+      "position": 0,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695556,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 38.1061,
+        "usage_usec": 38.1061,
+        "user_usec": 6.86845,
+        "system_usec": 31.23765,
+        "p95_ns": 88441,
+        "cpu_total_us": 2286366,
+        "correct": 60000,
+        "busy_fraction": 0.019053050000000002,
+        "rss_kib": 4920,
+        "pss_kib": 4912,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 72231,
+        "p95": 86388,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 3154943
+      },
+      "boundary_capture_lag_ns": [
+        2663312,
+        623873
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2286366,
+        "user_usec": 412107,
+        "system_usec": 1874259,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1549894999086554,
+        "ended_monotonic_ns": 1549904999534005,
+        "elapsed_seconds": 10.000447451,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1549894999442837,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-a1b2cd0be818d4e6",
+          "usage_usec": 221857,
+          "user_usec": 65863,
+          "system_usec": 155993,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1549905000273971,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-a1b2cd0be818d4e6",
+          "usage_usec": 221857,
+          "user_usec": 65863,
+          "system_usec": 155993,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1549894999397997,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154989416,
+            "user_ticks": 6,
+            "system_ticks": 16,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3340,
+            "hwm_kib": 3340,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1708,
+            "pss_kib": 3332,
+            "smaps": {
+              "Pss": 3332,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3332
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549894999145595,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-a1b2cd0be818d4e6",
+            "usage_usec": 221857,
+            "user_usec": 65863,
+            "system_usec": 155993,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3340,
+            "pss_kib": 3332,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1708,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1549905000220971,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 154989416,
+            "user_ticks": 6,
+            "system_ticks": 16,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3340,
+            "hwm_kib": 3340,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1708,
+            "pss_kib": 3332,
+            "smaps": {
+              "Pss": 3332,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3332
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1549904999773607,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-a1b2cd0be818d4e6",
+            "usage_usec": 221857,
+            "user_usec": 65863,
+            "system_usec": 155993,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3340,
+            "pss_kib": 3332,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1708,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1549935002865393,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r4-main",
+      "profile": "tcp-hit",
+      "round": 4,
+      "variant": "main",
+      "position": 1,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695556,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 36.08988333333333,
+        "usage_usec": 36.08988333333333,
+        "user_usec": 11.607933333333333,
+        "system_usec": 24.481933333333334,
+        "p95_ns": 92561,
+        "cpu_total_us": 2165393,
+        "correct": 60000,
+        "busy_fraction": 0.018044941666666665,
+        "rss_kib": 4948,
+        "pss_kib": 4940,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 67252,
+        "p95": 80445,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 3555414
+      },
+      "boundary_capture_lag_ns": [
+        3214915,
+        4134650
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2165393,
+        "user_usec": 696476,
+        "system_usec": 1468916,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1550061715680702,
+        "ended_monotonic_ns": 1550071716181548,
+        "elapsed_seconds": 10.000500846,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1550061716090026,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-69e4a3fc16e064bd",
+          "usage_usec": 222763,
+          "user_usec": 80021,
+          "system_usec": 142741,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1550071716883194,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-69e4a3fc16e064bd",
+          "usage_usec": 222763,
+          "user_usec": 80021,
+          "system_usec": 142741,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1550061715986945,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155006088,
+            "user_ticks": 7,
+            "system_ticks": 14,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 21,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550061715734783,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-69e4a3fc16e064bd",
+            "usage_usec": 222763,
+            "user_usec": 80021,
+            "system_usec": 142741,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 21,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1550071716831274,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155006088,
+            "user_ticks": 7,
+            "system_ticks": 14,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 21,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550071716382510,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-69e4a3fc16e064bd",
+            "usage_usec": 222763,
+            "user_usec": 80021,
+            "system_usec": 142741,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 21,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1550101719595856,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r5-main",
+      "profile": "tcp-hit",
+      "round": 5,
+      "variant": "main",
+      "position": 0,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695557,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 41.162416666666665,
+        "usage_usec": 41.162416666666665,
+        "user_usec": 0.4076,
+        "system_usec": 40.75481666666666,
+        "p95_ns": 94961,
+        "cpu_total_us": 2469745,
+        "correct": 60000,
+        "busy_fraction": 0.020581208333333333,
+        "rss_kib": 4884,
+        "pss_kib": 4876,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 68838,
+        "p95": 81761,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2216173
+      },
+      "boundary_capture_lag_ns": [
+        407990,
+        4931931
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2469745,
+        "user_usec": 24456,
+        "system_usec": 2445289,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1550228452101334,
+        "ended_monotonic_ns": 1550238453088934,
+        "elapsed_seconds": 10.0009876,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1550228452458897,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-ede962f7a6193dfd",
+          "usage_usec": 235952,
+          "user_usec": 76553,
+          "system_usec": 159399,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1550238453654418,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-ede962f7a6193dfd",
+          "usage_usec": 235952,
+          "user_usec": 76553,
+          "system_usec": 159399,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1550228452414497,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155022759,
+            "user_ticks": 7,
+            "system_ticks": 16,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 23,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550228452157855,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-ede962f7a6193dfd",
+            "usage_usec": 235952,
+            "user_usec": 76553,
+            "system_usec": 159399,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 23,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1550238453605658,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155022759,
+            "user_ticks": 7,
+            "system_ticks": 16,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 23,
+            "rss_kib": 3364,
+            "hwm_kib": 3364,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "pss_kib": 3356,
+            "smaps": {
+              "Pss": 3356,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3356
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550238453243775,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-ede962f7a6193dfd",
+            "usage_usec": 235952,
+            "user_usec": 76553,
+            "system_usec": 159399,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 23,
+            "rss_kib": 3364,
+            "pss_kib": 3356,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1584,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1550268457795173,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r5-post",
+      "profile": "tcp-hit",
+      "round": 5,
+      "variant": "post",
+      "position": 1,
+      "order": [
+        "main",
+        "post"
+      ],
+      "seed": 1328695557,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 37.945683333333335,
+        "usage_usec": 37.945683333333335,
+        "user_usec": 13.968483333333333,
+        "system_usec": 23.977216666666667,
+        "p95_ns": 92401,
+        "cpu_total_us": 2276741,
+        "correct": 60000,
+        "busy_fraction": 0.018972841666666667,
+        "rss_kib": 5012,
+        "pss_kib": 5004,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 67037,
+        "p95": 79774,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 3760893
+      },
+      "boundary_capture_lag_ns": [
+        2494299,
+        4171485
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2276741,
+        "user_usec": 838109,
+        "system_usec": 1438633,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1550395138087729,
+        "ended_monotonic_ns": 1550405138524578,
+        "elapsed_seconds": 10.000436849,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1550395138439052,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-baa8a71cee1f5c15",
+          "usage_usec": 229038,
+          "user_usec": 86304,
+          "system_usec": 142734,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1550405139220904,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-baa8a71cee1f5c15",
+          "usage_usec": 229038,
+          "user_usec": 86304,
+          "system_usec": 142734,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1550395138394691,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155039431,
+            "user_ticks": 8,
+            "system_ticks": 14,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3440,
+            "hwm_kib": 3440,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1808,
+            "pss_kib": 3432,
+            "smaps": {
+              "Pss": 3432,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3432
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550395138143009,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-baa8a71cee1f5c15",
+            "usage_usec": 229038,
+            "user_usec": 86304,
+            "system_usec": 142734,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3440,
+            "pss_kib": 3432,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1808,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1550405139165624,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155039431,
+            "user_ticks": 8,
+            "system_ticks": 14,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3440,
+            "hwm_kib": 3440,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1808,
+            "pss_kib": 3432,
+            "smaps": {
+              "Pss": 3432,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3432
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550405138732860,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-baa8a71cee1f5c15",
+            "usage_usec": 229038,
+            "user_usec": 86304,
+            "system_usec": 142734,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3440,
+            "pss_kib": 3432,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1632,
+            "rss_file_kib": 1808,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1550435143310978,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r6-post",
+      "profile": "tcp-hit",
+      "round": 6,
+      "variant": "post",
+      "position": 0,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695558,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 36.454433333333334,
+        "usage_usec": 36.454433333333334,
+        "user_usec": 12.826883333333333,
+        "system_usec": 23.627566666666667,
+        "p95_ns": 90561,
+        "cpu_total_us": 2187266,
+        "correct": 60000,
+        "busy_fraction": 0.018227216666666667,
+        "rss_kib": 5016,
+        "pss_kib": 5008,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 66450,
+        "p95": 79375,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2302529
+      },
+      "boundary_capture_lag_ns": [
+        1107111,
+        1212653
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2187266,
+        "user_usec": 769613,
+        "system_usec": 1417654,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1550561820511316,
+        "ended_monotonic_ns": 1550571820953638,
+        "elapsed_seconds": 10.000442322,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1550561820867999,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-3fba839ffca74ab5",
+          "usage_usec": 228006,
+          "user_usec": 82002,
+          "system_usec": 146004,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1550571821597964,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-3fba839ffca74ab5",
+          "usage_usec": 228006,
+          "user_usec": 82002,
+          "system_usec": 146004,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1550561820822438,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155056098,
+            "user_ticks": 8,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 23,
+            "rss_kib": 3436,
+            "hwm_kib": 3436,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1800,
+            "pss_kib": 3428,
+            "smaps": {
+              "Pss": 3428,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3428
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550561820565756,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-3fba839ffca74ab5",
+            "usage_usec": 228006,
+            "user_usec": 82002,
+            "system_usec": 146004,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 23,
+            "rss_kib": 3436,
+            "pss_kib": 3428,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1800,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1550571821546283,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155056098,
+            "user_ticks": 8,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 23,
+            "rss_kib": 3436,
+            "hwm_kib": 3436,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1800,
+            "pss_kib": 3428,
+            "smaps": {
+              "Pss": 3428,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3428
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550571821167560,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-3fba839ffca74ab5",
+            "usage_usec": 228006,
+            "user_usec": 82002,
+            "system_usec": 146004,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 23,
+            "rss_kib": 3436,
+            "pss_kib": 3428,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1636,
+            "rss_file_kib": 1800,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1550601824220266,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "tcp-hit-r6-main",
+      "profile": "tcp-hit",
+      "round": 6,
+      "variant": "main",
+      "position": 1,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695558,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 33.8484,
+        "usage_usec": 33.8484,
+        "user_usec": 9.200466666666667,
+        "system_usec": 24.64795,
+        "p95_ns": 89041,
+        "cpu_total_us": 2030904,
+        "correct": 60000,
+        "busy_fraction": 0.0169242,
+        "rss_kib": 4952,
+        "pss_kib": 4944,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 60000,
+        "p50": 66129,
+        "p95": 79088,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2569699
+      },
+      "boundary_capture_lag_ns": [
+        4578083,
+        2418546
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 2030904,
+        "user_usec": 552028,
+        "system_usec": 1478877,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1550728550551540,
+        "ended_monotonic_ns": 1550738552060038,
+        "elapsed_seconds": 10.001508498,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1550728550964824,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-6e951ae1f92609cf",
+          "usage_usec": 223659,
+          "user_usec": 76455,
+          "system_usec": 147204,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1550738552636722,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-6e951ae1f92609cf",
+          "usage_usec": 223659,
+          "user_usec": 76455,
+          "system_usec": 147204,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1550728550917383,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155072771,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "hwm_kib": 3368,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "pss_kib": 3360,
+            "smaps": {
+              "Pss": 3360,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3360
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550728550608861,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-6e951ae1f92609cf",
+            "usage_usec": 223659,
+            "user_usec": 76455,
+            "system_usec": 147204,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "pss_kib": 3360,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1550738552585522,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155072771,
+            "user_ticks": 7,
+            "system_ticks": 15,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "hwm_kib": 3368,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "pss_kib": 3360,
+            "smaps": {
+              "Pss": 3360,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 3360
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550738552221439,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-6e951ae1f92609cf",
+            "usage_usec": 223659,
+            "user_usec": 76455,
+            "system_usec": 147204,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 22,
+            "rss_kib": 3368,
+            "pss_kib": 3360,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 1588,
+            "rss_file_kib": 1780,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1550768555889749,
+        "disabled": true,
+        "total": {
+          "requests": 4096,
+          "replies": 4096,
+          "generated_replies": 4096,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 4096,
+          "tcp_requests": 0
+        },
+        "requests": 4096,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 4096,
+            "replies": 4096,
+            "generated_replies": 4096,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 4096,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "udp-miss-r2-post",
+      "profile": "udp-miss",
+      "round": 2,
+      "variant": "post",
+      "position": 0,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695554,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 78.18009166666667,
+        "usage_usec": 78.18009166666667,
+        "user_usec": 70.94823333333333,
+        "system_usec": 7.231858333333333,
+        "p95_ns": 114841,
+        "cpu_total_us": 18763222,
+        "correct": 240000,
+        "busy_fraction": 0.15636018333333332,
+        "rss_kib": 3648,
+        "pss_kib": 3640,
+        "fd_count": 13,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 240000,
+        "p50": 55858,
+        "p95": 56786,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 3033050
+      },
+      "boundary_capture_lag_ns": [
+        949142,
+        1565704
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 18763222,
+        "user_usec": 17027576,
+        "system_usec": 1735646,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1550894464922647,
+        "ended_monotonic_ns": 1550904465389231,
+        "elapsed_seconds": 10.000466584,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1550894465292570,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-a79c9e75f88e0e42",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1550904466051637,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-a79c9e75f88e0e42",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1550894465246210,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155089445,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2196,
+            "hwm_kib": 2196,
+            "rss_anon_kib": 556,
+            "rss_file_kib": 1640,
+            "pss_kib": 2188,
+            "smaps": {
+              "Pss": 2188,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2188
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550894464976447,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-a79c9e75f88e0e42",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2196,
+            "pss_kib": 2188,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 556,
+            "rss_file_kib": 1640,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1550904465953156,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155089445,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2196,
+            "hwm_kib": 2196,
+            "rss_anon_kib": 556,
+            "rss_file_kib": 1640,
+            "pss_kib": 2188,
+            "smaps": {
+              "Pss": 2188,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2188
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1550904465609193,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-a79c9e75f88e0e42",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2196,
+            "pss_kib": 2188,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 556,
+            "rss_file_kib": 1640,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1550934468432256,
+        "disabled": false,
+        "total": {
+          "requests": 300000,
+          "replies": 300000,
+          "generated_replies": 300000,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 300000,
+          "tcp_requests": 0
+        },
+        "requests": 300000,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 60000,
+            "replies": 60000,
+            "generated_replies": 60000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 60000,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 240000,
+            "replies": 240000,
+            "generated_replies": 240000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 240000,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    },
+    {
+      "id": "udp-miss-r2-main",
+      "profile": "udp-miss",
+      "round": 2,
+      "variant": "main",
+      "position": 1,
+      "order": [
+        "post",
+        "main"
+      ],
+      "seed": 1328695554,
+      "status": "analyzed",
+      "metrics": {
+        "cpu_us_per_correct": 83.05903333333333,
+        "usage_usec": 83.05903333333333,
+        "user_usec": 20.571195833333334,
+        "system_usec": 62.487833333333334,
+        "p95_ns": 124961,
+        "cpu_total_us": 19934168,
+        "correct": 240000,
+        "busy_fraction": 0.16611806666666667,
+        "rss_kib": 3740,
+        "pss_kib": 3732,
+        "fd_count": 17,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "method_valid": true,
+      "analysis_errors": [],
+      "behavior_errors": {
+        "warmup_scheduled_skipped": 0,
+        "warmup_wrong": 0,
+        "warmup_timeout": 0,
+        "warmup_transport_error": 0,
+        "measurement_scheduled_skipped": 0,
+        "measurement_wrong": 0,
+        "measurement_timeout": 0,
+        "measurement_transport_error": 0
+      },
+      "runner_accepted": true,
+      "runner_errors": [],
+      "generator_limited": false,
+      "generator_limit_reasons": [],
+      "send_lag_ns": {
+        "sample_count": 240000,
+        "p50": 55517,
+        "p95": 56436,
+        "p99": null,
+        "p99_reason": "not requested",
+        "max": 2626427
+      },
+      "boundary_capture_lag_ns": [
+        3235070,
+        1303834
+      ],
+      "cgroup_boundary_delta": {
+        "usage_usec": 19934168,
+        "user_usec": 4937087,
+        "system_usec": 14997080,
+        "nr_throttled": 0,
+        "throttled_usec": 0
+      },
+      "idle": {
+        "enabled": true,
+        "started_monotonic_ns": 1551060336791012,
+        "ended_monotonic_ns": 1551070337281899,
+        "elapsed_seconds": 10.000490887,
+        "requested_seconds": 10.0,
+        "cgroup_before": {
+          "monotonic_ns": 1551060337186615,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-793e93f17b29fea6",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "cgroup_after": {
+          "monotonic_ns": 1551070337924744,
+          "path": "/sys/fs/cgroup/dnsmasq-m6a-793e93f17b29fea6",
+          "usage_usec": 0,
+          "user_usec": 0,
+          "system_usec": 0,
+          "nice_usec": 0,
+          "core_sched.force_idle_usec": 0,
+          "nr_periods": 0,
+          "nr_throttled": 0,
+          "throttled_usec": 0,
+          "nr_bursts": 0,
+          "burst_usec": 0
+        },
+        "proc_before": {
+          "monotonic_ns": 1551060337138855,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155106032,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "hwm_kib": 2224,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "pss_kib": 2216,
+            "smaps": {
+              "Pss": 2216,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2216
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1551060336846332,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-793e93f17b29fea6",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "pss_kib": 2216,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "proc_after": {
+          "monotonic_ns": 1551070337875504,
+          "parent": {
+            "pid": 13,
+            "state": "S",
+            "starttime_ticks": 155106032,
+            "user_ticks": 0,
+            "system_ticks": 0,
+            "waited_child_user_ticks": 0,
+            "waited_child_system_ticks": 0,
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "hwm_kib": 2224,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "pss_kib": 2216,
+            "smaps": {
+              "Pss": 2216,
+              "Shared_Clean": 8,
+              "Shared_Dirty": 0,
+              "Private_Clean": 0,
+              "Private_Dirty": 2216
+            },
+            "thread_count": 1,
+            "fd_count": 12,
+            "affinity": [
+              0
+            ],
+            "children": []
+          },
+          "children": [],
+          "children_disappeared_during_sample": [],
+          "cgroup_cpu": {
+            "monotonic_ns": 1551070337532421,
+            "path": "/sys/fs/cgroup/dnsmasq-m6a-793e93f17b29fea6",
+            "usage_usec": 0,
+            "user_usec": 0,
+            "system_usec": 0,
+            "nice_usec": 0,
+            "core_sched.force_idle_usec": 0,
+            "nr_periods": 0,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "tree": {
+            "cpu_ticks": 0,
+            "rss_kib": 2224,
+            "pss_kib": 2216,
+            "fd_count": 12,
+            "thread_count": 1,
+            "rss_anon_kib": 508,
+            "rss_file_kib": 1716,
+            "child_processes": 0
+          },
+          "clock_ticks_per_second": 100
+        },
+        "cpu_seconds": 0.0,
+        "proc_cpu_seconds": 0.0,
+        "cpu_percent": 0.0,
+        "proc_cpu_percent": 0.0,
+        "clock_ticks_per_second": 100,
+        "criterion": "daemon cgroup CPU over a no-load interval"
+      },
+      "upstream": {
+        "schema": 1,
+        "epoch_ns": 1551100340371244,
+        "disabled": false,
+        "total": {
+          "requests": 300000,
+          "replies": 300000,
+          "generated_replies": 300000,
+          "disabled_requests": 0,
+          "dropped_requests": 0,
+          "invalid_queries": 0,
+          "udp_requests": 300000,
+          "tcp_requests": 0
+        },
+        "requests": 300000,
+        "disabled_requests": 0,
+        "invalid_queries": 0,
+        "phases": {
+          "setup_warmup": {
+            "requests": 60000,
+            "replies": 60000,
+            "generated_replies": 60000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 60000,
+            "tcp_requests": 0
+          },
+          "steady": {
+            "requests": 240000,
+            "replies": 240000,
+            "generated_replies": 240000,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 240000,
+            "tcp_requests": 0
+          },
+          "saturation": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "fault": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          },
+          "recovery": {
+            "requests": 0,
+            "replies": 0,
+            "generated_replies": 0,
+            "disabled_requests": 0,
+            "dropped_requests": 0,
+            "invalid_queries": 0,
+            "udp_requests": 0,
+            "tcp_requests": 0
+          }
+        }
+      },
+      "valid_for_comparison": true
+    }
+  ],
+  "secondary_analysis": {
+    "scope": "Post-run read-only secondary analysis of retained final parsed/main windows; no new load",
+    "windows": [
+      {
+        "id": "tcp-hit-r1-main",
+        "profile": "tcp-hit",
+        "variant": "main",
+        "round": 1,
+        "sample_count": 117,
+        "sample_span_seconds": 118.772634666,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 12970,
+            "steal_fraction": 7.710100231303006e-05
+          },
+          "cpu1": {
+            "steal_ticks": 9,
+            "total_ticks": 11882,
+            "steal_fraction": 0.0007574482410368624
+          },
+          "cpu2": {
+            "steal_ticks": 4,
+            "total_ticks": 12257,
+            "steal_fraction": 0.0003263441298849637
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11828,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          2233896,
+          4630371
+        ],
+        "send_lag_p95_ns": 80576
+      },
+      {
+        "id": "tcp-hit-r1-post",
+        "profile": "tcp-hit",
+        "variant": "post",
+        "round": 1,
+        "sample_count": 117,
+        "sample_span_seconds": 118.762887911,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 11633,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 5,
+            "total_ticks": 11861,
+            "steal_fraction": 0.00042154961638984906
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 11592,
+            "steal_fraction": 8.62663906142167e-05
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11830,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          500679,
+          1679955
+        ],
+        "send_lag_p95_ns": 78754
+      },
+      {
+        "id": "tcp-hit-r2-post",
+        "profile": "tcp-hit",
+        "variant": "post",
+        "round": 2,
+        "sample_count": 117,
+        "sample_span_seconds": 118.736025142,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 2,
+            "total_ticks": 11627,
+            "steal_fraction": 0.00017201341704652963
+          },
+          "cpu1": {
+            "steal_ticks": 6,
+            "total_ticks": 11858,
+            "steal_fraction": 0.0005059875189745319
+          },
+          "cpu2": {
+            "steal_ticks": 2,
+            "total_ticks": 11566,
+            "steal_fraction": 0.00017292062943109114
+          },
+          "cpu3": {
+            "steal_ticks": 1,
+            "total_ticks": 11826,
+            "steal_fraction": 8.455944529003889e-05
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          4847241,
+          3797274
+        ],
+        "send_lag_p95_ns": 80856
+      },
+      {
+        "id": "tcp-hit-r2-main",
+        "profile": "tcp-hit",
+        "variant": "main",
+        "round": 2,
+        "sample_count": 117,
+        "sample_span_seconds": 118.772913417,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 16426,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 6,
+            "total_ticks": 12166,
+            "steal_fraction": 0.0004931777083675817
+          },
+          "cpu2": {
+            "steal_ticks": 0,
+            "total_ticks": 11739,
+            "steal_fraction": 0.0
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11827,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          4825582,
+          4666716
+        ],
+        "send_lag_p95_ns": 80300
+      },
+      {
+        "id": "tcp-hit-r3-main",
+        "profile": "tcp-hit",
+        "variant": "main",
+        "round": 3,
+        "sample_count": 117,
+        "sample_span_seconds": 118.733756691,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 12030,
+            "steal_fraction": 8.312551953449709e-05
+          },
+          "cpu1": {
+            "steal_ticks": 6,
+            "total_ticks": 11863,
+            "steal_fraction": 0.000505774256090365
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 12940,
+            "steal_fraction": 7.727975270479135e-05
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11815,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          4736826,
+          1430132
+        ],
+        "send_lag_p95_ns": 81279
+      },
+      {
+        "id": "tcp-hit-r3-post",
+        "profile": "tcp-hit",
+        "variant": "post",
+        "round": 3,
+        "sample_count": 117,
+        "sample_span_seconds": 118.758518571,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 11633,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 4,
+            "total_ticks": 11859,
+            "steal_fraction": 0.0003372965680074205
+          },
+          "cpu2": {
+            "steal_ticks": 0,
+            "total_ticks": 11588,
+            "steal_fraction": 0.0
+          },
+          "cpu3": {
+            "steal_ticks": 1,
+            "total_ticks": 11832,
+            "steal_fraction": 8.451656524678837e-05
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          4043548,
+          3984589
+        ],
+        "send_lag_p95_ns": 78907
+      },
+      {
+        "id": "udp-miss-r1-main",
+        "profile": "udp-miss",
+        "variant": "main",
+        "round": 1,
+        "sample_count": 117,
+        "sample_span_seconds": 118.728021334,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 9843,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 1,
+            "total_ticks": 11577,
+            "steal_fraction": 8.637816360024185e-05
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 11363,
+            "steal_fraction": 8.800492827598346e-05
+          },
+          "cpu3": {
+            "steal_ticks": 5,
+            "total_ticks": 11838,
+            "steal_fraction": 0.00042236864335191754
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          3821111,
+          3356568
+        ],
+        "send_lag_p95_ns": 56723
+      },
+      {
+        "id": "udp-miss-r1-post",
+        "profile": "udp-miss",
+        "variant": "post",
+        "round": 1,
+        "sample_count": 117,
+        "sample_span_seconds": 118.717386883,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 9850,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 0,
+            "total_ticks": 11587,
+            "steal_fraction": 0.0
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 11379,
+            "steal_fraction": 8.788118463836892e-05
+          },
+          "cpu3": {
+            "steal_ticks": 4,
+            "total_ticks": 11846,
+            "steal_fraction": 0.00033766672294445384
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          2212369,
+          307665
+        ],
+        "send_lag_p95_ns": 56575
+      },
+      {
+        "id": "tcp-hit-r4-post",
+        "profile": "tcp-hit",
+        "variant": "post",
+        "round": 4,
+        "sample_count": 117,
+        "sample_span_seconds": 118.717652808,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 11652,
+            "steal_fraction": 8.582217645039479e-05
+          },
+          "cpu1": {
+            "steal_ticks": 5,
+            "total_ticks": 11856,
+            "steal_fraction": 0.00042172739541160596
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 17242,
+            "steal_fraction": 5.799791207516529e-05
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11832,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          2663312,
+          623873
+        ],
+        "send_lag_p95_ns": 86388
+      },
+      {
+        "id": "tcp-hit-r4-main",
+        "profile": "tcp-hit",
+        "variant": "main",
+        "round": 4,
+        "sample_count": 117,
+        "sample_span_seconds": 118.716791322,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 11635,
+            "steal_fraction": 8.594757198109153e-05
+          },
+          "cpu1": {
+            "steal_ticks": 5,
+            "total_ticks": 11856,
+            "steal_fraction": 0.00042172739541160596
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 11580,
+            "steal_fraction": 8.635578583765112e-05
+          },
+          "cpu3": {
+            "steal_ticks": 1,
+            "total_ticks": 11824,
+            "steal_fraction": 8.457374830852504e-05
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          3214915,
+          4134650
+        ],
+        "send_lag_p95_ns": 80445
+      },
+      {
+        "id": "tcp-hit-r5-main",
+        "profile": "tcp-hit",
+        "variant": "main",
+        "round": 5,
+        "sample_count": 117,
+        "sample_span_seconds": 118.756615439,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 13816,
+            "steal_fraction": 7.237984944991314e-05
+          },
+          "cpu1": {
+            "steal_ticks": 4,
+            "total_ticks": 11920,
+            "steal_fraction": 0.0003355704697986577
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 12265,
+            "steal_fraction": 8.153281695882592e-05
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11819,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          407990,
+          4931931
+        ],
+        "send_lag_p95_ns": 81761
+      },
+      {
+        "id": "tcp-hit-r5-post",
+        "profile": "tcp-hit",
+        "variant": "post",
+        "round": 5,
+        "sample_count": 117,
+        "sample_span_seconds": 118.724330846,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 11627,
+            "steal_fraction": 8.600670852326481e-05
+          },
+          "cpu1": {
+            "steal_ticks": 4,
+            "total_ticks": 11856,
+            "steal_fraction": 0.00033738191632928474
+          },
+          "cpu2": {
+            "steal_ticks": 2,
+            "total_ticks": 11590,
+            "steal_fraction": 0.0001725625539257981
+          },
+          "cpu3": {
+            "steal_ticks": 0,
+            "total_ticks": 11818,
+            "steal_fraction": 0.0
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          2494299,
+          4171485
+        ],
+        "send_lag_p95_ns": 79774
+      },
+      {
+        "id": "tcp-hit-r6-post",
+        "profile": "tcp-hit",
+        "variant": "post",
+        "round": 6,
+        "sample_count": 117,
+        "sample_span_seconds": 118.713699453,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 11626,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 2,
+            "total_ticks": 11853,
+            "steal_fraction": 0.00016873365392727579
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 11583,
+            "steal_fraction": 8.6333419666753e-05
+          },
+          "cpu3": {
+            "steal_ticks": 1,
+            "total_ticks": 11831,
+            "steal_fraction": 8.452370890034655e-05
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          1107111,
+          1212653
+        ],
+        "send_lag_p95_ns": 79375
+      },
+      {
+        "id": "tcp-hit-r6-main",
+        "profile": "tcp-hit",
+        "variant": "main",
+        "round": 6,
+        "sample_count": 117,
+        "sample_span_seconds": 118.72987469,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 1,
+            "total_ticks": 11647,
+            "steal_fraction": 8.585901948999742e-05
+          },
+          "cpu1": {
+            "steal_ticks": 4,
+            "total_ticks": 11859,
+            "steal_fraction": 0.0003372965680074205
+          },
+          "cpu2": {
+            "steal_ticks": 1,
+            "total_ticks": 11592,
+            "steal_fraction": 8.62663906142167e-05
+          },
+          "cpu3": {
+            "steal_ticks": 4,
+            "total_ticks": 11832,
+            "steal_fraction": 0.0003380662609871535
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          4578083,
+          2418546
+        ],
+        "send_lag_p95_ns": 79088
+      },
+      {
+        "id": "udp-miss-r2-post",
+        "profile": "udp-miss",
+        "variant": "post",
+        "round": 2,
+        "sample_count": 117,
+        "sample_span_seconds": 118.756672631,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 9816,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 2,
+            "total_ticks": 11578,
+            "steal_fraction": 0.00017274140611504577
+          },
+          "cpu2": {
+            "steal_ticks": 0,
+            "total_ticks": 11364,
+            "steal_fraction": 0.0
+          },
+          "cpu3": {
+            "steal_ticks": 5,
+            "total_ticks": 11832,
+            "steal_fraction": 0.00042258282623394185
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          949142,
+          1565704
+        ],
+        "send_lag_p95_ns": 56786
+      },
+      {
+        "id": "udp-miss-r2-main",
+        "profile": "udp-miss",
+        "variant": "main",
+        "round": 2,
+        "sample_count": 117,
+        "sample_span_seconds": 118.724295469,
+        "cpus": {
+          "cpu0": {
+            "steal_ticks": 0,
+            "total_ticks": 21521,
+            "steal_fraction": 0.0
+          },
+          "cpu1": {
+            "steal_ticks": 1,
+            "total_ticks": 11565,
+            "steal_fraction": 8.64677907479464e-05
+          },
+          "cpu2": {
+            "steal_ticks": 0,
+            "total_ticks": 11384,
+            "steal_fraction": 0.0
+          },
+          "cpu3": {
+            "steal_ticks": 5,
+            "total_ticks": 11834,
+            "steal_fraction": 0.0004225114078080108
+          }
+        },
+        "cg_throttled_usec": 0,
+        "idle_cpu_percent": 0.0,
+        "cpu_boundary_capture_lag_ns": [
+          3235070,
+          1303834
+        ],
+        "send_lag_p95_ns": 56436
+      }
+    ],
+    "groups": [
+      {
+        "profile": "tcp-hit",
+        "variant": "main",
+        "metrics": {
+          "cpu_us_per_correct": {
+            "values": [
+              36.737716666666664,
+              45.11465,
+              37.97063333333333,
+              36.08988333333333,
+              41.162416666666665,
+              33.8484
+            ],
+            "mean": 38.48728333333333,
+            "median": 37.354175
+          },
+          "user_usec": {
+            "values": [
+              1.2696666666666667,
+              7.1058,
+              5.2233833333333335,
+              11.607933333333333,
+              0.4076,
+              9.200466666666667
+            ],
+            "mean": 5.802475,
+            "median": 6.1645916666666665
+          },
+          "system_usec": {
+            "values": [
+              35.46805,
+              38.008833333333335,
+              32.74725,
+              24.481933333333334,
+              40.75481666666666,
+              24.64795
+            ],
+            "mean": 32.684805555555556,
+            "median": 34.10765
+          },
+          "p95_ns": {
+            "values": [
+              94680,
+              96161,
+              98001,
+              92561,
+              94961,
+              89041
+            ],
+            "mean": 94234.16666666667,
+            "median": 94820.5
+          }
+        },
+        "cpu0_steal_fraction_max": 8.594757198109153e-05,
+        "cpu0_steal_fraction_mean": 6.740216046142154e-05
+      },
+      {
+        "profile": "tcp-hit",
+        "variant": "post",
+        "metrics": {
+          "cpu_us_per_correct": {
+            "values": [
+              36.291783333333335,
+              38.192116666666664,
+              36.961216666666665,
+              38.1061,
+              37.945683333333335,
+              36.454433333333334
+            ],
+            "mean": 37.32522222222222,
+            "median": 37.453450000000004
+          },
+          "user_usec": {
+            "values": [
+              12.364783333333333,
+              10.49,
+              10.818533333333333,
+              6.86845,
+              13.968483333333333,
+              12.826883333333333
+            ],
+            "mean": 11.222855555555556,
+            "median": 11.591658333333333
+          },
+          "system_usec": {
+            "values": [
+              23.927,
+              27.7021,
+              26.142666666666667,
+              31.23765,
+              23.977216666666667,
+              23.627566666666667
+            ],
+            "mean": 26.10236666666667,
+            "median": 25.059941666666667
+          },
+          "p95_ns": {
+            "values": [
+              90320,
+              92881,
+              91120,
+              88441,
+              92401,
+              90561
+            ],
+            "mean": 90954,
+            "median": 90840.5
+          }
+        },
+        "cpu0_steal_fraction_max": 0.00017201341704652963,
+        "cpu0_steal_fraction_mean": 5.730705033669821e-05
+      },
+      {
+        "profile": "udp-miss",
+        "variant": "main",
+        "metrics": {
+          "cpu_us_per_correct": {
+            "values": [
+              77.0277625,
+              83.05903333333333
+            ],
+            "mean": 80.04339791666666,
+            "median": 80.04339791666666
+          },
+          "user_usec": {
+            "values": [
+              9.332516666666667,
+              20.571195833333334
+            ],
+            "mean": 14.95185625,
+            "median": 14.95185625
+          },
+          "system_usec": {
+            "values": [
+              67.69524583333333,
+              62.487833333333334
+            ],
+            "mean": 65.09153958333333,
+            "median": 65.09153958333333
+          },
+          "p95_ns": {
+            "values": [
+              105841,
+              124961
+            ],
+            "mean": 115401,
+            "median": 115401.0
+          }
+        },
+        "cpu0_steal_fraction_max": 0.0,
+        "cpu0_steal_fraction_mean": 0.0
+      },
+      {
+        "profile": "udp-miss",
+        "variant": "post",
+        "metrics": {
+          "cpu_us_per_correct": {
+            "values": [
+              78.15516666666667,
+              78.18009166666667
+            ],
+            "mean": 78.16762916666667,
+            "median": 78.16762916666667
+          },
+          "user_usec": {
+            "values": [
+              40.01488333333333,
+              70.94823333333333
+            ],
+            "mean": 55.48155833333333,
+            "median": 55.48155833333333
+          },
+          "system_usec": {
+            "values": [
+              38.140279166666666,
+              7.231858333333333
+            ],
+            "mean": 22.68606875,
+            "median": 22.68606875
+          },
+          "p95_ns": {
+            "values": [
+              98681,
+              114841
+            ],
+            "mean": 106761,
+            "median": 106761.0
+          }
+        },
+        "cpu0_steal_fraction_max": 0.0,
+        "cpu0_steal_fraction_mean": 0.0
+      }
+    ],
+    "global": {
+      "max_cpu0_steal_fraction": 0.00017201341704652963,
+      "max_all_cpu_steal_fraction": 0.0007574482410368624,
+      "max_boundary_lag_ns": 4931931,
+      "max_send_lag_p95_ns": 86388,
+      "total_cg_throttled_usec": 0,
+      "all_idle_cpu_zero": true
+    },
+    "limits": [
+      "/proc/stat is sampled within epochs and omits subsecond edge gaps; low steal does not prove causality.",
+      "cgroup total is primary; user/system decomposition alone does not identify function or syscall cause.",
+      "No samples/windows removed or repeated. Group median is distinct from median paired ratio."
+    ]
+  },
+  "raw_evidence": {
+    "plan.json": {
+      "path": "$RUN/private/performance-parsed-01/plan.json",
+      "sha256": "77251e1c682a7a0d33f2e0e4ad77e9e344a7b04f01df289376cab9863070284f",
+      "bytes": 115185
+    },
+    "run.json": {
+      "path": "$RUN/private/performance-parsed-01/run.json",
+      "sha256": "ed7501381e2b9d4486a0908acdd8c3da044d57b84b9a8f6ef8f3693de11316ad",
+      "bytes": 2637
+    },
+    "summary.json": {
+      "path": "$RUN/private/performance-parsed-01/summary.json",
+      "sha256": "b0a3c3dbb99afe3e1efd18c58ad365e16cd321119ba9c45e25b8f7b738d73454",
+      "bytes": 346641
+    },
+    "secondary-analysis.json": {
+      "path": "$RUN/private/performance-parsed-01/secondary-analysis.json",
+      "sha256": "22811b11645c017bff5e2142dd77af49dcbf5f148451048218d06a31f8aa4389",
+      "bytes": 20046
+    },
+    "driver-invocation.json": {
+      "path": "$RUN/private/performance-parsed-01/driver-invocation.json",
+      "sha256": "67cabd0be71239ca111a64932ccb2df2fd5b87c525e58f4f6efc104f38ea55d6",
+      "bytes": 851
+    },
+    "driver.log": {
+      "path": "$RUN/private/performance-parsed-01/driver.log",
+      "sha256": "4976ae637962b161b65e436f01cc17509420dbe13381927fc462137448da5959",
+      "bytes": 5010
+    },
+    "foreign-after.json": {
+      "path": "$RUN/private/performance-parsed-01/foreign-after.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    }
+  },
+  "interpretation": {
+    "final_TCP": "Geometric mean ratio0.97391766 (-2.6082%), paired-log 95% interval[0.88717200,1.06914511] (-11.2828% to +6.9145%). Neither CPU increase nor decrease is confirmed for this final artifact. The interval does not prove equality or zero regression and retains possible small cost increase; the per-scenario upper bound is +6.91%.",
+    "pair_direction": "Four of six pairs decrease and two increase. Paired median ratio0.98063878; AB median0.97341586 versus BA1.05586653 conflict in direction. Do not claim variation was proven to be pure noise.",
+    "absolute_CPU": "Mean main38.487283 versus final37.325222 us/query, mean paired delta-1.162061. Separate run medians37.354175 versus37.453450 differ from the paired-ratio median; both are retained.",
+    "CPU_split": "Mean user5.802475\u219211.222856 and system32.684806\u219226.102367 us/query. cgroup total remains primary; this variable accounting split is not evidence for a function/syscall cause.",
+    "UDP_guard": "Opposite-order post/main ratios1.01463634 (+1.4636%) and0.94125935 (-5.8741%). Both behavior-valid; no inferential interval was planned or calculated, and two descriptive pairs cannot establish equivalence or absence of regression.",
+    "prior_observations": "The original36-window result and subsequent22-window main/pre/post result remain complete and unchanged, including their confirmed TCP costs on earlier code. This final experiment does not retroactively reclassify those results or isolate each cleanup causally.",
+    "host": "No cgroup throttling; all ten-second idle CPU observations zero. CPU0 steal maximum0.01720%, any-core maximum0.07574%; boundary capture lag maximum4.931931ms and p95 send lag maximum86.388us. These facts do not prove causality.",
+    "integrity": "All16 windows retained with no retries, removal or substitutions. All methodology/behavior checks passed; no warmup/measurement wrong, timeout, transport error or skipped send. No concurrent tracing/build/test load; no idle CPU subtraction."
+  },
+  "limits": [
+    "Six pairs and one marginal per-scenario confidence interval, conditional on the stated paired-log model.",
+    "AB/BA subgroup difference and the interval crossing one leave uncertainty; no statistical equivalence or zero-regression assertion.",
+    "Main is static ET_EXEC and final is static PIE; cumulative source changes are compared, not individual optimization causes.",
+    "Final UDP guard has only two descriptive pairs. Earlier UDP/DHCP full measurements retain their original artifact identities and cannot prove every final workload has zero regression.",
+    "No physical-router, throughput ceiling, multirate scan, long-term leak or full replacement-performance qualification."
+  ]
+}
