@@ -303,14 +303,30 @@ impl LocalDnsService {
         now: i64,
         cache: Option<&mut Cache>,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
+        let header = Header::parse(query).map_err(|_| super::local::AnswerError::Malformed)?;
+        let question = super::forward::Question::parse_with_header(query, header)
+            .map_err(|_| super::local::AnswerError::Malformed)?;
+        self.handle_tcp_parsed_with_cache(query, header, &question, now, cache)
+    }
+
+    pub(crate) fn handle_tcp_parsed_with_cache(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        now: i64,
+        cache: Option<&mut Cache>,
+    ) -> Result<Option<Vec<u8>>, ServiceError> {
         let mut answerer = LocalAnswerer {
             config: &self.config,
             hosts: &mut self.hosts,
             local_ttl: self.local_ttl,
             max_packet: u16::MAX as usize,
         };
-        let Some(answer) = answerer.answer_with_query_events(
+        let Some(answer) = answerer.answer_parsed_with_query_events(
             query,
+            header,
+            question,
             &mut self.leases,
             now,
             self.local_network,

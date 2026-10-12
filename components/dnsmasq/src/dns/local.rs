@@ -175,12 +175,33 @@ impl<'a> LocalAnswerer<'a> {
         lease_names: &mut Arc<LeaseNames>,
         now: i64,
         local_network: Option<(Ipv4Addr, Ipv4Addr)>,
+        cache: Option<&mut Cache>,
+        interfaces: &super::interface_records::InterfaceRecords,
+        logging: bool,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
+        let question = super::forward::Question::parse_with_header(query, header)
+            .map_err(|_| AnswerError::Malformed)?;
+        self.answer_parsed_with_query_events(
+            query, header, &question, lease_names, now, local_network,
+            cache, interfaces, logging,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn answer_parsed_with_query_events(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        lease_names: &mut Arc<LeaseNames>,
+        now: i64,
+        local_network: Option<(Ipv4Addr, Ipv4Addr)>,
         mut cache: Option<&mut Cache>,
         interfaces: &super::interface_records::InterfaceRecords,
         logging: bool,
     ) -> Result<Option<LocalAnswer>, AnswerError> {
         let mut notices = QueryEvents::new(logging);
-        let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         if header.opcode() != 0
             || header.flags & 0x8000 != 0
             || header.questions != 1
@@ -189,8 +210,6 @@ impl<'a> LocalAnswerer<'a> {
         {
             return Err(AnswerError::Malformed);
         }
-        let question = super::wire::Question::parse(query, super::wire::HEADER_LEN)
-            .map_err(|_| AnswerError::Malformed)?;
         // Configured local-only domains are selected by forward.c before
         // answer_request(), even for QCLASS values other than IN. Record data
         // itself remains class-IN only; a non-IN query can therefore receive
@@ -199,7 +218,7 @@ impl<'a> LocalAnswerer<'a> {
         // answer_request inspects the NX prefix before interface addresses.
         // Defer this local answer to CacheContext so its SOA footer survives.
         if class_in
-            && matches!(question.qtype, TYPE_A | TYPE_AAAA)
+            && matches!(question.rrtype, TYPE_A | TYPE_AAAA)
             && !interfaces.is_empty()
             && interfaces.declared(&question.name.dnsmasq_bytes())
             && cache
@@ -213,7 +232,7 @@ impl<'a> LocalAnswerer<'a> {
                 self.config,
                 lease_names,
                 &question.name,
-                question.qtype,
+                question.rrtype,
                 now,
             );
         }
@@ -248,7 +267,7 @@ impl<'a> LocalAnswerer<'a> {
                 self.config,
                 self.hosts,
                 &question.name,
-                question.qtype,
+                question.rrtype,
                 leases,
                 cache.as_deref_mut(),
                 &mut rows,
@@ -272,7 +291,7 @@ impl<'a> LocalAnswerer<'a> {
                     self.config,
                     self.hosts,
                     &name,
-                    question.qtype,
+                    question.rrtype,
                     self.local_ttl,
                     leases,
                     cache.as_deref(),
@@ -293,17 +312,17 @@ impl<'a> LocalAnswerer<'a> {
             let cache_candidate = !do_bit
                 && header.flags & 0x0100 != 0
                 && cache.as_deref().is_some_and(|cache| {
-                    if question.qtype == 6 {
+                    if question.rrtype == 6 {
                         cache.cname_terminal_name(&question.name, now).is_some()
-                    } else if question.qtype == 255 {
+                    } else if question.rrtype == 255 {
                         cache.cname_terminal_name(&question.name, now).is_some()
                             || cache.has_nxdomain(&question.name, now)
                     } else {
-                        cache.has_forward_candidate(&question.name, question.qtype, now)
+                        cache.has_forward_candidate(&question.name, question.rrtype, now)
                             || cache.has_nxdomain(&question.name, now)
                     }
                 });
-            if !cache_candidate && filter_win2k_question(&question.name, question.qtype) {
+            if !cache_candidate && filter_win2k_question(&question.name, question.rrtype) {
                 owned = true;
                 windows_filtered = true;
                 notices.label(
@@ -346,7 +365,7 @@ impl<'a> LocalAnswerer<'a> {
                 self.config,
                 &question.name,
                 question.class,
-                question.qtype,
+                question.rrtype,
                 self.local_ttl,
                 &mut rows,
                 &mut notices,
@@ -366,7 +385,7 @@ impl<'a> LocalAnswerer<'a> {
             // suffix.  It is a completed response with AA clear, not an empty
             // NOERROR answer.
             owned = true;
-            let family = match question.qtype {
+            let family = match question.rrtype {
                 TYPE_A => qlog::IPV4,
                 TYPE_AAAA => qlog::IPV6,
                 255 => qlog::IPV4 | qlog::IPV6,
@@ -404,7 +423,7 @@ impl<'a> LocalAnswerer<'a> {
             }
             | (header.flags & (0x0100 | 0x0040 | 0x0010));
         let mut writer = PacketWriter::new(header.id, flags, limit)?;
-        writer.question(&question.name, question.qtype, question.class)?;
+        writer.question(&question.name, question.rrtype, question.class)?;
         let question_end = writer.position();
         let mut truncated = false;
         let mut extra_owner = question.name.as_wire().to_vec();
@@ -1279,6 +1298,13 @@ fn select_local_rules(
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     notices: &mut QueryEvents,
 ) -> (bool, bool, bool) {
+    // Upstream-only rules cannot supply local rows or notices. Their domain
+    // selection belongs to the forwarder; avoid building local score tiers.
+    if !config.rules.iter().any(|rule| matches!(rule.target,
+        RuleTarget::Literal(_) | RuleTarget::ZeroAddresses | RuleTarget::LocalOnly))
+    {
+        return (false, false, false);
+    }
     let class_in = class == CLASS_IN;
     let mut scores = config
         .rules
@@ -2641,11 +2667,19 @@ pub fn interface_forward_name(config: &DnsConfig, query: &[u8]) -> Option<Vec<u8
         return None;
     }
     let header = Header::parse(query).ok()?;
-    if header.opcode() != 0 || header.flags & 0x8000 != 0 || header.questions != 1 {
-        return None;
-    }
-    let question = super::wire::Question::parse(query, super::wire::HEADER_LEN).ok()?;
-    if question.class != 1 || !matches!(question.qtype, 1 | 28 | 255) {
+    let question = super::forward::Question::parse_with_header(query, header).ok()?;
+    interface_forward_name_parsed(config, header, &question)
+}
+
+pub(crate) fn interface_forward_name_parsed(
+    config: &DnsConfig,
+    header: Header,
+    question: &super::forward::Question,
+) -> Option<Vec<u8>> {
+    if config.interface_records.rules.is_empty()
+        || header.opcode() != 0 || header.flags & 0x8000 != 0 || header.questions != 1
+        || question.class != 1 || !matches!(question.rrtype, 1 | 28 | 255)
+    {
         return None;
     }
     let mut name = wire_to_dotted(&question.name)?;

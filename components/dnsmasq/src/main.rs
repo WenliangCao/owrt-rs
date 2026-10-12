@@ -2810,60 +2810,36 @@ impl TcpDnsWork {
         .map_err(|_| ())?;
         self.no_cache = !decoration.cacheable;
         let now = self.accept_clock;
-        let mut stale = false;
-        let answered = if self.cache_debug {
-            let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
-            let daemon = owner.daemon.as_mut().ok_or(())?;
-            let local_answer = daemon
-                .local_tcp_answer(&query, &mut self.service, now)
-                .ok()
-                .flatten();
-            let cached = if local_answer.is_none() && decoration.cacheable {
-                Some(daemon.tcp_current_answer(&query, &mut self.service, now).map_err(|_| ())?)
-            } else {
-                None
-            };
-            for event in daemon.take_local_query_events() {
-                self.service.record_query_event(event);
+        let parsed = dnsmasq_rs::dns::wire::Header::parse(&query).and_then(|header| {
+            dnsmasq_rs::dns::forward::Question::parse_with_header(&query, header)
+                .map(|question| (header, question))
+        });
+        // Invalid questions miss both local and cache lookup, then reach the
+        // existing TCP forwarder's REFUSED path rather than closing the stream.
+        let answer = match parsed {
+            Err(_) => None,
+            Ok((header, question)) if self.cache_debug => {
+                let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
+                let daemon = owner.daemon.as_mut().ok_or(())?;
+                let answer = daemon.tcp_current_local_or_cached(
+                    &query, header, &question, &mut self.service, now, decoration.cacheable,
+                ).map_err(|_| ())?;
+                for event in daemon.take_local_query_events() {
+                    self.service.record_query_event(event);
+                }
+                Some(answer)
             }
-            stale = cached.as_ref().is_some_and(|answer| answer.stale);
-            local_answer.or_else(|| cached.and_then(|answer| answer.packet))
-        } else {
-            // The shared local lookup defers cached CNAMEs to CacheContext,
-            // but keeps a retained NXDOMAIN from masking newly published
-            // hosts/DHCP records. UDP and debug TCP use the same ordering.
-            let local_answer =
-                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_answer(
-                    self.cache_view.as_mut(),
-                    &query,
-                    &mut self.service,
-                    now,
-                )
-                .ok()
-                .flatten();
-            let cached = if local_answer.is_none() && decoration.cacheable {
-                self.cache_view
-                    .as_mut()
-                    .map(|cache| {
-                        dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_answer(
-                            cache,
-                            &query,
-                            &mut self.service,
-                            now,
-                            self.cache_negative,
-                            self.cache_negative_ttl,
-                        )
-                    })
-                    .transpose()
-                    .map_err(|_| ())?
-            } else {
-                None
-            };
-            stale = cached.as_ref().is_some_and(|answer| answer.stale);
-            local_answer.or_else(|| cached.and_then(|answer| answer.packet))
+            Ok((header, question)) => {
+                Some(dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_or_cached(
+                    self.cache_view.as_mut(), &query, header, &question,
+                    &mut self.service, now, decoration.cacheable,
+                    self.cache_negative, self.cache_negative_ttl,
+                ).map_err(|_| ())?)
+            }
         };
         self.collect_local_query_events();
-        if let Some(packet) = answered {
+        let stale = answer.as_ref().is_some_and(|answer| answer.stale);
+        if let Some(packet) = answer.and_then(|answer| answer.packet) {
             if stale {
                 self.stale_query = Some(query);
             }
@@ -7941,6 +7917,57 @@ mod tests {
         assert!(answer.ends_with(&[192, 0, 2, 7]));
         assert_eq!(client.queries, 1);
         assert_eq!(client.input_offset, client.input.len());
+    }
+
+    #[test]
+    fn tcp_parsed_lookup_keeps_original_invalid_questions_refused() {
+        let valid = test_dns_query();
+        let mut multi = valid.clone();
+        multi[4..6].copy_from_slice(&2u16.to_be_bytes());
+        multi.extend_from_slice(&valid[12..]);
+        let mut compressed = valid.clone();
+        compressed[4..6].copy_from_slice(&2u16.to_be_bytes());
+        compressed.extend_from_slice(&[0xc0, 12, 0, 1, 0, 1]);
+        let mut zero = valid[..12].to_vec();
+        zero[4..6].copy_from_slice(&0u16.to_be_bytes());
+        let with_tail = |tail: &[u8]| [valid[..12].to_vec(), tail.to_vec()].concat();
+        let mut long = valid[..12].to_vec();
+        for length in [63, 63, 63, 62] {
+            long.push(length);
+            long.extend(std::iter::repeat_n(b'a', usize::from(length)));
+        }
+        long.extend_from_slice(&[0, 0, 1, 0, 1]);
+        let cases = [multi, compressed, zero,
+            with_tail(&[0xc0, 12, 0, 1, 0, 1]),
+            with_tail(&[0xc0, 255, 0, 1, 0, 1]),
+            with_tail(&[0x41, 8, b'a', 0, 0, 1, 0, 1]), long];
+        for debug in [false, true] {
+            let mut config = DnsConfig::default();
+            config.no_hosts = true;
+            config.no_resolv = true;
+            config.apply(&lex_line(b"host-record=ready.test,192.0.2.7").unwrap().unwrap()).unwrap();
+            let mut daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+                DaemonOptions::default()).unwrap();
+            daemon.enable_cache(32, 0, 0, dnsmasq_rs::dns::cache::StalePolicy::Disabled);
+            let mut owner = test_owner(config, Some(daemon));
+            let mut peer = add_test_tcp(&mut owner);
+            let client = owner.clients[0].dns_work.as_mut().unwrap();
+            client.cache_debug = debug;
+            for query in cases.iter().chain(std::iter::once(&valid)) {
+                client.input = encode_tcp_frame(query).unwrap();
+                client.input_offset = 0;
+                assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
+                    false, false, false).unwrap());
+                let mut size = [0; 2];
+                peer.read_exact(&mut size).unwrap();
+                let mut answer = vec![0; usize::from(u16::from_be_bytes(size))];
+                peer.read_exact(&mut answer).unwrap();
+                let header = dnsmasq_rs::dns::wire::Header::parse(&answer).unwrap();
+                let expected = if query == &valid { (0x8580, 1) } else { (0x8185, 0) };
+                assert_eq!((header.flags, header.answers), expected);
+                assert!(matches!(client.phase, TcpClientPhase::Reading));
+            }
+        }
     }
 
     #[cfg(all(target_os = "linux", target_pointer_width = "64"))]

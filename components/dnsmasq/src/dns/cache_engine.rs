@@ -65,6 +65,7 @@ impl CacheContext<'_> {
     ) -> Result<CachedAnswer, CacheError> {
         self.answer_with_transport(
             query,
+            Header::parse(query)?,
             question,
             now,
             local,
@@ -80,6 +81,7 @@ impl CacheContext<'_> {
     pub fn answer_tcp(
         &mut self,
         query: &[u8],
+        header: Header,
         question: &super::forward::Question,
         now: i64,
         local: &mut LocalDnsService,
@@ -87,6 +89,7 @@ impl CacheContext<'_> {
     ) -> Result<CachedAnswer, CacheError> {
         self.answer_with_transport(
             query,
+            header,
             question,
             now,
             local,
@@ -101,6 +104,7 @@ impl CacheContext<'_> {
     fn answer_with_transport(
         &mut self,
         query: &[u8],
+        header: Header,
         question: &super::forward::Question,
         now: i64,
         local: &mut LocalDnsService,
@@ -109,7 +113,6 @@ impl CacheContext<'_> {
         _allow_options: bool,
         tcp: bool,
     ) -> Result<CachedAnswer, CacheError> {
-        let header = Header::parse(query)?;
         // answer_request overwrites the Additional section with its own OPT.
         // Request signatures, OPT version/flags and opaque options do not
         // change the cached record representation. Source-bound NO_CACHE is
@@ -1994,7 +1997,7 @@ mod tests {
         let request = request.finish();
         let question = super::super::forward::Question::parse(&request).unwrap();
         let answer = context
-            .answer_tcp(&request, &question, 101, &mut local, 1232)
+            .answer_tcp(&request, Header::parse(&request).unwrap(), &question, 101, &mut local, 1232)
             .unwrap()
             .packet
             .unwrap();
@@ -2491,7 +2494,7 @@ mod tests {
             class: 1,
         };
         let answer = context
-            .answer_tcp(&query, &question, 103, &mut parent_local, 1232)
+            .answer_tcp(&query, Header::parse(&query).unwrap(), &question, 103, &mut parent_local, 1232)
             .unwrap()
             .packet
             .unwrap();

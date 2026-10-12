@@ -206,6 +206,34 @@ fn cached_nxdomain_does_not_mask_new_dhcp_address() {
 }
 
 #[test]
+fn parsed_tcp_lookup_bypasses_only_dynamic_answers_when_not_cacheable() {
+    let mut daemon = daemon();
+    daemon.local.hosts.insert(b"local.test".to_vec(), "192.0.2.3".parse().unwrap(), 0, 1);
+    let mut reply = packet("remote.test", 1, 0x8180);
+    reply.record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 4]).unwrap();
+    daemon.cache_reply_at(&reply.finish(), 100);
+    for cacheable in [false, true] {
+        for name in ["local.test", "remote.test"] {
+            let query = packet(name, 1, 0x100).finish();
+            let header = Header::parse(&query).unwrap();
+            let question = super::super::forward::Question::parse_with_header(&query, header).unwrap();
+            let mut local = LocalDnsService::new(
+                daemon.local.config.clone(), daemon.local.hosts.clone(), 0, 1232,
+            );
+            let answer = daemon.tcp_current_local_or_cached(
+                &query, header, &question, &mut local, 101, cacheable,
+            ).unwrap();
+            assert_eq!(answer.packet.is_some(), name == "local.test" || cacheable);
+            if let Some(answer) = answer.packet {
+                let message = Message::parse(&answer).unwrap();
+                let address = message.records(Section::Answer).next().unwrap();
+                assert_eq!(address.rdata, if name == "local.test" { [192, 0, 2, 3] } else { [192, 0, 2, 4] });
+            }
+        }
+    }
+}
+
+#[test]
 fn cached_cname_dynamic_terminal_uses_configured_txt_mx_srv_before_cached_type() {
     for (qtype, directive, expected_data) in [
         (

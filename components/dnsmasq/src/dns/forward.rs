@@ -22,6 +22,11 @@ pub struct Question {
 impl Question {
     pub fn parse(packet: &[u8]) -> Result<Self, WireError> {
         let header = Header::parse(packet)?;
+        Self::parse_with_header(packet, header)
+    }
+
+    /// Reuse the caller's header while decoding the owned name once.
+    pub fn parse_with_header(packet: &[u8], header: Header) -> Result<Self, WireError> {
         if header.questions != 1 {
             return Err(WireError::InvalidName);
         }

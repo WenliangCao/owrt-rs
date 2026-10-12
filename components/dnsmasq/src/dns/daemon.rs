@@ -1757,7 +1757,22 @@ impl<R: Random> DnsDaemon<R> {
                 filtered: false,
             });
         };
-        if super::local::interface_forward_name(&local.config, query).is_some()
+        Self::tcp_view_answer_parsed(cache, query, Header::parse(query)?, &question,
+            local, now, negative_cache, negative_ttl)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn tcp_view_answer_parsed(
+        cache: &mut Cache,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        local: &mut LocalDnsService,
+        now: i64,
+        negative_cache: bool,
+        negative_ttl: u64,
+    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        if super::local::interface_forward_name_parsed(&local.config, header, question).is_some()
             && !cache.has_nxdomain(&question.name, now)
         {
             return Ok(super::cache_engine::CachedAnswer {
@@ -1775,7 +1790,7 @@ impl<R: Random> DnsDaemon<R> {
             negative_ttl,
             filter_rr: &filter,
         }
-        .answer_tcp(query, &question, now, local, maximum)
+        .answer_tcp(query, header, question, now, local, maximum)
         .map_err(Into::into)
     }
 
@@ -1811,6 +1826,46 @@ impl<R: Random> DnsDaemon<R> {
         local
             .handle_tcp_with_cache(query, now, cache)
             .map_err(Into::into)
+    }
+
+    /// The TCP owner shares one parsed question across local and cache lookup.
+    /// Preserve local-first ordering and its miss/error fallback; cacheable
+    /// only controls the dynamic answer, not the local resolver's cache view.
+    #[allow(clippy::too_many_arguments)]
+    pub fn tcp_view_local_or_cached(
+        mut cache: Option<&mut Cache>,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        local: &mut LocalDnsService,
+        now: i64,
+        cacheable: bool,
+        negative_cache: bool,
+        negative_ttl: u64,
+    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        let packet = local.handle_tcp_parsed_with_cache(
+            query, header, question, now, cache.as_deref_mut(),
+        ).ok().flatten();
+        if packet.is_some() || !cacheable || cache.is_none() {
+            return Ok(super::cache_engine::CachedAnswer {
+                packet, stale: false, filtered: false,
+            });
+        }
+        Self::tcp_view_answer_parsed(cache.unwrap(), query, header, question,
+            local, now, negative_cache, negative_ttl)
+    }
+
+    pub fn tcp_current_local_or_cached(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        local: &mut LocalDnsService,
+        now: i64,
+        cacheable: bool,
+    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
+        Self::tcp_view_local_or_cached(self.cache.as_mut(), query, header, question,
+            local, now, cacheable, self.negative_cache, self.negative_ttl)
     }
 
     pub fn tcp_view_extract(
