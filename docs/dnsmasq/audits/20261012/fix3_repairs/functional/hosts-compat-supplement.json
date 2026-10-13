@@ -1,0 +1,116 @@
+{
+  "schema": "dnsmasq-fix3-hosts-compat-supplement-v1",
+  "passed": true,
+  "source_commit": "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+  "command": {
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/fix2/dns/hosts_compat.py",
+      "--image-root",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--rust",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+      "--out",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe"
+    ],
+    "started_ns": 1791908972254436844,
+    "ended_ns": 1791908984688535504,
+    "returncode": 0,
+    "plan_sha256": "0f9400dd79355e58559bf2233b3b3f4f8e9e79b377145afa506310d316c4a2ea",
+    "log_sha256": "4102b226f5cddcbf767be02e29698d9e9e81035547c9aeb2df010adf14adaf45",
+    "result_sha256": "144cecb59bd99d43a0ac2cd1686224cff0e5f7f2a8a94629b02118efd9ebb426"
+  },
+  "raw_result": {
+    "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/result.json",
+    "sha256": "144cecb59bd99d43a0ac2cd1686224cff0e5f7f2a8a94629b02118efd9ebb426"
+  },
+  "assets": {
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/fix2/dns/hosts_compat.py": "928143d223d274fa6c408e72979474850e1de54d92942d3272a7a7b07174f233",
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/fix2/dns/cname_compat.py": "9fc8ad7d1f7e079c8d7880d48c3c648925ed9f7ec84e12c47861583dcc29b55f",
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+  },
+  "configurations": 6,
+  "matched_configurations": 6,
+  "C_Rust_answer_pairs": 228,
+  "C_Rust_pairs_by_transport": {
+    "udp": 114,
+    "tcp": 114
+  },
+  "transport_groups": 114,
+  "all_transport_semantics_equal": true,
+  "cases": [
+    {
+      "id": "addn-hosts-debugFalse",
+      "matched": true,
+      "all_alive": true,
+      "both_exits": 0,
+      "C_Rust_answer_pairs": 38,
+      "UDP_TCP_semantics_equal": true
+    },
+    {
+      "id": "addn-hosts-debugTrue",
+      "matched": true,
+      "all_alive": true,
+      "both_exits": 0,
+      "C_Rust_answer_pairs": 38,
+      "UDP_TCP_semantics_equal": true
+    },
+    {
+      "id": "directory-debugFalse",
+      "matched": true,
+      "all_alive": true,
+      "both_exits": 0,
+      "C_Rust_answer_pairs": 38,
+      "UDP_TCP_semantics_equal": true
+    },
+    {
+      "id": "directory-debugTrue",
+      "matched": true,
+      "all_alive": true,
+      "both_exits": 0,
+      "C_Rust_answer_pairs": 38,
+      "UDP_TCP_semantics_equal": true
+    },
+    {
+      "id": "hostsdir-debugFalse",
+      "matched": true,
+      "all_alive": true,
+      "both_exits": 0,
+      "C_Rust_answer_pairs": 38,
+      "UDP_TCP_semantics_equal": true
+    },
+    {
+      "id": "hostsdir-debugTrue",
+      "matched": true,
+      "all_alive": true,
+      "both_exits": 0,
+      "C_Rust_answer_pairs": 38,
+      "UDP_TCP_semantics_equal": true
+    }
+  ],
+  "normalization": "original decoder unchanged; only per-side fixture prefix in notices replaced exactly as original script",
+  "source_files_count": 177,
+  "source_files_equal_final_49_plan": true,
+  "functional_49_plan_sha256": "7560cd483d92430d63554f645b0d042b3c089a2c968dc33e50e783e0b6b25068",
+  "functional_49_state_sha256": "616187627d7208b883fcaed58df506ccc5dbe8d81b43ab6c6da7100392d8a4e2",
+  "previous_performance_run": {
+    "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-types-01/run.json",
+    "sha256": "21913353ca461684c43f6c813bf19cb02a19b5c5857b945c36ec7c49491dbfe9",
+    "ended_ns": 1791907979316578001
+  },
+  "no_overlap_with_performance": true,
+  "foreign_after": [],
+  "verified_at_ns": 1791909117841732876,
+  "raw_index": {
+    "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/raw-index.json",
+    "sha256": "78cb9f47e5053c171623722db30199b4605c63020e99c3d1953948276378eea3",
+    "files": 28
+  },
+  "coverage_statement": "49 previously completed fresh commands plus this single original FIX2 hosts_compat supplement; no repeated 49-command suite or performance window"
+}

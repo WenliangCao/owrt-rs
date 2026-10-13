@@ -1,0 +1,144 @@
+{
+  "files": [
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/plan.json",
+      "sha256": "0f9400dd79355e58559bf2233b3b3f4f8e9e79b377145afa506310d316c4a2ea",
+      "bytes": 2033
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/run.json",
+      "sha256": "98c57b7254586fbbb758a72cf84b6deb7ed8bd9a2e3877fe49948d3d8f518746",
+      "bytes": 942
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/driver.log",
+      "sha256": "4102b226f5cddcbf767be02e29698d9e9e81035547c9aeb2df010adf14adaf45",
+      "bytes": 37
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugFalse-c/daemon.log",
+      "sha256": "89b07c4d905e864f084b7096c5fc4a1eff050cc601da2d292658cf0f9f9bd13f",
+      "bytes": 1212
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugFalse-c/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugFalse-rust/daemon.log",
+      "sha256": "2f49324cb1c49617343e827a5d2187cabdc1fc4e84e0eee62ac8cd79b5937970",
+      "bytes": 1240
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugFalse-rust/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugTrue-c/daemon.log",
+      "sha256": "697c9e76edbe6842f3bb7dc16bdfa7a0f838ef8b14e79e875068d2cb67510d8b",
+      "bytes": 1376
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugTrue-c/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugTrue-rust/daemon.log",
+      "sha256": "af4b06bbd06e1f0bd1684009e8f7e82e9eefe612cbc5b821f14c65d99c521b84",
+      "bytes": 1394
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/addn-hosts-debugTrue-rust/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugFalse-c/daemon.log",
+      "sha256": "59d1df4c9bfbb44593e2c206564ab48eb5c18ceb3864122b0c3efab5bd8d3712",
+      "bytes": 1216
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugFalse-c/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugFalse-rust/daemon.log",
+      "sha256": "a447648131ccd2c5ee6087248cf25fe25e9a9a99152e9e06ca1a73fb35fc6a67",
+      "bytes": 1234
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugFalse-rust/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugTrue-c/daemon.log",
+      "sha256": "a652ec7c76b6dcdf86c2adeb7071cb10abb875df36fec74ef49d554e7d6a9ba6",
+      "bytes": 1370
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugTrue-c/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugTrue-rust/daemon.log",
+      "sha256": "b667e63fd4134ca7df8b219cba219772ccdb3f0e4dadbf23ee97cf66c8305294",
+      "bytes": 1388
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/directory-debugTrue-rust/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugFalse-c/daemon.log",
+      "sha256": "42063bff7716029f5a0f74649d68f6a3f327b603c85f6143968a7bdb746c3f10",
+      "bytes": 2015
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugFalse-c/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugFalse-rust/daemon.log",
+      "sha256": "485652d0270aef578cca514af6ffef6f910499996f2f068a80fa144d01e46e6b",
+      "bytes": 2048
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugFalse-rust/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugTrue-c/daemon.log",
+      "sha256": "b65da3d3f8dab8cdba23c2796345eceedb476cb73d07d777a9de9f59833afe0a",
+      "bytes": 2276
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugTrue-c/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugTrue-rust/daemon.log",
+      "sha256": "aee97e0e919d590db196277665fc9db667bed16ff5263170d389aa8c0176a452",
+      "bytes": 2309
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/hostsdir-debugTrue-rust/input/names",
+      "sha256": "42c510a3c4283e01f78daa708b7e3c08ab00918dfab12b94d8d779e60f31f9fe",
+      "bytes": 225
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/result.json",
+      "sha256": "144cecb59bd99d43a0ac2cd1686224cff0e5f7f2a8a94629b02118efd9ebb426",
+      "bytes": 391977
+    }
+  ]
+}
