@@ -498,7 +498,16 @@ impl<'a> LocalAnswerer<'a> {
             if let Some(cache) = cache.as_deref_mut() {
                 // Only actual configured-CNAME traversal moves C's cursor.
                 // Raw TYPE_CNAME bytes are opaque output, including pointers.
-                let terminal = cname_terminal.as_deref().map(Name::from_dotted_bytes);
+                let terminal = cname_terminal.as_deref().map(|name| {
+                    // Configuration canonicalization already removed one
+                    // trailing dot. Do not strip another and alias an
+                    // invalid target to a real cached name (or the root).
+                    if name.ends_with(b".") {
+                        Err(WireError::InvalidName)
+                    } else {
+                        Name::from_dotted_bytes(name)
+                    }
+                });
                 let name = match &terminal {
                     Some(Ok(name)) => Some(name),
                     // An accepted configuration target need not be a valid

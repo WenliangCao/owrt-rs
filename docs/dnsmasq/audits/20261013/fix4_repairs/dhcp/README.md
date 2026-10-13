@@ -18,6 +18,8 @@
 
 新增 `dhcp_negative_cursor_diff.py` 准备了 12 组 normal/debug 的真实 C 对照，覆盖 raw TYPE 5 压缩指针、目标/原名 NX、配置 CNAME 早停、direct/配置别名的 reverse synth 与显式 PTR 优先级。raw 原名 NX 用 ANY 查询单独验证 SOA 游标，避开 CNAME 查询的独立 NXDOMAIN RCODE 规则；空缓存的压缩指针保留 CNAME/ANY 两种查询。性能窗口结束后须在最终 SDK ELF 上运行；截至此记录尚未运行。原有 `m5_interface_records.py` 的 `synth-reverse-negative-nxdomain` 同时属于受影响回归族。
 
+终点有效性还保持配置 canonicalization 只移除一次尾点的边界。对 `lease.test..` / `..`，canon 后剩余尾点不可被缓存 Name 转换再次移除，否则会误命中真实名字或 root 的 NX/SOA。参数化单测播种了这两种实际缓存记录，先证实错误附加，再以零分配的剩余尾点检查跳过查找；`a..b` 的原检查同时保留。此轮 local 35 条通过，前后日志收据同样收于 `cursor-review.json`。
+
 ## 扩展控制和探针修正
 
 首轮工具额外执行了 24 组 NODATA 控制，原始 48 组完整保留，未覆盖或删掉失败记录。其中 8 组 TXT NODATA 在 C/Rust 都不缓存，禁答证明均超时，属于探针错误前提。最终工具默认执行用户要求的 NXDOMAIN 24 组；显式 `--nodata-controls` 可再运行 A/AAAA NODATA 的 16 组有效控制。

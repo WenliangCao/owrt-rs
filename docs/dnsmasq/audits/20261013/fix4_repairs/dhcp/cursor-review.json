@@ -8,7 +8,8 @@
     "Actual reverse synthesis changes C name cursor and must not append the old arpa-zone SOA; explicit PTR retains precedence and SOA",
     "Configured CNAME QTYPE=CNAME stops before looking up its target negative marker",
     "Raw TYPE_CNAME bytes are opaque output, not semantic cursor changes; compression pointer c00c remains valid output with an empty cache",
-    "An accepted a..b configured target has no representable cache Name; optional SOA lookup must not fail the previous answer"
+    "An accepted a..b configured target has no representable cache Name; optional SOA lookup must not fail the previous answer",
+    "A remaining trailing dot after configuration canonicalization must not be stripped again; lease.test.. and .. retain the no-cache answer despite a seeded real-name/root NXDOMAIN"
   ],
   "logs": {
     "cursor-before-all.log": {
@@ -45,6 +46,21 @@
       "results": [
         "test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 638 filtered out; finished in 0.01s"
       ]
+    },
+    "trailing-target-before.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/trailing-target-before.log",
+      "sha256": "dd044bac26e0a6a5aebedc45c19ed82c7542546a49ae1ebc52a98a58a48296a3",
+      "results": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 672 filtered out; finished in 0.00s"
+      ]
+    },
+    "trailing-target-after.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/trailing-target-after.log",
+      "sha256": "18c12437fd8e70778ecac1b98a4fc68126f6089668e34567dc6b425887f4b75e",
+      "results": [
+        "test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 638 filtered out; finished in 0.01s"
+      ]
     }
-  }
+  },
+  "trailing_dot_guard_source_sha256": "6c0072cb7aba8decb31f178403173384ca0fe73473199895981fe17cc1844e3a"
 }
