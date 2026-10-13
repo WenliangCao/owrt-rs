@@ -1,0 +1,29 @@
+{
+  "scope": "Oracle coordination for fix4 three-way performance evidence",
+  "baseline": {
+    "private_directory": "/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/raw-before",
+    "first_window_start_epoch": 1791915915.4761987,
+    "daemon_build_exclusivity": "Root instructed all other agents not to run builds or daemons. Runner holds the shared build lock and retains initial/per-window foreign_workloads checks.",
+    "limited_read_only_overlap": [
+      {
+        "agent": "raw_review",
+        "activity": "Decoded a retained 181-sample old perf trace on CPU3, fetched old process identity/maps/build and a 1.97MB ELF to validate the offline attribution tool; no new daemon or compile",
+        "script_output_mtime_utc": "2026-10-13 18:31:50.046 UTC",
+        "report_output_mtime_utc": "2026-10-13 18:31:50.757 UTC",
+        "readback_finished_utc": "2026-10-13 18:31:52.123 UTC",
+        "tool_wall_seconds": 2.818,
+        "retained_local_receipt": "private/dnsmasq-fix4-profile-tool-validation-20261013/read-only-receipts.json",
+        "additional_checks": "Two prior CPU3 perf script/report head format checks took 0.43/0.37 seconds; exact absolute times were not captured. Small path/identity discovery reads also occurred."
+      },
+      {
+        "agent": "performance",
+        "activity": "An initial single-window analyzer check and small intermediate run/result.json reads; the multi-file intermediate check used taskset CPU3. These did not launch a daemon or build."
+      }
+    ],
+    "interpretation": "The workload scanner proves absence of recognized competing experimental daemons/builds, not absence of all host activity. The brief CPU3 read-only work above is disclosed instead of describing baseline as completely silent.",
+    "last_window_end_epoch": 1791916664.2580585,
+    "complete": true
+  },
+  "later_windows_rule": "All other agents remain Oracle-silent during formal timing, including offline perf decoding and evidence hashing. Analysis runs after all windows stop.",
+  "limitations": "Neither coordination nor cgroup throttling checks exclude hypervisor-neighbor activity."
+}
