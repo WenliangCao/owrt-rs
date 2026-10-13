@@ -193,6 +193,7 @@ def main():
         'samples', 'report', 'elf', 'build_json', 'process_identity', 'maps_after', 'link_map')
         if (path := getattr(args, name)) is not None}
     output = {'schema': 1, 'scope': 'excluded diagnostic; self IPs, not inclusive call stacks',
+              'artifact_receipt_kind': build.get('receipt_kind', 'build_receipt'),
               'inputs': inputs, 'elf_sha256': actual_sha, 'demangler': demangler,
               'event': samples[0].event, 'totals': totals, **result,
               'limitations': [
