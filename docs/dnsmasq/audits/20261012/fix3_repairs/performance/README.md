@@ -116,3 +116,48 @@ repeat or replace the first candidate's measurements.
 This plan is prepared while build/functional verification proceeds. Preparing
 a plan is not a performance pass; its run still requires a truthful completion
 receipt for the new source and artifact.
+
+## Types candidate observations
+
+The new artifact completed all 32 windows with accepted methodology and
+responses. The full cumulative branch still has confirmed TCP CPU increases:
+
+| Primary profile | CPU geometric fix/main ratio | Paired 95% interval | Pairs with increased CPU |
+| --- | ---: | --- | ---: |
+| TCP, 100 unrelated records | 1.140336 | [1.032327, 1.259645] | 6/6 |
+| TCP, 1,000 unrelated records | 1.128550 | [1.033532, 1.232304] | 6/6 |
+
+The mean paired absolute differences are +4.414596 and +4.235779 microseconds,
+respectively. The 100-record AB/BA median ratios are 1.094798 / 1.107692; the
+1,000-record values are 1.218940 / 1.067147. These similar point estimates do
+not constitute an equivalence test or justify cross-profile subtraction as
+causal attribution. Both lower bounds exceed 1, and both upper bounds exceed
+1.10: the data cannot support a claim of no CPU regression or a guaranteed
+increase below 10%. The precise role of the remaining ordinary TCP cost is
+separate from removal of per-record work for an absent RR type.
+
+TCP/0 control ratios are 1.154577 / 1.058890, with absolute differences
++4.691592 / +1.790483 microseconds. UDP/1,000 control ratios are
+0.216003 / 0.197725. These remain two-pair descriptive controls; no inferential
+interval or general S1 attribution is claimed. No window was discarded or
+repeated, including the higher individual candidate windows.
+
+All 4,800,000 warmup-plus-measurement scheduled queries were sent and answered
+correctly. Errors, timeouts, transport errors and scheduled skips were zero.
+Each of the 32 windows proved all 4,096 cached names before load, with upstream
+answers disabled and zero hit-phase upstream attempts. Paired configuration
+hashes match. The 480 retained cgroup observations show zero throttling, and
+all competing-workload scans were empty. These checks cannot rule out
+virtualization-neighbor variation.
+
+- [Types candidate statistics and all paired values](types-summary.json)
+- [Types raw input and controller hashes](types-raw-index.json)
+- [Types cache, counter and identity checks](types-counter-check.json)
+
+The full Oracle summary is `private/performance-types-01/summary.json`, SHA256
+`547a7486b88071f45e9b28807cc01dd4796b9dae9e12d7516ceb8ea6ed4fd56c`.
+The first candidate's unfavorable observations above remain unchanged. This
+second series tests new code; it is not a retry of the first ELF until a
+favorable interval appears. The workload is specifically cached A queries
+with unrelated type-65401 `dns-rr` declarations, not every possible raw-RR
+query/configuration combination.

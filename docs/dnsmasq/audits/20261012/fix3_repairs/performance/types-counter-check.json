@@ -1,0 +1,1235 @@
+{
+  "windows": [
+    {
+      "id": "tcp-raw-100-p1-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p1-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p1-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p1-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p2-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p2-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p2-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p2-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p3-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p3-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p3-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p3-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "udp-raw-1000-p1-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 0,
+      "tcp_reconnections": 0,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "udp-raw-1000-p1-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 0,
+      "tcp_reconnections": 0,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-0-p1-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-0-p1-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p4-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p4-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p4-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p4-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p5-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p5-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p5-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p5-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p6-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-1000-p6-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p6-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-100-p6-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "udp-raw-1000-p2-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 0,
+      "tcp_reconnections": 0,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "udp-raw-1000-p2-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 0,
+      "tcp_reconnections": 0,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-0-p2-fix",
+      "actual_elf_sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "config_sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    },
+    {
+      "id": "tcp-raw-0-p2-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "config_sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+      "proof": {
+        "capacity": 4096,
+        "filled_names": 4096,
+        "validated_names": 4096,
+        "ttl": 3600,
+        "upstream_disabled": true
+      },
+      "upstream_disabled_requests": 0,
+      "tcp_connections": 1500,
+      "tcp_reconnections": 1480,
+      "phases": {
+        "warmup": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        },
+        "measurement": {
+          "scheduled": 120000,
+          "sent": 120000,
+          "correct": 120000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0,
+          "scheduled_skipped": 0
+        }
+      }
+    }
+  ],
+  "totals": {
+    "scheduled": 4800000,
+    "sent": 4800000,
+    "correct": 4800000,
+    "wrong": 0,
+    "timeout": 0,
+    "transport_error": 0,
+    "scheduled_skipped": 0
+  },
+  "cgroup_samples": 480,
+  "maximum_nr_throttled": 0,
+  "maximum_throttled_usec": 0,
+  "pair_config_checks": [
+    {
+      "profile": "tcp-raw-100",
+      "pair": 1,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "pair": 1,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "pair": 2,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "pair": 2,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "pair": 3,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "pair": 3,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "udp-raw-1000",
+      "pair": 1,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-0",
+      "pair": 1,
+      "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "pair": 4,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "pair": 4,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "pair": 5,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "pair": 5,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "pair": 6,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "pair": 6,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "udp-raw-1000",
+      "pair": 2,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-raw-0",
+      "pair": 2,
+      "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+      "identical": true
+    }
+  ],
+  "foreign_after": []
+}
