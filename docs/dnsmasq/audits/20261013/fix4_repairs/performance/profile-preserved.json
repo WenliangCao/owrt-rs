@@ -73,5 +73,12 @@
     "decoded_exists_without_further_analysis": true
   },
   "stop_receipt_sha256": "2a53d9da6fbd0df368f13777594997aae9194b8ec429975e9963bf575d5b68f6",
-  "release_receipt_sha256": "6f2bd4bdc6df4f03b66549e646849d761c20923b1dfb8e5530356ea452220fd0"
+  "release_receipt_sha256": "6f2bd4bdc6df4f03b66549e646849d761c20923b1dfb8e5530356ea452220fd0",
+  "local_transport_cleanup": {
+    "reason": "The profile driver and all samplers had exited and run.json was complete, but its local SSH client remained open. After confirming no Oracle workloads and releasing the build lock, this task client was terminated locally.",
+    "local_ssh_pid": 58809,
+    "local_ssh_exit_code": 255,
+    "decode_ssh_exit_code": 0,
+    "sampling_interrupted": false
+  }
 }
