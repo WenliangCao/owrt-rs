@@ -922,7 +922,8 @@ fn add_local_records_for_name(
     cache: Option<&Cache>,
     notices: &mut QueryEvents,
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
-    // Only configured RR loops compare this key; address sources use name.
+    // Raw records and address sources compare dotted names directly. Only
+    // the other configured RR loops need a wire-format key.
     let records = &config.records;
     let raw = if qtype == 255 || records.has_raw_type(qtype) {
         records.raw_records()
@@ -930,7 +931,6 @@ fn add_local_records_for_name(
         &[]
     };
     let needs_key = !records.txt.is_empty()
-        || !raw.is_empty()
         || !records.ptr.is_empty()
         || !records.mx.is_empty()
         || !records.srv.is_empty()
@@ -955,7 +955,7 @@ fn add_local_records_for_name(
         notices.record(qlog::CONFIG, name, row.0, &row.2);
     }
     let raw_start = rows.len();
-    add_raw(raw, &key, qtype, ttl, &mut rows, &mut owned);
+    add_raw(raw, name, qtype, ttl, &mut rows, &mut owned);
     for row in &rows[raw_start..] {
         notices.label(qlog::CONFIG | qlog::RRNAME, name, None, row.0);
     }
@@ -1280,16 +1280,16 @@ fn add_naptr(
 
 fn add_raw(
     records: &[RawRecord],
-    key: &[u8],
+    name: &[u8],
     qtype: u16,
     ttl: u32,
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     owned: &mut bool,
 ) {
     for record in records.iter().rev() {
-        // C checks the type before hostname_isequal. Unrelated dns-rr
-        // types require neither name conversion nor allocation on cache hits.
-        if (qtype == 255 || qtype == record.rr_type) && dotted_key(&record.name) == key {
+        // Match C's type-first hostname_isequal without allocating or
+        // converting either dotted name, including same-type name misses.
+        if (qtype == 255 || qtype == record.rr_type) && record.name.eq_ignore_ascii_case(name) {
             *owned = true;
             rows.push((record.rr_type, ttl, record.data.clone()));
         }
@@ -1658,8 +1658,8 @@ mod tests {
     fn raw_type_selection_keeps_typed_and_any_declaration_order() {
         let mut config = DnsConfig::default();
         for line in [
-            b"dns-rr=raw.test,65401,abcd".as_slice(),
-            b"dns-rr=raw.test,1,c0000207",
+            b"dns-rr=RAW.test.,65401,abcd".as_slice(),
+            b"dns-rr=raw.TEST,1,c0000207",
             b"dns-rr=raw.test,65400,0102",
             b"caa-record=raw.test,0,issue,ca.test",
             b"dns-rr=raw.test,65401,1234",
@@ -1676,7 +1676,7 @@ mod tests {
             for qtype in [1, 16, 28, 255, 257, 65400, 65401] {
                 let response = LocalAnswerer {
                     config, hosts: &mut hosts, local_ttl: 37, max_packet: 1232,
-                }.answer(&query("raw.test", qtype)).unwrap();
+                }.answer(&query("RaW.TeSt.", qtype)).unwrap();
                 let expected = all_types.iter().copied()
                     .filter(|rr_type| qtype == 255 || qtype == *rr_type)
                     .collect::<Vec<_>>();
@@ -1693,6 +1693,28 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn raw_root_name_matches_without_a_wire_key() {
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"dns-rr=.,65401,abcd");
+        let mut hosts = configured_hosts(&config, 37);
+        let packet = LocalAnswerer {
+            config: &config,
+            hosts: &mut hosts,
+            local_ttl: 37,
+            max_packet: 512,
+        }
+        .answer(&query(".", 65401))
+        .unwrap()
+        .unwrap();
+        let message = super::super::wire::Message::parse(&packet).unwrap();
+        let records = message.records(Section::Answer).collect::<Vec<_>>();
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].name, Name::root());
+        assert_eq!(records[0].rrtype, 65401);
+        assert_eq!(records[0].rdata, &[0xab, 0xcd]);
     }
 
     #[test]
@@ -1795,9 +1817,10 @@ mod tests {
     }
 
     #[test]
-    fn literal_label_dot_does_not_alias_a_dotted_host_or_ptr_name() {
+    fn literal_label_dot_does_not_alias_a_dotted_host_raw_or_ptr_name() {
         let mut config = DnsConfig::default();
         apply(&mut config, b"host-record=one.two.test,192.0.2.1");
+        apply(&mut config, b"dns-rr=one.two.test,65401,abcd");
         let mut hosts = configured_hosts(&config, 37);
         let mut answerer = LocalAnswerer {
             config: &config,
@@ -1807,6 +1830,7 @@ mod tests {
         };
         for (labels, kind) in [
             (vec![b"one.two".as_slice(), b"test"], TYPE_A),
+            (vec![b"one.two".as_slice(), b"test"], 65401),
             (
                 vec![b"1.2".as_slice(), b"0", b"192", b"in-addr", b"arpa"],
                 TYPE_PTR,
