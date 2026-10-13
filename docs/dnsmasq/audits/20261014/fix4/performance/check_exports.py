@@ -78,7 +78,10 @@ def check(directory):
                 assert row['raw_assets']['config'] == configs[(profile, round_no)]
             for flag in flags:
                 assert len({w['argv'][w['argv'].index(flag) + 1] for w in triple}) == 1
+    expected_metrics = ('cpu_us_per_correct', 'p95_ns', 'pss_kib', 'rss_kib', 'fd_count')
     assert len(summary['comparisons']) == 35
+    assert {(r['profile'], r['metric']) for r in summary['comparisons']} == {
+        (profile, metric) for profile in profiles for metric in expected_metrics}
     for row in summary['comparisons']:
         for variant in ('c', 'main', 'current'):
             values = [next(w['metrics'][row['metric']] for w in summary['windows']

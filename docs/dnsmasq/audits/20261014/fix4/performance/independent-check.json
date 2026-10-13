@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "windows": 63,
+  "configuration_triples": 21,
+  "direct_raw_aa_packets": 108,
+  "counters": {
+    "scheduled": 1134000,
+    "sent": 1134000,
+    "correct": 1134000,
+    "wrong": 0,
+    "timeout": 0,
+    "transport_error": 0,
+    "scheduled_skipped": 0
+  },
+  "zero_throttle_samples": 630,
+  "script_sha256": "1a69b56199bde6463dd191cdd463dc2c1aed8edc9096fc4fb994761a31799c1c",
+  "inputs": {
+    "plan": "e5501b164af8268c69921b22174b149c2fee883eda9354216b02145552f110cd",
+    "run": "2557430701eeaf51ec1f12a7e0d3d920a8c60386eaba77475d4caa445adbdccd",
+    "summary": "6164c1e49866e62b5a219a0ca22e663ee1e872ae30184f5b5bb8f80c4db49de6",
+    "counter-check": "75736164355c20ace8193416634b5e32414c82735c40d4e592c53958590bc133",
+    "local-source-check": "1aa332264f988af25934d0840e31d841928be7de624cec51bd09c13211cd5a73"
+  },
+  "limit": "Local exported accounting and wire checks; private raw rehash is performed by the runner."
+}

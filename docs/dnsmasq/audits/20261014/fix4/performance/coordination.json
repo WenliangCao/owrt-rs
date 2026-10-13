@@ -1,0 +1,26 @@
+{
+  "scope": "Performance coordination and local evidence closure",
+  "dns_seconds": 1302.8398537635803,
+  "dns_windows": 63,
+  "startup_runs": 36,
+  "status_reads_on_cpu": 3,
+  "no_known_competing_experimental_workloads": true,
+  "foreign_checks": 64,
+  "raw_files_rehashed": 1243,
+  "startup_script_matches_versioned_fix3_tool": true,
+  "no_product_changes": true,
+  "limitations": [
+    "Coordination plus matching-process checks do not prove absence of all cloud-host noise.",
+    "Other functionality resumed after release.json timestamp."
+  ],
+  "exact_c_source_files_rehashed": {
+    "src/rfc1035.c": {
+      "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+      "matches_reference_identity": true
+    },
+    "src/util.c": {
+      "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+      "matches_reference_identity": true
+    }
+  }
+}
