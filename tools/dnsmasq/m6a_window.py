@@ -441,6 +441,13 @@ def diagnostic_tools_finished(summary):
                for row in summary["stopped"].values())
 
 
+def perf_settings(args):
+    if not args.perf_record:
+        return None
+    return {"event": args.perf_event, "frequency_hz": 997,
+            "call_graph": args.perf_call_graph}
+
+
 class DiagnosticCapture:
     """Attach before any load and detach immediately after the drain barrier."""
     def __init__(self, args, pid):
@@ -448,13 +455,21 @@ class DiagnosticCapture:
         self.processes, self.streams = {}, {}
         self.record = {"enabled": bool(args.perf_record or args.strace_summary),
                        "scope": "after idle CPU and cache fill; before load launch through stable drain",
-                       "cpu": args.cpu_control, "started": {}, "stopped": {}}
+                       "cpu": args.cpu_control, "perf_settings": perf_settings(args),
+                       "started": {}, "stopped": {}}
 
     def start(self):
         commands = {}
         if self.args.perf_record:
-            commands["perf"] = ["perf", "record", "-F", "997", "--call-graph", "dwarf",
-                                "-p", str(self.pid), "-o", str(self.args.output / "perf.data")]
+            command_line = ["perf", "record", "-F", "997"]
+            # Preserve the original implicit cycles selector, including perf's
+            # architecture-specific modifiers, unless cpu-clock was requested.
+            if self.args.perf_event == "cpu-clock":
+                command_line += ["-e", "cpu-clock"]
+            if self.args.perf_call_graph != "none":
+                command_line += ["--call-graph", self.args.perf_call_graph]
+            commands["perf"] = [*command_line, "-p", str(self.pid),
+                                "-o", str(self.args.output / "perf.data")]
         if self.args.strace_summary:
             commands["strace"] = ["strace", "-f", "-C", "-ttt", "-T", "-s", "0",
                                   "-o", str(self.args.output / "strace-syscalls.log"), "-p", str(self.pid)]
@@ -1117,6 +1132,7 @@ def run_window(args):
                 "idle_cpu_seconds": args.idle_seconds,
                 "drain_sample_seconds": args.drain_sample_seconds,
                 "wake_metrics": args.wake_metrics, "perf_record": args.perf_record,
+                "perf_settings": perf_settings(args),
                 "strace_summary": args.strace_summary,
                 "perf_guard_tcp_hold": args.perf_guard_tcp_hold,
                 "diagnostic_trace_scope": "warmup + measurement + stable drain; excluded diagnostic"}
@@ -1322,6 +1338,10 @@ def main():
                         help="require/read DNSMASQ_M6B_WAKE_METRICS sidecar telemetry")
     parser.add_argument("--perf-record", action="store_true",
                         help="excluded diagnostic: perf samples over warmup + load + drain")
+    parser.add_argument("--perf-event", choices=("cycles", "cpu-clock"), default="cycles",
+                        help="diagnostic event; cycles preserves perf's original default selector")
+    parser.add_argument("--perf-call-graph", choices=("dwarf", "none"), default="dwarf",
+                        help="diagnostic callgraph; none records only sampled IPs")
     parser.add_argument("--strace-summary", action="store_true",
                         help="excluded diagnostic: strace raw + summary over warmup + load + drain")
     args = parser.parse_args()
@@ -1339,6 +1359,8 @@ def main():
         parser.error("wake instrumentation requires --preflight and a separate diagnostic companion")
     if (args.perf_record or args.strace_summary) and not args.preflight:
         parser.error("perf/strace tracing requires --preflight; never trace formal performance windows")
+    if not args.perf_record and (args.perf_event != "cycles" or args.perf_call_graph != "dwarf"):
+        parser.error("perf event/callgraph selection requires --perf-record")
     if args.perf_record and args.strace_summary:
         parser.error("perf and strace must run in separate diagnostic windows")
     if not args.preflight and (args.warmup != 30 or args.duration != 120 or args.round < 1 or args.protocol is None):

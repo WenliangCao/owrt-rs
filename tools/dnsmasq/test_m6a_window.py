@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fixture negative controls; actual rootfs qualification uses Linux pilots."""
 import json
+import io
 from pathlib import Path
 import struct
 import tempfile
@@ -63,6 +64,52 @@ class MeasurementCorrections(unittest.TestCase):
         self.assertEqual(summary["intervals"][0]["poll_wait_ns"], 1100)
         self.assertEqual(summary["intervals"][0]["poll_wait_stats_ns"]["p95_ns"], 800)
         self.assertEqual(summary["intervals"][0]["wait_reasons"], {"network": 5, "timer": 1})
+
+
+class DiagnosticOptions(unittest.TestCase):
+    def parse_options(self, extra):
+        argv = ["m6a_window.py", "--scenario", "tcp", "--implementation", "rs",
+                "--rust", "/unused/elf", "--image-root", "/unused/image",
+                "--loadgen", "/unused/loadgen", "--upstream", "/unused/upstream",
+                "--output", "/unused/output", *extra]
+        with patch.object(window.sys, "argv", argv), patch.object(window, "run_window", return_value=0) as run:
+            self.assertEqual(window.main(), 0)
+            return run.call_args.args[0]
+
+    def test_defaults_and_explicit_cpu_clock_record_exact_command_and_metadata(self):
+        for extra, expected, event_args, graph_args in [
+            ([], {"event": "cycles", "frequency_hz": 997, "call_graph": "dwarf"},
+             [], ["--call-graph", "dwarf"]),
+            (["--perf-event", "cpu-clock", "--perf-call-graph", "none", "--duration", "300"],
+             {"event": "cpu-clock", "frequency_hz": 997, "call_graph": "none"},
+             ["-e", "cpu-clock"], []),
+        ]:
+            args = self.parse_options(["--preflight", "--perf-record", *extra])
+            self.assertEqual(window.perf_settings(args), expected)
+            with tempfile.TemporaryDirectory() as directory:
+                args.output = Path(directory)
+                process = SimpleNamespace(poll=lambda: None, send_signal=lambda _: None,
+                                          wait=lambda _: 0, returncode=0)
+                capture = window.DiagnosticCapture(args, 123)
+                with patch.object(window.subprocess, "Popen", return_value=process) as launch, \
+                        patch.object(window.time, "sleep"):
+                    capture.start()
+                    command = ["taskset", "-c", "3", "perf", "record", "-F", "997",
+                               *event_args, *graph_args, "-p", "123", "-o", str(args.output / "perf.data")]
+                    self.assertEqual(launch.call_args.args[0], command)
+                    self.assertEqual(json.loads((args.output / "perf-command.json").read_text()), command)
+                    capture.stop()
+                self.assertEqual(json.loads((args.output / "diagnostic-scope.json").read_text())["perf_settings"], expected)
+
+    def test_tracing_remains_diagnostic_only_and_options_need_recording(self):
+        for extra in (["--perf-record"], ["--preflight", "--perf-event", "cpu-clock"],
+                      ["--preflight", "--perf-call-graph", "none"]):
+            with self.subTest(extra=extra), patch.object(window.sys, "stderr", io.StringIO()):
+                with self.assertRaises(SystemExit) as error:
+                    self.parse_options(extra)
+                self.assertEqual(error.exception.code, 2)
+        args = self.parse_options(["--preflight"])
+        self.assertIsNone(window.perf_settings(args))
 
 
 class FrozenInputs(unittest.TestCase):
