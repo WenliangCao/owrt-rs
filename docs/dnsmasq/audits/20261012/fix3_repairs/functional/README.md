@@ -55,3 +55,14 @@ recorded EOF/RST differences must retain exactly their known flags and complete
 C/Rust results; all other service results and all 65 syntax exit decisions must
 match C. An existing rejection representation difference is not presented as a
 fix or a successful DNS response.
+
+After the source archive was frozen, two original hosts probes were retained as a
+separate supplement because their cases include TCP answers. The archived main
+controller and its 45-command plan stay unchanged. `supplemental_driver.py`
+freezes two additional commands and requires the primary state to show 45 passes
+before execution: the original hosts/CNAME/malformed-additional probe and the
+ordinary hosts diagnostics probe. These retain full C/Rust query and diagnostic
+checks. The total is 47 commands, 45 primary plus two supplemental; the additional
+controller has its own Git commit and file SHA, separate from source commit
+`0ff33bb0`. It executes from the private tool directory, never overwriting the
+source archive.
