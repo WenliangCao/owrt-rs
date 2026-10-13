@@ -226,13 +226,45 @@ def remote(args):
         bind('functional_plan', plan_path)
         bind('functional_state', functional / 'state.json')
 
+        supplement_path = args.supplemental_plan or private / 'functional-supplement-plan.json'
+        supplement = read(supplement_path)
+        supplement_out = Path(supplement['output'])
+        supplement_state_path = supplement_out / 'state.json'
+        supplement_state = read(supplement_state_path)
+        check('supplemental_primary_binding', Path(supplement['primary_plan']) == plan_path
+              and supplement['primary_plan_sha256'] == sha(plan_path)
+              and Path(supplement['primary_state']) == functional / 'state.json'
+              and supplement_state['primary_state_sha256'] == sha(functional / 'state.json'))
+        check('supplemental_complete', supplement_state['passed']
+              and supplement_state['plan_sha256'] == sha(supplement_path)
+              and supplement['source_commit'] == supplement_state['source_commit'] == COMMIT
+              and Path(supplement['source']) == source
+              and sha(supplement['rust']) == supplement['rust_sha256'] == supplement_state['elf_sha256'] == sdk_sha
+              and len(supplement['jobs']) == len(supplement_state['commands']) and bool(supplement['jobs']))
+        check('supplemental_assets', all(sha(path) == expected for path, expected in supplement['assets'].items()))
+        supplemental_results = {}
+        for expected, actual in zip(supplement['jobs'], supplement_state['commands']):
+            name = expected['id']
+            check('supplemental_command_' + name, all(actual[key] == value for key, value in expected.items())
+                  and actual['passed'] and actual['returncode'] == 0 and sha(actual['result']) == actual['result_sha256'])
+            if 'strict_result' in actual:
+                check('supplemental_strict_' + name, actual['strict_result']['passed'])
+            supplemental_results[name] = dict(result=file(actual['result']), log=file(supplement_out / (name + '.log')))
+        report['supplemental_results'] = supplemental_results
+        report['functional_inventory']['supplemental_commands'] = len(supplement['jobs'])
+        report['functional_inventory']['total_commands'] = len(plan['jobs']) + len(supplement['jobs'])
+        bind('supplemental_plan', supplement_path)
+        bind('supplemental_state', supplement_state_path)
+
         perf = args.performance_out or private / 'performance-paired-01'
         pp, run, summary, inv = [read(perf / name) for name in ('plan.json', 'run.json', 'summary.json', 'driver-invocation.json')]
         ready_path = args.ready_receipt or private / 'performance-ready.json'
         ready = read(ready_path)
         check('performance_ready', ready['functional_complete'] and ready['builds_complete']
               and ready['source_commit'] == COMMIT and ready['candidate_sha256'] == release_sha)
-        for field, target in (('functional_state_sha256', functional / 'state.json'), ('build_result_sha256', private / 'build-result.json')):
+        for field, target in (('functional_state_sha256', functional / 'state.json'),
+                              ('supplemental_state_sha256', supplement_state_path),
+                              ('build_result_sha256', private / 'build-result.json')):
             check('performance_ready_' + field, ready[field] == sha(target))
         check('performance_ready_copy', sha(ready_path) == sha(perf / 'ready-receipt.json') == run['ready_receipt_sha256'] == inv['ready_receipt_sha256'])
         check('performance_plan_identity', pp['source_commit'] == COMMIT and pp['main_commit'] == MAIN and pp['source_identity'] == identity
@@ -267,7 +299,7 @@ def remote(args):
         for name in ('plan.json', 'ready-receipt.json', 'run.json', 'summary.json', 'driver-invocation.json'):
             bind('performance_' + name, perf / name)
         check('performance_started_after_functional', min(row['started_ns'] for row in run['windows']) / 1e9
-              >= max(row['started'] + row['elapsed_seconds'] for row in state['commands']))
+              >= max(row['started'] + row['elapsed_seconds'] for row in state['commands'] + supplement_state['commands']))
         check('closure_after_controllers', report['created_unix'] >= run['ended_ns'] / 1e9 and report['created_unix'] >= build['ended'])
         report['passed'] = True
     except Exception as error:
@@ -290,6 +322,7 @@ def main():
     remote_args.add_argument('--root', type=Path, default=ROOT)
     remote_args.add_argument('--git-witness', type=Path, required=True)
     remote_args.add_argument('--functional-plan', type=Path)
+    remote_args.add_argument('--supplemental-plan', type=Path)
     remote_args.add_argument('--performance-out', type=Path)
     remote_args.add_argument('--ready-receipt', type=Path)
     remote_args.add_argument('--out', type=Path, required=True)
