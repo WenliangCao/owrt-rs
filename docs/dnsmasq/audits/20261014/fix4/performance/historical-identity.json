@@ -1,0 +1,34 @@
+{
+  "scope": "Identity qualification of prior repaired performance evidence, no raw rehash or promotion to final SDK",
+  "historical": {
+    "after": {
+      "candidate_commit": "006002bbbd74cb7021589208085f866d883ec4fe",
+      "elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "plan_sha256": "d9acc5ea580f0d34dafefeb47337453c111e8b829c45bc04cc88d180465d0a98",
+      "summary_binds_plan": true,
+      "windows": 36,
+      "complete": true,
+      "compilation_flags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static -Clink-arg=-Wl,-Map=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-scan-v2/link.map"
+    },
+    "ordinary": {
+      "candidate_commit": "006002bbbd74cb7021589208085f866d883ec4fe",
+      "elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "plan_sha256": "2ca234279a4ba21d5d6c7fc8c5a88d0da84d5c9761a02a082cf2eece45590e94",
+      "summary_binds_plan": true,
+      "windows": 9,
+      "complete": true,
+      "compilation_flags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static -Clink-arg=-Wl,-Map=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-scan-v2/link.map"
+    },
+    "absent": {
+      "candidate_commit": "006002bbbd74cb7021589208085f866d883ec4fe",
+      "elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "plan_sha256": "de1108033818bdb92f5fe6c3ef443d84c5d0583f2a8b832e80d8931dc22027e7",
+      "summary_binds_plan": true,
+      "windows": 18,
+      "complete": true,
+      "compilation_flags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static -Clink-arg=-Wl,-Map=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-scan-v2/link.map"
+    }
+  },
+  "final_sdk_sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+  "finding": "All prior measured repaired ELFs are static PIE but are neither final SDK ELF nor final product source; fresh series is separately frozen."
+}

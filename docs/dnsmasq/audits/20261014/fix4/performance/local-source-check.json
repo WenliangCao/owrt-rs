@@ -1,0 +1,18 @@
+{
+  "scope": "Fresh frozen runtime plan inputs independently compared to exact Git blobs; product code unchanged by audit",
+  "checks": {
+    "current": {
+      "commit": "f93b6b269acb16f495b292ae7a1409c372db8b45",
+      "files": 178,
+      "mismatches": [],
+      "passed": true
+    },
+    "main": {
+      "commit": "be531cee49e366bb5044443d473944dbea45b87e",
+      "files": 172,
+      "mismatches": [],
+      "passed": true
+    }
+  },
+  "plan_sha256": "e5501b164af8268c69921b22174b149c2fee883eda9354216b02145552f110cd"
+}
