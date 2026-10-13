@@ -72,6 +72,86 @@ fn cached_details(
     answer.packet.is_some().then_some(answer)
 }
 
+fn shared_answer(daemon: &mut DnsDaemon, query: &[u8], now: i64, tcp: bool) -> Option<Vec<u8>> {
+    let header = Header::parse(query).unwrap();
+    let question = super::super::forward::Question::parse_with_header(query, header).unwrap();
+    DnsDaemon::<OsRandom>::answer_local_or_cached(
+        daemon.cache.as_mut(), query, header, &question, &mut daemon.local, now, true, tcp,
+    ).unwrap().map(|answer| match answer {
+        QueryResult::Local(packet) | QueryResult::Cached(packet) | QueryResult::Stale(packet) => packet,
+        _ => panic!("answer lookup cannot forward a query"),
+    })
+}
+
+#[test]
+fn shared_lookup_keeps_udp_tcp_cname_local_cache_order_and_rd_do_gates() {
+    for negative in [false, true] {
+        let mut daemon = daemon();
+        for directive in [
+            "filterwin2k", "no-round-robin",
+            "txt-record=alias.test,alias-local",
+            "txt-record=target.test,target-local",
+            "mx-host=target.test,mail.test,10",
+            "srv-host=target.test,mail.test,8443,10,0",
+            "dns-rr=target.test,65401,abcd",
+            "host-record=mail.test,192.0.2.80",
+        ] {
+            daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        }
+        daemon.local.hosts = super::super::local::configured_hosts(&daemon.local.config, 0);
+        daemon.cache_reply_at(&chain_reply(1, negative), 100);
+        for qtype in [1, 5, 6, 15, 16, 33, 255, 65401] {
+            for rd in [false, true] {
+                for do_bit in [false, true] {
+                    let mut query = packet("alias.test", qtype, if rd { 0x100 } else { 0 });
+                    query.record(Section::Additional, &Name::root(), 41, 1232,
+                        if do_bit { 0x8000 } else { 0 }, &[]).unwrap();
+                    let query = query.finish();
+                    let udp = shared_answer(&mut daemon, &query, 101, false);
+                    let tcp = shared_answer(&mut daemon, &query, 101, true);
+                    assert_eq!(udp, tcp, "qtype={qtype}, negative={negative}, RD={rd}, DO={do_bit}");
+                    if do_bit || !rd {
+                        assert!(tcp.is_none(), "unsigned cached CNAME must be forwarded");
+                    } else if matches!(qtype, 15 | 16 | 33 | 65401) {
+                        let answer = tcp.unwrap();
+                        let message = Message::parse(&answer).unwrap();
+                        let types = message.records(Section::Answer).map(|rr| rr.rrtype).collect::<Vec<_>>();
+                        assert_eq!(types, [5, 5, qtype]);
+                        if qtype == 16 {
+                            assert_eq!(message.records(Section::Answer).last().unwrap().rdata, b"\x0ctarget-local");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn reply_known_name_uses_live_cache_or_connection_snapshot() {
+    let mut daemon = daemon();
+    let forward = super::super::tcp_service::TcpDnsService::new(&daemon.local.config, &[], 1232).unwrap();
+    let query = packet("alias.test", 6, 0x100).finish();
+    let cold = daemon.tcp_cache_view();
+    daemon.cache_reply_at(&chain_reply(1, true), 100);
+    let warm = daemon.tcp_cache_view();
+    daemon.cache.as_mut().unwrap().clear();
+    for (cache, now, known) in [
+        (cold.as_ref(), 101, false),
+        (warm.as_ref(), 101, true),
+        (daemon.current_cache(), 101, false),
+        (warm.as_ref(), 161, false),
+    ] {
+        let cached = forward.cached_query_name(Some(&query), cache, now);
+        assert_eq!(cached, known);
+        let mut reply = packet("alias.test", 6, 0x8183).finish();
+        super::super::reply::apply_known_local_nxdomain(&mut reply, 3, |name| {
+            super::super::reply::known_name(name, Some(&daemon.local), Some(&daemon.routing), cached, now)
+        }).unwrap();
+        assert_eq!(Header::parse(&reply).unwrap().rcode(), if known { 0 } else { 3 });
+    }
+}
+
 #[test]
 fn cached_cname_local_terminal_uses_the_current_query_network() {
     let mut daemon = daemon();
@@ -184,17 +264,7 @@ fn cached_nxdomain_does_not_mask_new_dhcp_address() {
         .has_nxdomain(&Name::from_ascii("client.test").unwrap(), 101));
     let query = packet("client.test", 1, 0x100).finish();
     for tcp in [false, true] {
-        let answer = if tcp {
-            daemon
-                .local
-                .handle_tcp_with_cache(&query, 101, daemon.cache.as_mut())
-        } else {
-            daemon
-                .local
-                .handle_udp_with_cache(&query, 101, daemon.cache.as_mut())
-        }
-        .unwrap()
-        .unwrap();
+        let answer = shared_answer(&mut daemon, &query, 101, tcp).unwrap();
         let message = Message::parse(&answer).unwrap();
         assert_eq!(message.header.rcode(), 0);
         assert_eq!(message.header.answers, 1);
@@ -206,13 +276,13 @@ fn cached_nxdomain_does_not_mask_new_dhcp_address() {
 }
 
 #[test]
-fn parsed_tcp_lookup_bypasses_only_dynamic_answers_when_not_cacheable() {
+fn shared_lookup_bypasses_only_dynamic_answers_when_not_cacheable() {
     let mut daemon = daemon();
     daemon.local.hosts.insert(b"local.test".to_vec(), "192.0.2.3".parse().unwrap(), 0, 1);
     let mut reply = packet("remote.test", 1, 0x8180);
     reply.record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 4]).unwrap();
     daemon.cache_reply_at(&reply.finish(), 100);
-    for cacheable in [false, true] {
+    for (cacheable, tcp) in [(false, false), (false, true), (true, false), (true, true)] {
         for name in ["local.test", "remote.test"] {
             let query = packet(name, 1, 0x100).finish();
             let header = Header::parse(&query).unwrap();
@@ -220,11 +290,11 @@ fn parsed_tcp_lookup_bypasses_only_dynamic_answers_when_not_cacheable() {
             let mut local = LocalDnsService::new(
                 daemon.local.config.clone(), daemon.local.hosts.clone(), 0, 1232,
             );
-            let answer = daemon.tcp_current_local_or_cached(
-                &query, header, &question, &mut local, 101, cacheable,
+            let answer = daemon.current_answer_local_or_cached(
+                &query, header, &question, &mut local, 101, cacheable, tcp,
             ).unwrap();
-            assert_eq!(answer.packet.is_some(), name == "local.test" || cacheable);
-            if let Some(answer) = answer.packet {
+            assert_eq!(answer.is_some(), name == "local.test" || cacheable);
+            if let Some(QueryResult::Local(answer) | QueryResult::Cached(answer)) = answer {
                 let message = Message::parse(&answer).unwrap();
                 let address = message.records(Section::Answer).next().unwrap();
                 assert_eq!(address.rdata, if name == "local.test" { [192, 0, 2, 3] } else { [192, 0, 2, 4] });

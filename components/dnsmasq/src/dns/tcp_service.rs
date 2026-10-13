@@ -87,6 +87,23 @@ pub struct TcpDnsService {
 }
 
 impl TcpDnsService {
+    /// Re-evaluate immediately before each nonblocking forwarder step. The
+    /// caller supplies its connection snapshot, or the current cache in debug
+    /// mode, so this does not freeze name existence across an upstream wait.
+    pub fn cached_query_name(
+        &self,
+        query: Option<&[u8]>,
+        cache: Option<&super::cache::Cache>,
+        now: i64,
+    ) -> bool {
+        query
+            .or(self.pending_query.as_deref())
+            .and_then(|query| Question::parse(query, 12).ok())
+            .is_some_and(|question| {
+                cache.is_some_and(|cache| cache.contains_forward_name(&question.name, now))
+            })
+    }
+
     pub fn set_query_logging(&mut self, enabled: bool) {
         self.query_logging = enabled;
     }
@@ -261,7 +278,7 @@ impl TcpDnsService {
         local: &LocalDnsService,
         deadline: Instant,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
-        self.start_with_cache_sink(query, local, deadline, None, false, None)
+        self.start_with_cache_sink(query, local, deadline, None, false, None, false)
     }
 
     pub fn start_with_local_upstream_cache(
@@ -272,15 +289,18 @@ impl TcpDnsService {
         no_cache: bool,
         now: i64,
         cache: &mut TcpCacheSink<'_>,
+        cached_name: bool,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
-        self.start_with_cache_sink(query, local, deadline, Some(cache), no_cache, Some(now))
+        self.start_with_cache_sink(
+            query, local, deadline, Some(cache), no_cache, Some(now), cached_name,
+        )
     }
 
     pub fn step_with_local_upstream(
         &mut self,
         local: &LocalDnsService,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
-        self.step_with_cache_sink(local, None, false, None)
+        self.step_with_cache_sink(local, None, false, None, false)
     }
 
     pub fn step_with_local_upstream_cache(
@@ -289,8 +309,9 @@ impl TcpDnsService {
         no_cache: bool,
         now: i64,
         cache: &mut TcpCacheSink<'_>,
+        cached_name: bool,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
-        self.step_with_cache_sink(local, Some(cache), no_cache, Some(now))
+        self.step_with_cache_sink(local, Some(cache), no_cache, Some(now), cached_name)
     }
 
     fn start_with_cache_sink(
@@ -301,6 +322,7 @@ impl TcpDnsService {
         cache: Option<&mut TcpCacheSink<'_>>,
         no_cache: bool,
         now: Option<i64>,
+        cached_name: bool,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         if self.pending_query.is_some() {
             return Err(TcpServiceError::Transport(TcpError::Busy));
@@ -313,7 +335,9 @@ impl TcpDnsService {
             PreparedQuery::Forward(group) => group,
         };
         let progress = self.upstream.start(group, query, deadline);
-        self.finish_progress(query.to_vec(), local, progress, cache, no_cache, now)
+        self.finish_progress(
+            query.to_vec(), local, progress, cache, no_cache, now, cached_name,
+        )
     }
 
     /// Resume after fd readiness or its absolute timer. This is also safe to
@@ -324,13 +348,14 @@ impl TcpDnsService {
         cache: Option<&mut TcpCacheSink<'_>>,
         no_cache: bool,
         now: Option<i64>,
+        cached_name: bool,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         let query = self
             .pending_query
             .take()
             .ok_or(TcpServiceError::Transport(TcpError::NotStarted))?;
         let progress = self.upstream.step();
-        self.finish_progress(query, local, progress, cache, no_cache, now)
+        self.finish_progress(query, local, progress, cache, no_cache, now, cached_name)
     }
 
     /// Cancel the current exchange and release all per-session upstream fds.
@@ -348,6 +373,7 @@ impl TcpDnsService {
         cache: Option<&mut TcpCacheSink<'_>>,
         no_cache: bool,
         now: Option<i64>,
+        cached_name: bool,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         match progress {
             Ok(TcpProgress::Pending(wait)) => {
@@ -369,6 +395,7 @@ impl TcpDnsService {
                     cache,
                     no_cache,
                     now,
+                    cached_name,
                 )
                 .map(|reply| {
                     self.pending_bogus = reply.bogus;
@@ -481,6 +508,7 @@ impl TcpDnsService {
                 None,
                 false,
                 None,
+                false,
             )
             .map(|reply| {
                 self.pending_bogus = reply.bogus;
@@ -568,6 +596,7 @@ fn finish_reply(
         None,
         false,
         None,
+        false,
     )
 }
 
@@ -585,6 +614,7 @@ fn finish_reply_with_edns(
     mut cache: Option<&mut TcpCacheSink<'_>>,
     no_cache: bool,
     now: Option<i64>,
+    cached_name: bool,
 ) -> Result<FinishedReply, TcpServiceError> {
     if edns.is_some_and(|(config, source)| {
         !super::edns_policy::check_reply_source(reply, config, source)
@@ -619,19 +649,17 @@ fn finish_reply_with_edns(
     // Do not reinterpret an extended error as NOERROR after that strip.
     if matches!(envelope.rcode, 0 | 3) {
         apply_known_local_nxdomain(&mut packet, envelope.rcode, |name| {
-            local.is_some_and(|local| {
-                super::local::known_forwarded_domain_with_leases(
-                    &local.config,
-                    &local.hosts,
-                    name,
-                    &local.leases,
-                    now.unwrap_or_else(|| {
-                        std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .map_or(0, |time| time.as_secs() as i64)
-                    }),
-                )
-            }) || routing.is_some_and(|routing| routing.has_configured_address(name))
+            super::reply::known_name(
+                name,
+                local,
+                routing,
+                cached_name,
+                now.unwrap_or_else(|| {
+                    std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map_or(0, |time| time.as_secs() as i64)
+                }),
+            )
         })?;
         apply_static_aliases(&mut packet, &policy.static_aliases, envelope.rcode)
             .map_err(TcpServiceError::Process)?;
@@ -761,6 +789,7 @@ mod tests {
                 Some(&mut sink),
                 no_cache,
                 Some(100),
+                false,
             )
             .unwrap();
             assert_eq!(observed, Some(expected));

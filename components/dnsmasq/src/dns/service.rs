@@ -239,50 +239,10 @@ impl LocalDnsService {
         now: i64,
         cache: Option<&mut Cache>,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        // C treats an invalid additional section as no pseudoheader; a
-        // valid question may still receive a local answer.
-        let opt = find_pseudoheader(query, true)
-            .ok()
-            .and_then(|scan| scan.opt);
-        let limit = opt
-            .as_ref()
-            .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)));
-        let do_bit = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
-        let mut answerer = LocalAnswerer {
-            config: &self.config,
-            hosts: &mut self.hosts,
-            local_ttl: self.local_ttl,
-            max_packet: limit,
-        };
-        let Some(mut answer) = answerer.answer_with_query_events(
-            query,
-            &mut self.leases,
-            now,
-            self.local_network,
-            cache,
-            &self.interfaces,
-            self.query_logging,
-        )?
-        else {
-            return Ok(None);
-        };
-        self.query_events.extend(answer.query_events);
-        if opt.is_some() {
-            // forward_query and receive_query have different OPT output
-            // limits/DO policies. Keep their source-contract distinction.
-            let opt_limit = if answer.forward_rule {
-                limit
-            } else {
-                usize::from(self.edns_packet_max)
-            };
-            append_empty_opt(
-                &mut answer.packet,
-                self.edns_packet_max,
-                do_bit && !answer.forward_rule,
-                opt_limit,
-            )?;
-        }
-        Ok(Some(answer.packet))
+        let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
+        let question = super::forward::Question::parse_with_header(query, header)
+            .map_err(|_| AnswerError::Malformed)?;
+        self.handle_local_parsed(query, header, &question, now, cache, false)
     }
 
     pub fn handle_tcp_payload(&mut self, query: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
@@ -303,27 +263,44 @@ impl LocalDnsService {
         now: i64,
         cache: Option<&mut Cache>,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
-        let header = Header::parse(query).map_err(|_| super::local::AnswerError::Malformed)?;
+        let header = Header::parse(query).map_err(|_| AnswerError::Malformed)?;
         let question = super::forward::Question::parse_with_header(query, header)
-            .map_err(|_| super::local::AnswerError::Malformed)?;
-        self.handle_tcp_parsed_with_cache(query, header, &question, now, cache)
+            .map_err(|_| AnswerError::Malformed)?;
+        self.handle_local_parsed(query, header, &question, now, cache, true)
     }
 
-    pub(crate) fn handle_tcp_parsed_with_cache(
+    /// The local record lookup is identical for UDP and TCP. Transport only
+    /// selects the output envelope and forward_query's distinct OPT policy.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn handle_local_parsed(
         &mut self,
         query: &[u8],
         header: Header,
         question: &super::forward::Question,
         now: i64,
         cache: Option<&mut Cache>,
+        tcp: bool,
     ) -> Result<Option<Vec<u8>>, ServiceError> {
+        // C treats an invalid additional section as no pseudoheader; a
+        // valid question may still receive a local answer.
+        let opt = if tcp {
+            None
+        } else {
+            find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
+        };
+        let limit = if tcp {
+            u16::MAX as usize
+        } else {
+            opt.as_ref()
+                .map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)))
+        };
         let mut answerer = LocalAnswerer {
             config: &self.config,
             hosts: &mut self.hosts,
             local_ttl: self.local_ttl,
-            max_packet: u16::MAX as usize,
+            max_packet: limit,
         };
-        let Some(answer) = answerer.answer_parsed_with_query_events(
+        let Some(mut answer) = answerer.answer_parsed_with_query_events(
             query,
             header,
             question,
@@ -338,23 +315,26 @@ impl LocalDnsService {
             return Ok(None);
         };
         self.query_events.extend(answer.query_events);
-        let mut packet = answer.packet;
-        // TCP's local answer limit does not depend on OPT. Only inspect the
-        // response decoration after a local hit; a miss has its own cache or
-        // forwarding EDNS handling and needs no extra scan here.
-        let opt = find_pseudoheader(query, true)
-            .ok()
-            .and_then(|scan| scan.opt);
-        let do_bit = opt.as_ref().is_some_and(|opt| opt.dnssec_ok());
-        if opt.is_some() {
+        // TCP needs OPT only after a hit; UDP needs it to size the writer.
+        let opt = if tcp {
+            find_pseudoheader(query, true).ok().and_then(|scan| scan.opt)
+        } else {
+            opt
+        };
+        if let Some(opt) = opt {
+            let opt_limit = if tcp || answer.forward_rule {
+                limit
+            } else {
+                usize::from(self.edns_packet_max)
+            };
             append_empty_opt(
-                &mut packet,
+                &mut answer.packet,
                 self.edns_packet_max,
-                do_bit,
-                usize::from(u16::MAX),
+                opt.dnssec_ok() && (tcp || !answer.forward_rule),
+                opt_limit,
             )?;
         }
-        Ok(Some(packet))
+        Ok(Some(answer.packet))
     }
 
     pub fn handle_tcp_frame(&mut self, frame: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {

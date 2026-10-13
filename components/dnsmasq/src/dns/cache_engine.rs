@@ -61,9 +61,10 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         max_udp: usize,
         edns_packet_max: u16,
-        allow_options: bool,
+        _allow_options: bool,
     ) -> Result<CachedAnswer, CacheError> {
-        self.answer_with_transport(
+        Self::answer_from_cache(
+            self.cache,
             query,
             Header::parse(query)?,
             question,
@@ -71,8 +72,8 @@ impl CacheContext<'_> {
             local,
             max_udp,
             edns_packet_max,
-            allow_options,
             false,
+            self.filter_rr.contains(&question.rrtype),
         )
     }
 
@@ -87,7 +88,8 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         edns_packet_max: u16,
     ) -> Result<CachedAnswer, CacheError> {
-        self.answer_with_transport(
+        Self::answer_from_cache(
+            self.cache,
             query,
             header,
             question,
@@ -96,13 +98,27 @@ impl CacheContext<'_> {
             65536,
             edns_packet_max,
             true,
-            true,
+            self.filter_rr.contains(&question.rrtype),
         )
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn answer_with_transport(
+    #[cfg(test)]
+    pub fn answer_records(
         &mut self,
+        question: &super::forward::Question,
+        header: Header,
+        now: i64,
+        local: &mut LocalDnsService,
+        limit: usize,
+        dnssec_requested: bool,
+    ) -> Result<CachedAnswer, CacheError> {
+        Self::answer_records_filtered(self.cache, question, header, now, local, limit,
+            dnssec_requested, self.filter_rr.contains(&question.rrtype))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn answer_from_cache(
+        cache: &mut Cache,
         query: &[u8],
         header: Header,
         question: &super::forward::Question,
@@ -110,9 +126,16 @@ impl CacheContext<'_> {
         local: &mut LocalDnsService,
         max_udp: usize,
         edns_packet_max: u16,
-        _allow_options: bool,
         tcp: bool,
+        filtered_type: bool,
     ) -> Result<CachedAnswer, CacheError> {
+        // interface-name owns this family even when the current interface
+        // enumeration is empty. NXDOMAIN is the earlier cache exception.
+        if super::local::interface_forward_name_parsed(&local.config, header, question).is_some()
+            && !cache.has_nxdomain(&question.name, now)
+        {
+            return Ok(CachedAnswer { packet: None, stale: false, filtered: false });
+        }
         // answer_request overwrites the Additional section with its own OPT.
         // Request signatures, OPT version/flags and opaque options do not
         // change the cached record representation. Source-bound NO_CACHE is
@@ -139,20 +162,20 @@ impl CacheContext<'_> {
             let mut stale = false;
             if question.class == 1 {
                 let round_robin = !local.config.no_round_robin;
-                let first = self.cache.lookup(
+                let first = cache.lookup(
                     &question.name,
                     &[Kind::Cname, Kind::NxDomain],
                     now,
                     round_robin,
                 );
-                let entry = first.first().and_then(|id| self.cache.get(*id));
+                let entry = first.first().and_then(|id| cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
                 if !entry.is_some_and(|entry| entry.record.kind == Kind::Cname) {
                     if question.rrtype == 12 {
                         if let Some(address) =
                             super::local::arpa_address(&question.name.dnsmasq_bytes())
                         {
-                            self.cache.lookup_reverse(address, now);
+                            cache.lookup_reverse(address, now);
                         }
                     }
                     let kind = match question.rrtype {
@@ -161,9 +184,9 @@ impl CacheContext<'_> {
                         _ => None,
                     };
                     if let Some(kind) = kind {
-                        self.cache.lookup(&question.name, &[kind], now, round_robin);
+                        cache.lookup(&question.name, &[kind], now, round_robin);
                     }
-                    self.cache.lookup(
+                    cache.lookup(
                         &question.name,
                         &[Kind::Generic(question.rrtype), Kind::NxDomain],
                         now,
@@ -184,13 +207,15 @@ impl CacheContext<'_> {
                 .as_ref()
                 .map_or(512, |opt| usize::from(opt.udp_size(edns_packet_max)))
         };
-        let mut answer = self.answer_records(
+        let mut answer = Self::answer_records_filtered(
+            cache,
             question,
             header,
             now,
             local,
             max_udp.min(limit),
             dnssec_requested,
+            filtered_type,
         )?;
         // The selected cache writer reports overflow before EDNS is appended.
         // Its source is known here independently of the final owner response.
@@ -226,18 +251,18 @@ impl CacheContext<'_> {
         Ok(answer)
     }
 
-    pub fn answer_records(
-        &mut self,
+    fn answer_records_filtered(
+        cache: &mut Cache,
         question: &super::forward::Question,
         header: Header,
         now: i64,
         local: &mut LocalDnsService,
         limit: usize,
         dnssec_requested: bool,
+        filtered_type: bool,
     ) -> Result<CachedAnswer, CacheError> {
         let mut stale = false;
         let round_robin = !local.config.no_round_robin;
-        let cache = &mut *self.cache;
         if question.class != 1 {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -324,7 +349,7 @@ impl CacheContext<'_> {
             // trip. DNSSEC/DO requests bypass this unauthenticated shortcut.
             if !dnssec_requested
                 && question.rrtype != 255
-                && self.filter_rr.contains(&question.rrtype)
+                && filtered_type
                 && !cache
                     .lookup(
                         &question.name,
@@ -376,7 +401,7 @@ impl CacheContext<'_> {
             // The final filtered-name existence shortcut is independent of
             // RD, unlike ordinary recursive cache answers.
             if question.rrtype != 255
-                && self.filter_rr.contains(&question.rrtype)
+                && filtered_type
                 && !dnssec_requested
                 && !ids.iter().any(|id| {
                     cache
@@ -714,7 +739,7 @@ impl CacheContext<'_> {
                                 )?);
                             }
                             if question.rrtype != 255
-                                && self.filter_rr.contains(&question.rrtype)
+                                && filtered_type
                                 && !dnssec_requested
                             {
                                 record_filter(local, &terminal_name, kind);
@@ -782,7 +807,7 @@ impl CacheContext<'_> {
                                 stale,
                             )?);
                         } else {
-                            if question.rrtype != 255 && self.filter_rr.contains(&question.rrtype) {
+                            if question.rrtype != 255 && filtered_type {
                                 record_filter(local, &terminal_name, kind);
                                 let mut answer = finish_cached_answer(writer, stale)?;
                                 answer.filtered = matches!(kind, Kind::Ipv4 | Kind::Ipv6);
@@ -835,7 +860,7 @@ impl CacheContext<'_> {
                 }
                 stale |= entry.is_stale(now);
             }
-            if question.rrtype != 255 && self.filter_rr.contains(&question.rrtype) {
+            if question.rrtype != 255 && filtered_type {
                 record_filter(local, &question.name, kind);
                 let mut answer = finish_cached_answer(writer, stale)?;
                 // C marks address filtering for EDE. The generic F_RR path
@@ -857,7 +882,7 @@ impl CacheContext<'_> {
         // F_RR lookup returns every generic type. An unrelated generic RR
         // still proves the name exists for C's final filtered-NODATA shortcut.
         if question.rrtype != 255
-            && self.filter_rr.contains(&question.rrtype)
+            && filtered_type
             && !dnssec_requested
             && !cache
                 .lookup(

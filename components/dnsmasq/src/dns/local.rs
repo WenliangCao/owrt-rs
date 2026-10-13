@@ -1282,7 +1282,9 @@ fn add_raw(
     owned: &mut bool,
 ) {
     for record in records.iter().rev() {
-        if dotted_key(&record.name) == key && (qtype == 255 || qtype == record.rr_type) {
+        // C checks the type before hostname_isequal. Unrelated dns-rr
+        // types require neither name conversion nor allocation on cache hits.
+        if (qtype == 255 || qtype == record.rr_type) && dotted_key(&record.name) == key {
             *owned = true;
             rows.push((record.rr_type, ttl, record.data.clone()));
         }

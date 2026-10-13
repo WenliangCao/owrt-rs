@@ -302,6 +302,23 @@ pub struct ReplyEnvelope {
     pub signed: bool,
 }
 
+/// check_for_local_domain/lookup_domain at reply time. Both transports use
+/// their own accepted local and dynamic-cache generation with this predicate.
+pub(super) fn known_name(
+    name: &Name,
+    local: Option<&super::service::LocalDnsService>,
+    routing: Option<&super::routing::RoutingTable>,
+    cached_name: bool,
+    now: i64,
+) -> bool {
+    local.is_some_and(|local| {
+        super::local::known_forwarded_domain_with_leases(
+            &local.config, &local.hosts, name, &local.leases, now,
+        )
+    }) || routing.is_some_and(|routing| routing.has_configured_address(name))
+        || cached_name
+}
+
 /// process_reply's known-local NXDOMAIN conversion. Keep name ownership in
 /// the caller so UDP can use its current generation and TCP its fork-equivalent
 /// connection snapshot. `rcode` was captured before any OPT stripping.

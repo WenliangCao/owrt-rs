@@ -2712,6 +2712,16 @@ impl TcpDnsWork {
         let debug = self.cache_debug;
         let negative = self.cache_negative;
         let negative_ttl = self.cache_negative_ttl;
+        let cached_name = if debug {
+            let owner = parent.try_borrow().map_err(|_| ())?;
+            self.forward.cached_query_name(
+                query,
+                owner.daemon.as_ref().and_then(|daemon| daemon.current_cache()),
+                now,
+            )
+        } else {
+            self.forward.cached_query_name(query, self.cache_view.as_ref(), now)
+        };
         let view = &mut self.cache_view;
         let counters = &mut self.cache_counters;
         let mut transaction = None;
@@ -2762,10 +2772,11 @@ impl TcpDnsWork {
                 no_cache,
                 now,
                 &mut sink,
+                cached_name,
             )
         } else {
             self.forward
-                .step_with_local_upstream_cache(local, no_cache, now, &mut sink)
+                .step_with_local_upstream_cache(local, no_cache, now, &mut sink, cached_name)
         }
         .map_err(|_| ())?;
         self.query_events.extend(
@@ -2821,25 +2832,25 @@ impl TcpDnsWork {
             Ok((header, question)) if self.cache_debug => {
                 let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
                 let daemon = owner.daemon.as_mut().ok_or(())?;
-                let answer = daemon.tcp_current_local_or_cached(
-                    &query, header, &question, &mut self.service, now, decoration.cacheable,
+                let answer = daemon.current_answer_local_or_cached(
+                    &query, header, &question, &mut self.service, now, decoration.cacheable, true,
                 ).map_err(|_| ())?;
                 for event in daemon.take_local_query_events() {
                     self.service.record_query_event(event);
                 }
-                Some(answer)
+                answer
             }
             Ok((header, question)) => {
-                Some(dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::tcp_view_local_or_cached(
+                dnsmasq_rs::dns::daemon::DnsDaemon::<dnsmasq_rs::dns::upstream::OsRandom>::answer_local_or_cached(
                     self.cache_view.as_mut(), &query, header, &question,
                     &mut self.service, now, decoration.cacheable,
-                    self.cache_negative, self.cache_negative_ttl,
-                ).map_err(|_| ())?)
+                    true,
+                ).map_err(|_| ())?
             }
         };
         self.collect_local_query_events();
-        let stale = answer.as_ref().is_some_and(|answer| answer.stale);
-        if let Some(packet) = answer.and_then(|answer| answer.packet) {
+        let stale = matches!(answer, Some(QueryResult::Stale(_)));
+        if let Some(QueryResult::Local(packet) | QueryResult::Cached(packet) | QueryResult::Stale(packet)) = answer {
             if stale {
                 self.stale_query = Some(query);
             }
@@ -4994,27 +5005,23 @@ impl SinglePoll {
                     return;
                 }
 
-                match daemon.local_udp_answer(packet, local, now_seconds()) {
-                    Ok(Some(answer)) => Some((answer, false)),
-                    Ok(None) => match daemon.forward_udp_prepared_with_local(
-                        packet,
-                        decorated.as_deref().unwrap_or(packet),
-                        prepared_metadata,
-                        ClientRequest {
-                            source: client.source,
-                            destination: client.destination,
-                            interface: client.interface,
-                        },
-                        Some(token),
-                        local,
-                    ) {
-                        Ok(QueryResult::Local(answer) | QueryResult::Cached(answer)) => {
-                            Some((answer, false))
-                        }
-                        Ok(QueryResult::Stale(answer)) => Some((answer, true)),
-                        _ => None,
+                match daemon.answer_udp_prepared_with_local(
+                    packet,
+                    decorated.as_deref().unwrap_or(packet),
+                    prepared_metadata,
+                    ClientRequest {
+                        source: client.source,
+                        destination: client.destination,
+                        interface: client.interface,
                     },
-                    Err(_) => None,
+                    Some(token),
+                    local,
+                ) {
+                    Ok(QueryResult::Local(answer) | QueryResult::Cached(answer)) => {
+                        Some((answer, false))
+                    }
+                    Ok(QueryResult::Stale(answer)) => Some((answer, true)),
+                    _ => None,
                 }
             }
         };

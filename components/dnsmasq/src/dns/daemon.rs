@@ -847,13 +847,24 @@ impl<R: Random> DnsDaemon<R> {
             super::udp_query::Admission::Reply(reply) => return Ok(QueryResult::Local(reply)),
             super::udp_query::Admission::Continue => {}
         }
-        if let Some(answer) =
-            self.local
-                .handle_udp_with_cache(query, unix_seconds(), self.cache.as_mut())?
-        {
-            return Ok(QueryResult::Local(answer));
+        let header = Header::parse(query)?;
+        let question = super::forward::Question::parse_with_header(query, header)?;
+        if let Some(answer) = Self::answer_local_or_cached(
+            self.cache.as_mut(),
+            query,
+            header,
+            &question,
+            &mut self.local,
+            unix_seconds(),
+            true,
+            false,
+        )? {
+            return Ok(answer);
         }
-        self.forward_udp(query, client)
+        if let Some(packet) = self.policy_reply(query, None)? {
+            return Ok(QueryResult::Local(packet));
+        }
+        self.submit_upstream(query, &question, client, None, true)
     }
 
     /// The single poll owner supplies its local generation. MX/SRV Additional
@@ -913,7 +924,7 @@ impl<R: Random> DnsDaemon<R> {
     /// The owner decorates after preserving the original client metadata and
     /// completing MAC I/O. Local/cache envelopes still use the original UDP
     /// query, while forward.c stashes and retries the decorated packet.
-    pub fn forward_udp_prepared_with_local(
+    pub fn answer_udp_prepared_with_local(
         &mut self,
         original: &[u8],
         decorated: &[u8],
@@ -923,30 +934,19 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
     ) -> Result<QueryResult, DaemonError> {
         self.invalidate_udp_resend();
-        let question = super::forward::Question::parse(original)?;
-        let now = unix_seconds();
-        if !metadata.flags.no_cache
-            && (super::local::interface_forward_name(&local.config, original).is_none()
-                || self
-                    .cache
-                    .as_ref()
-                    .is_some_and(|cache| cache.has_nxdomain(&question.name, now)))
-        {
-            let answer = self.cached_answer_at_with_edns_limit(
-                original,
-                &question,
-                now,
-                Some(local),
-                self.max_udp,
-                true,
-            )?;
-            if let Some(packet) = answer.packet {
-                return Ok(if answer.stale {
-                    QueryResult::Stale(packet)
-                } else {
-                    QueryResult::Cached(packet)
-                });
-            }
+        let header = Header::parse(original)?;
+        let question = super::forward::Question::parse_with_header(original, header)?;
+        if let Some(answer) = Self::answer_local_or_cached(
+            self.cache.as_mut(),
+            original,
+            header,
+            &question,
+            local,
+            unix_seconds(),
+            !metadata.flags.no_cache,
+            false,
+        )? {
+            return Ok(answer);
         }
         if let Some(packet) = self.policy_reply(original, Some(local))? {
             return Ok(QueryResult::Local(packet));
@@ -1386,18 +1386,13 @@ impl<R: Random> DnsDaemon<R> {
         // recipient copies. Repeating known-local after the doctor would
         // restore AA and repeating alias rules could rewrite an address twice.
         apply_known_local_nxdomain(&mut reply.packet, rcode, |name| {
-            let local = external_local.unwrap_or(&self.local);
-            super::local::known_forwarded_domain_with_leases(
-                &local.config,
-                &local.hosts,
+            super::reply::known_name(
                 name,
-                &local.leases,
+                Some(external_local.unwrap_or(&self.local)),
+                Some(&self.routing),
+                self.cache.as_ref().is_some_and(|cache| cache.contains_forward_name(name, now)),
                 now,
-            ) || self.routing.has_configured_address(name)
-                || self
-                    .cache
-                    .as_ref()
-                    .is_some_and(|cache| cache.contains_forward_name(name, now))
+            )
         })?;
         if let Some(doctor) = doctor.as_mut() {
             let cache = self.cache_counters;
@@ -1593,25 +1588,6 @@ impl<R: Random> DnsDaemon<R> {
         max_udp: usize,
         allow_options: bool,
     ) -> Result<CachedAnswer, DaemonError> {
-        if super::local::interface_forward_name(
-            &external_local
-                .as_ref()
-                .map_or(&self.local, |local| &**local)
-                .config,
-            query,
-        )
-        .is_some()
-            && !self
-                .cache
-                .as_ref()
-                .is_some_and(|cache| cache.has_nxdomain(&question.name, now))
-        {
-            return Ok(CachedAnswer {
-                filtered: false,
-                packet: None,
-                stale: false,
-            });
-        }
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
                 filtered: false,
@@ -1731,6 +1707,11 @@ impl<R: Random> DnsDaemon<R> {
         super::local::interface_forward_name(&self.local.config, &terminal.finish()).is_some()
     }
 
+    /// Read-only access for reply-time known-name checks in debug TCP mode.
+    pub fn current_cache(&self) -> Option<&Cache> {
+        self.cache.as_ref()
+    }
+
     pub fn tcp_cache_view(&self) -> Option<Cache> {
         self.cache.as_ref().map(Cache::snapshot)
     }
@@ -1772,15 +1753,6 @@ impl<R: Random> DnsDaemon<R> {
         negative_cache: bool,
         negative_ttl: u64,
     ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
-        if super::local::interface_forward_name_parsed(&local.config, header, question).is_some()
-            && !cache.has_nxdomain(&question.name, now)
-        {
-            return Ok(super::cache_engine::CachedAnswer {
-                packet: None,
-                stale: false,
-                filtered: false,
-            });
-        }
         let filter = local.config.filter_rr.clone();
         let maximum = local.edns_packet_max;
         CacheContext {
@@ -1828,11 +1800,11 @@ impl<R: Random> DnsDaemon<R> {
             .map_err(Into::into)
     }
 
-    /// The TCP owner shares one parsed question across local and cache lookup.
-    /// Preserve local-first ordering and its miss/error fallback; cacheable
-    /// only controls the dynamic answer, not the local resolver's cache view.
+    /// Both packet owners use C's local/CNAME/cache order. A connection may
+    /// supply its accepted cache view; UDP supplies the current generation.
+    /// The transport flag changes only the response envelope, not selection.
     #[allow(clippy::too_many_arguments)]
-    pub fn tcp_view_local_or_cached(
+    pub fn answer_local_or_cached(
         mut cache: Option<&mut Cache>,
         query: &[u8],
         header: Header,
@@ -1840,22 +1812,36 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
         now: i64,
         cacheable: bool,
-        negative_cache: bool,
-        negative_ttl: u64,
-    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
-        let packet = local.handle_tcp_parsed_with_cache(
-            query, header, question, now, cache.as_deref_mut(),
-        ).ok().flatten();
-        if packet.is_some() || !cacheable || cache.is_none() {
-            return Ok(super::cache_engine::CachedAnswer {
-                packet, stale: false, filtered: false,
-            });
+        tcp: bool,
+    ) -> Result<Option<QueryResult>, DaemonError> {
+        let packet = local.handle_local_parsed(query, header, question, now, cache.as_deref_mut(), tcp);
+        // A malformed TCP question must reach tcp_request's REFUSED path;
+        // UDP admission instead drops it. Valid questions share this lookup.
+        let packet = if tcp { packet.ok().flatten() } else { packet? };
+        if let Some(packet) = packet {
+            return Ok(Some(QueryResult::Local(packet)));
         }
-        Self::tcp_view_answer_parsed(cache.unwrap(), query, header, question,
-            local, now, negative_cache, negative_ttl)
+        if !cacheable || cache.is_none() {
+            return Ok(None);
+        }
+        let filtered_type = local.config.filter_rr.contains(&question.rrtype);
+        let maximum = local.edns_packet_max;
+        let limit = if tcp { 65536 } else { local.max_udp };
+        let answer = CacheContext::answer_from_cache(
+            cache.unwrap(), query, header, question, now, local,
+            limit, maximum, tcp, filtered_type,
+        )?;
+        Ok(answer.packet.map(|packet| {
+            if answer.stale {
+                QueryResult::Stale(packet)
+            } else {
+                QueryResult::Cached(packet)
+            }
+        }))
     }
 
-    pub fn tcp_current_local_or_cached(
+    #[allow(clippy::too_many_arguments)]
+    pub fn current_answer_local_or_cached(
         &mut self,
         query: &[u8],
         header: Header,
@@ -1863,9 +1849,11 @@ impl<R: Random> DnsDaemon<R> {
         local: &mut LocalDnsService,
         now: i64,
         cacheable: bool,
-    ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
-        Self::tcp_view_local_or_cached(self.cache.as_mut(), query, header, question,
-            local, now, cacheable, self.negative_cache, self.negative_ttl)
+        tcp: bool,
+    ) -> Result<Option<QueryResult>, DaemonError> {
+        Self::answer_local_or_cached(
+            self.cache.as_mut(), query, header, question, local, now, cacheable, tcp,
+        )
     }
 
     pub fn tcp_view_extract(
