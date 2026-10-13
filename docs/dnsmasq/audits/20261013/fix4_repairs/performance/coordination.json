@@ -46,5 +46,19 @@
     "last_window_end_epoch": 1791919977.950756,
     "complete": true,
     "limited_read_only_overlap": "Root reported the DHCP agent fetched one small retained main-control JSON after stopping all experiments. That SSH read may overlap this batch; exact fetch timestamp was not captured. No competing build/daemon/new experiment was reported or found by per-window foreign workload checks."
+  },
+  "profile_preservation": {
+    "private_directory": "/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/profile-scan",
+    "status": "complete",
+    "first_window_start_epoch": 1791920327.7425945,
+    "last_window_end_epoch": 1791921991.8154368,
+    "control_status_reads": "This agent made a few small CPU3-bound run.json reads to monitor progress. No trace decoding occurred until all five windows stopped.",
+    "user_update": "Remaining UDP100 versus C and ordinary TCP costs accepted; stop further profile analysis/optimization and hand Oracle to final SDK validation.",
+    "release": {
+      "foreign_workloads": [],
+      "profile_perf_processes": [],
+      "build_lock_acquired_and_released": true,
+      "decoded_exists_without_further_analysis": true
+    }
   }
 }

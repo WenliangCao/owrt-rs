@@ -1,5 +1,10 @@
 # N4 exact-image C comparison
 
+The user later accepted the remaining UDP/100 cost against C because the branch
+is faster than main, and accepted the ordinary TCP +5.84% result. The historical
+strict-C gate observations below remain unchanged; the final acceptance update
+at the end records the newer scope.
+
 These probes extend the preceding review's fixed cached-A workload by adding
 exact-image C to every same-configuration comparison. Raw evidence stays on
 Oracle under `/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/`; only tooling
@@ -170,3 +175,26 @@ byte-for-byte, not merely its text. All 172 original source inputs, `.text`, 14
 allocated sections and LOAD layout were checked. `main-map-comparison.json`
 therefore permits that map to attribute the original measured main process;
 no different symbol companion is substituted.
+
+
+## User acceptance update and handoff to SDK validation
+
+After the formal comparisons, the user changed the remaining performance scope:
+UDP/100 being about 5 µs slower than C is accepted because it is faster than
+main; ordinary TCP's measured +5.84% CPU is accepted. Further profile analysis,
+performance optimization and additional final performance windows were stopped
+so the remaining work could focus on real SDK packaging and regression checks.
+The original measurements and their limitations above are unchanged.
+
+At that update, all five already-started excluded diagnostic captures had
+finished with return code 0. A decode command had just been launched before the
+update and finished before the stop check could terminate it. Its files remain
+private, but no subsequent profile attribution, performance conclusion or
+optimization was produced from them. `profile-preserved.json` records the
+completed window state and frozen identities without promoting those diagnostics
+to primary performance evidence.
+
+The final release check found no experimental workload or profile `perf` process;
+the shared build lock was acquired and released. Oracle was handed to the final
+SDK/regression agent. There is no final-product performance rerun unless a related
+SDK regression requires one, in accordance with the updated user instruction.
