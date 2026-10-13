@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "script_sha256": "127ab0c660bdf0fe0877113d661a54bdc48dcaf8d16f96c787b49efdac2b99c7",
+  "inputs": {
+    "validation.json": "1f77be11793f4832eb47cd40f97bf8f0406b420331835713921e26e88ad466de",
+    "raw-index.json": "499d89de25e53a02f5386a70c8f8cde6d03b511979d722a9dbb9577d5e7f0964"
+  },
+  "scope": "Local raw-result and tar-content/metadata verification. Frozen declared-baseline comparators and canonical decoder reused; N1 exact dictionaries and archive witness binding checked independently. Remote 35,025/1,398-file rehash is verified by bound closure receipt, not rerun. No Oracle access or experiments.",
+  "reused_checker_sha256": {
+    "docs/dnsmasq/audits/20261012/fix3_repairs/functional/wire_compare.py": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29",
+    "docs/dnsmasq/audits/20261012/fix3_repairs/functional/result_checks.py": "a4d05aa794cc671f628f4b00121c47c62f29c345ef1e4e6ee930d900baeb9d4f",
+    "docs/dnsmasq/audits/20261012/fix3_repairs/functional/types_result_checks.py": "d64e88e14ac84a4ba6471e62c734ef6db3a4e289b300bc0572898c2abd965e64",
+    "docs/dnsmasq/audits/20261012/fix3_repairs/functional/historical-differences.json": "e492938a937655502baba3bbf51d7eb411350537ec0b64ddd530f3622a62caee",
+    "tools/dnsmasq/m5_option_matrix_archive.py": "70f2ad81b495d6cd9459c7211a3e3d5b23193b3d4e075198a4b018aaceabb107"
+  },
+  "SDK_elf_sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+  "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+  "fresh_commands": 49,
+  "family_commands": 35,
+  "complete_families": 14,
+  "SDK_daemon_family_commands": 48,
+  "native_probe_commands": 1,
+  "explicit_final_ELF_argument_commands": 42,
+  "candidate_result_identity_fields": 43,
+  "N1_exact_cases": 72,
+  "matrix_cases": 1852,
+  "parity_cases": 1736,
+  "parity_declared_common_udp_cases": 18,
+  "retained_forward_pointer_cases": 2,
+  "retained_ACL_cases": 8,
+  "stale_equivalence_claim": false,
+  "archive_metadata_entries": 4282,
+  "archives": {
+    "syntax": {
+      "verified": true,
+      "entries": 2136,
+      "archive_sha256": "b4f460d0fa2aca9ba76d5aaa9e912afa246378fe4b00d5f5b78833c04df81e87",
+      "regular_files": 1545,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr"
+    },
+    "service": {
+      "verified": true,
+      "entries": 2146,
+      "archive_sha256": "a1e2aeb042d6642e316b5b28440417e267477f7907087f2506731254d04caca2",
+      "regular_files": 1546,
+      "scope": "SHA256 plus type, mode, uid/gid, nanosecond mtime, symlink target, device ID and every xattr"
+    }
+  },
+  "source_audit_rows": 191,
+  "unique_raw_source_observations": 530,
+  "runtime_identity_observations": 2990,
+  "closure_checks": 77,
+  "closure_functional_files": 35025,
+  "closure_DHCP_files": 1398
+}
