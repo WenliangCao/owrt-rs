@@ -1712,7 +1712,7 @@ mod tests {
         let message = super::super::wire::Message::parse(&packet).unwrap();
         let records = message.records(Section::Answer).collect::<Vec<_>>();
         assert_eq!(records.len(), 1);
-        assert_eq!(records[0].name, Name::root());
+        assert_eq!(records[0].name().unwrap(), Name::root());
         assert_eq!(records[0].rrtype, 65401);
         assert_eq!(records[0].rdata, &[0xab, 0xcd]);
     }
