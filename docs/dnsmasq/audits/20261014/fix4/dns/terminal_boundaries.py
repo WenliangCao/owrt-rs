@@ -21,6 +21,13 @@ import time
 p = argparse.ArgumentParser()
 for key in ('source', 'image', 'main', 'fix', 'out'):
     p.add_argument('--' + key, type=Path, required=True)
+p.add_argument('--host-anchor', action='store_true',
+               help='Exercise the pre-existing Local CNAME helper using a configured target host')
+p.add_argument('--only', help='Comma-separated profile names')
+p.add_argument('--qtype', type=int)
+p.add_argument('--upstream-ns', action='store_true',
+               help='Return a legitimate authoritative NS answer to NS queries')
+p.add_argument('--upstream-ns-target', choices=('query', 'target'), default='target')
 a = p.parse_args()
 sys.path.insert(0, str(a.source / 'tools/dnsmasq'))
 sys.path.insert(0, str(a.source / 'docs/dnsmasq/audits/20261012/fix3_repairs/functional'))
@@ -36,6 +43,12 @@ shutil.copy2(a.main, root / 'usr/sbin/dnsmasq-main')
 
 def reply(packet):
     end = w.question_end(packet)
+    kind = struct.unpack_from('!H', packet, end - 4)[0]
+    if a.upstream_ns and kind == 2:
+        ns_target = w.name('alias.example' if a.upstream_ns_target == 'query' else 'target.example')
+        return (packet[:2] + struct.pack('!5H', 0x8580, 1, 2, 0, 0)
+                + packet[12:end] + w.rr(b'\xc0\x0c', 5, w.name('target.example'), ttl=300)
+                + w.rr(w.name('target.example'), 2, ns_target, ttl=60))
     # A reachable upstream always returns an ordinary CNAME + A. This also
     # records whether an implementation wrongly forwards a local terminal.
     return (packet[:2] + struct.pack('!5H', 0x8180, 1, 2, 0, 0)
@@ -67,24 +80,38 @@ profiles = [
     ('target-local', 'local=/target.example/\n', (6, 12, 15, 16, 28, 33, 255, 257)),
     ('target-literal', 'address=/target.example/192.0.2.4\n', (255,)),
     ('raw-ns-pointer', 'dns-rr=target.example,2,c00c\n', (2, 255)),
+    ('raw-ns-target-pointer', 'dns-rr=target.example,2,c02b\n', (2, 255)),
     ('raw-mx-pointer', 'dns-rr=target.example,15,000ac00c\n', (15, 255)),
     ('raw-ns-bad-pointer', 'dns-rr=target.example,2,c0ff\n', (2, 255)),
     ('raw-ns-name', 'dns-rr=target.example,2,026e73076578616d706c6500\n', (2, 255)),
     ('raw-cname-pointer', 'dns-rr=target.example,5,c00c\n', (255,)),
     ('raw-opaque', 'dns-rr=target.example,65401,abcdef\n', (65401, 255)),
 ]
+if a.host_anchor:
+    base += 'host-record=target.example,192.0.2.77\n'
+    profiles = [profile for profile in profiles
+                if profile[0] in ('raw-ns-pointer', 'raw-ns-target-pointer', 'raw-ns-bad-pointer')]
+if a.only:
+    profiles = [profile for profile in profiles if profile[0] in a.only.split(',')]
+assert profiles, 'No matching profiles'
 result = {'identities': {key: sha256(path) for key, path in [
     ('c', root / 'usr/sbin/dnsmasq'), ('main', a.main), ('fix', a.fix),
     ('driver', Path(__file__)), ('canonical', a.source / 'docs/dnsmasq/audits/20261012/fix3_repairs/functional/wire_compare.py')]},
+    'host_anchor': a.host_anchor, 'upstream_ns': a.upstream_ns,
+    'upstream_ns_target': a.upstream_ns_target,
     'comparison': 'Same transport C only; compression and ordinary TTL normalized, original bytes retained.',
     'cases': []}
 for profile, config, kinds in profiles:
     for debug in (False, True):
         for protocol in ('udp', 'tcp'):
             for kind in kinds:
+                if a.qtype is not None and kind != a.qtype:
+                    continue
                 label = f'{profile}-debug{int(debug)}-{protocol}-{kind}'
                 row = {'label': label, 'profile': profile, 'debug': debug, 'protocol': protocol,
-                       'qtype': kind, 'config': base + config, 'sides': {}}
+                       'qtype': kind, 'query': w.query('alias.example', kind).hex(),
+                       'warm_query': w.query('alias.example').hex(),
+                       'config': base + config, 'sides': {}}
                 (root / 'm2/dns.conf').write_text(base + config)
                 for side, binary in [('c', 'c'), ('main', '/usr/sbin/dnsmasq-main'), ('fix', 'rust')]:
                     conn = None
