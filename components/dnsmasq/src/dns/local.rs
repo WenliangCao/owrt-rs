@@ -496,24 +496,27 @@ impl<'a> LocalAnswerer<'a> {
         // misses still return above without doing another name lookup.
         if class_in && preserve_negative_authority && !rule_owned && !local_only && !truncated {
             if let Some(cache) = cache.as_deref_mut() {
-                let terminal;
                 // Only actual configured-CNAME traversal moves C's cursor.
                 // Raw TYPE_CNAME bytes are opaque output, including pointers.
-                let name = if let Some(name) = cname_terminal.as_deref() {
-                    terminal = Name::from_dotted_bytes(name)?;
-                    &terminal
-                } else {
-                    &question.name
+                let terminal = cname_terminal.as_deref().map(Name::from_dotted_bytes);
+                let name = match &terminal {
+                    Some(Ok(name)) => Some(name),
+                    // An accepted configuration target need not be a valid
+                    // cache name. Preserve its existing answer behavior.
+                    Some(Err(_)) => None,
+                    None => Some(&question.name),
                 };
-                if let Some(id) = cache
-                    .lookup(name, &[Kind::NxDomain], now, !self.config.no_round_robin)
-                    .first()
-                    .copied()
-                {
-                    match super::cache_reply::append_negative_authority(&mut writer, cache, id, now) {
-                        Ok(_) => {}
-                        Err(WireError::Full) => truncated = true,
-                        Err(error) => return Err(error.into()),
+                if let Some(name) = name {
+                    if let Some(id) = cache
+                        .lookup(name, &[Kind::NxDomain], now, !self.config.no_round_robin)
+                        .first()
+                        .copied()
+                    {
+                        match super::cache_reply::append_negative_authority(&mut writer, cache, id, now) {
+                            Ok(_) => {}
+                            Err(WireError::Full) => truncated = true,
+                            Err(error) => return Err(error.into()),
+                        }
                     }
                 }
             }

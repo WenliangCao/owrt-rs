@@ -384,3 +384,36 @@ fn raw_cname_rdata_does_not_change_the_negative_authority_cursor() {
         );
     }
 }
+
+#[test]
+fn unrepresentable_configured_cname_target_does_not_fail_the_optional_footer() {
+    let mut config = DnsConfig::default();
+    config
+        .apply(
+            &crate::config::lex_line(b"cname=alias.test,a..b")
+                .unwrap()
+                .unwrap(),
+        )
+        .unwrap();
+    let mut hosts = configured_hosts(&config, 37);
+    let mut cache = Cache::new(8, Policy::default());
+    let mut answerer = LocalAnswerer {
+        config: &config,
+        hosts: &mut hosts,
+        local_ttl: 37,
+        max_packet: 1232,
+    };
+    let mut leases = Arc::new(LeaseNames::default());
+    let query = request("alias.test", 1, true, false);
+    let uncached = answerer
+        .answer_on_network_with_cache(&query, &mut leases, 110, None, None)
+        .unwrap()
+        .unwrap()
+        .packet;
+    let cached = answerer
+        .answer_on_network_with_cache(&query, &mut leases, 110, None, Some(&mut cache))
+        .unwrap()
+        .unwrap()
+        .packet;
+    assert_eq!(cached, uncached);
+}
