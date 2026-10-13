@@ -1,0 +1,29 @@
+{
+  "scope": "SSH client observation only; all daemon commands and the remote controller completed successfully",
+  "client_exit": 255,
+  "client_error": "Connection reset by peer; Broken pipe",
+  "remote_controller_exit": 0,
+  "remote_state_passed": true,
+  "completed_commands": 49,
+  "experiments_rerun": false,
+  "remote_invocation": {
+    "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-fix4-final-review-20261013/functional-final-invocation.json",
+    "sha256": "00e7109117bd2a018bf25b4ba22ace42930eadb39a3f5c721a2d406b9a13454c",
+    "bytes": 572
+  },
+  "remote_state": {
+    "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-fix4-final-review-20261013/functional-final/state.json",
+    "sha256": "3c4166f3fd9d8b61c9e06bc9de0c0d51b02f2057618cc10b5b5208cfc90a345d",
+    "bytes": 180427
+  },
+  "controller_log": {
+    "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-fix4-final-review-20261013/functional-final-driver.log",
+    "sha256": "9a77fec087bd3347d7ac4cab7bf950dd8655c991e8a773bdc3d747e003eb87fd",
+    "bytes": 3081
+  },
+  "downloaded_review_archive": {
+    "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-fix4-final-review-20261013/functional-final-review.tar.gz",
+    "sha256": "00dbb352994fc2bb34ebc5ed45ed144a797e8a54b79c22251b774a319523b926",
+    "bytes": 1568113
+  }
+}

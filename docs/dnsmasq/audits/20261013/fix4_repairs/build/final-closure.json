@@ -1,0 +1,203 @@
+{
+  "schema": "dnsmasq-fix4-final-closure-v1",
+  "passed": true,
+  "started": 1791926333.8265195,
+  "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+  "checks": {
+    "both_build_locks_acquired": true,
+    "no_task_or_matching_workloads": true,
+    "all_frozen_product_inputs": true,
+    "source_digest": true,
+    "source_archive": true,
+    "final_build_passed": true,
+    "acquire_real_source_build": true,
+    "acquire_sdk_inputs": true,
+    "acquire_elf": true,
+    "acquire_artifact": true,
+    "acquire_recipe_restored": true,
+    "acquire_no_recipe_backup": true,
+    "verify_real_source_build": true,
+    "verify_sdk_inputs": true,
+    "verify_elf": true,
+    "verify_artifact": true,
+    "verify_recipe_restored": true,
+    "verify_no_recipe_backup": true,
+    "two_clean_sdk_artifacts_equal": true,
+    "actual_sdk_link_map": true,
+    "49_fresh_jobs": true,
+    "frozen_functional_plan": true,
+    "job_config-state-probe": true,
+    "job_F02-cached-cname": true,
+    "job_fresh-DHCP-over-NXDOMAIN": true,
+    "job_F08-stale-observation": true,
+    "job_R1-cname": true,
+    "job_R1-flags": true,
+    "job_N1-filter-cname": true,
+    "job_review3-matrix": true,
+    "job_TCP-UDP-parity": true,
+    "job_A10-and-original-DNS": true,
+    "job_N2-intentional-permissions": true,
+    "job_O3-auth-ACL": true,
+    "job_m5_option_matrix-paired": true,
+    "job_m5_option_matrix_next-paired": true,
+    "job_m5_option_matrix_third-paired": true,
+    "job_m5_option_matrix_lease_names-paired": true,
+    "job_m5_local_records-paired": true,
+    "job_m5_rr_filter-paired": true,
+    "job_m5_config_inputs-paired": true,
+    "job_logging-all-scopes-paired": true,
+    "job_m5_edns-c": true,
+    "job_m5_edns-rust": true,
+    "job_m5_edns-compare": true,
+    "job_m5_dns_cache-c": true,
+    "job_m5_dns_cache-rust": true,
+    "job_m5_dns_cache-c-reverse-1": true,
+    "job_m5_dns_cache-c-reverse-2": true,
+    "job_m5_dns_cache-c-reverse-3": true,
+    "job_m5_dns_cache-c-reverse-4": true,
+    "job_m5_dns_cache-c-reverse-5": true,
+    "job_m5_dns_cache-c-reverse-6": true,
+    "job_m5_dns_cache-c-reverse-7": true,
+    "job_m5_dns_cache-c-reverse-8": true,
+    "job_m5_dns_cache-compare": true,
+    "job_m5_dns_cache-lease-tcp-caller": true,
+    "job_m5_dns_endpoints-syntax": true,
+    "job_m5_dns_endpoints-service": true,
+    "job_m5_dns_endpoints-local-archive-gate": true,
+    "job_m5_dns_endpoints-source-row-audit": true,
+    "job_m5_interface_records-syntax": true,
+    "job_m5_interface_records-service": true,
+    "job_m5_interface_records-qualify": true,
+    "job_m5_interface_records-closeout-syntax": true,
+    "job_m5_interface_records-closeout-rust-refusals": true,
+    "job_m5_interface_records-closeout-service": true,
+    "job_dns-files-paired": true,
+    "job_filterwin2k-paired": true,
+    "job_hosts-original-TCP": true,
+    "job_hosts-diagnostics-TCP": true,
+    "N1_exact_72": true,
+    "three_new_DHCP_probes": true,
+    "DHCP_negative": true,
+    "DHCP_soa": true,
+    "DHCP_cursor": true,
+    "first_scan_failure_preserved": true
+  },
+  "bindings": {
+    "source_identity": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/source-final-identity.json",
+      "sha256": "682c5b6d197c454d66b2312be65075461fdf853e52019d7f6b553ea58519defd",
+      "bytes": 21417
+    },
+    "build": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/build-final-result.json",
+      "sha256": "2e2d884290a54d7e52bc8b60ae1dda9a9ac522de676c3d20ae494e12fd596f0d",
+      "bytes": 7212
+    },
+    "build_derived": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/build-final-derived.json",
+      "sha256": "75bf9d53834330b177c293f2371ab01379c18609cf14d2a885167bb53b4726b1",
+      "bytes": 28513
+    },
+    "acquire_elf": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+      "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+      "bytes": 2054939
+    },
+    "acquire_artifact": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/dnsmasq-2.93-r3.apk",
+      "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+      "bytes": 1117789
+    },
+    "acquire_manifest": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/manifest.json",
+      "sha256": "0f2a517e23876521bafb8ad49c7b6d32e85b9df27e696740a28b0b5aef1d5dbc",
+      "bytes": 62927
+    },
+    "verify_elf": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/payload/usr/sbin/dnsmasq",
+      "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+      "bytes": 2054939
+    },
+    "verify_artifact": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-2.93-r3.apk",
+      "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+      "bytes": 1117789
+    },
+    "verify_manifest": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/manifest.json",
+      "sha256": "f6080d7db83f1cf732a799bdd29b6cd9771e7eb21e57cc5d4c531addfd198f6d",
+      "bytes": 64114
+    },
+    "actual_sdk_link_map": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-link.map",
+      "sha256": "b39291f3b7d5373b40af63ff4dd7893244a5bc90ed9309cae6a90f7aa0f66728",
+      "bytes": 3069554
+    },
+    "functional_plan": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/functional-final-plan.json",
+      "sha256": "31d50f769443b110e9fa5d313181b5489f3c877f075fc13e3d75b0933c76ea9a",
+      "bytes": 336985
+    },
+    "functional_state": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/functional-final/state.json",
+      "sha256": "3c4166f3fd9d8b61c9e06bc9de0c0d51b02f2057618cc10b5b5208cfc90a345d",
+      "bytes": 180427
+    },
+    "functional_derived": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/functional-final-derived/validation.json",
+      "sha256": "1f77be11793f4832eb47cd40f97bf8f0406b420331835713921e26e88ad466de",
+      "bytes": 110486
+    },
+    "DHCP_derived": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/dhcp-final-derived/dhcp-sdk.json",
+      "sha256": "4c5738af3fd2b5bcaffbab00700b7792e4bf32f2b946283d6eed99e539a6bbfc",
+      "bytes": 274714
+    },
+    "DHCP_invocations": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/dhcp-final-invocations.json",
+      "sha256": "d82dd0998385c99cde092a66365b2e4350ca8c7bbf751e64b30687605842ec44",
+      "bytes": 4406
+    },
+    "first_scan_failed_build": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/build-scan-result.json",
+      "sha256": "8030cf8bd1905804d0ba02e8c0186c65178c92926c6b2d1e7a772c041d0b2000",
+      "bytes": 2712
+    }
+  },
+  "limits": [
+    "Only this final SDK, 49-command validation and three new DHCP probes are rehashed.",
+    "Earlier performance raw evidence and all historical audits are not rechecked here.",
+    "Local main/worktree/prompt checks are performed separately by the root agent.",
+    "Original size-budget failure is retained; no physical-router or deployment qualification."
+  ],
+  "controller": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/close-final.py",
+    "sha256": "4dcde59db3062ae9bb1cfaef0ac8c0970ac9bfb321e8da00a8b724e3b1fd47a4",
+    "bytes": 9272
+  },
+  "locks": [
+    "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock",
+    "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock"
+  ],
+  "remaining_workloads": [],
+  "raw_indexes": {
+    "functional": {
+      "index": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/functional-final-derived/raw-index.json",
+        "sha256": "499d89de25e53a02f5386a70c8f8cde6d03b511979d722a9dbb9577d5e7f0964",
+        "bytes": 9284337
+      },
+      "verified_files": 35025
+    },
+    "new_DHCP": {
+      "index": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/dhcp-final-derived/dhcp-sdk-raw-index.json",
+        "sha256": "6cd29d02d6d0ad71220f8fd8787aa757c9b2e1179b206ea0e29e2d9081d2a67b",
+        "bytes": 342337
+      },
+      "verified_files": 1398
+    }
+  },
+  "locks_released": true,
+  "ended": 1791926336.5392036
+}
