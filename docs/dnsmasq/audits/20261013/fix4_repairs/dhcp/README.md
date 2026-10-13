@@ -16,7 +16,7 @@
 
 独立源码复核随后发现首版把报文压缩用的 `extra_owner` 当成了 C 的语义名字游标，产生三个新增边界错误：reverse synthesis 错附原 arpa 的 SOA；配置 CNAME 的 CNAME 查询提前停止后仍查目标 NX；raw TYPE 5 的 RDATA 被误当成游标，甚至对有效输出压缩指针 `c00c` 返回错误。三条回归单测均先在首版失败。`12a5a9b3` 改为仅回传实际配置 CNAME 遍历到的名字，direct 回答沿用问题名，并明确传递实际 reverse synthesis 的旧 SOA 排除条件；raw RDATA 保持不透明。另一个已接受的配置目标 `a..b` 不能构造缓存 Name，`8981ed40` 使可选 footer 查找跳过这种名字，保留原有回答；对应单测也先红后绿。本机最新 local 35 条和此前 cache_engine 9 条通过，日志摘要见 [cursor-review.json](cursor-review.json)。这些本机测试不冒充精确 C 的最终验证。
 
-新增 `dhcp_negative_cursor_diff.py` 准备了 12 组 normal/debug 的真实 C 对照，覆盖 raw TYPE 5 压缩指针、目标/原名 NX、配置 CNAME 早停、direct/配置别名的 reverse synth 与显式 PTR 优先级。性能窗口结束后须在最终 SDK ELF 上运行；截至此记录尚未运行。原有 `m5_interface_records.py` 的 `synth-reverse-negative-nxdomain` 同时属于受影响回归族。
+新增 `dhcp_negative_cursor_diff.py` 准备了 12 组 normal/debug 的真实 C 对照，覆盖 raw TYPE 5 压缩指针、目标/原名 NX、配置 CNAME 早停、direct/配置别名的 reverse synth 与显式 PTR 优先级。raw 原名 NX 用 ANY 查询单独验证 SOA 游标，避开 CNAME 查询的独立 NXDOMAIN RCODE 规则；空缓存的压缩指针保留 CNAME/ANY 两种查询。性能窗口结束后须在最终 SDK ELF 上运行；截至此记录尚未运行。原有 `m5_interface_records.py` 的 `synth-reverse-negative-nxdomain` 同时属于受影响回归族。
 
 ## 扩展控制和探针修正
 

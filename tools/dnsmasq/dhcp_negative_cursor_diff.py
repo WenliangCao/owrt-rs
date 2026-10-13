@@ -38,7 +38,9 @@ def cases():
     ]:
         yield dict(label=label, config=config, warm=None if warm is None else (warm, 1),
                    prove=None if warm is None else (warm, 1), lease=False,
-                   queries=list(itertools.product(("raw.test",), (5, 255))))
+                   # ANY isolates the raw owner's SOA selection. A CNAME
+                   # question with an owner NX has an independent RCODE rule.
+                   queries=list(itertools.product(("raw.test",), (255,) if label == "raw-owner-nx" else (5, 255))))
     yield dict(label="configured-cname-stop", config="cname=configured.leases.test,client1.leases.test\n",
                warm=(base.HOST, 1), prove=(base.HOST, 1), lease=True,
                queries=list(itertools.product(("configured.leases.test",), (5, 1))))
