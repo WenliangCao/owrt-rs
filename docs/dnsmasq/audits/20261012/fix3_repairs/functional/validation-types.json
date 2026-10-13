@@ -1,0 +1,3202 @@
+{
+  "schema": "dnsmasq-fix3-types-functional-receipt-v1",
+  "passed_with_declared_baselines": true,
+  "source_commit": "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+  "tool_commit": "7fae9dc9",
+  "SDK_elf": {
+    "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+    "sha256": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+    "bytes": 2054939
+  },
+  "fresh_commands": 49,
+  "zero_exit_commands": 49,
+  "SDK_daemon_family_commands": 48,
+  "native_state_probe_commands": 1,
+  "native_state_cases": 19,
+  "complete_families": {
+    "m5_config_inputs": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_dns_cache": {
+      "passed": true,
+      "commands": 12
+    },
+    "m5_edns": {
+      "passed": true,
+      "commands": 3
+    },
+    "m5_local_records": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_option_matrix": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_option_matrix_next": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_option_matrix_third": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_option_matrix_lease_names": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_rr_filter": {
+      "passed": true,
+      "commands": 1
+    },
+    "filterwin2k": {
+      "passed": true,
+      "commands": 1
+    },
+    "m5_dns_endpoints": {
+      "passed": true,
+      "commands": 4
+    },
+    "m5_interface_records": {
+      "passed": true,
+      "commands": 6
+    },
+    "dns-files": {
+      "passed": true,
+      "commands": 1
+    },
+    "logging-all-scopes": {
+      "passed": true,
+      "commands": 1
+    }
+  },
+  "family_commands": 35,
+  "directed_commands": 14,
+  "retained": {
+    "plan": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-plan.json",
+      "sha256": "7560cd483d92430d63554f645b0d042b3c089a2c968dc33e50e783e0b6b25068",
+      "bytes": 334854
+    },
+    "state": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/state.json",
+      "sha256": "616187627d7208b883fcaed58df506ccc5dbe8d81b43ab6c6da7100392d8a4e2",
+      "bytes": 180671
+    },
+    "invocation": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-invocation.json",
+      "sha256": "3aa8998499bea6624d8ddd0bb478b6e83550fc9a840a738ce0f7299ced2d34b5",
+      "bytes": 419
+    },
+    "controller_log": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-driver.log",
+      "sha256": "9a77fec087bd3347d7ac4cab7bf950dd8655c991e8a773bdc3d747e003eb87fd",
+      "bytes": 3081
+    },
+    "controller": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/types_validation_driver.py",
+      "sha256": "d7473b0301514f9e2d7686d9506671d39db96e0428295f27fcadf7005386d05c",
+      "bytes": 15761
+    },
+    "config_adapter": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/config_state_adapter.py",
+      "sha256": "27122dc8ca20815729f238bee31d62d0361d1b1ed5a0d22ce939c605681d40b8",
+      "bytes": 5498
+    },
+    "collector": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/collect_types_validation.py",
+      "sha256": "30f30483fa336f47c5c691ff0993fa7b87c746001935f37d8446e8e74c074338",
+      "bytes": 8991
+    },
+    "initial_harness_plan": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-plan.json",
+      "sha256": "2a28311bfefd06bd2e7d3dca869608dc9c61ca7d70cf005d45f545d28e1e939e",
+      "bytes": 334068
+    },
+    "initial_harness_failed_state": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types/state.json",
+      "sha256": "fd0f2f89ddf956745c6933eb05b3a64638fa6320633f6a56f9e4aa82ce340fb9",
+      "bytes": 1341
+    },
+    "initial_harness_invocation": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-invocation.json",
+      "sha256": "7f7993197e648f1f442595786c4ebc82163bb87fd849213110a7f9058893ed76",
+      "bytes": 448
+    },
+    "initial_harness_log": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types/config-state-probe.log",
+      "sha256": "62314a7d7f7fafff24f785fca869452f937a161842741da63fc2d977e14fb2e8",
+      "bytes": 9547
+    },
+    "previous_functional_state": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-continuation/state.json",
+      "sha256": "66200eb3ffa77fdba1402564e1b896d4da0d90e105669dbd4c66285575248299",
+      "bytes": 172067
+    },
+    "previous_original_strict_failed_state": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional/state.json",
+      "sha256": "67510e290e4aa2bfac0b622aa3f2bebe546c6aca1250602d8b9ed14222fa7455",
+      "bytes": 16949
+    },
+    "previous_performance_plan": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-paired-01/plan.json",
+      "sha256": "6f52ba6de35fb7d81707ed9c1937bd61eb23bfd5f4141a52a98bd677a5837c82",
+      "bytes": 197173
+    },
+    "previous_performance_run": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-paired-01/run.json",
+      "sha256": "bd9df3a05539dae7a070df1db8227ad7ce05abedc0367cf48a6093dc86387a4a",
+      "bytes": 5089
+    },
+    "previous_performance_summary": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-paired-01/summary.json",
+      "sha256": "a16e334a32f17f944e04d428968b58ddac1cdd139f27dab5bf3560262bcaa4b0",
+      "bytes": 703684
+    }
+  },
+  "endpoint_archives": {
+    "syntax": {
+      "files": {
+        ".tar.gz": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.tar.gz",
+          "sha256": "5537e16c41d2683205eea82b0323e80779c5d0c8b6f7b4ddba9a3c92c054ed85",
+          "bytes": 1290038
+        },
+        ".manifest.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.manifest.json",
+          "sha256": "fc378302306f47a4061e87917bef621ff7afaec8c10cebad520f8e6ee755441e",
+          "bytes": 505825
+        },
+        ".pack.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.pack.json",
+          "sha256": "997c9a71c3f9230e0fcbe91c2e6f4ba89c23b2324efe52d7e004c322c8cbec6a",
+          "bytes": 742
+        },
+        ".local-verification.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.local-verification.json",
+          "sha256": "84051645c85ee0d52ca1d03b48067260c57a0d227a04532d929c7d843eecec40",
+          "bytes": 441
+        },
+        ".prune.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.prune.json",
+          "sha256": "365e4692cf085fcf2138b2049ad32f784d2f90c66672555de142555c79513d73",
+          "bytes": 248
+        },
+        ".restore.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.restore.json",
+          "sha256": "ecab093095753aa44ed0144bf787b5a12de5f73fe2c8e642a8aea110cf1b358e",
+          "bytes": 262
+        }
+      },
+      "entries": 2136,
+      "local_full_metadata_verified": true,
+      "original_result_bytes_retained": true
+    },
+    "service": {
+      "files": {
+        ".tar.gz": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.tar.gz",
+          "sha256": "ca62a8d8f34132d07db806f307024975ca50b1be1bcf3c1323c19256af16bdd3",
+          "bytes": 3015990
+        },
+        ".manifest.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.manifest.json",
+          "sha256": "5ee714a9ac6722ad890d0dcd1be84376e72b01ade8314a2e58ba37f44aa0235f",
+          "bytes": 528393
+        },
+        ".pack.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.pack.json",
+          "sha256": "4967a4c6c4dbd0dc8141c01ffdcb582cccb7456f5c63b1f9095c21aa3be7759d",
+          "bytes": 745
+        },
+        ".local-verification.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.local-verification.json",
+          "sha256": "1cf9a380b54ac9a7f48cf2dea9c3fa7f05a447410c4860f8509fa6ea16ec24bd",
+          "bytes": 441
+        },
+        ".prune.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.prune.json",
+          "sha256": "eafcf4e4abf9522982cd417d13c170373db524c03953a2b869bf220bda7553b6",
+          "bytes": 250
+        },
+        ".restore.json": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.restore.json",
+          "sha256": "7c32a1284376f8cbca88b1f71fd9b75a97919e2504928b6122aed200b3992968",
+          "bytes": 262
+        }
+      },
+      "entries": 2146,
+      "local_full_metadata_verified": true,
+      "original_result_bytes_retained": true
+    }
+  },
+  "native_state_files": {
+    "000.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "000.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.c-state.stdout",
+      "sha256": "70f73519b65167fec1e95e999860a72ed7f1e333f56004d9a915b59d5e78900c",
+      "bytes": 56
+    },
+    "000.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.conf",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "000.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "000.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.rust-state.stdout",
+      "sha256": "70f73519b65167fec1e95e999860a72ed7f1e333f56004d9a915b59d5e78900c",
+      "bytes": 56
+    },
+    "001.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "001.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.c-state.stdout",
+      "sha256": "f6c24198b8cbbd5d076694bac66823de61082560e8ff767eb84a6226f6374eec",
+      "bytes": 59
+    },
+    "001.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.conf",
+      "sha256": "530b4c779d73b5aeb3a4a6aa82d5a42a6b0a2cbc9dd6a149f4953c67dc4ca9d4",
+      "bytes": 65
+    },
+    "001.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "001.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.rust-state.stdout",
+      "sha256": "f6c24198b8cbbd5d076694bac66823de61082560e8ff767eb84a6226f6374eec",
+      "bytes": 59
+    },
+    "002.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "002.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.c-state.stdout",
+      "sha256": "d058b8a57023290710ed6365f4fc15d91d1349053cea956815b8dc812c4b34c8",
+      "bytes": 67
+    },
+    "002.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.conf",
+      "sha256": "0e7b946d9328619d741223899d862109a692b53b44c4f0548344963f3c2f54c8",
+      "bytes": 176
+    },
+    "002.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "002.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.rust-state.stdout",
+      "sha256": "d058b8a57023290710ed6365f4fc15d91d1349053cea956815b8dc812c4b34c8",
+      "bytes": 67
+    },
+    "003.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "003.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.c-state.stdout",
+      "sha256": "95be4e917c48e9927cd73d00de074512b4ae62b78aa4ce2bb6ebc34f440012ca",
+      "bytes": 58
+    },
+    "003.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.conf",
+      "sha256": "39d44097a0d7a241df10aee576acdd436c434efdb419ee8c07ea159184f07c4a",
+      "bytes": 40
+    },
+    "003.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "003.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.rust-state.stdout",
+      "sha256": "95be4e917c48e9927cd73d00de074512b4ae62b78aa4ce2bb6ebc34f440012ca",
+      "bytes": 58
+    },
+    "004.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "004.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.c-state.stdout",
+      "sha256": "f1a37a1ff453dc74d42ab929c553051d55852cbd6cb59a8f61fff8a43635e382",
+      "bytes": 64
+    },
+    "004.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.conf",
+      "sha256": "e7e3d58598d1bb8847d4726a2cf3602cb47f6eabebb934ce373fda30ed25d7ac",
+      "bytes": 30
+    },
+    "004.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "004.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.rust-state.stdout",
+      "sha256": "f1a37a1ff453dc74d42ab929c553051d55852cbd6cb59a8f61fff8a43635e382",
+      "bytes": 64
+    },
+    "005.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "005.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.c-state.stdout",
+      "sha256": "159280ffd476572ee4a164f93d7913ed9c4667a290575eb51d6fa65c9c0766d4",
+      "bytes": 59
+    },
+    "005.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.conf",
+      "sha256": "eeb423a41fc68fdcb2c2ffd95ba9b98e06b0f8c702129b9f084489fc1f5a9c77",
+      "bytes": 38
+    },
+    "005.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "005.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.rust-state.stdout",
+      "sha256": "159280ffd476572ee4a164f93d7913ed9c4667a290575eb51d6fa65c9c0766d4",
+      "bytes": 59
+    },
+    "006.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "006.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.c-state.stdout",
+      "sha256": "3323c893430fbb82af11c372c610390aab9e7a5493e9aece959f4b542148def6",
+      "bytes": 159
+    },
+    "006.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.conf",
+      "sha256": "42e4a96e327819f73f419f497c4af644d36637fe2983b9008d6cf2ac573a2609",
+      "bytes": 71
+    },
+    "006.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "006.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.rust-state.stdout",
+      "sha256": "3323c893430fbb82af11c372c610390aab9e7a5493e9aece959f4b542148def6",
+      "bytes": 159
+    },
+    "007.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "007.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.c-state.stdout",
+      "sha256": "8977339dd5333def548adb296a8d21b07da4760f4794148ffce018b936a91851",
+      "bytes": 181
+    },
+    "007.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.conf",
+      "sha256": "1822a38b1df189f10039d828ae957a3537ebb4f9c8d9fdef87face06171d5a50",
+      "bytes": 64
+    },
+    "007.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "007.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.rust-state.stdout",
+      "sha256": "8977339dd5333def548adb296a8d21b07da4760f4794148ffce018b936a91851",
+      "bytes": 181
+    },
+    "008.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "008.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.c-state.stdout",
+      "sha256": "f645be23275a1a907e70d9edad7851c26da4eebf1154f28097755965aaf88214",
+      "bytes": 202
+    },
+    "008.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.conf",
+      "sha256": "b71e4de7da2e3b65e91ee113fd8a176a66e42aa83386a805792e3eb64ea675e4",
+      "bytes": 77
+    },
+    "008.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "008.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.rust-state.stdout",
+      "sha256": "a9fa8b2f3c8ca87228692cd74694d02e3ae5b57a679ba91568ae588678570c5c",
+      "bytes": 202
+    },
+    "009.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "009.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.c-state.stdout",
+      "sha256": "506f0efe55dbdbe910ed96a6e98ff6cbdd9eb3eb5f8c15ef7e159e8bee617348",
+      "bytes": 106
+    },
+    "009.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.conf",
+      "sha256": "b459d72c7fb98983708ed04d3f5081fcd532aae2d0714af8b8e74fca754b6474",
+      "bytes": 43
+    },
+    "009.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "009.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.rust-state.stdout",
+      "sha256": "38f042ec945706284972c6fb86d75c7ff522ecb020751d0d9b88656a622e902f",
+      "bytes": 106
+    },
+    "010.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "010.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.c-state.stdout",
+      "sha256": "2ccc853a123a0b7c52b0aee9607ffeadd068fa0e7dd6e2b1f4231636c33a768b",
+      "bytes": 586
+    },
+    "010.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.conf",
+      "sha256": "7511ce0965fadeaa1122666f3ccc0251adfab23bfd3e4af7cf9c35d6f1690998",
+      "bytes": 272
+    },
+    "010.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "010.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.rust-state.stdout",
+      "sha256": "2ccc853a123a0b7c52b0aee9607ffeadd068fa0e7dd6e2b1f4231636c33a768b",
+      "bytes": 586
+    },
+    "011.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "011.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.c-state.stdout",
+      "sha256": "9d48a3329ed70f3df2a361c03444d70e04211c47936d10853d45d069c8fd0312",
+      "bytes": 123
+    },
+    "011.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.conf",
+      "sha256": "90da72aaba59b906e63fd19b8be17b0e2474b5c04cc7d962c8803d890df7af54",
+      "bytes": 67
+    },
+    "011.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "011.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.rust-state.stdout",
+      "sha256": "1172222698c6699647936c5a08bbaefed995ade71b4efbbe1ec5f65e0c098fdf",
+      "bytes": 123
+    },
+    "012.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "012.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.c-state.stdout",
+      "sha256": "8ac320b5aa726ac2adecbade8a975ad2f8a584b74939b1d2c0ed995c77ea049f",
+      "bytes": 114
+    },
+    "012.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.conf",
+      "sha256": "e0cacd4de1c9cefca712da1ab847cf29a3cc3328e858398f6776742747061c55",
+      "bytes": 39
+    },
+    "012.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "012.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.rust-state.stdout",
+      "sha256": "8ac320b5aa726ac2adecbade8a975ad2f8a584b74939b1d2c0ed995c77ea049f",
+      "bytes": 114
+    },
+    "013.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "013.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.c-state.stdout",
+      "sha256": "ebcc9937e036d854b34231711ca32919c4aa313d2c164c610886c936f361f2ea",
+      "bytes": 156
+    },
+    "013.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.conf",
+      "sha256": "16446b7849123a12322e8d2903dd5997e6cf19f45be78296f065a5f5ed899daa",
+      "bytes": 77
+    },
+    "013.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "013.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.rust-state.stdout",
+      "sha256": "924a3810da610da31e2c2a017242d047eef82c7dc1ee5e1109c79d27cf56c22e",
+      "bytes": 156
+    },
+    "014.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "014.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.c-state.stdout",
+      "sha256": "49a8192f3525ebf1e11eed736a0e881cec9a0c6a952458712c7e776a07f25cdd",
+      "bytes": 159
+    },
+    "014.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.conf",
+      "sha256": "7928cc7b45dc65ea9e61152d75a77acb973d29e7b06693adc09b2bafbba87d0f",
+      "bytes": 80
+    },
+    "014.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "014.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.rust-state.stdout",
+      "sha256": "72785f0bac5094d1b5d52c68c97ee8aede7b08adb5f92abc0298feb19e001d93",
+      "bytes": 159
+    },
+    "015.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "015.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.c-state.stdout",
+      "sha256": "a6153ca9daa79acd9fcf010445d409fbe9e30ed5eeff2b9309900e39202c9e30",
+      "bytes": 175
+    },
+    "015.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.conf",
+      "sha256": "4b28e745a9bd1a9b2122892b06c9e5e7ae1aee49fe01142cd50fa9ff12bac339",
+      "bytes": 80
+    },
+    "015.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "015.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.rust-state.stdout",
+      "sha256": "a6153ca9daa79acd9fcf010445d409fbe9e30ed5eeff2b9309900e39202c9e30",
+      "bytes": 175
+    },
+    "016.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.c-state.stderr",
+      "sha256": "f3f7a2a441dbca09d6f757e804944f08026d870e64fc4057a95f49d714da6083",
+      "bytes": 127
+    },
+    "016.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.c-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "016.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.conf",
+      "sha256": "c6b894528cee9b2fe8e045b34634c298870165a7020a6096e6bd0bb5c12f38fd",
+      "bytes": 10
+    },
+    "016.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.rust-state.stderr",
+      "sha256": "1d787332387477904c76e2a7dcef42cbe29b5c4ce3bf6541e5cb901a03781112",
+      "bytes": 117
+    },
+    "016.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.rust-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "017.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.c-state.stderr",
+      "sha256": "ea61a23d867132584c79a254748ef887f4e63eb0c3ce2cccb9d5d56eba94b2b3",
+      "bytes": 38
+    },
+    "017.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.c-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "017.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.conf",
+      "sha256": "41ec720c6b43b871d367b42a6fae4a2c27d6cdbd94ed9d93b94da33e843fc9ce",
+      "bytes": 39
+    },
+    "017.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.rust-state.stderr",
+      "sha256": "91550e1c6f5717af999773a7d0288d4089bd126758fdbd2e11dd6a7cc814da99",
+      "bytes": 11
+    },
+    "017.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.rust-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "018.c-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.c-state.stderr",
+      "sha256": "682d4131156ffb341f458cfccd787e516d098d23aaec21a3af3eeffb8e4df80f",
+      "bytes": 31
+    },
+    "018.c-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.c-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "018.conf": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.conf",
+      "sha256": "3a29924915c85a7506011540079f696e626354eb5c888acb61647bf13ffec259",
+      "bytes": 20
+    },
+    "018.rust-state.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.rust-state.stderr",
+      "sha256": "7526d2859b5dfeebeef76d231724a33accbfffd68e9b9a3471a18d7316ec89d0",
+      "bytes": 127
+    },
+    "018.rust-state.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.rust-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "adapter-identity.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/adapter-identity.json",
+      "sha256": "25dca85966bb9859383924181eaefb7c1ee24676a9806fcb50ac86589503f3c1",
+      "bytes": 2284
+    },
+    "c-state": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/c-state",
+      "sha256": "351769e7ae6f1d9ed63555ea739f8266062ba7b60515900373073690cd995bcb",
+      "bytes": 1650360
+    },
+    "cargo-build.stderr": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-build.stderr",
+      "sha256": "48064eea00bdb174be5a6bdbbef10f205b494d161fe5019d1f381403217878c8",
+      "bytes": 481
+    },
+    "cargo-build.stdout": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-build.stdout",
+      "sha256": "f8505c14997b328450b1014f1f6da7915bac5ecace9cbe7643c1e8206d199846",
+      "bytes": 69477
+    },
+    "cargo-probe/Cargo.lock": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/Cargo.lock",
+      "sha256": "ed37217fce8e92b6bea3f276d5934c80fa584618b7411c2a712f7880df0bc966",
+      "bytes": 332
+    },
+    "cargo-probe/Cargo.toml": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/Cargo.toml",
+      "sha256": "95cafa33342fa83a501896c1df6f46ef0c43b4191421d37bc42b246df51b840f",
+      "bytes": 228
+    },
+    "cargo-probe/src/main.rs": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/src/main.rs",
+      "sha256": "223ed650a8cc73372d7a85715cd62cd7db5432a01c143f1460da0736d7412ba5",
+      "bytes": 4444
+    },
+    "contract_inventory-adapted.py": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/contract_inventory-adapted.py",
+      "sha256": "2d33981de515ee8a3a7c52e9101b6df2567e48bbebd0748841316e54a33013c4",
+      "bytes": 15957
+    },
+    "dnsmasq-without-main.o": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/dnsmasq-without-main.o",
+      "sha256": "6402e8dc94e3aa49d1168bd032de3e30dceb71ed82e18a12405b43ce9d5ff19a",
+      "bytes": 172112
+    },
+    "probe-imports.diff": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/probe-imports.diff",
+      "sha256": "ecae6152012d9a1c3b34a174a86be727569e97b048a8ac05b261d2fbada06ac5",
+      "bytes": 502
+    },
+    "result.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/result.json",
+      "sha256": "d1b1ab9cb2443ec3d2b9fd9cd9adb714b8694b9152d0d79a66872d8ad99c1d0c",
+      "bytes": 2144
+    },
+    "rust-state": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/rust-state",
+      "sha256": "698fb2d27fdd0beba52ede5c770cb1c764dbc86f4ab64f72d3d0c9d6333fb110",
+      "bytes": 29169112
+    },
+    "state_probe.c": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/state_probe.c",
+      "sha256": "daf477de6a44b34b12ff7385ccb66a924628df8fbab9f46a7169c1d6cc21b86e",
+      "bytes": 2263
+    },
+    "tool-adapter.diff": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/tool-adapter.diff",
+      "sha256": "57ee0244c3c216ea40fb5af09e42a7270909388933e070d6eb16314356dabc87",
+      "bytes": 1606
+    }
+  },
+  "source_files": {
+    "rust-toolchain.toml": "a5dab70a04165f8f83dd2db42a57347c61bc4f5285efa92be2b90362d835e50a",
+    "manifests/release-25.12.5.json": "e30c02f2306594c6458efe60ecc6e0cd6ffdf79c5ddefe344db8824c2631368b",
+    "packaging/openwrt/owrt-dnsmasq/Makefile": "baadd5e484a37f7c07947917b079ff0f107fd409cb604a07d095137b9f0aec4f",
+    "packaging/openwrt/owrt-dnsmasq/README.md": "5cede6a1f1fa083b21021fc0246517ae10d5811c24048818f7f12101089850f6",
+    "packaging/openwrt/owrt-dnsmasq/files/50-dnsmasq-migrate-ipset.sh": "6affb223dd5a143f9d7f2a5b1284e16a851731d706b71e5dd016f2c010a702f2",
+    "packaging/openwrt/owrt-dnsmasq/files/50-dnsmasq-migrate-resolv-conf-auto.sh": "8e373e9c7f4e2684a694b1aa0443dc81e47eebb124d9040cb7c2fbd22fad71d4",
+    "packaging/openwrt/owrt-dnsmasq/files/dhcp-script.sh": "62c292e28a1d595b5eff38fcc26170ac9c7036b9631362accaa5983a4e37cf26",
+    "packaging/openwrt/owrt-dnsmasq/files/dhcp.conf": "a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb",
+    "packaging/openwrt/owrt-dnsmasq/files/dhcpbogushostname.conf": "a9fec9132087a29e864e5cd22ec849e8d7f65056ecbaa2f5e4a021626ea46f85",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasq.conf": "1e6ab19c1ae5e70d609ac7b6246541d52042e4dee1892f825266507ef52d7dfd",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasq.init": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasq_acl.json": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "packaging/openwrt/owrt-dnsmasq/files/dnsmasqsec.hotplug": "ad2b44ee9161d2f2e16c0500cc66e5722d460be524f03c3454781532a779007b",
+    "packaging/openwrt/owrt-dnsmasq/files/rfc6761.conf": "0a12cf2bca81cb16a86829502cf94bdd3cba110e73ce6a49990e775a480d768a",
+    "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py": "9b04b7a13281414e4b79253a0a9ae8650abafa1645484dd6945e269d0335af58",
+    "tools/dnsmasq/build_package.sh": "d71d477606d13515f95d3eacc0d4fdef56ae9be9ae86dd6b021822abdeee97c2",
+    "tools/dnsmasq/build_package.py": "90fd7e38f8d2aaf72bca077ce46f5e0cdd242baea805184ed46c666d240a7d02",
+    "components/dnsmasq/Cargo.lock": "f414678b0ec026bcd72b2dbd8ac3aaeff887451d66de4e042cbe0b73785e7f52",
+    "components/dnsmasq/Cargo.toml": "3a1d9f10f9eeeeafaf1825dc949f3e6f081f7a654221a0a84c7a7a94741681ca",
+    "components/dnsmasq/src/bin/dhcp_event_order_probe.rs": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+    "components/dnsmasq/src/bin/dhcp_events_probe.rs": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+    "components/dnsmasq/src/bin/dhcp_message_metrics_probe.rs": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+    "components/dnsmasq/src/bin/dhcp_reply_probe.rs": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+    "components/dnsmasq/src/bin/lease_names_probe.rs": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+    "components/dnsmasq/src/bin/local_answer_probe.rs": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+    "components/dnsmasq/src/bin/udp_query_probe.rs": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+    "components/dnsmasq/src/config/auth.rs": "54109ec33076d81b5238677a9c010d16ca9469fea3dbe95ad0eec40afb64b095",
+    "components/dnsmasq/src/config/dhcp.rs": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+    "components/dnsmasq/src/config/dhcp_device.rs": "573d0dd2d5c23b487329c715c110fee7d5203d56bdf58cffc3ae8378158230fe",
+    "components/dnsmasq/src/config/dhcp_host.rs": "e5ba5431a13affbb48e682e3440b1035437982b4883560b674a0252194a79536",
+    "components/dnsmasq/src/config/dhcp_host_files.rs": "0f7aaa398acb3aa98c44c220358a1596d6364a7dac4832fd03f7e04cab631ab4",
+    "components/dnsmasq/src/config/dhcp_network.rs": "d12e0117b13cfb4919950b6c607502cd943d0dd68bba422f4e1415ad5c9cdecb",
+    "components/dnsmasq/src/config/dhcp_options.rs": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+    "components/dnsmasq/src/config/dhcp_pxe.rs": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+    "components/dnsmasq/src/config/dhcp_relay.rs": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+    "components/dnsmasq/src/config/dhcp_tags.rs": "af148ae32c55863b563e7ddc2afcfb77fc94104653407e5a99e685f2f45b866b",
+    "components/dnsmasq/src/config/dns.rs": "14b89061c3acd0270cf4fd4d3ce3e84d8fd33f3d32d7df5252125d808b7a688f",
+    "components/dnsmasq/src/config/dns_endpoints.rs": "a4d061184a441f35512a8afe1a036dae311fb1a7c612fd67650335cdae7c5806",
+    "components/dnsmasq/src/config/dns_lookup.rs": "afe00f3d0efdc57a3710d6f4644cdc3ff0db072d2cf1e92efaed4d78c928d450",
+    "components/dnsmasq/src/config/domains.rs": "77523df5c239ffd43d3b85403c842ffe04633805c6ae2f3cd0e573bb3e0d864f",
+    "components/dnsmasq/src/config/dump.rs": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+    "components/dnsmasq/src/config/edns.rs": "4f35260bf48cf361da35dfb197b68d611560106a39c0acd8988cd52f94e3cf14",
+    "components/dnsmasq/src/config/ethers.rs": "a58cbed430228b1a0abd98ab120e5867aba8387f475463f03d56d9e99adeaaee",
+    "components/dnsmasq/src/config/interface_records.rs": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+    "components/dnsmasq/src/config/loader.rs": "bc88f9aa003432e2972f7cb492431161bfb0dd89c799d0dfedfb905716e86395",
+    "components/dnsmasq/src/config/logging.rs": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+    "components/dnsmasq/src/config/mod.rs": "1b3f751e0074e1f22c4cdfb713c0b028c75f571e39af0eaf44de1b10d8ce54c0",
+    "components/dnsmasq/src/config/options.rs": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+    "components/dnsmasq/src/config/records.rs": "638dc9cfab40a17ef3f9f518aa0257d7bf7d995b0ddad8078e525891a5ad0795",
+    "components/dnsmasq/src/config/rrtypes.rs": "7bb3070d1100a1f42b3933837ef099d7476f7ad548fdf15d744561e273cb3c1d",
+    "components/dnsmasq/src/config/scalar.rs": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+    "components/dnsmasq/src/config/script_arp.rs": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+    "components/dnsmasq/src/config/state_probe.rs": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+    "components/dnsmasq/src/config/synth_domain.rs": "e9711d525323832ccdf1ebf4d6a24b7818a555e459d20f044675cf0e23a27d3f",
+    "components/dnsmasq/src/config/tftp.rs": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+    "components/dnsmasq/src/config/ubus.rs": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+    "components/dnsmasq/src/dhcp/allocation.rs": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+    "components/dnsmasq/src/dhcp/context.rs": "0c47e67c969750e3a886b40f3728e2537e4263209dce5f9915b1399dd979cea7",
+    "components/dnsmasq/src/dhcp/daemon.rs": "3e7266d8d74eea0814827d871f935f19c12299daa18e915148ffa8c6266f8739",
+    "components/dnsmasq/src/dhcp/files_runtime.rs": "37a54f0f9246018d31d0d48bb82ea5be53a62a25ff75294802e768934b6a97d1",
+    "components/dnsmasq/src/dhcp/filewatch.rs": "259ad0297d6ad7bdff0fa03d853ce67a9530f66092fa712e0ecc6367e8430f43",
+    "components/dnsmasq/src/dhcp/interface_admission.rs": "3f993ae940a388c51ba1604f9e4e87f485fca3571dfa8b95fceb135397a59a0c",
+    "components/dnsmasq/src/dhcp/lease.rs": "0605a92f9f504dd0e75ce2bc93022d2ec6709b557f5d22d5099563213ac9e2a3",
+    "components/dnsmasq/src/dhcp/lease_file.rs": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+    "components/dnsmasq/src/dhcp/lease_query.rs": "49b61937ada15eb123bc60976962c4ea5572d83b5b38359fedd147abdb7b46b4",
+    "components/dnsmasq/src/dhcp/logging.rs": "8a31edc1ce63d9afa04884f8a48eb0d5ba8aa72c34d67d18bb4113ff1082894c",
+    "components/dnsmasq/src/dhcp/message_counters.rs": "e8a0beab47e9a42d028d17802a68cb45081c98a90710f526da7c2250fea8af01",
+    "components/dnsmasq/src/dhcp/mod.rs": "bb3afc35be2d6e00e858a878ab895fc49d127a76c65c1028586356a740ee25e4",
+    "components/dnsmasq/src/dhcp/packet.rs": "1bc6b2e1fc2b5983d735489c6ced6adee86a9b4507480ab9fce96abca870d58c",
+    "components/dnsmasq/src/dhcp/persistence.rs": "5f48d5fd2f9f91a3e8e9c543dd83c269abde22e24e72017cb30056727913d6fb",
+    "components/dnsmasq/src/dhcp/probe.rs": "f4bf28dc9f2c72541ba8e41c6147a19b71eecbb74cd18df717ef4a88dd7d5fe3",
+    "components/dnsmasq/src/dhcp/pxe.rs": "64a8985add2f0821c04a7aea5b36cf355441d73bdf5a978c28311fa801926ca8",
+    "components/dnsmasq/src/dhcp/relay.rs": "ef2390bd92ae6fdbe1b21c2a6572af5d684698664e2c7ca3e9a1ebdeebcaa20a",
+    "components/dnsmasq/src/dhcp/reply.rs": "8ec058f44ce63a2b8fa3817fa3bce54163f11471e0ef7a5f72e5ae5b16725562",
+    "components/dnsmasq/src/dhcp/reply_delay.rs": "85d53a4540b9301ccf663b9dda9fadedfc2175dda1b3e547cd81c7160442175a",
+    "components/dnsmasq/src/dhcp/request.rs": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+    "components/dnsmasq/src/dhcp/runtime.rs": "b6a67f67a7f0bcece233ebbc2e80096ccdaba0bbe6de00173c9273259f38996d",
+    "components/dnsmasq/src/dhcp/service.rs": "a2e113af5f6a583814ddfcdbade36d100364c62f4caf4fe8ddbb21064759bda0",
+    "components/dnsmasq/src/dhcp/state.rs": "da5ded923bef0616e23701cb54391bc5f3aa690679721b7daa4360e11d4461d2",
+    "components/dnsmasq/src/dns/cache.rs": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+    "components/dnsmasq/src/dns/cache_engine.rs": "3262cd423ec506876aebc388fa7113cdf4f06c6a52a31d130fa7f9111390f00c",
+    "components/dnsmasq/src/dns/cache_name_index.rs": "ab3025c70ea991341fd6ce7cc8f2a0f3cd5b5d8b44235c856ae8699f75096d63",
+    "components/dnsmasq/src/dns/cache_reply.rs": "1f09b55dc2f4e3e4b7eebe6aa80ae3a4f32b0e19334fbb91df367b9730f6beae",
+    "components/dnsmasq/src/dns/cache_reply_tests.rs": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+    "components/dnsmasq/src/dns/cache_tests.rs": "1fb7a672ca501ef8e8493b287461cd22799737a6f026f032d1c68088dba8fc5e",
+    "components/dnsmasq/src/dns/cache_transfer_tests.rs": "79051d1ca2612695c596fddbac1ae65063373b03b514d9ef819832b1acae9d48",
+    "components/dnsmasq/src/dns/daemon.rs": "7f4b76847eb3d48d66777468667e5f1f6dc3f26f20ea09c341ac7a388d663d5b",
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": "58e391373b49d26e7ac2833ad42ff2134f85519f1e79f8b9345ba9743b53a041",
+    "components/dnsmasq/src/dns/daemon_dump.rs": "39f77f25aeb26fc3efcc67de0de2e83b9dd94262115ab1f1fd1051ad2d92fe45",
+    "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs": "2beb9c8555d168a4ee64ba0c40c31499b7f9638140c8ebc51fbac217c47d9b26",
+    "components/dnsmasq/src/dns/daemon_policy_tests.rs": "7d021ce94da3a70b02ca7bac46c312541ebe968e7e61e882a2f4cf11867d33bd",
+    "components/dnsmasq/src/dns/daemon_poll_tests.rs": "38c3c2e1a0dbade38eb22bceb5202f28c4b5279e3588ca5b0234e72b72c3e09e",
+    "components/dnsmasq/src/dns/daemon_route_resend_tests.rs": "7990b46c1bf9481b1e4aa7247217d738cfb5be7cdeec8557eab6b7a5d8e78bba",
+    "components/dnsmasq/src/dns/daemon_stale_tests.rs": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+    "components/dnsmasq/src/dns/doctor.rs": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+    "components/dnsmasq/src/dns/edns_policy.rs": "f6a2e24ed00c5a0aba731c2a9c535bdb70d077a9be7c78e496fb25a8d0aff739",
+    "components/dnsmasq/src/dns/files.rs": "119f3b3e5e8c7976bd7c5446143c7853faa7a8f44f59349a2f9b18b4d08d022a",
+    "components/dnsmasq/src/dns/files_runtime.rs": "86a7b7f19788626fbcfe9dcc3a1f7420caddcf29dcacf36ca07ad2a071741e18",
+    "components/dnsmasq/src/dns/filewatch.rs": "50766a78aeb9e440991b26741c8026ff05c709c809244cbe9f325d5a18d7f3f3",
+    "components/dnsmasq/src/dns/forward.rs": "f4cc418c81da14ab526d379ac5a5975057f0fe29f22c057d47d55756879611f5",
+    "components/dnsmasq/src/dns/forward_service.rs": "2115b3fb09f97f0c8bd2ff6c9359d082e54012e2b792406fe75a649b1770e810",
+    "components/dnsmasq/src/dns/forward_tests.rs": "73f235a6e6357f0698c0c8ec25d1bfbcda0ea37f54b53381c775005761b027ee",
+    "components/dnsmasq/src/dns/hostsdir.rs": "a1e41c5ac7228a97af35a924e34f2b12e1ea9763bc4c18dea85f8728eaa419b6",
+    "components/dnsmasq/src/dns/hostsdir_runtime.rs": "d7f19c5a6a6267acfb4e8c092c0374516f1de4dccfbf23da4c4d70c8a76eed47",
+    "components/dnsmasq/src/dns/interface_collect.rs": "a633968f5dc3cec82ff977ad73ec5d3ef3b10fce34c1253ae1ea8c5eafe1286f",
+    "components/dnsmasq/src/dns/interface_records.rs": "04a6a18dfa5b503d9465d1ec4012451818f9c5f91bb59217f828a99fe7c58ea3",
+    "components/dnsmasq/src/dns/lease_names.rs": "8d5b9f161228a2f1d8bc738e6415dc936757999aa8313be0bc11e8bb9fb83f49",
+    "components/dnsmasq/src/dns/local.rs": "9b433c34c802805ae181edaa5a16785a744ea866aef2a40cd3ba889f2c08ddb1",
+    "components/dnsmasq/src/dns/loop_detect.rs": "25cb0883b4fdab3ae363880c98e7a6e30a0861de366b6d78d82957285dc40db4",
+    "components/dnsmasq/src/dns/mod.rs": "2fecc11545e5e14be739c6b893f06060ddfa178dc81a2d7287f28762a8923cc0",
+    "components/dnsmasq/src/dns/process.rs": "97d3fc635594ecebdbb171f46671d7d585fcedfc84d00ca0b4db6c1a7623c3a7",
+    "components/dnsmasq/src/dns/query_policy.rs": "18754b4a64024a7b435b1eb21e72268228fc7feccf23236120bef7b4f02064d1",
+    "components/dnsmasq/src/dns/reply.rs": "da3e159aa6ca781c6451ad0e42a65148577b6779098985775464e53e147bc898",
+    "components/dnsmasq/src/dns/routing.rs": "621535122d1571c31671c1a57c9658ca9b059ba88d3a73c59c55f9a9e8a816eb",
+    "components/dnsmasq/src/dns/service.rs": "1c05a4756b2b436e1e078d44157f88fbf48761c3e275153d85afd4739a89973c",
+    "components/dnsmasq/src/dns/source_sockets.rs": "03baf34d0df5a0b71c2ad08762cf1c550960d5f65b1f604887c8f5a6b9558da8",
+    "components/dnsmasq/src/dns/tcp_connect.rs": "d91499e1c2ce6fbc0b6038bfebe302fde98f3ebb7dc0739f2bb7f577191b5308",
+    "components/dnsmasq/src/dns/tcp_exchange.rs": "732c3c8c234011416de2a46df4127da69eada4171e54e9422aba0e5ca1da0c23",
+    "components/dnsmasq/src/dns/tcp_service.rs": "6eb49a70366705771e1afe014483a795c1dba6859a0a8d206c9ff33ce24054ec",
+    "components/dnsmasq/src/dns/tcp_upstream.rs": "8595b71b84082a22cc32f41025074ae39c497e5c3fbff06fa70c4d15ee851065",
+    "components/dnsmasq/src/dns/tcp_upstream_tests.rs": "edf92efa30c2c6b5cb4f12a20b2ea65e0a7db38edb35a8e65305ef94d433e7ca",
+    "components/dnsmasq/src/dns/udp_query.rs": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+    "components/dnsmasq/src/dns/upstream.rs": "479e4d90b91dc85111b72a1ac221ad26e25b7b9e16686441fbfec7f53a826b07",
+    "components/dnsmasq/src/dns/upstream_owner_wake_tests.rs": "6e829e871556802b9364336e02f675c891754ccef3173a0ed3f68899e66ffd0b",
+    "components/dnsmasq/src/dns/upstream_route_resend_tests.rs": "22c82e8290873dfe753269cc5a6e14099babaddf0573873bfc316d32c55767d6",
+    "components/dnsmasq/src/dns/wire.rs": "e5f923be00b56d1993203ed12afc37b383eb10732c18c0079e6c4a3cd4968321",
+    "components/dnsmasq/src/dns/wire_tests.rs": "2b1afb11d2e519d4b975bbda7c2218c0892c9a2ee6f083cea393fcb20bcea8a8",
+    "components/dnsmasq/src/dump.rs": "8343bea2ca070ddade1c29a58fc3da52f33a7366cb39c693228a3656721c5fc3",
+    "components/dnsmasq/src/helper/packet.rs": "50d10ea430daaa10a0fc865c892bb898f13fa4614d90b8eddcfbda752724f02f",
+    "components/dnsmasq/src/helper/process.rs": "c79b0ab716fc1faa8777f0bf8cab83915aa7035fcb660fe89235f0f711c8ae73",
+    "components/dnsmasq/src/helper/wire.rs": "be985aeed10c230b61cbcb00cd8e320626abe4164cb8762511835f227990adba",
+    "components/dnsmasq/src/helper.rs": "3a5778db6b48cf31fe8e049283379b09c98fa26200fb89a8c35adf2f5cb2173d",
+    "components/dnsmasq/src/hosts.rs": "080ac4bfb2bb1883e1709e737dddb0a454de47fb659c790be9d92463574f14d4",
+    "components/dnsmasq/src/interfaces.rs": "1c9906bf2673252462d613fe81219366f0f9be317373a71d45daa4fb4051b9c7",
+    "components/dnsmasq/src/interfaces_broadcast.rs": "461c8b4b89f75004a092b17c85ab98879ce07e5bce2f53c5b30b2c99fc24bfdb",
+    "components/dnsmasq/src/interfaces_ipv4.rs": "68992d21ab763c94ebb0aa6ee62a6f67ec9a240db4cf646febc3425fad41107d",
+    "components/dnsmasq/src/lib.rs": "88741ca0088926a36740f0a54394457cab53beddbeab0f6c164e5ecea99a5e9b",
+    "components/dnsmasq/src/listeners.rs": "b3ad164d2836c83be31c22da848e6c2ba576dd376fa7ddd904888b80f5333c8f",
+    "components/dnsmasq/src/logging/address.rs": "fc4c6458b00f0ced561cea91935f32062ecb3b4cb17f2a59c706daac7544b558",
+    "components/dnsmasq/src/logging/query.rs": "b0422065660b03190f6597c9614103d6fe6b2b86e23642432959346285a01b99",
+    "components/dnsmasq/src/logging/startup.rs": "bac5619389108bf806a9335a2c8f72178adde1f7fd26647e932c167f1ecb03f1",
+    "components/dnsmasq/src/logging.rs": "fbec75c225bba53f9f9890cbb937b6011365cb7c88a7dca3775ab7e284417d8d",
+    "components/dnsmasq/src/main.rs": "5a70ef510a6630f5532e8761fee4122f550528fb5a7159174a9e721028ad9c41",
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": "f90661d72592ed838abd3d6c510eae83cd2a2a0a624bf601f24d274aa666f2bb",
+    "components/dnsmasq/src/main_neighbor_tail_tests.rs": "1e4cced84f5e596336e4e1f5be48b7d5709ebe4e5fcff1b6137567ad0ca46f80",
+    "components/dnsmasq/src/main_newaddress_tests.rs": "744455a88c43d3d4bd300f1e3c4115247b5da6531d80ca2804d47fd1892e80ef",
+    "components/dnsmasq/src/main_route_resend_tests.rs": "0d2ae1f0392bae65118cc1e93b4e67e6144b25a0eedb1343ec65145906252797",
+    "components/dnsmasq/src/main_stale_refresh_log_tests.rs": "375d96a42c4512da8e6d73bf9eba4638b8377b97ecdc9071d206509ae11d9b8d",
+    "components/dnsmasq/src/main_tcp_import_local_tests.rs": "f35e6150fa1b88d57038167ba5627148375a15c79162141426f717dc81414493",
+    "components/dnsmasq/src/main_tftp_admission_tests.rs": "9e637ed167957c32ac72a39877cc11970222125e20c1ab7623747929a4b34fa0",
+    "components/dnsmasq/src/main_udp_acl_tests.rs": "0b0a2ad4450e520285d430e3a9156c7dc3bae0b690c11fc6bd0a9a95c24cb0a9",
+    "components/dnsmasq/src/metrics.rs": "e1fe02c7c9ad31d39cb31434f0936b6f0ac0c6085c1f185ac1bdeeb5f9cc0172",
+    "components/dnsmasq/src/neighbors.rs": "69b716b0a01857f18d09ee818055d30e043ebba86169f393efa3aaf6cdce3108",
+    "components/dnsmasq/src/net.rs": "a635712f6825778df81706769d718b28c719eb958ab3ff4b87433f9db81420b1",
+    "components/dnsmasq/src/sorting.rs": "4d7ee2eb9cceb659495f46bf2dbb4221a438ce7fa8b82d2eafeb923b353a1ee6",
+    "components/dnsmasq/src/startup/cli.rs": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+    "components/dnsmasq/src/startup/daemonize.rs": "e96be759daecc2d365d2f979dc937179f93e1c1336b7ea733a55496819886ddd",
+    "components/dnsmasq/src/startup/lease_init.rs": "5f6df75c7ccbcb47cb068a9594239de3953c07ac92a944709f6d486f066f4a13",
+    "components/dnsmasq/src/startup.rs": "73c590949c513051384bb80c50af78dec0eb884dfdbf91f924b0432b171f8841",
+    "components/dnsmasq/src/startup_relro.rs": "5045a20238d01abf553bb8bd7ac133071f41137f44bed44278f416c8a0255c60",
+    "components/dnsmasq/src/tftp.rs": "ca0be916eaa907addd20f17084cbe349d6f4163e6bf669967cbbf11b0c14f28c",
+    "components/dnsmasq/src/tftp_listener.rs": "d90096c637cf5cf887bb500f2ec257d0d86f3b3cecf18fc649601bddec843f01",
+    "components/dnsmasq/src/tftp_policy.rs": "1e46c34cfe454fd85579b3ce5ce413a8ed4dbd9c91b0899e583d64f4c77f4ca2",
+    "components/dnsmasq/src/tftp_runtime.rs": "6a68a3d392e7ed8fd2a5a37773c424cd38acb5fee06d075076f01bd507eb86de",
+    "components/dnsmasq/src/tftp_service.rs": "1d4b94bfc0a845ceda528bbf1c10fa264be602e4f9012a6cf3aac445d9acb357",
+    "components/dnsmasq/src/ubus_service.rs": "2614f3e5b423351fbede2be27ff5483878a00a04f40ec0be24353879031c2ff6",
+    "components/ubus/Cargo.toml": "104190ac358c75cb88227979ec3729efa476a0e6487fb7f13fcab84e9608ebff",
+    "components/ubus/src/blob.rs": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+    "components/ubus/src/conn.rs": "50034b626d77fc7978616a91cb260483adbe59f162e7f249ab321a7398daa409",
+    "components/ubus/src/connect.rs": "7c568f49fdad2bc6ea4b0aa57c2a957d6f71896a3efeec0e45192acf86848999",
+    "components/ubus/src/convert.rs": "3cf3ca60d1e673d368d18ef2b80336929865dd4fd7f01e7b8aba1d30faf0f83a",
+    "components/ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+    "components/ubus/src/json.rs": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
+    "components/ubus/src/lib.rs": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf",
+    "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+    "components/ubus/src/readiness.rs": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+    "components/ubus/src/sys.rs": "cf163c665374d34e1b950eaaff410f01aef4a0da131f5a74a77ccb9fd14fbd9d"
+  },
+  "commands": [
+    {
+      "id": "config-state-probe",
+      "family": null,
+      "argv": [
+        "env",
+        "RUSTUP_HOME=/home/ubuntu/.rustup",
+        "CARGO_HOME=/home/ubuntu/.cargo",
+        "PATH=/home/ubuntu/.cargo/bin:/usr/bin:/bin",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/config_state_adapter.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types",
+        "--reference-build",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/result.json",
+        "sha256": "d1b1ab9cb2443ec3d2b9fd9cd9adb714b8694b9152d0d79a66872d8ad99c1d0c",
+        "bytes": 2144
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe.log",
+        "sha256": "aa3e54c9a03b1a3af7d22eca39f1f340a6e0204a8ec4b97a7a8333cbb1ca11ff",
+        "bytes": 297
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898839.6115959,
+      "elapsed_seconds": 13.141535758972168,
+      "native_probe_identity": {
+        "c-state": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/c-state",
+          "sha256": "351769e7ae6f1d9ed63555ea739f8266062ba7b60515900373073690cd995bcb"
+        },
+        "rust-state": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/rust-state",
+          "sha256": "698fb2d27fdd0beba52ede5c770cb1c764dbc86f4ab64f72d3d0c9d6333fb110"
+        },
+        "state_probe.c": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/state_probe.c",
+          "sha256": "daf477de6a44b34b12ff7385ccb66a924628df8fbab9f46a7169c1d6cc21b86e"
+        },
+        "dnsmasq-without-main.o": {
+          "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/dnsmasq-without-main.o",
+          "sha256": "6402e8dc94e3aa49d1168bd032de3e30dceb71ed82e18a12405b43ce9d5ff19a"
+        }
+      },
+      "native_adapter_identity": {
+        "source": "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types",
+        "target": "aarch64-unknown-linux-gnu",
+        "profile": "dev",
+        "features": "",
+        "scope": "native configuration-only probes; not SDK daemon or performance artifacts",
+        "cargo_argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--offline",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/Cargo.toml",
+          "--target",
+          "aarch64-unknown-linux-gnu",
+          "--message-format=json"
+        ],
+        "state_argv": [
+          "/usr/bin/python3",
+          "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/contract_inventory-adapted.py",
+          "--state-differential",
+          "--reference-build",
+          "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01",
+          "--work",
+          "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe"
+        ],
+        "versions": {
+          "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Ubuntu 24.4.0 (noble) [64-bit]",
+          "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8"
+        },
+        "original_probe_sha256": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+        "adapted_probe_sha256": "223ed650a8cc73372d7a85715cd62cd7db5432a01c143f1460da0736d7412ba5",
+        "original_tool_sha256": "edd6a92c3902f71fe3b4211433f9eac4c1270143ce8ce0c607e31bde5daf9985",
+        "adapted_tool_sha256": "2d33981de515ee8a3a7c52e9101b6df2567e48bbebd0748841316e54a33013c4",
+        "cargo_manifest_sha256": "95cafa33342fa83a501896c1df6f46ef0c43b4191421d37bc42b246df51b840f",
+        "cargo_lock_sha256": "ed37217fce8e92b6bea3f276d5934c80fa584618b7411c2a712f7880df0bc966",
+        "cargo_probe_sha256": "698fb2d27fdd0beba52ede5c770cb1c764dbc86f4ab64f72d3d0c9d6333fb110",
+        "probe_imports_only": true,
+        "C_corpus_and_comparison_unchanged": true
+      },
+      "native_adapter_receipt": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/adapter-identity.json",
+        "sha256": "25dca85966bb9859383924181eaefb7c1ee24676a9806fcb50ac86589503f3c1"
+      },
+      "probe_scope": "read_opts scalar and local-record state; no listeners; record row order normalized except host/PTR name order explicitly indexed"
+    },
+    {
+      "id": "F02-cached-cname",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/independent/dns_hosts_cname.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--require-match",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F02-cached-cname"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F02-cached-cname/result.json",
+        "sha256": "22f669709bb839fb7e60b23bb81fce8a431437f082e06f713f0c66817dbc78ea",
+        "bytes": 17549
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F02-cached-cname.log",
+        "sha256": "ec3ced6117deb0f5ffd03db72e4bcde36aef5c503314d4e9287f18f272f3876d",
+        "bytes": 5587
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898852.7535741,
+      "elapsed_seconds": 2.236131429672241
+    },
+    {
+      "id": "fresh-DHCP-over-NXDOMAIN",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/independent/dns_hosts_stale.py",
+        "--tools",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--fresh-only",
+        "--require-match",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/fresh-DHCP-over-NXDOMAIN"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/fresh-DHCP-over-NXDOMAIN/result.json",
+        "sha256": "954572db9475d3edff26ef95d44227ed6476c76b2f589a31b1217744b5990611",
+        "bytes": 2046
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/fresh-DHCP-over-NXDOMAIN.log",
+        "sha256": "954572db9475d3edff26ef95d44227ed6476c76b2f589a31b1217744b5990611",
+        "bytes": 2046
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898854.99016,
+      "elapsed_seconds": 3.220271348953247
+    },
+    {
+      "id": "F08-stale-observation",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/independent/dns_hosts_stale.py",
+        "--tools",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F08-stale-observation"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F08-stale-observation/result.json",
+        "sha256": "452f6916204c7b70ca113d29b52111e98734d9bb3ae887fa342f0656dc83a3e4",
+        "bytes": 2901
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F08-stale-observation.log",
+        "sha256": "452f6916204c7b70ca113d29b52111e98734d9bb3ae887fa342f0656dc83a3e4",
+        "bytes": 2901
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898858.2109046,
+      "elapsed_seconds": 14.490175247192383,
+      "strict_result": {
+        "executed": true,
+        "passed": true,
+        "observations": [
+          {
+            "debug": false,
+            "stale": false,
+            "answer_equal": true,
+            "healthy_ACK": true,
+            "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+            "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+          },
+          {
+            "debug": false,
+            "stale": true,
+            "answer_equal": false,
+            "healthy_ACK": true,
+            "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000006000f00020003",
+            "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+          },
+          {
+            "debug": true,
+            "stale": false,
+            "answer_equal": true,
+            "healthy_ACK": true,
+            "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+            "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+          },
+          {
+            "debug": true,
+            "stale": true,
+            "answer_equal": false,
+            "healthy_ACK": true,
+            "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000006000f00020003",
+            "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+          }
+        ],
+        "equivalence_claim": false
+      }
+    },
+    {
+      "id": "R1-cname",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/fix2/dns/cname_compat.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--require-match",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-cname"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-cname/result.json",
+        "sha256": "0c42261c7b4835e0af23adba17474d3a77d3e92b1f15732d0cf43062ca41e61b",
+        "bytes": 186042
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-cname.log",
+        "sha256": "e6123385f71e0254d1ad0803d6df03b27b0769d1316fa25a7b876508b485426e",
+        "bytes": 38
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898872.7020667,
+      "elapsed_seconds": 42.79011297225952
+    },
+    {
+      "id": "R1-flags",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/fix2/dns/cname_flags.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--require-match",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-flags"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-flags/result.json",
+        "sha256": "d3cf9b3a456b42fdb939d3cfd34547a98f4a86d3bdab92851dd4b9e30bc8ac3d",
+        "bytes": 201012
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-flags.log",
+        "sha256": "75372dd68ff618cc5be89fcf0d2341fa3ade26046cc5ee3e3ff59512e9c266da",
+        "bytes": 38
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898915.492726,
+      "elapsed_seconds": 34.276761054992676
+    },
+    {
+      "id": "N1-filter-cname",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261012/fix3/dns/filter_cname_tcp.py",
+        "--tools",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--main",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "--fix",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N1-filter-cname"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N1-filter-cname/result.json",
+        "sha256": "40756786de61c93d8e964bc006f78dade40cc4f8168b8098cd6b0c211a6529a9",
+        "bytes": 392219
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N1-filter-cname.log",
+        "sha256": "50e193ac81a3f55162413d17d3c829defc6346146078ac7ddccf5125a420a37d",
+        "bytes": 8827
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791898949.7700696,
+      "elapsed_seconds": 68.55806612968445,
+      "strict_result": {
+        "passed": true,
+        "cases": 72,
+        "failures": []
+      }
+    },
+    {
+      "id": "review3-matrix",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261012/fix3/dns/matrix.py",
+        "--tools",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--main",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "--fix",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/review3-matrix"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/review3-matrix/result.json",
+        "sha256": "26ffaeb870f5b94db2ea1bb0c6e6af9c5037a49ef56bbb8185a48d899a2e059d",
+        "bytes": 11210125
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/review3-matrix.log",
+        "sha256": "891bb7fef99d98d3d5b98740a594ff7486589a21d858282dd04ee5a80d4e593d",
+        "bytes": 1934
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899018.3287587,
+      "elapsed_seconds": 103.36835408210754,
+      "strict_result": {
+        "passed": true,
+        "failures": [],
+        "case_counts": {
+          "plain-positive": 62,
+          "plain-negative": 62,
+          "target-txt-positive": 62,
+          "target-txt-negative": 62,
+          "alias-txt-positive": 62,
+          "alias-txt-negative": 62,
+          "target-mx-positive": 62,
+          "target-mx-negative": 62,
+          "target-srv-positive": 62,
+          "target-srv-negative": 62,
+          "target-raw-positive": 62,
+          "target-raw-negative": 62,
+          "target-host-positive": 62,
+          "target-host-negative": 62,
+          "target-interface-positive": 62,
+          "target-interface-negative": 62,
+          "target-local-positive": 62,
+          "target-local-negative": 62,
+          "target-literal-positive": 62,
+          "target-literal-negative": 62,
+          "filter-positive": 62,
+          "filter-negative": 62,
+          "filter-target-txt-positive": 62,
+          "filter-target-txt-negative": 62,
+          "target-long-txt-positive": 62,
+          "target-long-txt-negative": 62,
+          "target-long-mx-positive": 62,
+          "target-long-mx-negative": 62,
+          "malformed": 116
+        },
+        "declared_differences": [
+          {
+            "profile": "target-local-positive",
+            "case": "6-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "6-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "12-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "12-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "15-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "15-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "16-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "16-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "28-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "28-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "33-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "33-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "255-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "255-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "257-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-local-positive",
+            "case": "257-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-literal-positive",
+            "case": "255-rd-udp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "target-literal-positive",
+            "case": "255-rd-tcp",
+            "reason": "declared common UDP semantics"
+          },
+          {
+            "profile": "malformed",
+            "case": "forward-pointer-udp",
+            "reason": "unchanged forward-pointer parser difference"
+          },
+          {
+            "profile": "malformed",
+            "case": "forward-pointer-tcp",
+            "reason": "unchanged forward-pointer parser difference"
+          }
+        ]
+      }
+    },
+    {
+      "id": "TCP-UDP-parity",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261012/fix3_repairs/functional/tcp_udp_parity.py",
+        "--tools",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--matrix-source",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261012/fix3/dns/matrix.py",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/TCP-UDP-parity"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/TCP-UDP-parity/result.json",
+        "sha256": "75a0bbac9f213dc93ddc9d765bc6225232440cbaa85986d9257378194745781c",
+        "bytes": 22316751
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/TCP-UDP-parity.log",
+        "sha256": "c941f48c39ef86c775c5f80f14d8b495e219a0bdcb9bd4fba6f1a5bc3386cf0f",
+        "bytes": 4608
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899121.6979558,
+      "elapsed_seconds": 197.96950244903564
+    },
+    {
+      "id": "A10-and-original-DNS",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/audit_20261011_dns.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/A10-and-original-DNS"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/A10-and-original-DNS/result.json",
+        "sha256": "11ec6eb467d4f76d18977912ecc5f0dd8a16fd4b74c6a9740e965e681854b59c",
+        "bytes": 598684
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/A10-and-original-DNS.log",
+        "sha256": "d680fc7b746a6534e4353aae21f6809e7dcc5ab39a573f73623164df43000e08",
+        "bytes": 1056
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899319.6683438,
+      "elapsed_seconds": 6.900789260864258,
+      "strict_result": {
+        "passed": true,
+        "freshly_executed_responses": 368,
+        "C_equal_responses": 366,
+        "predeclared_exact_baseline_checks": [
+          {
+            "protocol": "udp",
+            "query_exact": true,
+            "C_response_exact": true,
+            "Rust_response_exact": true,
+            "upstream_empty": true
+          },
+          {
+            "protocol": "tcp",
+            "query_exact": true,
+            "C_response_exact": true,
+            "Rust_response_exact": true,
+            "upstream_empty": true
+          }
+        ],
+        "all_profile_health_equal": true,
+        "limit": "Two inherited forward-pointer parser differences are retained, not claimed equivalent to C"
+      }
+    },
+    {
+      "id": "N2-intentional-permissions",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261012/fix3/dhcp/hosts_permissions.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types",
+        "--image",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--main",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "--fix",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N2-intentional-permissions"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N2-intentional-permissions/result.json",
+        "sha256": "cc12358fbafae4d9fba61d6d233e089f36b111add1a99ba579f16c0a1d7ef36f",
+        "bytes": 20584
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N2-intentional-permissions.log",
+        "sha256": "cc12358fbafae4d9fba61d6d233e089f36b111add1a99ba579f16c0a1d7ef36f",
+        "bytes": 20584
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899326.5700133,
+      "elapsed_seconds": 3.8529601097106934,
+      "strict_result": {
+        "passed": true,
+        "failures": [],
+        "decision": "intentional C permission boundary; no root-only hosts compatibility restoration"
+      }
+    },
+    {
+      "id": "O3-auth-ACL",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/fix2/config/config_normal.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types",
+        "--image",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/O3-auth-ACL"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/O3-auth-ACL/result.json",
+        "sha256": "cfb06a5e61228c6b3aef464fbdc59d38083cc40c98cc99c05a33be00ee7252a8",
+        "bytes": 98144
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/O3-auth-ACL.log",
+        "sha256": "de4445c1717008c04fd08d6e13724bde83af613c7f6ae78bc81467c6fdb56a5f",
+        "bytes": 8908
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899330.4238524,
+      "elapsed_seconds": 7.083417892456055,
+      "strict_result": {
+        "passed": true,
+        "failures": [],
+        "syntax_cases": 65,
+        "service_cases": 54,
+        "inherited_refusal_representation_differences": [
+          [
+            "--except-interface=lo"
+          ],
+          [
+            "--listen-address=127.0.0.1"
+          ],
+          [
+            "--auth-server=ns.test,lo/4",
+            "--except-interface=lo"
+          ],
+          [
+            "--auth-server=ns.test,lo/4",
+            "--listen-address=127.0.0.1"
+          ],
+          [
+            "--auth-server=ns.test,lo/6",
+            "--except-interface=lo"
+          ],
+          [
+            "--auth-server=ns.test,127.0.0.1",
+            "--except-interface=lo"
+          ],
+          [
+            "--auth-server=ns.test,127.0.0.1",
+            "--listen-address=127.0.0.1"
+          ],
+          [
+            "--auth-server=ns.test,::1",
+            "--except-interface=lo"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "m5_option_matrix-paired",
+      "family": "m5_option_matrix",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--manifest",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix.json",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix/result.json",
+        "sha256": "a81a1cf7ff4f0cca3b6a57d9f41da8a47b48ef0b375a4aa98edf5042cbeb0989",
+        "bytes": 23302
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix-paired.log",
+        "sha256": "51bdfac4ab0efe4009d6828907f26eff44495ce78882c2de97295f986b7943fb",
+        "bytes": 214
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899337.5085886,
+      "elapsed_seconds": 15.168566465377808
+    },
+    {
+      "id": "m5_option_matrix_next-paired",
+      "family": "m5_option_matrix_next",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--manifest",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix_next.json",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_next"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_next/result.json",
+        "sha256": "12194882ec693636e72b7cb2c8fdb2006d5725f7d5b67beab770646b7ca33621",
+        "bytes": 29790
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix_next-paired.log",
+        "sha256": "c4edccf8f8d2548badca523f8dd19d9ba7e7faeaecc8288fd9bd78cc76d250c4",
+        "bytes": 152
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899352.6781394,
+      "elapsed_seconds": 59.528234004974365
+    },
+    {
+      "id": "m5_option_matrix_third-paired",
+      "family": "m5_option_matrix_third",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--manifest",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix_third.json",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_third"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_third/result.json",
+        "sha256": "e2e8e66fb9e16d7204618a7366c62545eda060b8968b24d03e7a8e96b7977698",
+        "bytes": 31453
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix_third-paired.log",
+        "sha256": "a955cae505d25f6ca83f8ae0c06b96ba9c625c43daa05ff156d521b6342d1049",
+        "bytes": 96
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899412.2073944,
+      "elapsed_seconds": 15.660017967224121
+    },
+    {
+      "id": "m5_option_matrix_lease_names-paired",
+      "family": "m5_option_matrix_lease_names",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--manifest",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix_lease_names.json",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_lease_names"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_lease_names/result.json",
+        "sha256": "92b6880d785860e2869c39066b593e185ce717b0fdd2b3081b2fcdcf901e2c68",
+        "bytes": 29165
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix_lease_names-paired.log",
+        "sha256": "297ab4b33b6e6e1588c64d7169854f4090253aed24d6211130624d23d983c7c0",
+        "bytes": 103
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899427.8684866,
+      "elapsed_seconds": 71.06523633003235
+    },
+    {
+      "id": "m5_local_records-paired",
+      "family": "m5_local_records",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_local_records.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_local_records"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_local_records/result.json",
+        "sha256": "ea6f760e9a72cb98ad0c5fbfcabdd123dd6ade62ec390f49178ae6ad7c4e966e",
+        "bytes": 1412
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_local_records-paired.log",
+        "sha256": "b1644e1dc73c1f41331b17fb856c2bf28195660d206f2b84a6cf2da5debe850f",
+        "bytes": 1183
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899498.934803,
+      "elapsed_seconds": 86.83253169059753
+    },
+    {
+      "id": "m5_rr_filter-paired",
+      "family": "m5_rr_filter",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_rr_filter.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_rr_filter"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_rr_filter/result.json",
+        "sha256": "bc173f8486ccd7cc5bf2c1409de1e9a61dadce2e37b98894092ab84f9bc58f19",
+        "bytes": 2232
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_rr_filter-paired.log",
+        "sha256": "67db3bb3cf3481c0d4da20ff11dce15dc3e4dcf46bdd2b4029273ceab2e0c11d",
+        "bytes": 57
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899585.7684433,
+      "elapsed_seconds": 7.0293121337890625
+    },
+    {
+      "id": "m5_config_inputs-paired",
+      "family": "m5_config_inputs",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_config_inputs.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_config_inputs",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_config_inputs/result.json",
+        "sha256": "72a8bba41ffb74c065babc0150abfc15fde2318744df30f3af544608cca3b55e",
+        "bytes": 27169
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_config_inputs-paired.log",
+        "sha256": "ca3da9ef82dcbdf075cdcfbc4233b4dd546a0334df17ddb2e14506ba24d3261e",
+        "bytes": 69
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899592.7995014,
+      "elapsed_seconds": 27.532597303390503
+    },
+    {
+      "id": "logging-all-scopes-paired",
+      "family": "logging-all-scopes",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_logging.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/logging-all-scopes",
+        "--scopes",
+        "async,async-overflow,async-recovery,async-tcp-queue,async-transport,blocked-sink,cli,credential-fault,daemon,debug,dhcp-packets,dhcp-quiet-delay,error-frame,helper-inheritance,identity,identity-full,ownership-warning,query-control,query-dhcp,query-extreme,query-forward,query-local,query-policy,query-reference,query-transactions,root-access,script-logs,scriptuser-boundary,server-logs,sink,sink-fault,startup-fault,startup-output,tftp-logs"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/logging-all-scopes/result.json",
+        "sha256": "57cb95f02ed071526331f19e121386fd6ee65b53c0621b307125f2db2b66f9d1",
+        "bytes": 122718
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/logging-all-scopes-paired.log",
+        "sha256": "95bcf753a337a457d2530b84c289a140212c92006a3ebce1d657672b6682d40b",
+        "bytes": 232
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791899620.3332713,
+      "elapsed_seconds": 575.3105762004852
+    },
+    {
+      "id": "m5_edns-c",
+      "family": "m5_edns",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_edns.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/c"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/c/result.json",
+        "sha256": "97c2d04a9168ad7004af9f855865c770c6321d6709049298e2c6f37b45cf3da1",
+        "bytes": 683183
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_edns-c.log",
+        "sha256": "04a521c25195f9191fac37bf25a4cdd3ab45583ce5cbb014f024391439e359b6",
+        "bytes": 1323
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791900195.6451423,
+      "elapsed_seconds": 122.20438718795776
+    },
+    {
+      "id": "m5_edns-rust",
+      "family": "m5_edns",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_edns.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "rust",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/rust"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/rust/result.json",
+        "sha256": "dd206b8ee8f15c4b4ba875e66357b3d87f8b666e373f3cfdf499587822806845",
+        "bytes": 576512
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_edns-rust.log",
+        "sha256": "12584439f4c16fdb44fcfe2eb44d09c95c67364fe4f1d8a77c1daae1013717fa",
+        "bytes": 1326
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791900317.850841,
+      "elapsed_seconds": 107.4158124923706
+    },
+    {
+      "id": "m5_edns-compare",
+      "family": "m5_edns",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_edns.py",
+        "compare",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/c",
+        "--candidate",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/rust",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/comparison.json"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/comparison.json",
+        "sha256": "c8c95718b29b92ad56785ce668efa61f5ca4c4363b9b9c9fb1d57c584845e2d3",
+        "bytes": 1397
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_edns-compare.log",
+        "sha256": "839842eb83976b2b72de7e82d2521e7c4a088f0783b47f0df86c4bd71ccd556f",
+        "bytes": 69
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791900425.2680414,
+      "elapsed_seconds": 0.19091582298278809
+    },
+    {
+      "id": "m5_dns_cache-c",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c/result.json",
+        "sha256": "141383ec73ddaf12bb7505db17cb115c18d8597f49d1bd81dc95291c04205563",
+        "bytes": 4390030
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c.log",
+        "sha256": "048ae37d671cc6fa12a793e4b9c162b4c963c6be742db6e5b2da010367335a56",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791900425.4603426,
+      "elapsed_seconds": 699.391854763031
+    },
+    {
+      "id": "m5_dns_cache-rust",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "rust",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/rust"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/rust/result.json",
+        "sha256": "df3ea9bc96c1a39dff5c0892005fea3e127f96d138264b3ee289570357afe2cb",
+        "bytes": 3496718
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-rust.log",
+        "sha256": "0a139d56fcdf7f777aa10b3cf6eb99303e769f123db7379682689b8efdd4e8e3",
+        "bytes": 64
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901124.853947,
+      "elapsed_seconds": 699.9879376888275
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-1",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-1"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-1/result.json",
+        "sha256": "af23360c1aa4be35bc6fe1aaf24d603e3e3cb143b3543bd9a25190964e9c17b5",
+        "bytes": 73671
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-1.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901824.8446097,
+      "elapsed_seconds": 4.552301645278931
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-2",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-2"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-2/result.json",
+        "sha256": "ec6f93e3ac3d3a1958d4598d76bee0a9dc16112cb88de653887096e6a0845060",
+        "bytes": 73668
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-2.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901829.3995771,
+      "elapsed_seconds": 3.9744768142700195
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-3",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-3"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-3/result.json",
+        "sha256": "de297918d770dddfc138e4751e438751e7b2407c340ea5d81e018bc133233119",
+        "bytes": 73675
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-3.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901833.3767393,
+      "elapsed_seconds": 4.0243239402771
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-4",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-4"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-4/result.json",
+        "sha256": "1c041ddb9302581e049f9d15dd4a20c8398508ae684c5b997517027576d5015d",
+        "bytes": 73671
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-4.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901837.403148,
+      "elapsed_seconds": 3.9721274375915527
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-5",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-5"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-5/result.json",
+        "sha256": "687470334623d5b45bfbf6d78e99ca0563c61d18cc4fcb20d70b7d982e2755df",
+        "bytes": 73671
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-5.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901841.3773265,
+      "elapsed_seconds": 4.023018836975098
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-6",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-6"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-6/result.json",
+        "sha256": "c079499f74b6feb55c6b51bc122c0db5a6322b1543f20e353a9a48b0c557abef",
+        "bytes": 73669
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-6.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901845.4025078,
+      "elapsed_seconds": 3.974407196044922
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-7",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-7"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-7/result.json",
+        "sha256": "796f3e07f3ac0adb5ad4b0940180e587f918cda10a6fdf9ea78f30d27f77ea0f",
+        "bytes": 73674
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-7.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901849.3797617,
+      "elapsed_seconds": 4.0268471240997314
+    },
+    {
+      "id": "m5_dns_cache-c-reverse-8",
+      "family": "m5_dns_cache",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "run",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--side",
+        "c",
+        "--only",
+        "^(ptr-multiple-targets|ptr-reverse-bucket-order|round-reverse-default|round-reverse-disabled)$",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-8"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-8/result.json",
+        "sha256": "2f22efe563be248e44d7f1d8daf37dbe61ddb1d420e0a9b5184b37c9dde5a9b7",
+        "bytes": 73673
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-8.log",
+        "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+        "bytes": 61
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901853.4088547,
+      "elapsed_seconds": 3.9721360206604004
+    },
+    {
+      "id": "m5_dns_cache-compare",
+      "family": "m5_dns_cache",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache_qualify.py",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c",
+        "--candidate",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/rust",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/comparison.json",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-1",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-2",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-3",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-4",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-5",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-6",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-7",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-8"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/comparison.json",
+        "sha256": "ed7ab3cda4dd281f6b9f6250301a91aba852b5edad535009a5300141617ccf63",
+        "bytes": 230763
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-compare.log",
+        "sha256": "7c4c9c30eeaa205620fe7f9083ce5238c3e096bfd7f8aa190d903bbe7d2e8903",
+        "bytes": 87
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901857.3836093,
+      "elapsed_seconds": 1.2269299030303955
+    },
+    {
+      "id": "m5_dns_cache-lease-tcp-caller",
+      "family": "m5_dns_cache",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_cache.py",
+        "qualify-dhcp-caller",
+        "--c",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c",
+        "--candidate",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/rust",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/lease-tcp-caller.json"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/lease-tcp-caller.json",
+        "sha256": "baae5762652fae68148f17657c0135ea92edc03a8d49d7e22b36cbeb774e5826",
+        "bytes": 1418
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-lease-tcp-caller.log",
+        "sha256": "da7d404ae96efa22957bfde50d964aa4cebd8442d793e424b37d387a972f11ba",
+        "bytes": 56
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901858.612768,
+      "elapsed_seconds": 1.0026607513427734
+    },
+    {
+      "id": "m5_dns_endpoints-syntax",
+      "family": "m5_dns_endpoints",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_endpoints.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--side",
+        "both",
+        "--mode",
+        "syntax",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax/result.json",
+        "sha256": "567192abbfbe758eff99103ec3a9d51b7a305deeffc98d6c0e45df6213616a25",
+        "bytes": 82693
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-syntax.log",
+        "sha256": "2a6ed8521686353da0b214eced373ecdefac5f544baf46421cc01ac36ead1a7e",
+        "bytes": 310
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901859.6177752,
+      "elapsed_seconds": 14.783248901367188
+    },
+    {
+      "id": "m5_dns_endpoints-service",
+      "family": "m5_dns_endpoints",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_endpoints.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--side",
+        "both",
+        "--mode",
+        "service",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service/result.json",
+        "sha256": "3f64ccceb9b2d39f3353fe8dfd2394ef7eca9bb2837bbb0acd22e0e896a7fb52",
+        "bytes": 21840
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-service.log",
+        "sha256": "a1e86570d81c5d63b42e90d06240f7b24ba1617c9e0c8ff51d2d46b581af10b2",
+        "bytes": 52
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791901874.4034095,
+      "elapsed_seconds": 167.3628797531128
+    },
+    {
+      "id": "m5_dns_endpoints-local-archive-gate",
+      "family": "m5_dns_endpoints",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_final_archive_gate.py",
+        "wait",
+        "--evidence-root",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints",
+        "--run",
+        "syntax",
+        "--run",
+        "service",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/archive-gate.json"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/archive-gate.json",
+        "sha256": "6f593ae514905815ad3ee4141475a0bf419db51663bbdfa236988028b1fe3adf",
+        "bytes": 513
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-local-archive-gate.log",
+        "sha256": "289f862137d3ef54cbd6c9e2bad536aecf562e727ee3b9eb24a379e3b9e1e3cb",
+        "bytes": 445
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902041.7687976,
+      "elapsed_seconds": 152.96009492874146
+    },
+    {
+      "id": "m5_dns_endpoints-source-row-audit",
+      "family": "m5_dns_endpoints",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_endpoints.py",
+        "--audit-evidence",
+        "--evidence-root",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints",
+        "--reference-source",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93/src",
+        "--run",
+        "syntax",
+        "--run",
+        "service",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/qualified.json"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/qualified.json",
+        "sha256": "bfb4a19bee6e1791ca152edb5b6fce4cf036c9ffb725438afe3bed20adef9f1c",
+        "bytes": 14919047
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-source-row-audit.log",
+        "sha256": "353284d9928854ca5ab2ec7df88648675443bba70ebc08896ae5281aa358380c",
+        "bytes": 86
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902194.7321186,
+      "elapsed_seconds": 1.4568986892700195
+    },
+    {
+      "id": "m5_interface_records-syntax",
+      "family": "m5_interface_records",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_interface_records.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--side",
+        "both",
+        "--mode",
+        "syntax",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/syntax",
+        "--ordinary-scope",
+        "all",
+        "--allocator-map",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/dnsmasq-link.map"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/syntax/result.json",
+        "sha256": "254091168d0daf160d8cfc3a76210829f3c682aec7a7d9f00a3d9aaa2ff534f6",
+        "bytes": 51634
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-syntax.log",
+        "sha256": "1b4d998e7cee4ef0c5e72f7c6851af795970a1b4e0f5490f6a6a512abc435b1e",
+        "bytes": 81
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902196.191662,
+      "elapsed_seconds": 7.420963764190674
+    },
+    {
+      "id": "m5_interface_records-service",
+      "family": "m5_interface_records",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_interface_records.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--side",
+        "both",
+        "--mode",
+        "service",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/service",
+        "--ordinary-scope",
+        "all",
+        "--allocator-map",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/dnsmasq-link.map"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/service/result.json",
+        "sha256": "c35e75ff21e0b439da095b77fc0c42a6eb97078e6a43e493beaace07c68912e8",
+        "bytes": 149437
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-service.log",
+        "sha256": "20acab8cb90b001f5d6af4ffc6f02b34b7994ecaa7a1e9816611a3c358f3f803",
+        "bytes": 81
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902203.6151853,
+      "elapsed_seconds": 164.08722233772278
+    },
+    {
+      "id": "m5_interface_records-qualify",
+      "family": "m5_interface_records",
+      "argv": [
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_interface_records_qualify.py",
+        "--scope",
+        "all",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--run",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/syntax",
+        "--run",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/service",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/qualified.json"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/qualified.json",
+        "sha256": "72c5f2b4bba84d2503afd40446354536d28b9009613adeea64553f61ea32b80b",
+        "bytes": 413430
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-qualify.log",
+        "sha256": "ef915cd2577958f9b60d23a5c0690643067439e65bd7ec7fad1cdf8ffe8fa8a1",
+        "bytes": 229
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902367.7051175,
+      "elapsed_seconds": 1.5174894332885742
+    },
+    {
+      "id": "m5_interface_records-closeout-syntax",
+      "family": "m5_interface_records",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_interface_records.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--mode",
+        "syntax",
+        "--side",
+        "both",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-syntax",
+        "--case",
+        "domain-prefix-wrap",
+        "--case",
+        "domain-suffix-prefix-wrap",
+        "--case",
+        "domain-srv-appended-125",
+        "--case",
+        "domain-srv-appended-126",
+        "--case",
+        "domain-suffix-srv-appended-125",
+        "--case",
+        "domain-suffix-srv-appended-126"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-syntax/result.json",
+        "sha256": "0457f2a702da0a94eb8f6b59a9a70f79db7e77a6993717c334a18e3e3fcb1e2d",
+        "bytes": 4400
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-closeout-syntax.log",
+        "sha256": "530e696e6bd9cedcee43971d5eb89d761404fd9186c99b783dd1604e575889b3",
+        "bytes": 79
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902369.225306,
+      "elapsed_seconds": 0.9910166263580322
+    },
+    {
+      "id": "m5_interface_records-closeout-rust-refusals",
+      "family": "m5_interface_records",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_interface_records.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--mode",
+        "syntax",
+        "--side",
+        "rust",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-rust-refusals",
+        "--case",
+        "domain-negative-v6-prefix",
+        "--case",
+        "domain-suffix-negative-v6-prefix",
+        "--case",
+        "synth-domain-negative-v6-prefix"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-rust-refusals/result.json",
+        "sha256": "516568c6ab202fa1e238d0b28c374fe2d0211760f79c3633bfabd6421b55a952",
+        "bytes": 3692
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-closeout-rust-refusals.log",
+        "sha256": "f7349ba2c5d47a825f44db7d718a5edf0c7ef36ea015fbbb74418b5b44c7a0c9",
+        "bytes": 80
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902370.2198055,
+      "elapsed_seconds": 0.644606351852417
+    },
+    {
+      "id": "m5_interface_records-closeout-service",
+      "family": "m5_interface_records",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_interface_records.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--mode",
+        "service",
+        "--side",
+        "both",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-service",
+        "--case",
+        "domain-extreme-prefix-wrap-runtime",
+        "--case",
+        "domain-suffix-extreme-prefix-wrap-runtime",
+        "--case",
+        "domain-srv-components-max",
+        "--case",
+        "synth-extreme-label-24",
+        "--case",
+        "synth-extreme-label-25",
+        "--case",
+        "synth-extreme-label-47",
+        "--case",
+        "synth-extreme-name-51",
+        "--case",
+        "synth-extreme-name-52"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-service/result.json",
+        "sha256": "ac94931de25e1ca3f67d61f2f2c439f3b7deeb8b6f8a5138b881680ffad92887",
+        "bytes": 28280
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-closeout-service.log",
+        "sha256": "b4f462cbb2e4b9981ca280a415f38b06082e6b750addf2652a7391e1102f1acd",
+        "bytes": 79
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902370.867908,
+      "elapsed_seconds": 2.73789119720459
+    },
+    {
+      "id": "dns-files-paired",
+      "family": "dns-files",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_dns_files.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/dns-files"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/dns-files/result.json",
+        "sha256": "529ec8f01bb61aa7c3a5b76fb12ded8b9b40325266b0e45dd1f57c388a2cc8a2",
+        "bytes": 17973
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/dns-files-paired.log",
+        "sha256": "ed9c512980e3a6363ddde65eb3a6bbdcc18b64f56a884d52b94d85bc0275eaf7",
+        "bytes": 69
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902373.6087437,
+      "elapsed_seconds": 82.35832858085632
+    },
+    {
+      "id": "filterwin2k-paired",
+      "family": "filterwin2k",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_option_matrix.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "--source-commit",
+        "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+        "--manifest",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/m5_filterwin2k.json",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/filterwin2k"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/filterwin2k/result.json",
+        "sha256": "7d65f35c6df6f7438ed45bb47daf554e6463bbb48c0d2eb5c0e4c22a74b01aa1",
+        "bytes": 9071
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/filterwin2k-paired.log",
+        "sha256": "9a2ac5ef1044cb58e66e8e76d3d7da8f19e9782096a94964ad758755a272fd9a",
+        "bytes": 72
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902455.9699926,
+      "elapsed_seconds": 3.6166465282440186
+    },
+    {
+      "id": "hosts-original-TCP",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-original-TCP"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-original-TCP/result.json",
+        "sha256": "cfa0c2307b8483ef4f01c505e124751dca39c76fde01a324af5ee9d2112c4dc4",
+        "bytes": 51293
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-original-TCP.log",
+        "sha256": "873688e870649106b2aa593fd19ceb36a274e6145e5ce8c179f3d6bb343f3f6d",
+        "bytes": 23
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902459.5896366,
+      "elapsed_seconds": 6.158105373382568
+    },
+    {
+      "id": "hosts-diagnostics-TCP",
+      "family": null,
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types/tools/dnsmasq/audit_fix_20261011_hosts.py",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-diagnostics-TCP"
+      ],
+      "result": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-diagnostics-TCP/result.json",
+        "sha256": "4acc51104e1abbdbb7fb31bd3a7a0027772669c9bd8008beea34508e9679b2a5",
+        "bytes": 159348
+      },
+      "log": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-diagnostics-TCP.log",
+        "sha256": "c1ecf2462144db247bff7aab1ac8a7ba6ab609d241898d38caac6f55b87f06bd",
+        "bytes": 53
+      },
+      "actual_returncode": 0,
+      "assertions_passed": true,
+      "started": 1791902465.7515259,
+      "elapsed_seconds": 1.0974273681640625
+    }
+  ],
+  "directed_summary": {
+    "N1": {
+      "passed": true,
+      "cases": 72,
+      "failures": []
+    },
+    "review3_matrix": {
+      "passed": true,
+      "failures": [],
+      "case_counts": {
+        "plain-positive": 62,
+        "plain-negative": 62,
+        "target-txt-positive": 62,
+        "target-txt-negative": 62,
+        "alias-txt-positive": 62,
+        "alias-txt-negative": 62,
+        "target-mx-positive": 62,
+        "target-mx-negative": 62,
+        "target-srv-positive": 62,
+        "target-srv-negative": 62,
+        "target-raw-positive": 62,
+        "target-raw-negative": 62,
+        "target-host-positive": 62,
+        "target-host-negative": 62,
+        "target-interface-positive": 62,
+        "target-interface-negative": 62,
+        "target-local-positive": 62,
+        "target-local-negative": 62,
+        "target-literal-positive": 62,
+        "target-literal-negative": 62,
+        "filter-positive": 62,
+        "filter-negative": 62,
+        "filter-target-txt-positive": 62,
+        "filter-target-txt-negative": 62,
+        "target-long-txt-positive": 62,
+        "target-long-txt-negative": 62,
+        "target-long-mx-positive": 62,
+        "target-long-mx-negative": 62,
+        "malformed": 116
+      },
+      "declared_differences": [
+        {
+          "profile": "target-local-positive",
+          "case": "6-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "6-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "12-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "12-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "15-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "15-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "16-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "16-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "28-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "28-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "33-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "33-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "255-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "255-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "257-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-local-positive",
+          "case": "257-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-literal-positive",
+          "case": "255-rd-udp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "target-literal-positive",
+          "case": "255-rd-tcp",
+          "reason": "declared common UDP semantics"
+        },
+        {
+          "profile": "malformed",
+          "case": "forward-pointer-udp",
+          "reason": "unchanged forward-pointer parser difference"
+        },
+        {
+          "profile": "malformed",
+          "case": "forward-pointer-tcp",
+          "reason": "unchanged forward-pointer parser difference"
+        }
+      ]
+    },
+    "original_DNS_baseline": {
+      "passed": true,
+      "freshly_executed_responses": 368,
+      "C_equal_responses": 366,
+      "predeclared_exact_baseline_checks": [
+        {
+          "protocol": "udp",
+          "query_exact": true,
+          "C_response_exact": true,
+          "Rust_response_exact": true,
+          "upstream_empty": true
+        },
+        {
+          "protocol": "tcp",
+          "query_exact": true,
+          "C_response_exact": true,
+          "Rust_response_exact": true,
+          "upstream_empty": true
+        }
+      ],
+      "all_profile_health_equal": true,
+      "limit": "Two inherited forward-pointer parser differences are retained, not claimed equivalent to C"
+    },
+    "persistent_TCP_UDP_parity": {
+      "profiles": 56,
+      "paired_cases": 1736,
+      "all_assertions_passed": true,
+      "C_internal_routing_cases_following_common_UDP": 18,
+      "C_matched_transport_size_differences": 16
+    },
+    "F08_stale_observation": {
+      "executed": true,
+      "passed": true,
+      "observations": [
+        {
+          "debug": false,
+          "stale": false,
+          "answer_equal": true,
+          "healthy_ACK": true,
+          "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+          "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+        },
+        {
+          "debug": false,
+          "stale": true,
+          "answer_equal": false,
+          "healthy_ACK": true,
+          "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000006000f00020003",
+          "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+        },
+        {
+          "debug": true,
+          "stale": false,
+          "answer_equal": true,
+          "healthy_ACK": true,
+          "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000",
+          "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+        },
+        {
+          "debug": true,
+          "stale": true,
+          "answer_equal": false,
+          "healthy_ACK": true,
+          "C_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000006000f00020003",
+          "Rust_wire": "12348580000100010000000106636c69656e740000010001c00c000100010000000000047f00001e00002904d0000000000000"
+        }
+      ],
+      "equivalence_claim": false
+    }
+  },
+  "initial_harness_failure": {
+    "executed_state_cases": 0,
+    "executed_daemon_commands": 0,
+    "cause": "obsolete standalone rustc harness omitted complete crate dependencies; imports/build adapter fixed without changing frozen source or SDK"
+  },
+  "limits": [
+    "No earlier functional pass reused; the first types compile failure and earlier unfavorable performance remain retained",
+    "Native GNU/dev state helper is not the SDK daemon or performance executable",
+    "F08 stale EDE, exact two forward-pointer baseline cases and eight ACL refusal representations remain explicit",
+    "Nine C-internal routing cases deliberately follow shared UDP behavior; no general exception for C differences",
+    "Ordinary RR TTL aging/compression normalized only in declared semantic checks; raw packet evidence retained"
+  ]
+}

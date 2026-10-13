@@ -1,0 +1,1180 @@
+{
+  "schema": "dnsmasq-fix3-types-functional-raw-index-v1",
+  "files": [
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/result.json",
+      "sha256": "d1b1ab9cb2443ec3d2b9fd9cd9adb714b8694b9152d0d79a66872d8ad99c1d0c",
+      "bytes": 2144
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe.log",
+      "sha256": "aa3e54c9a03b1a3af7d22eca39f1f340a6e0204a8ec4b97a7a8333cbb1ca11ff",
+      "bytes": 297
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F02-cached-cname/result.json",
+      "sha256": "22f669709bb839fb7e60b23bb81fce8a431437f082e06f713f0c66817dbc78ea",
+      "bytes": 17549
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F02-cached-cname.log",
+      "sha256": "ec3ced6117deb0f5ffd03db72e4bcde36aef5c503314d4e9287f18f272f3876d",
+      "bytes": 5587
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/fresh-DHCP-over-NXDOMAIN/result.json",
+      "sha256": "954572db9475d3edff26ef95d44227ed6476c76b2f589a31b1217744b5990611",
+      "bytes": 2046
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/fresh-DHCP-over-NXDOMAIN.log",
+      "sha256": "954572db9475d3edff26ef95d44227ed6476c76b2f589a31b1217744b5990611",
+      "bytes": 2046
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F08-stale-observation/result.json",
+      "sha256": "452f6916204c7b70ca113d29b52111e98734d9bb3ae887fa342f0656dc83a3e4",
+      "bytes": 2901
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/F08-stale-observation.log",
+      "sha256": "452f6916204c7b70ca113d29b52111e98734d9bb3ae887fa342f0656dc83a3e4",
+      "bytes": 2901
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-cname/result.json",
+      "sha256": "0c42261c7b4835e0af23adba17474d3a77d3e92b1f15732d0cf43062ca41e61b",
+      "bytes": 186042
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-cname.log",
+      "sha256": "e6123385f71e0254d1ad0803d6df03b27b0769d1316fa25a7b876508b485426e",
+      "bytes": 38
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-flags/result.json",
+      "sha256": "d3cf9b3a456b42fdb939d3cfd34547a98f4a86d3bdab92851dd4b9e30bc8ac3d",
+      "bytes": 201012
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/R1-flags.log",
+      "sha256": "75372dd68ff618cc5be89fcf0d2341fa3ade26046cc5ee3e3ff59512e9c266da",
+      "bytes": 38
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N1-filter-cname/result.json",
+      "sha256": "40756786de61c93d8e964bc006f78dade40cc4f8168b8098cd6b0c211a6529a9",
+      "bytes": 392219
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N1-filter-cname.log",
+      "sha256": "50e193ac81a3f55162413d17d3c829defc6346146078ac7ddccf5125a420a37d",
+      "bytes": 8827
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/review3-matrix/result.json",
+      "sha256": "26ffaeb870f5b94db2ea1bb0c6e6af9c5037a49ef56bbb8185a48d899a2e059d",
+      "bytes": 11210125
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/review3-matrix.log",
+      "sha256": "891bb7fef99d98d3d5b98740a594ff7486589a21d858282dd04ee5a80d4e593d",
+      "bytes": 1934
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/TCP-UDP-parity/result.json",
+      "sha256": "75a0bbac9f213dc93ddc9d765bc6225232440cbaa85986d9257378194745781c",
+      "bytes": 22316751
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/TCP-UDP-parity.log",
+      "sha256": "c941f48c39ef86c775c5f80f14d8b495e219a0bdcb9bd4fba6f1a5bc3386cf0f",
+      "bytes": 4608
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/A10-and-original-DNS/result.json",
+      "sha256": "11ec6eb467d4f76d18977912ecc5f0dd8a16fd4b74c6a9740e965e681854b59c",
+      "bytes": 598684
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/A10-and-original-DNS.log",
+      "sha256": "d680fc7b746a6534e4353aae21f6809e7dcc5ab39a573f73623164df43000e08",
+      "bytes": 1056
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N2-intentional-permissions/result.json",
+      "sha256": "cc12358fbafae4d9fba61d6d233e089f36b111add1a99ba579f16c0a1d7ef36f",
+      "bytes": 20584
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/N2-intentional-permissions.log",
+      "sha256": "cc12358fbafae4d9fba61d6d233e089f36b111add1a99ba579f16c0a1d7ef36f",
+      "bytes": 20584
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/O3-auth-ACL/result.json",
+      "sha256": "cfb06a5e61228c6b3aef464fbdc59d38083cc40c98cc99c05a33be00ee7252a8",
+      "bytes": 98144
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/O3-auth-ACL.log",
+      "sha256": "de4445c1717008c04fd08d6e13724bde83af613c7f6ae78bc81467c6fdb56a5f",
+      "bytes": 8908
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix/result.json",
+      "sha256": "a81a1cf7ff4f0cca3b6a57d9f41da8a47b48ef0b375a4aa98edf5042cbeb0989",
+      "bytes": 23302
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix-paired.log",
+      "sha256": "51bdfac4ab0efe4009d6828907f26eff44495ce78882c2de97295f986b7943fb",
+      "bytes": 214
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_next/result.json",
+      "sha256": "12194882ec693636e72b7cb2c8fdb2006d5725f7d5b67beab770646b7ca33621",
+      "bytes": 29790
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix_next-paired.log",
+      "sha256": "c4edccf8f8d2548badca523f8dd19d9ba7e7faeaecc8288fd9bd78cc76d250c4",
+      "bytes": 152
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_third/result.json",
+      "sha256": "e2e8e66fb9e16d7204618a7366c62545eda060b8968b24d03e7a8e96b7977698",
+      "bytes": 31453
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix_third-paired.log",
+      "sha256": "a955cae505d25f6ca83f8ae0c06b96ba9c625c43daa05ff156d521b6342d1049",
+      "bytes": 96
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_option_matrix_lease_names/result.json",
+      "sha256": "92b6880d785860e2869c39066b593e185ce717b0fdd2b3081b2fcdcf901e2c68",
+      "bytes": 29165
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_option_matrix_lease_names-paired.log",
+      "sha256": "297ab4b33b6e6e1588c64d7169854f4090253aed24d6211130624d23d983c7c0",
+      "bytes": 103
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_local_records/result.json",
+      "sha256": "ea6f760e9a72cb98ad0c5fbfcabdd123dd6ade62ec390f49178ae6ad7c4e966e",
+      "bytes": 1412
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_local_records-paired.log",
+      "sha256": "b1644e1dc73c1f41331b17fb856c2bf28195660d206f2b84a6cf2da5debe850f",
+      "bytes": 1183
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_rr_filter/result.json",
+      "sha256": "bc173f8486ccd7cc5bf2c1409de1e9a61dadce2e37b98894092ab84f9bc58f19",
+      "bytes": 2232
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_rr_filter-paired.log",
+      "sha256": "67db3bb3cf3481c0d4da20ff11dce15dc3e4dcf46bdd2b4029273ceab2e0c11d",
+      "bytes": 57
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_config_inputs/result.json",
+      "sha256": "72a8bba41ffb74c065babc0150abfc15fde2318744df30f3af544608cca3b55e",
+      "bytes": 27169
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_config_inputs-paired.log",
+      "sha256": "ca3da9ef82dcbdf075cdcfbc4233b4dd546a0334df17ddb2e14506ba24d3261e",
+      "bytes": 69
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/logging-all-scopes/result.json",
+      "sha256": "57cb95f02ed071526331f19e121386fd6ee65b53c0621b307125f2db2b66f9d1",
+      "bytes": 122718
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/logging-all-scopes-paired.log",
+      "sha256": "95bcf753a337a457d2530b84c289a140212c92006a3ebce1d657672b6682d40b",
+      "bytes": 232
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/c/result.json",
+      "sha256": "97c2d04a9168ad7004af9f855865c770c6321d6709049298e2c6f37b45cf3da1",
+      "bytes": 683183
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_edns-c.log",
+      "sha256": "04a521c25195f9191fac37bf25a4cdd3ab45583ce5cbb014f024391439e359b6",
+      "bytes": 1323
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/rust/result.json",
+      "sha256": "dd206b8ee8f15c4b4ba875e66357b3d87f8b666e373f3cfdf499587822806845",
+      "bytes": 576512
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_edns-rust.log",
+      "sha256": "12584439f4c16fdb44fcfe2eb44d09c95c67364fe4f1d8a77c1daae1013717fa",
+      "bytes": 1326
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_edns/comparison.json",
+      "sha256": "c8c95718b29b92ad56785ce668efa61f5ca4c4363b9b9c9fb1d57c584845e2d3",
+      "bytes": 1397
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_edns-compare.log",
+      "sha256": "839842eb83976b2b72de7e82d2521e7c4a088f0783b47f0df86c4bd71ccd556f",
+      "bytes": 69
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c/result.json",
+      "sha256": "141383ec73ddaf12bb7505db17cb115c18d8597f49d1bd81dc95291c04205563",
+      "bytes": 4390030
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c.log",
+      "sha256": "048ae37d671cc6fa12a793e4b9c162b4c963c6be742db6e5b2da010367335a56",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/rust/result.json",
+      "sha256": "df3ea9bc96c1a39dff5c0892005fea3e127f96d138264b3ee289570357afe2cb",
+      "bytes": 3496718
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-rust.log",
+      "sha256": "0a139d56fcdf7f777aa10b3cf6eb99303e769f123db7379682689b8efdd4e8e3",
+      "bytes": 64
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-1/result.json",
+      "sha256": "af23360c1aa4be35bc6fe1aaf24d603e3e3cb143b3543bd9a25190964e9c17b5",
+      "bytes": 73671
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-1.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-2/result.json",
+      "sha256": "ec6f93e3ac3d3a1958d4598d76bee0a9dc16112cb88de653887096e6a0845060",
+      "bytes": 73668
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-2.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-3/result.json",
+      "sha256": "de297918d770dddfc138e4751e438751e7b2407c340ea5d81e018bc133233119",
+      "bytes": 73675
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-3.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-4/result.json",
+      "sha256": "1c041ddb9302581e049f9d15dd4a20c8398508ae684c5b997517027576d5015d",
+      "bytes": 73671
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-4.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-5/result.json",
+      "sha256": "687470334623d5b45bfbf6d78e99ca0563c61d18cc4fcb20d70b7d982e2755df",
+      "bytes": 73671
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-5.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-6/result.json",
+      "sha256": "c079499f74b6feb55c6b51bc122c0db5a6322b1543f20e353a9a48b0c557abef",
+      "bytes": 73669
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-6.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-7/result.json",
+      "sha256": "796f3e07f3ac0adb5ad4b0940180e587f918cda10a6fdf9ea78f30d27f77ea0f",
+      "bytes": 73674
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-7.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/c-reverse-8/result.json",
+      "sha256": "2f22efe563be248e44d7f1d8daf37dbe61ddb1d420e0a9b5184b37c9dde5a9b7",
+      "bytes": 73673
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-c-reverse-8.log",
+      "sha256": "de07e2a6a5f7fc0fec25e96a8a38cb7856f7194ff3495cfda1cf0d9ab50f4bda",
+      "bytes": 61
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/comparison.json",
+      "sha256": "ed7ab3cda4dd281f6b9f6250301a91aba852b5edad535009a5300141617ccf63",
+      "bytes": 230763
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-compare.log",
+      "sha256": "7c4c9c30eeaa205620fe7f9083ce5238c3e096bfd7f8aa190d903bbe7d2e8903",
+      "bytes": 87
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_cache/lease-tcp-caller.json",
+      "sha256": "baae5762652fae68148f17657c0135ea92edc03a8d49d7e22b36cbeb774e5826",
+      "bytes": 1418
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_cache-lease-tcp-caller.log",
+      "sha256": "da7d404ae96efa22957bfde50d964aa4cebd8442d793e424b37d387a972f11ba",
+      "bytes": 56
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax/result.json",
+      "sha256": "567192abbfbe758eff99103ec3a9d51b7a305deeffc98d6c0e45df6213616a25",
+      "bytes": 82693
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-syntax.log",
+      "sha256": "2a6ed8521686353da0b214eced373ecdefac5f544baf46421cc01ac36ead1a7e",
+      "bytes": 310
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service/result.json",
+      "sha256": "3f64ccceb9b2d39f3353fe8dfd2394ef7eca9bb2837bbb0acd22e0e896a7fb52",
+      "bytes": 21840
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-service.log",
+      "sha256": "a1e86570d81c5d63b42e90d06240f7b24ba1617c9e0c8ff51d2d46b581af10b2",
+      "bytes": 52
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/archive-gate.json",
+      "sha256": "6f593ae514905815ad3ee4141475a0bf419db51663bbdfa236988028b1fe3adf",
+      "bytes": 513
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-local-archive-gate.log",
+      "sha256": "289f862137d3ef54cbd6c9e2bad536aecf562e727ee3b9eb24a379e3b9e1e3cb",
+      "bytes": 445
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/qualified.json",
+      "sha256": "bfb4a19bee6e1791ca152edb5b6fce4cf036c9ffb725438afe3bed20adef9f1c",
+      "bytes": 14919047
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_dns_endpoints-source-row-audit.log",
+      "sha256": "353284d9928854ca5ab2ec7df88648675443bba70ebc08896ae5281aa358380c",
+      "bytes": 86
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/syntax/result.json",
+      "sha256": "254091168d0daf160d8cfc3a76210829f3c682aec7a7d9f00a3d9aaa2ff534f6",
+      "bytes": 51634
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-syntax.log",
+      "sha256": "1b4d998e7cee4ef0c5e72f7c6851af795970a1b4e0f5490f6a6a512abc435b1e",
+      "bytes": 81
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/service/result.json",
+      "sha256": "c35e75ff21e0b439da095b77fc0c42a6eb97078e6a43e493beaace07c68912e8",
+      "bytes": 149437
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-service.log",
+      "sha256": "20acab8cb90b001f5d6af4ffc6f02b34b7994ecaa7a1e9816611a3c358f3f803",
+      "bytes": 81
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/qualified.json",
+      "sha256": "72c5f2b4bba84d2503afd40446354536d28b9009613adeea64553f61ea32b80b",
+      "bytes": 413430
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-qualify.log",
+      "sha256": "ef915cd2577958f9b60d23a5c0690643067439e65bd7ec7fad1cdf8ffe8fa8a1",
+      "bytes": 229
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-syntax/result.json",
+      "sha256": "0457f2a702da0a94eb8f6b59a9a70f79db7e77a6993717c334a18e3e3fcb1e2d",
+      "bytes": 4400
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-closeout-syntax.log",
+      "sha256": "530e696e6bd9cedcee43971d5eb89d761404fd9186c99b783dd1604e575889b3",
+      "bytes": 79
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-rust-refusals/result.json",
+      "sha256": "516568c6ab202fa1e238d0b28c374fe2d0211760f79c3633bfabd6421b55a952",
+      "bytes": 3692
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-closeout-rust-refusals.log",
+      "sha256": "f7349ba2c5d47a825f44db7d718a5edf0c7ef36ea015fbbb74418b5b44c7a0c9",
+      "bytes": 80
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_interface_records/closeout-service/result.json",
+      "sha256": "ac94931de25e1ca3f67d61f2f2c439f3b7deeb8b6f8a5138b881680ffad92887",
+      "bytes": 28280
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/m5_interface_records-closeout-service.log",
+      "sha256": "b4f462cbb2e4b9981ca280a415f38b06082e6b750addf2652a7391e1102f1acd",
+      "bytes": 79
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/dns-files/result.json",
+      "sha256": "529ec8f01bb61aa7c3a5b76fb12ded8b9b40325266b0e45dd1f57c388a2cc8a2",
+      "bytes": 17973
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/dns-files-paired.log",
+      "sha256": "ed9c512980e3a6363ddde65eb3a6bbdcc18b64f56a884d52b94d85bc0275eaf7",
+      "bytes": 69
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/filterwin2k/result.json",
+      "sha256": "7d65f35c6df6f7438ed45bb47daf554e6463bbb48c0d2eb5c0e4c22a74b01aa1",
+      "bytes": 9071
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/filterwin2k-paired.log",
+      "sha256": "9a2ac5ef1044cb58e66e8e76d3d7da8f19e9782096a94964ad758755a272fd9a",
+      "bytes": 72
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-original-TCP/result.json",
+      "sha256": "cfa0c2307b8483ef4f01c505e124751dca39c76fde01a324af5ee9d2112c4dc4",
+      "bytes": 51293
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-original-TCP.log",
+      "sha256": "873688e870649106b2aa593fd19ceb36a274e6145e5ce8c179f3d6bb343f3f6d",
+      "bytes": 23
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-diagnostics-TCP/result.json",
+      "sha256": "4acc51104e1abbdbb7fb31bd3a7a0027772669c9bd8008beea34508e9679b2a5",
+      "bytes": 159348
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/hosts-diagnostics-TCP.log",
+      "sha256": "c1ecf2462144db247bff7aab1ac8a7ba6ab609d241898d38caac6f55b87f06bd",
+      "bytes": 53
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.tar.gz",
+      "sha256": "5537e16c41d2683205eea82b0323e80779c5d0c8b6f7b4ddba9a3c92c054ed85",
+      "bytes": 1290038
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.manifest.json",
+      "sha256": "fc378302306f47a4061e87917bef621ff7afaec8c10cebad520f8e6ee755441e",
+      "bytes": 505825
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.pack.json",
+      "sha256": "997c9a71c3f9230e0fcbe91c2e6f4ba89c23b2324efe52d7e004c322c8cbec6a",
+      "bytes": 742
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.local-verification.json",
+      "sha256": "84051645c85ee0d52ca1d03b48067260c57a0d227a04532d929c7d843eecec40",
+      "bytes": 441
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.prune.json",
+      "sha256": "365e4692cf085fcf2138b2049ad32f784d2f90c66672555de142555c79513d73",
+      "bytes": 248
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/syntax.restore.json",
+      "sha256": "ecab093095753aa44ed0144bf787b5a12de5f73fe2c8e642a8aea110cf1b358e",
+      "bytes": 262
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.tar.gz",
+      "sha256": "ca62a8d8f34132d07db806f307024975ca50b1be1bcf3c1323c19256af16bdd3",
+      "bytes": 3015990
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.manifest.json",
+      "sha256": "5ee714a9ac6722ad890d0dcd1be84376e72b01ade8314a2e58ba37f44aa0235f",
+      "bytes": 528393
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.pack.json",
+      "sha256": "4967a4c6c4dbd0dc8141c01ffdcb582cccb7456f5c63b1f9095c21aa3be7759d",
+      "bytes": 745
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.local-verification.json",
+      "sha256": "1cf9a380b54ac9a7f48cf2dea9c3fa7f05a447410c4860f8509fa6ea16ec24bd",
+      "bytes": 441
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.prune.json",
+      "sha256": "eafcf4e4abf9522982cd417d13c170373db524c03953a2b869bf220bda7553b6",
+      "bytes": 250
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/families/m5_dns_endpoints/service.restore.json",
+      "sha256": "7c32a1284376f8cbca88b1f71fd9b75a97919e2504928b6122aed200b3992968",
+      "bytes": 262
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.c-state.stdout",
+      "sha256": "70f73519b65167fec1e95e999860a72ed7f1e333f56004d9a915b59d5e78900c",
+      "bytes": 56
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.conf",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/000.rust-state.stdout",
+      "sha256": "70f73519b65167fec1e95e999860a72ed7f1e333f56004d9a915b59d5e78900c",
+      "bytes": 56
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.c-state.stdout",
+      "sha256": "f6c24198b8cbbd5d076694bac66823de61082560e8ff767eb84a6226f6374eec",
+      "bytes": 59
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.conf",
+      "sha256": "530b4c779d73b5aeb3a4a6aa82d5a42a6b0a2cbc9dd6a149f4953c67dc4ca9d4",
+      "bytes": 65
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/001.rust-state.stdout",
+      "sha256": "f6c24198b8cbbd5d076694bac66823de61082560e8ff767eb84a6226f6374eec",
+      "bytes": 59
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.c-state.stdout",
+      "sha256": "d058b8a57023290710ed6365f4fc15d91d1349053cea956815b8dc812c4b34c8",
+      "bytes": 67
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.conf",
+      "sha256": "0e7b946d9328619d741223899d862109a692b53b44c4f0548344963f3c2f54c8",
+      "bytes": 176
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/002.rust-state.stdout",
+      "sha256": "d058b8a57023290710ed6365f4fc15d91d1349053cea956815b8dc812c4b34c8",
+      "bytes": 67
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.c-state.stdout",
+      "sha256": "95be4e917c48e9927cd73d00de074512b4ae62b78aa4ce2bb6ebc34f440012ca",
+      "bytes": 58
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.conf",
+      "sha256": "39d44097a0d7a241df10aee576acdd436c434efdb419ee8c07ea159184f07c4a",
+      "bytes": 40
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/003.rust-state.stdout",
+      "sha256": "95be4e917c48e9927cd73d00de074512b4ae62b78aa4ce2bb6ebc34f440012ca",
+      "bytes": 58
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.c-state.stdout",
+      "sha256": "f1a37a1ff453dc74d42ab929c553051d55852cbd6cb59a8f61fff8a43635e382",
+      "bytes": 64
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.conf",
+      "sha256": "e7e3d58598d1bb8847d4726a2cf3602cb47f6eabebb934ce373fda30ed25d7ac",
+      "bytes": 30
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/004.rust-state.stdout",
+      "sha256": "f1a37a1ff453dc74d42ab929c553051d55852cbd6cb59a8f61fff8a43635e382",
+      "bytes": 64
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.c-state.stdout",
+      "sha256": "159280ffd476572ee4a164f93d7913ed9c4667a290575eb51d6fa65c9c0766d4",
+      "bytes": 59
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.conf",
+      "sha256": "eeb423a41fc68fdcb2c2ffd95ba9b98e06b0f8c702129b9f084489fc1f5a9c77",
+      "bytes": 38
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/005.rust-state.stdout",
+      "sha256": "159280ffd476572ee4a164f93d7913ed9c4667a290575eb51d6fa65c9c0766d4",
+      "bytes": 59
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.c-state.stdout",
+      "sha256": "3323c893430fbb82af11c372c610390aab9e7a5493e9aece959f4b542148def6",
+      "bytes": 159
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.conf",
+      "sha256": "42e4a96e327819f73f419f497c4af644d36637fe2983b9008d6cf2ac573a2609",
+      "bytes": 71
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/006.rust-state.stdout",
+      "sha256": "3323c893430fbb82af11c372c610390aab9e7a5493e9aece959f4b542148def6",
+      "bytes": 159
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.c-state.stdout",
+      "sha256": "8977339dd5333def548adb296a8d21b07da4760f4794148ffce018b936a91851",
+      "bytes": 181
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.conf",
+      "sha256": "1822a38b1df189f10039d828ae957a3537ebb4f9c8d9fdef87face06171d5a50",
+      "bytes": 64
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/007.rust-state.stdout",
+      "sha256": "8977339dd5333def548adb296a8d21b07da4760f4794148ffce018b936a91851",
+      "bytes": 181
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.c-state.stdout",
+      "sha256": "f645be23275a1a907e70d9edad7851c26da4eebf1154f28097755965aaf88214",
+      "bytes": 202
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.conf",
+      "sha256": "b71e4de7da2e3b65e91ee113fd8a176a66e42aa83386a805792e3eb64ea675e4",
+      "bytes": 77
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/008.rust-state.stdout",
+      "sha256": "a9fa8b2f3c8ca87228692cd74694d02e3ae5b57a679ba91568ae588678570c5c",
+      "bytes": 202
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.c-state.stdout",
+      "sha256": "506f0efe55dbdbe910ed96a6e98ff6cbdd9eb3eb5f8c15ef7e159e8bee617348",
+      "bytes": 106
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.conf",
+      "sha256": "b459d72c7fb98983708ed04d3f5081fcd532aae2d0714af8b8e74fca754b6474",
+      "bytes": 43
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/009.rust-state.stdout",
+      "sha256": "38f042ec945706284972c6fb86d75c7ff522ecb020751d0d9b88656a622e902f",
+      "bytes": 106
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.c-state.stdout",
+      "sha256": "2ccc853a123a0b7c52b0aee9607ffeadd068fa0e7dd6e2b1f4231636c33a768b",
+      "bytes": 586
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.conf",
+      "sha256": "7511ce0965fadeaa1122666f3ccc0251adfab23bfd3e4af7cf9c35d6f1690998",
+      "bytes": 272
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/010.rust-state.stdout",
+      "sha256": "2ccc853a123a0b7c52b0aee9607ffeadd068fa0e7dd6e2b1f4231636c33a768b",
+      "bytes": 586
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.c-state.stdout",
+      "sha256": "9d48a3329ed70f3df2a361c03444d70e04211c47936d10853d45d069c8fd0312",
+      "bytes": 123
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.conf",
+      "sha256": "90da72aaba59b906e63fd19b8be17b0e2474b5c04cc7d962c8803d890df7af54",
+      "bytes": 67
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/011.rust-state.stdout",
+      "sha256": "1172222698c6699647936c5a08bbaefed995ade71b4efbbe1ec5f65e0c098fdf",
+      "bytes": 123
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.c-state.stdout",
+      "sha256": "8ac320b5aa726ac2adecbade8a975ad2f8a584b74939b1d2c0ed995c77ea049f",
+      "bytes": 114
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.conf",
+      "sha256": "e0cacd4de1c9cefca712da1ab847cf29a3cc3328e858398f6776742747061c55",
+      "bytes": 39
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/012.rust-state.stdout",
+      "sha256": "8ac320b5aa726ac2adecbade8a975ad2f8a584b74939b1d2c0ed995c77ea049f",
+      "bytes": 114
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.c-state.stdout",
+      "sha256": "ebcc9937e036d854b34231711ca32919c4aa313d2c164c610886c936f361f2ea",
+      "bytes": 156
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.conf",
+      "sha256": "16446b7849123a12322e8d2903dd5997e6cf19f45be78296f065a5f5ed899daa",
+      "bytes": 77
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/013.rust-state.stdout",
+      "sha256": "924a3810da610da31e2c2a017242d047eef82c7dc1ee5e1109c79d27cf56c22e",
+      "bytes": 156
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.c-state.stdout",
+      "sha256": "49a8192f3525ebf1e11eed736a0e881cec9a0c6a952458712c7e776a07f25cdd",
+      "bytes": 159
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.conf",
+      "sha256": "7928cc7b45dc65ea9e61152d75a77acb973d29e7b06693adc09b2bafbba87d0f",
+      "bytes": 80
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/014.rust-state.stdout",
+      "sha256": "72785f0bac5094d1b5d52c68c97ee8aede7b08adb5f92abc0298feb19e001d93",
+      "bytes": 159
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.c-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.c-state.stdout",
+      "sha256": "a6153ca9daa79acd9fcf010445d409fbe9e30ed5eeff2b9309900e39202c9e30",
+      "bytes": 175
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.conf",
+      "sha256": "4b28e745a9bd1a9b2122892b06c9e5e7ae1aee49fe01142cd50fa9ff12bac339",
+      "bytes": 80
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.rust-state.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/015.rust-state.stdout",
+      "sha256": "a6153ca9daa79acd9fcf010445d409fbe9e30ed5eeff2b9309900e39202c9e30",
+      "bytes": 175
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.c-state.stderr",
+      "sha256": "f3f7a2a441dbca09d6f757e804944f08026d870e64fc4057a95f49d714da6083",
+      "bytes": 127
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.c-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.conf",
+      "sha256": "c6b894528cee9b2fe8e045b34634c298870165a7020a6096e6bd0bb5c12f38fd",
+      "bytes": 10
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.rust-state.stderr",
+      "sha256": "1d787332387477904c76e2a7dcef42cbe29b5c4ce3bf6541e5cb901a03781112",
+      "bytes": 117
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/016.rust-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.c-state.stderr",
+      "sha256": "ea61a23d867132584c79a254748ef887f4e63eb0c3ce2cccb9d5d56eba94b2b3",
+      "bytes": 38
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.c-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.conf",
+      "sha256": "41ec720c6b43b871d367b42a6fae4a2c27d6cdbd94ed9d93b94da33e843fc9ce",
+      "bytes": 39
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.rust-state.stderr",
+      "sha256": "91550e1c6f5717af999773a7d0288d4089bd126758fdbd2e11dd6a7cc814da99",
+      "bytes": 11
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/017.rust-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.c-state.stderr",
+      "sha256": "682d4131156ffb341f458cfccd787e516d098d23aaec21a3af3eeffb8e4df80f",
+      "bytes": 31
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.c-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.conf",
+      "sha256": "3a29924915c85a7506011540079f696e626354eb5c888acb61647bf13ffec259",
+      "bytes": 20
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.rust-state.stderr",
+      "sha256": "7526d2859b5dfeebeef76d231724a33accbfffd68e9b9a3471a18d7316ec89d0",
+      "bytes": 127
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/018.rust-state.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/adapter-identity.json",
+      "sha256": "25dca85966bb9859383924181eaefb7c1ee24676a9806fcb50ac86589503f3c1",
+      "bytes": 2284
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/c-state",
+      "sha256": "351769e7ae6f1d9ed63555ea739f8266062ba7b60515900373073690cd995bcb",
+      "bytes": 1650360
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-build.stderr",
+      "sha256": "48064eea00bdb174be5a6bdbbef10f205b494d161fe5019d1f381403217878c8",
+      "bytes": 481
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-build.stdout",
+      "sha256": "f8505c14997b328450b1014f1f6da7915bac5ecace9cbe7643c1e8206d199846",
+      "bytes": 69477
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/Cargo.lock",
+      "sha256": "ed37217fce8e92b6bea3f276d5934c80fa584618b7411c2a712f7880df0bc966",
+      "bytes": 332
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/Cargo.toml",
+      "sha256": "95cafa33342fa83a501896c1df6f46ef0c43b4191421d37bc42b246df51b840f",
+      "bytes": 228
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/cargo-probe/src/main.rs",
+      "sha256": "223ed650a8cc73372d7a85715cd62cd7db5432a01c143f1460da0736d7412ba5",
+      "bytes": 4444
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/contract_inventory-adapted.py",
+      "sha256": "2d33981de515ee8a3a7c52e9101b6df2567e48bbebd0748841316e54a33013c4",
+      "bytes": 15957
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/dnsmasq-without-main.o",
+      "sha256": "6402e8dc94e3aa49d1168bd032de3e30dceb71ed82e18a12405b43ce9d5ff19a",
+      "bytes": 172112
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/probe-imports.diff",
+      "sha256": "ecae6152012d9a1c3b34a174a86be727569e97b048a8ac05b261d2fbada06ac5",
+      "bytes": 502
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/rust-state",
+      "sha256": "698fb2d27fdd0beba52ede5c770cb1c764dbc86f4ab64f72d3d0c9d6333fb110",
+      "bytes": 29169112
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/state_probe.c",
+      "sha256": "daf477de6a44b34b12ff7385ccb66a924628df8fbab9f46a7169c1d6cc21b86e",
+      "bytes": 2263
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/config-state-probe/tool-adapter.diff",
+      "sha256": "57ee0244c3c216ea40fb5af09e42a7270909388933e070d6eb16314356dabc87",
+      "bytes": 1606
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-plan.json",
+      "sha256": "7560cd483d92430d63554f645b0d042b3c089a2c968dc33e50e783e0b6b25068",
+      "bytes": 334854
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2/state.json",
+      "sha256": "616187627d7208b883fcaed58df506ccc5dbe8d81b43ab6c6da7100392d8a4e2",
+      "bytes": 180671
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-invocation.json",
+      "sha256": "3aa8998499bea6624d8ddd0bb478b6e83550fc9a840a738ce0f7299ced2d34b5",
+      "bytes": 419
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-driver.log",
+      "sha256": "9a77fec087bd3347d7ac4cab7bf950dd8655c991e8a773bdc3d747e003eb87fd",
+      "bytes": 3081
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/types_validation_driver.py",
+      "sha256": "d7473b0301514f9e2d7686d9506671d39db96e0428295f27fcadf7005386d05c",
+      "bytes": 15761
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/config_state_adapter.py",
+      "sha256": "27122dc8ca20815729f238bee31d62d0361d1b1ed5a0d22ce939c605681d40b8",
+      "bytes": 5498
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-functional-tools/collect_types_validation.py",
+      "sha256": "30f30483fa336f47c5c691ff0993fa7b87c746001935f37d8446e8e74c074338",
+      "bytes": 8991
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-plan.json",
+      "sha256": "2a28311bfefd06bd2e7d3dca869608dc9c61ca7d70cf005d45f545d28e1e939e",
+      "bytes": 334068
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types/state.json",
+      "sha256": "fd0f2f89ddf956745c6933eb05b3a64638fa6320633f6a56f9e4aa82ce340fb9",
+      "bytes": 1341
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-invocation.json",
+      "sha256": "7f7993197e648f1f442595786c4ebc82163bb87fd849213110a7f9058893ed76",
+      "bytes": 448
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types/config-state-probe.log",
+      "sha256": "62314a7d7f7fafff24f785fca869452f937a161842741da63fc2d977e14fb2e8",
+      "bytes": 9547
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-continuation/state.json",
+      "sha256": "66200eb3ffa77fdba1402564e1b896d4da0d90e105669dbd4c66285575248299",
+      "bytes": 172067
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional/state.json",
+      "sha256": "67510e290e4aa2bfac0b622aa3f2bebe546c6aca1250602d8b9ed14222fa7455",
+      "bytes": 16949
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-paired-01/plan.json",
+      "sha256": "6f52ba6de35fb7d81707ed9c1937bd61eb23bfd5f4141a52a98bd677a5837c82",
+      "bytes": 197173
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-paired-01/run.json",
+      "sha256": "bd9df3a05539dae7a070df1db8227ad7ce05abedc0367cf48a6093dc86387a4a",
+      "bytes": 5089
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-paired-01/summary.json",
+      "sha256": "a16e334a32f17f944e04d428968b58ddac1cdd139f27dab5bf3560262bcaa4b0",
+      "bytes": 703684
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+      "sha256": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+      "bytes": 2054939
+    }
+  ]
+}
