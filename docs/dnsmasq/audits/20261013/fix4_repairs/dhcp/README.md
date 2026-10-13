@@ -14,6 +14,10 @@
 
 产品提交 `3d5447a9` 在已确定的本地回答写完 Answer 后、Additional 之前复用现有 `append_negative_authority`。普通本地 miss 在此之前已返回，不新增缓存查找或查询解析。缓存 CNAME 的终点拼接只在本地回答尚无 Authority 时补原 SOA，避免重复。三条新增本机单测验证真实 lease publication 对缓存的保留、RD/DO/容量边界、TXT/raw/MX 节顺序和 CNAME 的单一 SOA；最终 ELF/SDK 复跑结果另行追加。
 
+独立源码复核随后发现首版把报文压缩用的 `extra_owner` 当成了 C 的语义名字游标，产生三个新增边界错误：reverse synthesis 错附原 arpa 的 SOA；配置 CNAME 的 CNAME 查询提前停止后仍查目标 NX；raw TYPE 5 的 RDATA 被误当成游标，甚至对有效输出压缩指针 `c00c` 返回错误。三条回归单测均先在首版失败。`12a5a9b3` 改为仅回传实际配置 CNAME 遍历到的名字，direct 回答沿用问题名，并明确传递实际 reverse synthesis 的旧 SOA 排除条件；raw RDATA 保持不透明。另一个已接受的配置目标 `a..b` 不能构造缓存 Name，`8981ed40` 使可选 footer 查找跳过这种名字，保留原有回答；对应单测也先红后绿。本机最新 local 35 条和此前 cache_engine 9 条通过，日志摘要见 [cursor-review.json](cursor-review.json)。这些本机测试不冒充精确 C 的最终验证。
+
+新增 `dhcp_negative_cursor_diff.py` 准备了 12 组 normal/debug 的真实 C 对照，覆盖 raw TYPE 5 压缩指针、目标/原名 NX、配置 CNAME 早停、direct/配置别名的 reverse synth 与显式 PTR 优先级。性能窗口结束后须在最终 SDK ELF 上运行；截至此记录尚未运行。原有 `m5_interface_records.py` 的 `synth-reverse-negative-nxdomain` 同时属于受影响回归族。
+
 ## 扩展控制和探针修正
 
 首轮工具额外执行了 24 组 NODATA 控制，原始 48 组完整保留，未覆盖或删掉失败记录。其中 8 组 TXT NODATA 在 C/Rust 都不缓存，禁答证明均超时，属于探针错误前提。最终工具默认执行用户要求的 NXDOMAIN 24 组；显式 `--nodata-controls` 可再运行 A/AAAA NODATA 的 16 组有效控制。
@@ -41,4 +45,9 @@ sudo -n env PYTHONPATH="$SOURCE/tools/dnsmasq" sh "$SOURCE/tools/dnsmasq/run_iso
   python3 "$DRIVERS/dhcp_negative_soa_boundaries.py" \
   --image-root "$IMAGE_ROOT" --rust "$ELF" \
   --config-evidence "$PRIVATE/dhcp-negative-new/summary.json" --out "$PRIVATE/dhcp-soa-new"
+
+sudo -n env PYTHONPATH="$SOURCE/tools/dnsmasq" sh "$SOURCE/tools/dnsmasq/run_isolated.sh" \
+  python3 "$DRIVERS/dhcp_negative_cursor_diff.py" \
+  --image-root "$IMAGE_ROOT" --rust "$ELF" \
+  --config-evidence "$PRIVATE/dhcp-negative-new/summary.json" --out "$PRIVATE/dhcp-cursor-new"
 ```

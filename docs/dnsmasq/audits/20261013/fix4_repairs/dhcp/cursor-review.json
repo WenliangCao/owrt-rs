@@ -1,0 +1,50 @@
+{
+  "status": "local_regressions_fixed_runtime_pending",
+  "platform": "macOS native Rust 1.98.1 unit tests; not target-ABI or C runtime proof",
+  "cursor_fix_commit": "12a5a9b3",
+  "unrepresentable_target_fix_commit": "8981ed40",
+  "oracle_executed": false,
+  "cases": [
+    "Actual reverse synthesis changes C name cursor and must not append the old arpa-zone SOA; explicit PTR retains precedence and SOA",
+    "Configured CNAME QTYPE=CNAME stops before looking up its target negative marker",
+    "Raw TYPE_CNAME bytes are opaque output, not semantic cursor changes; compression pointer c00c remains valid output with an empty cache",
+    "An accepted a..b configured target has no representable cache Name; optional SOA lookup must not fail the previous answer"
+  ],
+  "logs": {
+    "cursor-before-all.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/cursor-before-all.log",
+      "sha256": "535a7b536c7e88c73aca35b18377aca7bea6140343b46b58b4d547caad313f24",
+      "results": [
+        "test result: FAILED. 3 passed; 3 failed; 0 ignored; 0 measured; 666 filtered out; finished in 0.00s"
+      ]
+    },
+    "cursor-local-after.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/cursor-local-after.log",
+      "sha256": "cd6f8fecae52c41758858714ab588938818bf8aebfcbb25b5b2b73e8b603aa5a",
+      "results": [
+        "test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 638 filtered out; finished in 0.01s"
+      ]
+    },
+    "cursor-cache-engine-after.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/cursor-cache-engine-after.log",
+      "sha256": "1d9f9e2324aea4dcd49d15be6eb56cc52b94710646729efa474431b13511a752",
+      "results": [
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 663 filtered out; finished in 0.00s"
+      ]
+    },
+    "unrepresentable-before.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/unrepresentable-before.log",
+      "sha256": "760b5948b12361ee9044f8f9d19e9f78269f6c0cf93a7c5847004ab8ad3b711b",
+      "results": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 672 filtered out; finished in 0.00s"
+      ]
+    },
+    "unrepresentable-after.log": {
+      "private_path": "private/dnsmasq-fix4-dhcp/unrepresentable-after.log",
+      "sha256": "24cf3612ca30c1c9bf983255cbf67b04ef5fbe0f5a2256f7c9474337ce14e55c",
+      "results": [
+        "test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 638 filtered out; finished in 0.01s"
+      ]
+    }
+  }
+}
