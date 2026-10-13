@@ -1,0 +1,131 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "label": "raw-ns-target-pointer-debug0-udp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "timeout",
+      "C_pointer_43_names_target": true
+    },
+    {
+      "label": "raw-ns-target-pointer-debug0-tcp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "eof",
+      "C_pointer_43_names_target": true
+    },
+    {
+      "label": "raw-ns-target-pointer-debug1-udp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "timeout",
+      "C_pointer_43_names_target": true
+    },
+    {
+      "label": "raw-ns-target-pointer-debug1-tcp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "eof",
+      "C_pointer_43_names_target": true
+    },
+    {
+      "label": "raw-ns-pointer-debug0-udp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "reply",
+      "branch_only_decoded_difference": "NS target: alias.example -> target.example"
+    },
+    {
+      "label": "raw-ns-pointer-debug0-tcp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "reply",
+      "branch_only_decoded_difference": "NS target: alias.example -> target.example"
+    },
+    {
+      "label": "raw-ns-pointer-debug1-udp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "reply",
+      "branch_only_decoded_difference": "NS target: alias.example -> target.example"
+    },
+    {
+      "label": "raw-ns-pointer-debug1-tcp-2",
+      "c_main_full_semantics_equal": true,
+      "ttl": [
+        300,
+        60
+      ],
+      "c_main_fix_upstream": [
+        0,
+        1,
+        0
+      ],
+      "branch_status": "reply",
+      "branch_only_decoded_difference": "NS target: alias.example -> target.example"
+    }
+  ],
+  "response_comparison": "All decoded fields including TTL; compression only normalized.",
+  "inputs": {
+    "raw_pointer_controls": "5b061db905761e7e23df944c0d384d8df8b92fe3ca027533a9aaf26e4c2749b0",
+    "independent_decoder": "0280dadb8b0bac11d321f56a84d819c5c5b9a621c2f93594c0d8e5d80726509c",
+    "checker": "418dc8ffe4b096ee739baf7593eb0595ca63803c927bcbb63ba9a8facbc908ed"
+  }
+}
