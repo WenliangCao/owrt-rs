@@ -39,5 +39,12 @@
     "last_window_end_epoch": 1791919267.9872913,
     "complete": true,
     "coordination": "Root and other agents explicitly kept Oracle silent. This agent only consumed the existing SSH stdout during both complete batches; no extra remote reads, analysis, compilation or daemon workloads were launched. Derived JSON transfer started after ordinary completed."
+  },
+  "type_absent": {
+    "private_directory": "/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/type-absent-scan",
+    "first_window_start_epoch": 1791919606.060861,
+    "last_window_end_epoch": 1791919977.950756,
+    "complete": true,
+    "limited_read_only_overlap": "Root reported the DHCP agent fetched one small retained main-control JSON after stopping all experiments. That SSH read may overlap this batch; exact fetch timestamp was not captured. No competing build/daemon/new experiment was reported or found by per-window foreign workload checks."
   }
 }

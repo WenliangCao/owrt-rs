@@ -1,0 +1,1332 @@
+{
+  "counters": {
+    "scheduled": 324000,
+    "sent": 324000,
+    "correct": 324000,
+    "wrong": 0,
+    "timeout": 0,
+    "transport_error": 0,
+    "scheduled_skipped": 0
+  },
+  "windows": [
+    {
+      "id": "tcp-absent-100-r1-c",
+      "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "1296d9c9a6d4b857ed6345964a3d91d03b8ab28937634d29c4c549a4c795ebbe",
+        "cache-proof.json": "496d10f15ff3aeb01f12e6efe67c311a8057551452b6e1541497f99e9043dffa",
+        "process-identity.json": "aaf9bfb74e786963724c504b0bba244bc32f90da46a0c4439dae38bfca5f69b5",
+        "result.json": "a0851e63bad0e599209e4c4beeb91e425809faa894dd28fd654df4a6ee64452d"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r1-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "d7d47a413712e63d6db63239a8c7d9a879a59b4359306a7756b59f9b85605126",
+        "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e",
+        "process-identity.json": "6913d6c9da017f73080bf057aa07b44e9d6d730cb60455861c7073e52d753eea",
+        "result.json": "178ccdd77a32d71f535997f3a0ba284ea5f116aa013f4547afb436c0c3ce69fa"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r1-current",
+      "actual_elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "7ce9a95ead83644846da88add859ad382bcfccb2e3d544c33f6640482a49139c",
+        "cache-proof.json": "a7361c91b24bcc42b9282bd7da1e44ce8384834387330f38103a3be383e03f74",
+        "process-identity.json": "6b05a3f4470f9058df90b07163498385363c32c8b1447dacf4524f4fa3d06866",
+        "result.json": "598ee6e6ec7e848548e8d27cb4a952bfd2db60972b6874388a31dec348c6ebcf"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r1-c",
+      "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "cdc2bb32e666bc74ccaf3bee0537115fcae75ef1ede57c3c25a50a7bede73616",
+        "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e",
+        "process-identity.json": "7fe9e9162d9e4a3870be416480372694e6f5b7a1999cea469b7cf4fd2e5e2997",
+        "result.json": "997ac16c149c7b8f3f7ae529d40e0515db822567a68782a71e20e04b29e6e914"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r1-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "449aad9edfab84c9555c4add11c4c33bb8b4fe5abea16c0481b230aba78bc6b0",
+        "cache-proof.json": "ca438d015c7becbf869c9c9cea325f79f8fd1e51df88bbe8ca5e6c6613113f58",
+        "process-identity.json": "8210377fc5bf6921d23e11d110c31ce3c5e775712f70f5dd7ad0585e9578fe7d",
+        "result.json": "bd7bbee97d574d8a90f4897ed3e911353b806427441d0d07813d42621f726921"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r1-current",
+      "actual_elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "2e2dfa4348b128869775c6eb8d38ceb754eff3666e5e408659868c43b00ba4db",
+        "cache-proof.json": "d3f53053970bb78538a3e887aff24b05213b4167323582791dfd88751f734577",
+        "process-identity.json": "6a0900b9df4a51d0682ca2409356c7f7ba93bf668fdf16b2f393e3568e9faa2c",
+        "result.json": "ed56197752ec6cef67d20e613c54d4b491811f5047e682be0c7c704d67d5e7ca"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r2-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "381e055deca2e7a6068a7581441a09bf2b2d233bdc36d91a5b783be043152c1d",
+        "cache-proof.json": "83a58fedaf1cd1eb18d085990a8ad5f45e504097602a0b39fb9d7955ed09f81a",
+        "process-identity.json": "516a464303ae324b03fcd5fe6b38d15d510eb480d35e3e2bc859b57d8baa0e6b",
+        "result.json": "f24c9350e5a5a6b13df6b8016817f35c44a3aaaf80ccc033df444bb121ae13cb"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r2-current",
+      "actual_elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "6d6d3dde0af71a451d162c7880caab3d6605ddd8e2404a08b15c1382ceb60432",
+        "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e",
+        "process-identity.json": "7f9140d6a8869cb521416ff62139784f73ec169d945df17a1fca526acd97086c",
+        "result.json": "6831fa128efecc7d197babf666e6bf5a43bdf5af6edf30374d3375cbf26ef46d"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r2-c",
+      "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "9cdf8c654ae92f97f710cb8dd2c09ed2e66f14131e399ddb3daee2d265708a6f",
+        "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5",
+        "process-identity.json": "e7b9adb4019c0e6b60c3035dd5b9f18a1804d440f62c485ad00ebd8b41202474",
+        "result.json": "aa75289ccbd0616ee6e69ffdaaccdf570bf967f3cbcebcd867e17fdd7f83fa97"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r2-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "6bdfb19be7eb13520d217e25e87c63fe22ca085c80f13584c42816111c2cd81d",
+        "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5",
+        "process-identity.json": "8ad92a52fd8e268da2c536e214fe320819f51016a0bb342372b197660a7b05c8",
+        "result.json": "d6e73db2202004aa70d434256ba999998fb2f2238b3b8f29aec7a55a0a6b591a"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r2-current",
+      "actual_elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "e1f770754719d063a21ea0d08cba53e2cfe9226281a3099749c249f152d9a342",
+        "cache-proof.json": "ff1e0a4b01745821fe6707950cb8434d2601bb01b4b2bad54d8e94e81d6a67a3",
+        "process-identity.json": "087c3994013fe74904298ece1dfc8663e43bef51f96cb72e15b37670764df425",
+        "result.json": "28b69394f4d0feab37ec3cf0260b5b57be44aa690f0af3ea372b13c703a897a8"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r2-c",
+      "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "7fb0c4f18c52d3e7b783e2f69178235f42dcd4efbbeeab5422d2be49d48c30f5",
+        "cache-proof.json": "bad1493a4e245b190a482feaff44428c466ea270efa681eb4617fec38984375f",
+        "process-identity.json": "4ded627606ab3458134d67e66e2e2b925f62fc413fcef5d18d26e48123080897",
+        "result.json": "911c823094486a604e614a69132bfccf051f081cb655aa8d814cebbdac1dc8f4"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r3-current",
+      "actual_elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "5abf0742a4f3d056a24ffa50fb740fb67a076b1735248357ec9e1d05bb552360",
+        "cache-proof.json": "f4bed358c1bf9684b2591d478ac9478d41fff3e523dfca195b8c72e85984dce2",
+        "process-identity.json": "a258c4cdff3aa35eb48f77a281f8647d69ed26fdf6fa375df43bdcada12357f4",
+        "result.json": "bab8a1d9122fcb05fb9c92abb18c1098338b437f1c2c0d5ea9548e60cd162b18"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r3-c",
+      "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "75b823e42a18cc6fc11e26c47ade53f4de8750fe2b4c87dc563fe35132ef2a89",
+        "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e",
+        "process-identity.json": "55317f62482e70b411ec7608ae01b658a9ca99e222acc8bc96382a5510d724ab",
+        "result.json": "9dc837ca8ee927150bbfa8f14a928220a20fe75851e6f2f41b945e2748c69964"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-100-r3-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "raw_assets": {
+        "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "upstream.json": "13beaf3d0cbf951ec5f25e68bb60e04746e8c6d477e12379fd8cb041e86f544d",
+        "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5",
+        "process-identity.json": "273ff946e7440db27260b59f4599557d0409e626527ce15ee634de480f7f813a",
+        "result.json": "364666dde9550cfc22f0a559309a80cdb1237e36fa2ff30b388c9c5a18e292db"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 100,
+        "rrtype": 65401,
+        "host": "unused50.audit.test",
+        "query_hex": "51a10100000100000000000008756e757365643530056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000008756e757365643530056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused50.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused50.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r3-current",
+      "actual_elf_sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "7465811bcb79d42b7d2a794aeedaea4952940a9a5f3a849bbb311104f616ab2f",
+        "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e",
+        "process-identity.json": "da4a76ca955e37f9097a6fc0ef550237608636e60c4e5b82324cedcec4eced68",
+        "result.json": "15ca0ae79f0cbacfbc460baa3f51979539eb92f49361651db50324bdcdf081c2"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r3-c",
+      "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "664cba31a8229830c25c14709669336931fced2a19bf5f3f03cc9a1a9a73eaca",
+        "cache-proof.json": "5f8a6142535cc0fb0d88bc91e7a4cc0036bebc53c69c8aa0b51c3e871a2ed65d",
+        "process-identity.json": "0bb1f807682ee8ebbdf5fba01eb01a2e0701ccca133853a5bb5652aeb176a1bc",
+        "result.json": "0ab58d77eb4b913db3e050f5d538c77a95860229850f72263396345d1fe7eb06"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "tcp-absent-1000-r3-main",
+      "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "raw_assets": {
+        "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "upstream.json": "458d056978f4ca2df3f1ceaee81c08fdf90e1600ca9acb306cbf729b4e811483",
+        "cache-proof.json": "dabf6ad44d786112c3907a20bfd8300c786a923860378de76c93f9c652aa01d3",
+        "process-identity.json": "93a6f0e9a41d283c9ee6bdd1b6e67f419026f878d74586e4cc96393fe38269c3",
+        "result.json": "e04008a7f9cf4c69f3100fcb46d695d32dff47726313e8f0e01782787ed5f945"
+      },
+      "validated_cache_names": 4096,
+      "upstream_disabled_requests": 0,
+      "direct_raw_proof": {
+        "declarations": 1000,
+        "rrtype": 65401,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e75736564353030056175646974047465737400ff790001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e75736564353030056175646974047465737400ff790001c00cff79000100000e100002abcd",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  65401,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 65401,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "abcd"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "triple_config_checks": [
+    {
+      "profile": "tcp-absent-100",
+      "round": 1,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-absent-1000",
+      "round": 1,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-absent-100",
+      "round": 2,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-absent-1000",
+      "round": 2,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    },
+    {
+      "profile": "tcp-absent-100",
+      "round": 3,
+      "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+      "identical": true
+    },
+    {
+      "profile": "tcp-absent-1000",
+      "round": 3,
+      "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+      "identical": true
+    }
+  ],
+  "cgroup_samples": 180,
+  "maximum_nr_throttled": 0,
+  "maximum_throttled_usec": 0
+}

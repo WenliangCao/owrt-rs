@@ -133,3 +133,40 @@ as did all 90 zero-throttling samples. The window argv correctly specifies
 30/120 seconds. The already-queued run command retained the runner's default
 180-second watchdog; actual windows took about 152.5–152.7 seconds, and none
 was interrupted or retried. Complete evidence is in `ordinary-*.json`.
+
+
+## Original TYPE65401 control after the scan repair
+
+A separate 18-window short control restores the original `dns-rr=unusedN.audit.test,65401,abcd`
+configuration for TCP A cache hits, with exact C included. This uses the same
+3/15-second workload as the same-type review; it does **not** reproduce the
+older six-pair 30/120-second duration. All 324,000 responses were correct with
+zero errors/skips and 180 zero-throttling samples.
+
+| Configuration | C CPU µs/correct | main | Scan repair | Scan/main | C/main/scan p95 µs |
+| --- | ---: | ---: | ---: | ---: | --- |
+| TCP, 100 TYPE65401 | 50.026 | 31.013 | 34.143 | +10.09% | 104.801 / 78.040 / 85.641 |
+| TCP, 1,000 TYPE65401 | 54.983 | 32.812 | 34.071 | +3.84% | 113.601 / 79.201 / 81.361 |
+
+The 100-record scan windows were 32.655, 34.143 and 39.727 µs (20.71% relative
+range). The last high window is retained, not retried. At 1,000 records, main
+and scan relative ranges were 1.05% and 1.18%; all three differences were
+positive (+1.564/+0.817/+1.259 µs). These short controls do not stably reproduce
+the earlier approximately 13% magnitude and cannot prove its disappearance.
+A TYPE65401/1,000 current-branch profile is added to cover this exact configuration
+alongside the no-raw TCP profile.
+
+`absent-*.json` preserves this attempt. Its executed wrapper is the frozen
+`a2ac634f` copy and exact hash in `absent-plan.json`; a later local comment/error
+message correction only replaces misleading copied “TYPE A” wording. The
+retained Oracle wrapper is unchanged. `coordination.json` discloses one small
+DHCP-report JSON fetch that may overlap this batch.
+
+## Main symbols for diagnostics
+
+A fresh map build used the original main source directory and recipe with only
+`ORACLE_BUILD_LINK_MAP=1`. It reproduced the complete measured `ad103449…` ELF
+byte-for-byte, not merely its text. All 172 original source inputs, `.text`, 14
+allocated sections and LOAD layout were checked. `main-map-comparison.json`
+therefore permits that map to attribute the original measured main process;
+no different symbol companion is substituted.

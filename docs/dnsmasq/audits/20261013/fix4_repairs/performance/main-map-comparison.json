@@ -1,0 +1,28 @@
+{
+  "scope": "Same-source map attempt; exact original ELF identity remains authoritative",
+  "baseline_plan_sha256": "d9acc5ea580f0d34dafefeb47337453c111e8b829c45bc04cc88d180465d0a98",
+  "original_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+  "mapped_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+  "mapped_build_sha256": "9e68d6a4501461da67abc6d953616441c9ca709eba64e2cc031678d228b3863a",
+  "mapped_link_map_sha256": "dc74e5c67d7083462dd03376b2987ded87c4e5030ba7eec3844878f4c2ab6190",
+  "source_inputs_verified": 172,
+  "original_rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+  "mapped_rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Clink-arg=-Wl,-Map=/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/main-map-attempt/link.map",
+  "full_elf_identical": true,
+  "text_identical": true,
+  "allocated_comparison": {
+    "status": "identical_alloc_sections_and_load_layout",
+    "checked_sections": 14,
+    "checks": [
+      "name",
+      "type",
+      "flags",
+      "address",
+      "size",
+      "alignment",
+      "sha256"
+    ]
+  },
+  "use_map_for_original": true,
+  "decision": "Map accepted for original ELF: complete bytes match."
+}

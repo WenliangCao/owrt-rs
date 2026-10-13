@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Original N4 TYPE65401/abcd declarations with cached-A traffic.
 
-Before filling the normal bank, prove the configured raw A is usable over
+Before filling the normal bank, prove the configured raw record is usable over
 both UDP and TCP. This startup proof runs outside the measured epoch.
 """
 from pathlib import Path
@@ -30,7 +30,7 @@ def recv_exact(endpoint, count):
     while len(result) < count:
         block = endpoint.recv(count - len(result))
         if not block:
-            raise RuntimeError('early TCP EOF during raw A proof')
+            raise RuntimeError('early TCP EOF during raw record proof')
         result += block
     return bytes(result)
 
@@ -63,7 +63,7 @@ def fill_and_prove(out, names, disable, upstream_pid, daemon_pid, mixed=False):
         evidence['replies'][transport] = dict(correct=valid, hex=answer.hex(), decoded=parsed)
         window.save(out / 'same-type-proof.json', evidence)
         if not valid:
-            raise AssertionError(f'{transport} configured TYPE A proof failed')
+            raise AssertionError(f'{transport} configured TYPE 65401 proof failed')
     return original_fill(out, names, disable, upstream_pid, daemon_pid, mixed)
 
 
