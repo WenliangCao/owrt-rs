@@ -1,0 +1,4256 @@
+{
+  "source": "oracle:/home/ubuntu/dnsmasq-audit-fix4-20261014/private/dns-terminals-01/result.json",
+  "raw_result_sha256": "fabbc23612219058c0ee4d4d61badd8e7b8b897edf81af95766fea8f10eb8914",
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "fix": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+    "driver": "4b1986d3655dbe49396a04213c68938a3e4416adcf6953dd9aec6d86f6491ac5",
+    "canonical": "fabde2609b040df64e248f0815f9a6a4a7414e85558914f8b9aa7614b95def29"
+  },
+  "comparison": "Same transport C only; compression and ordinary TTL normalized, original bytes retained.",
+  "total_cases": 80,
+  "checks": {
+    "main_equals_c": 18,
+    "fix_equals_c": 34,
+    "main_equals_fix": 36
+  },
+  "health": {
+    "all_alive": true,
+    "all_clean_exit": true,
+    "all_health_reply": false
+  },
+  "profiles": [
+    {
+      "profile": "target-local",
+      "cases": 32,
+      "checks": {
+        "main_equals_c": 16,
+        "fix_equals_c": 16,
+        "main_equals_fix": 32
+      },
+      "by_case": [
+        {
+          "label": "target-local-debug0-udp-6",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-12",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-15",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-16",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-28",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-33",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-255",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-udp-257",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-6",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-12",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-15",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-16",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-28",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-33",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug0-tcp-257",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-6",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-12",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-15",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-16",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-28",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-33",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-255",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-udp-257",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-6",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-12",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-15",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-16",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-28",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-33",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-local-debug1-tcp-257",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        }
+      ]
+    },
+    {
+      "profile": "target-literal",
+      "cases": 4,
+      "checks": {
+        "main_equals_c": 2,
+        "fix_equals_c": 2,
+        "main_equals_fix": 4
+      },
+      "by_case": [
+        {
+          "label": "target-literal-debug0-udp-255",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-literal-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-literal-debug1-udp-255",
+          "checks": {
+            "main_equals_c": true,
+            "fix_equals_c": true,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 1,
+            "main": 1,
+            "fix": 1
+          }
+        },
+        {
+          "label": "target-literal-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": true
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 1
+          }
+        }
+      ]
+    },
+    {
+      "profile": "raw-ns-pointer",
+      "cases": 8,
+      "checks": {},
+      "by_case": [
+        {
+          "label": "raw-ns-pointer-debug0-udp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug0-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug0-tcp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-udp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-tcp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-pointer-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        }
+      ]
+    },
+    {
+      "profile": "raw-mx-pointer",
+      "cases": 8,
+      "checks": {},
+      "by_case": [
+        {
+          "label": "raw-mx-pointer-debug0-udp-15",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug0-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug0-tcp-15",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug1-udp-15",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug1-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug1-tcp-15",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-mx-pointer-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        }
+      ]
+    },
+    {
+      "profile": "raw-ns-bad-pointer",
+      "cases": 8,
+      "checks": {},
+      "by_case": [
+        {
+          "label": "raw-ns-bad-pointer-debug0-udp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "timeout"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "timeout"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-tcp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "eof"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "eof"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-udp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "timeout"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "timeout"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-tcp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "eof"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-bad-pointer-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "eof"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        }
+      ]
+    },
+    {
+      "profile": "raw-ns-name",
+      "cases": 8,
+      "checks": {
+        "fix_equals_c": 8
+      },
+      "by_case": [
+        {
+          "label": "raw-ns-name-debug0-udp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug0-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug0-tcp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug1-udp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug1-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug1-tcp-2",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-ns-name-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        }
+      ]
+    },
+    {
+      "profile": "raw-cname-pointer",
+      "cases": 4,
+      "checks": {},
+      "by_case": [
+        {
+          "label": "raw-cname-pointer-debug0-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-cname-pointer-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-cname-pointer-debug1-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-cname-pointer-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": false,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        }
+      ]
+    },
+    {
+      "profile": "raw-opaque",
+      "cases": 8,
+      "checks": {
+        "fix_equals_c": 8
+      },
+      "by_case": [
+        {
+          "label": "raw-opaque-debug0-udp-65401",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug0-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug0-tcp-65401",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug0-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug1-udp-65401",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug1-udp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug1-tcp-65401",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        },
+        {
+          "label": "raw-opaque-debug1-tcp-255",
+          "checks": {
+            "main_equals_c": false,
+            "fix_equals_c": true,
+            "main_equals_fix": false
+          },
+          "statuses": {
+            "c": "reply",
+            "main": "reply",
+            "fix": "reply"
+          },
+          "upstream_counts": {
+            "c": 0,
+            "main": 1,
+            "fix": 0
+          }
+        }
+      ]
+    }
+  ],
+  "representatives": [
+    {
+      "label": "target-local-debug0-tcp-16",
+      "profile": "target-local",
+      "debug": false,
+      "protocol": "tcp",
+      "qtype": 16,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nlocal=/target.example/\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100000000000005616c696173076578616d706c650000100001",
+            "header": [
+              4660,
+              33152,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": true
+      }
+    },
+    {
+      "label": "target-literal-debug0-tcp-255",
+      "profile": "target-literal",
+      "debug": false,
+      "protocol": "tcp",
+      "qtype": 255,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\naddress=/target.example/192.0.2.4\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010000000005616c696173076578616d706c650000ff0001c00c000100010000003c0004c0000204",
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c0000204"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": true
+      }
+    },
+    {
+      "label": "raw-ns-pointer-debug0-udp-2",
+      "profile": "raw-ns-pointer",
+      "debug": false,
+      "protocol": "udp",
+      "qtype": 2,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c00c\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "d2010100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "d2018180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c00c",
+            "length": 73,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  2,
+                  1,
+                  null,
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "51610100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "51618180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "udp",
+              "query": "41620100000100000000000105616c696173076578616d706c65000002000100002904d0000000000000",
+              "reply": "41628180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "c1360100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "c1368180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c001006746172676574076578616d706c6500",
+            "length": 87,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  2,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": false
+      }
+    },
+    {
+      "label": "raw-mx-pointer-debug0-udp-15",
+      "profile": "raw-mx-pointer",
+      "debug": false,
+      "protocol": "udp",
+      "qtype": 15,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,15,000ac00c\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "0f810100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "0f818180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c6500000f0001c00c000500010000012c001006746172676574076578616d706c6500c02b000f00010000003c0004000ac00c",
+            "length": 75,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                15,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  15,
+                  1,
+                  null,
+                  [
+                    10,
+                    [
+                      "616c696173",
+                      "6578616d706c65"
+                    ]
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "808d0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "808d8180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c6500000f0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                15,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "udp",
+              "query": "ad760100000100000000000105616c696173076578616d706c6500000f000100002904d0000000000000",
+              "reply": "ad768180000100020000000005616c696173076578616d706c6500000f0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "4c4e0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "4c4e8180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c6500000f0001c00c000500010000012c001006746172676574076578616d706c6500c02b000f00010000003c0012000a06746172676574076578616d706c6500",
+            "length": 89,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                15,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  15,
+                  1,
+                  null,
+                  [
+                    10,
+                    [
+                      "746172676574",
+                      "6578616d706c65"
+                    ]
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": false
+      }
+    },
+    {
+      "label": "raw-ns-bad-pointer-debug0-udp-2",
+      "profile": "raw-ns-bad-pointer",
+      "debug": false,
+      "protocol": "udp",
+      "qtype": 2,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c0ff\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "06210100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "06218180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c0ff",
+            "length": 73,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "parse_error": "index out of range",
+            "raw_response": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c0ff",
+              "length": 73,
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "e7c70100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "e7c78180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "udp",
+              "query": "07730100000100000000000105616c696173076578616d706c65000002000100002904d0000000000000",
+              "reply": "07738180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "9db70100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "9db78180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "timeout"
+          },
+          "canonical": {
+            "status": "timeout"
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": false
+      }
+    },
+    {
+      "label": "raw-ns-bad-pointer-debug0-tcp-2",
+      "profile": "raw-ns-bad-pointer",
+      "debug": false,
+      "protocol": "tcp",
+      "qtype": 2,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,c0ff\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c0ff",
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "parse_error": "index out of range",
+            "raw_response": {
+              "status": "reply",
+              "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c0002c0ff",
+              "header": [
+                4660,
+                34176,
+                1,
+                2,
+                0,
+                0
+              ]
+            }
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000020001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "eof"
+          },
+          "canonical": {
+            "status": "eof"
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": false
+      }
+    },
+    {
+      "label": "raw-ns-name-debug0-udp-2",
+      "profile": "raw-ns-name",
+      "debug": false,
+      "protocol": "udp",
+      "qtype": 2,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,2,026e73076578616d706c6500\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "2a3e0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "2a3e8180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c000c026e73076578616d706c6500",
+            "length": 83,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  2,
+                  1,
+                  null,
+                  [
+                    "6e73",
+                    "6578616d706c65"
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "11e40100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "11e48180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "udp",
+              "query": "be6d0100000100000000000105616c696173076578616d706c65000002000100002904d0000000000000",
+              "reply": "be6d8180000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "db1e0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "db1e8180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000020001c00c000500010000012c001006746172676574076578616d706c6500c02b000200010000003c000c026e73076578616d706c6500",
+            "length": 83,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                2,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  2,
+                  1,
+                  null,
+                  [
+                    "6e73",
+                    "6578616d706c65"
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": true,
+        "main_equals_fix": false
+      }
+    },
+    {
+      "label": "raw-cname-pointer-debug0-udp-255",
+      "profile": "raw-cname-pointer",
+      "debug": false,
+      "protocol": "udp",
+      "qtype": 255,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,5,c00c\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "f0370100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "f0378180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c0002c00c",
+            "length": 73,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "e8440100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "e8448180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "udp",
+              "query": "df820100000100000000000105616c696173076578616d706c650000ff000100002904d0000000000000",
+              "reply": "df828180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "a04c0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "a04c8180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c6500c02b000500010000003c001006746172676574076578616d706c6500",
+            "length": 87,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": false,
+        "main_equals_fix": false
+      }
+    },
+    {
+      "label": "raw-opaque-debug0-udp-65401",
+      "profile": "raw-opaque",
+      "debug": false,
+      "protocol": "udp",
+      "qtype": 65401,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ndns-rr=target.example,65401,abcdef\n",
+      "sides": {
+        "c": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "6af40100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "6af48180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c6500ff790001c00c000500010000012c001006746172676574076578616d706c6500c02bff7900010000003c0003abcdef",
+            "length": 74,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                65401,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  65401,
+                  1,
+                  null,
+                  "abcdef"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "main": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "c9790100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "c9798180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c6500ff790001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                65401,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  1,
+                  1,
+                  null,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [
+            {
+              "protocol": "udp",
+              "query": "44f50100000100000000000105616c696173076578616d706c6500ff79000100002904d0000000000000",
+              "reply": "44f58180000100020000000005616c696173076578616d706c6500ff790001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        },
+        "fix": {
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "03450100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "03458180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c6500ff790001c00c000500010000012c001006746172676574076578616d706c6500c02bff7900010000003c0003abcdef",
+            "length": 74,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "id": 4660,
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                [
+                  "616c696173",
+                  "6578616d706c65"
+                ],
+                65401,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  [
+                    "616c696173",
+                    "6578616d706c65"
+                  ],
+                  5,
+                  1,
+                  null,
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ]
+                ],
+                [
+                  [
+                    "746172676574",
+                    "6578616d706c65"
+                  ],
+                  65401,
+                  1,
+                  null,
+                  "abcdef"
+                ]
+              ],
+              [],
+              []
+            ],
+            "trailing": ""
+          },
+          "upstream": [],
+          "alive": true,
+          "health": {
+            "status": "reply",
+            "hex": "12348580000100010000000005726561647904746573740000010001c00c000100010000003c0004c0000201",
+            "length": 44,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "exit": 0
+        }
+      },
+      "checks": {
+        "main_equals_c": false,
+        "fix_equals_c": true,
+        "main_equals_fix": false
+      }
+    }
+  ]
+}
