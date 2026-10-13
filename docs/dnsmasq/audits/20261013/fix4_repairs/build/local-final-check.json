@@ -1,0 +1,38 @@
+{
+  "schema": "dnsmasq-fix4-local-closure-v1",
+  "passed": true,
+  "branch": "fix/audit-20261011",
+  "head_before_report_commit": "1eca9421ceb5999d20dc15ddfa7f6447cf402c96",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+  "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+  "source_files_checked": 178,
+  "product_worktree_matches_frozen_source_and_HEAD": true,
+  "report": {
+    "path": "docs/dnsmasq/AUDIT_FIX3_RECHECK_20261013.md",
+    "sha256": "c703196c938546745a2c4e518e0dd229c2e9a14f244b9d7ced7377864e6d2a4e",
+    "original_git_commit": "d8a4a035",
+    "original_sha256": "4dfdae400661ea915a4248a049985c1878ca03df43d64e40222983f2d2995e93",
+    "append_only": true,
+    "append_starts_at_line": 104
+  },
+  "oracle_closure_sha256": "ce4878f4305812963518f6534754b2ec098a286a3abf03950ec2be4f304143cc",
+  "functional_independent_check_sha256": "6fcf09ada20fe04e79056d5c6a05775ccc9de71031e5008fcb0d23df95de1953",
+  "remaining_user_changes": {
+    "docs/prompts/FW4_NEXT_RESEARCH.md": " M",
+    "docs/prompts/COMPONENT_RESEARCH_ENGINEERING.md": "??",
+    "docs/prompts/DNSMASQ_COMPLETION.md": "??",
+    "docs/prompts/DNSMASQ_REWRITE.md": "??",
+    "docs/prompts/HTTPD_NEXT_RESEARCH.md": "??",
+    "docs/prompts/LOGD_NEXT_RESEARCH.md": "??",
+    "docs/prompts/PROCD_NEXT_RESEARCH.md": "??",
+    "docs/prompts/RELOAD_CONFIG_NEXT_RESEARCH.md": "??",
+    "docs/prompts/RPCD_NEXT_RESEARCH.md": "??",
+    "docs/prompts/UCI_NEXT_RESEARCH.md": "??"
+  },
+  "limits": [
+    "Local source/HEAD, main ref and append-only report checks; Oracle artifact/process checks are in final-closure.json.",
+    "User prompt paths retain their original modified/untracked status; no task action edited them.",
+    "Performance acceptance uses the user-updated scope; no final ELF performance rerun."
+  ]
+}

@@ -100,3 +100,102 @@ F1 的参数化窗口入口是 [same_type_window.py](audits/20261013/fix3_rechec
 本次是对上次审计后十个产品文件改动的定向复核，没有重跑全部历史族、全部 23 个 ignored 测试或两次 SDK clean build。没有物理路由器、Cortex-A53 实机、部署/回滚、长时 soak、饱和容量、全部生产配置或跨工具链/页大小的资格证明。主线既有问题继续按原报告归属，不用它们替代 F1 的新增成本证据。没有改产品代码、合并分支、推送 GitHub 或接触路由器，用户原有未提交文档保留。
 
 收尾重新核对 570 份本轮源码、产物、DNS 原始结果与全部 18 个性能窗口文件，全部摘要匹配；构建锁可取得并释放，没有本任务残留进程。[闭合收据](audits/20261013/fix3_recheck/closure.json)、[清单](audits/20261013/fix3_recheck/closure-manifest.json)。核验复用上次审计的参数化 `closure.py`，其 SHA 与收据一致。固件、SDK、二进制及完整原始测试目录继续留在 private，Git 只保存审计探针和派生报告。
+
+## 追加修复记录：精确 C 对照、无分配扫描与 DHCP SOA
+
+本轮在 `fix/audit-20261011` 完成。最终产品提交为 `3e2c7b17`，`main` 仍为 `be531cee`。用户后续明确接受 UDP/100 条比 C 约慢 5 µs、但快于 main 的结果，以及普通 TCP 的 +5.84% CPU；按该更新停止后续性能追查，转向最终 SDK 程序的 C 对照和回归。以下保留实际增量，不将接受剩余成本写成零回退。
+
+### 先测 C，再改扫描
+
+先对冻结的精确镜像 C、main 和修复前分支做三方配对。100/1,000 条均为不同名字的合法 `dns-rr=unusedN.audit.test,1,c0000201`，分别测 TCP/UDP A 缓存命中。每种配置三轮、顺序 C/main/分支 → main/分支/C → 分支/C/main；1,000 QPS、20 clients、3 秒预热、15 秒测量、4,096 个逐名证明的缓存项，随后禁用上游回答。CPU 取整个服务 cgroup，包含 C 的 TCP 子进程；TCP 每连接 100 次查询后重连。daemon/上游/负载/控制器分别绑定 CPU 0/1/2/3。
+
+修复前的 CPU 中位数（µs/正确响应）：
+
+| 场景 | 精确 C | main | 修复前分支 |
+| --- | ---: | ---: | ---: |
+| TCP / 100 条 A | 53.510 | 30.532 | 44.043 |
+| TCP / 1,000 条 A | 79.135 | 31.934 | 119.326 |
+| UDP / 100 条 A | 21.560 | 31.459 | 30.128 |
+| UDP / 1,000 条 A | 44.971 | 108.237 | 100.332 |
+
+C 的 TCP 100→1,000 条增量约 25.6 µs，修复前 Rust 约 75.3 µs；UDP 分别约 23.4 和 70.2 µs。C 的线扫有实测成本，Rust 当时的单项成本也明显偏高。这些是完整 daemon 的规模增量；C/main 的绝对 TCP 差额还包含 fork/连接管理成本，不能全归为语义对齐，更不是语义所要求的性能下界。[基线及方法](audits/20261013/fix4_repairs/performance/README.md)、[基线窗口](audits/20261013/fix4_repairs/performance/before-summary.json)、[精确源码绑定](audits/20261013/fix4_repairs/performance/source-review.json)。
+
+产品提交 `aae4b04d` 只简化 raw 比较：先判类型，再对原始 dotted 名字调用 `eq_ignore_ascii_case`；raw 不再要求构造查询 wire key，也不再逐条转换、分配记录名字键。保留原类型摘要、逆序遍历、同名多项顺序、ANY、TTL、RDATA 和日志行为。没有新增名字索引，也没有重复实现“查询只解析一次”。大小写、末尾点、root 和标签内字面点均有回归。
+
+扫描优化候选 `006002bb` 再做同样 36 窗。各单元格为 **CPU / p95，单位 µs**：
+
+| 场景 | 精确 C | main | 扫描修复版 |
+| --- | ---: | ---: | ---: |
+| TCP / 100 条 A | 53.023 / 105.561 | 31.089 / 78.920 | 34.442 / 82.241 |
+| TCP / 1,000 条 A | 76.315 / 144.401 | 31.613 / 78.401 | 41.035 / 88.241 |
+| UDP / 100 条 A | 21.903 / 67.761 | 31.641 / 82.520 | 27.568 / 69.641 |
+| UDP / 1,000 条 A | 44.728 / 106.801 | 109.481 / 211.842 | 24.448 / 70.721 |
+
+1,000 条 TCP 的分支 CPU 从约 119 降至 41 µs，修复后比同轮 C 低 46.23%；1,000 条 UDP 比 C 低 45.34%。UDP/100 仍比 C 高 25.87%（约 5.7 µs），但比 main 低 12.87%。该项由用户明确接受。剩余差额未呈同量的配置规模放大，且简单扫描已满足更新后的任务标准，因此没有增加索引。[修复后窗口](audits/20261013/fix4_repairs/performance/after-summary.json)、[独立报文/统计复核](audits/20261013/fix4_repairs/performance/after-independent-check.json)。
+
+两轮 raw 矩阵各 648,000 次 scheduled=sent=correct，错误、超时、transport error、skip 均为 0；缓存证明、禁答后零上游请求、同配对配置和节流检查通过。直接 raw 记录的 UDP/TCP 报文另逐字核验 AA、类型、数据和完整长度。全部窗口保留，包括基线 main TCP/1,000 第三窗的 41.620 µs 高值；三轮中位数和范围不宣称统计等价。少量非实验 SSH 读取的协调记录也保留于 [coordination.json](audits/20261013/fix4_repairs/performance/coordination.json)。
+
+### 普通 TCP、原 TYPE65401 控制与更新后的标准
+
+无 raw 配置的普通 TCP 使用三轮三方配对、30 秒预热、120 秒测量：
+
+| 指标 | 精确 C | main | 扫描修复版 |
+| --- | ---: | ---: | ---: |
+| CPU µs/正确响应 | 45.131 | 30.464 | 32.243 |
+| p95 µs | 96.641 | 78.240 | 81.041 |
+
+CPU 中位数相对 main +5.84%；三对分别增加 0.753、1.786、1.567 µs，全部保留。1,350,000 次请求全部正确且无跳过/超时/节流。这是新的无 raw 对照，不能冒称复跑了旧约 13% 的 TYPE65401 配置。[普通 TCP](audits/20261013/fix4_repairs/performance/ordinary-summary.json)。
+
+另以原 `TYPE65401/abcd` 配置补 18 个三方短窗（3/15 秒），CPU 中位数如下：
+
+| 配置 | 精确 C | main | 扫描修复版 | 相对 main |
+| --- | ---: | ---: | ---: | ---: |
+| TCP / 100 条 TYPE65401 | 50.026 | 31.013 | 34.143 | +10.09% |
+| TCP / 1,000 条 TYPE65401 | 54.983 | 32.812 | 34.071 | +3.84% |
+
+100 条分支窗口为 32.655、34.143、39.727 µs，范围 20.71%，末窗高值未删除或重试；1,000 条双方范围约 1%。324,000 次请求全部正确。此短控未稳定复现旧约 13% 的幅度，也不能证明旧长窗增量消失。[原配置控制](audits/20261013/fix4_repairs/performance/absent-summary.json)。
+
+用户更新标准时，已启动的五个诊断采样窗均已结束；先前启动的解码也在停止检查前自行完成。原始文件保留，之后未继续归属、形成优化结论或新增性能测量。**上表性能产物是扫描候选 `cf94126f…`，不是下述最终 SDK ELF 的性能实测。** 后续 SOA 修复只在已确定本地应答后进入新增查找，普通本地 miss 提前返回；遵照用户要求，最终阶段集中于 SDK 功能验证。[范围变更及保留收据](audits/20261013/fix4_repairs/performance/profile-preserved.json)。
+
+### DHCP 负缓存：实际 C 行为与修复
+
+精确 C 的实测结果是：**先缓存 NXDOMAIN、再由 DHCP 发布 A 后，A 返回新地址，AAAA 和其他没有本地记录的类型仍命中旧 NXDOMAIN。** 这 24 组中 C/Rust 的后续查询均无上游访问。C 的 NXDOMAIN 提取会清地址类型标志，IPv4 DHCP 插入处理 IPv4/CNAME 冲突，因而不会无条件删除这个名字级负项。本轮保留该 C 行为。
+
+真正的不一致在旧 NXDOMAIN 带 SOA 时：C 在新 DHCP A 正回答中继续附加旧 SOA，Rust 漏掉 Authority。初始 12 个带 SOA 的组合各复现三次，共 36 条遗漏。修复在本地 Answer 之后、Additional 之前复用现有 SOA 写入逻辑；缓存 CNAME 终点只附一次。进一步回归修正了反向合成的名字变更、配置 CNAME 查询的提前停止、raw TYPE 5 的不透明 RDATA/压缩指针，以及配置目标无法表示为缓存名字时的边界。普通 cache miss 不新增查找、名称转换或查询解析。[源依据及初始复现](audits/20261013/fix4_repairs/dhcp/README.md)。
+
+最终 SDK 包内 ELF 的结果：
+
+| C 对照 | 组合 | 回答对 | 结果 |
+| --- | ---: | ---: | --- |
+| 初始 A/AAAA/TXT × UDP/TCP × normal/debug × SOA/neg-ttl，再真实 DHCP ACK | 24 | 504 | 485 完整解码字段一致；19 仅 SOA TTL 的有界相邻秒差 |
+| direct/cached-CNAME、RD/DO、UDP/TCP、normal/debug、大 SOA 与 EDNS 512 | 64 | 256 | 全部完整解码字段一致 |
+| raw CNAME/压缩指针、配置 CNAME 早停、反向合成/显式 PTR | 12 | 80 | 全部完整解码字段一致 |
+
+合计 **100 组、840 对回答：821 对全字段一致，19 对仅有上述有界 SOA TTL 差异，上游和健康均一致**。这 19 对 TTL 仅为 3599/3600，逐实例 elapsed 独立证明允许范围；DHCP TTL、flags、section、顺序、数据等均严格比较。全部 1,680 份 DNS 响应原报文重新解码并核对完整长度，DHCP 则核对实际 ACK 和检查项。UDP 512 溢出按 C 清空 Answer/Authority、设置 TC 并保留 OPT，TCP 完整返回。[最终 SDK 对照](audits/20261013/fix4_repairs/functional/dhcp-sdk.json)、[独立原包复算](audits/20261013/fix4_repairs/functional/independent-dhcp-check.json)。
+
+初始额外 NODATA 控制的共同 TXT 不缓存超时、既有 SRV TCP 差异，以及中间候选的名字处理失败均保留。SRV 差异另在 main 重现；它未被白名单吞成新复现通过，也未扩成本次无关修复。
+
+### 最终 SDK、N1 与受影响族
+
+最终 178 个产品/配方输入逐项匹配 `3e2c7b17`、当前 Git 和工作区，摘要 `aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1`。Rust 1.98.1、opt3/LTO、feature-off、AArch64 static PIE；普通单测 **777 lib + 77 bin = 854 通过、0 失败，23 ignored 未运行**。
+
+真实 SDK 两次从源码执行 prepare/compile/package，第二次归档旧 build tree/stamps 后 clean 重建并输出 Map；两次 ELF/APK 字节一致。没有 frozen-ELF 打包捷径。
+
+| 产物 | SHA-256 | 字节 |
+| --- | --- | ---: |
+| 最终 SDK ELF | `55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca` | 2,054,939 |
+| 最终 SDK APK | `5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd` | 1,117,789 |
+
+**原 ELF 1,000,000 B / APK 700,000 B 预算仍失败。** 两次 make prepare/compile 均退出 0；打包校验驱动退出 1 的边界仅为 `size-target`。没有放宽预算，也不将源码打包成功解释为完整替换资格通过。[最终构建](audits/20261013/fix4_repairs/build/final-summary.json)、[独立输入/构建收据核验](audits/20261013/fix4_repairs/build/independent-build-check.json)。
+
+最终 **49 条命令全部 fresh 执行并通过冻结断言**：48 条围绕上述 SDK 产物的 daemon/功能族命令（包含结果比较和源码对应审计），1 条为另列身份的 native 配置状态探针。所有 daemon 实验使用实际 SDK ELF，分析命令沿用其结果。14 个完整功能族共 35 条命令，覆盖配置输入、三轮 option matrix、lease names、本地记录、RR/filterwin2k、EDNS、完整 DNS cache（12 条，包括两侧长 TTL 窗）、端点、接口、DNS 文件发布和日志兼容控制。
+
+N1 原 72 组的完整 response 字典（含 hex 和 TTL）、预热字典、上游次数及健康状态逐字匹配 C，未归一化。原 1,852 查询矩阵、1,736 组 TCP/UDP 配对及其余定向控制均通过原断言。端点的两份归档实际在本机验证全部 4,282 个 metadata/hash 条目，回传独立主机收据后执行原 prune，再恢复原始 result 且 SHA 一致；191 行源码对应审计也通过。没有绕过归档门。
+
+这些旧族仍保留原来明确列出的差异：九类路由组合采用共用 C UDP 语义，不能称全部等于 C TCP；F08 stale EDE、两条 forward-pointer 和八条 ACL refusal 表示也按原边界记录，没有扩大白名单。长 SSH 客户端最终出现 connection reset/255，但远端持久 invocation 为退出 0、state 为 49/49 passed、日志以 ALL PASS 结束；没有重跑或把传输断开记成实验失败。[完整功能收据](audits/20261013/fix4_repairs/functional/validation.json)、[原始索引](audits/20261013/fix4_repairs/functional/raw-index.json)、[独立复核](audits/20261013/fix4_repairs/functional/independent-functional-check.json)、[客户端观察](audits/20261013/fix4_repairs/functional/client-observation.json)。
+
+收尾 **77 项检查全部通过**：178 项最终源码输入、两次 SDK ELF/APK/Map、SDK 输入和 recipe 复原均核验；35,025 份功能 raw 文件及 1,398 份新 DHCP raw 文件重新计算 SHA 一致。两把构建锁可取得并释放，无残留实验负载。此闭合针对本轮最终 SDK/功能，不冒称重新核验所有历史性能原始文件。[最终闭合收据](audits/20261013/fix4_repairs/build/final-closure.json)。
+
+本地另确认 main 未移动，178 项产品输入仍匹配冻结版本，报告仅在原文之后追加。[本地收尾](audits/20261013/fix4_repairs/build/local-final-check.json)。
+
+本轮 N1 保持修复，N4 按用户更新后的性能标准完成，DHCP SOA 对齐及其边界通过最终 SDK 验证。N2 的 C 权限边界、N3 和原体积预算保持原报告归属。没有部署、触及物理路由器、推送或合并；用户原有未提交提示文档保留。
