@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "script_sha256": "7dbe75d4042c9f77b10c433d42a2b298fc5176e36d989757e91263b462f12829",
+  "input_sha256": {
+    "final-summary.json": "75bf9d53834330b177c293f2371ab01379c18609cf14d2a885167bb53b4726b1",
+    "final-identity.json": "682c5b6d197c454d66b2312be65075461fdf853e52019d7f6b553ea58519defd"
+  },
+  "scope": "Independent local source/Git hashes and build-receipt consistency; no Oracle access, build rerun, or fresh remote ELF/APK/log hash",
+  "checks": {
+    "source_input_count": 178,
+    "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+    "git_commit_and_HEAD_and_worktree_match": true,
+    "unit_results": {
+      "passed": 854,
+      "failed": 0,
+      "ignored": 23,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "sdk_source_builds": 2,
+    "sdk_prepare_compile_records_passed": true,
+    "frozen_elf": false,
+    "two_sdk_elf_apk_identities_match": true,
+    "sdk_elf": {
+      "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+      "size": 2054939
+    },
+    "sdk_apk": {
+      "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+      "size": 1117789
+    },
+    "original_budget_passed": false,
+    "failure_boundary": "size-target",
+    "deployed": false
+  },
+  "status": "passed"
+}
