@@ -60,7 +60,10 @@ pub struct RecordConfig {
     pub mx: Vec<MxRecord>,
     pub srv: Vec<SrvRecord>,
     pub naptr: Vec<NaptrRecord>,
-    pub raw: Vec<RawRecord>,
+    raw: Vec<RawRecord>,
+    // Sorted distinct types, not a second record collection. Keep writes
+    // together so a query can skip unrelated raw records without scanning.
+    raw_types: Vec<u16>,
     pub mx_target: Option<Vec<u8>>,
     pub local_mx: bool,
     pub self_mx: bool,
@@ -162,6 +165,23 @@ fn hex_data(argument: &EncodedArg) -> Result<Vec<u8>, Error> {
 }
 
 impl RecordConfig {
+    pub fn raw_records(&self) -> &[RawRecord] {
+        &self.raw
+    }
+
+    pub(crate) fn has_raw_type(&self, rr_type: u16) -> bool {
+        self.raw_types.binary_search(&rr_type).is_ok()
+    }
+
+    fn push_raw(&mut self, record: RawRecord) {
+        if let Err(index) = self.raw_types.binary_search(&record.rr_type) {
+            self.raw_types.insert(index, record.rr_type);
+        }
+        // Preserve declaration order, including across different types: ANY
+        // answers emit this list in reverse, just like C's prepended list.
+        self.raw.push(record);
+    }
+
     /// Called after the shared arity/repetition validation.
     pub fn apply(&mut self, directive: &Directive) -> Result<bool, Error> {
         let argument = directive.argument.as_ref();
@@ -229,7 +249,7 @@ impl RecordConfig {
             b"dns-rr" => {
                 let (name, rest) = argument.ok_or(Error("missing parameter"))?.split_once(b',');
                 let (rr_type, data) = rest.ok_or(Error("bad RR record"))?.split_once(b',');
-                self.raw.push(RawRecord {
+                self.push_raw(RawRecord {
                     name: canon(&name)?,
                     rr_type: integer(&rr_type)? as u16,
                     data: data.as_ref().map(hex_data).transpose()?.unwrap_or_default(),
@@ -248,7 +268,7 @@ impl RecordConfig {
                 let mut data = vec![flags, tag.len() as u8];
                 data.extend(tag);
                 data.extend(rest.decoded());
-                self.raw.push(RawRecord {
+                self.push_raw(RawRecord {
                     name: canon(&fields[0])?,
                     rr_type: 257,
                     data: sized(data)?,
@@ -567,6 +587,32 @@ mod tests {
         apply(&mut config, b"ptr-record=example.test").unwrap();
         assert_eq!(config.ptr[0].target, None);
         assert!(apply(&mut config, b"dns-rr=test,1,\"abcd\"").is_err());
+    }
+
+    #[test]
+    fn raw_type_presence_tracks_both_directives_and_cloned_config() {
+        let mut config = RecordConfig::default();
+        for line in [
+            b"dns-rr=test,65401,abcd".as_slice(),
+            b"dns-rr=test,1,c0000201",
+            b"caa-record=test,0,issue,ca.test",
+            b"dns-rr=test,65401,1234",
+            b"dns-rr=test,257,0005697373756563612e74657374",
+        ] {
+            apply(&mut config, line).unwrap();
+        }
+        let snapshot = config.clone();
+        apply(&mut config, b"dns-rr=test,28,00000000000000000000000000000001").unwrap();
+        assert!(apply(&mut config, b"dns-rr=test,29,not-hex").is_err());
+        for (records, types) in [(&snapshot, &[1, 257, 65401][..]), (&config, &[1, 28, 257, 65401][..])] {
+            for rr_type in [0, 1, 16, 28, 29, 255, 257, 65401, 65535] {
+                assert_eq!(records.has_raw_type(rr_type), types.contains(&rr_type));
+                assert_eq!(records.has_raw_type(rr_type),
+                    records.raw_records().iter().any(|record| record.rr_type == rr_type));
+            }
+        }
+        assert_eq!(snapshot.raw_records().len(), 5);
+        assert_eq!(config.raw_records().len(), 6);
     }
 
     #[test]

@@ -84,7 +84,7 @@ fn main() {
     for record in &dns.records.txt {
         println!("txt {} {}", hex(&record.name), hex(&record.data));
     }
-    for record in &dns.records.raw {
+    for record in dns.records.raw_records() {
         println!(
             "raw {} {} {}",
             hex(&record.name),

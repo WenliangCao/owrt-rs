@@ -924,8 +924,13 @@ fn add_local_records_for_name(
 ) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
     // Only configured RR loops compare this key; address sources use name.
     let records = &config.records;
+    let raw = if qtype == 255 || records.has_raw_type(qtype) {
+        records.raw_records()
+    } else {
+        &[]
+    };
     let needs_key = !records.txt.is_empty()
-        || !records.raw.is_empty()
+        || !raw.is_empty()
         || !records.ptr.is_empty()
         || !records.mx.is_empty()
         || !records.srv.is_empty()
@@ -950,7 +955,7 @@ fn add_local_records_for_name(
         notices.record(qlog::CONFIG, name, row.0, &row.2);
     }
     let raw_start = rows.len();
-    add_raw(&config.records.raw, &key, qtype, ttl, &mut rows, &mut owned);
+    add_raw(raw, &key, qtype, ttl, &mut rows, &mut owned);
     for row in &rows[raw_start..] {
         notices.label(qlog::CONFIG | qlog::RRNAME, name, None, row.0);
     }
@@ -1647,6 +1652,47 @@ mod tests {
                 .answers,
             1
         );
+    }
+
+    #[test]
+    fn raw_type_selection_keeps_typed_and_any_declaration_order() {
+        let mut config = DnsConfig::default();
+        for line in [
+            b"dns-rr=raw.test,65401,abcd".as_slice(),
+            b"dns-rr=raw.test,1,c0000207",
+            b"dns-rr=raw.test,65400,0102",
+            b"caa-record=raw.test,0,issue,ca.test",
+            b"dns-rr=raw.test,65401,1234",
+        ] {
+            apply(&mut config, line);
+        }
+        let snapshot = config.clone();
+        apply(&mut config, b"dns-rr=raw.test,16,0161");
+        for (config, all_types) in [
+            (&snapshot, &[65401, 257, 65400, 1, 65401][..]),
+            (&config, &[16, 65401, 257, 65400, 1, 65401][..]),
+        ] {
+            let mut hosts = configured_hosts(config, 37);
+            for qtype in [1, 16, 28, 255, 257, 65400, 65401] {
+                let response = LocalAnswerer {
+                    config, hosts: &mut hosts, local_ttl: 37, max_packet: 1232,
+                }.answer(&query("raw.test", qtype)).unwrap();
+                let expected = all_types.iter().copied()
+                    .filter(|rr_type| qtype == 255 || qtype == *rr_type)
+                    .collect::<Vec<_>>();
+                assert_eq!(response.is_some(), !expected.is_empty());
+                if let Some(response) = response {
+                    let message = super::super::wire::Message::parse(&response).unwrap();
+                    let records = message.records(Section::Answer).collect::<Vec<_>>();
+                    assert_eq!(records.iter().map(|record| record.rrtype).collect::<Vec<_>>(), expected);
+                    let custom = records.iter().filter(|record| record.rrtype == 65401)
+                        .map(|record| record.rdata).collect::<Vec<_>>();
+                    if qtype == 65401 || qtype == 255 {
+                        assert_eq!(custom, [&[0x12, 0x34][..], &[0xab, 0xcd][..]]);
+                    }
+                }
+            }
+        }
     }
 
     #[test]
