@@ -1,0 +1,7009 @@
+{
+  "controller_sha256": "85b4fb6604e034d422f2234b29ce4b2836d97ea4b4bff8b95f10255cd585b8ca",
+  "binary_sha256": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "fix": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca"
+  },
+  "source_sha256": {
+    "components/dnsmasq/src/config/auth.rs": "54109ec33076d81b5238677a9c010d16ca9469fea3dbe95ad0eec40afb64b095",
+    "components/dnsmasq/src/dhcp/daemon.rs": "3e7266d8d74eea0814827d871f935f19c12299daa18e915148ffa8c6266f8739",
+    "components/dnsmasq/src/dhcp/runtime.rs": "b6a67f67a7f0bcece233ebbc2e80096ccdaba0bbe6de00173c9273259f38996d",
+    "components/dnsmasq/src/dhcp/state.rs": "da5ded923bef0616e23701cb54391bc5f3aa690679721b7daa4360e11d4461d2"
+  },
+  "config": [
+    {
+      "directive": "auth-server=",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=,lo",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,lo/",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo/4",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,lo/6",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,lo/04",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-server=ns.test,lo/4/6",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-server=ns.test,127.0.0.1",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,::1",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,lo,::1",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,\"lo/4\"",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-server=ns.test,\"lo,lo\"",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-ttl=",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-ttl=0",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-ttl=4294967296",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-ttl=99999999999999999999",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-ttl=-1",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-ttl=+1",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-ttl=1x",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-ttl=\"1\"",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-peer=",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-peer=127.0.0.1,::1",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-peer=127.000.0.1",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-peer=::ffff:127.0.0.1",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-peer=::1%lo",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-peer=127.0.0.1,",
+      "observed": {
+        "c": {
+          "exit": 1,
+          "stderr": "\ndnsmasq: error at line 4 of <config>\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: error at line 4 of <config>\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "directive": "auth-soa=",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-soa=x,y,z",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-soa=1,,2,3,4",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-soa=1,foo,bar,baz",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-sec-servers=",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-sec-servers=x,,y",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "auth-sec-servers=\"x,y\"",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "no-dhcpv6-interface=",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo,",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "no-dhcpv6-interface=lo*",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "directive": "no-dhcpv6-interface=\"lo,none\"",
+      "observed": {
+        "c": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        },
+        "main": {
+          "exit": 1,
+          "stderr": "\ndnsmasq-rs: option is not implemented by dnsmasq-rs at line 4 of <config>\n"
+        },
+        "fix": {
+          "exit": 0,
+          "stderr": "dnsmasq: syntax check OK.\n"
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    }
+  ],
+  "dhcp": [
+    {
+      "name": "multi-mac-static-handoff",
+      "config": "dhcp-host=02:00:00:00:00:01,02:00:00:00:00:02,127.0.0.30,dual\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 1,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "02",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 2,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:02",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:02",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "dual"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 1,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "02",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 2,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply": null,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply": null,
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "dual"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 1,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "02",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 2,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:02",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            },
+            {
+              "input": {
+                "kind": 3,
+                "mac": 2
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "6475616c"
+                },
+                "message_type": 5,
+                "hostname": "dual"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:02",
+                  "127.0.0.30",
+                  "dual",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "dual"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "hosts-authoritative-request",
+      "config": "addn-hosts={hosts}\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "hosts-authoritative-rapid",
+      "config": "addn-hosts={hosts}\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "client-hostname-request",
+      "config": "",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "client-hostname-rapid",
+      "config": "",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-range-ignore-wanted-false",
+      "config": "dhcp-ignore-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false,
+                "name": "untrusted"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false,
+                "name": "untrusted"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "untrusted",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "untrusted",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "untrusted"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false,
+                "name": "untrusted"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-range-ignore-wanted-true",
+      "config": "dhcp-ignore-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true,
+                "name": "untrusted"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true,
+                "name": "untrusted"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true,
+                "name": "untrusted"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "rapid-range-generate-wanted-false",
+      "config": "dhcp-generate-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": false
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-range-generate-wanted-true",
+      "config": "dhcp-generate-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": true
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "rapid-fallback-hosts-127.0.0.31",
+      "config": "addn-hosts={hosts}\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-fallback-hosts-192.0.2.30",
+      "config": "addn-hosts={hosts}\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "617574686f7269746174697665"
+                },
+                "message_type": 5,
+                "hostname": "authoritative"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "authoritative",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "authoritative",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-fallback-ignore-127.0.0.31",
+      "config": "dhcp-ignore-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "rapid-fallback-ignore-192.0.2.30",
+      "config": "dhcp-ignore-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "*",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 5,
+              "answers": []
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-fallback-generate-127.0.0.31",
+      "config": "dhcp-ignore-names=tag:pool\ndhcp-generate-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "rapid-fallback-generate-192.0.2.30",
+      "config": "dhcp-ignore-names=tag:pool\ndhcp-generate-names=tag:pool\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "rapid-fallback-tag-if-127.0.0.31",
+      "config": "tag-if=set:names,tag:pool\ndhcp-ignore-names=tag:names\ndhcp-generate-names=tag:names\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "127.0.0.31",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "rapid-fallback-tag-if-192.0.2.30",
+      "config": "tag-if=set:names,tag:pool\ndhcp-ignore-names=tag:names\ndhcp-generate-names=tag:names\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "wanted": "192.0.2.30",
+                "name": "claimed.test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "name-edge--False",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": ""
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": ""
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": ""
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "name-edge--True",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": ""
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": ""
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": ""
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "name-edge-_test-False",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": ".test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": ".test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": ".test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "name-edge-_test-True",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": ".test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": ".test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": ".test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "name-edge-claimed_other-False",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed.other"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed.other"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed.other"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "name-edge-claimed_other-True",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed.other"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed.other"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed.other"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "name-edge-claimed__test-False",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed..test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed..test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed..test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "name-edge-claimed__test-True",
+      "config": "dhcp-generate-names=tag:pool\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed..test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed..test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "30322d30302d30302d30302d30302d3031"
+                },
+                "message_type": 5,
+                "hostname": "02-00-00-00-00-01"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "02-00-00-00-00-01",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 5,
+              "answers": []
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "02-00-00-00-00-01",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "02-00-00-00-00-01.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed..test"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "claimed.test"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    },
+    {
+      "name": "host-domain-mismatch-False",
+      "config": "addn-hosts={hosts}\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.other"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.other"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 3,
+                "rapid": false,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.other"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": true
+    },
+    {
+      "name": "host-domain-mismatch-True",
+      "config": "addn-hosts={hosts}\ndomain=test\n",
+      "observed": {
+        "c": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.other"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "main": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374"
+                },
+                "message_type": 5,
+                "hostname": ""
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.other"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        },
+        "fix": {
+          "events": [
+            {
+              "input": {
+                "kind": 1,
+                "rapid": true,
+                "name": "claimed"
+              },
+              "reply": {
+                "yiaddr": "127.0.0.30",
+                "options": {
+                  "53": "05",
+                  "54": "7f000001",
+                  "51": "00000e10",
+                  "80": "",
+                  "58": "00000708",
+                  "59": "00000c4e",
+                  "1": "ff000000",
+                  "28": "7fffffff",
+                  "3": "7f000001",
+                  "15": "74657374",
+                  "12": "636c61696d6564"
+                },
+                "message_type": 5,
+                "hostname": "claimed"
+              },
+              "leases": [
+                [
+                  "02:00:00:00:00:01",
+                  "127.0.0.30",
+                  "claimed",
+                  "*"
+                ]
+              ],
+              "daemon_alive": true
+            }
+          ],
+          "dns": {
+            "authoritative": {
+              "rcode": 5,
+              "answers": []
+            },
+            "claimed": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "claimed",
+                  "type": 1,
+                  "value": "127.0.0.30"
+                }
+              ]
+            },
+            "untrusted": {
+              "rcode": 5,
+              "answers": []
+            },
+            "02-00-00-00-00-01": {
+              "rcode": 5,
+              "answers": []
+            },
+            "30.0.0.127.in-addr.arpa": {
+              "rcode": 0,
+              "answers": [
+                {
+                  "name": "30.0.0.127.in-addr.arpa",
+                  "type": 12,
+                  "value": "authoritative.other"
+                }
+              ]
+            }
+          },
+          "exit": 0,
+          "state_error_lines": []
+        }
+      },
+      "fix_matches_c": true,
+      "main_matches_c": false
+    }
+  ]
+}

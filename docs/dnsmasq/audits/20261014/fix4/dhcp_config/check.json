@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "inputs": {
+    "boundaries.json": "e0f427e0b6ba7c0448eb64874e931c31477224865424836b742b4a460adea14e",
+    "repairs.json": "aaccb56d630aea72b3b5ff09abded701eebaad03601f86b951cae5a3140c5f47"
+  },
+  "binary_sha256": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "fix": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca"
+  },
+  "config": {
+    "cases": 39,
+    "fix_c": 39,
+    "main_c": 10
+  },
+  "dhcp": {
+    "cases": 27,
+    "fix_c": 27,
+    "main_c": 14
+  },
+  "helper": 10,
+  "tftp": 96,
+  "declared_dump_cases": 5,
+  "whole_dump_table_equal": false,
+  "dump_nonterminal_row_and_iteration_order_excluded": true,
+  "signal_cases": 6,
+  "cache_summary_cases": 2,
+  "forced_lease_maintenance_cases": 2,
+  "performance_claims": false
+}
