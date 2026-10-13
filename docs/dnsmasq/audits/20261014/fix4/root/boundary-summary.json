@@ -1,0 +1,492 @@
+{
+  "schema": "dnsmasq-fix4-independent-boundaries-v1",
+  "method": "Full client response dictionaries, including packet bytes and TTL; upstream count compared separately. No normalization.",
+  "artifacts": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "final_sdk": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca"
+  },
+  "tool_sha256": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb",
+  "inputs": {
+    "main": {
+      "path": "private/dnsmasq-audit-fix4-20261014/root/dns-main.json",
+      "sha256": "45e968072b03132681171c6ec05c720db4924f0e89f92b2d02760d0e277be0f3",
+      "timestamp": 1791928491.963357
+    },
+    "final": {
+      "path": "private/dnsmasq-audit-fix4-20261014/root/dns-final.json",
+      "sha256": "aff2764aaa04e3e6cf9ed77afc2dfd29b2e400b2a3ae4a71e09306e99b4801f1",
+      "timestamp": 1791928478.4813821
+    }
+  },
+  "profiles": {
+    "local": {
+      "cases": 116,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nlocal=/audit.test/\ncname=alias.audit.test,host.audit.test\ncname=chain.audit.test,alias.audit.test\ntxt-record=txt.audit.test,hello\nmx-host=mail.audit.test,host.audit.test,10\nsrv-host=_service._tcp.audit.test,host.audit.test,123,1,2\n",
+      "health": {
+        "main/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "main/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        }
+      },
+      "C_repeated_identically": 116,
+      "final_matches_C": 114,
+      "all_upstream_counts_equal": true
+    },
+    "forward": {
+      "cases": 84,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nserver=127.0.0.1#15354\n",
+      "health": {
+        "main/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "main/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        }
+      },
+      "C_repeated_identically": 84,
+      "final_matches_C": 84,
+      "all_upstream_counts_equal": true
+    },
+    "filter": {
+      "cases": 84,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nserver=127.0.0.1#15354\nfilter-AAAA\nfilter-rr=TXT\n",
+      "health": {
+        "main/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "main/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        }
+      },
+      "C_repeated_identically": 84,
+      "final_matches_C": 84,
+      "all_upstream_counts_equal": true
+    },
+    "rebind": {
+      "cases": 84,
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=0\nno-round-robin\nlocal-ttl=60\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\nserver=127.0.0.1#15354\nstop-dns-rebind\n",
+      "health": {
+        "main/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "main/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/c": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        },
+        "final/rust": {
+          "ready": true,
+          "alive_after_cases": true,
+          "exit": 0
+        }
+      },
+      "C_repeated_identically": 84,
+      "final_matches_C": 84,
+      "all_upstream_counts_equal": true
+    }
+  },
+  "changes": [
+    {
+      "profile": "local",
+      "case": "multi-question",
+      "transport": "tcp",
+      "query_hex": "12340100000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+      "C": {
+        "status": "reply",
+        "hex": "12348185000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+        "length": 53,
+        "header": [
+          4660,
+          33157,
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "12348185000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+        "length": 53,
+        "header": [
+          4660,
+          33157,
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "multi-question-compressed",
+      "transport": "tcp",
+      "query_hex": "12340100000200000000000004686f737405617564697404746573740000010001c00c00010001",
+      "C": {
+        "status": "reply",
+        "hex": "12348185000200000000000004686f737405617564697404746573740000010001c00c00010001",
+        "length": 39,
+        "header": [
+          4660,
+          33157,
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "12348185000200000000000004686f737405617564697404746573740000010001c00c00010001",
+        "length": 39,
+        "header": [
+          4660,
+          33157,
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "zero-question",
+      "transport": "tcp",
+      "query_hex": "123401000000000000000000",
+      "C": {
+        "status": "reply",
+        "hex": "123481850000000000000000",
+        "length": 12,
+        "header": [
+          4660,
+          33157,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "123481850000000000000000",
+        "length": 12,
+        "header": [
+          4660,
+          33157,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "self-pointer",
+      "transport": "tcp",
+      "query_hex": "123401000001000000000000c00c00010001",
+      "C": {
+        "status": "reply",
+        "hex": "123481850001000000000000c00c00010001",
+        "length": 18,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "123481850001000000000000c00c00010001",
+        "length": 18,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "outside-pointer",
+      "transport": "tcp",
+      "query_hex": "123401000001000000000000c0ff00010001",
+      "C": {
+        "status": "reply",
+        "hex": "123481850001000000000000c0ff00010001",
+        "length": 18,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "123481850001000000000000c0ff00010001",
+        "length": 18,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "bitstring-label",
+      "transport": "tcp",
+      "query_hex": "1234010000010000000000004108610000010001",
+      "C": {
+        "status": "reply",
+        "hex": "1234818500010000000000004108610000010001",
+        "length": 20,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "1234818500010000000000004108610000010001",
+        "length": 20,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "overlong-name",
+      "transport": "tcp",
+      "query_hex": "1234010000010000000000003f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613e62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262620000010001",
+      "C": {
+        "status": "reply",
+        "hex": "1234818500010000000000003f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613e62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262620000010001",
+        "length": 272,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "eof"
+      },
+      "final": {
+        "status": "reply",
+        "hex": "1234818500010000000000003f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613f6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161613e62626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262620000010001",
+        "length": 272,
+        "header": [
+          4660,
+          33157,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    }
+  ],
+  "remaining_C_differences": [
+    {
+      "profile": "local",
+      "case": "forward-pointer",
+      "transport": "udp",
+      "query_hex": "123401000001000000000000c0120001000104686f7374056175646974047465737400",
+      "C": {
+        "status": "reply",
+        "hex": "123485800001000100000000c01200010001c00c000100010000003c0004c000022a",
+        "length": 34,
+        "header": [
+          4660,
+          34176,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "reply",
+        "hex": "12348580000100010000000004686f737405617564697404746573740000010001c00c000100010000003c0004c000022a",
+        "length": 49,
+        "header": [
+          4660,
+          34176,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      "final": {
+        "status": "reply",
+        "hex": "12348580000100010000000004686f737405617564697404746573740000010001c00c000100010000003c0004c000022a",
+        "length": 49,
+        "header": [
+          4660,
+          34176,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    },
+    {
+      "profile": "local",
+      "case": "forward-pointer",
+      "transport": "tcp",
+      "query_hex": "123401000001000000000000c0120001000104686f7374056175646974047465737400",
+      "C": {
+        "status": "reply",
+        "hex": "123485800001000100000000c01200010001c00c000100010000003c0004c000022a",
+        "length": 34,
+        "header": [
+          4660,
+          34176,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      "main": {
+        "status": "reply",
+        "hex": "12348580000100010000000004686f737405617564697404746573740000010001c00c000100010000003c0004c000022a",
+        "length": 49,
+        "header": [
+          4660,
+          34176,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      "final": {
+        "status": "reply",
+        "hex": "12348580000100010000000004686f737405617564697404746573740000010001c00c000100010000003c0004c000022a",
+        "length": 49,
+        "header": [
+          4660,
+          34176,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      "upstream_count": 0
+    }
+  ],
+  "case_count": 368,
+  "changed_cases_all_align_with_C": true,
+  "remaining_differences_all_present_on_main": true,
+  "collector_sha256": "7f1daeeaa0033cf8269288b3c36fb4f208921ab609145a206cfb1342ceddf04a"
+}
