@@ -1,0 +1,61 @@
+{
+  "status": "complete",
+  "started": 1791917894.5744853,
+  "windows": [
+    {
+      "id": "tcp-ordinary-r1-c",
+      "started": 1791917894.5973034,
+      "returncode": 0,
+      "ended": 1791918047.2999563
+    },
+    {
+      "id": "tcp-ordinary-r1-main",
+      "started": 1791918047.323945,
+      "returncode": 0,
+      "ended": 1791918199.8444831
+    },
+    {
+      "id": "tcp-ordinary-r1-current",
+      "started": 1791918199.8675687,
+      "returncode": 0,
+      "ended": 1791918352.3728747
+    },
+    {
+      "id": "tcp-ordinary-r2-main",
+      "started": 1791918352.3957648,
+      "returncode": 0,
+      "ended": 1791918504.9206276
+    },
+    {
+      "id": "tcp-ordinary-r2-current",
+      "started": 1791918504.943651,
+      "returncode": 0,
+      "ended": 1791918657.4561944
+    },
+    {
+      "id": "tcp-ordinary-r2-c",
+      "started": 1791918657.4791553,
+      "returncode": 0,
+      "ended": 1791918810.1754804
+    },
+    {
+      "id": "tcp-ordinary-r3-current",
+      "started": 1791918810.1985302,
+      "returncode": 0,
+      "ended": 1791918962.7396202
+    },
+    {
+      "id": "tcp-ordinary-r3-c",
+      "started": 1791918962.7626789,
+      "returncode": 0,
+      "ended": 1791919115.440333
+    },
+    {
+      "id": "tcp-ordinary-r3-main",
+      "started": 1791919115.4634995,
+      "returncode": 0,
+      "ended": 1791919267.9867852
+    }
+  ],
+  "ended": 1791919267.9872913
+}

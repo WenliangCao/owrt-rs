@@ -37,7 +37,11 @@ validation. Its selector is hashed into the frozen plan before any load starts.
 
 ## Before the scan-cost repair
 
-The first 36 windows completed before any raw-record product change. Exact
+The first 36 windows completed before any raw-record product change. The
+[source review](source-review.json) binds the image-matching OpenWrt patched C
+files to their retained reference identity: `rfc1035.c:1859–1872` scans raw records
+for every C_IN query, comparing type before name; `util.c:404–429` checks name
+length and folds ASCII case without allocation. Exact
 artifact identities are in `before-plan.json`: C `097a9e21…`, main `ad103449…`,
 and the reviewed product `74c6b453`'s frozen ELF `25b7291d…`.
 
@@ -71,3 +75,61 @@ The branch TCP/1,000 values were 119.957, 115.024 and 119.326 µs, and C's were
 79.135, 77.668 and 82.050 µs. `coordination.json` explicitly discloses brief
 CPU3 read-only old-profile analysis during baseline instead of claiming a
 perfectly silent host. No competing experimental daemon/build was observed.
+
+## After the allocation-free scan
+
+The second 36-window matrix uses source `006002bb` (raw change `aae4b04d`,
+followed by a test-only correction) and measured ELF `cf94126f…`, with its own
+same-build link map. No name index was added. Ordinary TCP confirmation and
+excluded attribution diagnostics are separate from these short windows.
+
+| Configuration | C CPU µs/correct | main | Scan repair | Scan/C | Scan/main | C/main/scan p95 µs |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| TCP, 100 TYPE A | 53.023 | 31.089 | 34.442 | −35.04% | +10.79% | 105.561 / 78.920 / 82.241 |
+| TCP, 1,000 TYPE A | 76.315 | 31.613 | 41.035 | −46.23% | +29.81% | 144.401 / 78.401 / 88.241 |
+| UDP, 100 TYPE A | 21.903 | 31.641 | 27.568 | **+25.87%** | −12.87% | 67.761 / 82.520 / 69.641 |
+| UDP, 1,000 TYPE A | 44.728 | 109.481 | 24.448 | −45.34% | −77.67% | 106.801 / 211.842 / 70.721 |
+
+The large same-type scaling cost falls substantially. However, **the strict
+not-slower-than-C gate is not yet met for UDP/100**: all three repaired values
+(24.622, 27.568, 27.923 µs) exceed their C counterparts (20.931, 22.176, 21.903).
+The repaired relative range is 11.98%, C's is 5.68%. This result must remain
+visible rather than closing N4 based only on TCP/1,000.
+
+A name index is not justified by these data alone: UDP/1,000 is already faster
+than C and is faster than repaired UDP/100. The remaining discrepancy does not
+increase with raw-record count, so its source needs a profile. TCP's repaired
+100-to-1,000 increment is 6.593 µs versus C's 23.292 µs; UDP's repaired difference
+is −3.120 µs versus C's +22.825 µs. These are differences between window medians,
+not a claimed negative algorithmic scanning cost.
+
+The second matrix again retained all 648,000 scheduled=sent=correct responses,
+with zero wrong/timeout/transport/skip counts and zero at all 360 throttle samples.
+The independent offline checker also validated all 72 direct raw-record UDP/TCP
+packets including AA, which distinguishes them from the upstream's non-AA answer.
+See `after-{plan,run,summary,counter-check,independent-check}.json`.
+
+## Ordinary TCP without raw records
+
+This is a new ordinary-configuration control, **not a rerun of the earlier
+100/1,000 TYPE65401 cases that showed about 13% overhead**. Three balanced
+C/main/scan triples use 30 seconds warmup and 120 seconds measurement.
+
+| Metric (window median) | C | main | Scan repair |
+| --- | ---: | ---: | ---: |
+| CPU µs/correct | 45.131 | 30.464 | 32.242 |
+| p95 µs | 96.641 | 78.240 | 81.041 |
+| CPU relative range | 5.53% | 5.24% | 2.41% |
+
+The ratio of CPU medians is +5.84% against main. The three paired differences
+are +0.753, +1.786 and +1.567 µs (ratios +2.35%, +5.86%, +5.14%); all are retained.
+The CPU increase is smaller than the earlier TYPE65401 result, and this small
+three-round screen does not establish equivalence or identify its cause.
+The remaining CPU and UDP/100 discrepancy require excluded profile evidence.
+
+All 1,350,000 scheduled warmup/measurement queries were sent and correct with
+no errors or skips; all nine 4,096-name proofs and zero-upstream checks passed,
+as did all 90 zero-throttling samples. The window argv correctly specifies
+30/120 seconds. The already-queued run command retained the runner's default
+180-second watchdog; actual windows took about 152.5–152.7 seconds, and none
+was interrupted or retried. Complete evidence is in `ordinary-*.json`.

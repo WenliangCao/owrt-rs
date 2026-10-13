@@ -25,5 +25,19 @@
     "complete": true
   },
   "later_windows_rule": "All other agents remain Oracle-silent during formal timing, including offline perf decoding and evidence hashing. Analysis runs after all windows stop.",
-  "limitations": "Neither coordination nor cgroup throttling checks exclude hypervisor-neighbor activity."
+  "limitations": "Neither coordination nor cgroup throttling checks exclude hypervisor-neighbor activity.",
+  "after": {
+    "private_directory": "/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/raw-after",
+    "first_window_start_epoch": 1791917146.366803,
+    "last_window_end_epoch": 1791917891.183951,
+    "complete": true,
+    "coordination": "Root and other agents explicitly kept Oracle silent. This agent only consumed the existing SSH stdout during both complete batches; no extra remote reads, analysis, compilation or daemon workloads were launched. Derived JSON transfer started after ordinary completed."
+  },
+  "ordinary": {
+    "private_directory": "/home/ubuntu/dnsmasq-fix4-repairs-20261013/private/ordinary-scan",
+    "first_window_start_epoch": 1791917894.5973034,
+    "last_window_end_epoch": 1791919267.9872913,
+    "complete": true,
+    "coordination": "Root and other agents explicitly kept Oracle silent. This agent only consumed the existing SSH stdout during both complete batches; no extra remote reads, analysis, compilation or daemon workloads were launched. Derived JSON transfer started after ordinary completed."
+  }
 }
