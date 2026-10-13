@@ -54,3 +54,46 @@ router, saturation, long-duration leak, or broad performance equivalence
 qualification. Host pressure snapshots and cgroup counters can reveal task
 interference or throttling, but cannot exclude virtual-machine neighbor
 noise.
+
+## First shared-answer candidate: N4 remains open
+
+All 32 planned windows completed and were accepted. This is an unfavorable
+performance result, retained before further changes; it is not a final pass.
+The candidate is still product `8c1cfefc` / source `0ff33bb0` above.
+
+| Primary profile | CPU geometric fix/main ratio | Paired 95% interval | Pairs with increased CPU |
+| --- | ---: | --- | ---: |
+| TCP, 100 unrelated records | 1.123818 | [1.018827, 1.239627] | 6/6 |
+| TCP, 1,000 unrelated records | 1.267995 | [1.125444, 1.428601] | 6/6 |
+
+Both profiles confirm increased CPU; the 1,000-record lower bound also exceeds
+1.10. The 100-record AB/BA median ratios are 1.069444 / 1.118534; the
+1,000-record ratios are 1.354697 / 1.251136. The original multiples of CPU cost
+have decreased, but the remaining configuration-related increase prevents
+closing N4. No window was discarded, including the higher individual samples.
+
+The UDP/1,000-record control ratios are 0.242928 / 0.235866; the TCP/0 ratios
+are 0.974013 / 1.024059. These are two-pair descriptive controls, without
+inferential intervals, and do not close S1 or causally isolate a source
+function. No extra experiment or repeat of this artifact was started.
+
+Warmup plus measurement planned/sent/correct totals are all 4,800,000;
+wrong/timeout/transport-error/skipped totals are zero. All 4,096 names per
+window passed the cache proof, upstream answers were disabled, and attempted
+upstream requests during hits were zero. All paired configuration hashes
+match. The 480 retained cgroup counter observations show zero throttling;
+all pre-window competing-workload checks and the final check were empty.
+This does not exclude virtualization-neighbor variation.
+
+- [First candidate statistics](shared-answer-first-summary.json)
+- [All raw input and controller hashes](shared-answer-first-raw-index.json)
+- [Cache, counters, configuration and identity checks](shared-answer-first-counter-check.json)
+
+The original full summary remains at
+`private/performance-paired-01/summary.json` on Oracle, SHA256
+`a16e334a32f17f944e04d428968b58ddac1cdd139f27dab5bf3560262bcaa4b0`.
+`collect_performance.py` only derives the retained summaries after completion.
+`launch_performance.py` preserves the actual controller exit across an SSH
+session ending, and `performance_status.py` reads completion/acceptance only;
+neither changes the frozen benchmark plan or uses interim CPU values to stop
+or select windows.
