@@ -97,3 +97,22 @@ The original full summary remains at
 session ending, and `performance_status.py` reads completion/acceptance only;
 neither changes the frozen benchmark plan or uses interim CPU values to stop
 or select windows.
+
+## Types candidate plan
+
+The subsequent product change `f47220306d09a480376aa667bb66eb51d002c8be`
+keeps raw records in declaration order and stores their sorted, distinct type
+list. Its new source snapshot is
+`ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3`. The [types plan](types-plan.json)
+was frozen before running this new artifact; it keeps the same 32 windows,
+seeds, profile order, durations, estimator and retention rules. It does not
+repeat or replace the first candidate's measurements.
+
+- Oracle release SHA256: `0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743`.
+- Plan SHA256: `19ceee2f9b9b9dfd976e7031534593175be8d5094196e4871371f1b073937028`.
+- New output: `private/performance-types-01`.
+- Controller: `paired_tcp_records_phase.py`, with `--phase types`.
+
+This plan is prepared while build/functional verification proceeds. Preparing
+a plan is not a performance pass; its run still requires a truthful completion
+receipt for the new source and artifact.
