@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "script": {
+    "name": "independent_check.py",
+    "sha256": "ac526a83aac0df082200ac306a0250a76cf879d1774cc207a142b240a9c2c480"
+  },
+  "inputs": {
+    "plan": {
+      "name": "ordinary-plan.json",
+      "sha256": "2ca234279a4ba21d5d6c7fc8c5a88d0da84d5c9761a02a082cf2eece45590e94"
+    },
+    "summary": {
+      "name": "ordinary-summary.json",
+      "sha256": "904dafd349b050169e386ef619d68fcf3badcf4c2659ed4e8f013b2a3798b8c8"
+    },
+    "counter-check": {
+      "name": "ordinary-counter-check.json",
+      "sha256": "c4f983da875e64ba3d78c3f364be650c578131419dd0a8e1481f5935937b09b2"
+    },
+    "run": {
+      "name": "ordinary-run.json",
+      "sha256": "186ad9a0eec26e54d3bb1519cb085cb529340f3f533373ffef49ba42b850c147"
+    },
+    "source-review": {
+      "name": "source-review.json",
+      "sha256": "d5efd5cb537515a2de657586ccd7b7fbb86f3095e8c0e373e6bc75253fa75c7d"
+    }
+  },
+  "scope": "Independent local consistency and retained direct-wire recheck; no Oracle access or raw-file rehash",
+  "expected_raw_payload_hex": "c0000201",
+  "checks": {
+    "windows": 9,
+    "configuration_triples": 3,
+    "metric_rows": 5,
+    "raw_udp_tcp_aa_wire_proofs": 0,
+    "counters": {
+      "scheduled": 1350000,
+      "sent": 1350000,
+      "correct": 1350000,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "exported_cgroup_points": 90
+  },
+  "source_checks": {
+    "exact_c_files": 2,
+    "main_git_file": true
+  }
+}

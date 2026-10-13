@@ -27,7 +27,7 @@ def require(value, label):
         raise ValueError(label)
 
 
-def check(plan, summary, counters, run):
+def check(plan, summary, counters, run, raw_payload_hex='c0000201'):
     windows = plan['windows']
     ids = [row['id'] for row in windows]
     require(ids and len(ids) == len(set(ids)), 'nonempty unique plan windows')
@@ -69,9 +69,9 @@ def check(plan, summary, counters, run):
         require(struct.unpack('!6H', query[:12]) == (0x51a1, 0x0100, 1, 0, 0, 0), 'direct query header')
         # Independent exact wire expectation also requires AA. The fixture
         # upstream emits 0x8180 with this same A value, so data alone is not proof.
+        payload = bytes.fromhex(raw_payload_hex)
         expected = (struct.pack('!6H', 0x51a1, 0x8580, 1, 1, 0, 0) + query[12:]
-                    + struct.pack('!HHHIH', 0xc00c, planned['rrtype'], 1, 3600, 4)
-                    + bytes.fromhex('c0000201'))
+                    + struct.pack('!HHHIH', 0xc00c, planned['rrtype'], 1, 3600, len(payload)) + payload)
         for reply in proof['replies'].values():
             require(reply['correct'] and bytes.fromhex(reply['hex']) == expected,
                     'direct raw answer independently matches exact AA wire response')
@@ -122,6 +122,8 @@ def main():
     parser.add_argument('--directory', type=Path, default=Path(__file__).resolve().parent)
     parser.add_argument('--prefix', required=True)
     parser.add_argument('--source-review', type=Path)
+    parser.add_argument('--raw-payload-hex', choices=('c0000201', 'abcd'), default='c0000201',
+                        help='explicit raw-record RDATA; original TYPE65401 controls use abcd')
     parser.add_argument('--reference-source', type=Path, default=ROOT / 'private/dnsmasq-rewrite/reference/dnsmasq-2.93')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
@@ -131,11 +133,12 @@ def main():
     data = {key: json.loads(path.read_text()) for key, path in paths.items()}
     receipt = {'schema': 1, 'status': 'running', 'script': {'name': Path(__file__).name, 'sha256': sha(Path(__file__))},
                'inputs': {key: {'name': path.name, 'sha256': sha(path)} for key, path in paths.items()},
-               'scope': 'Independent local consistency and retained direct-wire recheck; no Oracle access or raw-file rehash'}
+               'scope': 'Independent local consistency and retained direct-wire recheck; no Oracle access or raw-file rehash',
+               'expected_raw_payload_hex': args.raw_payload_hex}
     error = None
     try:
         require(data['summary']['plan_sha256'] == sha(paths['plan']), 'summary binds exact plan bytes')
-        receipt['checks'] = check(data['plan'], data['summary'], data['counter-check'], data['run'])
+        receipt['checks'] = check(data['plan'], data['summary'], data['counter-check'], data['run'], args.raw_payload_hex)
         source = data['source-review']
         for name, identity in source['reference']['files'].items():
             require(sha(args.reference_source / name) == identity['sha256'], 'exact C source hash: ' + name)
