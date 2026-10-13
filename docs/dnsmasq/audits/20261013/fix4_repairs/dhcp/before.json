@@ -1,0 +1,2924 @@
+{
+  "status": "baseline_difference_confirmed",
+  "private_root": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private",
+  "input_summaries": {
+    "dhcp-negative-before-01/summary.json": "c7ae932afb6170c20e784536c75a4c56d54de95d19e6eea2648be2fa1576e7f4",
+    "dhcp-soa-boundaries-before-01/summary.json": "d52836af29fe31b29e90c2bb1f3e8ec192bc5fcc497c985eb62be434429bd3e1",
+    "dhcp-nodata-main-control-01/summary.json": "f1e2daf433d491dcbfb21c7891584b4bc6269b9c1ed7d74f749b8dbfa7dd8137"
+  },
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "rust": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+    "driver": "30b9e3b1d03b4ef4a3862b74fd97a78428ddfda8fece23ff0622f00446da3b9a"
+  },
+  "helpers": {
+    "dhcp_lease_lifecycle": "30f418c1d943ca1d833618c65e41d230bdd9850c441303134e9c52bf75115710",
+    "dhcp_daemon_smoke": "9c276bf13970b6531a640a86defb384bbcce652d1693b52c475f3da21e61f97f",
+    "dns_service_probe": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+    "m2_rootfs": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3"
+  },
+  "config": "no-resolv\nno-hosts\nlisten-address=127.0.0.1\nbind-interfaces\nport=15353\nno-ping\ndhcp-authoritative\ndhcp-range=127.0.0.10,127.0.0.20,255.0.0.0,127.255.255.255,600s\ndhcp-leasefile=/m2/leases\ndomain=leases.test\nlocal-ttl=17\ndhcp-ttl=5\ncache-size=32\nneg-ttl=3600\nserver=127.0.0.1#15354\n",
+  "nx": {
+    "cases": 24,
+    "complete_sides": 48,
+    "response_pairs": 504,
+    "exact_response_pairs": 468,
+    "clock_bounded_soa_pairs": 0,
+    "different_response_pairs": 36,
+    "mismatches": [
+      "12 SOA cases: immediate post-ACK A, subsequent UDP A, subsequent TCP A each omitted SOA authority in Rust"
+    ],
+    "cases_detail": [
+      {
+        "name": "rcode3-soa0-debug0-q1-udp",
+        "soa": false,
+        "debug": false,
+        "warm_type": 1,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug0-q1-tcp",
+        "soa": false,
+        "debug": false,
+        "warm_type": 1,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug0-q28-udp",
+        "soa": false,
+        "debug": false,
+        "warm_type": 28,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug0-q28-tcp",
+        "soa": false,
+        "debug": false,
+        "warm_type": 28,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug0-q16-udp",
+        "soa": false,
+        "debug": false,
+        "warm_type": 16,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug0-q16-tcp",
+        "soa": false,
+        "debug": false,
+        "warm_type": 16,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug1-q1-udp",
+        "soa": false,
+        "debug": true,
+        "warm_type": 1,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug1-q1-tcp",
+        "soa": false,
+        "debug": true,
+        "warm_type": 1,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug1-q28-udp",
+        "soa": false,
+        "debug": true,
+        "warm_type": 28,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug1-q28-tcp",
+        "soa": false,
+        "debug": true,
+        "warm_type": 28,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug1-q16-udp",
+        "soa": false,
+        "debug": true,
+        "warm_type": 16,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa0-debug1-q16-tcp",
+        "soa": false,
+        "debug": true,
+        "warm_type": 16,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 21,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": []
+      },
+      {
+        "name": "rcode3-soa1-debug0-q1-udp",
+        "soa": true,
+        "debug": false,
+        "warm_type": 1,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug0-q1-tcp",
+        "soa": true,
+        "debug": false,
+        "warm_type": 1,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug0-q28-udp",
+        "soa": true,
+        "debug": false,
+        "warm_type": 28,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug0-q28-tcp",
+        "soa": true,
+        "debug": false,
+        "warm_type": 28,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug0-q16-udp",
+        "soa": true,
+        "debug": false,
+        "warm_type": 16,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug0-q16-tcp",
+        "soa": true,
+        "debug": false,
+        "warm_type": 16,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug1-q1-udp",
+        "soa": true,
+        "debug": true,
+        "warm_type": 1,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug1-q1-tcp",
+        "soa": true,
+        "debug": true,
+        "warm_type": 1,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug1-q28-udp",
+        "soa": true,
+        "debug": true,
+        "warm_type": 28,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug1-q28-tcp",
+        "soa": true,
+        "debug": true,
+        "warm_type": 28,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug1-q16-udp",
+        "soa": true,
+        "debug": true,
+        "warm_type": 16,
+        "warm_transport": "udp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      },
+      {
+        "name": "rcode3-soa1-debug1-q16-tcp",
+        "soa": true,
+        "debug": true,
+        "warm_type": 16,
+        "warm_transport": "tcp",
+        "status": {
+          "c": "passed",
+          "rust": "passed"
+        },
+        "exact_responses": 18,
+        "clock_bounded_soa_responses": 0,
+        "post_ack_rcodes": {
+          "c": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          },
+          "rust": {
+            "after-ack-1-udp": 0,
+            "after-ack-1-tcp": 0,
+            "after-ack-28-udp": 3,
+            "after-ack-28-tcp": 3,
+            "after-ack-16-udp": 3,
+            "after-ack-16-tcp": 3,
+            "after-ack-15-udp": 3,
+            "after-ack-15-tcp": 3,
+            "after-ack-6-udp": 3,
+            "after-ack-6-tcp": 3,
+            "after-ack-33-udp": 3,
+            "after-ack-33-tcp": 3,
+            "after-ack-5-udp": 3,
+            "after-ack-5-tcp": 3,
+            "after-ack-65401-udp": 3,
+            "after-ack-65401-tcp": 3
+          }
+        },
+        "post_ack_upstream": {
+          "c": 0,
+          "rust": 0
+        },
+        "differences": [
+          "ack-visible-a",
+          "after-ack-1-udp",
+          "after-ack-1-tcp"
+        ]
+      }
+    ],
+    "aaaa_and_other_types": "Both C and Rust retain the previously cached NXDOMAIN for AAAA/TXT/MX/SOA/SRV/CNAME/TYPE65401; no post-ACK upstream queries in all NX cases."
+  },
+  "nodata_controls": {
+    "cases": 24,
+    "completed": 16,
+    "invalid_cache_prerequisite": 8,
+    "invalid_scope": "TXT NODATA is not cached by this image, with or without SOA. Both implementations timed out under disabled upstream; these original failed runs are preserved.",
+    "old_difference": "8 no-SOA A/AAAA cases: post-ACK SRV TCP C forwards and returns AA NOERROR; Rust reuses the preceding UDP result without AA or an upstream query. One representative is separately reproduced against frozen main in dhcp-nodata-main-control-01.",
+    "different_response_pairs": 8,
+    "different_upstream_events": 8,
+    "main_control": {
+      "case": {
+        "rcode": 0,
+        "soa": false,
+        "debug": false,
+        "warm_type": 1,
+        "warm_transport": "udp"
+      },
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863"
+      },
+      "statuses": {
+        "c": "passed",
+        "rust": "passed"
+      },
+      "reused_driver_sha256": "30b9e3b1d03b4ef4a3862b74fd97a78428ddfda8fece23ff0622f00446da3b9a",
+      "differences": [
+        {
+          "case": "after-ack-33-tcp",
+          "c": {
+            "request": "510f0100000100000000000007636c69656e7431066c656173657304746573740000210001",
+            "packet": "510f8580000100000000000007636c69656e7431066c656173657304746573740000210001",
+            "reply": {
+              "id": 20751,
+              "flags": 34176,
+              "questions": [
+                [
+                  "client1.leases.test",
+                  33,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "started": 1644160.192679694,
+            "ended": 1644160.193152338,
+            "label": "after-ack-33-tcp",
+            "host": "client1.leases.test",
+            "qtype": 33,
+            "transport": "tcp",
+            "upstream": [
+              {
+                "transport": "tcp",
+                "host": "client1.leases.test",
+                "type": 33,
+                "class": 1,
+                "query": "510f0100000100000000000007636c69656e7431066c656173657304746573740000210001",
+                "reply": "510f8183000100000000000007636c69656e7431066c656173657304746573740000210001",
+                "enabled": true
+              }
+            ],
+            "alive": true
+          },
+          "rust": {
+            "request": "510f0100000100000000000007636c69656e7431066c656173657304746573740000210001",
+            "packet": "510f8180000100000000000007636c69656e7431066c656173657304746573740000210001",
+            "reply": {
+              "id": 20751,
+              "flags": 33152,
+              "questions": [
+                [
+                  "client1.leases.test",
+                  33,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "started": 1644160.214408354,
+            "ended": 1644160.214500635,
+            "label": "after-ack-33-tcp",
+            "host": "client1.leases.test",
+            "qtype": 33,
+            "transport": "tcp",
+            "upstream": [],
+            "alive": true
+          }
+        },
+        {
+          "case": "after-ack-33-tcp-upstream",
+          "c": [
+            [
+              "tcp",
+              "client1.leases.test",
+              33,
+              1,
+              true
+            ]
+          ],
+          "rust": []
+        }
+      ]
+    }
+  },
+  "boundaries": {
+    "cases": 64,
+    "complete_sides": 128,
+    "identities": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f",
+      "driver": "31641ce8e1a55ea0c46df9280207bfb33a8a1cd6645d22a98f01f0601f1b64a7",
+      "base_driver": "30b9e3b1d03b4ef4a3862b74fd97a78428ddfda8fece23ff0622f00446da3b9a"
+    },
+    "cases_detail": [
+      {
+        "name": "large0-debug0-client1-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-client1-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-alias-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug0-alias-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug0-alias-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-alias-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug0-alias-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug0-alias-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug0-alias-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug0-alias-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug1-client1-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-client1-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-alias-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug1-alias-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug1-alias-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-alias-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug1-alias-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug1-alias-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large0-debug1-alias-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large0-debug1-alias-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug0-client1-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34432,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34432,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-client1-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-alias-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug0-alias-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug0-alias-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-alias-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug0-alias-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug0-alias-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug0-alias-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug0-alias-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug1-client1-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34432,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34432,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 33920,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-client1-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a",
+          "boundary"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-alias-udp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug1-alias-udp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug1-alias-udp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-alias-udp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34688,
+          "sections_and_types": [],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug1-alias-tcp-rd0-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug1-alias-tcp-rd0-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      },
+      {
+        "name": "large1-debug1-alias-tcp-rd1-do0",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "answer",
+              1
+            ],
+            [
+              "authority",
+              6
+            ],
+            [
+              "additional",
+              41
+            ]
+          ],
+          "upstream": 0
+        }
+      },
+      {
+        "name": "large1-debug1-alias-tcp-rd1-do1",
+        "differences": [
+          "ack-visible-a"
+        ],
+        "c": {
+          "flags": 34176,
+          "sections_and_types": [
+            [
+              "answer",
+              5
+            ],
+            [
+              "authority",
+              6
+            ]
+          ],
+          "upstream": 1
+        }
+      }
+    ]
+  },
+  "source_contract": {
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "verified_against": "private/dnsmasq-rewrite/reference/identity.json patched_files",
+    "references": [
+      "rfc1035.c:1147-1187 removes F_IPV4/F_IPV6/F_RR from NXDOMAIN cache flags",
+      "cache.c:1764-1795 DHCP lookup selects only IPv4/CNAME conflicts",
+      "rfc1035.c:1754-1778 retains negative-prefix SOA",
+      "rfc1035.c:2391-2415 appends retained SOA even if a later local address answered"
+    ]
+  },
+  "repair_commit": "3d5447a9",
+  "validation_at_commit": {
+    "macos_native_new_unit_tests": 3,
+    "passed": 3,
+    "oracle_or_sdk_after_repair": "pending",
+    "macos_native_local_family": 31,
+    "macos_native_cache_engine": 9,
+    "ignored_executed": 0
+  }
+}

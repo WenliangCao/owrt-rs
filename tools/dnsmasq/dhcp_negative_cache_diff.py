@@ -15,6 +15,7 @@ from pathlib import Path
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import time
 
@@ -242,6 +243,8 @@ def main():
     parser.add_argument("--rust", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--inject-error", action="store_true")
+    parser.add_argument("--nodata-controls", action="store_true",
+                        help="also run A/AAAA NODATA controls; generic TXT NODATA is not cached by this image")
     args = parser.parse_args()
     assert os.environ.get("DNSMASQ_TEST_ISOLATED") == "1"
     assert not Path("/etc/openwrt_release").exists()
@@ -267,10 +270,16 @@ server=127.0.0.1#15354
 """
     (root / "m2/dns.conf").write_text(config)
     summary = {"status": "failed", "identities": {"c": sha256(root / "usr/sbin/dnsmasq"),
-               "rust": sha256(args.rust), "driver": sha256(__file__)}, "config": config, "runs": []}
+               "rust": sha256(args.rust), "driver": sha256(__file__)},
+               "helpers": {module: sha256(sys.modules[module].__file__) for module in
+                           ("dhcp_lease_lifecycle", "dhcp_daemon_smoke", "dns_service_probe", "m2_rootfs")},
+               "config": config, "runs": []}
     upstream = Upstream()
     try:
-        for rcode, soa, debug, warm_type, warm_transport in itertools.product((3, 0), (False, True), (False, True), (1, 28, 16), ("udp", "tcp")):
+        for rcode, soa, debug, warm_type, warm_transport in itertools.product(
+                (3, 0) if args.nodata_controls else (3,), (False, True), (False, True), (1, 28, 16), ("udp", "tcp")):
+            if rcode == 0 and warm_type == 16:
+                continue
             case = dict(rcode=rcode, soa=soa, debug=debug, warm_type=warm_type, warm_transport=warm_transport)
             label = f"rcode{rcode}-soa{int(soa)}-debug{int(debug)}-q{warm_type}-{warm_transport}"
             directory = out / label
@@ -291,7 +300,7 @@ server=127.0.0.1#15354
             summary["runs"].append(row)
             (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
             print(json.dumps({"name": label, "status": row["status"], "differences": len(row.get("differences", [])), "errors": row.get("errors")}), flush=True)
-        assert len(summary["runs"]) == 48
+        assert len(summary["runs"]) == (40 if args.nodata_controls else 24)
         summary["status"] = "passed" if all(all(value == "passed" for value in row["status"].values()) and not row.get("differences") for row in summary["runs"]) else "failed"
     finally:
         upstream.close()
