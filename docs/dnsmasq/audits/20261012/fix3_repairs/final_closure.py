@@ -321,6 +321,46 @@ def remote(args):
         bind('continuation_plan', continuation_path)
         bind('continuation_state', continuation_state_path)
 
+        published = read(args.functional_receipt)
+        published_index = read(args.functional_raw_index)
+        entries = {row['path']: row for row in published_index['files']}
+        check('published_functional_inventory', published['passed_with_declared_baselines']
+              and published['source_commit'] == COMMIT and published['source_files'] == files
+              and published['elf']['sha256'] == sdk_sha and published['total_dispositions'] == total
+              and published['zero_exit_commands'] == total - 1 and published['strict_script_exit_1'] == 1
+              and published['complete_families'] == complete['families']
+              and published['strict_script_assessment'] == assessment
+              and len(entries) == len(published_index['files']))
+        check('published_functional_raw_hashes', all(file(path) == value for path, value in entries.items()))
+        for name, bound in functional_results.items():
+            for kind in ('result', 'log'):
+                check('published_' + kind + '_' + name, entries[bound[kind]['path']] == bound[kind])
+        for name, bound in published['retained'].items():
+            check('published_retained_' + name, entries[bound['path']] == bound)
+        for name, archive in published['endpoint_archives'].items():
+            evidence = archive['files']
+            check('endpoint_receipt_inventory_' + name, set(evidence) == {
+                '.tar.gz', '.manifest.json', '.pack.json', '.local-verification.json', '.prune.json', '.restore.json'}
+                and all(entries[bound['path']] == bound for bound in evidence.values()))
+            manifest = read(evidence['.manifest.json']['path'])
+            local_receipt = read(evidence['.local-verification.json']['path'])
+            packed = read(evidence['.pack.json']['path'])
+            pruned = read(evidence['.prune.json']['path'])
+            restored = read(evidence['.restore.json']['path'])
+            check('endpoint_archive_binding_' + name, local_receipt['verified'] and local_receipt['local_full_metadata_verified']
+                  and local_receipt['archive_sha256'] == manifest['archive_sha256'] == evidence['.tar.gz']['sha256']
+                  and local_receipt['manifest_sha256'] == evidence['.manifest.json']['sha256']
+                  and local_receipt['entries'] == archive['entries'] == len(manifest['entries'])
+                  and packed['result']['archive_sha256'] == manifest['archive_sha256']
+                  and pruned['archive_sha256'] == manifest['archive_sha256']
+                  and pruned['removed'] == manifest['run'] and pruned['allocated_bytes_removed'] > 0
+                  and archive['local_full_metadata_verified'] and archive['original_result_bytes_retained'])
+            check('endpoint_original_result_retained_' + name, sha(Path(manifest['run']) / 'result.json')
+                  == manifest['entries']['result.json']['sha256'])
+            report.setdefault('endpoint_archives', {})[name] = dict(entries=archive['entries'], files=evidence, restore_receipt=restored)
+        bind('published_functional_receipt', args.functional_receipt)
+        bind('published_functional_raw_index', args.functional_raw_index)
+
         perf = args.performance_out or private / 'performance-paired-01'
         pp, run, summary, inv = [read(perf / name) for name in ('plan.json', 'run.json', 'summary.json', 'driver-invocation.json')]
         ready_path = args.ready_receipt or private / 'performance-ready.json'
@@ -391,6 +431,8 @@ def main():
     remote_args.add_argument('--functional-plan', type=Path)
     remote_args.add_argument('--supplemental-plan', type=Path)
     remote_args.add_argument('--continuation-plan', type=Path)
+    remote_args.add_argument('--functional-receipt', type=Path, required=True)
+    remote_args.add_argument('--functional-raw-index', type=Path, required=True)
     remote_args.add_argument('--performance-out', type=Path)
     remote_args.add_argument('--ready-receipt', type=Path)
     remote_args.add_argument('--out', type=Path, required=True)
