@@ -1,0 +1,151 @@
+{
+  "head": "f93b6b269acb16f495b292ae7a1409c372db8b45",
+  "main": "be531cee49e366bb5044443d473944dbea45b87e",
+  "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+  "scope": "Reused final SDK artifacts with fresh SHA/source-input checks; fresh test-profile build/run. No new SDK build.",
+  "commands": [
+    {
+      "name": "fresh-tests-build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+        "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/tests",
+        "tests"
+      ],
+      "started": 1791928444.599219,
+      "exit": 0,
+      "elapsed_seconds": 32.72691631317139,
+      "log_sha256": "c702a87c8a09d9a0e5532545ebcd9e0691d24e3f1e2d7fb585e74a88acd3979a"
+    },
+    {
+      "name": "unit-lib-dnsmasq_rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "started": 1791928477.3267226,
+      "exit": 0,
+      "elapsed_seconds": 4.3230671882629395,
+      "log_sha256": "e82b16abb268b7e35a1f7f0e220af3e4bb47a4f4168ae15b5e9c48f79fb30cf2",
+      "elf_sha256": "dabaff973b61b6435d8e3e7c2583f1488f87cf7f66575a30175c722b4889271b",
+      "test_summary": [
+        "test result: ok. 777 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 4.28s"
+      ]
+    },
+    {
+      "name": "unit-bin-dnsmasq-rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "started": 1791928482.5712857,
+      "exit": 0,
+      "elapsed_seconds": 4.385403633117676,
+      "log_sha256": "c674b08545259b16dee1694f3fa95b6121f734349ebaede57abc6a992a98f619",
+      "elf_sha256": "da64e916c63e8c0bbf08f6629574223870afd8071cdbc079e98ad2bb7b542dbc",
+      "test_summary": [
+        "test result: ok. 77 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.09s"
+      ]
+    }
+  ],
+  "complete": true,
+  "source_files_verified": 178,
+  "sdk": [
+    {
+      "kind": "sdk-acquire-final",
+      "manifest_sha256": "0f2a517e23876521bafb8ad49c7b6d32e85b9df27e696740a28b0b5aef1d5dbc",
+      "source_build_passed": true,
+      "failure_boundary": "size-target",
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+        "size": 2054939
+      },
+      "artifact": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/dnsmasq-2.93-r3.apk",
+        "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+        "size": 1117789
+      },
+      "budget_checks": {
+        "apk": false,
+        "elf": false
+      },
+      "pre_sdk_strip_elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/dnsmasq-pre-strip",
+        "sha256": "4f969b902f8bba72c9e1d32720b90f25e3068e26c4d7ee2f7bb850c75451f19a",
+        "size": 2056672
+      },
+      "payload_files_verified": 16
+    },
+    {
+      "kind": "sdk-verify-final",
+      "manifest_sha256": "f6080d7db83f1cf732a799bdd29b6cd9771e7eb21e57cc5d4c531addfd198f6d",
+      "source_build_passed": true,
+      "failure_boundary": "size-target",
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/payload/usr/sbin/dnsmasq",
+        "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+        "size": 2054939
+      },
+      "artifact": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-2.93-r3.apk",
+        "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+        "size": 1117789
+      },
+      "budget_checks": {
+        "apk": false,
+        "elf": false
+      },
+      "pre_sdk_strip_elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-pre-strip",
+        "sha256": "4f969b902f8bba72c9e1d32720b90f25e3068e26c4d7ee2f7bb850c75451f19a",
+        "size": 2056672
+      },
+      "payload_files_verified": 16
+    }
+  ],
+  "sdk_rebuild_elf_identical": true,
+  "sdk_rebuild_apk_identical": true,
+  "release": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-final/dnsmasq-rs",
+    "sha256": "a73b7bf1b193156433e9ce56cbdce2b4eb48fc9e2052941e344eae0fc02af4b3",
+    "build_manifest_sha256": "c0634b862b1c36d9fb524e1f59b06ea93c028c86c389c26fbff8ff84d0fb2b52"
+  },
+  "test_build": {
+    "source": "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52311656,
+        "sha256": "da64e916c63e8c0bbf08f6629574223870afd8071cdbc079e98ad2bb7b542dbc"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70332952,
+        "sha256": "dabaff973b61b6435d8e3e7c2583f1488f87cf7f66575a30175c722b4889271b"
+      }
+    ]
+  }
+}

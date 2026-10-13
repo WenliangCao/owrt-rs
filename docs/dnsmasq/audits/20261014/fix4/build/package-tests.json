@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "/opt/homebrew/bin/python3.14",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tools/dnsmasq",
+    "-p",
+    "test_build_package.py",
+    "-v"
+  ],
+  "exit": 0,
+  "python_version": "Python 3.14.8",
+  "stdout": "",
+  "stderr": "test_candidate_metadata_requires_actual_lifecycle_scripts (test_build_package.PackageBuildTests.test_candidate_metadata_requires_actual_lifecycle_scripts) ... ok\ntest_exceeded_size_targets_keep_both_measurements (test_build_package.PackageBuildTests.test_exceeded_size_targets_keep_both_measurements) ... ok\ntest_failed_build_restores_existing_recipe (test_build_package.PackageBuildTests.test_failed_build_restores_existing_recipe) ... ok\ntest_failed_copy_restores_existing_recipe (test_build_package.PackageBuildTests.test_failed_copy_restores_existing_recipe) ... ok\ntest_frozen_elf_requires_full_source_sdk_and_binary_identity (test_build_package.PackageBuildTests.test_frozen_elf_requires_full_source_sdk_and_binary_identity) ... ok\ntest_frozen_recipe_never_calls_cargo_or_restrips (test_build_package.PackageBuildTests.test_frozen_recipe_never_calls_cargo_or_restrips) ... ok\ntest_make_path_rejects_shell_and_make_metacharacters (test_build_package.PackageBuildTests.test_make_path_rejects_shell_and_make_metacharacters) ... ok\ntest_oversized_experiment_keeps_artifacts_and_failure_manifest (test_build_package.PackageBuildTests.test_oversized_experiment_keeps_artifacts_and_failure_manifest) ... ok\ntest_payload_rejects_extra_files_and_symlinks (test_build_package.PackageBuildTests.test_payload_rejects_extra_files_and_symlinks) ... ok\ntest_pie_elf_gate_rejects_linkage_and_protection_regressions (test_build_package.PackageBuildTests.test_pie_elf_gate_rejects_linkage_and_protection_regressions) ... ok\ntest_release_recipe_resolves_sdk_compiler_through_buildpackage_eval (test_build_package.PackageBuildTests.test_release_recipe_resolves_sdk_compiler_through_buildpackage_eval) ... ok\ntest_sigterm_unwinds_sdk_recipe_and_records_failure (test_build_package.PackageBuildTests.test_sigterm_unwinds_sdk_recipe_and_records_failure) ... ok\ntest_static_pie_linker_only_rewrites_pinned_startup_inputs (test_build_package.PackageBuildTests.test_static_pie_linker_only_rewrites_pinned_startup_inputs) ... ok\ntest_user_size_exception_is_bound_to_one_elf_and_retains_original_miss (test_build_package.PackageBuildTests.test_user_size_exception_is_bound_to_one_elf_and_retains_original_miss) ... ok\ntest_database_rejects_duplicate_package_and_escaping_path (test_build_package.PackageLifecycleTests.test_database_rejects_duplicate_package_and_escaping_path) ... ok\ntest_failure_record_does_not_suppress_apk_scripts (test_build_package.PackageLifecycleTests.test_failure_record_does_not_suppress_apk_scripts) ... ok\ntest_missing_variant_dependency_is_not_conflict_evidence (test_build_package.PackageLifecycleTests.test_missing_variant_dependency_is_not_conflict_evidence) ... ok\ntest_restart_is_reported_as_operator_activation_not_postinst (test_build_package.PackageLifecycleTests.test_restart_is_reported_as_operator_activation_not_postinst) ... ok\ntest_timed_out_script_is_forcibly_reaped_and_failure_logged (test_build_package.PackageLifecycleTests.test_timed_out_script_is_forcibly_reaped_and_failure_logged) ... ok\ntest_upgrade_requires_new_version_and_exclusive_ownership (test_build_package.PackageLifecycleTests.test_upgrade_requires_new_version_and_exclusive_ownership) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 3.045s\n\nOK\n",
+  "inputs": {
+    "tools/dnsmasq/test_build_package.py": "11d95393eee1f461821e5cebabc473c6d718625839b337f622d1c69f41902c3a",
+    "tools/dnsmasq/build_package.py": "90fd7e38f8d2aaf72bca077ce46f5e0cdd242baea805184ed46c666d240a7d02",
+    "packaging/openwrt/owrt-dnsmasq/Makefile": "baadd5e484a37f7c07947917b079ff0f107fd409cb604a07d095137b9f0aec4f",
+    "packaging/openwrt/owrt-dnsmasq/static-pie-linker.py": "9b04b7a13281414e4b79253a0a9ae8650abafa1645484dd6945e269d0335af58"
+  }
+}

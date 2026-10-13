@@ -1,0 +1,2071 @@
+{
+  "rust_sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "cases": [
+    {
+      "id": "original-ordinary",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 12,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "af492e96f000-af492e9ad000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\naf492e9ad000-af492e9b0000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\naf492e9b0000-af492e9b2000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\naf492e9b2000-af492e9b3000 rw-p 00000000 00:00 0 \naf4955959000-af495595a000 ---p 00000000 00:00 0                          [heap]\naf495595a000-af495595b000 rw-p 00000000 00:00 0                          [heap]\nf9142616a000-f91426199000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf91426199000-f9142619a000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf9142619a000-f9142619b000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf9142619b000-f914261ab000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf914261ab000-f914261ac000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf914261ac000-f914261ad000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf914261ad000-f91426234000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nf91426236000-f9142623d000 rw-p 00000000 00:00 0 \nf9142623d000-f91426243000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf91426243000-f91426244000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf91426244000-f91426245000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf91426245000-f91426249000 r--p 00000000 00:00 0                          [vvar]\nf91426249000-f9142624b000 r-xp 00000000 00:00 0                          [vdso]\nf9142624b000-f9142624e000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nf9142624e000-f91426250000 rw-p 00000000 00:00 0 \nffffc582c000-ffffc584d000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b31325d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b31325d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b31325d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b31325d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b31325d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b31325d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b31325d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b31325d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 20,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "aaaab6137000-aaaab6138000 ---p 00000000 00:00 0                          [heap]\naaaab6138000-aaaab6139000 rw-p 00000000 00:00 0                          [heap]\nec1ad823d000-ec1ad825d000 rw-p 00000000 00:00 0 \nec1ad825d000-ec1ad825e000 ---p 00000000 00:00 0 \nec1ad825e000-ec1ad8261000 rw-p 00000000 00:00 0 \nec1ad8261000-ec1ad8265000 r--p 00000000 00:00 0                          [vvar]\nec1ad8265000-ec1ad8267000 r-xp 00000000 00:00 0                          [vdso]\nec1ad8267000-ec1ad8451000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nec1ad8451000-ec1ad845c000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nec1ad845c000-ec1ad845d000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nec1ad845d000-ec1ad845e000 rw-p 00000000 00:00 0 \nffffea208000-ffffea229000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32305d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32305d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b32305d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32305d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32305d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32305d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "original-debug",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 21,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "b33a9e05e000-b33a9e09c000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nb33a9e09c000-b33a9e09f000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nb33a9e09f000-b33a9e0a1000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nb33a9e0a1000-b33a9e0a2000 rw-p 00000000 00:00 0 \nb33ad5116000-b33ad5117000 ---p 00000000 00:00 0                          [heap]\nb33ad5117000-b33ad5118000 rw-p 00000000 00:00 0                          [heap]\nea421916a000-ea4219199000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nea4219199000-ea421919a000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nea421919a000-ea421919b000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nea421919b000-ea42191ab000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nea42191ab000-ea42191ac000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nea42191ac000-ea42191ad000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nea42191ad000-ea4219234000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nea4219236000-ea421923d000 rw-p 00000000 00:00 0 \nea421923d000-ea4219243000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nea4219243000-ea4219244000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nea4219244000-ea4219245000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nea4219245000-ea4219249000 r--p 00000000 00:00 0                          [vvar]\nea4219249000-ea421924b000 r-xp 00000000 00:00 0                          [vdso]\nea421924b000-ea421924e000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nea421924e000-ea4219250000 rw-p 00000000 00:00 0 \nfffff98b9000-fffff98da000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32315d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32315d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b32315d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32315d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32315d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32315d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 22,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "aaaae41a3000-aaaae41a4000 ---p 00000000 00:00 0                          [heap]\naaaae41a4000-aaaae41a5000 rw-p 00000000 00:00 0                          [heap]\nf401f117b000-f401f119b000 rw-p 00000000 00:00 0 \nf401f119b000-f401f119c000 ---p 00000000 00:00 0 \nf401f119c000-f401f119f000 rw-p 00000000 00:00 0 \nf401f119f000-f401f11a3000 r--p 00000000 00:00 0                          [vvar]\nf401f11a3000-f401f11a5000 r-xp 00000000 00:00 0                          [vdso]\nf401f11a5000-f401f138f000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf401f138f000-f401f139a000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf401f139a000-f401f139b000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf401f139b000-f401f139c000 rw-p 00000000 00:00 0 \nffffeb9f7000-ffffeba18000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32325d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32325d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b32325d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32325d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32325d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32325d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32325d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32325d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "multiple-ordinary",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "aa1b931d95db28dbbb903f71c38c05df6d40cf36b78b4fc360f081605d4a00ee",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 2 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 23,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "b1fb2134f000-b1fb2138d000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nb1fb2138d000-b1fb21390000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nb1fb21390000-b1fb21392000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nb1fb21392000-b1fb21393000 rw-p 00000000 00:00 0 \nb1fb470ff000-b1fb47100000 ---p 00000000 00:00 0                          [heap]\nb1fb47100000-b1fb47101000 rw-p 00000000 00:00 0                          [heap]\ne5f292180000-e5f2921af000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne5f2921af000-e5f2921b0000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne5f2921b0000-e5f2921b1000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne5f2921b1000-e5f2921c1000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne5f2921c1000-e5f2921c2000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne5f2921c2000-e5f2921c3000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne5f2921c3000-e5f29224a000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\ne5f29224c000-e5f292253000 rw-p 00000000 00:00 0 \ne5f292253000-e5f292259000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne5f292259000-e5f29225a000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne5f29225a000-e5f29225b000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne5f29225b000-e5f29225f000 r--p 00000000 00:00 0                          [vvar]\ne5f29225f000-e5f292261000 r-xp 00000000 00:00 0                          [vdso]\ne5f292261000-e5f292264000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\ne5f292264000-e5f292266000 rw-p 00000000 00:00 0 \nffffe4c5c000-ffffe4c7d000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32335d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32335d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b32335d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32335d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2032206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32335d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32335d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "aa1b931d95db28dbbb903f71c38c05df6d40cf36b78b4fc360f081605d4a00ee",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 2 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 29,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "aaaada40b000-aaaada40c000 ---p 00000000 00:00 0                          [heap]\naaaada40c000-aaaada40d000 rw-p 00000000 00:00 0                          [heap]\nffe79cc7c000-ffe79cc9a000 rw-p 00000000 00:00 0 \nffe79cc9a000-ffe79cc9b000 ---p 00000000 00:00 0 \nffe79cc9b000-ffe79cc9e000 rw-p 00000000 00:00 0 \nffe79cc9e000-ffe79cca2000 r--p 00000000 00:00 0                          [vvar]\nffe79cca2000-ffe79cca4000 r-xp 00000000 00:00 0                          [vdso]\nffe79cca4000-ffe79ce8e000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nffe79ce8e000-ffe79ce99000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nffe79ce99000-ffe79ce9a000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nffe79ce9a000-ffe79ce9b000 rw-p 00000000 00:00 0 \nffffc6de6000-ffffc6e07000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32395d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32395d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b32395d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32395d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2032206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b32395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32395d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b32395d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "multiple-debug",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "aa1b931d95db28dbbb903f71c38c05df6d40cf36b78b4fc360f081605d4a00ee",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 2 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 30,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "c9a2dfe3d000-c9a2dfe7b000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc9a2dfe7b000-c9a2dfe7e000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc9a2dfe7e000-c9a2dfe80000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc9a2dfe80000-c9a2dfe81000 rw-p 00000000 00:00 0 \nc9a302d86000-c9a302d87000 ---p 00000000 00:00 0                          [heap]\nc9a302d87000-c9a302d88000 rw-p 00000000 00:00 0                          [heap]\nf19f9ab8f000-f19f9abbe000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf19f9abbe000-f19f9abbf000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf19f9abbf000-f19f9abc0000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf19f9abc0000-f19f9abd0000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf19f9abd0000-f19f9abd1000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf19f9abd1000-f19f9abd2000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf19f9abd2000-f19f9ac59000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nf19f9ac5b000-f19f9ac62000 rw-p 00000000 00:00 0 \nf19f9ac62000-f19f9ac68000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf19f9ac68000-f19f9ac69000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf19f9ac69000-f19f9ac6a000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf19f9ac6a000-f19f9ac6e000 r--p 00000000 00:00 0                          [vvar]\nf19f9ac6e000-f19f9ac70000 r-xp 00000000 00:00 0                          [vdso]\nf19f9ac70000-f19f9ac73000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nf19f9ac73000-f19f9ac75000 rw-p 00000000 00:00 0 \nffffdce8e000-ffffdceaf000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33305d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33305d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b33305d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33305d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2032206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33305d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33305d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "aa1b931d95db28dbbb903f71c38c05df6d40cf36b78b4fc360f081605d4a00ee",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 2 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 31,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/hosts with space ",
+            "maps": "aaaac992c000-aaaac992d000 ---p 00000000 00:00 0                          [heap]\naaaac992d000-aaaac992e000 rw-p 00000000 00:00 0                          [heap]\ne45cfe261000-e45cfe27f000 rw-p 00000000 00:00 0 \ne45cfe27f000-e45cfe280000 ---p 00000000 00:00 0 \ne45cfe280000-e45cfe283000 rw-p 00000000 00:00 0 \ne45cfe283000-e45cfe287000 r--p 00000000 00:00 0                          [vvar]\ne45cfe287000-e45cfe289000 r-xp 00000000 00:00 0                          [vdso]\ne45cfe289000-e45cfe473000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne45cfe473000-e45cfe47e000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne45cfe47e000-e45cfe47f000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne45cfe47f000-e45cfe480000 rw-p 00000000 00:00 0 \nffffe708b000-ffffe70ac000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33315d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33315d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b33315d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33315d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2032206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33315d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33315d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "directory-ordinary",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/directory"
+          ],
+          "hosts_path": "/m2/f07/directory/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 32,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/directory ",
+            "maps": "c25ce1286000-c25ce12c4000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc25ce12c4000-c25ce12c7000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc25ce12c7000-c25ce12c9000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc25ce12c9000-c25ce12ca000 rw-p 00000000 00:00 0 \nc25d11a3c000-c25d11a3d000 ---p 00000000 00:00 0                          [heap]\nc25d11a3d000-c25d11a3e000 rw-p 00000000 00:00 0                          [heap]\ne2e979bf9000-e2e979c28000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne2e979c28000-e2e979c29000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne2e979c29000-e2e979c2a000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne2e979c2a000-e2e979c3a000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne2e979c3a000-e2e979c3b000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne2e979c3b000-e2e979c3c000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne2e979c3c000-e2e979cc3000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\ne2e979cc5000-e2e979ccc000 rw-p 00000000 00:00 0 \ne2e979ccc000-e2e979cd2000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne2e979cd2000-e2e979cd3000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne2e979cd3000-e2e979cd4000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne2e979cd4000-e2e979cd8000 r--p 00000000 00:00 0                          [vvar]\ne2e979cd8000-e2e979cda000 r-xp 00000000 00:00 0                          [vdso]\ne2e979cda000-e2e979cdd000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\ne2e979cdd000-e2e979cdf000 rw-p 00000000 00:00 0 \nffffed7f3000-ffffed814000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33325d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33325d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b33325d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33325d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33325d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b33325d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33325d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b33325d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/directory"
+          ],
+          "hosts_path": "/m2/f07/directory/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 40,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/directory ",
+            "maps": "aaaae2878000-aaaae2879000 ---p 00000000 00:00 0                          [heap]\naaaae2879000-aaaae287a000 rw-p 00000000 00:00 0                          [heap]\ne23957eaf000-e23957ecf000 rw-p 00000000 00:00 0 \ne23957ecf000-e23957ed0000 ---p 00000000 00:00 0 \ne23957ed0000-e23957ed3000 rw-p 00000000 00:00 0 \ne23957ed3000-e23957ed7000 r--p 00000000 00:00 0                          [vvar]\ne23957ed7000-e23957ed9000 r-xp 00000000 00:00 0                          [vdso]\ne23957ed9000-e239580c3000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne239580c3000-e239580ce000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne239580ce000-e239580cf000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne239580cf000-e239580d0000 rw-p 00000000 00:00 0 \nffffd816d000-ffffd818e000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34305d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34305d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b34305d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b34305d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34305d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b34305d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34305d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34305d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "directory-debug",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/directory"
+          ],
+          "hosts_path": "/m2/f07/directory/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 41,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/directory ",
+            "maps": "ab696506a000-ab69650a8000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nab69650a8000-ab69650ab000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nab69650ab000-ab69650ad000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nab69650ad000-ab69650ae000 rw-p 00000000 00:00 0 \nab697da87000-ab697da88000 ---p 00000000 00:00 0                          [heap]\nab697da88000-ab697da89000 rw-p 00000000 00:00 0                          [heap]\ne32097c41000-e32097c70000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne32097c70000-e32097c71000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne32097c71000-e32097c72000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\ne32097c72000-e32097c82000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne32097c82000-e32097c83000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne32097c83000-e32097c84000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\ne32097c84000-e32097d0b000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\ne32097d0d000-e32097d14000 rw-p 00000000 00:00 0 \ne32097d14000-e32097d1a000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne32097d1a000-e32097d1b000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne32097d1b000-e32097d1c000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\ne32097d1c000-e32097d20000 r--p 00000000 00:00 0                          [vvar]\ne32097d20000-e32097d22000 r-xp 00000000 00:00 0                          [vdso]\ne32097d22000-e32097d25000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\ne32097d25000-e32097d27000 rw-p 00000000 00:00 0 \nffffed1ad000-ffffed1ce000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34315d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34315d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b34315d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b34315d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34315d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b34315d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34315d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34315d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/directory"
+          ],
+          "hosts_path": "/m2/f07/directory/hosts with space",
+          "payload_sha256": "2097fa8cc36e3bc334b62e4c3c465be4dceb32e5302bbe1dee743c597c8b0777",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 9 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/directory/hosts with space line 6"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/directory/hosts with space - 10 names"
+                }
+              ],
+              "answers": {
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000205"
+                },
+                "next.test": {
+                  "udp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204",
+                  "tcp": "123485800001000100000000046e65787404746573740000010001c00c00010001000000000004c0000204"
+                },
+                "one.test": {
+                  "udp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201",
+                  "tcp": "123485800001000100000000036f6e6504746573740000010001c00c00010001000000000004c0000201"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 42,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/directory ",
+            "maps": "aaaae39c9000-aaaae39ca000 ---p 00000000 00:00 0                          [heap]\naaaae39ca000-aaaae39cb000 rw-p 00000000 00:00 0                          [heap]\ne2cf05022000-e2cf05042000 rw-p 00000000 00:00 0 \ne2cf05042000-e2cf05043000 ---p 00000000 00:00 0 \ne2cf05043000-e2cf05046000 rw-p 00000000 00:00 0 \ne2cf05046000-e2cf0504a000 r--p 00000000 00:00 0                          [vvar]\ne2cf0504a000-e2cf0504c000 r-xp 00000000 00:00 0                          [vdso]\ne2cf0504c000-e2cf05236000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne2cf05236000-e2cf05241000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne2cf05241000-e2cf05242000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\ne2cf05242000-e2cf05243000 rw-p 00000000 00:00 0 \nffffd0dc2000-ffffd0de3000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34325d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34325d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333020646e736d6173715b34325d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137313e4f63742031332032313a35353a333020646e736d6173715b34325d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333020646e736d6173715b34325d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d2039206e616d6573",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34325d3a20626164206e616d65206174202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365206c696e652036",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34325d3a2072656164202f6d322f6630372f6469726563746f72792f686f7374732077697468207370616365202d203130206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34325d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "dhcp-initial-ordinary",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "81e17a456e2d08f8c0c002b780689e2bfc8897f7901df0d80c005f135b23e307",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 4 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 43,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/hosts with space --no-ping --dhcp-authoritative --domain=test --dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h --dhcp-host=02:00:00:00:00:01,127.0.0.30 --dhcp-leasefile=/m2/f07/leases ",
+            "maps": "c116e49d8000-c116e4a16000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc116e4a16000-c116e4a19000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc116e4a19000-c116e4a1b000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nc116e4a1b000-c116e4a1c000 rw-p 00000000 00:00 0 \nc1170db32000-c1170db33000 ---p 00000000 00:00 0                          [heap]\nc1170db33000-c1170db34000 rw-p 00000000 00:00 0                          [heap]\nffb127150000-ffb12717f000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nffb12717f000-ffb127180000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nffb127180000-ffb127181000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nffb127181000-ffb127191000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nffb127191000-ffb127192000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nffb127192000-ffb127193000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nffb127193000-ffb12721a000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nffb12721b000-ffb12721c000 rw-p 00000000 00:00 0 \nffb12721d000-ffb127223000 rw-p 00000000 00:00 0 \nffb127223000-ffb127229000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nffb127229000-ffb12722a000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nffb12722a000-ffb12722b000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nffb12722b000-ffb12722f000 r--p 00000000 00:00 0                          [vvar]\nffb12722f000-ffb127231000 r-xp 00000000 00:00 0                          [vdso]\nffb127231000-ffb127234000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nffb127234000-ffb127236000 rw-p 00000000 00:00 0 \nffffed0d0000-ffffed0f1000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "dhcp": {
+            "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+            "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f7269746174697665"
+              },
+              "message_type": 5,
+              "hostname": "authoritative"
+            }
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34335d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34335d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333120646e736d6173715b34335d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b34335d3a20444843502c2049502072616e6765203132372e302e302e3330202d2d203132372e302e302e33302c206c656173652074696d65203168",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34335d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b34335d3a204448435052455155455354286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b34335d3a204448435041434b286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120617574686f7269746174697665",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34335d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34335d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2034206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34335d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-k",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "81e17a456e2d08f8c0c002b780689e2bfc8897f7901df0d80c005f135b23e307",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 4 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 49,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -k --addn-hosts=/m2/f07/hosts with space --no-ping --dhcp-authoritative --domain=test --dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h --dhcp-host=02:00:00:00:00:01,127.0.0.30 --dhcp-leasefile=/m2/f07/leases ",
+            "maps": "aaaab67f9000-aaaab67fa000 ---p 00000000 00:00 0                          [heap]\naaaab67fa000-aaaab67fb000 rw-p 00000000 00:00 0                          [heap]\nf270739ca000-f270739fd000 rw-p 00000000 00:00 0 \nf270739fd000-f270739fe000 ---p 00000000 00:00 0 \nf270739fe000-f27073a01000 rw-p 00000000 00:00 0 \nf27073a01000-f27073a05000 r--p 00000000 00:00 0                          [vvar]\nf27073a05000-f27073a07000 r-xp 00000000 00:00 0                          [vdso]\nf27073a07000-f27073bf1000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf27073bf1000-f27073bfc000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf27073bfc000-f27073bfd000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf27073bfd000-f27073bfe000 rw-p 00000000 00:00 0 \nffffee6f3000-ffffee714000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "dhcp": {
+            "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+            "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f7269746174697665"
+              },
+              "message_type": 5,
+              "hostname": "authoritative"
+            }
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34395d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34395d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333120646e736d6173715b34395d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b34395d3a20444843502c2049502072616e6765203132372e302e302e3330202d2d203132372e302e302e33302c206c656173652074696d65203168",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34395d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b34395d3a204448435052455155455354286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b34395d3a204448435041434b286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120617574686f7269746174697665",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b34395d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34395d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2034206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b34395d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "dhcp-initial-debug",
+      "observed": {
+        "c": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "81e17a456e2d08f8c0c002b780689e2bfc8897f7901df0d80c005f135b23e307",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 4 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 50,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq",
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "cmdline": "/usr/sbin/dnsmasq -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/hosts with space --no-ping --dhcp-authoritative --domain=test --dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h --dhcp-host=02:00:00:00:00:01,127.0.0.30 --dhcp-leasefile=/m2/f07/leases ",
+            "maps": "ba31f0c56000-ba31f0c94000 r-xp 00000000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nba31f0c94000-ba31f0c97000 r--p 0003d000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nba31f0c97000-ba31f0c99000 rw-p 00040000 00:42 3457699                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq\nba31f0c99000-ba31f0c9a000 rw-p 00000000 00:00 0 \nba3210a53000-ba3210a54000 ---p 00000000 00:00 0                          [heap]\nba3210a54000-ba3210a55000 rw-p 00000000 00:00 0                          [heap]\nf68ea89a9000-f68ea89d8000 r-xp 00000000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf68ea89d8000-f68ea89d9000 r--p 0001f000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf68ea89d9000-f68ea89da000 rw-p 00020000 00:42 3460987                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libgcc_s.so.1\nf68ea89da000-f68ea89ea000 r-xp 00000000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf68ea89ea000-f68ea89eb000 r--p 0000f000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf68ea89eb000-f68ea89ec000 rw-p 00010000 00:42 3458448                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubox.so.20260213\nf68ea89ec000-f68ea8a73000 r-xp 00000000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nf68ea8a74000-f68ea8a75000 rw-p 00000000 00:00 0 \nf68ea8a76000-f68ea8a7c000 rw-p 00000000 00:00 0 \nf68ea8a7c000-f68ea8a82000 r-xp 00000000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf68ea8a82000-f68ea8a83000 r--p 00006000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf68ea8a83000-f68ea8a84000 rw-p 00007000 00:42 3460869                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libubus.so.20251202\nf68ea8a84000-f68ea8a88000 r--p 00000000 00:00 0                          [vvar]\nf68ea8a88000-f68ea8a8a000 r-xp 00000000 00:00 0                          [vdso]\nf68ea8a8a000-f68ea8a8d000 rw-p 0008e000 00:42 3461010                    /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/lib/libc.so\nf68ea8a8d000-f68ea8a8f000 rw-p 00000000 00:00 0 \nfffff5fa3000-fffff5fc4000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "dhcp": {
+            "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+            "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f7269746174697665"
+              },
+              "message_type": 5,
+              "hostname": "authoritative"
+            }
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35305d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35305d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333120646e736d6173715b35305d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b35305d3a20444843502c2049502072616e6765203132372e302e302e3330202d2d203132372e302e302e33302c206c656173652074696d65203168",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35305d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b35305d3a204448435052455155455354286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b35305d3a204448435041434b286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120617574686f7269746174697665",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35305d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35305d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2034206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35305d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        },
+        "rust": {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--no-resolv",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--log-facility=local5",
+            "--host-record=ready.test,192.0.2.123",
+            "-d",
+            "--addn-hosts=/m2/f07/hosts with space",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h",
+            "--dhcp-host=02:00:00:00:00:01,127.0.0.30",
+            "--dhcp-leasefile=/m2/f07/leases"
+          ],
+          "hosts_path": "/m2/f07/hosts with space",
+          "payload_sha256": "81e17a456e2d08f8c0c002b780689e2bfc8897f7901df0d80c005f135b23e307",
+          "phases": [
+            {
+              "reload": false,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 3 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                }
+              },
+              "alive": true
+            },
+            {
+              "reload": true,
+              "notices": [
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 2"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad address at /m2/f07/hosts with space line 3"
+                },
+                {
+                  "priority": 171,
+                  "message": "bad name at /m2/f07/hosts with space line 4"
+                },
+                {
+                  "priority": 174,
+                  "message": "read /m2/f07/hosts with space - 4 names"
+                }
+              ],
+              "answers": {
+                "good.test": {
+                  "udp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207",
+                  "tcp": "12348580000100010000000004676f6f6404746573740000010001c00c00010001000000000004c0000207"
+                },
+                "final.test": {
+                  "udp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208",
+                  "tcp": "1234858000010001000000000566696e616c04746573740000010001c00c00010001000000000004c0000208"
+                },
+                "reloaded.test": {
+                  "udp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242",
+                  "tcp": "1234858000010001000000000872656c6f6164656404746573740000010001c00c00010001000000000004c0000242"
+                }
+              },
+              "alive": true
+            }
+          ],
+          "identity": {
+            "pid": 51,
+            "root": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+            "exe": "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs",
+            "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+            "cmdline": "/usr/sbin/dnsmasq-rs -C /dev/null --user=root --group=root --pid-file= --no-hosts --no-resolv --bind-interfaces --listen-address=127.0.0.1 --port=15353 --log-facility=local5 --host-record=ready.test,192.0.2.123 -d --addn-hosts=/m2/f07/hosts with space --no-ping --dhcp-authoritative --domain=test --dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,1h --dhcp-host=02:00:00:00:00:01,127.0.0.30 --dhcp-leasefile=/m2/f07/leases ",
+            "maps": "aaaae4071000-aaaae4072000 ---p 00000000 00:00 0                          [heap]\naaaae4072000-aaaae4073000 rw-p 00000000 00:00 0                          [heap]\nf9cac55dc000-f9cac560f000 rw-p 00000000 00:00 0 \nf9cac560f000-f9cac5610000 ---p 00000000 00:00 0 \nf9cac5610000-f9cac5613000 rw-p 00000000 00:00 0 \nf9cac5613000-f9cac5617000 r--p 00000000 00:00 0                          [vvar]\nf9cac5617000-f9cac5619000 r-xp 00000000 00:00 0                          [vdso]\nf9cac5619000-f9cac5803000 r-xp 00000000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf9cac5803000-f9cac580e000 r--p 001ea000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf9cac580e000-f9cac580f000 rw-p 001f5000 00:42 374231                     /home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs/usr/sbin/dnsmasq-rs\nf9cac580f000-f9cac5810000 rw-p 00000000 00:00 0 \nffffec1f6000-ffffec217000 rw-p 00000000 00:00 0                          [stack]\n"
+          },
+          "dhcp": {
+            "request": "01010600771100110000800000000000000000000000000000000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010332047f00001e36047f0000010c0e737570706c6965642d77726f6e6737070103060c0f3350ff",
+            "reply": "020106007711001100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f000001330400000e103a04000007083b0400000c4e0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff",
+            "decoded": {
+              "yiaddr": "127.0.0.30",
+              "options": {
+                "53": "05",
+                "54": "7f000001",
+                "51": "00000e10",
+                "58": "00000708",
+                "59": "00000c4e",
+                "1": "ff000000",
+                "28": "7fffffff",
+                "3": "7f000001",
+                "15": "74657374",
+                "12": "617574686f7269746174697665"
+              },
+              "message_type": 5,
+              "hostname": "authoritative"
+            }
+          },
+          "cleanup_exit": 0,
+          "syslog_hex": [
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35315d3a20737461727465642c2076657273696f6e20322e393320636163686573697a6520313530",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35315d3a20636f6d70696c652074696d65206f7074696f6e733a204950763620474e552d6765746f7074206e6f2d444275732055427573206e6f2d6931386e206e6f2d49444e2044484350206e6f2d444843507636206e6f2d4c75612054465450206e6f2d636f6e6e747261636b206e6f2d6970736574206e6f2d6e6674736574206e6f2d61757468206e6f2d444e53534543206e6f2d4944206c6f6f702d64657465637420696e6f746966792064756d7066696c65",
+            "3c3137323e4f63742031332032313a35353a333120646e736d6173715b35315d3a207761726e696e673a206e6f20757073747265616d207365727665727320636f6e66696775726564",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b35315d3a20444843502c2049502072616e6765203132372e302e302e3330202d2d203132372e302e302e33302c206c656173652074696d65203168",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35315d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2033206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b35315d3a204448435052455155455354286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173712d646863705b35315d3a204448435041434b286c6f29203132372e302e302e33302030323a30303a30303a30303a30303a303120617574686f7269746174697665",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652032",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a206261642061646472657373206174202f6d322f6630372f686f7374732077697468207370616365206c696e652033",
+            "3c3137313e4f63742031332032313a35353a333120646e736d6173715b35315d3a20626164206e616d65206174202f6d322f6630372f686f7374732077697468207370616365206c696e652034",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35315d3a2072656164202f6d322f6630372f686f7374732077697468207370616365202d2034206e616d6573",
+            "3c3137343e4f63742031332032313a35353a333120646e736d6173715b35315d3a2065786974696e67206f6e2072656365697074206f66205349475445524d"
+          ]
+        }
+      },
+      "failures": [],
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "syntax_only_control": {
+    "c": {
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-C",
+        "/dev/null",
+        "--user=root",
+        "--group=root",
+        "--pid-file=",
+        "--no-hosts",
+        "--no-resolv",
+        "--bind-interfaces",
+        "--listen-address=127.0.0.1",
+        "--port=15353",
+        "--log-facility=local5",
+        "--host-record=ready.test,192.0.2.123",
+        "--test",
+        "--addn-hosts=/does/not/exist"
+      ],
+      "exit": 0,
+      "stderr": "dnsmasq: syntax check OK.\n"
+    },
+    "rust": {
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix4-20261014-build/private/hosts/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-C",
+        "/dev/null",
+        "--user=root",
+        "--group=root",
+        "--pid-file=",
+        "--no-hosts",
+        "--no-resolv",
+        "--bind-interfaces",
+        "--listen-address=127.0.0.1",
+        "--port=15353",
+        "--log-facility=local5",
+        "--host-record=ready.test,192.0.2.123",
+        "--test",
+        "--addn-hosts=/does/not/exist"
+      ],
+      "exit": 0,
+      "stderr": "dnsmasq: syntax check OK.\n"
+    }
+  }
+}
