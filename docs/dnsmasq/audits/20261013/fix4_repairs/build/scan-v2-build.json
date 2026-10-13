@@ -1,0 +1,148 @@
+{
+  "source_commit": "006002bbbd74cb7021589208085f866d883ec4fe",
+  "source_digest": "9cab389185e5b75bf9aa795a5ad67989b8122a9e99bb759441b815458d0eba3e",
+  "source_identity_sha256": "6dd8b4c4395f875eccb51e5ecb1b5c5cb1ad005306d3ecd9ced41d86851d25ab",
+  "controller_sha256": "6f255f2a93ef65dfe7a837b02fb1600573c90230632ebbad13b26c92bcf4e857",
+  "phase": "scan-v2",
+  "commands": [
+    {
+      "name": "release-build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-scan-v2",
+        "release"
+      ],
+      "link_map": true,
+      "started": 1791916970.7980587,
+      "returncode": 0,
+      "elapsed_seconds": 57.21937346458435,
+      "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/scan-v2-release-build.driver.log",
+      "log_sha256": "719d88046a0ff273a41cb4e089ab3ab94ca3cf600825df9f451e467a11fa8de9"
+    },
+    {
+      "name": "tests-build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/tests-scan-v2",
+        "tests"
+      ],
+      "link_map": false,
+      "started": 1791917028.0181015,
+      "returncode": 0,
+      "elapsed_seconds": 33.569138050079346,
+      "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/scan-v2-tests-build.driver.log",
+      "log_sha256": "4b516f19b1ed55847a4cd4eb7382f33cefc8d09e861324bda03c255b0d040c2d"
+    },
+    {
+      "name": "lib-dnsmasq_rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/tests-scan-v2/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "link_map": false,
+      "started": 1791917061.5879161,
+      "returncode": 0,
+      "elapsed_seconds": 3.9715867042541504,
+      "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/scan-v2-lib-dnsmasq_rs.driver.log",
+      "log_sha256": "4a805f698758ae60cbf4a9ca25bbc4c194426f970512e220b92bda1bd5f84269",
+      "counts": {
+        "passed": 770,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "elf_sha256": "32e15fddd6930b2b941cecbd31f90e8a87a67a3cb9ceaecc25ff242d0feee120"
+    },
+    {
+      "name": "bin-dnsmasq-rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/tests-scan-v2/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "link_map": false,
+      "started": 1791917065.62975,
+      "returncode": 0,
+      "elapsed_seconds": 4.121352910995483,
+      "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/scan-v2-bin-dnsmasq-rs.driver.log",
+      "log_sha256": "1e3899389e194c1881335c1f7bce46be6476fa312231c4e2ecd41d45e3d1a16b",
+      "counts": {
+        "passed": 77,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "elf_sha256": "25e114b2fc1eba3070715c2094dad58ef90b5a04778a9a16eeaf2077f86cbee4"
+    }
+  ],
+  "passed": true,
+  "started": 1791916970.797843,
+  "release": {
+    "source": "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2",
+    "kind": "release",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static -Clink-arg=-Wl,-Map=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-scan-v2/link.map",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2056672,
+        "sha256": "cf94126f4fabca46fab93aa0895b8bd0f58725f30b747afe1b0d9a8bf744b05f"
+      }
+    ],
+    "link_map": {
+      "path": "link.map",
+      "sha256": "3d2cc10a1e41e836da7fd3c835fa6b2da51efba3da2fac58dc5d40f99932e3b5"
+    }
+  },
+  "tests": {
+    "source": "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-scan-v2=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52313448,
+        "sha256": "25e114b2fc1eba3070715c2094dad58ef90b5a04778a9a16eeaf2077f86cbee4"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70171552,
+        "sha256": "32e15fddd6930b2b941cecbd31f90e8a87a67a3cb9ceaecc25ff242d0feee120"
+      }
+    ]
+  },
+  "ordinary_units": {
+    "passed": 847,
+    "failed": 0,
+    "ignored": 23,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "ended": 1791917069.8266256
+}
