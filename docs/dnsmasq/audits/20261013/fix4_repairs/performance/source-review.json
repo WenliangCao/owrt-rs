@@ -1,0 +1,55 @@
+{
+  "scope": "Static source support for the exact-image runtime comparison; runtime remains the semantic authority",
+  "reference": {
+    "openwrt": "25.12.5",
+    "version": "2.93-r1",
+    "variant": "nodhcpv6",
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "archive_sha256": "0c00d4e5c97c8306e5fb932b348b34269c9c29a0e7df0e8e82958b407092bc19",
+    "files": {
+      "src/rfc1035.c": {
+        "sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+        "matches_reference_identity": true
+      },
+      "src/util.c": {
+        "sha256": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973",
+        "matches_reference_identity": true
+      }
+    }
+  },
+  "c_raw_scan": {
+    "path": "src/rfc1035.c",
+    "lines": [
+      1859,
+      1872
+    ],
+    "behavior": "Every C_IN query scans daemon->rr; type or ANY first, then hostname_isequal; list order is preserved."
+  },
+  "c_name_comparison": {
+    "path": "src/util.c",
+    "lines": [
+      404,
+      429
+    ],
+    "behavior": "Length equality and ASCII A-Z case folding; no allocation or wire-name conversion."
+  },
+  "main_tcp": {
+    "commit": "be531cee49e366bb5044443d473944dbea45b87e",
+    "path": "components/dnsmasq/src/main.rs",
+    "file_sha256": "2bac2740142da48561b6cd3545358ccb9d0e927099202b6a3b90a5d09d961c2c",
+    "answer_query_lines": [
+      2727,
+      2799
+    ],
+    "behavior": "Both debug and connection snapshot branches return a cache hit before calling local_tcp_answer/tcp_view_local_answer."
+  },
+  "change": {
+    "commit": "aae4b04d24833a69564c74804049fe88601beaeb",
+    "path": "components/dnsmasq/src/dns/local.rs",
+    "behavior": "Raw lookup receives the original dotted name and compares eq_ignore_ascii_case only after type selection. Raw no longer requests a dotted_key. Reverse declaration iteration, TTL and output data are unchanged; no index added."
+  },
+  "limits": [
+    "C/main absolute TCP difference includes architecture and connection costs, not only semantic local lookup.",
+    "The 100-to-1000 difference measures configuration sensitivity in the full daemon; it is not an isolated per-record microbenchmark."
+  ]
+}
