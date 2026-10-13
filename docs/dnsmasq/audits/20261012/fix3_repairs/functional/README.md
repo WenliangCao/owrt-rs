@@ -66,3 +66,18 @@ checks. The total is 47 commands, 45 primary plus two supplemental; the addition
 controller has its own Git commit and file SHA, separate from source commit
 `0ff33bb0`. It executes from the private tool directory, never overwriting the
 source archive.
+
+The first main run stopped at command 9: the original strict DNS probe exited 1
+because its local profile includes the same two forward-pointer baseline cases
+already retained above. Its other 366 responses matched C. The original failed
+state, plan, argv and log are preserved. Exact query, C response, Rust response
+and empty-upstream identity against the frozen prior matrix were independently
+checked; `a10-checker-calibration.json` records this comparison.
+
+`continuation_driver.py` binds both original plans and the failed state by SHA,
+revalidates the first eight passed result files, and separately assesses command
+9 without changing its exit code. It then runs the original remaining 36 commands
+and the two original supplemental argv lists once. Its final state distinguishes
+46 zero-exit commands from one original strict nonzero exit whose only differences
+are the two predeclared parser cases. No archived source, product code, earlier
+result or plan is modified, and no already completed workload is repeated.

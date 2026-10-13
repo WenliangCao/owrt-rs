@@ -1,0 +1,24 @@
+{
+  "raw_sha256": "1c8efde2d4785e7a9108a11f625685783ab27e67cd416776477a579563a06f7e",
+  "prior_raw_sha256": "eecdbd9fc68be4ae86a6b24a607874d5c9fe36b9ecd5b96812bada64fd800fc9",
+  "checks": [
+    {
+      "case": "forward-pointer",
+      "protocol": "udp",
+      "query_exact": true,
+      "C_response_exact": true,
+      "Rust_response_exact": true,
+      "upstream_empty": true
+    },
+    {
+      "case": "forward-pointer",
+      "protocol": "tcp",
+      "query_exact": true,
+      "C_response_exact": true,
+      "Rust_response_exact": true,
+      "upstream_empty": true
+    }
+  ],
+  "total_cases": 368,
+  "remaining_equal": true
+}
