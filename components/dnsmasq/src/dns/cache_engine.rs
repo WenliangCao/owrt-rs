@@ -1763,7 +1763,7 @@ fn append_local_terminal(
     let mut previous_name = target.clone();
     let mut previous_offset = owner_offset;
     for section in [Section::Answer, Section::Authority, Section::Additional] {
-        if matches!(section, Section::Authority) {
+        if matches!(section, Section::Authority) && message.header.authorities == 0 {
             if let Some(id) = negative {
                 match append_negative_authority(writer, cache, id, now) {
                     Ok(_) | Err(WireError::Full) => {}

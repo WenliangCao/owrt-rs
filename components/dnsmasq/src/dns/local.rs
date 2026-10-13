@@ -483,6 +483,33 @@ impl<'a> LocalAnswerer<'a> {
                 }
             }
         }
+        // answer_request retains the NXDOMAIN prefix's SOA even when a
+        // newer DHCP/configured record supplies a positive answer. DHCP
+        // publication removes conflicting address entries, not NXDOMAIN.
+        // Only completed local answers reach this lookup; ordinary cache
+        // misses still return above without doing another name lookup.
+        if class_in && !rule_owned && !local_only && !truncated {
+            if let Some(cache) = cache.as_deref_mut() {
+                let terminal;
+                let name = if extra_owner == question.name.as_wire() {
+                    &question.name
+                } else {
+                    terminal = super::wire::decode_name(&extra_owner, 0, 0)?.0;
+                    &terminal
+                };
+                if let Some(id) = cache
+                    .lookup(name, &[Kind::NxDomain], now, !self.config.no_round_robin)
+                    .first()
+                    .copied()
+                {
+                    match super::cache_reply::append_negative_authority(&mut writer, cache, id, now) {
+                        Ok(_) => {}
+                        Err(WireError::Full) => truncated = true,
+                        Err(error) => return Err(error.into()),
+                    }
+                }
+            }
+        }
         append_mail_addresses(
             &mut writer,
             self,
@@ -512,6 +539,10 @@ impl<'a> LocalAnswerer<'a> {
         }))
     }
 }
+
+#[cfg(test)]
+#[path = "local_negative_tests.rs"]
+mod local_negative_tests;
 
 pub(crate) fn filter_win2k_question(name: &Name, rrtype: u16) -> bool {
     matches!(rrtype, 6 | 33) || (rrtype == 255 && name.dnsmasq_bytes().contains(&b'_'))
