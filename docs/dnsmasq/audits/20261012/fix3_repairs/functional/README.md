@@ -5,9 +5,10 @@ identities and the complete command inventory. `run` executes it sequentially an
 keeps failures intact. All daemon correctness checks use the real SDK payload;
 release performance and SDK compilation use separate controllers.
 
-The ten directed commands replay F02, fresh NXDOMAIN/DHCP publication, F08 stale,
+The eleven directed commands replay F02, fresh NXDOMAIN/DHCP publication, F08 stale,
 R1 terminal records, R1 RD/DO controls, N1, the third-review DNS matrix, the original
-A10/DNS boundary probe, N2, and an added same-connection TCP/UDP comparison.
+A10/DNS boundary probe, N2, the 65 syntax/54 auth-ACL service combinations, and
+an added same-connection TCP/UDP comparison.
 The thirteen complete affected families contribute 34 registry commands:
 `m5_dns_cache`, `m5_edns`, `m5_local_records`, `m5_option_matrix`,
 `m5_option_matrix_next`, `m5_option_matrix_third`, `m5_option_matrix_lease_names`,
@@ -48,3 +49,9 @@ The source raw matrix SHA is
 N1 raw SHA is
 `2b5a7a7052d92708b8ffe21e4b6b07b596c061b43d65739df9c0eb98869f1fb6`.
 This calibration is read-only, not a new daemon run.
+
+The auth/ACL probe preserves all 54 service combinations. Its eight previously
+recorded EOF/RST differences must retain exactly their known flags and complete
+C/Rust results; all other service results and all 65 syntax exit decisions must
+match C. An existing rejection representation difference is not presented as a
+fix or a successful DNS response.

@@ -14,7 +14,7 @@ import subprocess
 import sys
 import time
 
-from result_checks import check_matrix, check_n1, check_n2, observe_stale
+from result_checks import check_acl, check_matrix, check_n1, check_n2, observe_stale
 
 SELECTED = {
     'm5_dns_cache': 'shared cache/local precedence, negatives, CNAME, stale and TCP caller',
@@ -94,6 +94,8 @@ def main():
         directed('A10-and-original-DNS', tools / 'audit_20261011_dns.py', [*image_args, '--require-match'], 'audit')
         directed('N2-intentional-permissions', review3 / 'dhcp/hosts_permissions.py', ['--source', source,
                  '--image', args.image_root, '--main', args.main, '--fix', args.rust], 'n2')
+        directed('O3-auth-ACL', review2 / 'config/config_normal.py', ['--source', source,
+                 '--image', args.image_root, '--rust', args.rust], 'acl')
         spec = read(args.base_identity)
         spec.update(source_root=str(source), tools_root=str(tools), source_commit=args.source_commit,
                     image_root=str(args.image_root), elf=str(args.rust), elf_sha256=args.rust_sha256,
@@ -111,7 +113,7 @@ def main():
         plan = {'schema': 'dnsmasq-fix3-functional-v1', 'source': str(source), 'source_commit': args.source_commit,
                 'rust': str(args.rust), 'rust_sha256': args.rust_sha256, 'output': str(args.out),
                 'source_files': package.inputs(source), 'assets': assets, 'selected_families': SELECTED,
-                'directed_commands': 10, 'family_commands': len(family_jobs), 'jobs': jobs,
+                'directed_commands': 11, 'family_commands': len(family_jobs), 'jobs': jobs,
                 'limits': 'F08 stale remains explicitly observed; two inherited forward-pointer differences retained; nine C-internal UDP/TCP mismatches follow shared UDP behavior; no arbitrary differences waived'}
         args.plan.parent.mkdir(parents=True, exist_ok=True)
         save(args.plan, plan)
@@ -164,9 +166,9 @@ def main():
                 assert len(value['cases']) == 16
             if check == 'parity':
                 assert len(value['profiles']) == 56 and value['case_count'] == 1736
-            if check in ('n1', 'matrix', 'n2', 'stale'):
+            if check in ('n1', 'matrix', 'n2', 'stale', 'acl'):
                 record['strict_result'] = {'n1': check_n1, 'matrix': check_matrix,
-                                          'n2': check_n2, 'stale': observe_stale}[check](value)
+                                          'n2': check_n2, 'stale': observe_stale, 'acl': check_acl}[check](value)
                 assert record['strict_result']['passed'], record['strict_result']
             if check == 'audit':
                 assert all(row['same_client_result'] for profile in value['profiles'].values() for row in profile['cases'])

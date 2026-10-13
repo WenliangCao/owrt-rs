@@ -93,3 +93,25 @@ def observe_stale(result):
                 'C_wire': c['tcp_after'], 'Rust_wire': rust['tcp_after']})
     return {'executed': True, 'passed': all(row['healthy_ACK'] for row in observations),
             'observations': observations, 'equivalence_claim': all(row['answer_equal'] for row in observations)}
+
+
+def check_acl(result):
+    assert len(result['syntax']) == 65 and len(result['services']) == 54
+    previous = json.loads((Path(__file__).parents[2] / 'fix3/config/summary.json').read_text())['config']['fix']
+    known = {tuple(row['flags']): row['result'] for row in previous['service_mismatches']}
+    assert len(known) == 8
+    failures, inherited = [], []
+    for row in result['syntax']:
+        if not row['same_status']:
+            failures.append({'syntax': row['directive']})
+    for row in result['services']:
+        key = tuple(row['flags'])
+        if key in known:
+            if row['result'] != known[key]:
+                failures.append({'service': row['flags'], 'kind': 'inherited-refusal-result-changed'})
+            inherited.append(row['flags'])
+        elif row['result']['c'] != row['result']['rust']:
+            failures.append({'service': row['flags'], 'kind': 'new-C-difference'})
+    assert len(inherited) == 8
+    return {'passed': not failures, 'failures': failures, 'syntax_cases': 65,
+            'service_cases': 54, 'inherited_refusal_representation_differences': inherited}
