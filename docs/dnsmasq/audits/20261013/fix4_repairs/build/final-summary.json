@@ -1,0 +1,621 @@
+{
+  "schema": "dnsmasq-fix4-build-v1",
+  "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+  "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+  "source_input_count": 178,
+  "source_identity": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/source-final-identity.json",
+    "sha256": "682c5b6d197c454d66b2312be65075461fdf853e52019d7f6b553ea58519defd",
+    "bytes": 21417
+  },
+  "controller": {
+    "phase": "final",
+    "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+    "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+    "source_date_epoch": "1791921285",
+    "controller_sha256": "cb7761d6485c8252cd0bd8c68327e78bdbe62b3b6d124d8e71c5e5f3aae27d65",
+    "identity_sha256": "682c5b6d197c454d66b2312be65075461fdf853e52019d7f6b553ea58519defd",
+    "sdk_driver_sha256": "a8567df9b98f427e250290cd9fb7a3c5a1f7a7d3cea1cddc8a4899aa2ad68a74",
+    "commands": [
+      {
+        "name": "release-build",
+        "argv": [
+          "sh",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/oracle_build.sh",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/release-final",
+          "release"
+        ],
+        "started": 1791922323.9898398,
+        "returncode": 0,
+        "elapsed_seconds": 57.469656467437744,
+        "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/final-release-build.driver.log",
+        "log_sha256": "f16f24509ff6599fe3419defae9d1b7f480cb0150dc7806e90ba83d6328e5f3c",
+        "build_receipt_sha256": "c0634b862b1c36d9fb524e1f59b06ea93c028c86c389c26fbff8ff84d0fb2b52"
+      },
+      {
+        "name": "tests-build",
+        "argv": [
+          "sh",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/oracle_build.sh",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/tests-final",
+          "tests"
+        ],
+        "started": 1791922381.4610138,
+        "returncode": 0,
+        "elapsed_seconds": 33.47393846511841,
+        "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/final-tests-build.driver.log",
+        "log_sha256": "c702a87c8a09d9a0e5532545ebcd9e0691d24e3f1e2d7fb585e74a88acd3979a",
+        "build_receipt_sha256": "6c5bfebaec7d4b4ca2f41f70338ba42fd9a13c3c5721da221b9041019bee96de"
+      },
+      {
+        "name": "lib-dnsmasq_rs",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "-c",
+          "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+          "unit",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/tests-final/lib-dnsmasq_rs",
+          "--test-threads=1"
+        ],
+        "started": 1791922414.9365146,
+        "returncode": 0,
+        "elapsed_seconds": 4.021430492401123,
+        "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/final-lib-dnsmasq_rs.driver.log",
+        "log_sha256": "3fbb80db6326a71d957d45a1aaa445fa5088cab76181ece0b7ec963d3b23d0fa",
+        "counts": {
+          "passed": 777,
+          "failed": 0,
+          "ignored": 20,
+          "measured": 0,
+          "filtered_out": 0
+        },
+        "elf_sha256": "dabaff973b61b6435d8e3e7c2583f1488f87cf7f66575a30175c722b4889271b"
+      },
+      {
+        "name": "bin-dnsmasq-rs",
+        "argv": [
+          "sudo",
+          "-n",
+          "sh",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/tools/dnsmasq/run_isolated.sh",
+          "sh",
+          "-c",
+          "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+          "unit",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/tests-final/bin-dnsmasq-rs",
+          "--test-threads=1"
+        ],
+        "started": 1791922419.029764,
+        "returncode": 0,
+        "elapsed_seconds": 4.172499895095825,
+        "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/final-bin-dnsmasq-rs.driver.log",
+        "log_sha256": "d06c14eb4822bd990dd5aee355005a853a0419dde675ddce3ec7aebc834d59bb",
+        "counts": {
+          "passed": 77,
+          "failed": 0,
+          "ignored": 3,
+          "measured": 0,
+          "filtered_out": 0
+        },
+        "elf_sha256": "da64e916c63e8c0bbf08f6629574223870afd8071cdbc079e98ad2bb7b542dbc"
+      },
+      {
+        "name": "sdk-acquire",
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk_source_build.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+          "--sdk",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+          "--workspace",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final",
+          "--source-commit",
+          "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+          "--source-date-epoch",
+          "1791921285",
+          "--expected-source-digest",
+          "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+          "--out",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final",
+          "--acquire"
+        ],
+        "started": 1791922423.256978,
+        "returncode": 1,
+        "elapsed_seconds": 87.95712471008301,
+        "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/final-sdk-acquire.driver.log",
+        "log_sha256": "14e571d97cbe228c2e8ca02a4e99001a6cf49975b40b39d7abc75bbb2e89e14e",
+        "manifest_sha256": "0f2a517e23876521bafb8ad49c7b6d32e85b9df27e696740a28b0b5aef1d5dbc"
+      },
+      {
+        "name": "sdk-verify",
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk_source_build.py",
+          "--source",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+          "--sdk",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+          "--workspace",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final",
+          "--source-commit",
+          "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+          "--source-date-epoch",
+          "1791921285",
+          "--expected-source-digest",
+          "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+          "--out",
+          "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final",
+          "--expected-elf-sha256",
+          "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+          "--link-map"
+        ],
+        "started": 1791922511.2160532,
+        "returncode": 1,
+        "elapsed_seconds": 88.07760000228882,
+        "log_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/final-sdk-verify.driver.log",
+        "log_sha256": "67e772a95602447012aebf80834386b85c293bf96d9929b64845a9fb52cd931c",
+        "manifest_sha256": "f6080d7db83f1cf732a799bdd29b6cd9771e7eb21e57cc5d4c531addfd198f6d"
+      }
+    ],
+    "passed": true,
+    "ordinary_units": {
+      "passed": 854,
+      "failed": 0,
+      "ignored": 23,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "sdk_elf_sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+    "sdk_apk_sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+    "sdk_elf_bytes": 2054939,
+    "sdk_apk_bytes": 1117789,
+    "original_budget_passed": false,
+    "exact_sdk_link_map": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-link.map",
+      "sha256": "b39291f3b7d5373b40af63ff4dd7893244a5bc90ed9309cae6a90f7aa0f66728",
+      "bytes": 3069554
+    },
+    "map_build_elf_and_apk_identical_to_standard": true,
+    "ended": 1791922599.3144372
+  },
+  "controller_result": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/build-final-result.json",
+    "sha256": "2e2d884290a54d7e52bc8b60ae1dda9a9ac522de676c3d20ae494e12fd596f0d",
+    "bytes": 7212
+  },
+  "invocation": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/build-final-invocation.json",
+    "sha256": "40bff1656c6d7cd31a811e291cda5cb414fabe1440626dc36b4cc84426be802f",
+    "bytes": 929
+  },
+  "release": {
+    "source": "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+    "kind": "release",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2056672,
+        "sha256": "a73b7bf1b193156433e9ce56cbdce2b4eb48fc9e2052941e344eae0fc02af4b3"
+      }
+    ]
+  },
+  "tests": {
+    "source": "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52311656,
+        "sha256": "da64e916c63e8c0bbf08f6629574223870afd8071cdbc079e98ad2bb7b542dbc"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70332952,
+        "sha256": "dabaff973b61b6435d8e3e7c2583f1488f87cf7f66575a30175c722b4889271b"
+      }
+    ]
+  },
+  "sdk": [
+    {
+      "schema": 1,
+      "status": "source-build-candidate-acquired-budget-rejected",
+      "build_mode": "compile-and-package",
+      "frozen_elf": false,
+      "physical_router": false,
+      "activation": "unvalidated-package",
+      "scope": "SDK source build and identity only; runtime and deployment qualification are separate",
+      "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+      "source_date_epoch": "1791921285",
+      "expected_source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+      "expected_elf_sha256": null,
+      "acquire": true,
+      "fixed_workspace": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final",
+      "argv": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk_source_build.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+        "--sdk",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "--workspace",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final",
+        "--source-commit",
+        "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+        "--source-date-epoch",
+        "1791921285",
+        "--expected-source-digest",
+        "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final",
+        "--acquire"
+      ],
+      "driver_sha256": "a8567df9b98f427e250290cd9fb7a3c5a1f7a7d3cea1cddc8a4899aa2ad68a74",
+      "commands": [
+        [
+          "make",
+          "package/owrt-dnsmasq/prepare",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/sdk-output",
+          "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ],
+        [
+          "make",
+          "package/owrt-dnsmasq/compile",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/sdk-output",
+          "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ]
+      ],
+      "stages": {
+        "prepare": {
+          "exit_code": 0
+        },
+        "compile": {
+          "exit_code": 0
+        }
+      },
+      "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+      "budget": {
+        "schema": 1,
+        "elf_max_bytes": 1000000,
+        "apk_max_bytes": 700000,
+        "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+      },
+      "fixed_source_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/source",
+      "fixed_build_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/package-build",
+      "cargo-version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+      "rustc-version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+      "target-cc-version": "aarch64-openwrt-linux-musl-gcc (OpenWrt GCC 14.3.0 r33051-f5dae5ece4) 14.3.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+      "sdk_recipe_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq",
+      "sdk_recipe_restored": true,
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "apk_metadata": {
+        "name": "dnsmasq",
+        "version": "2.93-r3",
+        "arch": "aarch64_cortex-a53",
+        "provides": [
+          "dnsmasq-any"
+        ],
+        "replacement": "same package name dnsmasq, newer release 2.93-r3",
+        "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+        "depends": [
+          "libc",
+          "libubus20251202"
+        ]
+      },
+      "artifact": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/dnsmasq-2.93-r3.apk",
+        "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+        "size": 1117789
+      },
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/payload/usr/sbin/dnsmasq",
+        "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+        "size": 2054939
+      },
+      "pre_sdk_strip_elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/dnsmasq-pre-strip",
+        "sha256": "4f969b902f8bba72c9e1d32720b90f25e3068e26c4d7ee2f7bb850c75451f19a",
+        "size": 2056672
+      },
+      "postprocess_command": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/sstrip",
+        "-z",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/dnsmasq-sdk-sstrip"
+      ],
+      "sdk_strip_payload_identity_verified": true,
+      "source_build_passed": true,
+      "sdk_inputs_unchanged": true,
+      "source_inputs_unchanged": true,
+      "budget_checks": {
+        "apk": false,
+        "elf": false
+      },
+      "failure_boundary": "size-target",
+      "budget_error": "APK size 1117789 exceeds target 700000 bytes; ELF size 2054939 exceeds target 1000000 bytes",
+      "manifest": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/manifest.json",
+        "sha256": "0f2a517e23876521bafb8ad49c7b6d32e85b9df27e696740a28b0b5aef1d5dbc",
+        "bytes": 62927
+      },
+      "source_input_count": 178,
+      "sdk_input_count": 106,
+      "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "logs": {
+        "prepare.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/prepare.log",
+          "sha256": "c27daa0bb5c5211b6c62844bdf4bf4824db5e85a6fa51e1f2d96c7329bb0a93b",
+          "bytes": 14468
+        },
+        "compile.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/compile.log",
+          "sha256": "16a9057664235b8400c546eed3b701cc27bcac712404def77fd623100d72b98e",
+          "bytes": 68870
+        },
+        "elf-readelf.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/elf-readelf.log",
+          "sha256": "7a5ca118536fa7f43391488bc753b7773fc13e8dafdc9d9bf65d5cca966bd451",
+          "bytes": 2788
+        },
+        "apk-metadata.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/apk-metadata.log",
+          "sha256": "bf81d695da2b2a732c1468b8ef7496f51f026a19a56dbbb1e159618ac58dc70d",
+          "bytes": 7665
+        },
+        "sstrip-check.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-acquire-final/sstrip-check.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    {
+      "schema": 1,
+      "status": "source-build-identity-verified-budget-rejected",
+      "build_mode": "compile-and-package",
+      "frozen_elf": false,
+      "physical_router": false,
+      "activation": "unvalidated-package",
+      "scope": "SDK source build and identity only; runtime and deployment qualification are separate",
+      "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+      "source_date_epoch": "1791921285",
+      "expected_source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+      "expected_elf_sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+      "acquire": false,
+      "fixed_workspace": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final",
+      "argv": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk_source_build.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final",
+        "--sdk",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+        "--workspace",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final",
+        "--source-commit",
+        "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+        "--source-date-epoch",
+        "1791921285",
+        "--expected-source-digest",
+        "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+        "--out",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final",
+        "--expected-elf-sha256",
+        "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+        "--link-map"
+      ],
+      "driver_sha256": "a8567df9b98f427e250290cd9fb7a3c5a1f7a7d3cea1cddc8a4899aa2ad68a74",
+      "commands": [
+        [
+          "make",
+          "package/owrt-dnsmasq/prepare",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/sdk-output",
+          "V1_CARGO=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/cargo-with-link-map.py",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ],
+        [
+          "make",
+          "package/owrt-dnsmasq/compile",
+          "V=s",
+          "-j1",
+          "V1_PACKAGE_RELEASE=3",
+          "OWRT_COMPONENTS_SOURCE=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/source/components",
+          "OWRT_DNSMASQ_BUILD_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/package-build",
+          "OWRT_DNSMASQ_OUTPUT_DIR=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/sdk-output",
+          "V1_CARGO=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/cargo-with-link-map.py",
+          "V1_CARGO_HOME=/home/ubuntu/.cargo",
+          "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+        ]
+      ],
+      "stages": {
+        "prepare": {
+          "exit_code": 0
+        },
+        "compile": {
+          "exit_code": 0
+        }
+      },
+      "source_digest": "aeab077f18f7ffbeed216372d9a27da8d6c291628e62bcc17017c46daf7f05a1",
+      "budget": {
+        "schema": 1,
+        "elf_max_bytes": 1000000,
+        "apk_max_bytes": 700000,
+        "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+      },
+      "fixed_source_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/source",
+      "fixed_build_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/package-build",
+      "cargo-version": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+      "rustc-version": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+      "target-cc-version": "aarch64-openwrt-linux-musl-gcc (OpenWrt GCC 14.3.0 r33051-f5dae5ece4) 14.3.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+      "private_link_map_wrappers": {
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/cargo-with-link-map.py": "1347f77b6dc930b46fadcc5e4850189281d8ed1373d9d4efd14424775a6874a6",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/cc-with-link-map.py": "3dd2c125a1c7a2bcdd73d0671962f410130c9aac32b479fb95abdae30ca013f0"
+      },
+      "link_map_argument": "-Wl,-Map=/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-workspace-final/dnsmasq-link.map",
+      "prior_build_tree_archived": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/previous-build-tree",
+      "sdk_recipe_path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/package/owrt-dnsmasq",
+      "sdk_recipe_restored": true,
+      "link_map": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-link.map",
+        "sha256": "b39291f3b7d5373b40af63ff4dd7893244a5bc90ed9309cae6a90f7aa0f66728",
+        "bytes": 3069554
+      },
+      "elf_layout": {
+        "type": "ET_DYN",
+        "machine": "AArch64",
+        "linkage": "static-pie",
+        "interpreter": null,
+        "needed": [],
+        "pie": true,
+        "bind_now": true,
+        "gnu_relro": true,
+        "nx_stack": true,
+        "writable_executable_load": false,
+        "runtime_protections_verified": false
+      },
+      "apk_metadata": {
+        "name": "dnsmasq",
+        "version": "2.93-r3",
+        "arch": "aarch64_cortex-a53",
+        "provides": [
+          "dnsmasq-any"
+        ],
+        "replacement": "same package name dnsmasq, newer release 2.93-r3",
+        "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+        "depends": [
+          "libc",
+          "libubus20251202"
+        ]
+      },
+      "artifact": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-2.93-r3.apk",
+        "sha256": "5853a61ed87ee94b75520f19fa356976d903068f5af7b54060e6aa85e4d4cedd",
+        "size": 1117789
+      },
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/payload/usr/sbin/dnsmasq",
+        "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+        "size": 2054939
+      },
+      "pre_sdk_strip_elf": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-pre-strip",
+        "sha256": "4f969b902f8bba72c9e1d32720b90f25e3068e26c4d7ee2f7bb850c75451f19a",
+        "size": 2056672
+      },
+      "postprocess_command": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/sstrip",
+        "-z",
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/dnsmasq-sdk-sstrip"
+      ],
+      "sdk_strip_payload_identity_verified": true,
+      "source_build_passed": true,
+      "sdk_inputs_unchanged": true,
+      "source_inputs_unchanged": true,
+      "artifact_identity_verified": true,
+      "apk_byte_identical": true,
+      "budget_checks": {
+        "apk": false,
+        "elf": false
+      },
+      "failure_boundary": "size-target",
+      "budget_error": "APK size 1117789 exceeds target 700000 bytes; ELF size 2054939 exceeds target 1000000 bytes",
+      "manifest": {
+        "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/manifest.json",
+        "sha256": "f6080d7db83f1cf732a799bdd29b6cd9771e7eb21e57cc5d4c531addfd198f6d",
+        "bytes": 64114
+      },
+      "source_input_count": 178,
+      "sdk_input_count": 106,
+      "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "logs": {
+        "prepare.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/prepare.log",
+          "sha256": "780b03053436155fd943af334399ed33bf234fe5196855688306fd49ce54d7c3",
+          "bytes": 14467
+        },
+        "compile.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/compile.log",
+          "sha256": "aee0a5809a66299a8a133d97421e2cdc2782c9ba58603ed7f7ab8778700b06b2",
+          "bytes": 68930
+        },
+        "elf-readelf.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/elf-readelf.log",
+          "sha256": "7a5ca118536fa7f43391488bc753b7773fc13e8dafdc9d9bf65d5cca966bd451",
+          "bytes": 2788
+        },
+        "apk-metadata.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/apk-metadata.log",
+          "sha256": "bf81d695da2b2a732c1468b8ef7496f51f026a19a56dbbb1e159618ac58dc70d",
+          "bytes": 7665
+        },
+        "sstrip-check.log": {
+          "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/sstrip-check.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    }
+  ],
+  "summary": {
+    "ordinary_units": {
+      "passed": 854,
+      "failed": 0,
+      "ignored": 23,
+      "measured": 0,
+      "filtered_out": 0
+    },
+    "sdk_source_builds": 2,
+    "standard_and_map_clean_rebuild_elf_apk_identical": true,
+    "original_size_budget_passed": false,
+    "physical_router": false,
+    "deployed": false
+  },
+  "collector": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/source-final/docs/dnsmasq/audits/20261013/fix4_repairs/build/collect_build.py",
+    "sha256": "afbc493b1ac59d49f1fe2ff602ba29d2da5f89556e62865f55cd0858f9c6bc13",
+    "bytes": 3908
+  }
+}
