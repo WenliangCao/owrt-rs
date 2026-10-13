@@ -1,0 +1,63 @@
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           AArch64
+  Version:                           0x1
+  Entry point address:               0x1c1a0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          2055200 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         7
+  Size of section headers:           64 (bytes)
+  Number of section headers:         23
+  Section header string table index: 22
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x1e9a80 0x1e9a80 R E 0x1000
+  LOAD           0x1ea1d0 0x00000000001ea1d0 0x00000000001ea1d0 0x00b950 0x00cac0 RW  0x1000
+  DYNAMIC        0x1f4da0 0x00000000001f4da0 0x00000000001f4da0 0x000180 0x000180 RW  0x8
+  TLS            0x1ea1d0 0x00000000001ea1d0 0x00000000001ea1d0 0x000000 0x000030 R   0x8
+  GNU_EH_FRAME   0x1ccd5c 0x00000000001ccd5c 0x00000000001ccd5c 0x0047a4 0x0047a4 R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10
+  GNU_RELRO      0x1ea1d0 0x00000000001ea1d0 0x00000000001ea1d0 0x00ae30 0x00ae30 R   0x1
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .hash .gnu.hash .dynsym .dynstr .rela.dyn .init .text .fini .rodata .eh_frame_hdr .eh_frame .gcc_except_table
+   01     .init_array .fini_array .data.rel.ro .dynamic .got .data .bss
+   02     .dynamic
+   03     .tbss
+   04     .eh_frame_hdr
+   05
+   06     .init_array .fini_array .data.rel.ro .dynamic .got
+
+Dynamic section at offset 0x1f4da0 contains 20 entries:
+  Tag        Type                         Name/Value
+ 0x000000000000000c (INIT)               0xccd0
+ 0x000000000000000d (FINI)               0x1b6844
+ 0x0000000000000019 (INIT_ARRAY)         0x1ea1d0
+ 0x000000000000001b (INIT_ARRAYSZ)       24 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x1ea1e8
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x0000000000000004 (HASH)               0x1c8
+ 0x000000006ffffef5 (GNU_HASH)           0x1e0
+ 0x0000000000000005 (STRTAB)             0x248
+ 0x0000000000000006 (SYMTAB)             0x200
+ 0x000000000000000a (STRSZ)              1 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000015 (DEBUG)              0x0
+ 0x0000000000000007 (RELA)               0x250
+ 0x0000000000000008 (RELASZ)             51840 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x0000000000000018 (BIND_NOW)
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE
+ 0x000000006ffffff9 (RELACOUNT)          2160
+ 0x0000000000000000 (NULL)               0x0

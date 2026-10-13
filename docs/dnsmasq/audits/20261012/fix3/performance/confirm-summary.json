@@ -1,0 +1,657 @@
+{
+  "scope": "Independent longer confirmation of observed TCP cached A scaling regression: 1000 unrelated dns-rr records",
+  "plan_sha256": "7a9a8d4a13f54bedb9b6fcd95f7f6863c0c25f515404e6f28442344cf0b7331f",
+  "groups": {
+    "main": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "bytes": 1970216,
+      "build": {
+        "source": "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 1970216,
+            "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863"
+          }
+        ]
+      }
+    },
+    "fix": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+      "sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "bytes": 2056672,
+      "build": {
+        "source": "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2056672,
+            "sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a"
+          }
+        ]
+      }
+    }
+  },
+  "windows": [
+    {
+      "id": "tcp-raw-1000-confirm-r1-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 32.5986,
+        "p95_ns": 78361,
+        "rss_kib": 7464,
+        "pss_kib": 7456,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "30d51aea6cb5cd45873533b568c3a62023b00892f705c52cb0896763870dddfa",
+        "load.json": "8fb0f30cdde7d7c03e05c63f0269241020fa7242f82549ca6bc77c906aeddd31",
+        "epoch.json": "c78a1511fbdcb654ac4fa372ca0bd9b5c73979f36809670b13c21015550b3eca",
+        "resources.json": "7ff897e897f81818dcfe3fe25ec72a9443f13f8520933d26fd0475894f646714",
+        "load.latencies.bin": "4878d7020bf937ba5219bafa93f148aa053639feaa88f33600527b3909f70fe2",
+        "load.send-lag.bin": "2f45743d80b3a61a4550d631193299a3537f967e4ae4786e858bef91aa8a205d"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r1-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 115.74393333333333,
+        "p95_ns": 211602,
+        "rss_kib": 7436,
+        "pss_kib": 7428,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "cd1fadf610990ae5077cfc22e6f395c88119d2170558c7bf9ff036618a32c4cf",
+        "load.json": "4baa496530b71fd0d3502e581f543621a450f41eb79809e967e51c56d8cc1f73",
+        "epoch.json": "fecd85d77dbc63266639ac771dab66386e162392106c149879bcd35443b3bcc1",
+        "resources.json": "466d7f1224aa8cdb7a36f0e110505855728812d52a725d8997c4e0e5553acda3",
+        "load.latencies.bin": "152a352cfb6d08755268b502a04742dcc169f69c486a7d946ca9958c644d6371",
+        "load.send-lag.bin": "aa9f294c1e4df0a296380496ac6e41a0182e1bcaa319595980fb92a7339912b2"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r2-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 118.75626666666666,
+        "p95_ns": 218201,
+        "rss_kib": 7432,
+        "pss_kib": 7424,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "edf636cfb1669a1c4d6be6d99d4070c70204d8bfea6fe600c0573a356a78e607",
+        "load.json": "336a8e596ac098b209ca9f04cd4b2fd5525f6ee1420af33f3ab07bdbf7bb12ad",
+        "epoch.json": "e774697d34ab21128dc40c3bf0446e3fe5368a67bf6c3c94cfbd5a9d3f5c3541",
+        "resources.json": "6c29e09e9fd52869a470279c5bd91f10ce03035876d2f67724f2fde12761656c",
+        "load.latencies.bin": "19073f4e0331ec64b07e622b8bc7931e14881950a87dae4d95b7ecfdfe8d6da6",
+        "load.send-lag.bin": "aceb7274a12e8af3747a638d872725c8d40a2a7e479ff940c55f5e085716288c"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r2-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 31.596,
+        "p95_ns": 78800,
+        "rss_kib": 7464,
+        "pss_kib": 7456,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "c2831b6d72c5e413b9b8d9d510ec91b3678360747b28501f46bac91596c9ef21",
+        "load.json": "39188409b5a1031a4d9194f40c2588b2f3c16e532caea7c5a79fee5600d79a44",
+        "epoch.json": "befbe0aefe7f74c4ca5353513a2c6bfa4cb368be6d26dadde098ccc02e29cde8",
+        "resources.json": "c1d6d4c19fd8765e7128190b86da7e61ad047003697d01144514cff1cad35ae5",
+        "load.latencies.bin": "526cf2ff6e93d8507fc96e575d00a2b3c8aed1f3f57d099157def568f5c0bb7f",
+        "load.send-lag.bin": "4cde8870e0328d200fb4afe7d69fcf648acd49ef26251b55206b11c9cf44ec8f"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r3-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 34.70973333333333,
+        "p95_ns": 80481,
+        "rss_kib": 7464,
+        "pss_kib": 7456,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "c1fc332de764def1127b049fe9dcca42686105bae37a360051d0044c563ec5b6",
+        "load.json": "cbb4e67598acdd0868f00b00008ead71eedfa241a378d514787d3a1ae775ad48",
+        "epoch.json": "098f63bf5f681167bd9c65a625a7606a168c42430e4109ee1824c7e16c3e9491",
+        "resources.json": "ab79426e8d0fd62fa89d9d870dd0d7c43f6132e2f69783e38d41941c8275a5d4",
+        "load.latencies.bin": "c71f1e4aa07ec0cd1130517049c0970cf15918119bd3b85075f440301d5ec9b1",
+        "load.send-lag.bin": "b536a3124a3c3513f9fa3d0380c99bf1608780b11c296691b67f47b020abf016"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r3-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 120.40223333333333,
+        "p95_ns": 233922,
+        "rss_kib": 7532,
+        "pss_kib": 7524,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "1d1f1f4df2b9960b923984f00be28e6fff73f03d33d14b0173fb7998fec6fae8",
+        "load.json": "7f2f3c5d42a6442af3c7e576bdae7c938b7fcdbe09ed31d527b464e0ef3248ed",
+        "epoch.json": "2c632de7ddf68e2f1a75b83f2af8e98d2f290e67391be7894073dd4b904f470a",
+        "resources.json": "1804a1a711c86ed88399ed51b105ce9179f84fd9db43168c524c42751dd7a4ac",
+        "load.latencies.bin": "9277306d3cc74dab6e5b577bbfeb91795a110225d584ef64c462bb0e8325eef5",
+        "load.send-lag.bin": "2941a12d3dbb4b2947f81df47a75c792163e0bdbc55cbe93f368ec50f51b948c"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r4-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 4,
+      "metrics": {
+        "cpu_us_per_correct": 115.37996666666666,
+        "p95_ns": 213962,
+        "rss_kib": 7544,
+        "pss_kib": 7536,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "8a62a47957f97085e17263502b8d8b80c2a3211c8b58e3c81022bf643e28f05b",
+        "load.json": "0a06ad02c76aa63ec4d1b6a2eaeec08094666c6a16108022225e44913f83887e",
+        "epoch.json": "1f06aecb462d20477e155d3c1d409d8101ec8887cdd56b7526c47ed5533d15d9",
+        "resources.json": "a2a1d65a94215bd2a3e3ccd99191e8b49dd1c726071507821790ddd5162ea48d",
+        "load.latencies.bin": "e3b699560979052e875efb723e8923a01c95ac2848b1375df70c17bdbcd83715",
+        "load.send-lag.bin": "c0baaf920256656032537a9bdccad1e15610c1617ca276144962fe55d1b1d061"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r4-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 4,
+      "metrics": {
+        "cpu_us_per_correct": 32.174033333333334,
+        "p95_ns": 80201,
+        "rss_kib": 7468,
+        "pss_kib": 7460,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "b5ba63a6b9009897042b09625867a43aba3ea0909b4f6b48ac0d47d566357fe5",
+        "load.json": "1f4b4a850add44a3a7bd4c2039407f167b6ddd6e3c4f28eb0a72856a65d99650",
+        "epoch.json": "a5f1193464a4c715311df670d21cb3343cba1724adbc934082768c50214a6669",
+        "resources.json": "1f5c052dee7489ffb5d7dcdb8ded973705ef135362bc339e62de80a919544a5f",
+        "load.latencies.bin": "09e76c5b2543e3dc5a0b7b48c78b79f70d4e5df72a634532c89551f0f1312382",
+        "load.send-lag.bin": "a3dccb37fb8fba0a5de76957a973cf940769aadf23f4641dddadd3731cc121f2"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r5-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 5,
+      "metrics": {
+        "cpu_us_per_correct": 33.30396666666667,
+        "p95_ns": 80641,
+        "rss_kib": 7464,
+        "pss_kib": 7456,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "b3129ecf5c3cd67449c03f6ff829090c95131f90cac4ce17aa993619dc7c1020",
+        "load.json": "b98771dbe6f4461c74205e669cb55580c763c9f245a7b9fe2c3a4d95d40df16f",
+        "epoch.json": "c9c90f1b1df69b5b58f7e112fa6e4945759fe06fbff2a1aa90716261a13aaed1",
+        "resources.json": "170933573ab7b7ad8dac2f416c3fd936090b77dcee3fbb8301f75798012f734a",
+        "load.latencies.bin": "09a26c41fa6c5dffe989cf783e14ff9af0023067e56cf4001209fa9255b6b282",
+        "load.send-lag.bin": "5df51345b61dfe11165e95c0e36b3b61b815358ffebcd0e2f6ff86709a64e110"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-confirm-r5-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 5,
+      "metrics": {
+        "cpu_us_per_correct": 115.90263333333333,
+        "p95_ns": 213722,
+        "rss_kib": 7580,
+        "pss_kib": 7572,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 5000,
+          "sent": 5000,
+          "scheduled_skipped": 0,
+          "correct": 5000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "ff46966a0404b30e87f6b12695a0b860f68e60abece939a76f938b5087d1fc67",
+        "load.json": "d2ac4ed4cee935f02a0527ba7718fe5660a89967121cb43ba938bda9326ee1dd",
+        "epoch.json": "543fe0be757e02b123bd8b64c7ea111233a3d4a2638567008e6a071e3810bf6b",
+        "resources.json": "8081305d50cd8a24fc2878fbdce5f8b9eae387937568699b64a467545aa29e78",
+        "load.latencies.bin": "80756075326070b68109cf98da0c2a609a4d95f01fda9d1f9f20173beebc3263",
+        "load.send-lag.bin": "461de278dc9ab0e9638a7ac926abb9f27da90b7d102317d136324ad39b590713"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        32.5986,
+        31.596,
+        34.70973333333333,
+        32.174033333333334,
+        33.30396666666667
+      ],
+      "fix": [
+        115.74393333333333,
+        118.75626666666666,
+        120.40223333333333,
+        115.37996666666666,
+        115.90263333333333
+      ],
+      "main_median": 32.5986,
+      "fix_median": 115.90263333333333,
+      "relative_delta": 2.555448188981531,
+      "main_W": 0.09551739440753076,
+      "fix_W": 0.04333177359502042,
+      "worse_pairs": 5,
+      "flag": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "p95_ns",
+      "main": [
+        78361,
+        78800,
+        80481,
+        80201,
+        80641
+      ],
+      "fix": [
+        211602,
+        218201,
+        233922,
+        213962,
+        213722
+      ],
+      "main_median": 80201,
+      "fix_median": 213962,
+      "relative_delta": 1.6678220969813342,
+      "main_W": 0.028428573209810352,
+      "fix_W": 0.10431758910460737,
+      "worse_pairs": 5,
+      "flag": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "pss_kib",
+      "main": [
+        7456,
+        7456,
+        7456,
+        7460,
+        7456
+      ],
+      "fix": [
+        7428,
+        7424,
+        7524,
+        7536,
+        7572
+      ],
+      "main_median": 7456,
+      "fix_median": 7524,
+      "relative_delta": 0.009120171673819844,
+      "main_W": 0.000536480686695279,
+      "fix_W": 0.019670388091440724,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "rss_kib",
+      "main": [
+        7464,
+        7464,
+        7464,
+        7468,
+        7464
+      ],
+      "fix": [
+        7436,
+        7432,
+        7532,
+        7544,
+        7580
+      ],
+      "main_median": 7464,
+      "fix_median": 7532,
+      "relative_delta": 0.009110396570203738,
+      "main_W": 0.0005359056806002144,
+      "fix_W": 0.01964949548592671,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "fd_count",
+      "main": [
+        32,
+        32,
+        32,
+        32,
+        32
+      ],
+      "fix": [
+        32,
+        32,
+        32,
+        32,
+        32
+      ],
+      "main_median": 32,
+      "fix_median": 32,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    }
+  ],
+  "errors": [],
+  "complete": true
+}

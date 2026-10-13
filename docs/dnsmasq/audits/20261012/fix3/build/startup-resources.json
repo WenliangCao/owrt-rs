@@ -1,0 +1,3547 @@
+{
+  "scope": "Fresh main/fix/C startup resource comparison; kernel CPU ticks sampled at first cache-reload log, 5 ms wall-clock polling",
+  "source_commit": "e3a37f55b2939ee2a0c229b0ac96a2a9c407b8aa",
+  "main_commit": "be531cee49e366bb5044443d473944dbea45b87e",
+  "script_sha256": "22432075ee1e6548fa02fcd4a94254b729ca65067b6be6b6edb7ef679f875d0e",
+  "counts": [
+    0,
+    1000,
+    10000,
+    50000
+  ],
+  "orders": [
+    [
+      "c",
+      "main",
+      "head"
+    ],
+    [
+      "main",
+      "head",
+      "c"
+    ],
+    [
+      "head",
+      "c",
+      "main"
+    ]
+  ],
+  "argv": [
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/startup_resources.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix",
+    "--image-root",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--rust",
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+    "--main",
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+    "--out",
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources",
+    "--source-commit",
+    "e3a37f55b2939ee2a0c229b0ac96a2a9c407b8aa"
+  ],
+  "prerequisites": {},
+  "require_main_level": false,
+  "peak_tolerance_kib": 256,
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "head": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a"
+  },
+  "measurement": "Kernel VmHWM plus five post-initial-cache-reload, post-single-UDP-query idle VmRSS/smaps RSS/PSS samples (KiB); no sustained traffic or injected resource limits",
+  "status": "complete",
+  "runs": [
+    {
+      "variant": "c",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20692600100301206,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.30746839800849557,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.4080211538821459,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.5086102308705449,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.6091959478799254,
+          "VmHWM_kib": 1088,
+          "VmRSS_kib": 1088,
+          "VmData_kib": 80,
+          "Pss_kib": 1080,
+          "Rss_smaps_kib": 1088,
+          "Private_Dirty_kib": 108
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005677287001162767,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1088,
+      "VmRSS_kib": 1088,
+      "VmRSS_kib_range": [
+        1088,
+        1088
+      ],
+      "VmData_kib": 80,
+      "VmData_kib_range": [
+        80,
+        80
+      ],
+      "Pss_kib": 1080,
+      "Pss_kib_range": [
+        1080,
+        1080
+      ],
+      "Rss_smaps_kib": 1088,
+      "Rss_smaps_kib_range": [
+        1088,
+        1088
+      ],
+      "exit": 0,
+      "log_sha256": "5a8d46e7429adb602ac3f6a9f27a0ca1780a0828bee4a098ef69bd7df9b45c7c",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-0-c"
+    },
+    {
+      "variant": "main",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20818453188985586,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.3088696498889476,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.4093528857920319,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.5098930418025702,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.6104130789171904,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00574020785279572,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1860,
+      "VmRSS_kib": 1860,
+      "VmRSS_kib_range": [
+        1860,
+        1860
+      ],
+      "VmData_kib": 184,
+      "VmData_kib_range": [
+        184,
+        184
+      ],
+      "Pss_kib": 1852,
+      "Pss_kib_range": [
+        1852,
+        1852
+      ],
+      "Rss_smaps_kib": 1860,
+      "Rss_smaps_kib_range": [
+        1860,
+        1860
+      ],
+      "exit": 0,
+      "log_sha256": "96519277fd60e53ef85b2286e3915d60588e3a03d032d6b03a80959c2eee7eee",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-0-main"
+    },
+    {
+      "variant": "head",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.21326213399879634,
+          "VmHWM_kib": 1908,
+          "VmRSS_kib": 1908,
+          "VmData_kib": 144,
+          "Pss_kib": 1900,
+          "Rss_smaps_kib": 1908,
+          "Private_Dirty_kib": 1900
+        },
+        {
+          "elapsed_seconds": 0.3137437701225281,
+          "VmHWM_kib": 1908,
+          "VmRSS_kib": 1908,
+          "VmData_kib": 144,
+          "Pss_kib": 1900,
+          "Rss_smaps_kib": 1908,
+          "Private_Dirty_kib": 1900
+        },
+        {
+          "elapsed_seconds": 0.4143193271011114,
+          "VmHWM_kib": 1908,
+          "VmRSS_kib": 1908,
+          "VmData_kib": 144,
+          "Pss_kib": 1900,
+          "Rss_smaps_kib": 1908,
+          "Private_Dirty_kib": 1900
+        },
+        {
+          "elapsed_seconds": 0.51486552413553,
+          "VmHWM_kib": 1908,
+          "VmRSS_kib": 1908,
+          "VmData_kib": 144,
+          "Pss_kib": 1900,
+          "Rss_smaps_kib": 1908,
+          "Private_Dirty_kib": 1900
+        },
+        {
+          "elapsed_seconds": 0.6153944400139153,
+          "VmHWM_kib": 1908,
+          "VmRSS_kib": 1908,
+          "VmData_kib": 144,
+          "Pss_kib": 1900,
+          "Rss_smaps_kib": 1908,
+          "Private_Dirty_kib": 1900
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.010854810010641813,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1908,
+      "VmRSS_kib": 1908,
+      "VmRSS_kib_range": [
+        1908,
+        1908
+      ],
+      "VmData_kib": 144,
+      "VmData_kib_range": [
+        144,
+        144
+      ],
+      "Pss_kib": 1900,
+      "Pss_kib_range": [
+        1900,
+        1900
+      ],
+      "Rss_smaps_kib": 1908,
+      "Rss_smaps_kib_range": [
+        1908,
+        1908
+      ],
+      "exit": 0,
+      "log_sha256": "57f234606464ca68ad8b65d6ef7f521d5f3cf1c379764fe848fd04d80050cbf8",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-0-head"
+    },
+    {
+      "variant": "c",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20689092110842466,
+          "VmHWM_kib": 1244,
+          "VmRSS_kib": 1244,
+          "VmData_kib": 304,
+          "Pss_kib": 1236,
+          "Rss_smaps_kib": 1244,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.30736195715144277,
+          "VmHWM_kib": 1244,
+          "VmRSS_kib": 1244,
+          "VmData_kib": 304,
+          "Pss_kib": 1236,
+          "Rss_smaps_kib": 1244,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.40797647414729,
+          "VmHWM_kib": 1244,
+          "VmRSS_kib": 1244,
+          "VmData_kib": 304,
+          "Pss_kib": 1236,
+          "Rss_smaps_kib": 1244,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.5085239510517567,
+          "VmHWM_kib": 1244,
+          "VmRSS_kib": 1244,
+          "VmData_kib": 304,
+          "Pss_kib": 1236,
+          "Rss_smaps_kib": 1244,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.6089705461636186,
+          "VmHWM_kib": 1244,
+          "VmRSS_kib": 1244,
+          "VmData_kib": 304,
+          "Pss_kib": 1236,
+          "Rss_smaps_kib": 1244,
+          "Private_Dirty_kib": 316
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005725607043132186,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1244,
+      "VmRSS_kib": 1244,
+      "VmRSS_kib_range": [
+        1244,
+        1244
+      ],
+      "VmData_kib": 304,
+      "VmData_kib_range": [
+        304,
+        304
+      ],
+      "Pss_kib": 1236,
+      "Pss_kib_range": [
+        1236,
+        1236
+      ],
+      "Rss_smaps_kib": 1244,
+      "Rss_smaps_kib_range": [
+        1244,
+        1244
+      ],
+      "exit": 0,
+      "log_sha256": "ad3d9069a8dc5f1e233f745b9e9190b245c5f2a5e218c8e5ffa0c3b7144cf0f0",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-1000-c"
+    },
+    {
+      "variant": "main",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20816809218376875,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.30864836811088026,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.40919300401583314,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.5097870409954339,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.6103499580640346,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005723847076296806,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2772,
+      "VmRSS_kib": 2772,
+      "VmRSS_kib_range": [
+        2772,
+        2772
+      ],
+      "VmData_kib": 1156,
+      "VmData_kib_range": [
+        1156,
+        1156
+      ],
+      "Pss_kib": 2764,
+      "Pss_kib_range": [
+        2764,
+        2764
+      ],
+      "Rss_smaps_kib": 2772,
+      "Rss_smaps_kib_range": [
+        2772,
+        2772
+      ],
+      "exit": 0,
+      "log_sha256": "9c4a4729691a561d3c998ce947fc72a628f7eeb5ca8f131d3efa676a07b7a7fa",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-1000-main"
+    },
+    {
+      "variant": "head",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20827289298176765,
+          "VmHWM_kib": 2748,
+          "VmRSS_kib": 2748,
+          "VmData_kib": 1072,
+          "Pss_kib": 2740,
+          "Rss_smaps_kib": 2748,
+          "Private_Dirty_kib": 2740
+        },
+        {
+          "elapsed_seconds": 0.30889569013379514,
+          "VmHWM_kib": 2748,
+          "VmRSS_kib": 2748,
+          "VmData_kib": 1072,
+          "Pss_kib": 2740,
+          "Rss_smaps_kib": 2748,
+          "Private_Dirty_kib": 2740
+        },
+        {
+          "elapsed_seconds": 0.409453327069059,
+          "VmHWM_kib": 2748,
+          "VmRSS_kib": 2748,
+          "VmData_kib": 1072,
+          "Pss_kib": 2740,
+          "Rss_smaps_kib": 2748,
+          "Private_Dirty_kib": 2740
+        },
+        {
+          "elapsed_seconds": 0.5100337241310626,
+          "VmHWM_kib": 2748,
+          "VmRSS_kib": 2748,
+          "VmData_kib": 1072,
+          "Pss_kib": 2740,
+          "Rss_smaps_kib": 2748,
+          "Private_Dirty_kib": 2740
+        },
+        {
+          "elapsed_seconds": 0.6104928001295775,
+          "VmHWM_kib": 2748,
+          "VmRSS_kib": 2748,
+          "VmData_kib": 1072,
+          "Pss_kib": 2740,
+          "Rss_smaps_kib": 2748,
+          "Private_Dirty_kib": 2740
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.0058526089414954185,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2748,
+      "VmRSS_kib": 2748,
+      "VmRSS_kib_range": [
+        2748,
+        2748
+      ],
+      "VmData_kib": 1072,
+      "VmData_kib_range": [
+        1072,
+        1072
+      ],
+      "Pss_kib": 2740,
+      "Pss_kib_range": [
+        2740,
+        2740
+      ],
+      "Rss_smaps_kib": 2748,
+      "Rss_smaps_kib_range": [
+        2748,
+        2748
+      ],
+      "exit": 0,
+      "log_sha256": "142a7b910a3f1105d367ce246792571c4c530b5ec6e11ed64fdfb48093fa49ab",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-1000-head"
+    },
+    {
+      "variant": "c",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2735865169670433,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.3741357128601521,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.4747212699148804,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.5753279069904238,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.6758210228290409,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.07219280092976987,
+      "ready_cpu_seconds": 0.06,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 3124,
+      "VmRSS_kib": 3124,
+      "VmRSS_kib_range": [
+        3124,
+        3124
+      ],
+      "VmData_kib": 2132,
+      "VmData_kib_range": [
+        2132,
+        2132
+      ],
+      "Pss_kib": 3116,
+      "Pss_kib_range": [
+        3116,
+        3116
+      ],
+      "Rss_smaps_kib": 3124,
+      "Rss_smaps_kib_range": [
+        3124,
+        3124
+      ],
+      "exit": 0,
+      "log_sha256": "00105b439c94e3d8cb7f414ef1fedab020941e62c7b1013513c5966699c60e19",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-10000-c"
+    },
+    {
+      "variant": "main",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.22884470387361944,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.3296129829250276,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.4303175008390099,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.5310723788570613,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.6341052358038723,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.026184377958998084,
+      "ready_cpu_seconds": 0.01,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10696,
+      "VmRSS_kib": 10276,
+      "VmRSS_kib_range": [
+        10276,
+        10276
+      ],
+      "VmData_kib": 8996,
+      "VmData_kib_range": [
+        8996,
+        8996
+      ],
+      "Pss_kib": 10268,
+      "Pss_kib_range": [
+        10268,
+        10268
+      ],
+      "Rss_smaps_kib": 10276,
+      "Rss_smaps_kib_range": [
+        10276,
+        10276
+      ],
+      "exit": 0,
+      "log_sha256": "9b8f9648bf76bcb8f5a3edc80af780a4f0aed7bb5b5e621e650239faad05f791",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-10000-main"
+    },
+    {
+      "variant": "head",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.23922339011915028,
+          "VmHWM_kib": 10756,
+          "VmRSS_kib": 10348,
+          "VmData_kib": 8936,
+          "Pss_kib": 10340,
+          "Rss_smaps_kib": 10348,
+          "Private_Dirty_kib": 10340
+        },
+        {
+          "elapsed_seconds": 0.34008690901100636,
+          "VmHWM_kib": 10756,
+          "VmRSS_kib": 10348,
+          "VmData_kib": 8936,
+          "Pss_kib": 10340,
+          "Rss_smaps_kib": 10348,
+          "Private_Dirty_kib": 10340
+        },
+        {
+          "elapsed_seconds": 0.4409440290182829,
+          "VmHWM_kib": 10756,
+          "VmRSS_kib": 10348,
+          "VmData_kib": 8936,
+          "Pss_kib": 10340,
+          "Rss_smaps_kib": 10348,
+          "Private_Dirty_kib": 10340
+        },
+        {
+          "elapsed_seconds": 0.541693467181176,
+          "VmHWM_kib": 10756,
+          "VmRSS_kib": 10348,
+          "VmData_kib": 8936,
+          "Pss_kib": 10340,
+          "Rss_smaps_kib": 10348,
+          "Private_Dirty_kib": 10340
+        },
+        {
+          "elapsed_seconds": 0.6425055461004376,
+          "VmHWM_kib": 10756,
+          "VmRSS_kib": 10348,
+          "VmData_kib": 8936,
+          "Pss_kib": 10340,
+          "Rss_smaps_kib": 10348,
+          "Private_Dirty_kib": 10340
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.03644058317877352,
+      "ready_cpu_seconds": 0.03,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10756,
+      "VmRSS_kib": 10348,
+      "VmRSS_kib_range": [
+        10348,
+        10348
+      ],
+      "VmData_kib": 8936,
+      "VmData_kib_range": [
+        8936,
+        8936
+      ],
+      "Pss_kib": 10340,
+      "Pss_kib_range": [
+        10340,
+        10340
+      ],
+      "Rss_smaps_kib": 10348,
+      "Rss_smaps_kib_range": [
+        10348,
+        10348
+      ],
+      "exit": 0,
+      "log_sha256": "f08a9b2c804414474a09ab1e6852ed9350f56d8b50c29b58a3cc27d4e486c982",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-10000-head"
+    },
+    {
+      "variant": "c",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 1.903361755888909,
+          "VmHWM_kib": 11088,
+          "VmRSS_kib": 11088,
+          "VmData_kib": 10068,
+          "Pss_kib": 11080,
+          "Rss_smaps_kib": 11088,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.0042542349547148,
+          "VmHWM_kib": 11088,
+          "VmRSS_kib": 11088,
+          "VmData_kib": 10068,
+          "Pss_kib": 11080,
+          "Rss_smaps_kib": 11088,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.105009794002399,
+          "VmHWM_kib": 11088,
+          "VmRSS_kib": 11088,
+          "VmData_kib": 10068,
+          "Pss_kib": 11080,
+          "Rss_smaps_kib": 11088,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.2059662339743227,
+          "VmHWM_kib": 11088,
+          "VmRSS_kib": 11088,
+          "VmData_kib": 10068,
+          "Pss_kib": 11080,
+          "Rss_smaps_kib": 11088,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.3067592720035464,
+          "VmHWM_kib": 11088,
+          "VmRSS_kib": 11088,
+          "VmData_kib": 10068,
+          "Pss_kib": 11080,
+          "Rss_smaps_kib": 11088,
+          "Private_Dirty_kib": 10080
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 1.701820118818432,
+      "ready_cpu_seconds": 1.69,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 11088,
+      "VmRSS_kib": 11088,
+      "VmRSS_kib_range": [
+        11088,
+        11088
+      ],
+      "VmData_kib": 10068,
+      "VmData_kib_range": [
+        10068,
+        10068
+      ],
+      "Pss_kib": 11080,
+      "Pss_kib_range": [
+        11080,
+        11080
+      ],
+      "Rss_smaps_kib": 11088,
+      "Rss_smaps_kib_range": [
+        11088,
+        11088
+      ],
+      "exit": 0,
+      "log_sha256": "bc1c33c77db25da0dc959615fb31fd574658f07bf16fa581fdbce7b21a466871",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-50000-c"
+    },
+    {
+      "variant": "main",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.3313200371339917,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.43305916292592883,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.5347067690454423,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.6364117350894958,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.7380055801477283,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.12785870395600796,
+      "ready_cpu_seconds": 0.12,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 45632,
+      "VmRSS_kib": 42056,
+      "VmRSS_kib_range": [
+        42056,
+        42056
+      ],
+      "VmData_kib": 41316,
+      "VmData_kib_range": [
+        41316,
+        41316
+      ],
+      "Pss_kib": 42048,
+      "Pss_kib_range": [
+        42048,
+        42048
+      ],
+      "Rss_smaps_kib": 42056,
+      "Rss_smaps_kib_range": [
+        42056,
+        42056
+      ],
+      "exit": 0,
+      "log_sha256": "8ca0b130b7f4f1bc475e93262a4a1da2f3d34f73255b0203a340151c5eb7c784",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-50000-main"
+    },
+    {
+      "variant": "head",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.3879325471352786,
+          "VmHWM_kib": 45596,
+          "VmRSS_kib": 42028,
+          "VmData_kib": 41256,
+          "Pss_kib": 42020,
+          "Rss_smaps_kib": 42028,
+          "Private_Dirty_kib": 42020
+        },
+        {
+          "elapsed_seconds": 0.4896590739954263,
+          "VmHWM_kib": 45596,
+          "VmRSS_kib": 42028,
+          "VmData_kib": 41256,
+          "Pss_kib": 42020,
+          "Rss_smaps_kib": 42028,
+          "Private_Dirty_kib": 42020
+        },
+        {
+          "elapsed_seconds": 0.5912809590809047,
+          "VmHWM_kib": 45596,
+          "VmRSS_kib": 42028,
+          "VmData_kib": 41256,
+          "Pss_kib": 42020,
+          "Rss_smaps_kib": 42028,
+          "Private_Dirty_kib": 42020
+        },
+        {
+          "elapsed_seconds": 0.6930102449841797,
+          "VmHWM_kib": 45596,
+          "VmRSS_kib": 42028,
+          "VmData_kib": 41256,
+          "Pss_kib": 42020,
+          "Rss_smaps_kib": 42028,
+          "Private_Dirty_kib": 42020
+        },
+        {
+          "elapsed_seconds": 0.7946346511598676,
+          "VmHWM_kib": 45596,
+          "VmRSS_kib": 42028,
+          "VmData_kib": 41256,
+          "Pss_kib": 42020,
+          "Rss_smaps_kib": 42028,
+          "Private_Dirty_kib": 42020
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.1842887329403311,
+      "ready_cpu_seconds": 0.18,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 45596,
+      "VmRSS_kib": 42028,
+      "VmRSS_kib_range": [
+        42028,
+        42028
+      ],
+      "VmData_kib": 41256,
+      "VmData_kib_range": [
+        41256,
+        41256
+      ],
+      "Pss_kib": 42020,
+      "Pss_kib_range": [
+        42020,
+        42020
+      ],
+      "Rss_smaps_kib": 42028,
+      "Rss_smaps_kib_range": [
+        42028,
+        42028
+      ],
+      "exit": 0,
+      "log_sha256": "57d80b181db58cbe93e0e9c233bacc3860a2882dc0e2728bf9d163acf029b786",
+      "passed": true,
+      "round": 1,
+      "directory": "r1-50000-head"
+    },
+    {
+      "variant": "main",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2081436519511044,
+          "VmHWM_kib": 1856,
+          "VmRSS_kib": 1856,
+          "VmData_kib": 184,
+          "Pss_kib": 1848,
+          "Rss_smaps_kib": 1856,
+          "Private_Dirty_kib": 1848
+        },
+        {
+          "elapsed_seconds": 0.3086514880415052,
+          "VmHWM_kib": 1856,
+          "VmRSS_kib": 1856,
+          "VmData_kib": 184,
+          "Pss_kib": 1848,
+          "Rss_smaps_kib": 1856,
+          "Private_Dirty_kib": 1848
+        },
+        {
+          "elapsed_seconds": 0.40914312400855124,
+          "VmHWM_kib": 1856,
+          "VmRSS_kib": 1856,
+          "VmData_kib": 184,
+          "Pss_kib": 1848,
+          "Rss_smaps_kib": 1856,
+          "Private_Dirty_kib": 1848
+        },
+        {
+          "elapsed_seconds": 0.5114174950867891,
+          "VmHWM_kib": 1856,
+          "VmRSS_kib": 1856,
+          "VmData_kib": 184,
+          "Pss_kib": 1848,
+          "Rss_smaps_kib": 1856,
+          "Private_Dirty_kib": 1848
+        },
+        {
+          "elapsed_seconds": 0.6118811708875,
+          "VmHWM_kib": 1856,
+          "VmRSS_kib": 1856,
+          "VmData_kib": 184,
+          "Pss_kib": 1848,
+          "Rss_smaps_kib": 1856,
+          "Private_Dirty_kib": 1848
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005743407877162099,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1856,
+      "VmRSS_kib": 1856,
+      "VmRSS_kib_range": [
+        1856,
+        1856
+      ],
+      "VmData_kib": 184,
+      "VmData_kib_range": [
+        184,
+        184
+      ],
+      "Pss_kib": 1848,
+      "Pss_kib_range": [
+        1848,
+        1848
+      ],
+      "Rss_smaps_kib": 1856,
+      "Rss_smaps_kib_range": [
+        1856,
+        1856
+      ],
+      "exit": 0,
+      "log_sha256": "eb7b6fe5a61afa17e29c7fbbb487b1dffa1fa18c069a532ec220431fcaf01f83",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-0-main"
+    },
+    {
+      "variant": "head",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20801801001653075,
+          "VmHWM_kib": 1828,
+          "VmRSS_kib": 1828,
+          "VmData_kib": 144,
+          "Pss_kib": 1820,
+          "Rss_smaps_kib": 1828,
+          "Private_Dirty_kib": 1820
+        },
+        {
+          "elapsed_seconds": 0.3085778870154172,
+          "VmHWM_kib": 1828,
+          "VmRSS_kib": 1828,
+          "VmData_kib": 144,
+          "Pss_kib": 1820,
+          "Rss_smaps_kib": 1828,
+          "Private_Dirty_kib": 1820
+        },
+        {
+          "elapsed_seconds": 0.4090761230327189,
+          "VmHWM_kib": 1828,
+          "VmRSS_kib": 1828,
+          "VmData_kib": 144,
+          "Pss_kib": 1820,
+          "Rss_smaps_kib": 1828,
+          "Private_Dirty_kib": 1820
+        },
+        {
+          "elapsed_seconds": 0.5096718799322844,
+          "VmHWM_kib": 1828,
+          "VmRSS_kib": 1828,
+          "VmData_kib": 144,
+          "Pss_kib": 1820,
+          "Rss_smaps_kib": 1828,
+          "Private_Dirty_kib": 1820
+        },
+        {
+          "elapsed_seconds": 0.6101981159299612,
+          "VmHWM_kib": 1828,
+          "VmRSS_kib": 1828,
+          "VmData_kib": 144,
+          "Pss_kib": 1820,
+          "Rss_smaps_kib": 1828,
+          "Private_Dirty_kib": 1820
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00567988702096045,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1828,
+      "VmRSS_kib": 1828,
+      "VmRSS_kib_range": [
+        1828,
+        1828
+      ],
+      "VmData_kib": 144,
+      "VmData_kib_range": [
+        144,
+        144
+      ],
+      "Pss_kib": 1820,
+      "Pss_kib_range": [
+        1820,
+        1820
+      ],
+      "Rss_smaps_kib": 1828,
+      "Rss_smaps_kib_range": [
+        1828,
+        1828
+      ],
+      "exit": 0,
+      "log_sha256": "93417993fb1ac06833d67087910e0379d0fc4ece8167602178663df621c80488",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-0-head"
+    },
+    {
+      "variant": "c",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20673159998841584,
+          "VmHWM_kib": 1112,
+          "VmRSS_kib": 1112,
+          "VmData_kib": 80,
+          "Pss_kib": 1104,
+          "Rss_smaps_kib": 1112,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.30719963600859046,
+          "VmHWM_kib": 1112,
+          "VmRSS_kib": 1112,
+          "VmData_kib": 80,
+          "Pss_kib": 1104,
+          "Rss_smaps_kib": 1112,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.4078125129453838,
+          "VmHWM_kib": 1112,
+          "VmRSS_kib": 1112,
+          "VmData_kib": 80,
+          "Pss_kib": 1104,
+          "Rss_smaps_kib": 1112,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.5083307488821447,
+          "VmHWM_kib": 1112,
+          "VmRSS_kib": 1112,
+          "VmData_kib": 80,
+          "Pss_kib": 1104,
+          "Rss_smaps_kib": 1112,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.6087804248090833,
+          "VmHWM_kib": 1112,
+          "VmRSS_kib": 1112,
+          "VmData_kib": 80,
+          "Pss_kib": 1104,
+          "Rss_smaps_kib": 1112,
+          "Private_Dirty_kib": 108
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005585206905379891,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1112,
+      "VmRSS_kib": 1112,
+      "VmRSS_kib_range": [
+        1112,
+        1112
+      ],
+      "VmData_kib": 80,
+      "VmData_kib_range": [
+        80,
+        80
+      ],
+      "Pss_kib": 1104,
+      "Pss_kib_range": [
+        1104,
+        1104
+      ],
+      "Rss_smaps_kib": 1112,
+      "Rss_smaps_kib_range": [
+        1112,
+        1112
+      ],
+      "exit": 0,
+      "log_sha256": "a2281dc9d7c18a32c5e137991a48e108f1f33034a24fe2925f2fc681b6d08e6c",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-0-c"
+    },
+    {
+      "variant": "main",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2080357710365206,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.30863712821155787,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.40920144505798817,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.5096833610441536,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.6101416770834476,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.00557212601415813,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2772,
+      "VmRSS_kib": 2772,
+      "VmRSS_kib_range": [
+        2772,
+        2772
+      ],
+      "VmData_kib": 1156,
+      "VmData_kib_range": [
+        1156,
+        1156
+      ],
+      "Pss_kib": 2764,
+      "Pss_kib_range": [
+        2764,
+        2764
+      ],
+      "Rss_smaps_kib": 2772,
+      "Rss_smaps_kib_range": [
+        2772,
+        2772
+      ],
+      "exit": 0,
+      "log_sha256": "87941506682c6defbc73cb4c35a63305732d4b18a343e974639e2aa8efde80c2",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-1000-main"
+    },
+    {
+      "variant": "head",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.21314897388219833,
+          "VmHWM_kib": 2884,
+          "VmRSS_kib": 2884,
+          "VmData_kib": 1072,
+          "Pss_kib": 2876,
+          "Rss_smaps_kib": 2884,
+          "Private_Dirty_kib": 2876
+        },
+        {
+          "elapsed_seconds": 0.3136427700519562,
+          "VmHWM_kib": 2884,
+          "VmRSS_kib": 2884,
+          "VmData_kib": 1072,
+          "Pss_kib": 2876,
+          "Rss_smaps_kib": 2884,
+          "Private_Dirty_kib": 2876
+        },
+        {
+          "elapsed_seconds": 0.41416300600394607,
+          "VmHWM_kib": 2884,
+          "VmRSS_kib": 2884,
+          "VmData_kib": 1072,
+          "Pss_kib": 2876,
+          "Rss_smaps_kib": 2884,
+          "Private_Dirty_kib": 2876
+        },
+        {
+          "elapsed_seconds": 0.5146790430881083,
+          "VmHWM_kib": 2884,
+          "VmRSS_kib": 2884,
+          "VmData_kib": 1072,
+          "Pss_kib": 2876,
+          "Rss_smaps_kib": 2884,
+          "Private_Dirty_kib": 2876
+        },
+        {
+          "elapsed_seconds": 0.6153869598638266,
+          "VmHWM_kib": 2884,
+          "VmRSS_kib": 2884,
+          "VmData_kib": 1072,
+          "Pss_kib": 2876,
+          "Rss_smaps_kib": 2884,
+          "Private_Dirty_kib": 2876
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.010706369066610932,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2884,
+      "VmRSS_kib": 2884,
+      "VmRSS_kib_range": [
+        2884,
+        2884
+      ],
+      "VmData_kib": 1072,
+      "VmData_kib_range": [
+        1072,
+        1072
+      ],
+      "Pss_kib": 2876,
+      "Pss_kib_range": [
+        2876,
+        2876
+      ],
+      "Rss_smaps_kib": 2884,
+      "Rss_smaps_kib_range": [
+        2884,
+        2884
+      ],
+      "exit": 0,
+      "log_sha256": "d185ba9c5ddbb70d4120fae8251757aadc22c9b185f784ca3e264d40af17e9d4",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-1000-head"
+    },
+    {
+      "variant": "c",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20679015992209315,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.307349236914888,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.4079070738516748,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.5083521490450948,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.6089205860625952,
+          "VmHWM_kib": 1324,
+          "VmRSS_kib": 1324,
+          "VmData_kib": 304,
+          "Pss_kib": 1316,
+          "Rss_smaps_kib": 1324,
+          "Private_Dirty_kib": 316
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005611367058008909,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1324,
+      "VmRSS_kib": 1324,
+      "VmRSS_kib_range": [
+        1324,
+        1324
+      ],
+      "VmData_kib": 304,
+      "VmData_kib_range": [
+        304,
+        304
+      ],
+      "Pss_kib": 1316,
+      "Pss_kib_range": [
+        1316,
+        1316
+      ],
+      "Rss_smaps_kib": 1324,
+      "Rss_smaps_kib_range": [
+        1324,
+        1324
+      ],
+      "exit": 0,
+      "log_sha256": "d5c760f119bff5566e995f21bedab4f86737cd998ac8e0ab971365dd9dbba598",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-1000-c"
+    },
+    {
+      "variant": "main",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.23357346281409264,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.3343514618463814,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.435168539872393,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.535862737800926,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        },
+        {
+          "elapsed_seconds": 0.6365684559568763,
+          "VmHWM_kib": 10696,
+          "VmRSS_kib": 10276,
+          "VmData_kib": 8996,
+          "Pss_kib": 10268,
+          "Rss_smaps_kib": 10276,
+          "Private_Dirty_kib": 10268
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.030980257783085108,
+      "ready_cpu_seconds": 0.02,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10696,
+      "VmRSS_kib": 10276,
+      "VmRSS_kib_range": [
+        10276,
+        10276
+      ],
+      "VmData_kib": 8996,
+      "VmData_kib_range": [
+        8996,
+        8996
+      ],
+      "Pss_kib": 10268,
+      "Pss_kib_range": [
+        10268,
+        10268
+      ],
+      "Rss_smaps_kib": 10276,
+      "Rss_smaps_kib_range": [
+        10276,
+        10276
+      ],
+      "exit": 0,
+      "log_sha256": "920e3526c4dc28539ab9465c2271c940cb4ccc056e50f7e8550eac1a340795e2",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-10000-main"
+    },
+    {
+      "variant": "head",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2441678310278803,
+          "VmHWM_kib": 10740,
+          "VmRSS_kib": 10260,
+          "VmData_kib": 8936,
+          "Pss_kib": 10252,
+          "Rss_smaps_kib": 10260,
+          "Private_Dirty_kib": 10252
+        },
+        {
+          "elapsed_seconds": 0.34504951094277203,
+          "VmHWM_kib": 10740,
+          "VmRSS_kib": 10260,
+          "VmData_kib": 8936,
+          "Pss_kib": 10252,
+          "Rss_smaps_kib": 10260,
+          "Private_Dirty_kib": 10252
+        },
+        {
+          "elapsed_seconds": 0.4458184689283371,
+          "VmHWM_kib": 10740,
+          "VmRSS_kib": 10260,
+          "VmData_kib": 8936,
+          "Pss_kib": 10252,
+          "Rss_smaps_kib": 10260,
+          "Private_Dirty_kib": 10252
+        },
+        {
+          "elapsed_seconds": 0.5466139880008996,
+          "VmHWM_kib": 10740,
+          "VmRSS_kib": 10260,
+          "VmData_kib": 8936,
+          "Pss_kib": 10252,
+          "Rss_smaps_kib": 10260,
+          "Private_Dirty_kib": 10252
+        },
+        {
+          "elapsed_seconds": 0.647392706014216,
+          "VmHWM_kib": 10740,
+          "VmRSS_kib": 10260,
+          "VmData_kib": 8936,
+          "Pss_kib": 10252,
+          "Rss_smaps_kib": 10260,
+          "Private_Dirty_kib": 10252
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.04145170492120087,
+      "ready_cpu_seconds": 0.02,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10740,
+      "VmRSS_kib": 10260,
+      "VmRSS_kib_range": [
+        10260,
+        10260
+      ],
+      "VmData_kib": 8936,
+      "VmData_kib_range": [
+        8936,
+        8936
+      ],
+      "Pss_kib": 10252,
+      "Pss_kib_range": [
+        10252,
+        10252
+      ],
+      "Rss_smaps_kib": 10260,
+      "Rss_smaps_kib_range": [
+        10260,
+        10260
+      ],
+      "exit": 0,
+      "log_sha256": "f66261b031432713c8c8c12d0927d7271609768700d0261f1af16298addc68f3",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-10000-head"
+    },
+    {
+      "variant": "c",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2784159970469773,
+          "VmHWM_kib": 3036,
+          "VmRSS_kib": 3036,
+          "VmData_kib": 2132,
+          "Pss_kib": 3028,
+          "Rss_smaps_kib": 3036,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.37900899397209287,
+          "VmHWM_kib": 3036,
+          "VmRSS_kib": 3036,
+          "VmData_kib": 2132,
+          "Pss_kib": 3028,
+          "Rss_smaps_kib": 3036,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.47965551097877324,
+          "VmHWM_kib": 3036,
+          "VmRSS_kib": 3036,
+          "VmData_kib": 2132,
+          "Pss_kib": 3028,
+          "Rss_smaps_kib": 3036,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.5819288420025259,
+          "VmHWM_kib": 3036,
+          "VmRSS_kib": 3036,
+          "VmData_kib": 2132,
+          "Pss_kib": 3028,
+          "Rss_smaps_kib": 3036,
+          "Private_Dirty_kib": 2112
+        },
+        {
+          "elapsed_seconds": 0.6826023601461202,
+          "VmHWM_kib": 3036,
+          "VmRSS_kib": 3036,
+          "VmData_kib": 2132,
+          "Pss_kib": 3028,
+          "Rss_smaps_kib": 3036,
+          "Private_Dirty_kib": 2112
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.07707212213426828,
+      "ready_cpu_seconds": 0.06,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 3036,
+      "VmRSS_kib": 3036,
+      "VmRSS_kib_range": [
+        3036,
+        3036
+      ],
+      "VmData_kib": 2132,
+      "VmData_kib_range": [
+        2132,
+        2132
+      ],
+      "Pss_kib": 3028,
+      "Pss_kib_range": [
+        3028,
+        3028
+      ],
+      "Rss_smaps_kib": 3036,
+      "Rss_smaps_kib_range": [
+        3036,
+        3036
+      ],
+      "exit": 0,
+      "log_sha256": "eea082b976ac6b7fe4386ade46d0062c2187bb9ef5bf5f4fc09e68807170f4ce",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-10000-c"
+    },
+    {
+      "variant": "main",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.33188920095562935,
+          "VmHWM_kib": 45628,
+          "VmRSS_kib": 42052,
+          "VmData_kib": 41316,
+          "Pss_kib": 42044,
+          "Rss_smaps_kib": 42052,
+          "Private_Dirty_kib": 42044
+        },
+        {
+          "elapsed_seconds": 0.43362080678343773,
+          "VmHWM_kib": 45628,
+          "VmRSS_kib": 42052,
+          "VmData_kib": 41316,
+          "Pss_kib": 42044,
+          "Rss_smaps_kib": 42052,
+          "Private_Dirty_kib": 42044
+        },
+        {
+          "elapsed_seconds": 0.5352213329169899,
+          "VmHWM_kib": 45628,
+          "VmRSS_kib": 42052,
+          "VmData_kib": 41316,
+          "Pss_kib": 42044,
+          "Rss_smaps_kib": 42052,
+          "Private_Dirty_kib": 42044
+        },
+        {
+          "elapsed_seconds": 0.6368475379422307,
+          "VmHWM_kib": 45628,
+          "VmRSS_kib": 42052,
+          "VmData_kib": 41316,
+          "Pss_kib": 42044,
+          "Rss_smaps_kib": 42052,
+          "Private_Dirty_kib": 42044
+        },
+        {
+          "elapsed_seconds": 0.7384799439460039,
+          "VmHWM_kib": 45628,
+          "VmRSS_kib": 42052,
+          "VmData_kib": 41316,
+          "Pss_kib": 42044,
+          "Rss_smaps_kib": 42052,
+          "Private_Dirty_kib": 42044
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.1282705469056964,
+      "ready_cpu_seconds": 0.11,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 45628,
+      "VmRSS_kib": 42052,
+      "VmRSS_kib_range": [
+        42052,
+        42052
+      ],
+      "VmData_kib": 41316,
+      "VmData_kib_range": [
+        41316,
+        41316
+      ],
+      "Pss_kib": 42044,
+      "Pss_kib_range": [
+        42044,
+        42044
+      ],
+      "Rss_smaps_kib": 42052,
+      "Rss_smaps_kib_range": [
+        42052,
+        42052
+      ],
+      "exit": 0,
+      "log_sha256": "d91624db4f2ae6dda1bbbf644dcee1ae3d7c3572cecc8cdeac0f9d6f339dc9a5",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-50000-main"
+    },
+    {
+      "variant": "head",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.37760142097249627,
+          "VmHWM_kib": 45620,
+          "VmRSS_kib": 42108,
+          "VmData_kib": 41256,
+          "Pss_kib": 42100,
+          "Rss_smaps_kib": 42108,
+          "Private_Dirty_kib": 42100
+        },
+        {
+          "elapsed_seconds": 0.4793895080219954,
+          "VmHWM_kib": 45620,
+          "VmRSS_kib": 42108,
+          "VmData_kib": 41256,
+          "Pss_kib": 42100,
+          "Rss_smaps_kib": 42108,
+          "Private_Dirty_kib": 42100
+        },
+        {
+          "elapsed_seconds": 0.581115874927491,
+          "VmHWM_kib": 45620,
+          "VmRSS_kib": 42108,
+          "VmData_kib": 41256,
+          "Pss_kib": 42100,
+          "Rss_smaps_kib": 42108,
+          "Private_Dirty_kib": 42100
+        },
+        {
+          "elapsed_seconds": 0.6826636788900942,
+          "VmHWM_kib": 45620,
+          "VmRSS_kib": 42108,
+          "VmData_kib": 41256,
+          "Pss_kib": 42100,
+          "Rss_smaps_kib": 42108,
+          "Private_Dirty_kib": 42100
+        },
+        {
+          "elapsed_seconds": 0.7844196858350188,
+          "VmHWM_kib": 45620,
+          "VmRSS_kib": 42108,
+          "VmData_kib": 41256,
+          "Pss_kib": 42100,
+          "Rss_smaps_kib": 42108,
+          "Private_Dirty_kib": 42100
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.1739492870401591,
+      "ready_cpu_seconds": 0.17,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 45620,
+      "VmRSS_kib": 42108,
+      "VmRSS_kib_range": [
+        42108,
+        42108
+      ],
+      "VmData_kib": 41256,
+      "VmData_kib_range": [
+        41256,
+        41256
+      ],
+      "Pss_kib": 42100,
+      "Pss_kib_range": [
+        42100,
+        42100
+      ],
+      "Rss_smaps_kib": 42108,
+      "Rss_smaps_kib_range": [
+        42108,
+        42108
+      ],
+      "exit": 0,
+      "log_sha256": "4ad1f7cbef8bad0ced302f6ca5a039c78e443ec486082004a21e6f61ceadc419",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-50000-head"
+    },
+    {
+      "variant": "c",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 1.9250168961007148,
+          "VmHWM_kib": 11096,
+          "VmRSS_kib": 11096,
+          "VmData_kib": 10068,
+          "Pss_kib": 11088,
+          "Rss_smaps_kib": 11096,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.025787814054638,
+          "VmHWM_kib": 11096,
+          "VmRSS_kib": 11096,
+          "VmData_kib": 10068,
+          "Pss_kib": 11088,
+          "Rss_smaps_kib": 11096,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.1266063330695033,
+          "VmHWM_kib": 11096,
+          "VmRSS_kib": 11096,
+          "VmData_kib": 10068,
+          "Pss_kib": 11088,
+          "Rss_smaps_kib": 11096,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.227458252105862,
+          "VmHWM_kib": 11096,
+          "VmRSS_kib": 11096,
+          "VmData_kib": 10068,
+          "Pss_kib": 11088,
+          "Rss_smaps_kib": 11096,
+          "Private_Dirty_kib": 10080
+        },
+        {
+          "elapsed_seconds": 2.328155290102586,
+          "VmHWM_kib": 11096,
+          "VmRSS_kib": 11096,
+          "VmData_kib": 10068,
+          "Pss_kib": 11088,
+          "Rss_smaps_kib": 11096,
+          "Private_Dirty_kib": 10080
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 1.7233672179281712,
+      "ready_cpu_seconds": 1.71,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 11096,
+      "VmRSS_kib": 11096,
+      "VmRSS_kib_range": [
+        11096,
+        11096
+      ],
+      "VmData_kib": 10068,
+      "VmData_kib_range": [
+        10068,
+        10068
+      ],
+      "Pss_kib": 11088,
+      "Pss_kib_range": [
+        11088,
+        11088
+      ],
+      "Rss_smaps_kib": 11096,
+      "Rss_smaps_kib_range": [
+        11096,
+        11096
+      ],
+      "exit": 0,
+      "log_sha256": "cc28e83e5a35285df5920a886d31c17a2d83489a928afe685c6b89a6b5b98bfa",
+      "passed": true,
+      "round": 2,
+      "directory": "r2-50000-c"
+    },
+    {
+      "variant": "head",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2082312130369246,
+          "VmHWM_kib": 1944,
+          "VmRSS_kib": 1944,
+          "VmData_kib": 144,
+          "Pss_kib": 1936,
+          "Rss_smaps_kib": 1944,
+          "Private_Dirty_kib": 1936
+        },
+        {
+          "elapsed_seconds": 0.3087636090349406,
+          "VmHWM_kib": 1944,
+          "VmRSS_kib": 1944,
+          "VmData_kib": 144,
+          "Pss_kib": 1936,
+          "Rss_smaps_kib": 1944,
+          "Private_Dirty_kib": 1936
+        },
+        {
+          "elapsed_seconds": 0.4094382869079709,
+          "VmHWM_kib": 1944,
+          "VmRSS_kib": 1944,
+          "VmData_kib": 144,
+          "Pss_kib": 1936,
+          "Rss_smaps_kib": 1944,
+          "Private_Dirty_kib": 1936
+        },
+        {
+          "elapsed_seconds": 0.5099614029750228,
+          "VmHWM_kib": 1944,
+          "VmRSS_kib": 1944,
+          "VmData_kib": 144,
+          "Pss_kib": 1936,
+          "Rss_smaps_kib": 1944,
+          "Private_Dirty_kib": 1936
+        },
+        {
+          "elapsed_seconds": 0.6105297598987818,
+          "VmHWM_kib": 1944,
+          "VmRSS_kib": 1944,
+          "VmData_kib": 144,
+          "Pss_kib": 1936,
+          "Rss_smaps_kib": 1944,
+          "Private_Dirty_kib": 1936
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005888328887522221,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1944,
+      "VmRSS_kib": 1944,
+      "VmRSS_kib_range": [
+        1944,
+        1944
+      ],
+      "VmData_kib": 144,
+      "VmData_kib_range": [
+        144,
+        144
+      ],
+      "Pss_kib": 1936,
+      "Pss_kib_range": [
+        1936,
+        1936
+      ],
+      "Rss_smaps_kib": 1944,
+      "Rss_smaps_kib_range": [
+        1944,
+        1944
+      ],
+      "exit": 0,
+      "log_sha256": "39f5c1e629561047b596b5226e9de3aaa47e1ea63c2338126541f847dd4816fd",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-0-head"
+    },
+    {
+      "variant": "c",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20671287993900478,
+          "VmHWM_kib": 1116,
+          "VmRSS_kib": 1116,
+          "VmData_kib": 80,
+          "Pss_kib": 1108,
+          "Rss_smaps_kib": 1116,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.30719719594344497,
+          "VmHWM_kib": 1116,
+          "VmRSS_kib": 1116,
+          "VmData_kib": 80,
+          "Pss_kib": 1108,
+          "Rss_smaps_kib": 1116,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.40942200599238276,
+          "VmHWM_kib": 1116,
+          "VmRSS_kib": 1116,
+          "VmData_kib": 80,
+          "Pss_kib": 1108,
+          "Rss_smaps_kib": 1116,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.509917241986841,
+          "VmHWM_kib": 1116,
+          "VmRSS_kib": 1116,
+          "VmData_kib": 80,
+          "Pss_kib": 1108,
+          "Rss_smaps_kib": 1116,
+          "Private_Dirty_kib": 108
+        },
+        {
+          "elapsed_seconds": 0.6104686390608549,
+          "VmHWM_kib": 1116,
+          "VmRSS_kib": 1116,
+          "VmData_kib": 80,
+          "Pss_kib": 1108,
+          "Rss_smaps_kib": 1116,
+          "Private_Dirty_kib": 108
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005547206150367856,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1116,
+      "VmRSS_kib": 1116,
+      "VmRSS_kib_range": [
+        1116,
+        1116
+      ],
+      "VmData_kib": 80,
+      "VmData_kib_range": [
+        80,
+        80
+      ],
+      "Pss_kib": 1108,
+      "Pss_kib_range": [
+        1108,
+        1108
+      ],
+      "Rss_smaps_kib": 1116,
+      "Rss_smaps_kib_range": [
+        1116,
+        1116
+      ],
+      "exit": 0,
+      "log_sha256": "6be1fa1bafec43994fc606690c4f912ddb7916176d465d4e50d54b525fd816ec",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-0-c"
+    },
+    {
+      "variant": "main",
+      "count": 0,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-0.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20807905099354684,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.3085148469544947,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.40901000308804214,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.5095630399882793,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        },
+        {
+          "elapsed_seconds": 0.6101151960901916,
+          "VmHWM_kib": 1860,
+          "VmRSS_kib": 1860,
+          "VmData_kib": 184,
+          "Pss_kib": 1852,
+          "Rss_smaps_kib": 1860,
+          "Private_Dirty_kib": 1852
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005829809000715613,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "baseline.test",
+        "query_hex": "71620100000100000000000008626173656c696e6504746573740000010001",
+        "reply_hex": "71628580000100010000000008626173656c696e6504746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1860,
+      "VmRSS_kib": 1860,
+      "VmRSS_kib_range": [
+        1860,
+        1860
+      ],
+      "VmData_kib": 184,
+      "VmData_kib_range": [
+        184,
+        184
+      ],
+      "Pss_kib": 1852,
+      "Pss_kib_range": [
+        1852,
+        1852
+      ],
+      "Rss_smaps_kib": 1860,
+      "Rss_smaps_kib_range": [
+        1860,
+        1860
+      ],
+      "exit": 0,
+      "log_sha256": "0eaac8fdedc2c892f189673464cd00be6a5f6ea0d255b458b9995ee253243594",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-0-main"
+    },
+    {
+      "variant": "head",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20837329304777086,
+          "VmHWM_kib": 2840,
+          "VmRSS_kib": 2840,
+          "VmData_kib": 1072,
+          "Pss_kib": 2832,
+          "Rss_smaps_kib": 2840,
+          "Private_Dirty_kib": 2832
+        },
+        {
+          "elapsed_seconds": 0.30890577007085085,
+          "VmHWM_kib": 2840,
+          "VmRSS_kib": 2840,
+          "VmData_kib": 1072,
+          "Pss_kib": 2832,
+          "Rss_smaps_kib": 2840,
+          "Private_Dirty_kib": 2832
+        },
+        {
+          "elapsed_seconds": 0.4093823260627687,
+          "VmHWM_kib": 2840,
+          "VmRSS_kib": 2840,
+          "VmData_kib": 1072,
+          "Pss_kib": 2832,
+          "Rss_smaps_kib": 2840,
+          "Private_Dirty_kib": 2832
+        },
+        {
+          "elapsed_seconds": 0.5099293619859964,
+          "VmHWM_kib": 2840,
+          "VmRSS_kib": 2840,
+          "VmData_kib": 1072,
+          "Pss_kib": 2832,
+          "Rss_smaps_kib": 2840,
+          "Private_Dirty_kib": 2832
+        },
+        {
+          "elapsed_seconds": 0.6104242380242795,
+          "VmHWM_kib": 2840,
+          "VmRSS_kib": 2840,
+          "VmData_kib": 1072,
+          "Pss_kib": 2832,
+          "Rss_smaps_kib": 2840,
+          "Private_Dirty_kib": 2832
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005536406068131328,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2840,
+      "VmRSS_kib": 2840,
+      "VmRSS_kib_range": [
+        2840,
+        2840
+      ],
+      "VmData_kib": 1072,
+      "VmData_kib_range": [
+        1072,
+        1072
+      ],
+      "Pss_kib": 2832,
+      "Pss_kib_range": [
+        2832,
+        2832
+      ],
+      "Rss_smaps_kib": 2840,
+      "Rss_smaps_kib_range": [
+        2840,
+        2840
+      ],
+      "exit": 0,
+      "log_sha256": "7181f255140d36793da4db10575d83fd9b0115d5af11e29b1ebf0c6f2acfaabc",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-1000-head"
+    },
+    {
+      "variant": "c",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20689284102991223,
+          "VmHWM_kib": 1296,
+          "VmRSS_kib": 1296,
+          "VmData_kib": 304,
+          "Pss_kib": 1288,
+          "Rss_smaps_kib": 1296,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.3074799180030823,
+          "VmHWM_kib": 1296,
+          "VmRSS_kib": 1296,
+          "VmData_kib": 304,
+          "Pss_kib": 1288,
+          "Rss_smaps_kib": 1296,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.40797635400667787,
+          "VmHWM_kib": 1296,
+          "VmRSS_kib": 1296,
+          "VmData_kib": 304,
+          "Pss_kib": 1288,
+          "Rss_smaps_kib": 1296,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.5084508298896253,
+          "VmHWM_kib": 1296,
+          "VmRSS_kib": 1296,
+          "VmData_kib": 304,
+          "Pss_kib": 1288,
+          "Rss_smaps_kib": 1296,
+          "Private_Dirty_kib": 316
+        },
+        {
+          "elapsed_seconds": 0.609027226921171,
+          "VmHWM_kib": 1296,
+          "VmRSS_kib": 1296,
+          "VmData_kib": 304,
+          "Pss_kib": 1288,
+          "Rss_smaps_kib": 1296,
+          "Private_Dirty_kib": 316
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005810247967019677,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 1296,
+      "VmRSS_kib": 1296,
+      "VmRSS_kib_range": [
+        1296,
+        1296
+      ],
+      "VmData_kib": 304,
+      "VmData_kib_range": [
+        304,
+        304
+      ],
+      "Pss_kib": 1288,
+      "Pss_kib_range": [
+        1288,
+        1288
+      ],
+      "Rss_smaps_kib": 1296,
+      "Rss_smaps_kib_range": [
+        1296,
+        1296
+      ],
+      "exit": 0,
+      "log_sha256": "fefc082effb381a4ed16e3d94828a97f8743b7efbc5c0adcd736469221c32b62",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-1000-c"
+    },
+    {
+      "variant": "main",
+      "count": 1000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-1000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.20791736990213394,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.3083735250402242,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.40895928209647536,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.5094897190574557,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        },
+        {
+          "elapsed_seconds": 0.6100707149598747,
+          "VmHWM_kib": 2772,
+          "VmRSS_kib": 2772,
+          "VmData_kib": 1156,
+          "Pss_kib": 2764,
+          "Rss_smaps_kib": 2772,
+          "Private_Dirty_kib": 2764
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.005573926027864218,
+      "ready_cpu_seconds": 0.0,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n00999.test",
+        "query_hex": "716201000001000000000000066e303039393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303039393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 2772,
+      "VmRSS_kib": 2772,
+      "VmRSS_kib_range": [
+        2772,
+        2772
+      ],
+      "VmData_kib": 1156,
+      "VmData_kib_range": [
+        1156,
+        1156
+      ],
+      "Pss_kib": 2764,
+      "Pss_kib_range": [
+        2764,
+        2764
+      ],
+      "Rss_smaps_kib": 2772,
+      "Rss_smaps_kib_range": [
+        2772,
+        2772
+      ],
+      "exit": 0,
+      "log_sha256": "114ab37e45a2268ded82f06a5362582b3831cad6f449e016bc002723f5d15a61",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-1000-main"
+    },
+    {
+      "variant": "head",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.23918122984468937,
+          "VmHWM_kib": 10772,
+          "VmRSS_kib": 10364,
+          "VmData_kib": 8936,
+          "Pss_kib": 10356,
+          "Rss_smaps_kib": 10364,
+          "Private_Dirty_kib": 10356
+        },
+        {
+          "elapsed_seconds": 0.33993502892553806,
+          "VmHWM_kib": 10772,
+          "VmRSS_kib": 10364,
+          "VmData_kib": 8936,
+          "Pss_kib": 10356,
+          "Rss_smaps_kib": 10364,
+          "Private_Dirty_kib": 10356
+        },
+        {
+          "elapsed_seconds": 0.44065318698994815,
+          "VmHWM_kib": 10772,
+          "VmRSS_kib": 10364,
+          "VmData_kib": 8936,
+          "Pss_kib": 10356,
+          "Rss_smaps_kib": 10364,
+          "Private_Dirty_kib": 10356
+        },
+        {
+          "elapsed_seconds": 0.541439144872129,
+          "VmHWM_kib": 10772,
+          "VmRSS_kib": 10364,
+          "VmData_kib": 8936,
+          "Pss_kib": 10356,
+          "Rss_smaps_kib": 10364,
+          "Private_Dirty_kib": 10356
+        },
+        {
+          "elapsed_seconds": 0.6420879829674959,
+          "VmHWM_kib": 10772,
+          "VmRSS_kib": 10364,
+          "VmData_kib": 8936,
+          "Pss_kib": 10356,
+          "Rss_smaps_kib": 10364,
+          "Private_Dirty_kib": 10356
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.03640670282766223,
+      "ready_cpu_seconds": 0.03,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10772,
+      "VmRSS_kib": 10364,
+      "VmRSS_kib_range": [
+        10364,
+        10364
+      ],
+      "VmData_kib": 8936,
+      "VmData_kib_range": [
+        8936,
+        8936
+      ],
+      "Pss_kib": 10356,
+      "Pss_kib_range": [
+        10356,
+        10356
+      ],
+      "Rss_smaps_kib": 10364,
+      "Rss_smaps_kib_range": [
+        10364,
+        10364
+      ],
+      "exit": 0,
+      "log_sha256": "b044635b8c8735a6df3a1e2532233476aa065cde6df0dbf0ac5a5b1a70f8bd73",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-10000-head"
+    },
+    {
+      "variant": "c",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 0.2730458320584148,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.37372030899859965,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.47434206609614193,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.5748849830124527,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        },
+        {
+          "elapsed_seconds": 0.6754549399483949,
+          "VmHWM_kib": 3124,
+          "VmRSS_kib": 3124,
+          "VmData_kib": 2132,
+          "Pss_kib": 3116,
+          "Rss_smaps_kib": 3124,
+          "Private_Dirty_kib": 2116
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.07175307697616518,
+      "ready_cpu_seconds": 0.06,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 3124,
+      "VmRSS_kib": 3124,
+      "VmRSS_kib_range": [
+        3124,
+        3124
+      ],
+      "VmData_kib": 2132,
+      "VmData_kib_range": [
+        2132,
+        2132
+      ],
+      "Pss_kib": 3116,
+      "Pss_kib_range": [
+        3116,
+        3116
+      ],
+      "Rss_smaps_kib": 3124,
+      "Rss_smaps_kib_range": [
+        3124,
+        3124
+      ],
+      "exit": 0,
+      "log_sha256": "25c64d49bc18ad3f014cf7fd8ba6c91fdd4016d3dc472aa9b6e4d15c0a56484b",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-10000-c"
+    },
+    {
+      "variant": "main",
+      "count": 10000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-10000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.22863238188438118,
+          "VmHWM_kib": 10692,
+          "VmRSS_kib": 10272,
+          "VmData_kib": 8996,
+          "Pss_kib": 10264,
+          "Rss_smaps_kib": 10272,
+          "Private_Dirty_kib": 10264
+        },
+        {
+          "elapsed_seconds": 0.3293447799514979,
+          "VmHWM_kib": 10692,
+          "VmRSS_kib": 10272,
+          "VmData_kib": 8996,
+          "Pss_kib": 10264,
+          "Rss_smaps_kib": 10272,
+          "Private_Dirty_kib": 10264
+        },
+        {
+          "elapsed_seconds": 0.43019977887161076,
+          "VmHWM_kib": 10692,
+          "VmRSS_kib": 10272,
+          "VmData_kib": 8996,
+          "Pss_kib": 10264,
+          "Rss_smaps_kib": 10272,
+          "Private_Dirty_kib": 10264
+        },
+        {
+          "elapsed_seconds": 0.5309301768429577,
+          "VmHWM_kib": 10692,
+          "VmRSS_kib": 10272,
+          "VmData_kib": 8996,
+          "Pss_kib": 10264,
+          "Rss_smaps_kib": 10272,
+          "Private_Dirty_kib": 10264
+        },
+        {
+          "elapsed_seconds": 0.631761736003682,
+          "VmHWM_kib": 10692,
+          "VmRSS_kib": 10272,
+          "VmData_kib": 8996,
+          "Pss_kib": 10264,
+          "Rss_smaps_kib": 10272,
+          "Private_Dirty_kib": 10264
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.025972175877541304,
+      "ready_cpu_seconds": 0.01,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n09999.test",
+        "query_hex": "716201000001000000000000066e303939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e303939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 10692,
+      "VmRSS_kib": 10272,
+      "VmRSS_kib_range": [
+        10272,
+        10272
+      ],
+      "VmData_kib": 8996,
+      "VmData_kib_range": [
+        8996,
+        8996
+      ],
+      "Pss_kib": 10264,
+      "Pss_kib_range": [
+        10264,
+        10264
+      ],
+      "Rss_smaps_kib": 10272,
+      "Rss_smaps_kib_range": [
+        10272,
+        10272
+      ],
+      "exit": 0,
+      "log_sha256": "1f354d2f265e6d85d1dad7dcf277964c59958f0e00c6405ced0db3331f206671",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-10000-main"
+    },
+    {
+      "variant": "head",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "samples": [
+        {
+          "elapsed_seconds": 0.38464756100438535,
+          "VmHWM_kib": 45712,
+          "VmRSS_kib": 42148,
+          "VmData_kib": 41256,
+          "Pss_kib": 42140,
+          "Rss_smaps_kib": 42148,
+          "Private_Dirty_kib": 42140
+        },
+        {
+          "elapsed_seconds": 0.4863360468298197,
+          "VmHWM_kib": 45712,
+          "VmRSS_kib": 42148,
+          "VmData_kib": 41256,
+          "Pss_kib": 42140,
+          "Rss_smaps_kib": 42148,
+          "Private_Dirty_kib": 42140
+        },
+        {
+          "elapsed_seconds": 0.5880116529297084,
+          "VmHWM_kib": 45712,
+          "VmRSS_kib": 42148,
+          "VmData_kib": 41256,
+          "Pss_kib": 42140,
+          "Rss_smaps_kib": 42148,
+          "Private_Dirty_kib": 42140
+        },
+        {
+          "elapsed_seconds": 0.6897263790015131,
+          "VmHWM_kib": 45712,
+          "VmRSS_kib": 42148,
+          "VmData_kib": 41256,
+          "Pss_kib": 42140,
+          "Rss_smaps_kib": 42148,
+          "Private_Dirty_kib": 42140
+        },
+        {
+          "elapsed_seconds": 0.7914873049594462,
+          "VmHWM_kib": 45712,
+          "VmRSS_kib": 42148,
+          "VmData_kib": 41256,
+          "Pss_kib": 42140,
+          "Rss_smaps_kib": 42148,
+          "Private_Dirty_kib": 42140
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.17902565002441406,
+      "ready_cpu_seconds": 0.16,
+      "actual_exe_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 45712,
+      "VmRSS_kib": 42148,
+      "VmRSS_kib_range": [
+        42148,
+        42148
+      ],
+      "VmData_kib": 41256,
+      "VmData_kib_range": [
+        41256,
+        41256
+      ],
+      "Pss_kib": 42140,
+      "Pss_kib_range": [
+        42140,
+        42140
+      ],
+      "Rss_smaps_kib": 42148,
+      "Rss_smaps_kib_range": [
+        42148,
+        42148
+      ],
+      "exit": 0,
+      "log_sha256": "5867629659fa7ddc693d87a78064e2ed388f213cc45b95d624a584f7ec1d6750",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-50000-head"
+    },
+    {
+      "variant": "c",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "samples": [
+        {
+          "elapsed_seconds": 1.8111518679652363,
+          "VmHWM_kib": 11056,
+          "VmRSS_kib": 11056,
+          "VmData_kib": 10068,
+          "Pss_kib": 11048,
+          "Rss_smaps_kib": 11056,
+          "Private_Dirty_kib": 10076
+        },
+        {
+          "elapsed_seconds": 1.9120755880139768,
+          "VmHWM_kib": 11056,
+          "VmRSS_kib": 11056,
+          "VmData_kib": 10068,
+          "Pss_kib": 11048,
+          "Rss_smaps_kib": 11056,
+          "Private_Dirty_kib": 10076
+        },
+        {
+          "elapsed_seconds": 2.012946347007528,
+          "VmHWM_kib": 11056,
+          "VmRSS_kib": 11056,
+          "VmData_kib": 10068,
+          "Pss_kib": 11048,
+          "Rss_smaps_kib": 11056,
+          "Private_Dirty_kib": 10076
+        },
+        {
+          "elapsed_seconds": 2.11374946590513,
+          "VmHWM_kib": 11056,
+          "VmRSS_kib": 11056,
+          "VmData_kib": 10068,
+          "Pss_kib": 11048,
+          "Rss_smaps_kib": 11056,
+          "Private_Dirty_kib": 10076
+        },
+        {
+          "elapsed_seconds": 2.2146572258789092,
+          "VmHWM_kib": 11056,
+          "VmRSS_kib": 11056,
+          "VmData_kib": 10068,
+          "Pss_kib": 11048,
+          "Rss_smaps_kib": 11056,
+          "Private_Dirty_kib": 10076
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 1.6094298700336367,
+      "ready_cpu_seconds": 1.6,
+      "actual_exe_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 11056,
+      "VmRSS_kib": 11056,
+      "VmRSS_kib_range": [
+        11056,
+        11056
+      ],
+      "VmData_kib": 10068,
+      "VmData_kib_range": [
+        10068,
+        10068
+      ],
+      "Pss_kib": 11048,
+      "Pss_kib_range": [
+        11048,
+        11048
+      ],
+      "Rss_smaps_kib": 11056,
+      "Rss_smaps_kib_range": [
+        11056,
+        11056
+      ],
+      "exit": 0,
+      "log_sha256": "cbc2106d1b0a3c3f1336d0b24ac6c123a737dc10bf360bf0f114bd6328890004",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-50000-c"
+    },
+    {
+      "variant": "main",
+      "count": 50000,
+      "argv": [
+        "chroot",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/startup-resources/image/rootfs",
+        "/usr/sbin/dnsmasq-main",
+        "-k",
+        "-C",
+        "/m2/hostrecords-50000.conf"
+      ],
+      "expected_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "samples": [
+        {
+          "elapsed_seconds": 0.33154655899852514,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.4332471250090748,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.5349670508876443,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.6365893369074911,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        },
+        {
+          "elapsed_seconds": 0.738239181926474,
+          "VmHWM_kib": 45632,
+          "VmRSS_kib": 42056,
+          "VmData_kib": 41316,
+          "Pss_kib": 42048,
+          "Rss_smaps_kib": 42056,
+          "Private_Dirty_kib": 42048
+        }
+      ],
+      "errors": [],
+      "initial_cache_reload_log_observed_seconds": 0.12796666496433318,
+      "ready_cpu_seconds": 0.11,
+      "actual_exe_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "query": {
+        "name": "n49999.test",
+        "query_hex": "716201000001000000000000066e343939393904746573740000010001",
+        "reply_hex": "716285800001000100000000066e343939393904746573740000010001c00c00010001000000000004c0000201",
+        "correct": true
+      },
+      "VmHWM_kib": 45632,
+      "VmRSS_kib": 42056,
+      "VmRSS_kib_range": [
+        42056,
+        42056
+      ],
+      "VmData_kib": 41316,
+      "VmData_kib_range": [
+        41316,
+        41316
+      ],
+      "Pss_kib": 42048,
+      "Pss_kib_range": [
+        42048,
+        42048
+      ],
+      "Rss_smaps_kib": 42056,
+      "Rss_smaps_kib_range": [
+        42056,
+        42056
+      ],
+      "exit": 0,
+      "log_sha256": "f5e6b9b3e16d3517a5b6de244d9de39f619bfe09890d382246392a63695ad103",
+      "passed": true,
+      "round": 3,
+      "directory": "r3-50000-main"
+    }
+  ],
+  "configs": {
+    "0": {
+      "sha256": "04c374fb63fe9fd1dca46758e110b6d1e47599fbf900179d0a94cd8f491aafd7",
+      "bytes": 165
+    },
+    "1000": {
+      "sha256": "495d494f34ae67595b9554fdefecf55a84b516a3f1acd99cf213da31946e230f",
+      "bytes": 34165
+    },
+    "10000": {
+      "sha256": "4df6ee10570d4f958c7f89d8e7569e229dc449d0eabd97db29fb7cd0e33da4ab",
+      "bytes": 340165
+    },
+    "50000": {
+      "sha256": "9b813175afd5e051418a9caf66b6c0cad519d042f35c20c00df1f40ace10ba47",
+      "bytes": 1700165
+    }
+  },
+  "passed": true,
+  "main_level": {
+    "peaks_kib": {
+      "main": [
+        10696,
+        10696,
+        10692
+      ],
+      "head": [
+        10756,
+        10740,
+        10772
+      ]
+    },
+    "median_delta_kib": 60,
+    "passed": true
+  }
+}

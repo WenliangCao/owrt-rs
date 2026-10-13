@@ -1,0 +1,6009 @@
+{
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "fix": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+    "driver": "e5b28151ab984e3bc010900db60c524a8bbf41939f5672a1d68c35c7f19067b6"
+  },
+  "raw_result": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dns-filter-cname/result.json",
+    "sha256": "2b5a7a7052d92708b8ffe21e4b6b07b596c061b43d65739df9c0eb98869f1fb6",
+    "bytes": 392219
+  },
+  "case_count": 72,
+  "process_runs": 216,
+  "runs": [
+    {
+      "name": "r1-debug0-filter1-cold-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-cold-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-udp-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-udp-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-persistent-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-persistent-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-cold-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-cold-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-udp-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-udp-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-persistent-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-persistent-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter1-cold-q6",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter1-cold-q33",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter1-udp-q6",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter1-udp-q33",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter1-persistent-q6",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter1-persistent-q33",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter0-cold-q6",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter0-cold-q33",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter0-udp-q6",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter0-udp-q33",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter0-persistent-q6",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug1-filter0-persistent-q33",
+      "repeat": 1,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter1-cold-q6",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter1-cold-q33",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter1-udp-q6",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter1-udp-q33",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter1-persistent-q6",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter1-persistent-q33",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter0-cold-q6",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter0-cold-q33",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter0-udp-q6",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter0-udp-q33",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter0-persistent-q6",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug0-filter0-persistent-q33",
+      "repeat": 2,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter1-cold-q6",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter1-cold-q33",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter1-udp-q6",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter1-udp-q33",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter1-persistent-q6",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter1-persistent-q33",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter0-cold-q6",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter0-cold-q33",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter0-udp-q6",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter0-udp-q33",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter0-persistent-q6",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r2-debug1-filter0-persistent-q33",
+      "repeat": 2,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter1-cold-q6",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter1-cold-q33",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter1-udp-q6",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter1-udp-q33",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter1-persistent-q6",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter1-persistent-q33",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter0-cold-q6",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter0-cold-q33",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter0-udp-q6",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter0-udp-q33",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter0-persistent-q6",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug0-filter0-persistent-q33",
+      "repeat": 3,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter1-cold-q6",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter1-cold-q33",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter1-udp-q6",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter1-udp-q33",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter1-persistent-q6",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter1-persistent-q33",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "upstream_count": 0,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter0-cold-q6",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter0-cold-q33",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": null,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter0-udp-q6",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter0-udp-q33",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter0-persistent-q6",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r3-debug1-filter0-persistent-q33",
+      "repeat": 3,
+      "debug": true,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "sides": {
+        "c": {
+          "rcode": 0,
+          "flags": "0x8580",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "main": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        },
+        "fix": {
+          "rcode": 3,
+          "flags": "0x8183",
+          "qd_an_ns_ar": [
+            1,
+            1,
+            1,
+            0
+          ],
+          "upstream_count": 1,
+          "warm_response": [
+            4660,
+            33155,
+            1,
+            1,
+            1,
+            0
+          ],
+          "exit": 0
+        }
+      }
+    }
+  ],
+  "representative_evidence": [
+    {
+      "name": "r1-debug0-filter1-cold-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 6,
+      "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "sides": {
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-cold-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "cold",
+      "qtype": 33,
+      "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "sides": {
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-udp-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 6,
+      "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "53f10100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "53f18183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "49980100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "49988183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "8c780100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "8c788183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-udp-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "udp",
+      "qtype": 33,
+      "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "5ac60100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "5ac68183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "2afc0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "2afc8183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "dc720100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "dc728183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-persistent-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 6,
+      "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ],
+            "length": 42
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter1-persistent-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": true,
+      "warmth": "persistent",
+      "qtype": 33,
+      "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ],
+            "length": 42
+          },
+          "upstream": [],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-cold-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 6,
+      "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "sides": {
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-cold-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "cold",
+      "qtype": 33,
+      "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "sides": {
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-udp-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 6,
+      "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "dc050100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "dc058183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "b83a0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "b83a8183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "bfc70100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "bfc78183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-udp-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "udp",
+      "qtype": 33,
+      "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "11a80100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "11a88183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "cdab0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "cdab8183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "warm_upstream": [
+            {
+              "protocol": "udp",
+              "query": "277e0100000100000000000105616c696173076578616d706c65000001000100002904d0000000000000",
+              "reply": "277e8183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-persistent-q6",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 6,
+      "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    },
+    {
+      "name": "r1-debug0-filter0-persistent-q33",
+      "repeat": 1,
+      "debug": false,
+      "filterwin2k": false,
+      "warmth": "persistent",
+      "qtype": 33,
+      "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\ncache-size=150\nno-round-robin\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "sides": {
+        "c": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "main": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        },
+        "fix": {
+          "warm_query": "12340100000100000000000005616c696173076578616d706c650000010001",
+          "warm_response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "warm_upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000005616c696173076578616d706c650000010001",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ],
+            "length": 130
+          },
+          "upstream": [
+            {
+              "protocol": "tcp",
+              "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+              "reply": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c"
+            }
+          ],
+          "alive": true,
+          "exit": 0
+        }
+      }
+    }
+  ],
+  "new_regression_reproductions": 24,
+  "inherited_defect_reproductions": 24
+}

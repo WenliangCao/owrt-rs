@@ -1,0 +1,2928 @@
+{
+  "performance-dns": {
+    "window_count": 36,
+    "foreign_before": [],
+    "counters": {
+      "scheduled": 1823992,
+      "sent": 1823992,
+      "correct": 1823992,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "cgroup_samples": 360,
+    "maximum_nr_throttled": 0,
+    "maximum_throttled_usec": 0,
+    "result_hashes": {
+      "udp-cname-r1-main": "b686f27975b9cef304a7bdb66955cf25e60b3e3227f8b554c66eea155d065796",
+      "udp-cname-r1-fix": "497b3f094443c9d0adeed5f67ec548ce8721a89599450fae3d6ecfe4e7f14e52",
+      "tcp-cname-r1-main": "d3943b760188971f58cbb040e7d708aed7c52e8131eeb370177eca08147437de",
+      "tcp-cname-r1-fix": "1ad816e23e9d9a4739ccb43cf00512e999f283bebca2ba94b5edcc3b626aa438",
+      "udp-hit-r1-main": "5eb5da52897ff4f9111789f92fdfe3b760c8419146a0ee2561fe61c8cc0dea40",
+      "udp-hit-r1-fix": "c2acd13e49b877733cbadc4fe5281dce1a02a91a370d07db5b15681e0bab018e",
+      "udp-miss-r1-main": "eecdf3d3d53af88eb5ba130a6a065637e95f214e6926bf39eb0db7af6955bad1",
+      "udp-miss-r1-fix": "f2e15346b753760a72e1919261858217d5ce7334fbf5f6e14bca58ea2d3a6726",
+      "tcp-hit-r1-main": "b16285f4265b9d1ae8eefec82e276e36ddd1e4fa5e20330adf0410c0dba7215d",
+      "tcp-hit-r1-fix": "a4cc717ed47d61bd2c982d9cea5903a7e7c8f1327151f759b8fcafe3d7969109",
+      "tcp-miss-r1-main": "babe399d8e7b813368ac2dc831c397b82097b0d0b286bea84030be38f5958c0b",
+      "tcp-miss-r1-fix": "f7894da15e0cf63040a61911fe4f748c2b8b65c471436e68ac1eab133d9e7ccd",
+      "udp-cname-r2-fix": "782effe1d5594f012eedda73fc28b3fe5dfc434d9b11c7b225f525af12f6dd11",
+      "udp-cname-r2-main": "7a9c8938a86e511aab879ba430c956d27267251b102191f560b07d94e85d3b7c",
+      "tcp-cname-r2-fix": "e7c31c11ecab35e18e4e9fafa322dcd8bd16b7661fd0d3b4714538a6468803aa",
+      "tcp-cname-r2-main": "9c5256d2864e92863a05d3acdf9038603776d6fe8b7ac7c2fb5f081f4857d76a",
+      "udp-hit-r2-fix": "f62cd63796205409e084577e44ea193fe472359ac4e81cbe62163b92cc6ef142",
+      "udp-hit-r2-main": "085fc05241ac3261aa8e1bef313a2dca87d3eb616fb8337d88c9878a477f3f22",
+      "udp-miss-r2-fix": "d6871d2ad0bd7b8fb81bd4953f4ff1a44f986f345c0509066b1824ff66a8e13b",
+      "udp-miss-r2-main": "0beaf7c94157878cd2da390c9c244c7c89a3f096a699d03e37ab7bf2dcaaa5d9",
+      "tcp-hit-r2-fix": "e3cba5db9bf55b4edc774e76ca0419d2ae3b2463b0e6ed60046f51c6fcadadfa",
+      "tcp-hit-r2-main": "482ba71928e687875310554223b49945a223a676fef07727b28647616565ac8b",
+      "tcp-miss-r2-fix": "d455d89663db7ef3b340b2b63f0046d2ec19f0a521c8257bab18d54473982ab6",
+      "tcp-miss-r2-main": "b60b135bf2078e38f868c54b62a32860997a7410b9db08675995952bf444ad6d",
+      "udp-cname-r3-main": "5ebd18da01904174361b8a049198a2edb2bed1eefe7400d09f27ba8cc31286a2",
+      "udp-cname-r3-fix": "efef6898c9a65a623b1b50cd37d05be476418fa854ba6943e07117ac03fdc06d",
+      "tcp-cname-r3-main": "53e89ebfb5997c554f96b84d171e7ffa239aaf0c0f9b4a4ffdb7c6dd238e4ff2",
+      "tcp-cname-r3-fix": "85610a96d4777f167926c082467890aa1779879d906e457d6a17376c311d6714",
+      "udp-hit-r3-main": "8e474c813789e2c79717dff5c010666500ec36730f7c7296ec7987faa1b49a5c",
+      "udp-hit-r3-fix": "ebdc932db163f816c123286d85467fa83af6e2434650e00ea03ba63ae8bcc5e5",
+      "udp-miss-r3-main": "04d125b7907fa589ae643221c7c57e61bed5b6bbe2c209f41de2b1692b944418",
+      "udp-miss-r3-fix": "e4bf5f5b5d20ef605830f02a73c9db7fd5171b8e39fdef2606a4eed26ec9804a",
+      "tcp-hit-r3-main": "55b7f028f86461b029704711eacc525acb0a5dec5a18747db8ff41b92d21e9ac",
+      "tcp-hit-r3-fix": "4968a5ce2b4d3b152199393ef321f89da400c7c5578e27b75448b617060f8592",
+      "tcp-miss-r3-main": "8e508ae31fc8ec6cb59437fcf073cd16b43c6d32db02925f43e4591bf4dfd0af",
+      "tcp-miss-r3-fix": "45dfd6d8d7a4c9a2a5a8de7c79735e6e4ffb3a124a2dbfc6adbb5a68b877eb46"
+    },
+    "windows": [
+      {
+        "id": "udp-cname-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-cname-r1-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "184fb5c7458ba56fec6cd4ea3b73f92699ca05aec16d2a5e136ed129f270a7fb",
+          "process-identity.json": "dfb2423f89b3d28c14d52dcb4d683aa87123d47798d224d77e001ad5721b2447",
+          "cache-proof.json": "e4f990855892481b1641fbcfe636d82943c5e924680da1966e4729e2ceeb2a9f"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 80000,
+            "sent": 80000,
+            "correct": 80000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-cname-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-cname-r1-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "cd4c8c8497282600c5fc143dbd01f89b4a178e6f3cc2d42219935d909774ff70",
+          "process-identity.json": "bf51559b08ac5975010d5d229ff923bc589e07381d1f09b5fa33a9c33298c304",
+          "cache-proof.json": "f08b4d3dae6c08c8e4013c74c6eee51707df8d451edfceb1dfbc03f204b45f83"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 80000,
+            "sent": 80000,
+            "correct": 80000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-cname-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-cname-r1-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "bd7b302e2b047a1b8beee3589db316c5bfc110bfc54d1738b7972dc6c90aa6bb",
+          "process-identity.json": "4939143130226cb89994a9aec161d662e49bdd2f0a48950610418c9df2b73b91",
+          "cache-proof.json": "3afb20c26a09bda636a0d98d9a4392519dc645aa0f50ac181cd1f3a837d908a4"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 700,
+        "tcp_reconnections": 680,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 60000,
+            "sent": 60000,
+            "correct": 60000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-cname-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-cname-r1-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "0b3f7eeb9dc60b079d473d5b092f7966dab41b4bfcbaac0ee3f849936a6bb494",
+          "process-identity.json": "9cbd19673a952413b9a820fb6deef89b1b16659ef1a7ac0e7ceb336742afb7b6",
+          "cache-proof.json": "3afb20c26a09bda636a0d98d9a4392519dc645aa0f50ac181cd1f3a837d908a4"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 700,
+        "tcp_reconnections": 680,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 60000,
+            "sent": 60000,
+            "correct": 60000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-hit-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-hit-r1-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "9e00f81483f62bb295580694588c2827a3693835261f3feecb131184dfa48bfc",
+          "process-identity.json": "d9f842a39eb8e7cb0627f934057104471466163b03c0f9a46948b4e82a892115",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 40000,
+            "sent": 40000,
+            "correct": 40000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-hit-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-hit-r1-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "c8138c81e5017d8e26d0abc71e153f55ec765ef1017a7b5e6cf48226221fb4ab",
+          "process-identity.json": "8073d357baa9bba65a8223dd4aa05772c894dee51f3ada70660e1e459e8f280c",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 40000,
+            "sent": 40000,
+            "correct": 40000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-miss-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-miss-r1-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "bfd03011b435c95a31cf53edd6892b369266bfb82fe5acf8e7aec92047415b70",
+          "process-identity.json": "5a871efefc117ffc5affe1d549f237681d92b3443bc7859020768ffc725399be"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-miss-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-miss-r1-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "10f01cb1f985d7107cbc22ee06f09608c1773e0060cda8048e08540bfadc7a49",
+          "process-identity.json": "d67c06406393077c45d96a4c86ee975fce0777551c1cae7b72d53ec90b1f99cd"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-hit-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-hit-r1-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "6b3af99a9ed1323e99936c0b3137066965f26ea0fdc6dfdaa6ff477d330e4158",
+          "process-identity.json": "483db9ff6f26e26e869facc120c68e755159c1d2425025e4322b3fd1a38cc022",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 400,
+        "tcp_reconnections": 380,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-hit-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-hit-r1-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "894bc27fc6c58ea6b8451ca48da87f11b14fdaaa271dfa9cff4a51b3eafb3b02",
+          "process-identity.json": "5d0c5bcf04750ef2d2f6bdde2361e4e2ac437985ab55b7ee22362cc932c5afae",
+          "cache-proof.json": "b88389f97aab56ba3a0b3e04b886d509a7176bc02b40daf33d9b62969abcc373"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 400,
+        "tcp_reconnections": 380,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-miss-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-miss-r1-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "2c3f7e751a43957b5212fe8fa2066ee72b85f2f880ee31a9350bd8dcd8390e18",
+          "process-identity.json": "3e14790be29b8ebfd8547281806996545849cb77a8f281fd2eac914f7d70e73e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 260,
+        "tcp_reconnections": 240,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-miss-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-miss-r1-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "6d6789095e6418770e7ff164df4b12320d02f59c4b307ec83073948a26758e1c",
+          "process-identity.json": "d20281b4a32e793ff3a478a684f49cc442ae2f6c302bf5f70f015ba7dcbd79e9"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 260,
+        "tcp_reconnections": 240,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-cname-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-cname-r2-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "7b2d4aad6a90c50d44c12e0de5f8e16e3cced24c11e992c32c9f3328c91036e3",
+          "process-identity.json": "813fe7d5703f4cc4aff6374bb8f6d1c004862fc5d200d4336da5c2a57ea22a33",
+          "cache-proof.json": "9bebffcb1a2977f58feb1b3e7eb2fddb5785771e7ea3fb2fd01ccd7f77c0bd1b"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 11993,
+            "sent": 11993,
+            "correct": 11993,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 79999,
+            "sent": 79999,
+            "correct": 79999,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-cname-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-cname-r2-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "2105cab73d800a1bcf2b475e6a9f2b85791196e4aa61789df2c84689f47c762d",
+          "process-identity.json": "12bb8255d6b6090c2cd0d51578c4f5fa6f67cecc2a8c38e5633d2af0036cacdf",
+          "cache-proof.json": "ca00ce8eb4ea01c8ff011334e718a07eefec68675a19731020b77157b2d9d57c"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 80000,
+            "sent": 80000,
+            "correct": 80000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-cname-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-cname-r2-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "c7d3a689436d0737e26be27d90c85fe6698e4132375a668bf657af93d57a3694",
+          "process-identity.json": "a4cbc8da4d7f983dcf93f9ab322acdea070f32b836f3f10ba55ed39e3886506c",
+          "cache-proof.json": "3afb20c26a09bda636a0d98d9a4392519dc645aa0f50ac181cd1f3a837d908a4"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 700,
+        "tcp_reconnections": 680,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 60000,
+            "sent": 60000,
+            "correct": 60000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-cname-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-cname-r2-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "2a58df7b27075a7bafb5bc92c175ba93b19ec11e3dd4d91fbd9eeefc8b6f9f14",
+          "process-identity.json": "c905f9e71bf08ba6094a1d413cce7d5d0f51ebd3b05c7277f933d8e47310b85d",
+          "cache-proof.json": "3afb20c26a09bda636a0d98d9a4392519dc645aa0f50ac181cd1f3a837d908a4"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 700,
+        "tcp_reconnections": 680,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 60000,
+            "sent": 60000,
+            "correct": 60000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-hit-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-hit-r2-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "33ef6d51d4de3412644f9a92c01c15f59524e2139ad5527a82d9952ac1ade016",
+          "process-identity.json": "0ee2195200b9d7848cbb91a2d925a85dfac67179ba5abbb8f402baf8fce37a2a",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 40000,
+            "sent": 40000,
+            "correct": 40000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-hit-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-hit-r2-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "47a4031acfa26bd1130d27e61b745a395730732b1be3491ce632bbc3ecaa1bd1",
+          "process-identity.json": "feaad62fa57db2c177a9091498d986747d1c779e0cc4e9922b3063e46fcdc6ae",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 40000,
+            "sent": 40000,
+            "correct": 40000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-miss-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-miss-r2-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "b4a30c26b3cb1db4c1664a52e0d66292aec049a83db126553b4776d22e62bbbf",
+          "process-identity.json": "49f74216ad914306c320fbc24428507b76c2e610de4304b6d6d7c71b57aeef8e"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-miss-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-miss-r2-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "14b916163271f680500c0f45c25739402e6d58173076a4690a93629e154c5c19",
+          "process-identity.json": "914fcb530fd48ad67759bd9874ad11f97f5150b1d148e12d2b2b133667900477"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-hit-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-hit-r2-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "9cb21f05f5279bf6bcb9d1a9d15b9d9187e2fcc58905bbab12adff860ec9f046",
+          "process-identity.json": "357e790986fb195c060d29da0a596d6b35cde49be483cc0716009db022590d61",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 400,
+        "tcp_reconnections": 380,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-hit-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-hit-r2-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "fa7f37c2267e268f69a2ecee543354d3efbb7bea15888898a73df3a0f11338ea",
+          "process-identity.json": "5de54e71fa39dfcb52eaec7e1910147491a0462286d51d5855a4d7f45c5ecb14",
+          "cache-proof.json": "34f542462549bd2fe96bbb506caefceea97af6de0d2b497144b7ff9926c6835b"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 400,
+        "tcp_reconnections": 380,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-miss-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-miss-r2-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "734d5aea6aa9409310a5253fea565661ea0bca3b2985ff5974e53e3e8d1e6962",
+          "process-identity.json": "8d2d3baafda23f8228558e13f44bf9170131773baee3140105b32b9c1f942634"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 260,
+        "tcp_reconnections": 240,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-miss-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-miss-r2-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "902cf380eca18931e14b26f270b610345dd0ee367f1a4c11d3172ccb87a96388",
+          "process-identity.json": "f23ba7466b9d06fdf66c232c130d00962f786326063e75f19271fd16bed7aa45"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 260,
+        "tcp_reconnections": 240,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-cname-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-cname-r3-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "366a4d2f3e130b1112fe1aab9dd5987ff303ed2dac3d3ad7f590d09f14032b9e",
+          "process-identity.json": "916f2d784cf478b6aa9ab995aee352d9871ab777861f8098aae0ee0270c0c78b",
+          "cache-proof.json": "0b26b9d75780f794c5a0cbeab4b3ca144ec7f71374f4cf3e0bcf32bc80f6c751"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 80000,
+            "sent": 80000,
+            "correct": 80000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-cname-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-cname-r3-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "857a8a56d283255cd655fece48488ffb0bb698b2e8affd132784683402d0b9f4",
+          "process-identity.json": "0e30c12705482790199d16f35d2a2b17ed5caf093826333499476db97ad8eb42",
+          "cache-proof.json": "9e1c0ece11574905c05365e5bddb6e992b053f20ba0c3fe37ce4718291afa52e"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 80000,
+            "sent": 80000,
+            "correct": 80000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-cname-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-cname-r3-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "2a5aeca02a3049ae5842d7ae2f21feca2c4827e6668452ab0e0c600c690d4d7a",
+          "process-identity.json": "b39ebbe6a605e1df9ca846bb6e33761a520edac9ef022b1458ff382cd0058200",
+          "cache-proof.json": "3afb20c26a09bda636a0d98d9a4392519dc645aa0f50ac181cd1f3a837d908a4"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 700,
+        "tcp_reconnections": 680,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 60000,
+            "sent": 60000,
+            "correct": 60000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-cname-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-cname-r3-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "6c855ca1e15c4bc3cc66288c6bd3c4abf9b4409f2ae812da225bdf362b0eb2f8",
+          "process-identity.json": "910a2deb4ddd9c6a814a3ddca8416aabc8c905bfc923f0f3c7552a551038c21a",
+          "cache-proof.json": "3afb20c26a09bda636a0d98d9a4392519dc645aa0f50ac181cd1f3a837d908a4"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 2048,
+          "validated_names": 2048,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 700,
+        "tcp_reconnections": 680,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 60000,
+            "sent": 60000,
+            "correct": 60000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-hit-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-hit-r3-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "7f250b41cdca6002e428450d4a035c737e85dab9ab045abac32957f7b2ae69ba",
+          "process-identity.json": "fb00177b80500936cc86f3e7142108ad68b1e691031f87f2fa1f630c3c23f378",
+          "cache-proof.json": "664c3be78eff313827602e53ad460e484270a1bf5fe159be1ce95fcbdd63de4e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 40000,
+            "sent": 40000,
+            "correct": 40000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-hit-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-hit-r3-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "5f0afb76fec44b62e5b3a5890ed8c5985faa4f3338cbaee967f08c42d3f8588f",
+          "process-identity.json": "7770be08767e783c53dad7a520fbdf5d8d405204e87beb9443ec8ff1679056ad",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 12000,
+            "sent": 12000,
+            "correct": 12000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 40000,
+            "sent": 40000,
+            "correct": 40000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-miss-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-miss-r3-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "566a8887ec9cfa3f0236d90d81ab8a90f916957d67ef1493674d838d94a69720",
+          "process-identity.json": "3ccb3b1266dc441403f68fed936e1747d52e431a0ebb434fe343570498907c89"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-miss-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/udp-miss-r3-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "6717b910425ce62912fa95844ac7619a8fb449bc86a0f60e313dee32cc18ca51",
+          "process-identity.json": "faf9be876536051653e498e15025b179cf91cd01657ebc1c46e10921904f5a47"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-hit-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-hit-r3-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "c316ce44eaa2097af55493a305e510621a3b465a18a4b7c920bce8f6f406cb13",
+          "process-identity.json": "c8b804663f5f5fcc45eb023f43241ee1ba30411326425b61e8059e49cbc8ed77",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 400,
+        "tcp_reconnections": 380,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-hit-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-hit-r3-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "3e1b68abd1a230f1f3fff05d339fc3030fc3ac7d7acc12e08089e75dd00b2590",
+          "process-identity.json": "a92b340088f0ab04e0d479819bc128b15b25d162646bef138efc084ea3e43ad0",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 400,
+        "tcp_reconnections": 380,
+        "phases": {
+          "warmup": {
+            "scheduled": 9000,
+            "sent": 9000,
+            "correct": 9000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-miss-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-miss-r3-main",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "2f8a648a92cd18399ee54c24b8fd68b00e59a3bcfb5b171a241b9db34c03cd1f",
+          "process-identity.json": "dc647cd9c83cd47e91540d1c6365b41d61b281b0993bb1d783d3d3657f669576"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 260,
+        "tcp_reconnections": 240,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-miss-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-dns/tcp-miss-r3-fix",
+        "raw_assets": {
+          "config": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+          "upstream.json": "b086ebedbeecba911b652e7282bd0de207d5b2483d109f33e41cd85c10fc3c9d",
+          "process-identity.json": "f7effda782df50ad1ec19310bc351b802e1f51d9efcd04823e87e2f66c0e8e38"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": null,
+        "upstream_disabled": false,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 260,
+        "tcp_reconnections": 240,
+        "phases": {
+          "warmup": {
+            "scheduled": 6000,
+            "sent": 6000,
+            "correct": 6000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 20000,
+            "sent": 20000,
+            "correct": 20000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      }
+    ],
+    "pair_config_checks": [
+      {
+        "profile": "udp-cname",
+        "round": 1,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-cname",
+        "round": 1,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-hit",
+        "round": 1,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-miss",
+        "round": 1,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-hit",
+        "round": 1,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-miss",
+        "round": 1,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-cname",
+        "round": 2,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-cname",
+        "round": 2,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-hit",
+        "round": 2,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-miss",
+        "round": 2,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-hit",
+        "round": 2,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-miss",
+        "round": 2,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-cname",
+        "round": 3,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-cname",
+        "round": 3,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-hit",
+        "round": 3,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "udp-miss",
+        "round": 3,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-hit",
+        "round": 3,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      },
+      {
+        "profile": "tcp-miss",
+        "round": 3,
+        "sha256": "3fe56f1338325a1482e2f77a4bdcb461973c3545e1e3d3224fff0b4f4644add2",
+        "identical": true
+      }
+    ]
+  },
+  "performance-raw-records": {
+    "window_count": 18,
+    "foreign_before": [],
+    "counters": {
+      "scheduled": 324000,
+      "sent": 324000,
+      "correct": 324000,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "cgroup_samples": 180,
+    "maximum_nr_throttled": 0,
+    "maximum_throttled_usec": 0,
+    "result_hashes": {
+      "tcp-raw-100-r1-main": "719cd398550dfdcc8637e7458b874097e82f67cecd01649f943d0bd2578b26e2",
+      "tcp-raw-100-r1-fix": "fc67caf83c860c5cc12e5f60c7c3e37c60481143ee6787f4be7d93ae45961a7e",
+      "tcp-raw-1000-r1-main": "b35304e1e04c76c290b739f3ee7e9509b4f29fa8ea585012632e1163ca4316e1",
+      "tcp-raw-1000-r1-fix": "f9d585063bd29706ed460e8a6cdf03b1b94395899d238c964a5baa57eed93227",
+      "udp-raw-1000-r1-main": "3ef6ccf1c3c5b0be0b4358a4cafacc3e552ca8f918466347677674781f1e4df6",
+      "udp-raw-1000-r1-fix": "4fe755f18b319d3198b26bb3ce6af5d9ebcdb38a78bbd7a37a4acdbc2c948fd0",
+      "tcp-raw-100-r2-fix": "3d75bfecc4977b6df1459d11baf8408f9cde8252f86e31ee42ff1a8b6ad1f0cf",
+      "tcp-raw-100-r2-main": "102d577b34394aefc8144602a1936950638776422886dcdaf404033ee0b027e7",
+      "tcp-raw-1000-r2-fix": "ceae62008e91e2e579e28423e28769247d700cf8ffc8a19cf1c37a19eb87f9b7",
+      "tcp-raw-1000-r2-main": "7b79ac2bb4032528c80e1b883ef5a0a7ec7cbb30eb184315cffc350ff46bfd2d",
+      "udp-raw-1000-r2-fix": "ec7a11f3dcec541482b359d04dcccc1e086044809f7939ac74750b16882f1396",
+      "udp-raw-1000-r2-main": "7fdd8ba7bc2d29a93868b8f0e6bca334001a209cfd177a75eb7a3b5135562c4f",
+      "tcp-raw-100-r3-main": "89ef944d441506b42adb4e0d73abad0d31faad83f74903e9d97882d16f9c408f",
+      "tcp-raw-100-r3-fix": "75c5755a12eec6b1d374d26860f65d46706ab55ba6d35e1e6ffd99e8b3a75fe3",
+      "tcp-raw-1000-r3-main": "854563f8313dcc23b5c1f21eb5f0b424dd4512dcd3449cafbbd9b10e05b53ff8",
+      "tcp-raw-1000-r3-fix": "3c3ff8fb3bdf3e2c5871205d37433eeccfc9f9639699f4808c7ccb3a7aac37d4",
+      "udp-raw-1000-r3-main": "13a8a48f53b39f2803959e59242ff68dc3e725342ba07ce9f7aa4f35a7873ef4",
+      "udp-raw-1000-r3-fix": "f4eeabfc3bd1b43a0efa99dd74653d51c0f422d1328caf0c685c2261dab370d1"
+    },
+    "windows": [
+      {
+        "id": "tcp-raw-100-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-100-r1-main",
+        "raw_assets": {
+          "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+          "upstream.json": "d771c90c96844f752d4fd074a08b107c6fbc7084734ccfb21e3a80affac7e3d2",
+          "process-identity.json": "ee3c4080c5ac50c2b91739ec1e7dbeb40cb7c52481a4077cbbb89b5fb0d05a5c",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-100-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-100-r1-fix",
+        "raw_assets": {
+          "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+          "upstream.json": "e1ba976f8c25554a6e98061439d4900170dee2b17f08d954438cd59f0d5bcd04",
+          "process-identity.json": "52e188e3d1f8c1947e857f763d1793d34e3412508f147a5aa47a05aad48467a6",
+          "cache-proof.json": "494364bae8bd391713abc3aa80872bf64512ac29af32734d5a88660d0b135705"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-1000-r1-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "49384b15a4ab474475744685c349d1d8d4e2d9e7cf7059253ee2424492bfdd1a",
+          "process-identity.json": "748b9d1ef20cabd5a4bb5b02afb67fdf29abb762c36cfcdc9b3c354ae1aef50b",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-1000-r1-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "99426ab1e597da9cd88c74833d7189f3c8060edd895febbba38cce88e6030b9e",
+          "process-identity.json": "666ffb19251e20eeae5c77bdc57397a315d18323742fb82491f097cacd0c737d",
+          "cache-proof.json": "e0353111e2f6bd5de7f55c0e523f7c1f31923bf01ab83603f76bdb24b0c10764"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-1000-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/udp-raw-1000-r1-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "881bc66408255d5bdd454ed5289abdc6d205d07ad6cc3df8294e938b3c7fe1b9",
+          "process-identity.json": "8b803de4c116588e9aead7b3098892fa4919eac44ed48fd09bca5d22c5c59623",
+          "cache-proof.json": "157b03f6b2ce84c941ac82bd8463be076a08ef4952b13f5dd64c74d815196493"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-1000-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/udp-raw-1000-r1-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "5f2490b1f5826af1970094c885522b5837ac61d95a44c5f0ba2ae191fdfce188",
+          "process-identity.json": "1ff581f516808bfb5b1458464878b680f87fcf96ddf39b3c4701edcbc8a3dce4",
+          "cache-proof.json": "9323b379cb6a09adcba92c28dbca1a82a9a47ed4c5e6eb17b0ef8e0941b0bec0"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-100-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-100-r2-fix",
+        "raw_assets": {
+          "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+          "upstream.json": "7702554538371c095e3fac03b183815bd359a8a24103e4e082b34dc57a677ecc",
+          "process-identity.json": "376f6f16fd00c8cda6180fe0395a08e73e067a189dc86d544df6aa3a45e019de",
+          "cache-proof.json": "3ae8b1bfdda20222ba8f38fc1532f0c199265cc1f0703273a6cb41ccca71132c"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-100-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-100-r2-main",
+        "raw_assets": {
+          "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+          "upstream.json": "86233f97d6c81439b99dbc4e0af2d9545783446d70215d7f65d63ceb290dae4f",
+          "process-identity.json": "1eeeb635be41870c2ee67fb819e82a0418b4837760f14fa787d31669c118fa7b",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-1000-r2-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "51ba16fc7dcb3f82150783e78c981752094a766d60aa97fdc4994c0ca77761d3",
+          "process-identity.json": "7d79c2f12b94b00f4d31344f3fdc680a27adfc65ffe9a3a4605599e3bafde530",
+          "cache-proof.json": "6da2007f626c2e168822c790c399ac0194a8ad2b4f0a82ba61c4aa881735c387"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-1000-r2-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "66d1eb0dca87fa6cf6838080c95ba60d2aecdf468442049824c6802119750b5a",
+          "process-identity.json": "7473b1f1aeae3ab0fde85223c7d11db2c7fa66fde073ccc49fbd8ef760f5e415",
+          "cache-proof.json": "ceec12c8fa358140297d90d880225560a319d7393510dd53144955ec86b6a6e0"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-1000-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/udp-raw-1000-r2-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "e37a8a5c7fef0e4d81a0572cf9e8c67247b32a6a0c07c35f762aa21cdf3f6349",
+          "process-identity.json": "c6a24db021607ac9b831c0674d88242724e5575edf1e294cfec9eb0276c18a3d",
+          "cache-proof.json": "b5476221a843d37a9c2ac89d45b3edfc392a5673ef46709c9a6575756c21f48f"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-1000-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/udp-raw-1000-r2-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "79c682db2f381db56a8927b468358e9d5c528ec25a41696c977e50009c60a16d",
+          "process-identity.json": "406c9cb336d08988c9326a5e67a77afd71ba835fb2dd293b9a33eaca45061d55",
+          "cache-proof.json": "92e01aacb566edcb3835c22a1b97600dfec7ecc8cbc05d977a459b9a7a1b776c"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-100-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-100-r3-main",
+        "raw_assets": {
+          "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+          "upstream.json": "f17b7ea3eb7e93288da83347511ed19868b4f6818e44e596717aef33fde51453",
+          "process-identity.json": "c74e14e4a2334ca024ee93015531e85d90dd9201ca32f5a0a6f7781981be6cba",
+          "cache-proof.json": "1b317c9b753569500908fadcf20e1072a07e292c1c4533ec4c17bb3b52314e81"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-100-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-100-r3-fix",
+        "raw_assets": {
+          "config": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+          "upstream.json": "1669bb346078108e9ba0cdf3004c09aacf7428d9bc686afa2cf2593f74bf802d",
+          "process-identity.json": "7063c1f0a699e17f744b9ce372c619a44f3e7ebf372dc02b415fce4ff5defb9d",
+          "cache-proof.json": "8779593ffda1a8e79dd36401282d4a794dcf254ae1fe71d5eec7728e4dea7006"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-1000-r3-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "b02528852362586a5328a4a2283cf9d80fba4f1dd59ab7cf1980390462f08173",
+          "process-identity.json": "b985bd04daf8922a52547690e83a23df21fac1b1a8d73dad6d564bc6885ce61b",
+          "cache-proof.json": "12b667afcb147b9953c9356274f88aad530abaeac828fe2f95206c4347659b39"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/tcp-raw-1000-r3-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "1a74aa1810cf3f3bd623da2232fd8de04412a8982ed73ddf1401fe61d1d51b12",
+          "process-identity.json": "56a2caaea5518960da1c1c9fd656f82bba864e6d6fb5344c7382b400f55692b2",
+          "cache-proof.json": "f706095d67fc38f9a87893425cf3c7e953de0c2a83fc5023c362b17be87263e8"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-1000-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/udp-raw-1000-r3-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "7cf544435f29616cc7d59d9bf76f0b6ed21524f6089558db2c90c2755297d958",
+          "process-identity.json": "816d69c9cfab6dbb7dfa82796198fcedc051aab8a20b8d4799309261dfb1ca40",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-1000-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-records/udp-raw-1000-r3-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "b007fa13c2c7f8a5014ab10c89c972f0b15866fb47cb73527affad4b9ed75b7d",
+          "process-identity.json": "800ea8826e0b086589169e00638ba2c4bc6084729ae0a65f79258dc44849af4d",
+          "cache-proof.json": "ac8543361f873298f513b4b5c312e56c0d6aae645c6659aed630ccf7103c4e29"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      }
+    ],
+    "pair_config_checks": [
+      {
+        "profile": "tcp-raw-100",
+        "round": 1,
+        "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 1,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "udp-raw-1000",
+        "round": 1,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-100",
+        "round": 2,
+        "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 2,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "udp-raw-1000",
+        "round": 2,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-100",
+        "round": 3,
+        "sha256": "6b505d8b41461404fd789de9d15124cb10e83ba95dfcca3ddd1186de2f2955d8",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 3,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "udp-raw-1000",
+        "round": 3,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      }
+    ]
+  },
+  "performance-raw-confirm": {
+    "window_count": 10,
+    "foreign_before": [],
+    "counters": {
+      "scheduled": 350000,
+      "sent": 350000,
+      "correct": 350000,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "cgroup_samples": 100,
+    "maximum_nr_throttled": 0,
+    "maximum_throttled_usec": 0,
+    "result_hashes": {
+      "tcp-raw-1000-confirm-r1-main": "30d51aea6cb5cd45873533b568c3a62023b00892f705c52cb0896763870dddfa",
+      "tcp-raw-1000-confirm-r1-fix": "cd1fadf610990ae5077cfc22e6f395c88119d2170558c7bf9ff036618a32c4cf",
+      "tcp-raw-1000-confirm-r2-fix": "edf636cfb1669a1c4d6be6d99d4070c70204d8bfea6fe600c0573a356a78e607",
+      "tcp-raw-1000-confirm-r2-main": "c2831b6d72c5e413b9b8d9d510ec91b3678360747b28501f46bac91596c9ef21",
+      "tcp-raw-1000-confirm-r3-main": "c1fc332de764def1127b049fe9dcca42686105bae37a360051d0044c563ec5b6",
+      "tcp-raw-1000-confirm-r3-fix": "1d1f1f4df2b9960b923984f00be28e6fff73f03d33d14b0173fb7998fec6fae8",
+      "tcp-raw-1000-confirm-r4-fix": "8a62a47957f97085e17263502b8d8b80c2a3211c8b58e3c81022bf643e28f05b",
+      "tcp-raw-1000-confirm-r4-main": "b5ba63a6b9009897042b09625867a43aba3ea0909b4f6b48ac0d47d566357fe5",
+      "tcp-raw-1000-confirm-r5-main": "b3129ecf5c3cd67449c03f6ff829090c95131f90cac4ce17aa993619dc7c1020",
+      "tcp-raw-1000-confirm-r5-fix": "ff46966a0404b30e87f6b12695a0b860f68e60abece939a76f938b5087d1fc67"
+    },
+    "windows": [
+      {
+        "id": "tcp-raw-1000-confirm-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r1-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "407648498ea5c5ed8a9c2e27debdc18d792a7119df70e56fa31d02e1c5fbeacd",
+          "process-identity.json": "cdaedebcc5c10e6d1eba45f2b44d4df885a37ba1628baebedfffba7d11c271ea",
+          "cache-proof.json": "dba456324afb925abaec86bce4efecb38e12791283895fcc5e58ca8fde8cd848"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r1-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "bfe8e7f1b3c3872829c77a578af64f00ad43873e84d5d4a429c2dd42bc70348e",
+          "process-identity.json": "1bd2f85e473a9a396888432269ea5cb9d21d3db9553dcd5973a7707b9421a3fd",
+          "cache-proof.json": "1c887a263deac65fb61401218a108c8275187adfacda9046a3c1ddc3be573656"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r2-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "2cb5427f97c24ab7df5f1f5db0590a98345fec626b6c68b2dde85f8b7856a4e6",
+          "process-identity.json": "1be95db4ba6404bb66b8686de66abd900ad9134d6f00fdec98f3ec7b09209623",
+          "cache-proof.json": "8ec8fa70928fb736636687e43b6302aff59d71483ccbf89bf7b5f9de6c92a066"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r2-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "7503db94ad2bada558a038668b0d201af6e3e7fd4b115fd64793b285d3b06f1b",
+          "process-identity.json": "52cfdda486c71cad4a5718a557992a4de8a79528de7dacf8bae994ac487f7a75",
+          "cache-proof.json": "82c213882adf2836f3b4331e03c160ffe6d278a4da4f3222effa362d2166b781"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r3-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "6253880c321af95eba1f919e3469371fab8f3fd9e9b4d339a767e298bf90ceed",
+          "process-identity.json": "29605e22f44013b35501e59ab1a820fb0e7c63d560b0a001105ee37e15e1c093",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r3-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "0386da971c4c3787b9583e304689d9b0ea0be1f7874f2457fe72d2dfa8edbf9f",
+          "process-identity.json": "9722ac26a32816f5d1a896784bfbddf79564cc02c726815cb87eedb6cf073250",
+          "cache-proof.json": "1b6506ed17c4db7f87aca69e3639fff87e9344cbe10abbe67eb9565438d2c433"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r4-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r4-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "76eb710ad0d22d72730339ca21f98d57d0a0c87367dc2a487d277cf6c66da405",
+          "process-identity.json": "596d8ee7e8497787a52634fefb57b5936ba1c0d77f26d91b9cbf2df1ffeea28e",
+          "cache-proof.json": "7910484af3cba91619c82d770dd7cfde5d67b1fa1dac4e8b9606350ac888aae1"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r4-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r4-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "b28b1cdf2c239d3326e09e777e51b4873c564b3e41f16b51d6c8ec3c8504f2f7",
+          "process-identity.json": "62f3e10f6fd410558eb8ae54f3b57af877a0aefdbca668ef6739e678d048bb5e",
+          "cache-proof.json": "e07b55d5a44029d225fc1217e0cbba1ecd663771833fdbf591f86d9dba50033f"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r5-main",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r5-main",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "57fa8f6c698ee6884454cfded353e82a92105ef1219f323878d9bafde5479226",
+          "process-identity.json": "94c1617fa327e27b1100693ce99f85414dcb2050e873c6df3841c6f0582f0c9d",
+          "cache-proof.json": "91780f94b000abb8270ef9d7b753b6942a4ab3f2efcd032e51f6ca386dee911a"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-1000-confirm-r5-fix",
+        "directory": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/performance-raw-confirm/tcp-raw-1000-confirm-r5-fix",
+        "raw_assets": {
+          "config": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+          "upstream.json": "86c297f4cceecd275b2ab947938b97a46a9ea2aa654ab84e5192b58ba5479da9",
+          "process-identity.json": "c3994fbbd6fc57d0677e818650009f758ca1404049f4bc5626c73c5222d3f501",
+          "cache-proof.json": "654f45313c678b379816afbaa9d62e16cf704014f74b6ac22483662b9b739945"
+        },
+        "actual_elf_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 360,
+        "tcp_reconnections": 340,
+        "phases": {
+          "warmup": {
+            "scheduled": 5000,
+            "sent": 5000,
+            "correct": 5000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 30000,
+            "sent": 30000,
+            "correct": 30000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      }
+    ],
+    "pair_config_checks": [
+      {
+        "profile": "tcp-raw-1000",
+        "round": 1,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 2,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 3,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 4,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-1000",
+        "round": 5,
+        "sha256": "d6e230247a917ab9e1b2a8ca3de704d320eb0677039bdcc6194a789fb25adcb9",
+        "identical": true
+      }
+    ]
+  }
+}

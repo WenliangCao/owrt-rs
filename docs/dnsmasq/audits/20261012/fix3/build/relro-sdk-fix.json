@@ -1,0 +1,695 @@
+{
+  "tool_sha256": "b1a7b64022fc4777985ad3c81b4b2d9e4bc1f23776a84be3ccb2eda7c039fe30",
+  "require_relro": true,
+  "page_size": 4096,
+  "scope": "C/R actual mappings and UDP/TCP local answers in isolated image; no router",
+  "variants": {
+    "c": {
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "size": 269305,
+      "elf_type": 3,
+      "headers": [
+        {
+          "type": 6,
+          "flags": 4,
+          "offset": 64,
+          "vaddr": 64,
+          "paddr": 64,
+          "filesz": 448,
+          "memsz": 448,
+          "align": 8
+        },
+        {
+          "type": 3,
+          "flags": 4,
+          "offset": 512,
+          "vaddr": 512,
+          "paddr": 512,
+          "filesz": 26,
+          "memsz": 26,
+          "align": 1
+        },
+        {
+          "type": 1,
+          "flags": 5,
+          "offset": 0,
+          "vaddr": 0,
+          "paddr": 0,
+          "filesz": 249912,
+          "memsz": 249912,
+          "align": 4096
+        },
+        {
+          "type": 1,
+          "flags": 6,
+          "offset": 250728,
+          "vaddr": 254824,
+          "paddr": 254824,
+          "filesz": 18577,
+          "memsz": 19776,
+          "align": 4096
+        },
+        {
+          "type": 2,
+          "flags": 6,
+          "offset": 260152,
+          "vaddr": 264248,
+          "paddr": 264248,
+          "filesz": 544,
+          "memsz": 544,
+          "align": 8
+        },
+        {
+          "type": 1685382480,
+          "flags": 4,
+          "offset": 231556,
+          "vaddr": 231556,
+          "paddr": 231556,
+          "filesz": 2628,
+          "memsz": 2628,
+          "align": 4
+        },
+        {
+          "type": 1685382481,
+          "flags": 6,
+          "offset": 0,
+          "vaddr": 0,
+          "paddr": 0,
+          "filesz": 0,
+          "memsz": 0,
+          "align": 16
+        },
+        {
+          "type": 1685382482,
+          "flags": 4,
+          "offset": 250728,
+          "vaddr": 254824,
+          "paddr": 254824,
+          "filesz": 11416,
+          "memsz": 11416,
+          "align": 1
+        }
+      ],
+      "runs": [
+        {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--port=15353",
+            "--listen-address=127.0.0.1",
+            "--bind-interfaces",
+            "--address=/relro.test/192.0.2.99",
+            "--no-hosts",
+            "--no-resolv",
+            "--pid-file=/m2/protection.pid",
+            "--log-facility=-"
+          ],
+          "failures": [],
+          "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "actual_elf_identity": {
+            "device": [
+              0,
+              65
+            ],
+            "inode": 3457699
+          },
+          "load_bias": "0xad55f17ab000",
+          "base": "0xad55f17ab000",
+          "relro_start": "0xad55f17e9368",
+          "relro_end": "0xad55f17ec000",
+          "page_start": "0xad55f17e9000",
+          "page_end": "0xad55f17ec000",
+          "relro_start_page_aligned": false,
+          "relro_end_page_aligned": true,
+          "relro_pages": [
+            {
+              "address": "0xad55f17e9000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xad55f17ea000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xad55f17eb000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libc.so",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libgcc_s.so.1",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libubox.so.20260213",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libubus.so.20251202",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/usr/sbin/dnsmasq"
+          ],
+          "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "exit": 0
+        },
+        {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--port=15353",
+            "--listen-address=127.0.0.1",
+            "--bind-interfaces",
+            "--address=/relro.test/192.0.2.99",
+            "--no-hosts",
+            "--no-resolv",
+            "--pid-file=/m2/protection.pid",
+            "--log-facility=-"
+          ],
+          "failures": [],
+          "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "actual_elf_identity": {
+            "device": [
+              0,
+              65
+            ],
+            "inode": 3457699
+          },
+          "load_bias": "0xc487d4458000",
+          "base": "0xc487d4458000",
+          "relro_start": "0xc487d4496368",
+          "relro_end": "0xc487d4499000",
+          "page_start": "0xc487d4496000",
+          "page_end": "0xc487d4499000",
+          "relro_start_page_aligned": false,
+          "relro_end_page_aligned": true,
+          "relro_pages": [
+            {
+              "address": "0xc487d4496000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xc487d4497000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xc487d4498000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libc.so",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libgcc_s.so.1",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libubox.so.20260213",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libubus.so.20251202",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/usr/sbin/dnsmasq"
+          ],
+          "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "exit": 0
+        },
+        {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--port=15353",
+            "--listen-address=127.0.0.1",
+            "--bind-interfaces",
+            "--address=/relro.test/192.0.2.99",
+            "--no-hosts",
+            "--no-resolv",
+            "--pid-file=/m2/protection.pid",
+            "--log-facility=-"
+          ],
+          "failures": [],
+          "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "actual_elf_identity": {
+            "device": [
+              0,
+              65
+            ],
+            "inode": 3457699
+          },
+          "load_bias": "0xb0a3fa74b000",
+          "base": "0xb0a3fa74b000",
+          "relro_start": "0xb0a3fa789368",
+          "relro_end": "0xb0a3fa78c000",
+          "page_start": "0xb0a3fa789000",
+          "page_end": "0xb0a3fa78c000",
+          "relro_start_page_aligned": false,
+          "relro_end_page_aligned": true,
+          "relro_pages": [
+            {
+              "address": "0xb0a3fa789000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xb0a3fa78a000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xb0a3fa78b000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libc.so",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libgcc_s.so.1",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libubox.so.20260213",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/lib/libubus.so.20251202",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/usr/sbin/dnsmasq"
+          ],
+          "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "exit": 0
+        }
+      ],
+      "relro_vaddr": 254824,
+      "relro_memsz": 11416,
+      "distinct_bases": 3
+    },
+    "rust": {
+      "sha256": "22ef3b951bc089aed60e22120786480d3008f7e8954f28da773fdc9ee76c9f1e",
+      "size": 2054939,
+      "elf_type": 3,
+      "headers": [
+        {
+          "type": 1,
+          "flags": 5,
+          "offset": 0,
+          "vaddr": 0,
+          "paddr": 0,
+          "filesz": 2005600,
+          "memsz": 2005600,
+          "align": 4096
+        },
+        {
+          "type": 1,
+          "flags": 6,
+          "offset": 2007504,
+          "vaddr": 2007504,
+          "paddr": 2007504,
+          "filesz": 47435,
+          "memsz": 51904,
+          "align": 4096
+        },
+        {
+          "type": 2,
+          "flags": 6,
+          "offset": 2051488,
+          "vaddr": 2051488,
+          "paddr": 2051488,
+          "filesz": 384,
+          "memsz": 384,
+          "align": 8
+        },
+        {
+          "type": 7,
+          "flags": 4,
+          "offset": 2007504,
+          "vaddr": 2007504,
+          "paddr": 2007504,
+          "filesz": 0,
+          "memsz": 48,
+          "align": 8
+        },
+        {
+          "type": 1685382480,
+          "flags": 4,
+          "offset": 1887548,
+          "vaddr": 1887548,
+          "paddr": 1887548,
+          "filesz": 18340,
+          "memsz": 18340,
+          "align": 4
+        },
+        {
+          "type": 1685382481,
+          "flags": 6,
+          "offset": 0,
+          "vaddr": 0,
+          "paddr": 0,
+          "filesz": 0,
+          "memsz": 0,
+          "align": 16
+        },
+        {
+          "type": 1685382482,
+          "flags": 4,
+          "offset": 2007504,
+          "vaddr": 2007504,
+          "paddr": 2007504,
+          "filesz": 44592,
+          "memsz": 44592,
+          "align": 1
+        }
+      ],
+      "runs": [
+        {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--port=15353",
+            "--listen-address=127.0.0.1",
+            "--bind-interfaces",
+            "--address=/relro.test/192.0.2.99",
+            "--no-hosts",
+            "--no-resolv",
+            "--pid-file=/m2/protection.pid",
+            "--log-facility=-"
+          ],
+          "failures": [],
+          "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "actual_elf_sha256": "22ef3b951bc089aed60e22120786480d3008f7e8954f28da773fdc9ee76c9f1e",
+          "actual_elf_identity": {
+            "device": [
+              0,
+              65
+            ],
+            "inode": 9938129
+          },
+          "load_bias": "0xf8cbdc5ab000",
+          "base": "0xf8cbdc5ab000",
+          "relro_start": "0xf8cbdc7951d0",
+          "relro_end": "0xf8cbdc7a0000",
+          "page_start": "0xf8cbdc795000",
+          "page_end": "0xf8cbdc7a0000",
+          "relro_start_page_aligned": false,
+          "relro_end_page_aligned": true,
+          "relro_pages": [
+            {
+              "address": "0xf8cbdc795000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc796000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc797000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc798000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc799000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc79a000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc79b000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc79c000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc79d000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc79e000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf8cbdc79f000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/usr/sbin/dnsmasq-rs"
+          ],
+          "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "exit": 0
+        },
+        {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--port=15353",
+            "--listen-address=127.0.0.1",
+            "--bind-interfaces",
+            "--address=/relro.test/192.0.2.99",
+            "--no-hosts",
+            "--no-resolv",
+            "--pid-file=/m2/protection.pid",
+            "--log-facility=-"
+          ],
+          "failures": [],
+          "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "actual_elf_sha256": "22ef3b951bc089aed60e22120786480d3008f7e8954f28da773fdc9ee76c9f1e",
+          "actual_elf_identity": {
+            "device": [
+              0,
+              65
+            ],
+            "inode": 9938129
+          },
+          "load_bias": "0xfa05d3903000",
+          "base": "0xfa05d3903000",
+          "relro_start": "0xfa05d3aed1d0",
+          "relro_end": "0xfa05d3af8000",
+          "page_start": "0xfa05d3aed000",
+          "page_end": "0xfa05d3af8000",
+          "relro_start_page_aligned": false,
+          "relro_end_page_aligned": true,
+          "relro_pages": [
+            {
+              "address": "0xfa05d3aed000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3aee000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3aef000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af0000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af1000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af2000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af3000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af4000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af5000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af6000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xfa05d3af7000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/usr/sbin/dnsmasq-rs"
+          ],
+          "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "exit": 0
+        },
+        {
+          "argv": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--port=15353",
+            "--listen-address=127.0.0.1",
+            "--bind-interfaces",
+            "--address=/relro.test/192.0.2.99",
+            "--no-hosts",
+            "--no-resolv",
+            "--pid-file=/m2/protection.pid",
+            "--log-facility=-"
+          ],
+          "failures": [],
+          "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "actual_elf_sha256": "22ef3b951bc089aed60e22120786480d3008f7e8954f28da773fdc9ee76c9f1e",
+          "actual_elf_identity": {
+            "device": [
+              0,
+              65
+            ],
+            "inode": 9938129
+          },
+          "load_bias": "0xf267eaa49000",
+          "base": "0xf267eaa49000",
+          "relro_start": "0xf267eac331d0",
+          "relro_end": "0xf267eac3e000",
+          "page_start": "0xf267eac33000",
+          "page_end": "0xf267eac3e000",
+          "relro_start_page_aligned": false,
+          "relro_end_page_aligned": true,
+          "relro_pages": [
+            {
+              "address": "0xf267eac33000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac34000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac35000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac36000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac37000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac38000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac39000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac3a000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac3b000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac3c000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            },
+            {
+              "address": "0xf267eac3d000",
+              "permissions": "r--p",
+              "readable_not_writable": true
+            }
+          ],
+          "relro_readonly": true,
+          "stack_permissions": "rw-p",
+          "wx_mappings": [],
+          "mapped_files": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/relro-sdk-fix/image/rootfs/usr/sbin/dnsmasq-rs"
+          ],
+          "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+          "exit": 0
+        }
+      ],
+      "relro_vaddr": 2007504,
+      "relro_memsz": 44592,
+      "distinct_bases": 3
+    }
+  },
+  "failures": [],
+  "dns_answers_match": true,
+  "passed": true
+}

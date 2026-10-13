@@ -1,0 +1,18 @@
+{
+  "manifest_sha256": "5ccd5eae4b8878ac3b510ef7027da63c863849de50ab3fa745897d5e807ba166",
+  "controller_sha256": "4422a2dbb1e2a88276b1ea29e978678c1e2da3eef1d98264acf3faeb88478e14",
+  "verified_file_count": 1573,
+  "hash_failures": [],
+  "locks": [
+    {
+      "path": "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock",
+      "available": true
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.owrt-dnsmasq-build.lock",
+      "available": true
+    }
+  ],
+  "remaining_task_processes": [],
+  "passed": true
+}

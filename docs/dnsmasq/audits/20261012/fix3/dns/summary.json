@@ -1,0 +1,3307 @@
+{
+  "source_main": "be531cee49e366bb5044443d473944dbea45b87e",
+  "source_fix": "e3a37f55b2939ee2a0c229b0ac96a2a9c407b8aa",
+  "identities": {
+    "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "main": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "fix": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+    "driver": "4d74cdda29a427261322a1ce82b0070f6fe9f75090ceaa473a937b9a6cdac765"
+  },
+  "raw_result": {
+    "oracle_path": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dns-matrix-fresh/result.json",
+    "sha256": "eecdbd9fc68be4ae86a6b24a607874d5c9fe36b9ecd5b96812bada64fd800fc9",
+    "bytes": 11210125
+  },
+  "method": "Every CNAME test gets SIGHUP + 12ms + UDP A seed before the tested UDP or new TCP connection. Compare decoded owner/rdata/header/counts, ignoring TTL and compression. Local malformed queries reuse existing packet vectors, independent CNAME stub and matrix added in this audit.",
+  "summary": [
+    {
+      "profile": "plain-positive",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "plain-negative",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-txt-positive",
+      "cases": 62,
+      "changed": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-txt-negative",
+      "cases": 62,
+      "changed": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "alias-txt-positive",
+      "cases": 62,
+      "changed": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "16-nord-udp",
+        "16-nord-tcp",
+        "16-do-udp",
+        "16-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp",
+        "255-nord-udp",
+        "255-nord-tcp",
+        "255-do-udp",
+        "255-do-tcp"
+      ],
+      "improvements": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "16-nord-udp",
+        "16-nord-tcp",
+        "16-do-udp",
+        "16-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp",
+        "255-nord-udp",
+        "255-nord-tcp",
+        "255-do-udp",
+        "255-do-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "alias-txt-negative",
+      "cases": 62,
+      "changed": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "16-nord-udp",
+        "16-nord-tcp",
+        "16-do-udp",
+        "16-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp",
+        "255-nord-udp",
+        "255-nord-tcp",
+        "255-do-udp",
+        "255-do-tcp"
+      ],
+      "improvements": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "16-nord-udp",
+        "16-nord-tcp",
+        "16-do-udp",
+        "16-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp",
+        "255-nord-udp",
+        "255-nord-tcp",
+        "255-do-udp",
+        "255-do-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-mx-positive",
+      "cases": 62,
+      "changed": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-mx-negative",
+      "cases": 62,
+      "changed": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-srv-positive",
+      "cases": 62,
+      "changed": [
+        "33-rd-udp",
+        "33-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "33-rd-udp",
+        "33-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-srv-negative",
+      "cases": 62,
+      "changed": [
+        "33-rd-udp",
+        "33-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "33-rd-udp",
+        "33-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-raw-positive",
+      "cases": 62,
+      "changed": [
+        "255-rd-udp",
+        "255-rd-tcp",
+        "257-rd-udp",
+        "257-rd-tcp"
+      ],
+      "improvements": [
+        "255-rd-udp",
+        "255-rd-tcp",
+        "257-rd-udp",
+        "257-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-raw-negative",
+      "cases": 62,
+      "changed": [
+        "255-rd-udp",
+        "255-rd-tcp",
+        "257-rd-udp",
+        "257-rd-tcp"
+      ],
+      "improvements": [
+        "255-rd-udp",
+        "255-rd-tcp",
+        "257-rd-udp",
+        "257-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-host-positive",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-host-negative",
+      "cases": 62,
+      "changed": [
+        "seed-udp",
+        "seed-tcp",
+        "1-rd-udp",
+        "1-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "seed-udp",
+        "seed-tcp",
+        "1-rd-udp",
+        "1-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-interface-positive",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-interface-negative",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-local-positive",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [
+        "6-rd-tcp",
+        "12-rd-tcp",
+        "15-rd-tcp",
+        "16-rd-tcp",
+        "28-rd-tcp",
+        "33-rd-tcp",
+        "255-rd-tcp",
+        "257-rd-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-local-negative",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-literal-positive",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [
+        "255-rd-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-literal-negative",
+      "cases": 62,
+      "changed": [],
+      "improvements": [],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "filter-positive",
+      "cases": 62,
+      "changed": [
+        "6-nord-udp",
+        "6-nord-tcp",
+        "6-do-udp",
+        "6-do-tcp",
+        "33-nord-udp",
+        "33-nord-tcp",
+        "33-do-udp",
+        "33-do-tcp"
+      ],
+      "improvements": [
+        "6-nord-udp",
+        "6-nord-tcp",
+        "6-do-udp",
+        "6-do-tcp",
+        "33-nord-udp",
+        "33-nord-tcp",
+        "33-do-udp",
+        "33-do-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "filter-negative",
+      "cases": 62,
+      "changed": [
+        "6-rd-udp",
+        "6-rd-tcp",
+        "6-nord-udp",
+        "6-nord-tcp",
+        "6-do-udp",
+        "6-do-tcp",
+        "33-nord-udp",
+        "33-nord-tcp",
+        "33-do-udp",
+        "33-do-tcp"
+      ],
+      "improvements": [
+        "6-rd-udp",
+        "6-rd-tcp",
+        "6-nord-udp",
+        "6-do-udp",
+        "33-nord-udp",
+        "33-do-udp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": [
+        "6-nord-tcp",
+        "6-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp"
+      ]
+    },
+    {
+      "profile": "filter-target-txt-positive",
+      "cases": 62,
+      "changed": [
+        "6-nord-udp",
+        "6-nord-tcp",
+        "6-do-udp",
+        "6-do-tcp",
+        "16-rd-udp",
+        "16-rd-tcp",
+        "33-nord-udp",
+        "33-nord-tcp",
+        "33-do-udp",
+        "33-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "6-nord-udp",
+        "6-nord-tcp",
+        "6-do-udp",
+        "6-do-tcp",
+        "16-rd-udp",
+        "16-rd-tcp",
+        "33-nord-udp",
+        "33-nord-tcp",
+        "33-do-udp",
+        "33-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "filter-target-txt-negative",
+      "cases": 62,
+      "changed": [
+        "6-rd-udp",
+        "6-rd-tcp",
+        "6-nord-udp",
+        "6-nord-tcp",
+        "6-do-udp",
+        "6-do-tcp",
+        "16-rd-udp",
+        "16-rd-tcp",
+        "33-nord-udp",
+        "33-nord-tcp",
+        "33-do-udp",
+        "33-do-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "6-rd-udp",
+        "6-rd-tcp",
+        "6-nord-udp",
+        "6-do-udp",
+        "16-rd-udp",
+        "16-rd-tcp",
+        "33-nord-udp",
+        "33-do-udp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": [
+        "6-nord-tcp",
+        "6-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp"
+      ]
+    },
+    {
+      "profile": "target-long-txt-positive",
+      "cases": 62,
+      "changed": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-long-txt-negative",
+      "cases": 62,
+      "changed": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "16-rd-udp",
+        "16-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-long-mx-positive",
+      "cases": 62,
+      "changed": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "target-long-mx-negative",
+      "cases": 62,
+      "changed": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "improvements": [
+        "15-rd-udp",
+        "15-rd-tcp",
+        "255-rd-udp",
+        "255-rd-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "1-nord-tcp",
+        "1-do-tcp",
+        "5-nord-tcp",
+        "5-do-tcp",
+        "6-nord-tcp",
+        "6-do-tcp",
+        "12-nord-tcp",
+        "12-do-tcp",
+        "15-nord-tcp",
+        "15-do-tcp",
+        "16-nord-tcp",
+        "16-do-tcp",
+        "28-nord-tcp",
+        "28-do-tcp",
+        "33-nord-tcp",
+        "33-do-tcp",
+        "255-nord-tcp",
+        "255-do-tcp",
+        "257-nord-tcp",
+        "257-do-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    },
+    {
+      "profile": "malformed",
+      "cases": 116,
+      "changed": [
+        "multi-question-tcp",
+        "multi-question-compressed-tcp",
+        "zero-question-tcp",
+        "self-pointer-tcp",
+        "outside-pointer-tcp",
+        "bitstring-label-tcp",
+        "overlong-name-tcp"
+      ],
+      "improvements": [
+        "multi-question-tcp",
+        "multi-question-compressed-tcp",
+        "zero-question-tcp",
+        "self-pointer-tcp",
+        "outside-pointer-tcp",
+        "bitstring-label-tcp",
+        "overlong-name-tcp"
+      ],
+      "unchanged_c_mismatch": [
+        "forward-pointer-udp",
+        "forward-pointer-tcp"
+      ],
+      "changed_but_still_c_mismatch": []
+    }
+  ],
+  "selected_evidence": [
+    {
+      "profile": "plain-negative",
+      "case": "1-do-tcp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "result": {
+        "query": "12340100000100000000000105616c696173076578616d706c65000001000100002904d0000080000000",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33155,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33155,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "plain-negative",
+      "case": "1-do-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\n",
+      "result": {
+        "query": "12340100000100000000000105616c696173076578616d706c65000001000100002904d0000080000000",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "target-local-positive",
+      "case": "16-rd-tcp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nlocal=/target.example/\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100000000000005616c696173076578616d706c650000100001",
+            "length": 31,
+            "header": [
+              4660,
+              33152,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "target-local-positive",
+      "case": "16-rd-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nlocal=/target.example/\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "target-literal-positive",
+      "case": "255-rd-tcp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\naddress=/target.example/192.0.2.4\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c650000ff0001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010000000005616c696173076578616d706c650000ff0001c00c000100010000003c0004c0000204",
+            "length": 47,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  1,
+                  1,
+                  "c0000204"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000ff0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                255,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "target-txt-positive",
+      "case": "16-rd-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ntxt-record=target.example,terminal\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c6500c02b001000010000003c0009087465726d696e616c",
+            "length": 80,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  16,
+                  1,
+                  "087465726d696e616c"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c6500c02b001000010000003c0009087465726d696e616c",
+            "length": 80,
+            "header": [
+              4660,
+              34176,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  16,
+                  1,
+                  "087465726d696e616c"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "target-long-txt-positive",
+      "case": "16-rd-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ntxt-record=target.example,xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0\ntxt-record=target.example,xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1\ntxt-record=target.example,xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2\ntxt-record=target.example,xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx3\ntxt-record=target.example,xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348780000100000000000005616c696173076578616d706c650000100001",
+            "length": 31,
+            "header": [
+              4660,
+              34688,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34688,
+            "counts": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348780000100000000000005616c696173076578616d706c650000100001",
+            "length": 31,
+            "header": [
+              4660,
+              34688,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34688,
+            "counts": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "target-long-mx-positive",
+      "case": "15-rd-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nmx-host=target.example,m0.example,10\nmx-host=target.example,m1.example,10\nmx-host=target.example,m2.example,10\nmx-host=target.example,m3.example,10\nmx-host=target.example,m4.example,10\nmx-host=target.example,m5.example,10\nmx-host=target.example,m6.example,10\nmx-host=target.example,m7.example,10\nmx-host=target.example,m8.example,10\nmx-host=target.example,m9.example,10\nmx-host=target.example,m10.example,10\nmx-host=target.example,m11.example,10\nmx-host=target.example,m12.example,10\nmx-host=target.example,m13.example,10\nmx-host=target.example,m14.example,10\nmx-host=target.example,m15.example,10\nmx-host=target.example,m16.example,10\nmx-host=target.example,m17.example,10\nmx-host=target.example,m18.example,10\nmx-host=target.example,m19.example,10\nmx-host=target.example,m20.example,10\nmx-host=target.example,m21.example,10\nmx-host=target.example,m22.example,10\nmx-host=target.example,m23.example,10\nmx-host=target.example,m24.example,10\nmx-host=target.example,m25.example,10\nmx-host=target.example,m26.example,10\nmx-host=target.example,m27.example,10\nmx-host=target.example,m28.example,10\nmx-host=target.example,m29.example,10\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c6500000f0001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348780000100000000000005616c696173076578616d706c6500000f0001",
+            "length": 31,
+            "header": [
+              4660,
+              34688,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34688,
+            "counts": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                15,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c6500000f0001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                15,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348780000100000000000005616c696173076578616d706c6500000f0001",
+            "length": 31,
+            "header": [
+              4660,
+              34688,
+              1,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34688,
+            "counts": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                15,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "alias-txt-positive",
+      "case": "16-rd-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\ntxt-record=alias.example,owner\n",
+      "result": {
+        "query": "12340100000100000000000005616c696173076578616d706c650000100001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010000000005616c696173076578616d706c650000100001c00c001000010000003c0006056f776e6572",
+            "length": 49,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  16,
+                  1,
+                  "056f776e6572"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000100001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33152,
+            "counts": [
+              1,
+              2,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ],
+                [
+                  "746172676574.6578616d706c65",
+                  1,
+                  1,
+                  "c000024d"
+                ]
+              ],
+              [],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348180000100020000000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c650006746172676574076578616d706c6500000100010000012c0004c000024d",
+            "length": 89,
+            "header": [
+              4660,
+              33152,
+              1,
+              2,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "malformed",
+      "case": "multi-question-tcp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nlocal=/audit.test/\nhost-record=host.audit.test,192.0.2.42,2001:db8::42\ncname=alias.audit.test,host.audit.test\ntxt-record=txt.audit.test,hello\n",
+      "result": {
+        "query": "12340100000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348185000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+            "length": 53,
+            "header": [
+              4660,
+              33157,
+              2,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33157,
+            "counts": [
+              2,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "686f7374.6175646974.74657374",
+                1,
+                1
+              ],
+              [
+                "747874.6175646974.74657374",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "eof"
+          },
+          "canonical": {
+            "status": "eof"
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348185000200000000000004686f7374056175646974047465737400000100010374787405617564697404746573740000100001",
+            "length": 53,
+            "header": [
+              4660,
+              33157,
+              2,
+              0,
+              0,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33157,
+            "counts": [
+              2,
+              0,
+              0,
+              0
+            ],
+            "questions": [
+              [
+                "686f7374.6175646974.74657374",
+                1,
+                1
+              ],
+              [
+                "747874.6175646974.74657374",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              []
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "filter-negative",
+      "case": "6-do-tcp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "result": {
+        "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                6,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              0,
+              0,
+              1
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                6,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              [
+                [
+                  "",
+                  41,
+                  1232,
+                  ""
+                ]
+              ]
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33155,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                6,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "filter-negative",
+      "case": "33-do-tcp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "result": {
+        "query": "12340100000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                33,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000021000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              0,
+              0,
+              1
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                33,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              [
+                [
+                  "",
+                  41,
+                  1232,
+                  ""
+                ]
+              ]
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000210001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 33155,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                33,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "profile": "filter-negative",
+      "case": "6-do-udp",
+      "config": "port=15353\nlisten-address=127.0.0.1\nbind-interfaces\nno-hosts\nno-resolv\nno-round-robin\nlocal-ttl=60\ncache-size=150\nserver=127.0.0.1#15354\nhost-record=ready.test,192.0.2.1\nfilterwin2k\n",
+      "result": {
+        "query": "12340100000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+        "c": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                6,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "main": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100000000000105616c696173076578616d706c65000006000100002904d0000080000000",
+            "length": 42,
+            "header": [
+              4660,
+              34176,
+              1,
+              0,
+              0,
+              1
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              0,
+              0,
+              1
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                6,
+                1
+              ]
+            ],
+            "records": [
+              [],
+              [],
+              [
+                [
+                  "",
+                  41,
+                  1232,
+                  ""
+                ]
+              ]
+            ]
+          },
+          "upstream": 0,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        },
+        "fix": {
+          "response": {
+            "status": "reply",
+            "hex": "12348580000100010001000005616c696173076578616d706c650000060001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              34176,
+              1,
+              1,
+              1,
+              0
+            ]
+          },
+          "canonical": {
+            "flags": 34176,
+            "counts": [
+              1,
+              1,
+              1,
+              0
+            ],
+            "questions": [
+              [
+                "616c696173.6578616d706c65",
+                6,
+                1
+              ]
+            ],
+            "records": [
+              [
+                [
+                  "616c696173.6578616d706c65",
+                  5,
+                  1,
+                  "746172676574.6578616d706c65"
+                ]
+              ],
+              [
+                [
+                  "6578616d706c65",
+                  6,
+                  1,
+                  [
+                    "6e73.6578616d706c65",
+                    "686f73746d6173746572.6578616d706c65",
+                    1,
+                    60,
+                    60,
+                    60,
+                    300
+                  ]
+                ]
+              ],
+              []
+            ]
+          },
+          "upstream": 1,
+          "warm": {
+            "status": "reply",
+            "hex": "12348183000100010001000005616c696173076578616d706c650000010001c00c000500010000012c001006746172676574076578616d706c6500076578616d706c6500000600010000012c0034026e73076578616d706c65000a686f73746d6173746572076578616d706c6500000000010000003c0000003c0000003c0000012c",
+            "length": 130,
+            "header": [
+              4660,
+              33155,
+              1,
+              1,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "comparison_limits": "A changed result can regress one field although main already differed from C in another field. filter-negative TCP DO SOA/SRV changes main NOERROR to fix NXDOMAIN, while C NOERROR; analyzed separately in filter-cname evidence. TTL excluded only to avoid second-boundary noise; response hex retained in selected evidence."
+}

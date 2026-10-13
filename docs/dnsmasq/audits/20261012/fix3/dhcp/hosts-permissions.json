@@ -1,0 +1,392 @@
+{
+  "script_sha256": "3bc2e06cd3721af88f60a3df3342d87b6d2aa8e1094934ed6a2e249b3b6c9c7b",
+  "rows": [
+    {
+      "side": "c",
+      "debug": false,
+      "mode": "0o600",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "argv": [
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+        "--library-path",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-c/hosts"
+      ],
+      "startup": {
+        "rcode": 5,
+        "answers": 0,
+        "wire": "4455818500010000000000000673656372657404746573740000010001"
+      },
+      "after_hup": {
+        "rcode": 5,
+        "answers": 0,
+        "wire": "4455818500010000000000000673656372657404746573740000010001"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t65534\t65534\t65534\t65534"
+      ],
+      "exit": 0,
+      "log": "dnsmasq[3]: started, version 2.93 cachesize 150\ndnsmasq[3]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[3]: warning: no upstream servers configured\ndnsmasq[3]: failed to load names from /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-c/hosts: Permission denied\ndnsmasq[3]: failed to load names from /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-c/hosts: Permission denied\ndnsmasq[3]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-c/hosts - 1 names\ndnsmasq[3]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "main",
+      "debug": false,
+      "mode": "0o600",
+      "binary_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "argv": [
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-main/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 5,
+        "answers": 0,
+        "wire": "4455818500010000000000000673656372657404746573740000010001"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t65534\t65534\t65534\t65534"
+      ],
+      "exit": 0,
+      "log": "dnsmasq[4]: started, version 2.93 cachesize 150\ndnsmasq[4]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[4]: warning: no upstream servers configured\ndnsmasq[4]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-main/hosts - 1 names\ndnsmasq[4]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-main/hosts - 1 names\ndnsmasq[4]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "fix",
+      "debug": false,
+      "mode": "0o600",
+      "binary_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "argv": [
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-fix/hosts"
+      ],
+      "startup": {
+        "rcode": 5,
+        "answers": 0,
+        "wire": "4455818500010000000000000673656372657404746573740000010001"
+      },
+      "after_hup": {
+        "rcode": 5,
+        "answers": 0,
+        "wire": "4455818500010000000000000673656372657404746573740000010001"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t65534\t65534\t65534\t65534"
+      ],
+      "exit": 0,
+      "log": "dnsmasq[5]: started, version 2.93 cachesize 150\ndnsmasq[5]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[5]: warning: no upstream servers configured\ndnsmasq[5]: failed to load names from /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-fix/hosts: Permission denied\ndnsmasq[5]: failed to load names from /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-fix/hosts: Permission denied\ndnsmasq[5]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-foreground-fix/hosts - 1 names\ndnsmasq[5]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "c",
+      "debug": false,
+      "mode": "0o644",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "argv": [
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+        "--library-path",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "-k",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-c/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t65534\t65534\t65534\t65534"
+      ],
+      "exit": 0,
+      "log": "dnsmasq[6]: started, version 2.93 cachesize 150\ndnsmasq[6]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[6]: warning: no upstream servers configured\ndnsmasq[6]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-c/hosts - 1 names\ndnsmasq[6]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-c/hosts - 1 names\ndnsmasq[6]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-c/hosts - 1 names\ndnsmasq[6]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "main",
+      "debug": false,
+      "mode": "0o644",
+      "binary_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "argv": [
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-main/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t65534\t65534\t65534\t65534"
+      ],
+      "exit": 0,
+      "log": "dnsmasq[7]: started, version 2.93 cachesize 150\ndnsmasq[7]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[7]: warning: no upstream servers configured\ndnsmasq[7]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-main/hosts - 1 names\ndnsmasq[7]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-main/hosts - 1 names\ndnsmasq[7]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-main/hosts - 1 names\ndnsmasq[7]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "fix",
+      "debug": false,
+      "mode": "0o644",
+      "binary_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "argv": [
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+        "-k",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-fix/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t65534\t65534\t65534\t65534"
+      ],
+      "exit": 0,
+      "log": "dnsmasq[8]: started, version 2.93 cachesize 150\ndnsmasq[8]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[8]: warning: no upstream servers configured\ndnsmasq[8]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-fix/hosts - 1 names\ndnsmasq[8]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-fix/hosts - 1 names\ndnsmasq[8]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/644-foreground-fix/hosts - 1 names\ndnsmasq[8]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "c",
+      "debug": true,
+      "mode": "0o600",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "argv": [
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+        "--library-path",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+        "-d",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-c/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t0\t0\t0\t0"
+      ],
+      "exit": 0,
+      "log": "Oct 13 09:03:02 dnsmasq[9]: started, version 2.93 cachesize 150\nOct 13 09:03:02 dnsmasq[9]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\nOct 13 09:03:02 dnsmasq[9]: warning: no upstream servers configured\nOct 13 09:03:02 dnsmasq[9]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-c/hosts - 1 names\nOct 13 09:03:02 dnsmasq[9]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-c/hosts - 1 names\nOct 13 09:03:02 dnsmasq[9]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-c/hosts - 1 names\nOct 13 09:03:02 dnsmasq[9]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "main",
+      "debug": true,
+      "mode": "0o600",
+      "binary_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "argv": [
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "-d",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-main/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t0\t0\t0\t0"
+      ],
+      "exit": 0,
+      "log": "Oct 13 09:03:02 dnsmasq[10]: started, version 2.93 cachesize 150\nOct 13 09:03:02 dnsmasq[10]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\nOct 13 09:03:02 dnsmasq[10]: warning: no upstream servers configured\nOct 13 09:03:02 dnsmasq[10]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-main/hosts - 1 names\nOct 13 09:03:02 dnsmasq[10]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-main/hosts - 1 names\nOct 13 09:03:02 dnsmasq[10]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-main/hosts - 1 names\nOct 13 09:03:02 dnsmasq[10]: exiting on receipt of SIGTERM\n"
+    },
+    {
+      "side": "fix",
+      "debug": true,
+      "mode": "0o600",
+      "binary_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "argv": [
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+        "-d",
+        "-C",
+        "/dev/null",
+        "--user=nobody",
+        "--group=nogroup",
+        "--pid-file=",
+        "--log-facility=-",
+        "--no-resolv",
+        "--no-hosts",
+        "--listen-address=127.0.0.1",
+        "--bind-interfaces",
+        "--port=15353",
+        "--addn-hosts=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-fix/hosts"
+      ],
+      "startup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "after_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "permission_restored_hup": {
+        "rcode": 0,
+        "answers": 1,
+        "wire": "4455858000010001000000000673656372657404746573740000010001c00c00010001000000000004c0000207"
+      },
+      "uid": [
+        "Uid:\t0\t0\t0\t0"
+      ],
+      "exit": 0,
+      "log": "Oct 13 09:03:02 dnsmasq[11]: started, version 2.93 cachesize 150\nOct 13 09:03:02 dnsmasq[11]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\nOct 13 09:03:02 dnsmasq[11]: warning: no upstream servers configured\nOct 13 09:03:02 dnsmasq[11]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-fix/hosts - 1 names\nOct 13 09:03:03 dnsmasq[11]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-fix/hosts - 1 names\nOct 13 09:03:03 dnsmasq[11]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-permissions-02/600-debug-fix/hosts - 1 names\nOct 13 09:03:03 dnsmasq[11]: exiting on receipt of SIGTERM\n"
+    }
+  ]
+}

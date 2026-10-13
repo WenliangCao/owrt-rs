@@ -1,0 +1,394 @@
+{
+  "source_script_sha256": "19334bb418dab89fa04c2d3533bbd31e2fd570b99ae73de49c1b5ffc0cc3d645",
+  "rust_sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "cases": [
+    {
+      "mode": "poll",
+      "observed": {
+        "c": {
+          "argv": [
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+            "--library-path",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,infinite",
+            "--hostsdir=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-c/hostsdir",
+            "--resolv-file=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-c/resolver",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-c/leases",
+            "--log-facility=-"
+          ],
+          "hosts_bytes": 8388638,
+          "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+          "hosts_open_at_send": true,
+          "send_monotonic_ns": 1606660471752380,
+          "reply": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "ffffffff",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "reply_wire": "020106008844000100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff0000000000",
+          "reply_monotonic_ns": 1606660501522108,
+          "hosts_open_at_reply": false,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+          "alive": true,
+          "exit": 0,
+          "log": "dnsmasq[3]: started, version 2.93 cachesize 150\ndnsmasq[3]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq-dhcp[3]: DHCP, IP range 127.0.0.30 -- 127.0.0.30, lease time infinite\ndnsmasq[3]: reading /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-c/resolver\ndnsmasq[3]: using nameserver 127.0.0.1#53\ndnsmasq[3]: cleared cache\ndnsmasq[3]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-c/hostsdir/source - 1 names\ndnsmasq-dhcp[3]: DHCPREQUEST(lo) 127.0.0.30 02:00:00:00:00:01 \ndnsmasq-dhcp[3]: DHCPACK(lo) 127.0.0.30 02:00:00:00:00:01 authoritative\ndnsmasq[3]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "argv": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,infinite",
+            "--hostsdir=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-rust/hostsdir",
+            "--resolv-file=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-rust/resolver",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-rust/leases",
+            "--log-facility=-"
+          ],
+          "hosts_bytes": 8388638,
+          "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+          "hosts_open_at_send": true,
+          "send_monotonic_ns": 1606660576802294,
+          "reply": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "ffffffff",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "reply_wire": "020106008844000100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff0000000000",
+          "reply_monotonic_ns": 1606660595454169,
+          "hosts_open_at_reply": false,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+          "alive": true,
+          "exit": 0,
+          "log": "dnsmasq[4]: started, version 2.93 cachesize 150\ndnsmasq[4]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq-dhcp[4]: DHCP, IP range 127.0.0.30 -- 127.0.0.30, lease time infinite\ndnsmasq[4]: reading /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-rust/resolver\ndnsmasq[4]: using nameserver 127.0.0.1#53\ndnsmasq[4]: cleared cache\ndnsmasq[4]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/poll-rust/hostsdir/source - 1 names\ndnsmasq-dhcp[4]: DHCPREQUEST(lo) 127.0.0.30 02:00:00:00:00:01 \ndnsmasq-dhcp[4]: DHCPACK(lo) 127.0.0.30 02:00:00:00:00:01 authoritative\ndnsmasq[4]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "reply_equal": true
+    },
+    {
+      "mode": "no-poll",
+      "observed": {
+        "c": {
+          "argv": [
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+            "--library-path",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,infinite",
+            "--hostsdir=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-c/hostsdir",
+            "--resolv-file=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-c/resolver",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-c/leases",
+            "--log-facility=-",
+            "--no-poll"
+          ],
+          "hosts_bytes": 8388638,
+          "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+          "hosts_open_at_send": true,
+          "send_monotonic_ns": 1606660668954381,
+          "reply": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "ffffffff",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "reply_wire": "020106008844000100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff0000000000",
+          "reply_monotonic_ns": 1606660694204191,
+          "hosts_open_at_reply": false,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+          "alive": true,
+          "exit": 0,
+          "log": "dnsmasq[5]: started, version 2.93 cachesize 150\ndnsmasq[5]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq-dhcp[5]: DHCP, IP range 127.0.0.30 -- 127.0.0.30, lease time infinite\ndnsmasq[5]: cleared cache\ndnsmasq[5]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-c/hostsdir/source - 1 names\ndnsmasq[5]: using nameserver 127.0.0.1#53\ndnsmasq-dhcp[5]: DHCPREQUEST(lo) 127.0.0.30 02:00:00:00:00:01 \ndnsmasq-dhcp[5]: DHCPACK(lo) 127.0.0.30 02:00:00:00:00:01 authoritative\ndnsmasq[5]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "argv": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,infinite",
+            "--hostsdir=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-rust/hostsdir",
+            "--resolv-file=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-rust/resolver",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-rust/leases",
+            "--log-facility=-",
+            "--no-poll"
+          ],
+          "hosts_bytes": 8388638,
+          "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+          "hosts_open_at_send": true,
+          "send_monotonic_ns": 1606660772556083,
+          "reply": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "ffffffff",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "reply_wire": "020106008844000100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff0000000000",
+          "reply_monotonic_ns": 1606660790926916,
+          "hosts_open_at_reply": false,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+          "alive": true,
+          "exit": 0,
+          "log": "dnsmasq[6]: started, version 2.93 cachesize 150\ndnsmasq[6]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq-dhcp[6]: DHCP, IP range 127.0.0.30 -- 127.0.0.30, lease time infinite\ndnsmasq[6]: cleared cache\ndnsmasq[6]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-poll-rust/hostsdir/source - 1 names\ndnsmasq[6]: using nameserver 127.0.0.1#53\ndnsmasq-dhcp[6]: DHCPREQUEST(lo) 127.0.0.30 02:00:00:00:00:01 \ndnsmasq-dhcp[6]: DHCPACK(lo) 127.0.0.30 02:00:00:00:00:01 authoritative\ndnsmasq[6]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "reply_equal": true
+    },
+    {
+      "mode": "no-resolv",
+      "observed": {
+        "c": {
+          "argv": [
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+            "--library-path",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+            "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,infinite",
+            "--hostsdir=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-c/hostsdir",
+            "--resolv-file=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-c/resolver",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-c/leases",
+            "--log-facility=-",
+            "--no-resolv"
+          ],
+          "hosts_bytes": 8388638,
+          "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+          "hosts_open_at_send": true,
+          "send_monotonic_ns": 1606660869080566,
+          "reply": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "ffffffff",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "reply_wire": "020106008844000100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff0000000000",
+          "reply_monotonic_ns": 1606660894125575,
+          "hosts_open_at_reply": false,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+          "alive": true,
+          "exit": 0,
+          "log": "dnsmasq[7]: started, version 2.93 cachesize 150\ndnsmasq[7]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[7]: warning: ignoring resolv-file flag because no-resolv is set\ndnsmasq[7]: warning: no upstream servers configured\ndnsmasq-dhcp[7]: DHCP, IP range 127.0.0.30 -- 127.0.0.30, lease time infinite\ndnsmasq[7]: cleared cache\ndnsmasq[7]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-c/hostsdir/source - 1 names\ndnsmasq-dhcp[7]: DHCPREQUEST(lo) 127.0.0.30 02:00:00:00:00:01 \ndnsmasq-dhcp[7]: DHCPACK(lo) 127.0.0.30 02:00:00:00:00:01 authoritative\ndnsmasq[7]: exiting on receipt of SIGTERM\n"
+        },
+        "rust": {
+          "argv": [
+            "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+            "-C",
+            "/dev/null",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--no-hosts",
+            "--bind-interfaces",
+            "--listen-address=127.0.0.1",
+            "--port=15353",
+            "--no-ping",
+            "--dhcp-authoritative",
+            "--domain=test",
+            "--dhcp-range=127.0.0.30,127.0.0.30,255.0.0.0,infinite",
+            "--hostsdir=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-rust/hostsdir",
+            "--resolv-file=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-rust/resolver",
+            "--dhcp-leasefile=/home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-rust/leases",
+            "--log-facility=-",
+            "--no-resolv"
+          ],
+          "hosts_bytes": 8388638,
+          "hosts_sha256": "94d3f4e1c9ca7165d781dafbafdb96b4fa334d9c873baabdda52c1831dbb1fe3",
+          "hosts_open_at_send": true,
+          "send_monotonic_ns": 1606660981453542,
+          "reply": {
+            "yiaddr": "127.0.0.30",
+            "options": {
+              "53": "05",
+              "54": "7f000001",
+              "51": "ffffffff",
+              "1": "ff000000",
+              "28": "7fffffff",
+              "3": "7f000001",
+              "15": "74657374",
+              "12": "617574686f7269746174697665"
+            },
+            "message_type": 5,
+            "hostname": "authoritative"
+          },
+          "reply_wire": "020106008844000100008000000000007f00001e7f00000100000000020000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006382536335010536047f0000013304ffffffff0104ff0000001c047fffffff03047f0000010f04746573740c0d617574686f7269746174697665ff0000000000",
+          "reply_monotonic_ns": 1606660999338890,
+          "hosts_open_at_reply": false,
+          "dns_after": {
+            "rcode": 0,
+            "answers": [
+              {
+                "name": "authoritative.test",
+                "type": 1,
+                "value": "127.0.0.30"
+              }
+            ]
+          },
+          "leases_after": "0 02:00:00:00:00:01 127.0.0.30 authoritative *\n",
+          "alive": true,
+          "exit": 0,
+          "log": "dnsmasq[8]: started, version 2.93 cachesize 150\ndnsmasq[8]: compile time options: IPv6 GNU-getopt no-DBus UBus no-i18n no-IDN DHCP no-DHCPv6 no-Lua TFTP no-conntrack no-ipset no-nftset no-auth no-DNSSEC no-ID loop-detect inotify dumpfile\ndnsmasq[8]: warning: ignoring resolv-file flag because no-resolv is set\ndnsmasq[8]: warning: no upstream servers configured\ndnsmasq-dhcp[8]: DHCP, IP range 127.0.0.30 -- 127.0.0.30, lease time infinite\ndnsmasq[8]: cleared cache\ndnsmasq[8]: read /home/ubuntu/dnsmasq-audit-fix3-20261013/private/dhcp-hostsdir-01/no-resolv-rust/hostsdir/source - 1 names\ndnsmasq-dhcp[8]: DHCPREQUEST(lo) 127.0.0.30 02:00:00:00:00:01 \ndnsmasq-dhcp[8]: DHCPACK(lo) 127.0.0.30 02:00:00:00:00:01 authoritative\ndnsmasq[8]: exiting on receipt of SIGTERM\n"
+        }
+      },
+      "reply_equal": true
+    }
+  ],
+  "passed": true,
+  "failures": []
+}

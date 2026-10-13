@@ -1,0 +1,2410 @@
+{
+  "scope": "Fresh release main/fix on Oracle, scoped paired cost screen, not router or saturation qualification",
+  "plan_sha256": "3d873ffef8bf6f0a2684ce1cfeb627a47aa6842a6a42b3762a806afddff10844",
+  "groups": {
+    "main": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "bytes": 1970216,
+      "build": {
+        "source": "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 1970216,
+            "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863"
+          }
+        ]
+      }
+    },
+    "fix": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+      "sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "bytes": 2056672,
+      "build": {
+        "source": "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2056672,
+            "sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a"
+          }
+        ]
+      }
+    }
+  },
+  "windows": [
+    {
+      "id": "udp-cname-r1-main",
+      "profile": "udp-cname",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 14.323675,
+        "p95_ns": 27440,
+        "rss_kib": 2796,
+        "pss_kib": 2788,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 80000,
+          "sent": 80000,
+          "scheduled_skipped": 0,
+          "correct": 80000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "b686f27975b9cef304a7bdb66955cf25e60b3e3227f8b554c66eea155d065796",
+        "load.json": "2da28487405746842a724adda63b7cb63164bb964d96772cb4580f5e644b59d9",
+        "epoch.json": "fa2317a16870fc06e0ef6918c5a8f735516d807e801f8a06296fa6ad3afc7b23",
+        "resources.json": "911294e06c21cbaa67e1b3cacc5cef8c2597aa68c6f15cfa83b5064b7b566b4f",
+        "load.latencies.bin": "93c05495f28789fae5040ad515a8f29ee8dc6db9eb4132509c7711fdf2b83f60",
+        "load.send-lag.bin": "5e55ecbe53e3277ea2390cd1360f7146772362ecc6692418cd44a62438eb021d"
+      }
+    },
+    {
+      "id": "udp-cname-r1-fix",
+      "profile": "udp-cname",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 14.24065,
+        "p95_ns": 24360,
+        "rss_kib": 2864,
+        "pss_kib": 2856,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 80000,
+          "sent": 80000,
+          "scheduled_skipped": 0,
+          "correct": 80000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "497b3f094443c9d0adeed5f67ec548ce8721a89599450fae3d6ecfe4e7f14e52",
+        "load.json": "05c01b3c170c7e2e4d429642fb02d5abdb922f67530bd4ff2c5a458baf3233ae",
+        "epoch.json": "96862007ec9ed2b53f67b88b69dd937ec69304ac7a488e61ec608bf114dde59d",
+        "resources.json": "6fc83037ea35d976b9e5c0a3f2b7742de3178662ee860f0e04ce3f779e2ec5ae",
+        "load.latencies.bin": "f467e675b89eb4e30499077d183a8c1ccf7d58c19c4d6fc8b1a98530d9b1ebaf",
+        "load.send-lag.bin": "78bc756d400565a2f1ee43e861c0826675d37594bc3565283ede04055ecf2f37"
+      }
+    },
+    {
+      "id": "tcp-cname-r1-main",
+      "profile": "tcp-cname",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 20.734866666666665,
+        "p95_ns": 32881,
+        "rss_kib": 4372,
+        "pss_kib": 4364,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 60000,
+          "sent": 60000,
+          "scheduled_skipped": 0,
+          "correct": 60000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "d3943b760188971f58cbb040e7d708aed7c52e8131eeb370177eca08147437de",
+        "load.json": "0882690f06a45d7cf70a57506d79e3fbab3456acce11dab41a00b5492678b793",
+        "epoch.json": "3f66fe70e3fe9a96e2e805232afa0e0d370db6d65232d479770b78f2610d48be",
+        "resources.json": "c0f448438f846f84320d6ad4da371364c661436af55cf678f6538397b448dd27",
+        "load.latencies.bin": "323db9f11eb898fe620f460d4a50db9cecf40fcf33e18d3c326bb7c18e8fd326",
+        "load.send-lag.bin": "f286b00b1da7ec05e60a45e6064da1e17c2084d5d09f70a94fc4dfc6dfbf2315"
+      }
+    },
+    {
+      "id": "tcp-cname-r1-fix",
+      "profile": "tcp-cname",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 22.594866666666668,
+        "p95_ns": 34400,
+        "rss_kib": 4480,
+        "pss_kib": 4472,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 60000,
+          "sent": 60000,
+          "scheduled_skipped": 0,
+          "correct": 60000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "1ad816e23e9d9a4739ccb43cf00512e999f283bebca2ba94b5edcc3b626aa438",
+        "load.json": "4d18e1e6be5ba2648630a721c7a9e51f16a82af4be8cc2b786a55346e941b8ac",
+        "epoch.json": "bd2374cfc98e9962d5ed7f274d069660d7319c7c5f238af8f4f128c085b3cd15",
+        "resources.json": "41b746072301cff464937162e7aa909cf632b097e712fd638b8d2eeeb757e8c8",
+        "load.latencies.bin": "f5c1d2bd6d6b79ca96c4586fc8c1546c2d5c1fd4d39782a05d57ab796939c57b",
+        "load.send-lag.bin": "a9cee1a2a90a4fe52185a3dc0c0f20c6ac49429ef36be14355508a12c688e363"
+      }
+    },
+    {
+      "id": "udp-hit-r1-main",
+      "profile": "udp-hit",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 12.677125,
+        "p95_ns": 43880,
+        "rss_kib": 3300,
+        "pss_kib": 3292,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 40000,
+          "sent": 40000,
+          "scheduled_skipped": 0,
+          "correct": 40000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "5eb5da52897ff4f9111789f92fdfe3b760c8419146a0ee2561fe61c8cc0dea40",
+        "load.json": "dc7f01844000cca06d39869ed10489abaf09dcc56b5deffdb514e435885dca35",
+        "epoch.json": "983469f9272638b5a7e9f2052314ef88d395a0c9a5b4f7dcb3e912a79752a315",
+        "resources.json": "3f495a672b8382145564522ffd10bc378c215d1d78b6a4ce12e28f67f62b8981",
+        "load.latencies.bin": "de6eb651532a781e63e75f064c0f9c826250a2327d1e4d3ce3ba8316d753576d",
+        "load.send-lag.bin": "b187618ebfa081f82a909516875ebc8bb3640f3b2e102b5d971211d6b46a3c04"
+      }
+    },
+    {
+      "id": "udp-hit-r1-fix",
+      "profile": "udp-hit",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 13.14855,
+        "p95_ns": 23800,
+        "rss_kib": 3396,
+        "pss_kib": 3388,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 40000,
+          "sent": 40000,
+          "scheduled_skipped": 0,
+          "correct": 40000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "c2acd13e49b877733cbadc4fe5281dce1a02a91a370d07db5b15681e0bab018e",
+        "load.json": "f40ba25493b07ce43032dfba867738bca8774bc64b717d50bdbe2abec34b9095",
+        "epoch.json": "73c31abcea3faeac52b6f031c67b01cc19edbb6d1c42d3eb00de9fe51a6b6356",
+        "resources.json": "fb541b41b43294fa994e79a71e64dc9fe726a3961d3c5223fc0efcce5a52c35b",
+        "load.latencies.bin": "42b227b810f859f1def7441d8cb2930c1a3a1c2319878d1738b8463f85526632",
+        "load.send-lag.bin": "f4dbb24acff84a82615b1a274fdd61f60dc0de56a688a60dd842b7d0bd0bbe8a"
+      }
+    },
+    {
+      "id": "udp-miss-r1-main",
+      "profile": "udp-miss",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 77.83435,
+        "p95_ns": 101960,
+        "rss_kib": 3884,
+        "pss_kib": 3876,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "eecdf3d3d53af88eb5ba130a6a065637e95f214e6926bf39eb0db7af6955bad1",
+        "load.json": "5898547497283bfeee918b76042ae4036b4598f9d391e686d7eb91b01b7946f1",
+        "epoch.json": "9eee964177a7ebd38befd17363e17ecb57ddfff158b6b338e7e9325c38423395",
+        "resources.json": "7c4f8f1321d81775f276da62e83c1b7cb1e5fdeb6f17bddefbc145fada529ec1",
+        "load.latencies.bin": "7fe8b37bd160307f51d652e57d36f864c708be3760e9cf66eb30982ec273bb87",
+        "load.send-lag.bin": "bbf6b627441aa8d852db09a1eaa4d418406759ec925cf1611eabffc308e2506a"
+      }
+    },
+    {
+      "id": "udp-miss-r1-fix",
+      "profile": "udp-miss",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 80.12195,
+        "p95_ns": 138362,
+        "rss_kib": 3960,
+        "pss_kib": 3952,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "f2e15346b753760a72e1919261858217d5ce7334fbf5f6e14bca58ea2d3a6726",
+        "load.json": "5783496bd949236fc43769d12297b3b451027a5f96ef4651fe2f4034ee4ed257",
+        "epoch.json": "6eb190e286c2235fef0aa084d0e0bc2e6fb2b39db9ddb690bf925c480fb50eb4",
+        "resources.json": "c039cdb77aa3531c8323bb7088c62d7f21594fa3a72130de06647351554abfa1",
+        "load.latencies.bin": "308cdf7cefad5f2e9ef5821b8ad25adfee7295255ea93660b608858a065190d6",
+        "load.send-lag.bin": "b05dd3205fb213470a24dc75b2cb7de36d0e29437e520c48251c855f48b1a5c9"
+      }
+    },
+    {
+      "id": "tcp-hit-r1-main",
+      "profile": "tcp-hit",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 19.5309,
+        "p95_ns": 30840,
+        "rss_kib": 4884,
+        "pss_kib": 4876,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "b16285f4265b9d1ae8eefec82e276e36ddd1e4fa5e20330adf0410c0dba7215d",
+        "load.json": "73a9c9e4530e32ec66727cf8b874ddde3a0635fc412a02542f991046a4dc22ad",
+        "epoch.json": "e8625e2b77951e582a3432323a4a130f53a77b2d19225663c88a9577c25f03cb",
+        "resources.json": "3121504ef69930e24dd974184247a3f36b230b3b95a87d27a68a019286948678",
+        "load.latencies.bin": "3747abb0a9d1d4fd34cf12c1b5945a60818cb18601bc75b4f379cb5857a894f4",
+        "load.send-lag.bin": "330dd3d7fffc7ceff0b79994ca9f3056c18ea4ab18304eabb1036ca1b3516ede"
+      }
+    },
+    {
+      "id": "tcp-hit-r1-fix",
+      "profile": "tcp-hit",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 20.685833333333335,
+        "p95_ns": 31800,
+        "rss_kib": 4860,
+        "pss_kib": 4852,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "a4cc717ed47d61bd2c982d9cea5903a7e7c8f1327151f759b8fcafe3d7969109",
+        "load.json": "7964aa3ad4f68f90c3950d38f112a5e52a6610cf7f1092db7070a818458a006a",
+        "epoch.json": "fa63f738b076804080a496b55509f468f8d0e513c717bd9db9e1aae13c1cde1d",
+        "resources.json": "11705f7f34a6cdfb04008725da6836fcb3ad8fb686926d8ce04f6f9fe9be017d",
+        "load.latencies.bin": "6830772f0120a47d8674e16c1d9b036a354171a91d7db6118e6745940ca83cda",
+        "load.send-lag.bin": "30329563dd049859e1564f9ca8dc10b656b30765301c25583abd2e847b379157"
+      }
+    },
+    {
+      "id": "tcp-miss-r1-main",
+      "profile": "tcp-miss",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 114.4685,
+        "p95_ns": 154642,
+        "rss_kib": 12416,
+        "pss_kib": 12408,
+        "fd_count": 52,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "babe399d8e7b813368ac2dc831c397b82097b0d0b286bea84030be38f5958c0b",
+        "load.json": "dbf66cb37e88bde4fc0005371ddcbb6c22d103c958c21c48f4b7d5068d381499",
+        "epoch.json": "55296719958fc3f3b4bcca2c14d806981d686e2c7b1324233af4d59df132f1f3",
+        "resources.json": "fa79e723e85bbea30d0c1bcc66e061fad53b3d53c01281fab41c31c96380edfe",
+        "load.latencies.bin": "a5c72fec2025937e214a33470b179dc2bfd3f7730bee15bfa7bb83f5d478bc2f",
+        "load.send-lag.bin": "c0a44a4db25ccd2999b3a79af0074fc90a86d3b9ff8a68c49cd4689579facd3a"
+      }
+    },
+    {
+      "id": "tcp-miss-r1-fix",
+      "profile": "tcp-miss",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 125.2634,
+        "p95_ns": 159762,
+        "rss_kib": 12736,
+        "pss_kib": 12728,
+        "fd_count": 52,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "f7894da15e0cf63040a61911fe4f748c2b8b65c471436e68ac1eab133d9e7ccd",
+        "load.json": "d2926cbaf72d1894d917195e3c0245b675b63b1d7a009d0d0df70d08fb02c3d0",
+        "epoch.json": "007afd68e9a418e4653fbba44f9aecfc4e8129bf2d02548b9c12908c61afcc67",
+        "resources.json": "bf5d2d4fd29295b27207b105cdfd5400c71eb6975d8c7ef69e191fa7bcd7aa85",
+        "load.latencies.bin": "6bc181c2baed16507908fde664d6abe0294be41e193f379bbe3a283ebb8393fe",
+        "load.send-lag.bin": "6cbf8aac0730b05102bd28327c6e5d624f945042890682d4566e1b81227c7e57"
+      }
+    },
+    {
+      "id": "udp-cname-r2-fix",
+      "profile": "udp-cname",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 14.123814047675596,
+        "p95_ns": 24080,
+        "rss_kib": 2904,
+        "pss_kib": 2896,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 11993,
+          "sent": 11993,
+          "scheduled_skipped": 0,
+          "correct": 11993,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 79999,
+          "sent": 79999,
+          "scheduled_skipped": 0,
+          "correct": 79999,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "782effe1d5594f012eedda73fc28b3fe5dfc434d9b11c7b225f525af12f6dd11",
+        "load.json": "ad1d8f5a03669f3cbebc5856f7fae461e4f31f4af34b755924da07d274736116",
+        "epoch.json": "2415aec57707e982a271452137f2f634c15430796d5f61686ae7b9f97603aa10",
+        "resources.json": "e44774eafe1b6e80a9dc2038ddd8e4ad8d0c0b6523411bad6709d823b4081a93",
+        "load.latencies.bin": "5f5e5a5bc25c27b9e1053672fbadc452c1b199419c1312a9a0c49b56d72e2156",
+        "load.send-lag.bin": "dc52679169ff91502499d4a906b6636c496ff2f9e69ffd59e787b72a82edb8b5"
+      }
+    },
+    {
+      "id": "udp-cname-r2-main",
+      "profile": "udp-cname",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 14.14715,
+        "p95_ns": 25800,
+        "rss_kib": 2796,
+        "pss_kib": 2788,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 80000,
+          "sent": 80000,
+          "scheduled_skipped": 0,
+          "correct": 80000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "7a9c8938a86e511aab879ba430c956d27267251b102191f560b07d94e85d3b7c",
+        "load.json": "7e35afd32b530837514409e0ad60a9ad94e190644e166a0a8c7b77a6792ad9df",
+        "epoch.json": "b0906b68b52ca01ea7cdfebf4e2ca842661a28f24f2a826e4b0ccbf239a275bf",
+        "resources.json": "1732f25259251489fad00e1a109d4f9626efd76f370b50a30444bf071f189693",
+        "load.latencies.bin": "0197a1e09905c8ad8f450a16404befc7af19eeee0754bb557592705b849c78e5",
+        "load.send-lag.bin": "bac906d8f84a3ac7f5c0a582720de2cfb6ceeeeb745a1cc0428cfcaa1da52431"
+      }
+    },
+    {
+      "id": "tcp-cname-r2-fix",
+      "profile": "tcp-cname",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 22.15875,
+        "p95_ns": 34521,
+        "rss_kib": 4484,
+        "pss_kib": 4476,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 60000,
+          "sent": 60000,
+          "scheduled_skipped": 0,
+          "correct": 60000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "e7c31c11ecab35e18e4e9fafa322dcd8bd16b7661fd0d3b4714538a6468803aa",
+        "load.json": "09b0008046b325ffa6e573390f39dd5d79b2efe39c112aea80614e46cd6e581e",
+        "epoch.json": "b758133324831875bd217c9cc7d44adf295237de9bcb069f665073acad014e8b",
+        "resources.json": "dc3d1e876c6ac9e237aa926224fc74187cab2e9b528e970a5eb836ad98f3c46b",
+        "load.latencies.bin": "214abf16f32ccd687ecc5489a238f48841b692a362778d04adaa64d72a63d414",
+        "load.send-lag.bin": "302aa72eadd1924c98f8815d32d70a2be6518da084d358f8f03c031ab0715894"
+      }
+    },
+    {
+      "id": "tcp-cname-r2-main",
+      "profile": "tcp-cname",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 20.756666666666668,
+        "p95_ns": 31801,
+        "rss_kib": 4376,
+        "pss_kib": 4368,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 60000,
+          "sent": 60000,
+          "scheduled_skipped": 0,
+          "correct": 60000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "9c5256d2864e92863a05d3acdf9038603776d6fe8b7ac7c2fb5f081f4857d76a",
+        "load.json": "a7a5e5f7d592f8e7c8017d69e3bc6f6397852462e2da6773e8ed174a8249c511",
+        "epoch.json": "02c75610334dda3a4f540b952316e447db33c7c1ce0e752f7a63a94e3b0ca0a9",
+        "resources.json": "1333dd5c9535d775fe8f4d9a17c1edc5dd592e8114511f08d211277dbd2779f3",
+        "load.latencies.bin": "38982f133105883a6bb892f03280e107d2c1c6f055aaae846de5d30dd2784972",
+        "load.send-lag.bin": "ec9a185388eacb88c7e73b1116a08cdffea50bd99212fcd9c1a43be3dcd2318b"
+      }
+    },
+    {
+      "id": "udp-hit-r2-fix",
+      "profile": "udp-hit",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 13.0141,
+        "p95_ns": 22640,
+        "rss_kib": 3376,
+        "pss_kib": 3368,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 40000,
+          "sent": 40000,
+          "scheduled_skipped": 0,
+          "correct": 40000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "f62cd63796205409e084577e44ea193fe472359ac4e81cbe62163b92cc6ef142",
+        "load.json": "f4a05f1e12dc69c70807230cafd4449fe028e8b4ccfef005486f1cf3d6a7fab2",
+        "epoch.json": "2e60670d8b47b84ea03b117a0c662c20fe7635dfad3cd3a445f425a7ac02bc1d",
+        "resources.json": "74d45aaf3bc1bd27580aa93670966a6cbd6d619507c5e93f85497eb01130f05d",
+        "load.latencies.bin": "7716a3fdd259f5b2de1ff510753fd01450c514275c1e5db6737b86d2771049b8",
+        "load.send-lag.bin": "94d8eb5f9f51fb5b2afbd338a311e351f1765a908df208ad758c6f3671d8b1c0"
+      }
+    },
+    {
+      "id": "udp-hit-r2-main",
+      "profile": "udp-hit",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 13.622925,
+        "p95_ns": 38321,
+        "rss_kib": 3304,
+        "pss_kib": 3296,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 40000,
+          "sent": 40000,
+          "scheduled_skipped": 0,
+          "correct": 40000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "085fc05241ac3261aa8e1bef313a2dca87d3eb616fb8337d88c9878a477f3f22",
+        "load.json": "5281c0e33859b04addd72ebda63d4037aa357c484b78d6b17a30286f36d8b3a1",
+        "epoch.json": "6e4634222bb0333db29b89a0b14d95026eb3b13b8786fe4c098e5128515084ae",
+        "resources.json": "0318e66b1b404c5e29b488b5df6b7d310ea872766f22b91deadbd52d442eb16c",
+        "load.latencies.bin": "42534293551b84db4c6086b3adcb07e69472067dcad8f7355d155fc23997c95e",
+        "load.send-lag.bin": "04332362573b71ee3d754cd5f7a0269784105435eaff73d42649955ad3947b92"
+      }
+    },
+    {
+      "id": "udp-miss-r2-fix",
+      "profile": "udp-miss",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 81.722,
+        "p95_ns": 117601,
+        "rss_kib": 3892,
+        "pss_kib": 3884,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "d6871d2ad0bd7b8fb81bd4953f4ff1a44f986f345c0509066b1824ff66a8e13b",
+        "load.json": "3ecde226bb3bfa4e93462574d6e3eba3c29c980008f192359c67b612176a985f",
+        "epoch.json": "549cc56bc387fc31d5ceb65021010f44d5c3ad66535282c05257389ef39ee863",
+        "resources.json": "289bc26c32462faebb729ef998ef69e2f3874149e986f4d8116a29d8c7156862",
+        "load.latencies.bin": "ca3e209718bb5bb519dfeb62313f2bd7535d5e0e260c62b163fe31e94271dbb9",
+        "load.send-lag.bin": "8316cc5c12ff570616294606d14793be3ae4b2a34321bc324c13b5cb5b114f0c"
+      }
+    },
+    {
+      "id": "udp-miss-r2-main",
+      "profile": "udp-miss",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 78.55015,
+        "p95_ns": 113361,
+        "rss_kib": 3836,
+        "pss_kib": 3828,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "0beaf7c94157878cd2da390c9c244c7c89a3f096a699d03e37ab7bf2dcaaa5d9",
+        "load.json": "c8787fd1e029b7fb08d9db83e1883d6130d9e6410b9a7f93b8eb380f95899fb5",
+        "epoch.json": "eeee7c0479256f43ad8baea41f5532d4bfa87ae089b66bf7086cd5a9966d7d85",
+        "resources.json": "adbc3b0649199e4f075d1a8b76f73c23bf945ed31b05be36162b31bf8bad5e11",
+        "load.latencies.bin": "b27587c7effc84e56dc9b3b16d24a14be87fac34addcbac6fa7e04efec39ae23",
+        "load.send-lag.bin": "569d087f66d00f990d1abc013c099b4b1e8ceea611bfa4d95b7d70e2637beef3"
+      }
+    },
+    {
+      "id": "tcp-hit-r2-fix",
+      "profile": "tcp-hit",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 20.673366666666666,
+        "p95_ns": 33000,
+        "rss_kib": 4856,
+        "pss_kib": 4848,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "e3cba5db9bf55b4edc774e76ca0419d2ae3b2463b0e6ed60046f51c6fcadadfa",
+        "load.json": "f1e373ce4d95608b82384af378daf229eb409660fcd9e4f47ce1ddd9d3a26b59",
+        "epoch.json": "45beec3e56dc74a443e57dac1fa7400a64344e8f7fa90c0d80e0d188a674f866",
+        "resources.json": "9f8daf8ce9f2b33f6bca0ea4bf27ed1bab5ed70c28485cc000d29fd788dd4bed",
+        "load.latencies.bin": "893cc55409cd34c38bf264651969d065ae55e3c14beaaea4cedfa0c2f39584f1",
+        "load.send-lag.bin": "836e36fbde313902e92ed4a2bf1c4365950eaabeb6bfae5dc9afc3dffdd90e92"
+      }
+    },
+    {
+      "id": "tcp-hit-r2-main",
+      "profile": "tcp-hit",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 19.5268,
+        "p95_ns": 30400,
+        "rss_kib": 4892,
+        "pss_kib": 4884,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "482ba71928e687875310554223b49945a223a676fef07727b28647616565ac8b",
+        "load.json": "e4f6c7f6c1522a0265b6451c5d69fce14634ae42fcc2335c4352be9bf73103cc",
+        "epoch.json": "1af69c42aed295bcaa6e6d5cc7b5b1163d116cb12019bbeb89d88d683f9a59c4",
+        "resources.json": "2db3cf6351154c240c133dd5bad53e69f63a4dab3424adba05dde52be2f64bbf",
+        "load.latencies.bin": "024ae9bca8b1a75f59a3ea89b4312a4630ce58d6eb0cadba548ef87ee1628398",
+        "load.send-lag.bin": "f818aa06b76f6099d2a1a9fdd34c29b283c6ec118d625f951c7e1f012e11c579"
+      }
+    },
+    {
+      "id": "tcp-miss-r2-fix",
+      "profile": "tcp-miss",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 124.96705,
+        "p95_ns": 158481,
+        "rss_kib": 12256,
+        "pss_kib": 12248,
+        "fd_count": 52,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "d455d89663db7ef3b340b2b63f0046d2ec19f0a521c8257bab18d54473982ab6",
+        "load.json": "fdbde27d3adb566b110e45a2b2e4f389d648e968e1c0f5470b57020972e23c72",
+        "epoch.json": "e4fa3de7a24c2af5e6235ba7d5ba83525a973aa58e94ce8524c94862b95a5738",
+        "resources.json": "e1c46c7850e309f355fc5007c4847065ec13a56679902f22a0ca8cf52220bbe2",
+        "load.latencies.bin": "ca7a7af464f676e902e5e2b960df68d0d7a87e410b11690caf569c3f117ec381",
+        "load.send-lag.bin": "73caf3ed0fd44b482b56657ec2c79d5c81969c554ad4cdfa06e4f3a3db4289f2"
+      }
+    },
+    {
+      "id": "tcp-miss-r2-main",
+      "profile": "tcp-miss",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 113.91715,
+        "p95_ns": 143361,
+        "rss_kib": 12416,
+        "pss_kib": 12408,
+        "fd_count": 52,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "b60b135bf2078e38f868c54b62a32860997a7410b9db08675995952bf444ad6d",
+        "load.json": "ee9856ad62820e6fe20f712e88f763979269326083bf590be887d53dab8ea997",
+        "epoch.json": "1992ffcec7590a2461183cbe1814af7495c97a161ab8747f6687b7c52a6196fa",
+        "resources.json": "357b73ec8cc0f6f01ce0f9048edd3cee884f9aab435c72d9273c1f2998937154",
+        "load.latencies.bin": "6da67778193f1d758cd28876fd4367083079f83e2c103e766769fcb0d6c6ec67",
+        "load.send-lag.bin": "0c6081fd15ec8d01d58d8ec3ae601dcc0e0742c3adcd73e00771a0b7879cd09d"
+      }
+    },
+    {
+      "id": "udp-cname-r3-main",
+      "profile": "udp-cname",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 14.179775,
+        "p95_ns": 25841,
+        "rss_kib": 2796,
+        "pss_kib": 2788,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 80000,
+          "sent": 80000,
+          "scheduled_skipped": 0,
+          "correct": 80000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "5ebd18da01904174361b8a049198a2edb2bed1eefe7400d09f27ba8cc31286a2",
+        "load.json": "dff20d580a7b92e77426381e1f4e081663d5b49c9fefb72b6b154403da298a66",
+        "epoch.json": "1a0f660dab7cef1bf6c41a94d0f318b02a3f475a22f924fa21cc74b993067ea3",
+        "resources.json": "547e7d5f36d58b17f77bb02979e166234317d555641712f97940d55c10e0a47e",
+        "load.latencies.bin": "6e820d9293ff63e1f7c1e14e8d6bb5228355ffc2790badbc3c6bcca14015e710",
+        "load.send-lag.bin": "d0a8591b5e5cb869f0a33333b23a10226685cbf78878f3f59c80abb319fe4304"
+      }
+    },
+    {
+      "id": "udp-cname-r3-fix",
+      "profile": "udp-cname",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 14.2826625,
+        "p95_ns": 24320,
+        "rss_kib": 2864,
+        "pss_kib": 2856,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 80000,
+          "sent": 80000,
+          "scheduled_skipped": 0,
+          "correct": 80000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "efef6898c9a65a623b1b50cd37d05be476418fa854ba6943e07117ac03fdc06d",
+        "load.json": "73e6acd0361245e255b1eb1d6e772bed73483cd020f20feee2fb42d95b2423d0",
+        "epoch.json": "b9a873ad79ebdeb35a6384c8a668b4939800cf73dcfd1ee60f233ec971d4f42b",
+        "resources.json": "d392700d455b5886b942f85cd83f9f19bf546d555d314b2df43a68098fcfbf3f",
+        "load.latencies.bin": "a0ea7ec31f37750dce107d28a721ad835e8c53165c072e74b318ce13291b5e34",
+        "load.send-lag.bin": "cfff835000cdbaaec003760ec229c80f74dace469cf0be3194875f58989847cb"
+      }
+    },
+    {
+      "id": "tcp-cname-r3-main",
+      "profile": "tcp-cname",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 20.46645,
+        "p95_ns": 31520,
+        "rss_kib": 4372,
+        "pss_kib": 4364,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 60000,
+          "sent": 60000,
+          "scheduled_skipped": 0,
+          "correct": 60000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "53e89ebfb5997c554f96b84d171e7ffa239aaf0c0f9b4a4ffdb7c6dd238e4ff2",
+        "load.json": "8ee5351bdfdd48749cc3e719470e9be4662e7500cda5e27896b4eb133e3cf09e",
+        "epoch.json": "ee52e1df33bed9175018dc116376a34c03baac91e807854ee62fd841c153af09",
+        "resources.json": "4c1407d8abad18cc55cd4671d7b55d150120175628bda6a22a06aa56eddbc4e5",
+        "load.latencies.bin": "2238b9602509761a16120a3acad6acc74a89c8201269f92869b879f8cfb05d9a",
+        "load.send-lag.bin": "e99ea5859ed49f3fc7cb44472224ed60bfeb2bd1462eaeb55738084349e1a078"
+      }
+    },
+    {
+      "id": "tcp-cname-r3-fix",
+      "profile": "tcp-cname",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 22.454533333333334,
+        "p95_ns": 34000,
+        "rss_kib": 4472,
+        "pss_kib": 4464,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 60000,
+          "sent": 60000,
+          "scheduled_skipped": 0,
+          "correct": 60000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "85610a96d4777f167926c082467890aa1779879d906e457d6a17376c311d6714",
+        "load.json": "0974edfb9b1d261eca1adafbcc2a8cf4e7d4f13466a30ea84d35dd7a5785094a",
+        "epoch.json": "17856e35f08d7e97dec531d931c3982c85a6493d854ca8272337f749b4a4734e",
+        "resources.json": "927b364ebf73dea31dba5f009d1c768d98fadebf0b816997b756dcf47f5133cb",
+        "load.latencies.bin": "0f17e9954451f836e6218f85d74e18f42a3da8bedd6cc55d0ff35a2e7b1371f8",
+        "load.send-lag.bin": "04780f19822b49254d7598c6385874b25c0d5ae7f9c38ba4aabc6814db84e01c"
+      }
+    },
+    {
+      "id": "udp-hit-r3-main",
+      "profile": "udp-hit",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 12.881275,
+        "p95_ns": 22840,
+        "rss_kib": 3300,
+        "pss_kib": 3292,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 40000,
+          "sent": 40000,
+          "scheduled_skipped": 0,
+          "correct": 40000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "8e474c813789e2c79717dff5c010666500ec36730f7c7296ec7987faa1b49a5c",
+        "load.json": "9978a87a4274e60b8c8a5716af8dbd8ecc275ad6d25c0a4906a3dc1edca788a9",
+        "epoch.json": "265745156ffa48d9636d5481ec1083072a8ccb5d63697886aecdcfbefe901998",
+        "resources.json": "e3688033f740920df80fc28545a3b5ce31533e66f460ddf4c1c84abf711f50ba",
+        "load.latencies.bin": "ecdb83bcb57bfdac9d9076e181c082484f88aba8635fee368e5f66afb14809cc",
+        "load.send-lag.bin": "6e788f469ba664f7d444bb8368fa93780e167fec6c44ff9edf36def9b27ba33f"
+      }
+    },
+    {
+      "id": "udp-hit-r3-fix",
+      "profile": "udp-hit",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 13.197675,
+        "p95_ns": 22920,
+        "rss_kib": 3380,
+        "pss_kib": 3372,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 12000,
+          "sent": 12000,
+          "scheduled_skipped": 0,
+          "correct": 12000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 40000,
+          "sent": 40000,
+          "scheduled_skipped": 0,
+          "correct": 40000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "ebdc932db163f816c123286d85467fa83af6e2434650e00ea03ba63ae8bcc5e5",
+        "load.json": "c69d47e4fc0e4ae286f03a96b2c9478b4f31630122a9ac61acb11c7a0e159af4",
+        "epoch.json": "d4cdbc8ab7de8db361e12c4fc757c3d94c48d157711b0fa25da9f7918f583f8a",
+        "resources.json": "a0717e8103345ea79313bd3ddb6661befcd9d3d53f71860857557314a3269f6b",
+        "load.latencies.bin": "954ce5ce4f2fc1b82a96ecf75f22209ab39233e7392c6be248b0aed1edb1bd52",
+        "load.send-lag.bin": "e3e73e703c0e280b0ac40cec9889ff14b32239ab4b61c349d9d3c45f2766332d"
+      }
+    },
+    {
+      "id": "udp-miss-r3-main",
+      "profile": "udp-miss",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 78.12545,
+        "p95_ns": 102481,
+        "rss_kib": 3796,
+        "pss_kib": 3788,
+        "fd_count": 13,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "04d125b7907fa589ae643221c7c57e61bed5b6bbe2c209f41de2b1692b944418",
+        "load.json": "01fd0ea9dcb121c379465031817de20cc46c389126447cf3293fff587bbdde30",
+        "epoch.json": "4be5016af5b3b4c2e52d245842620ae8da7444dcc3a49ccaf151f1dd097f994f",
+        "resources.json": "5341303349f096e776f4a191be2a64a09d6cc9b0ffc746566020fecd07752427",
+        "load.latencies.bin": "b3c12be044c6b3e9f14a1ad6bfb80e781d14168850531b1d85b09098f72ce206",
+        "load.send-lag.bin": "489673628c8cdd236bec800acd33c95a2442c836f316d8d38c8a08d2e36af982"
+      }
+    },
+    {
+      "id": "udp-miss-r3-fix",
+      "profile": "udp-miss",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 76.46595,
+        "p95_ns": 103081,
+        "rss_kib": 3960,
+        "pss_kib": 3952,
+        "fd_count": 15,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "e4bf5f5b5d20ef605830f02a73c9db7fd5171b8e39fdef2606a4eed26ec9804a",
+        "load.json": "56c40776c0d843969ef84780b8c82ee4a26f37ecc2bca2feedaa230052f1c7a9",
+        "epoch.json": "0832eb668f43540334e592fd228c6e4a16ce099d8925d9c07a1cfb92ff318c73",
+        "resources.json": "aaa5bb714d999e8e1e2d2095f570a37592cf77dff0da463e2df9809e6351f8c2",
+        "load.latencies.bin": "3fdca52fd6e2d27be6b93ee499f527fee454b949c1f80e907ad1d74977f22698",
+        "load.send-lag.bin": "4a5a5bc48d5f760d9731c84814de4c39fbd59653ac6ed831a3aec886b92397e2"
+      }
+    },
+    {
+      "id": "tcp-hit-r3-main",
+      "profile": "tcp-hit",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 19.993033333333333,
+        "p95_ns": 31601,
+        "rss_kib": 4888,
+        "pss_kib": 4880,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "55b7f028f86461b029704711eacc525acb0a5dec5a18747db8ff41b92d21e9ac",
+        "load.json": "3432f2aafc7863c54d7ff8abf20b4d756e9934c2f754eb1cb096090f6cd80c1c",
+        "epoch.json": "b5322541dd99aeb86f1ea33a8184e9899b5d363908b4e3a5f1d2236785437114",
+        "resources.json": "967656952a4de0d1bc87fb77e282669fb32cb225a26ceeb22205380e4053374e",
+        "load.latencies.bin": "28dada5a6b0f0d2ec6c359c21905b5f246d6fb4b005c854a951017270cc93e1b",
+        "load.send-lag.bin": "ecfda15ab151cf87cf4da48e67f18fff700a18fa7eca0ba921839fe6a80bd214"
+      }
+    },
+    {
+      "id": "tcp-hit-r3-fix",
+      "profile": "tcp-hit",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 20.750233333333334,
+        "p95_ns": 32200,
+        "rss_kib": 4848,
+        "pss_kib": 4840,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 9000,
+          "sent": 9000,
+          "scheduled_skipped": 0,
+          "correct": 9000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 30000,
+          "sent": 30000,
+          "scheduled_skipped": 0,
+          "correct": 30000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "4968a5ce2b4d3b152199393ef321f89da400c7c5578e27b75448b617060f8592",
+        "load.json": "aa04ebe64ca0fac223f0457acee31b5c897ec7fd593161bc8f89ea727ef2984f",
+        "epoch.json": "9ecc486cdc53b2e319191dc14262b4d9f4c007f026e665a43966171e68f61220",
+        "resources.json": "c0d2cefe1516e57f148bc5e337d361880175dd8cfb809fa85d9ce1ef7d13b30a",
+        "load.latencies.bin": "91792b6b7ee974bb7df1f710b4c5476149b1792523b26c679cdd737a85a834ea",
+        "load.send-lag.bin": "3b796ec82b073debac79734d91f4744e81105e18d6d8300b566a7e6080991003"
+      }
+    },
+    {
+      "id": "tcp-miss-r3-main",
+      "profile": "tcp-miss",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 120.23765,
+        "p95_ns": 153961,
+        "rss_kib": 12372,
+        "pss_kib": 12364,
+        "fd_count": 52,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "8e508ae31fc8ec6cb59437fcf073cd16b43c6d32db02925f43e4591bf4dfd0af",
+        "load.json": "04cc0f745b081495174d354d5eb145de7386d550d49aa3ac3cc33263e35dc289",
+        "epoch.json": "b5f576e008b9e18a70081a855fdcefe604a5f496075f0ead9a58a95691662346",
+        "resources.json": "23d1ab63dcf9b23a941efe6ff9c6cf60966e821e3c5ea3f22d27742710899149",
+        "load.latencies.bin": "db9f263cff8ecf82d5f449b81cbd9c3ee3faf5f419130532a983bbd0ff5c4afd",
+        "load.send-lag.bin": "2a7aebd0b49aba99708eb3376be170c82307edf471dcd3b501d70f6f22cc23ec"
+      }
+    },
+    {
+      "id": "tcp-miss-r3-fix",
+      "profile": "tcp-miss",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 118.39855,
+        "p95_ns": 160121,
+        "rss_kib": 11976,
+        "pss_kib": 11968,
+        "fd_count": 52,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 6000,
+          "sent": 6000,
+          "scheduled_skipped": 0,
+          "correct": 6000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 20000,
+          "sent": 20000,
+          "scheduled_skipped": 0,
+          "correct": 20000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "45dfd6d8d7a4c9a2a5a8de7c79735e6e4ffb3a124a2dbfc6adbb5a68b877eb46",
+        "load.json": "2d10029e791ff084ddd8f30536c716a980893b97e1ad1b433852b1b215d3748f",
+        "epoch.json": "4b39c0d30a3190d194bf0153cab193f852691d499bc3ed958b9206e3d3c0a6ac",
+        "resources.json": "89bc5bed4747f2de5a2659b3b00727351d3bee58f8b3c7a8a4f9d37b85e39a63",
+        "load.latencies.bin": "4b9bca79fcbd92255abebad64044a42fa0e08d430e7b4b33891a86e7923fae3c",
+        "load.send-lag.bin": "3ff8533544cb5e84a317bfd19b28c900881f3486c2c004d02cb4bd6807eac371"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "profile": "udp-cname",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        14.323675,
+        14.14715,
+        14.179775
+      ],
+      "fix": [
+        14.24065,
+        14.123814047675596,
+        14.2826625
+      ],
+      "main_median": 14.179775,
+      "fix_median": 14.24065,
+      "relative_delta": 0.00429308645588522,
+      "main_W": 0.012449069184807222,
+      "fix_W": 0.011154578781474474,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "udp-cname",
+      "metric": "p95_ns",
+      "main": [
+        27440,
+        25800,
+        25841
+      ],
+      "fix": [
+        24360,
+        24080,
+        24320
+      ],
+      "main_median": 25841,
+      "fix_median": 24320,
+      "relative_delta": -0.0588599512402771,
+      "main_W": 0.06346503618281027,
+      "fix_W": 0.011513157894736841,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "udp-cname",
+      "metric": "pss_kib",
+      "main": [
+        2788,
+        2788,
+        2788
+      ],
+      "fix": [
+        2856,
+        2896,
+        2856
+      ],
+      "main_median": 2788,
+      "fix_median": 2856,
+      "relative_delta": 0.024390243902439046,
+      "main_W": 0.0,
+      "fix_W": 0.014005602240896359,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-cname",
+      "metric": "rss_kib",
+      "main": [
+        2796,
+        2796,
+        2796
+      ],
+      "fix": [
+        2864,
+        2904,
+        2864
+      ],
+      "main_median": 2796,
+      "fix_median": 2864,
+      "relative_delta": 0.024320457796852546,
+      "main_W": 0.0,
+      "fix_W": 0.013966480446927373,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-cname",
+      "metric": "fd_count",
+      "main": [
+        12,
+        12,
+        12
+      ],
+      "fix": [
+        12,
+        12,
+        12
+      ],
+      "main_median": 12,
+      "fix_median": 12,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "tcp-cname",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        20.734866666666665,
+        20.756666666666668,
+        20.46645
+      ],
+      "fix": [
+        22.594866666666668,
+        22.15875,
+        22.454533333333334
+      ],
+      "main_median": 20.734866666666665,
+      "fix_median": 22.454533333333334,
+      "relative_delta": 0.08293598865678753,
+      "main_W": 0.01399655330956245,
+      "fix_W": 0.019422210214418482,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-cname",
+      "metric": "p95_ns",
+      "main": [
+        32881,
+        31801,
+        31520
+      ],
+      "fix": [
+        34400,
+        34521,
+        34000
+      ],
+      "main_median": 31801,
+      "fix_median": 34400,
+      "relative_delta": 0.08172698971730452,
+      "main_W": 0.04279739630829219,
+      "fix_W": 0.015145348837209303,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-cname",
+      "metric": "pss_kib",
+      "main": [
+        4364,
+        4368,
+        4364
+      ],
+      "fix": [
+        4472,
+        4476,
+        4464
+      ],
+      "main_median": 4364,
+      "fix_median": 4472,
+      "relative_delta": 0.024747937671860676,
+      "main_W": 0.0009165902841429881,
+      "fix_W": 0.0026833631484794273,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-cname",
+      "metric": "rss_kib",
+      "main": [
+        4372,
+        4376,
+        4372
+      ],
+      "fix": [
+        4480,
+        4484,
+        4472
+      ],
+      "main_median": 4372,
+      "fix_median": 4480,
+      "relative_delta": 0.02470265324794152,
+      "main_W": 0.0009149130832570906,
+      "fix_W": 0.0026785714285714286,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-cname",
+      "metric": "fd_count",
+      "main": [
+        32,
+        32,
+        32
+      ],
+      "fix": [
+        32,
+        32,
+        32
+      ],
+      "main_median": 32,
+      "fix_median": 32,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "udp-hit",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        12.677125,
+        13.622925,
+        12.881275
+      ],
+      "fix": [
+        13.14855,
+        13.0141,
+        13.197675
+      ],
+      "main_median": 12.881275,
+      "fix_median": 13.14855,
+      "relative_delta": 0.020749110627635847,
+      "main_W": 0.07342440868625195,
+      "fix_W": 0.013961615539356138,
+      "worse_pairs": 2,
+      "flag": false
+    },
+    {
+      "profile": "udp-hit",
+      "metric": "p95_ns",
+      "main": [
+        43880,
+        38321,
+        22840
+      ],
+      "fix": [
+        23800,
+        22640,
+        22920
+      ],
+      "main_median": 38321,
+      "fix_median": 22920,
+      "relative_delta": -0.4018945225855275,
+      "main_W": 0.5490462148691319,
+      "fix_W": 0.0506108202443281,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "udp-hit",
+      "metric": "pss_kib",
+      "main": [
+        3292,
+        3296,
+        3292
+      ],
+      "fix": [
+        3388,
+        3368,
+        3372
+      ],
+      "main_median": 3292,
+      "fix_median": 3372,
+      "relative_delta": 0.024301336573511634,
+      "main_W": 0.001215066828675577,
+      "fix_W": 0.005931198102016607,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-hit",
+      "metric": "rss_kib",
+      "main": [
+        3300,
+        3304,
+        3300
+      ],
+      "fix": [
+        3396,
+        3376,
+        3380
+      ],
+      "main_median": 3300,
+      "fix_median": 3380,
+      "relative_delta": 0.024242424242424176,
+      "main_W": 0.0012121212121212121,
+      "fix_W": 0.005917159763313609,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-hit",
+      "metric": "fd_count",
+      "main": [
+        12,
+        12,
+        12
+      ],
+      "fix": [
+        12,
+        12,
+        12
+      ],
+      "main_median": 12,
+      "fix_median": 12,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "udp-miss",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        77.83435,
+        78.55015,
+        78.12545
+      ],
+      "fix": [
+        80.12195,
+        81.722,
+        76.46595
+      ],
+      "main_median": 78.12545,
+      "fix_median": 80.12195,
+      "relative_delta": 0.025555052802895828,
+      "main_W": 0.009162187225801598,
+      "fix_W": 0.06560062504719354,
+      "worse_pairs": 2,
+      "flag": false
+    },
+    {
+      "profile": "udp-miss",
+      "metric": "p95_ns",
+      "main": [
+        101960,
+        113361,
+        102481
+      ],
+      "fix": [
+        138362,
+        117601,
+        103081
+      ],
+      "main_median": 102481,
+      "fix_median": 117601,
+      "relative_delta": 0.14753954391545743,
+      "main_W": 0.11124989022355364,
+      "fix_W": 0.30000595233033733,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-miss",
+      "metric": "pss_kib",
+      "main": [
+        3876,
+        3828,
+        3788
+      ],
+      "fix": [
+        3952,
+        3884,
+        3952
+      ],
+      "main_median": 3828,
+      "fix_median": 3952,
+      "relative_delta": 0.03239289446185989,
+      "main_W": 0.022988505747126436,
+      "fix_W": 0.01720647773279352,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-miss",
+      "metric": "rss_kib",
+      "main": [
+        3884,
+        3836,
+        3796
+      ],
+      "fix": [
+        3960,
+        3892,
+        3960
+      ],
+      "main_median": 3836,
+      "fix_median": 3960,
+      "relative_delta": 0.03232533889468203,
+      "main_W": 0.022940563086548488,
+      "fix_W": 0.01717171717171717,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "udp-miss",
+      "metric": "fd_count",
+      "main": [
+        12,
+        12,
+        13
+      ],
+      "fix": [
+        12,
+        12,
+        15
+      ],
+      "main_median": 12,
+      "fix_median": 12,
+      "relative_delta": 0.0,
+      "main_W": 0.08333333333333333,
+      "fix_W": 0.25,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "tcp-hit",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        19.5309,
+        19.5268,
+        19.993033333333333
+      ],
+      "fix": [
+        20.685833333333335,
+        20.673366666666666,
+        20.750233333333334
+      ],
+      "main_median": 19.5309,
+      "fix_median": 20.685833333333335,
+      "relative_delta": 0.059133646341609225,
+      "main_W": 0.023871574445280635,
+      "fix_W": 0.0037159086331225487,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-hit",
+      "metric": "p95_ns",
+      "main": [
+        30840,
+        30400,
+        31601
+      ],
+      "fix": [
+        31800,
+        33000,
+        32200
+      ],
+      "main_median": 30840,
+      "fix_median": 32200,
+      "relative_delta": 0.044098573281452724,
+      "main_W": 0.038942931258106356,
+      "fix_W": 0.037267080745341616,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-hit",
+      "metric": "pss_kib",
+      "main": [
+        4876,
+        4884,
+        4880
+      ],
+      "fix": [
+        4852,
+        4848,
+        4840
+      ],
+      "main_median": 4880,
+      "fix_median": 4848,
+      "relative_delta": -0.006557377049180357,
+      "main_W": 0.001639344262295082,
+      "fix_W": 0.0024752475247524753,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "tcp-hit",
+      "metric": "rss_kib",
+      "main": [
+        4884,
+        4892,
+        4888
+      ],
+      "fix": [
+        4860,
+        4856,
+        4848
+      ],
+      "main_median": 4888,
+      "fix_median": 4856,
+      "relative_delta": -0.006546644844517169,
+      "main_W": 0.0016366612111292963,
+      "fix_W": 0.002471169686985173,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "tcp-hit",
+      "metric": "fd_count",
+      "main": [
+        32,
+        32,
+        32
+      ],
+      "fix": [
+        32,
+        32,
+        32
+      ],
+      "main_median": 32,
+      "fix_median": 32,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        114.4685,
+        113.91715,
+        120.23765
+      ],
+      "fix": [
+        125.2634,
+        124.96705,
+        118.39855
+      ],
+      "main_median": 114.4685,
+      "fix_median": 124.96705,
+      "relative_delta": 0.09171562482254947,
+      "main_W": 0.05521606380794712,
+      "fix_W": 0.05493328041271683,
+      "worse_pairs": 2,
+      "flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "p95_ns",
+      "main": [
+        154642,
+        143361,
+        153961
+      ],
+      "fix": [
+        159762,
+        158481,
+        160121
+      ],
+      "main_median": 153961,
+      "fix_median": 159762,
+      "relative_delta": 0.03767837309448496,
+      "main_W": 0.07327180259935957,
+      "fix_W": 0.010265269588512912,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "pss_kib",
+      "main": [
+        12408,
+        12408,
+        12364
+      ],
+      "fix": [
+        12728,
+        12248,
+        11968
+      ],
+      "main_median": 12408,
+      "fix_median": 12248,
+      "relative_delta": -0.012894906511927817,
+      "main_W": 0.0035460992907801418,
+      "fix_W": 0.062050947093403,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "rss_kib",
+      "main": [
+        12416,
+        12416,
+        12372
+      ],
+      "fix": [
+        12736,
+        12256,
+        11976
+      ],
+      "main_median": 12416,
+      "fix_median": 12256,
+      "relative_delta": -0.012886597938144284,
+      "main_W": 0.0035438144329896907,
+      "fix_W": 0.06201044386422976,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "tcp-miss",
+      "metric": "fd_count",
+      "main": [
+        52,
+        52,
+        52
+      ],
+      "fix": [
+        52,
+        52,
+        52
+      ],
+      "main_median": 52,
+      "fix_median": 52,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    }
+  ],
+  "errors": [],
+  "complete": true
+}

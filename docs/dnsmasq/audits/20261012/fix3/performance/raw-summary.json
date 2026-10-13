@@ -1,0 +1,1231 @@
+{
+  "scope": "Fresh release main/fix cached A with unrelated valid dns-rr entries; tests newly local-first TCP lookup scalability",
+  "plan_sha256": "337e3803d13bad3ce8195352555325b7bab6eb8f13706af3f3179355adbcdd07",
+  "groups": {
+    "main": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "bytes": 1970216,
+      "build": {
+        "source": "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-main=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 1970216,
+            "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863"
+          }
+        ]
+      }
+    },
+    "fix": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-fix/dnsmasq-rs",
+      "sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a",
+      "bytes": 2056672,
+      "build": {
+        "source": "/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix",
+        "kind": "release",
+        "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+        "opt_level": "3",
+        "features": "",
+        "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix3-20261013/source-fix=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+        "artifacts": [
+          {
+            "path": "dnsmasq-rs",
+            "bytes": 2056672,
+            "sha256": "524c327f79080c789f7cdce74125c2af52f6e9c97175414a874ac6e31c9f9c2a"
+          }
+        ]
+      }
+    }
+  },
+  "windows": [
+    {
+      "id": "tcp-raw-100-r1-main",
+      "profile": "tcp-raw-100",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 30.7682,
+        "p95_ns": 79160,
+        "rss_kib": 5184,
+        "pss_kib": 5176,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "719cd398550dfdcc8637e7458b874097e82f67cecd01649f943d0bd2578b26e2",
+        "load.json": "0ba0711bc7f99ff914d596cef64196c08dd2ed8bd0e5b7d5f217b943c8d595cc",
+        "epoch.json": "84a0963bdc4a838a5cfca7830b27f9097a96b9f877e6ccc9fa96f36f37db11a6",
+        "resources.json": "df561462aed6e409e04966000854bc79dcad6b1dd8f78dd8516a478a16fc6253",
+        "load.latencies.bin": "00e690c3787b25005784f9851e8ffeb06e711c1f76c0d0e418dc8bf05cbe7523",
+        "load.send-lag.bin": "40c60763efb40566873a6abee0ca137b70f3b9d5c8974898f375e85a9862319d"
+      }
+    },
+    {
+      "id": "tcp-raw-100-r1-fix",
+      "profile": "tcp-raw-100",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 49.9932,
+        "p95_ns": 105720,
+        "rss_kib": 5268,
+        "pss_kib": 5260,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "fc67caf83c860c5cc12e5f60c7c3e37c60481143ee6787f4be7d93ae45961a7e",
+        "load.json": "edda51693e1db52afbee7c4a5f8e4679e902276449d57c0e1c49e9a898077363",
+        "epoch.json": "2fb95673e9e14e8d28e446c8cc7054f6e91ff4b19264143e9ffa1ebf7fcabe1a",
+        "resources.json": "9a27c2862f040005375d4da70f59f2dcf78d54db80ca8375a4532fe84667e324",
+        "load.latencies.bin": "cb4e119710136395937a9f6bfbf4083e4b2724e1fb79cd178176dea49f165ba6",
+        "load.send-lag.bin": "d088d53dc4f17232688b516207a61726f187bc05f273b411d79338031419966b"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-r1-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 30.513066666666667,
+        "p95_ns": 77001,
+        "rss_kib": 7468,
+        "pss_kib": 7460,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "b35304e1e04c76c290b739f3ee7e9509b4f29fa8ea585012632e1163ca4316e1",
+        "load.json": "0dfd15367192cb9d9d62b58f63c33b72f6d1ba1016966fb3f5a86f535382ceec",
+        "epoch.json": "434f132926cc8ea9d1b4fb88c437e0ea88d6f8572c93cd8d34f33637a8f927c1",
+        "resources.json": "c91c2f15158c6a800fed24ac1ca2ae9068b2bf6233907dbd00a35fd0627fdb0e",
+        "load.latencies.bin": "0bd57c4518851eb14d0c34c856bd205ca4892392ba8f9b6be1daa0b8c57a254f",
+        "load.send-lag.bin": "22faed78c73948817bf954305d58bc07f81d0df664baf8959d92fdd1ae084ac2"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-r1-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 116.91853333333333,
+        "p95_ns": 215522,
+        "rss_kib": 7528,
+        "pss_kib": 7520,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "f9d585063bd29706ed460e8a6cdf03b1b94395899d238c964a5baa57eed93227",
+        "load.json": "cbdb9b064e1758cfb81e9df9932c148be5c8549679ca91037922af352d46f299",
+        "epoch.json": "c41169f7d4f177fdb18bb3de22c15b6a182746e9c09a464efb3e8a5302ee752e",
+        "resources.json": "c3beda8064af3510e1f654480061edb1afa72641afd07ac5e07fd784217ac0bb",
+        "load.latencies.bin": "777dfd1ffe9944ef236bd50802d47c7d3cad344c2a4478d8ea4349c77164507c",
+        "load.send-lag.bin": "911a1abc395a638a0daabee72359a2394699c9d3b1e47566feef95e9d3de815f"
+      }
+    },
+    {
+      "id": "udp-raw-1000-r1-main",
+      "profile": "udp-raw-1000",
+      "variant": "main",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 103.3542,
+        "p95_ns": 207042,
+        "rss_kib": 3744,
+        "pss_kib": 3736,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "3ef6ccf1c3c5b0be0b4358a4cafacc3e552ca8f918466347677674781f1e4df6",
+        "load.json": "1adabba2bf770d509c02bacb33c65081e8737f36ff8db8532fe192518eba0d11",
+        "epoch.json": "3f34ac3f207be2b04ce7bf119977fca42509e2a622ac82d47d19365c38aee50e",
+        "resources.json": "765e28e408185d59365d63de2daa45f903604d7597ab1e626f8a53b1b7503f4c",
+        "load.latencies.bin": "251c4c164ad8abdd88e3b616663d13648873a35aa0d3a7da9f0b5ed13e95e380",
+        "load.send-lag.bin": "5de6ba402ea9d74f2b28f7295c15ed461ed945379c6d42a7fae3aa5cc49c2120"
+      }
+    },
+    {
+      "id": "udp-raw-1000-r1-fix",
+      "profile": "udp-raw-1000",
+      "variant": "fix",
+      "round": 1,
+      "metrics": {
+        "cpu_us_per_correct": 105.17573333333333,
+        "p95_ns": 204802,
+        "rss_kib": 3708,
+        "pss_kib": 3700,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "4fe755f18b319d3198b26bb3ce6af5d9ebcdb38a78bbd7a37a4acdbc2c948fd0",
+        "load.json": "6d9cbed7437ac199cbbd7f702ef86239cade668a6bf28d4c2b4bbce9bc33e6b8",
+        "epoch.json": "e750e83da0e169c80a8a71c28319112b9d2d881354d7ba3fc9404095c007c6a2",
+        "resources.json": "cf68bcd56a5b41b1d4b2e24b73c1b1aa2e583c8fabbc7ec94aadce48c33e07d6",
+        "load.latencies.bin": "d408ab58112930a47bf221a3e0cc89876312193096aeeb523720991a0a6bbd95",
+        "load.send-lag.bin": "277adf03b447ce186b61bd90f7c846ea85cce78fb4641c15e1f3b084432db779"
+      }
+    },
+    {
+      "id": "tcp-raw-100-r2-fix",
+      "profile": "tcp-raw-100",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 45.294266666666665,
+        "p95_ns": 100121,
+        "rss_kib": 5160,
+        "pss_kib": 5152,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "3d75bfecc4977b6df1459d11baf8408f9cde8252f86e31ee42ff1a8b6ad1f0cf",
+        "load.json": "f0c62581ba31a812fd9603115db17ab487bd853d55963dbae636df6bf37bf5d0",
+        "epoch.json": "c504d3a34bc17f08e52b943dfc576561bee4076c23ca8ce659685032ffac95a9",
+        "resources.json": "0173747db1e9f457517ead8789d08b23e4c6eb471baa59f35a75fef0db7f2956",
+        "load.latencies.bin": "c2670ec13499ab6feef250f42059c15ceb5c42af2848a56d0cbb08582242c05d",
+        "load.send-lag.bin": "c74592ab8896956a58ea3f5c67663ba9d8b02611e164a7db508d83cb088b4ca1"
+      }
+    },
+    {
+      "id": "tcp-raw-100-r2-main",
+      "profile": "tcp-raw-100",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 30.523733333333332,
+        "p95_ns": 78201,
+        "rss_kib": 5188,
+        "pss_kib": 5180,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "102d577b34394aefc8144602a1936950638776422886dcdaf404033ee0b027e7",
+        "load.json": "edefe77ecd93e6e90017e7a5018e9069d2faa11d40a964c909cef343620fe826",
+        "epoch.json": "2215f141a8fcf0d96bce212e263f965859741a2fa665cddf622ed19760e57aa5",
+        "resources.json": "b596ce8298060c08cb98d27c760b1b67c5927e399912e5ef7525dba0abdecbf4",
+        "load.latencies.bin": "1a92ba433777a8a4abcde58339e1a226375808cd43d6c039447d641f1fbe4365",
+        "load.send-lag.bin": "665d1c2e78d3519b3f9ab2bc93df8d772e06b71189f468b7d0160f32ae798ad5"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-r2-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 119.54653333333333,
+        "p95_ns": 219962,
+        "rss_kib": 7520,
+        "pss_kib": 7512,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "ceae62008e91e2e579e28423e28769247d700cf8ffc8a19cf1c37a19eb87f9b7",
+        "load.json": "9b967a7c232199d513517784ab4c33831591a60d83f960d558bde8204b4fb1e6",
+        "epoch.json": "881cdcbcfa97e9484721956e69fac21e7f6dd2e0c171f8e01962a6d7f12f8f9d",
+        "resources.json": "d89429ac6eef30c8b724469c70eac7626be25da46a095e0440b00fdc77c628fc",
+        "load.latencies.bin": "b9d647923f74e1d22732a6872501257632627a2106566cae47ac81a8d2d83754",
+        "load.send-lag.bin": "ffec06288852319277771332987214cfa080cd9918c42596dd24af13adae4d7f"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-r2-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 42.58893333333334,
+        "p95_ns": 85921,
+        "rss_kib": 7464,
+        "pss_kib": 7456,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "7b79ac2bb4032528c80e1b883ef5a0a7ec7cbb30eb184315cffc350ff46bfd2d",
+        "load.json": "dd5e54568f8dec9ee9aedf6480069a36ee46ef36e1e0d3bd4c163638928626cb",
+        "epoch.json": "a23a3330bcdab132bb67f8a7669a0000bf1bb635b1490dd2d8dff118f5736bc3",
+        "resources.json": "e2e22f0e2f7d386e17cd8a07aeb3ad6677e6f1e3ae9e1bc74ac15a617f1c0f01",
+        "load.latencies.bin": "07e9a2bfd856115a88cc4bd948a0737848a8e28c6a8c450abed095334c17143b",
+        "load.send-lag.bin": "ba82de3a2366f76e4c450906998db0b1ce6000b7d3689df0de7159a09326b6ab"
+      }
+    },
+    {
+      "id": "udp-raw-1000-r2-fix",
+      "profile": "udp-raw-1000",
+      "variant": "fix",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 101.70546666666667,
+        "p95_ns": 200042,
+        "rss_kib": 3700,
+        "pss_kib": 3692,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "ec7a11f3dcec541482b359d04dcccc1e086044809f7939ac74750b16882f1396",
+        "load.json": "53ca39be810bb93f8b6f4aafeba91ccdc6a0673fb68adfda3979fb8ba86bb1df",
+        "epoch.json": "b842d7e13c03ab631ed0aa523cfa8d6c79a4e495b2ba196724501dce82b86a7c",
+        "resources.json": "b4452e9ed175f5ccacabd0c525f80c7ee917bccca2f1bb12afe505bd83dc7858",
+        "load.latencies.bin": "6de2768315aa0c1b81aedeaafa42a6a4684c825be05ea38a214b98111bfd4326",
+        "load.send-lag.bin": "97ea34c5fddf38e686151ec1dcaedd5569851bf13471c1faea0d2d0632e0cefd"
+      }
+    },
+    {
+      "id": "udp-raw-1000-r2-main",
+      "profile": "udp-raw-1000",
+      "variant": "main",
+      "round": 2,
+      "metrics": {
+        "cpu_us_per_correct": 107.1064,
+        "p95_ns": 201362,
+        "rss_kib": 3744,
+        "pss_kib": 3736,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "7fdd8ba7bc2d29a93868b8f0e6bca334001a209cfd177a75eb7a3b5135562c4f",
+        "load.json": "e2b4d7684acb495311e1c193cd25f3f0d9804afa9f4b8e567bcc95be4aa3f1ad",
+        "epoch.json": "6f742b6127066942fb1345a37026b6593fc7d06323270412cfc46f2a86623852",
+        "resources.json": "dfec17c52a20b13b30bc5788630d375359ef677d5e35e7ae502987109f778254",
+        "load.latencies.bin": "5e5d1d76266cc48f95e4a39849adc36e5656571396ffeb56b6c7bfb3485f4ab0",
+        "load.send-lag.bin": "2714a638485bd1b8aecf7d73dfdf9032824e0e6a1e4a5d5909a7b45be2a10cbb"
+      }
+    },
+    {
+      "id": "tcp-raw-100-r3-main",
+      "profile": "tcp-raw-100",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 29.6328,
+        "p95_ns": 77881,
+        "rss_kib": 5188,
+        "pss_kib": 5180,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "89ef944d441506b42adb4e0d73abad0d31faad83f74903e9d97882d16f9c408f",
+        "load.json": "b2644f361a430c280cdbcfa9151b9c42288400f6afde8a217d429d2a3392dbfd",
+        "epoch.json": "fb90d6f0a4bafa74c6239a235832b691ed345dc7453d3deaa73504f6d49d3637",
+        "resources.json": "7c249c55ed5dfe17a0be227aa87f5ed95df1c77e58651f2214f1de9b18d50a93",
+        "load.latencies.bin": "db16dfdf3c5ab523c4143c38be80e0d857981607154bd8e464b65642ff7df784",
+        "load.send-lag.bin": "324ef4635faa5347d40e3150e511503ce59ae0fb7bf0796bb9b7fb11aa1493c1"
+      }
+    },
+    {
+      "id": "tcp-raw-100-r3-fix",
+      "profile": "tcp-raw-100",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 55.74633333333333,
+        "p95_ns": 109600,
+        "rss_kib": 5156,
+        "pss_kib": 5148,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "75c5755a12eec6b1d374d26860f65d46706ab55ba6d35e1e6ffd99e8b3a75fe3",
+        "load.json": "28daf7edf94f16d844990b91e21a2ad2c6bad1b0ccdb7b7b719127e68f4468e5",
+        "epoch.json": "a77a9b67bc2641a94111212ecef31b29b9a385076a6579cf75450ad3bf573a45",
+        "resources.json": "739806040cc418871b3ebf8c2c6c7048c9bc390d6d924fa124c924a7853e9e35",
+        "load.latencies.bin": "cb06d5fbc1a43bb06d83cc42e51da0f350f98e32fe372bcfd4d8fb63705ff6db",
+        "load.send-lag.bin": "fe330df26999f66010352505a57ec350b6187873b242999f3ea756bcec9c1090"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-r3-main",
+      "profile": "tcp-raw-1000",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 33.33533333333333,
+        "p95_ns": 98481,
+        "rss_kib": 7464,
+        "pss_kib": 7456,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "854563f8313dcc23b5c1f21eb5f0b424dd4512dcd3449cafbbd9b10e05b53ff8",
+        "load.json": "1a9707a63ee262fc7a51cb2b3932786abf82c48fc759a08a3b468c369b037632",
+        "epoch.json": "57c100035e1766ef1d5ea44d0ae7b9f167518a999aee08558d3f219e5fdc62ec",
+        "resources.json": "934c90ac2be35c75c18845e349da0bac0d9a2da07abf09895ed3282e2ae77434",
+        "load.latencies.bin": "41a85548eded83f2867bdf2d78a3a55ed360b2ceddfce9239d084459ae27e02b",
+        "load.send-lag.bin": "6933a04db0728a65934edb7be520281d2a7c2e839a9b6fdd321e1378c737a47c"
+      }
+    },
+    {
+      "id": "tcp-raw-1000-r3-fix",
+      "profile": "tcp-raw-1000",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 125.10026666666667,
+        "p95_ns": 228922,
+        "rss_kib": 7548,
+        "pss_kib": 7540,
+        "fd_count": 32,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "3c3ff8fb3bdf3e2c5871205d37433eeccfc9f9639699f4808c7ccb3a7aac37d4",
+        "load.json": "41f8090a69c10f392161511aa6902acb8836b0fed9d89e9a3147c34126c02daf",
+        "epoch.json": "d6f52d87b0e738322569cc98285506fa4f30c51d5f90e5f31e71b13ec047d12c",
+        "resources.json": "e613f893eb707820b02046be40bb0f728b6a09bfc7db9036edd9df552dc443c4",
+        "load.latencies.bin": "f688f1c987e6be5313b02ee32cc9b5b6216cc6cea98ef75c6bff9b1f7957bb7e",
+        "load.send-lag.bin": "eb82043f71ad8326f0b1fbca09e37000798e41e6f1e59653b4b082483aae4003"
+      }
+    },
+    {
+      "id": "udp-raw-1000-r3-main",
+      "profile": "udp-raw-1000",
+      "variant": "main",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 102.2726,
+        "p95_ns": 200802,
+        "rss_kib": 3740,
+        "pss_kib": 3732,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "13a8a48f53b39f2803959e59242ff68dc3e725342ba07ce9f7aa4f35a7873ef4",
+        "load.json": "24a05f3de466149c0ff01f5933258d720c8244d5807ca24ef30e692a02c52c4e",
+        "epoch.json": "2d781d436860af61136d465e15ad4c3532b2d587b32365e16332f7566e5b1b21",
+        "resources.json": "f687faa05510f3c0a09040531720c39ec39ebbb33755dff57adc08b375b252ae",
+        "load.latencies.bin": "c4e8d47f6df1caefa1937f0495c30158ea4e13683f87a6a3d2da1dad2639a974",
+        "load.send-lag.bin": "9f69133f16cb4a4006a5779de1396edce2f9537aa09326c1a94360edac415bbb"
+      }
+    },
+    {
+      "id": "udp-raw-1000-r3-fix",
+      "profile": "udp-raw-1000",
+      "variant": "fix",
+      "round": 3,
+      "metrics": {
+        "cpu_us_per_correct": 98.87626666666667,
+        "p95_ns": 196282,
+        "rss_kib": 3812,
+        "pss_kib": 3804,
+        "fd_count": 12,
+        "thread_count": 1,
+        "child_processes": 0
+      },
+      "errors": {
+        "wrong": 0,
+        "timeout": 0,
+        "transport_error": 0
+      },
+      "load_counters": {
+        "warmup": {
+          "scheduled": 3000,
+          "sent": 3000,
+          "scheduled_skipped": 0,
+          "correct": 3000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        },
+        "measurement": {
+          "scheduled": 15000,
+          "sent": 15000,
+          "scheduled_skipped": 0,
+          "correct": 15000,
+          "wrong": 0,
+          "timeout": 0,
+          "transport_error": 0
+        }
+      },
+      "raw_inputs": {
+        "result.json": "f4eeabfc3bd1b43a0efa99dd74653d51c0f422d1328caf0c685c2261dab370d1",
+        "load.json": "efc7856959ca841ff4097f4d51ec64eeab2a286c62f8c96031c7d66ac7260077",
+        "epoch.json": "40caa02a9b91c1041004b685ce0c9de552c97781aabf13095cd406af746109ec",
+        "resources.json": "f144bc325f218729c42ab7093a010f479d54bcf89bbc144e43d90a397a48a708",
+        "load.latencies.bin": "c18958740aef1056f1ea6008bfdb9861f2869c6d62ff2e6ae54624ebe8540c8b",
+        "load.send-lag.bin": "447f8205cb5de712edef9c2f8599c12d2c69705e82f7bfbe78d6f200626a583e"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "profile": "tcp-raw-100",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        30.7682,
+        30.523733333333332,
+        29.6328
+      ],
+      "fix": [
+        49.9932,
+        45.294266666666665,
+        55.74633333333333
+      ],
+      "main_median": 30.523733333333332,
+      "fix_median": 49.9932,
+      "relative_delta": 0.6378468339390553,
+      "main_W": 0.03719728473581215,
+      "fix_W": 0.20906976682162107,
+      "worse_pairs": 3,
+      "flag": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "metric": "p95_ns",
+      "main": [
+        79160,
+        78201,
+        77881
+      ],
+      "fix": [
+        105720,
+        100121,
+        109600
+      ],
+      "main_median": 78201,
+      "fix_median": 105720,
+      "relative_delta": 0.3519008708328537,
+      "main_W": 0.01635528957430212,
+      "fix_W": 0.08966136965569428,
+      "worse_pairs": 3,
+      "flag": true
+    },
+    {
+      "profile": "tcp-raw-100",
+      "metric": "pss_kib",
+      "main": [
+        5176,
+        5180,
+        5180
+      ],
+      "fix": [
+        5260,
+        5152,
+        5148
+      ],
+      "main_median": 5180,
+      "fix_median": 5152,
+      "relative_delta": -0.00540540540540535,
+      "main_W": 0.0007722007722007722,
+      "fix_W": 0.021739130434782608,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-100",
+      "metric": "rss_kib",
+      "main": [
+        5184,
+        5188,
+        5188
+      ],
+      "fix": [
+        5268,
+        5160,
+        5156
+      ],
+      "main_median": 5188,
+      "fix_median": 5160,
+      "relative_delta": -0.005397070161912154,
+      "main_W": 0.0007710100231303007,
+      "fix_W": 0.021705426356589147,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-100",
+      "metric": "fd_count",
+      "main": [
+        32,
+        32,
+        32
+      ],
+      "fix": [
+        32,
+        32,
+        32
+      ],
+      "main_median": 32,
+      "fix_median": 32,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        30.513066666666667,
+        42.58893333333334,
+        33.33533333333333
+      ],
+      "fix": [
+        116.91853333333333,
+        119.54653333333333,
+        125.10026666666667
+      ],
+      "main_median": 33.33533333333333,
+      "fix_median": 119.54653333333333,
+      "relative_delta": 2.5861808291502513,
+      "main_W": 0.3622542647441155,
+      "fix_W": 0.06843973727385382,
+      "worse_pairs": 3,
+      "flag": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "p95_ns",
+      "main": [
+        77001,
+        85921,
+        98481
+      ],
+      "fix": [
+        215522,
+        219962,
+        228922
+      ],
+      "main_median": 85921,
+      "fix_median": 219962,
+      "relative_delta": 1.5600493476565682,
+      "main_W": 0.24999709035043818,
+      "fix_W": 0.060919613387766976,
+      "worse_pairs": 3,
+      "flag": true
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "pss_kib",
+      "main": [
+        7460,
+        7456,
+        7456
+      ],
+      "fix": [
+        7520,
+        7512,
+        7540
+      ],
+      "main_median": 7456,
+      "fix_median": 7520,
+      "relative_delta": 0.008583690987124415,
+      "main_W": 0.000536480686695279,
+      "fix_W": 0.003723404255319149,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "rss_kib",
+      "main": [
+        7468,
+        7464,
+        7464
+      ],
+      "fix": [
+        7528,
+        7520,
+        7548
+      ],
+      "main_median": 7464,
+      "fix_median": 7528,
+      "relative_delta": 0.008574490889603492,
+      "main_W": 0.0005359056806002144,
+      "fix_W": 0.0037194473963868225,
+      "worse_pairs": 3,
+      "flag": false
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "metric": "fd_count",
+      "main": [
+        32,
+        32,
+        32
+      ],
+      "fix": [
+        32,
+        32,
+        32
+      ],
+      "main_median": 32,
+      "fix_median": 32,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "udp-raw-1000",
+      "metric": "cpu_us_per_correct",
+      "main": [
+        103.3542,
+        107.1064,
+        102.2726
+      ],
+      "fix": [
+        105.17573333333333,
+        101.70546666666667,
+        98.87626666666667
+      ],
+      "main_median": 103.3542,
+      "fix_median": 101.70546666666667,
+      "relative_delta": -0.015952262543112328,
+      "main_W": 0.046769265303200025,
+      "fix_W": 0.061938329109808524,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "udp-raw-1000",
+      "metric": "p95_ns",
+      "main": [
+        207042,
+        201362,
+        200802
+      ],
+      "fix": [
+        204802,
+        200042,
+        196282
+      ],
+      "main_median": 201362,
+      "fix_median": 200042,
+      "relative_delta": -0.006555358011938739,
+      "main_W": 0.03098896514734657,
+      "fix_W": 0.04259105587826557,
+      "worse_pairs": 0,
+      "flag": false
+    },
+    {
+      "profile": "udp-raw-1000",
+      "metric": "pss_kib",
+      "main": [
+        3736,
+        3736,
+        3732
+      ],
+      "fix": [
+        3700,
+        3692,
+        3804
+      ],
+      "main_median": 3736,
+      "fix_median": 3700,
+      "relative_delta": -0.009635974304068484,
+      "main_W": 0.0010706638115631692,
+      "fix_W": 0.03027027027027027,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "udp-raw-1000",
+      "metric": "rss_kib",
+      "main": [
+        3744,
+        3744,
+        3740
+      ],
+      "fix": [
+        3708,
+        3700,
+        3812
+      ],
+      "main_median": 3744,
+      "fix_median": 3708,
+      "relative_delta": -0.009615384615384581,
+      "main_W": 0.0010683760683760685,
+      "fix_W": 0.030204962243797196,
+      "worse_pairs": 1,
+      "flag": false
+    },
+    {
+      "profile": "udp-raw-1000",
+      "metric": "fd_count",
+      "main": [
+        12,
+        12,
+        12
+      ],
+      "fix": [
+        12,
+        12,
+        12
+      ],
+      "main_median": 12,
+      "fix_median": 12,
+      "relative_delta": 0.0,
+      "main_W": 0.0,
+      "fix_W": 0.0,
+      "worse_pairs": 0,
+      "flag": false
+    }
+  ],
+  "errors": [],
+  "complete": true
+}
