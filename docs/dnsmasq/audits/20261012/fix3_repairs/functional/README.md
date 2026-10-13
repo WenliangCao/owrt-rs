@@ -81,3 +81,15 @@ and the two original supplemental argv lists once. Its final state distinguishes
 46 zero-exit commands from one original strict nonzero exit whose only differences
 are the two predeclared parser cases. No archived source, product code, earlier
 result or plan is modified, and no already completed workload is repeated.
+
+The registered endpoint `local-archive-gate` intentionally waits for a second-host
+archive check. At that step, pack the finished `syntax` and `service` directories
+on Oracle with `m5_option_matrix_archive.pack`, copy each archive and manifest to
+the local host, and run `m5_final_archive_gate.py verify-local` there. Return those
+local receipts; perform the required prune only after verification, then restore
+plain evidence from the verified archives before publishing each prune receipt.
+The complete original metadata stays in both retained archive copies, and the
+original `result.json` bytes must be unchanged. The gate and subsequent source-row
+audit enforce the receipts; they are not bypassed. The final collector separately
+binds archives, manifests, local verification, pack/prune/restore receipts and
+retained result bytes.

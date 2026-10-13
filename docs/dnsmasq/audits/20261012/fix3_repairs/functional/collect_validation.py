@@ -95,6 +95,19 @@ def main():
         'supplement_controller': private / 'functional-tools/supplemental_driver.py',
         'collector': Path(__file__).resolve(),
     }.items()}
+    endpoint_archives = {}
+    endpoint_root = private / 'functional/families/m5_dns_endpoints'
+    for name in ('syntax', 'service'):
+        archive_receipts = {suffix: bind(endpoint_root / (name + suffix)) for suffix in
+            ('.tar.gz', '.manifest.json', '.pack.json', '.local-verification.json', '.prune.json', '.restore.json')}
+        local = read(endpoint_root / (name + '.local-verification.json'))
+        manifest = read(endpoint_root / (name + '.manifest.json'))
+        assert local['verified'] and local['local_full_metadata_verified']
+        assert local['archive_sha256'] == archive_receipts['.tar.gz']['sha256'] == manifest['archive_sha256']
+        assert local['manifest_sha256'] == archive_receipts['.manifest.json']['sha256']
+        assert sha(endpoint_root / name / 'result.json') == manifest['entries']['result.json']['sha256']
+        endpoint_archives[name] = {'files': archive_receipts, 'entries': len(manifest['entries']),
+                                  'local_full_metadata_verified': True, 'original_result_bytes_retained': True}
     parity = read(private / 'functional/TCP-UDP-parity/result.json')
     assert parity['passed'] and parity['case_count'] == 1736 and not parity['failures']
     parity_cases = [case for profile in parity['profiles'] for case in profile['cases'].values()]
@@ -105,7 +118,7 @@ def main():
         'source_commit': primary['source_commit'], 'elf': bind(primary['rust']),
         'total_dispositions': 47, 'zero_exit_commands': 46, 'strict_script_exit_1': 1,
         'family_commands': 34, 'complete_families': state['families'], 'directed_commands': 13,
-        'retained': retained, 'source_files': primary['source_files'], 'commands': commands,
+        'retained': retained, 'endpoint_archives': endpoint_archives, 'source_files': primary['source_files'], 'commands': commands,
         'strict_script_assessment': assessment,
         'directed_summary': {'N1': n1, 'review3_matrix': matrix,
             'persistent_TCP_UDP_parity': {'profiles': len(parity['profiles']), 'paired_cases': len(parity_cases),
