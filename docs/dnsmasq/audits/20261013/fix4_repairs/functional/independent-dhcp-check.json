@@ -1,0 +1,369 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "script_sha256": "ba00e2795cc31f3fa4f4f047a97d5325c845afc94488f4211bf1233c70f17db3",
+  "input_sha256": {
+    "dhcp-sdk.json": "4c5738af3fd2b5bcaffbab00700b7792e4bf32f2b946283d6eed99e539a6bbfc",
+    "dhcp-sdk-raw-index.json": "6cd29d02d6d0ad71220f8fd8787aa757c9b2e1179b206ea0e29e2d9081d2a67b"
+  },
+  "scope": "Local rehash of downloaded case/summary/invocation files and independent all-field/upstream/health/TTL comparison; shared DNS wire decoder used only to recheck stored packets. No Oracle access or experiment rerun.",
+  "source_commit": "3e2c7b17b03cdd4c0005419b447db2cf0eda9d92",
+  "SDK_elf_sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+  "C_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "downloaded_json_files_rehashed": 204,
+  "raw_index_files": 1398,
+  "downloaded_inventory_sha256": "385120b58d0927a345155a0bd7512bd76ac9b93d1046d539d82fb5704a1c6a13",
+  "probes": {
+    "negative": {
+      "cases": 24,
+      "responses": 504,
+      "exact": 485,
+      "bounded_soa": 19,
+      "upstream_pairs": 504
+    },
+    "soa": {
+      "cases": 64,
+      "responses": 256,
+      "exact": 256,
+      "bounded_soa": 0,
+      "upstream_pairs": 256
+    },
+    "cursor": {
+      "cases": 12,
+      "responses": 80,
+      "exact": 80,
+      "bounded_soa": 0,
+      "upstream_pairs": 80
+    }
+  },
+  "total_response_pairs": 840,
+  "clock_bounded_soa_details": [
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "proved-negative-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.025713172974064946,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.02568069309927523,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "proved-negative-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.025975774973630905,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.025919255102053285,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "ack-visible-a",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.02986660785973072,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.029352643992751837,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-1-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.029973527882248163,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.029506404884159565,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-1-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.030226211063563824,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.029740646947175264,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-28-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.030323810875415802,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.02983528794720769,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-28-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.03054289286956191,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030043249018490314,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-16-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.030637173913419247,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.03013153001666069,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-16-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.030804894864559174,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030276010977104306,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-15-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.0308880559168756,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030393651919439435,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-15-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.031035376945510507,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030532052973285317,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-6-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.031126577872782946,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030615573981776834,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-6-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.031289178878068924,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030743455048650503,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-33-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.03138129995204508,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.030825135996565223,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-33-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.03154006088152528,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.03096257708966732,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-5-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.031626581912860274,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.031050858087837696,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-5-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.03182686399668455,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.03118657902814448,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-65401-udp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.03191218385472894,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.031268259044736624,
+          "minimum_ttl": 3599
+        }
+      ]
+    },
+    {
+      "suite": "negative",
+      "case": "rcode3-soa1-debug1-q16-tcp",
+      "event": "after-ack-65401-tcp",
+      "bounds": [
+        {
+          "ttl": 3600,
+          "elapsed_seconds": 0.03208678588271141,
+          "minimum_ttl": 3599
+        },
+        {
+          "ttl": 3599,
+          "elapsed_seconds": 0.03143118089064956,
+          "minimum_ttl": 3599
+        }
+      ]
+    }
+  ],
+  "exact_C_source_hashes": {
+    "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222"
+  }
+}
