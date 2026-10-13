@@ -36,6 +36,7 @@ def main():
     sys.path.insert(0, str(source / 'tools/dnsmasq'))
     import build_package as package
     import m5_final_validation as final
+    sys.path.insert(0, str(source / 'docs/dnsmasq/audits/20261013/fix4_repairs/functional'))
     from validate_final import exact_n1
     assert package.inputs(source) == plan['source_files']
     commands = []
@@ -56,12 +57,26 @@ def main():
     assert n1['passed']
     parity = read(output / 'TCP-UDP-parity/result.json')
     assert parity['passed'] and parity['case_count'] == 1736 and not parity['failures']
+    endpoint_root = output / 'families/m5_dns_endpoints'
+    endpoint_archives = {}
+    for name in ('syntax', 'service'):
+        receipts = {suffix: receipt(endpoint_root / (name + suffix)) for suffix in
+                    ('.tar.gz', '.manifest.json', '.pack.json', '.local-verification.json', '.prune.json', '.restore.json')}
+        local = read(endpoint_root / (name + '.local-verification.json'))
+        manifest = read(endpoint_root / (name + '.manifest.json'))
+        assert local['verified'] and local['local_full_metadata_verified']
+        assert local['archive_sha256'] == receipts['.tar.gz']['sha256'] == manifest['archive_sha256']
+        assert local['manifest_sha256'] == receipts['.manifest.json']['sha256']
+        assert sha(endpoint_root / name / 'result.json') == manifest['entries']['result.json']['sha256']
+        endpoint_archives[name] = {'files': receipts, 'entries': len(manifest['entries']),
+                                   'local_full_metadata_verified': True, 'original_result_bytes_retained': True}
     index = [receipt(path) for path in sorted(output.rglob('*')) if path.is_file()]
     report = {'schema': 'dnsmasq-fix4-functional-v1', 'passed_with_declared_baselines': True,
               'source_commit': plan['source_commit'], 'SDK_elf': receipt(plan['rust']),
               'source_files': plan['source_files'], 'fresh_commands': 49,
               'SDK_daemon_family_commands': 48, 'native_state_probe_commands': 1,
               'complete_families': state['families'], 'family_commands': 35,
+              'endpoint_archives': endpoint_archives,
               'plan': receipt(args.plan), 'state': receipt(state_path), 'commands': commands,
               'N1': n1, 'TCP_UDP_parity_cases': parity['case_count'],
               'limits': ['Exact N1 compares packet hex and TTL without normalization',
