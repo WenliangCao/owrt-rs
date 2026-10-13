@@ -1,0 +1,1932 @@
+{
+  "performance-same-type": {
+    "window_count": 18,
+    "foreign_before": [],
+    "counters": {
+      "scheduled": 324000,
+      "sent": 324000,
+      "correct": 324000,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "cgroup_samples": 180,
+    "maximum_nr_throttled": 0,
+    "maximum_throttled_usec": 0,
+    "result_hashes": {
+      "tcp-raw-a-100-r1-main": "40a32c5df450a69451b13f6742acfa013680062db951fd3224401c5faa45bd63",
+      "tcp-raw-a-100-r1-fix": "929513bb037be7ef708d916f932f01c5023c02a6c92b2125d656dfbac3be7642",
+      "tcp-raw-a-1000-r1-main": "582b771a8c596403a92d6a5a6ab1882fbd3890722873b3e3d23e476df75c11d4",
+      "tcp-raw-a-1000-r1-fix": "6591df35b091f14d0ff4def636db0300d0a3ed6fc02ec000b3244a218e8dbac7",
+      "udp-raw-a-1000-r1-main": "fcf62b729d035864626d0521b8df1b7a84bd22dc34418f7dfa61f9f65e3a039e",
+      "udp-raw-a-1000-r1-fix": "efd6e3310f1feea71e130d19f486895300556895ffe1ffee09d8c8def2476680",
+      "tcp-raw-a-100-r2-fix": "9352533982f4c3622624e779dd2734e11a8ad2786e2cb23a14b42c3b441f0faf",
+      "tcp-raw-a-100-r2-main": "83e6f201d19ce7669c245c5c5870dbe12370b00ea299feeadf81424264007b58",
+      "tcp-raw-a-1000-r2-fix": "6c5661dda352302c58f9a5007e8bdde32174b8304310f29af8658306c20d8073",
+      "tcp-raw-a-1000-r2-main": "79108694a639b3bbc1aa5fafe2a2c1c250eb12da1533ccc8c8c350753d2aa489",
+      "udp-raw-a-1000-r2-fix": "a749d5279ba45c3f3e33a7a1c427edc76863985f5cef4293ca6b4c5723c0ed48",
+      "udp-raw-a-1000-r2-main": "33f082b4ec76df5333ad81949736242e86131b078ff2f225a43bd2c78dcd8763",
+      "tcp-raw-a-100-r3-main": "2f01107ded1d04a19400fcfc42d9d36c2f5e62e62c68f3606a9dfbd18bb22f59",
+      "tcp-raw-a-100-r3-fix": "9740954200310a919c98018fe8d5076e9e45e49b2ce165b888113b69a23dcec4",
+      "tcp-raw-a-1000-r3-main": "174c248360a015d124b9bf7c58439590dbcd0c772a3c304ff6b828348068bf4c",
+      "tcp-raw-a-1000-r3-fix": "64c7f599ec4dfddfa8a8dd2b10633558c18a1f036663c60e0971b6dd75c4a692",
+      "udp-raw-a-1000-r3-main": "bf7d263ba6d54d0d6dda7549ba854fb9d88b73f1d6fa88b9a201b67c76e52ad4",
+      "udp-raw-a-1000-r3-fix": "10c99a53c5c168c165e7571edc246ff6d68ed8412430144c91dc1f15149534d6"
+    },
+    "windows": [
+      {
+        "id": "tcp-raw-a-100-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-100-r1-main",
+        "raw_assets": {
+          "config": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+          "upstream.json": "cd05d6c1a7f33f95a9734f0d431bef0ed9caa971d4ba0de44138a5a4f6fb4e5c",
+          "process-identity.json": "029f42e637baef9ba362b6d2340889fea0479446840affc8f68d1e52dbf0a6a9",
+          "same-type-proof.json": "acf834327c6120d97c158bff485af36c18904906e5dca1b2f101b01bb002152b",
+          "cache-proof.json": "407b34ea1443c0c3e71c2589d4d35b6ecf0912e3b260f0423dea67dc306ab40f"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 100,
+          "rrtype": 1,
+          "host": "unused50.audit.test",
+          "query_hex": "51a10100000100000000000008756e75736564353005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-100-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-100-r1-fix",
+        "raw_assets": {
+          "config": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+          "upstream.json": "4923c46a39e1c49cc476c6b81da80fd6f6e1cf7899c1ffefdd3d40c22a39d93b",
+          "process-identity.json": "b9048a49450758246736a5e400b487f33021512af219a50e3f22ad6fae9e8e1e",
+          "same-type-proof.json": "acf834327c6120d97c158bff485af36c18904906e5dca1b2f101b01bb002152b",
+          "cache-proof.json": "64e60e6fe08685fe4bf3ec0317a30903c6f7ae70cb4f18420e6457cb3a3ccd17"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 100,
+          "rrtype": 1,
+          "host": "unused50.audit.test",
+          "query_hex": "51a10100000100000000000008756e75736564353005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-1000-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-1000-r1-main",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "75325faba7458ca5e6d80e6011a39599a3034349b42ff4890808b4e582142f31",
+          "process-identity.json": "e0c9e5ce16ff0ba91ff104bba0d402693e2c56294622115ac975e329d9882fa3",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "ef58333d9d75c330f2a19a1496e177f575282f9c283e4199ef0b9666f04df9a9"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-1000-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-1000-r1-fix",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "7a6aa6eceb9486a05194d53c3bb63294a206cbe308bda8f87923f6746be5e9b4",
+          "process-identity.json": "e60c014be6ad225eb7c933149ff667e1a8aea97a6ebb2dd06f61d1ef70d3af89",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "281229bca6ccc0009a67d7cd9ea31514b3a378fe10b45ab4b819098ae3ce242d"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-a-1000-r1-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/udp-raw-a-1000-r1-main",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "a4b5747c49b9bb7e9ead42fbe00e894c866f8af0d47d16722b628014824a4541",
+          "process-identity.json": "76d601aac4e8db2b94ab7fe97109fcb06d2872614992af0b28673f4a1fcc029f",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "80033455c086f1e804381daf3a2348899876bcf02085815f60b9758bb6f9d443"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-a-1000-r1-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/udp-raw-a-1000-r1-fix",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "09a291ece7e3a02d9cdb33235f0e3091ef940815fa936bc3989f33d2d6724c34",
+          "process-identity.json": "0328de1c8f1192850f17a3ba395152d6cf5c656078e78c9f121cfff283355db8",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "9d39bfd236bee0012f7e287e84bdf28dc9877f0778ecd87c8d0d8e54c985f7e5"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-100-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-100-r2-fix",
+        "raw_assets": {
+          "config": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+          "upstream.json": "f2e9c754c8e171ec40182210075af1a71c3886758accd71080395757db75f45c",
+          "process-identity.json": "909816c1eaff0c2f2923dd9e33a4d73fbe31d230dc3d2a064a0714a1836c8840",
+          "same-type-proof.json": "acf834327c6120d97c158bff485af36c18904906e5dca1b2f101b01bb002152b",
+          "cache-proof.json": "fadf80aea5102e65c76b8b85d978018257c863cc6a9b6abdfd7bad2ac7b00ccc"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 100,
+          "rrtype": 1,
+          "host": "unused50.audit.test",
+          "query_hex": "51a10100000100000000000008756e75736564353005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-100-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-100-r2-main",
+        "raw_assets": {
+          "config": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+          "upstream.json": "fda4090e949ba26141c845bc2a0a6580058115a555e0c419b3de11405f1f94b6",
+          "process-identity.json": "cd86c64e0e857ad954a731a4b47c46dbf0670bdaed4f23dd12b88649639b4d4c",
+          "same-type-proof.json": "acf834327c6120d97c158bff485af36c18904906e5dca1b2f101b01bb002152b",
+          "cache-proof.json": "744710547f6679de09797aa478fb15d5254add270515c8cf4431dfb60b05304e"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 100,
+          "rrtype": 1,
+          "host": "unused50.audit.test",
+          "query_hex": "51a10100000100000000000008756e75736564353005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-1000-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-1000-r2-fix",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "8b97437bccd03c7af2e86dfcea7aa2954e335c8dd32be83157f3f8eac083abc2",
+          "process-identity.json": "a43a14526be0a4a701dfb68b13b38ec2a97eb92539083a4798bf29f0a37dcd23",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "9f34b6ccd7f9e00af41a0532480e591c44dab032107b7e18bca218143aadd449"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-1000-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-1000-r2-main",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "ce30d7a83247b27ca9ae83288d567e359a922e16bd0632ad7fc83827e8e14c18",
+          "process-identity.json": "4a8db6dc2992dfb012cbccd73dce076953a011ea5c71d9c95aae72dddd4bdd7e",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "6e33c84d36a71589256fad07adefb5c1d6fadff1c822b2da68b1dddbb1de984d"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-a-1000-r2-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/udp-raw-a-1000-r2-fix",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "ef51c439358c28e2c49d9aa8f388cbee14d6e6b53b3c679b10c33b3abba38f97",
+          "process-identity.json": "6a534c24d746fa631725a509d6c24f5cbe79ab0fdbfa065aade1872151e41522",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "0b339cad0d53c66896926d3d23852d801b0cf0d58dfae69a81d800de4e757df6"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-a-1000-r2-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/udp-raw-a-1000-r2-main",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "ba67e470fe33bbf1141a512836992bd1db893fa97746ad1998a9d3fe2560a336",
+          "process-identity.json": "be5dbfb53a82489d9ff41899fa824c3aff803c67a98809d5a3655337076b1193",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "61256a825ee7fd784c6cf16bea71409c322f3341cea0e5e98622512e0ca6a15d"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-100-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-100-r3-main",
+        "raw_assets": {
+          "config": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+          "upstream.json": "f338df2a7f649038c582ed59ce91f1c3b464eb196105962d2910357511148088",
+          "process-identity.json": "1038f840baae530a99f752c745ca09fb41ab44e41883ff6b1499c67fc2025593",
+          "same-type-proof.json": "acf834327c6120d97c158bff485af36c18904906e5dca1b2f101b01bb002152b",
+          "cache-proof.json": "d251949f49c7a8b6349ae4b74309756b9108603dfe4308c3fba292ea2c0690e1"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 100,
+          "rrtype": 1,
+          "host": "unused50.audit.test",
+          "query_hex": "51a10100000100000000000008756e75736564353005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-100-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-100-r3-fix",
+        "raw_assets": {
+          "config": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+          "upstream.json": "e0c2dd90de8d190185132fa7bbb19ba8851dac7674dc7da99dd80788c5c9ef50",
+          "process-identity.json": "1110af0f94680d77d154187c2e6108762669be71dc190744cd9d5f1cb6f5e728",
+          "same-type-proof.json": "acf834327c6120d97c158bff485af36c18904906e5dca1b2f101b01bb002152b",
+          "cache-proof.json": "0ab59862902267a1e6cc67d183400110dc46f3aa57a40115134f6ff347b03045"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 100,
+          "rrtype": 1,
+          "host": "unused50.audit.test",
+          "query_hex": "51a10100000100000000000008756e75736564353005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000008756e75736564353005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused50.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused50.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-1000-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-1000-r3-main",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "aec9b2ee2d2d072dce3eee4f982f4e7ddc6f935f4a48993b6fd89a302b75781d",
+          "process-identity.json": "9893a6791f2dd480731021d7b454ff7c4675bf359440945bdbbf31606ff1a810",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "b94db68504209650e7dcd69e72dbebfd7283749f50fd77330b04d2d408d74656"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "tcp-raw-a-1000-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/tcp-raw-a-1000-r3-fix",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "1ffdcab44e3ecd6031e8d0e87a2b1595e43205e6f19a3d5780db124805e7b1ef",
+          "process-identity.json": "2c1c2f8982415b7ccb181cc298d91abab0b9b4e97d560c67e7393364fea8ac98",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "b4a56e9ed62390ccf288f7fecdacfdc6d1801d3bc7c20bf24fdd9fad8cc8882d"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 180,
+        "tcp_reconnections": 160,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-a-1000-r3-main",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/udp-raw-a-1000-r3-main",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "0d23498d5e84a6dd9615525d293e5c8edf2f12d324c462caadaeea364aa35f15",
+          "process-identity.json": "6b7e2608e84f98feeafeb9bf206426785006d0059f0994c394ae9e2999ac0c4c",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "6bbd2c655e5a0d9cd6220a11274d7a8467db074c7ec593910d07938bd92d8beb"
+        },
+        "actual_elf_sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      },
+      {
+        "id": "udp-raw-a-1000-r3-fix",
+        "directory": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type/udp-raw-a-1000-r3-fix",
+        "raw_assets": {
+          "config": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+          "upstream.json": "0eb9a0d4b32f22171fce614598d0429b10e3b20dafab5b69a621524dc329b5e0",
+          "process-identity.json": "bae9705d6d5b6cee8d0fa5862cb64d9c41ec0716d411c9c15b0c50f17fc36ff7",
+          "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+          "cache-proof.json": "334883979469da303ae633bc1e0e819b221525aa20007a843f6b6319676be3f8"
+        },
+        "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "cache_proof": {
+          "capacity": 4096,
+          "filled_names": 4096,
+          "validated_names": 4096,
+          "ttl": 3600,
+          "upstream_disabled": true
+        },
+        "direct_raw_a_proof": {
+          "declarations": 1000,
+          "rrtype": 1,
+          "host": "unused500.audit.test",
+          "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+          "replies": {
+            "udp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            },
+            "tcp": {
+              "correct": true,
+              "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+              "decoded": {
+                "id": 20897,
+                "flags": 34176,
+                "questions": [
+                  [
+                    "unused500.audit.test",
+                    1,
+                    1
+                  ]
+                ],
+                "records": [
+                  {
+                    "section": "answer",
+                    "name": "unused500.audit.test",
+                    "type": 1,
+                    "class": 1,
+                    "ttl": 3600,
+                    "data": "192.0.2.1"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "foreign_before_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+        "upstream_disabled": true,
+        "upstream_disabled_requests": 0,
+        "tcp_connections": 0,
+        "tcp_reconnections": 0,
+        "phases": {
+          "warmup": {
+            "scheduled": 3000,
+            "sent": 3000,
+            "correct": 3000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          },
+          "measurement": {
+            "scheduled": 15000,
+            "sent": 15000,
+            "correct": 15000,
+            "wrong": 0,
+            "timeout": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0
+          }
+        }
+      }
+    ],
+    "pair_config_checks": [
+      {
+        "profile": "tcp-raw-a-100",
+        "round": 1,
+        "sha256": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-a-1000",
+        "round": 1,
+        "sha256": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+        "identical": true
+      },
+      {
+        "profile": "udp-raw-a-1000",
+        "round": 1,
+        "sha256": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-a-100",
+        "round": 2,
+        "sha256": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-a-1000",
+        "round": 2,
+        "sha256": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+        "identical": true
+      },
+      {
+        "profile": "udp-raw-a-1000",
+        "round": 2,
+        "sha256": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-a-100",
+        "round": 3,
+        "sha256": "78bb60353f5241c7300be8e609117660d9b97afbda031bc34e5bf1265bab5e6f",
+        "identical": true
+      },
+      {
+        "profile": "tcp-raw-a-1000",
+        "round": 3,
+        "sha256": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+        "identical": true
+      },
+      {
+        "profile": "udp-raw-a-1000",
+        "round": 3,
+        "sha256": "6789ebff3b0e024e75ac73d1578cac36852604da9a11cd3ae073d799ad345e1b",
+        "identical": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,854 @@
+{
+  "head": "74c6b4531111819439e38881ff9be7dc025d57ca",
+  "source_digest": "f6271f17755ff32cedbca5baaa822fbc356e9e1fa4491c485503006af9bf4ab1",
+  "input_count": 177,
+  "controller_sha256": "291ef07e7c28175dd63e906a0372e692e30398445498d41fdea93efe48f08b1a",
+  "commands": [
+    {
+      "name": "release-build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release",
+        "release"
+      ],
+      "started": 1791914291.4753485,
+      "exit": 0,
+      "seconds": 57.21790432929993,
+      "log_sha256": "40f373843b3d769d700513624f8f72f2bb25fb72cdafc5faff48fd7c90047b0f"
+    },
+    {
+      "name": "tests-build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/tests",
+        "tests"
+      ],
+      "started": 1791914348.6953812,
+      "exit": 0,
+      "seconds": 33.440404653549194,
+      "log_sha256": "627bc31a8f18cc07b5b2ebac475747e790794415369fdd51f9d2f7d8c4569c0f"
+    },
+    {
+      "name": "unit-lib-dnsmasq_rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "started": 1791914382.1378183,
+      "exit": 0,
+      "seconds": 4.022059202194214,
+      "log_sha256": "d60e275f105b3f14ba5cbc698f4a889ba1a655d61c54fd848ebdf3dab5b7979c",
+      "counts": {
+        "passed": 769,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "elf_sha256": "df8b5831e42139ec6e54c9aa66a72cb1126f1a891d6873b95d928d2109cdda86"
+    },
+    {
+      "name": "unit-bin-dnsmasq-rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "mount -t tmpfs -o mode=1777 tmpfs /tmp; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "started": 1791914386.2325609,
+      "exit": 0,
+      "seconds": 4.1227521896362305,
+      "log_sha256": "d267efdf36501183f303253c9b5cdb63169f6d87efb5367e8a7f4572395c1e33",
+      "counts": {
+        "passed": 77,
+        "failed": 0,
+        "ignored": 3,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "elf_sha256": "c6200d34fa1de60198357b52508860130177fe5add783175d34254a1e275cd0d"
+    },
+    {
+      "name": "release-protection",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/build_protections_probe.py",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release/dnsmasq-rs",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection",
+        "--require-relro"
+      ],
+      "started": 1791914390.411308,
+      "exit": 0,
+      "seconds": 3.4716598987579346,
+      "log_sha256": "fd7f7d42f564523d24b848945886e01e5179f0b00967bf85a6a319f41a0ac084"
+    }
+  ],
+  "passed": true,
+  "release": {
+    "source": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+    "kind": "release",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix3-recheck-20261013/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2056672,
+        "sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8"
+      }
+    ]
+  },
+  "tests": {
+    "source": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-fix3-recheck-20261013/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52317000,
+        "sha256": "c6200d34fa1de60198357b52508860130177fe5add783175d34254a1e275cd0d"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70163832,
+        "sha256": "df8b5831e42139ec6e54c9aa66a72cb1126f1a891d6873b95d928d2109cdda86"
+      }
+    ]
+  },
+  "ordinary_units": {
+    "passed": 846,
+    "failed": 0,
+    "ignored": 23,
+    "measured": 0,
+    "filtered_out": 0
+  },
+  "main_rehash": {
+    "path": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+    "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+    "bytes": 1970216
+  },
+  "protection": {
+    "tool_sha256": "b1a7b64022fc4777985ad3c81b4b2d9e4bc1f23776a84be3ccb2eda7c039fe30",
+    "require_relro": true,
+    "page_size": 4096,
+    "scope": "C/R actual mappings and UDP/TCP local answers in isolated image; no router",
+    "variants": {
+      "c": {
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "size": 269305,
+        "elf_type": 3,
+        "headers": [
+          {
+            "type": 6,
+            "flags": 4,
+            "offset": 64,
+            "vaddr": 64,
+            "paddr": 64,
+            "filesz": 448,
+            "memsz": 448,
+            "align": 8
+          },
+          {
+            "type": 3,
+            "flags": 4,
+            "offset": 512,
+            "vaddr": 512,
+            "paddr": 512,
+            "filesz": 26,
+            "memsz": 26,
+            "align": 1
+          },
+          {
+            "type": 1,
+            "flags": 5,
+            "offset": 0,
+            "vaddr": 0,
+            "paddr": 0,
+            "filesz": 249912,
+            "memsz": 249912,
+            "align": 4096
+          },
+          {
+            "type": 1,
+            "flags": 6,
+            "offset": 250728,
+            "vaddr": 254824,
+            "paddr": 254824,
+            "filesz": 18577,
+            "memsz": 19776,
+            "align": 4096
+          },
+          {
+            "type": 2,
+            "flags": 6,
+            "offset": 260152,
+            "vaddr": 264248,
+            "paddr": 264248,
+            "filesz": 544,
+            "memsz": 544,
+            "align": 8
+          },
+          {
+            "type": 1685382480,
+            "flags": 4,
+            "offset": 231556,
+            "vaddr": 231556,
+            "paddr": 231556,
+            "filesz": 2628,
+            "memsz": 2628,
+            "align": 4
+          },
+          {
+            "type": 1685382481,
+            "flags": 6,
+            "offset": 0,
+            "vaddr": 0,
+            "paddr": 0,
+            "filesz": 0,
+            "memsz": 0,
+            "align": 16
+          },
+          {
+            "type": 1685382482,
+            "flags": 4,
+            "offset": 250728,
+            "vaddr": 254824,
+            "paddr": 254824,
+            "filesz": 11416,
+            "memsz": 11416,
+            "align": 1
+          }
+        ],
+        "runs": [
+          {
+            "argv": [
+              "chroot",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs",
+              "/usr/sbin/dnsmasq",
+              "-C",
+              "/dev/null",
+              "-k",
+              "--user=root",
+              "--group=root",
+              "--port=15353",
+              "--listen-address=127.0.0.1",
+              "--bind-interfaces",
+              "--address=/relro.test/192.0.2.99",
+              "--no-hosts",
+              "--no-resolv",
+              "--pid-file=/m2/protection.pid",
+              "--log-facility=-"
+            ],
+            "failures": [],
+            "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "actual_elf_identity": {
+              "device": [
+                0,
+                65
+              ],
+              "inode": 3457699
+            },
+            "load_bias": "0xc692c1a4e000",
+            "base": "0xc692c1a4e000",
+            "relro_start": "0xc692c1a8c368",
+            "relro_end": "0xc692c1a8f000",
+            "page_start": "0xc692c1a8c000",
+            "page_end": "0xc692c1a8f000",
+            "relro_start_page_aligned": false,
+            "relro_end_page_aligned": true,
+            "relro_pages": [
+              {
+                "address": "0xc692c1a8c000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xc692c1a8d000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xc692c1a8e000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              }
+            ],
+            "relro_readonly": true,
+            "stack_permissions": "rw-p",
+            "wx_mappings": [],
+            "mapped_files": [
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libc.so",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libgcc_s.so.1",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libubox.so.20260213",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libubus.so.20251202",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/usr/sbin/dnsmasq"
+            ],
+            "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "exit": 0
+          },
+          {
+            "argv": [
+              "chroot",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs",
+              "/usr/sbin/dnsmasq",
+              "-C",
+              "/dev/null",
+              "-k",
+              "--user=root",
+              "--group=root",
+              "--port=15353",
+              "--listen-address=127.0.0.1",
+              "--bind-interfaces",
+              "--address=/relro.test/192.0.2.99",
+              "--no-hosts",
+              "--no-resolv",
+              "--pid-file=/m2/protection.pid",
+              "--log-facility=-"
+            ],
+            "failures": [],
+            "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "actual_elf_identity": {
+              "device": [
+                0,
+                65
+              ],
+              "inode": 3457699
+            },
+            "load_bias": "0xab26e3c2c000",
+            "base": "0xab26e3c2c000",
+            "relro_start": "0xab26e3c6a368",
+            "relro_end": "0xab26e3c6d000",
+            "page_start": "0xab26e3c6a000",
+            "page_end": "0xab26e3c6d000",
+            "relro_start_page_aligned": false,
+            "relro_end_page_aligned": true,
+            "relro_pages": [
+              {
+                "address": "0xab26e3c6a000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xab26e3c6b000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xab26e3c6c000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              }
+            ],
+            "relro_readonly": true,
+            "stack_permissions": "rw-p",
+            "wx_mappings": [],
+            "mapped_files": [
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libc.so",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libgcc_s.so.1",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libubox.so.20260213",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libubus.so.20251202",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/usr/sbin/dnsmasq"
+            ],
+            "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "exit": 0
+          },
+          {
+            "argv": [
+              "chroot",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs",
+              "/usr/sbin/dnsmasq",
+              "-C",
+              "/dev/null",
+              "-k",
+              "--user=root",
+              "--group=root",
+              "--port=15353",
+              "--listen-address=127.0.0.1",
+              "--bind-interfaces",
+              "--address=/relro.test/192.0.2.99",
+              "--no-hosts",
+              "--no-resolv",
+              "--pid-file=/m2/protection.pid",
+              "--log-facility=-"
+            ],
+            "failures": [],
+            "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "actual_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "actual_elf_identity": {
+              "device": [
+                0,
+                65
+              ],
+              "inode": 3457699
+            },
+            "load_bias": "0xc5b32bca1000",
+            "base": "0xc5b32bca1000",
+            "relro_start": "0xc5b32bcdf368",
+            "relro_end": "0xc5b32bce2000",
+            "page_start": "0xc5b32bcdf000",
+            "page_end": "0xc5b32bce2000",
+            "relro_start_page_aligned": false,
+            "relro_end_page_aligned": true,
+            "relro_pages": [
+              {
+                "address": "0xc5b32bcdf000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xc5b32bce0000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xc5b32bce1000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              }
+            ],
+            "relro_readonly": true,
+            "stack_permissions": "rw-p",
+            "wx_mappings": [],
+            "mapped_files": [
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libc.so",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libgcc_s.so.1",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libubox.so.20260213",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/lib/libubus.so.20251202",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/usr/sbin/dnsmasq"
+            ],
+            "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "exit": 0
+          }
+        ],
+        "relro_vaddr": 254824,
+        "relro_memsz": 11416,
+        "distinct_bases": 3
+      },
+      "rust": {
+        "sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "size": 2056672,
+        "elf_type": 3,
+        "headers": [
+          {
+            "type": 1,
+            "flags": 5,
+            "offset": 0,
+            "vaddr": 0,
+            "paddr": 0,
+            "filesz": 2006176,
+            "memsz": 2006176,
+            "align": 4096
+          },
+          {
+            "type": 1,
+            "flags": 6,
+            "offset": 2007504,
+            "vaddr": 2007504,
+            "paddr": 2007504,
+            "filesz": 47440,
+            "memsz": 51904,
+            "align": 4096
+          },
+          {
+            "type": 2,
+            "flags": 6,
+            "offset": 2051488,
+            "vaddr": 2051488,
+            "paddr": 2051488,
+            "filesz": 384,
+            "memsz": 384,
+            "align": 8
+          },
+          {
+            "type": 7,
+            "flags": 4,
+            "offset": 2007504,
+            "vaddr": 2007504,
+            "paddr": 2007504,
+            "filesz": 0,
+            "memsz": 48,
+            "align": 8
+          },
+          {
+            "type": 1685382480,
+            "flags": 4,
+            "offset": 1888220,
+            "vaddr": 1888220,
+            "paddr": 1888220,
+            "filesz": 18316,
+            "memsz": 18316,
+            "align": 4
+          },
+          {
+            "type": 1685382481,
+            "flags": 6,
+            "offset": 0,
+            "vaddr": 0,
+            "paddr": 0,
+            "filesz": 0,
+            "memsz": 0,
+            "align": 16
+          },
+          {
+            "type": 1685382482,
+            "flags": 4,
+            "offset": 2007504,
+            "vaddr": 2007504,
+            "paddr": 2007504,
+            "filesz": 44592,
+            "memsz": 44592,
+            "align": 1
+          }
+        ],
+        "runs": [
+          {
+            "argv": [
+              "chroot",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs",
+              "/usr/sbin/dnsmasq-rs",
+              "-C",
+              "/dev/null",
+              "-k",
+              "--user=root",
+              "--group=root",
+              "--port=15353",
+              "--listen-address=127.0.0.1",
+              "--bind-interfaces",
+              "--address=/relro.test/192.0.2.99",
+              "--no-hosts",
+              "--no-resolv",
+              "--pid-file=/m2/protection.pid",
+              "--log-facility=-"
+            ],
+            "failures": [],
+            "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+            "actual_elf_identity": {
+              "device": [
+                0,
+                65
+              ],
+              "inode": 6551464
+            },
+            "load_bias": "0xe19ac5095000",
+            "base": "0xe19ac5095000",
+            "relro_start": "0xe19ac527f1d0",
+            "relro_end": "0xe19ac528a000",
+            "page_start": "0xe19ac527f000",
+            "page_end": "0xe19ac528a000",
+            "relro_start_page_aligned": false,
+            "relro_end_page_aligned": true,
+            "relro_pages": [
+              {
+                "address": "0xe19ac527f000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5280000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5281000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5282000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5283000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5284000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5285000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5286000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5287000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5288000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe19ac5289000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              }
+            ],
+            "relro_readonly": true,
+            "stack_permissions": "rw-p",
+            "wx_mappings": [],
+            "mapped_files": [
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/usr/sbin/dnsmasq-rs"
+            ],
+            "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "exit": 0
+          },
+          {
+            "argv": [
+              "chroot",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs",
+              "/usr/sbin/dnsmasq-rs",
+              "-C",
+              "/dev/null",
+              "-k",
+              "--user=root",
+              "--group=root",
+              "--port=15353",
+              "--listen-address=127.0.0.1",
+              "--bind-interfaces",
+              "--address=/relro.test/192.0.2.99",
+              "--no-hosts",
+              "--no-resolv",
+              "--pid-file=/m2/protection.pid",
+              "--log-facility=-"
+            ],
+            "failures": [],
+            "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+            "actual_elf_identity": {
+              "device": [
+                0,
+                65
+              ],
+              "inode": 6551464
+            },
+            "load_bias": "0xf91907080000",
+            "base": "0xf91907080000",
+            "relro_start": "0xf9190726a1d0",
+            "relro_end": "0xf91907275000",
+            "page_start": "0xf9190726a000",
+            "page_end": "0xf91907275000",
+            "relro_start_page_aligned": false,
+            "relro_end_page_aligned": true,
+            "relro_pages": [
+              {
+                "address": "0xf9190726a000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf9190726b000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf9190726c000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf9190726d000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf9190726e000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf9190726f000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf91907270000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf91907271000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf91907272000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf91907273000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xf91907274000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              }
+            ],
+            "relro_readonly": true,
+            "stack_permissions": "rw-p",
+            "wx_mappings": [],
+            "mapped_files": [
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/usr/sbin/dnsmasq-rs"
+            ],
+            "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "exit": 0
+          },
+          {
+            "argv": [
+              "chroot",
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs",
+              "/usr/sbin/dnsmasq-rs",
+              "-C",
+              "/dev/null",
+              "-k",
+              "--user=root",
+              "--group=root",
+              "--port=15353",
+              "--listen-address=127.0.0.1",
+              "--bind-interfaces",
+              "--address=/relro.test/192.0.2.99",
+              "--no-hosts",
+              "--no-resolv",
+              "--pid-file=/m2/protection.pid",
+              "--log-facility=-"
+            ],
+            "failures": [],
+            "udp_before": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "actual_elf_sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+            "actual_elf_identity": {
+              "device": [
+                0,
+                65
+              ],
+              "inode": 6551464
+            },
+            "load_bias": "0xe71d5bb35000",
+            "base": "0xe71d5bb35000",
+            "relro_start": "0xe71d5bd1f1d0",
+            "relro_end": "0xe71d5bd2a000",
+            "page_start": "0xe71d5bd1f000",
+            "page_end": "0xe71d5bd2a000",
+            "relro_start_page_aligned": false,
+            "relro_end_page_aligned": true,
+            "relro_pages": [
+              {
+                "address": "0xe71d5bd1f000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd20000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd21000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd22000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd23000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd24000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd25000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd26000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd27000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd28000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              },
+              {
+                "address": "0xe71d5bd29000",
+                "permissions": "r--p",
+                "readable_not_writable": true
+              }
+            ],
+            "relro_readonly": true,
+            "stack_permissions": "rw-p",
+            "wx_mappings": [],
+            "mapped_files": [
+              "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release-protection/image/rootfs/usr/sbin/dnsmasq-rs"
+            ],
+            "tcp_after": "5234858000010001000000000572656c726f04746573740000010001c00c00010001000000000004c0000263",
+            "exit": 0
+          }
+        ],
+        "relro_vaddr": 2007504,
+        "relro_memsz": 44592,
+        "distinct_bases": 3
+      }
+    },
+    "failures": [],
+    "dns_answers_match": true,
+    "passed": true
+  },
+  "source_inputs_unchanged": true,
+  "ended": 1791914393.9815366
+}

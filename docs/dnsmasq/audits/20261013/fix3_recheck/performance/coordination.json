@@ -1,0 +1,14 @@
+{
+  "scope": "Timing coordination for fresh same-type performance windows",
+  "first_window_start_epoch": 1791914559.1836157,
+  "retained_rehash_receipt": {
+    "sha256": "2b49a19da0d1e9bca6eb485a5c2ff47d980a2689173d6d8d1549b67afe4a4cf7",
+    "reported_mtime_epoch": 1791914488.8646207,
+    "reported_mtime_utc": "2026-10-13 18:01:28.864620675 UTC",
+    "observation": "Root agent read Oracle stat after completing all 3854 retained-file hashes; receipt is written after the final hash. This timestamp precedes first performance window by 70.319 seconds. Subsequent root operations were receipt scp/read-only metadata.",
+    "ends_before_first_window": true,
+    "filename": "retained-check.json"
+  },
+  "other_agents": "Build and DNS agents explicitly confirmed completion and no remaining workloads before launch. Every window also retains its own empty foreign-workloads precheck.",
+  "limitations": "Task workload coordination does not exclude hypervisor-neighbor activity."
+}

@@ -1,0 +1,723 @@
+{
+  "old": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/release-types/dnsmasq-rs",
+  "fresh": "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release/dnsmasq-rs",
+  "old_sha": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+  "fresh_sha": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+  "same_size": true,
+  "different_bytes": 1220888,
+  "sections": [
+    {
+      "name": "",
+      "old_header": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "new_header": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "old_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "new_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".bss",
+      "old_header": [
+        178,
+        8,
+        3,
+        2054944,
+        2054944,
+        4464,
+        0,
+        0,
+        16,
+        0
+      ],
+      "new_header": [
+        178,
+        8,
+        3,
+        2054944,
+        2054944,
+        4464,
+        0,
+        0,
+        16,
+        0
+      ],
+      "old_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "new_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".comment",
+      "old_header": [
+        183,
+        1,
+        48,
+        0,
+        2054944,
+        61,
+        0,
+        0,
+        1,
+        1
+      ],
+      "new_header": [
+        183,
+        1,
+        48,
+        0,
+        2054944,
+        61,
+        0,
+        0,
+        1,
+        1
+      ],
+      "old_sha": "746993a1b823a474fa66cdbc95744f4821a4f3703a381f1fdf657708f6bcd6de",
+      "new_sha": "746993a1b823a474fa66cdbc95744f4821a4f3703a381f1fdf657708f6bcd6de",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".data",
+      "old_header": [
+        172,
+        1,
+        3,
+        2052096,
+        2052096,
+        2848,
+        0,
+        0,
+        8,
+        0
+      ],
+      "new_header": [
+        172,
+        1,
+        3,
+        2052096,
+        2052096,
+        2848,
+        0,
+        0,
+        8,
+        0
+      ],
+      "old_sha": "8c1c4fe1d2755c4e9b3f0f17b67bf49190177bf7991b0d5b1171fa0218da86c1",
+      "new_sha": "8c1c4fe1d2755c4e9b3f0f17b67bf49190177bf7991b0d5b1171fa0218da86c1",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".data.rel.ro",
+      "old_header": [
+        145,
+        1,
+        3,
+        2007536,
+        2007536,
+        43952,
+        0,
+        0,
+        8,
+        0
+      ],
+      "new_header": [
+        145,
+        1,
+        3,
+        2007536,
+        2007536,
+        43952,
+        0,
+        0,
+        8,
+        0
+      ],
+      "old_sha": "c3a131dbc4c5603cfd80f48dc8adbeadfb84d7c74c1d6aa9c5b20374ae8ce28e",
+      "new_sha": "d4ffda503b4438dd1aa9cf4f49a08c482dc41b9f49283f79cbc2e273574f25f8",
+      "byte_equal": false,
+      "different_bytes": 690
+    },
+    {
+      "name": ".dynamic",
+      "old_header": [
+        158,
+        6,
+        3,
+        2051488,
+        2051488,
+        384,
+        4,
+        0,
+        8,
+        16
+      ],
+      "new_header": [
+        158,
+        6,
+        3,
+        2051488,
+        2051488,
+        384,
+        4,
+        0,
+        8,
+        16
+      ],
+      "old_sha": "d44756961d44ed1cc45e473a1b921bbe331f4388270e0eb5942ac4624b8a76d5",
+      "new_sha": "d44756961d44ed1cc45e473a1b921bbe331f4388270e0eb5942ac4624b8a76d5",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".dynstr",
+      "old_header": [
+        29,
+        3,
+        2,
+        584,
+        584,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "new_header": [
+        29,
+        3,
+        2,
+        584,
+        584,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "old_sha": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+      "new_sha": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".dynsym",
+      "old_header": [
+        21,
+        11,
+        2,
+        512,
+        512,
+        72,
+        4,
+        3,
+        8,
+        24
+      ],
+      "new_header": [
+        21,
+        11,
+        2,
+        512,
+        512,
+        72,
+        4,
+        3,
+        8,
+        24
+      ],
+      "old_sha": "a5d422dc59caee9eadcde109549693b4a6058a8c1724439b99d5079fbd85b95e",
+      "new_sha": "a5d422dc59caee9eadcde109549693b4a6058a8c1724439b99d5079fbd85b95e",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".eh_frame",
+      "old_header": [
+        87,
+        1,
+        2,
+        1906536,
+        1906536,
+        94000,
+        0,
+        0,
+        8,
+        0
+      ],
+      "new_header": [
+        87,
+        1,
+        2,
+        1906536,
+        1906536,
+        94000,
+        0,
+        0,
+        8,
+        0
+      ],
+      "old_sha": "1c6d46ad33f4594599e075cf0378e609f61761945545100d018a2426e834f362",
+      "new_sha": "d8cb4960641ff00b035a4a025ab37c66e07f0bfa4fe796f2fe33903457b231c3",
+      "byte_equal": false,
+      "different_bytes": 49936
+    },
+    {
+      "name": ".eh_frame_hdr",
+      "old_header": [
+        73,
+        1,
+        2,
+        1888220,
+        1888220,
+        18316,
+        0,
+        0,
+        4,
+        0
+      ],
+      "new_header": [
+        73,
+        1,
+        2,
+        1888220,
+        1888220,
+        18316,
+        0,
+        0,
+        4,
+        0
+      ],
+      "old_sha": "cfda1ad916234705ff2296733c6d0c795e56aaeafeedf008b4db96c10089b134",
+      "new_sha": "ac11389c7247ef4eba23234666fadde24560ad13ff9b2800cf179a499a8ac59e",
+      "byte_equal": false,
+      "different_bytes": 4885
+    },
+    {
+      "name": ".fini",
+      "old_header": [
+        59,
+        1,
+        6,
+        1796804,
+        1796804,
+        16,
+        0,
+        0,
+        4,
+        0
+      ],
+      "new_header": [
+        59,
+        1,
+        6,
+        1796804,
+        1796804,
+        16,
+        0,
+        0,
+        4,
+        0
+      ],
+      "old_sha": "27a4135f0ef448195b3aaba32a661f2d0e290090b19501c7b4274d71cf655f69",
+      "new_sha": "27a4135f0ef448195b3aaba32a661f2d0e290090b19501c7b4274d71cf655f69",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".fini_array",
+      "old_header": [
+        133,
+        15,
+        3,
+        2007528,
+        2007528,
+        8,
+        0,
+        0,
+        8,
+        8
+      ],
+      "new_header": [
+        133,
+        15,
+        3,
+        2007528,
+        2007528,
+        8,
+        0,
+        0,
+        8,
+        8
+      ],
+      "old_sha": "c7fa0f0d8c0cf36bcd3e775cf50289a8567901b7a0eed7113d63b0d65e56bcae",
+      "new_sha": "c7fa0f0d8c0cf36bcd3e775cf50289a8567901b7a0eed7113d63b0d65e56bcae",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".gcc_except_table",
+      "old_header": [
+        97,
+        1,
+        2,
+        2000536,
+        2000536,
+        5640,
+        0,
+        0,
+        4,
+        0
+      ],
+      "new_header": [
+        97,
+        1,
+        2,
+        2000536,
+        2000536,
+        5640,
+        0,
+        0,
+        4,
+        0
+      ],
+      "old_sha": "c903693effa7beea56342d498078691e79f106b5217c9e857c2cd9e51487adbd",
+      "new_sha": "c903693effa7beea56342d498078691e79f106b5217c9e857c2cd9e51487adbd",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".gnu.hash",
+      "old_header": [
+        11,
+        1879048182,
+        2,
+        480,
+        480,
+        28,
+        3,
+        0,
+        8,
+        0
+      ],
+      "new_header": [
+        11,
+        1879048182,
+        2,
+        480,
+        480,
+        28,
+        3,
+        0,
+        8,
+        0
+      ],
+      "old_sha": "48cfe1ab1829f57db09a70309886d1c9ea74792325f08c76c116fbd31f78343a",
+      "new_sha": "48cfe1ab1829f57db09a70309886d1c9ea74792325f08c76c116fbd31f78343a",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".got",
+      "old_header": [
+        167,
+        1,
+        3,
+        2051872,
+        2051872,
+        224,
+        0,
+        0,
+        8,
+        8
+      ],
+      "new_header": [
+        167,
+        1,
+        3,
+        2051872,
+        2051872,
+        224,
+        0,
+        0,
+        8,
+        8
+      ],
+      "old_sha": "a631094dab66f1bd2d6d09f39b6f90abb912fc20e9a7f6c2aaa2e4deb1ada058",
+      "new_sha": "e402efb6b565f9b2166afe12b58759635ac13633c01299e7d08565a9e7284cfb",
+      "byte_equal": false,
+      "different_bytes": 2
+    },
+    {
+      "name": ".hash",
+      "old_header": [
+        15,
+        5,
+        2,
+        456,
+        456,
+        20,
+        3,
+        0,
+        8,
+        4
+      ],
+      "new_header": [
+        15,
+        5,
+        2,
+        456,
+        456,
+        20,
+        3,
+        0,
+        8,
+        4
+      ],
+      "old_sha": "f53c01c8dbd7a7d39014cf0b8adfe101d8f1deae610e751140c08baafd136242",
+      "new_sha": "f53c01c8dbd7a7d39014cf0b8adfe101d8f1deae610e751140c08baafd136242",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".init",
+      "old_header": [
+        47,
+        1,
+        6,
+        52432,
+        52432,
+        16,
+        0,
+        0,
+        4,
+        0
+      ],
+      "new_header": [
+        47,
+        1,
+        6,
+        52432,
+        52432,
+        16,
+        0,
+        0,
+        4,
+        0
+      ],
+      "old_sha": "27a4135f0ef448195b3aaba32a661f2d0e290090b19501c7b4274d71cf655f69",
+      "new_sha": "27a4135f0ef448195b3aaba32a661f2d0e290090b19501c7b4274d71cf655f69",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".init_array",
+      "old_header": [
+        121,
+        14,
+        3,
+        2007504,
+        2007504,
+        24,
+        0,
+        0,
+        8,
+        8
+      ],
+      "new_header": [
+        121,
+        14,
+        3,
+        2007504,
+        2007504,
+        24,
+        0,
+        0,
+        8,
+        8
+      ],
+      "old_sha": "726b1c8c9b567c208f43d3b8bfc7e551513085e305af715c49df5d3cf0ba8653",
+      "new_sha": "726b1c8c9b567c208f43d3b8bfc7e551513085e305af715c49df5d3cf0ba8653",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".rela.dyn",
+      "old_header": [
+        37,
+        4,
+        2,
+        592,
+        592,
+        51840,
+        3,
+        0,
+        8,
+        24
+      ],
+      "new_header": [
+        37,
+        4,
+        2,
+        592,
+        592,
+        51840,
+        3,
+        0,
+        8,
+        24
+      ],
+      "old_sha": "499dc0e4f823092b70c3e794ba15342b98d2708573ff7863b98f90817ed9b109",
+      "new_sha": "c78b25fcb3485049b68fa6403b5afc9b0e4fd3481b07f11467bb38cda522c406",
+      "byte_equal": false,
+      "different_bytes": 670
+    },
+    {
+      "name": ".rodata",
+      "old_header": [
+        65,
+        1,
+        2,
+        1796832,
+        1796832,
+        91388,
+        0,
+        0,
+        16,
+        0
+      ],
+      "new_header": [
+        65,
+        1,
+        2,
+        1796832,
+        1796832,
+        91388,
+        0,
+        0,
+        16,
+        0
+      ],
+      "old_sha": "e5c07be28e3a850c113aca7c1ca262dcea9c7a39089fe8118d59dc0801250134",
+      "new_sha": "3b8cdb2f29ff6e28f3f279f21f84ccf868c8b46c8eba970eb0dfd65faf51826c",
+      "byte_equal": false,
+      "different_bytes": 917
+    },
+    {
+      "name": ".shstrtab",
+      "old_header": [
+        1,
+        3,
+        0,
+        0,
+        2055005,
+        192,
+        0,
+        0,
+        1,
+        0
+      ],
+      "new_header": [
+        1,
+        3,
+        0,
+        0,
+        2055005,
+        192,
+        0,
+        0,
+        1,
+        0
+      ],
+      "old_sha": "351da046aa35b02444f73924881e62f99c302467fcebb8ef9d82403790473cf3",
+      "new_sha": "351da046aa35b02444f73924881e62f99c302467fcebb8ef9d82403790473cf3",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".tbss",
+      "old_header": [
+        115,
+        8,
+        1027,
+        2007504,
+        2007504,
+        48,
+        0,
+        0,
+        8,
+        0
+      ],
+      "new_header": [
+        115,
+        8,
+        1027,
+        2007504,
+        2007504,
+        48,
+        0,
+        0,
+        8,
+        0
+      ],
+      "old_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "new_sha": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byte_equal": true,
+      "different_bytes": 0
+    },
+    {
+      "name": ".text",
+      "old_header": [
+        53,
+        1,
+        6,
+        52448,
+        52448,
+        1744356,
+        0,
+        0,
+        16,
+        0
+      ],
+      "new_header": [
+        53,
+        1,
+        6,
+        52448,
+        52448,
+        1744356,
+        0,
+        0,
+        16,
+        0
+      ],
+      "old_sha": "26e4c68edc289f364f44d197539954906869cba15cb31fbe91fbfcc68235321e",
+      "new_sha": "1d51b9f3bbc97089ce597695d77555c627f83513a35b7fe808b073793a5ea46e",
+      "byte_equal": false,
+      "different_bytes": 1163788
+    }
+  ]
+}

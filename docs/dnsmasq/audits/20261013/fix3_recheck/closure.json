@@ -1,0 +1,14 @@
+{
+  "manifest_sha256": "62e252b1eb931ab8905940d56cefded385767b6d20dabb1d39302004d5447035",
+  "controller_sha256": "4422a2dbb1e2a88276b1ea29e978678c1e2da3eef1d98264acf3faeb88478e14",
+  "verified_file_count": 570,
+  "hash_failures": [],
+  "locks": [
+    {
+      "path": "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock",
+      "available": true
+    }
+  ],
+  "remaining_task_processes": [],
+  "passed": true
+}

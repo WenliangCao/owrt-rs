@@ -1,0 +1,379 @@
+{
+  "scope": "Functional only; builds may overlap. TYPE A raw option must parse and answer directly over UDP/TCP, then ordinary cached A smoke must pass.",
+  "config_sha256": "a54a8e56def547950b77a7daa0d045cbaf3d3e5570ad3665fcb6afab04f5d916",
+  "cases": [
+    {
+      "variant": "c",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "syntax": {
+        "argv": [
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+          "--library-path",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib:/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/lib",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+          "--test",
+          "-C",
+          "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type-smoke/config"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "dnsmasq: syntax check OK.\n"
+      },
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/performance/same_type_window.py",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+        "1000",
+        "--implementation",
+        "c",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release/dnsmasq-rs",
+        "--expected-rust-sha",
+        "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--loadgen",
+        "/home/ubuntu/dnsmasq-final135-889fe4f5/private/native/m6a_loadgen",
+        "--upstream",
+        "/home/ubuntu/dnsmasq-final135-889fe4f5/private/native/m6a_upstream",
+        "--preflight",
+        "--scenario",
+        "hit",
+        "--tcp-profile",
+        "hit",
+        "--rate",
+        "100",
+        "--cache-names",
+        "4096",
+        "--clients",
+        "20",
+        "--warmup",
+        "1",
+        "--duration",
+        "1",
+        "--saturation-seconds",
+        "0",
+        "--drain-sample-seconds",
+        "0,1",
+        "--drain-timeout-seconds",
+        "30",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type-smoke/c"
+      ],
+      "returncode": 0,
+      "passed": true,
+      "direct_proof": {
+        "declarations": 1000,
+        "rrtype": 1,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "192.0.2.1"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "192.0.2.1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "raw_files": {
+        "result.json": "df8da2cf0565bbcc339f299fa52be5de853e1baa9d43abc3d30366aa9ad78d32",
+        "process-identity.json": "7c24380d00f88460747753884c62fbc423ae82d975aa53afcece12073d771cec",
+        "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+        "cache-proof.json": "3dfbf02efbe072080ea0fe4d53b733cfb9ed5759cc6b8b9b42db808490ab6537",
+        "upstream.json": "378b80b62c7d0723e4308cee9ac82c5b2903fa983f385fb3b76e4b3c36617b90"
+      }
+    },
+    {
+      "variant": "main",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "syntax": {
+        "argv": [
+          "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+          "--test",
+          "-C",
+          "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type-smoke/config"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "dnsmasq: syntax check OK.\n"
+      },
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/performance/same_type_window.py",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+        "1000",
+        "--implementation",
+        "rs",
+        "--rust",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "--expected-rust-sha",
+        "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--loadgen",
+        "/home/ubuntu/dnsmasq-final135-889fe4f5/private/native/m6a_loadgen",
+        "--upstream",
+        "/home/ubuntu/dnsmasq-final135-889fe4f5/private/native/m6a_upstream",
+        "--preflight",
+        "--scenario",
+        "hit",
+        "--tcp-profile",
+        "hit",
+        "--rate",
+        "100",
+        "--cache-names",
+        "4096",
+        "--clients",
+        "20",
+        "--warmup",
+        "1",
+        "--duration",
+        "1",
+        "--saturation-seconds",
+        "0",
+        "--drain-sample-seconds",
+        "0,1",
+        "--drain-timeout-seconds",
+        "30",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type-smoke/main"
+      ],
+      "returncode": 0,
+      "passed": true,
+      "direct_proof": {
+        "declarations": 1000,
+        "rrtype": 1,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "192.0.2.1"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "192.0.2.1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "raw_files": {
+        "result.json": "e065bd26d54fbf3cf8122c7affeadfe0820b9b3f19077fa094c5d6e62fd92d30",
+        "process-identity.json": "474b2ce7d177506543294edf5e3a96f31c25ff70e9a9d98848ed81bf9e0733c4",
+        "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+        "cache-proof.json": "f1bebe29cbc5277d82a0748fa6162837c040d539d3f3841c2c212a139711fbb6",
+        "upstream.json": "c288621634d23e350ef0ced1c980a01b850dc0e999cc2074dd83d705d814a3ef"
+      }
+    },
+    {
+      "variant": "fix",
+      "sha256": "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+      "syntax": {
+        "argv": [
+          "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release/dnsmasq-rs",
+          "--test",
+          "-C",
+          "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type-smoke/config"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "dnsmasq: syntax check OK.\n"
+      },
+      "argv": [
+        "python3",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/performance/same_type_window.py",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/source",
+        "1000",
+        "--implementation",
+        "rs",
+        "--rust",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/release/dnsmasq-rs",
+        "--expected-rust-sha",
+        "25b7291d0074b8c7a854aa9f63f7b5edb12bc1315e60dd26f8f6eed36d362fd8",
+        "--image-root",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--loadgen",
+        "/home/ubuntu/dnsmasq-final135-889fe4f5/private/native/m6a_loadgen",
+        "--upstream",
+        "/home/ubuntu/dnsmasq-final135-889fe4f5/private/native/m6a_upstream",
+        "--preflight",
+        "--scenario",
+        "hit",
+        "--tcp-profile",
+        "hit",
+        "--rate",
+        "100",
+        "--cache-names",
+        "4096",
+        "--clients",
+        "20",
+        "--warmup",
+        "1",
+        "--duration",
+        "1",
+        "--saturation-seconds",
+        "0",
+        "--drain-sample-seconds",
+        "0,1",
+        "--drain-timeout-seconds",
+        "30",
+        "--output",
+        "/home/ubuntu/dnsmasq-fix3-recheck-20261013/private/performance-same-type-smoke/fix"
+      ],
+      "returncode": 0,
+      "passed": true,
+      "direct_proof": {
+        "declarations": 1000,
+        "rrtype": 1,
+        "host": "unused500.audit.test",
+        "query_hex": "51a10100000100000000000009756e7573656435303005617564697404746573740000010001",
+        "replies": {
+          "udp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "192.0.2.1"
+                }
+              ]
+            }
+          },
+          "tcp": {
+            "correct": true,
+            "hex": "51a18580000100010000000009756e7573656435303005617564697404746573740000010001c00c0001000100000e100004c0000201",
+            "decoded": {
+              "id": 20897,
+              "flags": 34176,
+              "questions": [
+                [
+                  "unused500.audit.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "unused500.audit.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 3600,
+                  "data": "192.0.2.1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "raw_files": {
+        "result.json": "d15e8c8b2fb842d234235b1fa863ecd6ed1faa1d7bb86f03dbc9f57e632c2af5",
+        "process-identity.json": "8e710e0c225f780aac363ffe1734998f4514d303e9e21ce8b690f9725d8ec4d7",
+        "same-type-proof.json": "9955a7fb0e968c14b7c27108ce64f9b24c3bd15b15a4f37d5dab88f018c352f8",
+        "cache-proof.json": "a25aefa5b9d88563b5eefc414cfb6d0f0d1a29d942ebebc296e5c760a22f7aa9",
+        "upstream.json": "8511bd78be8d70d56ad6f2038ba33a5d28ec51b5be87e2985226d765cd72c1ce"
+      }
+    }
+  ],
+  "passed": true
+}

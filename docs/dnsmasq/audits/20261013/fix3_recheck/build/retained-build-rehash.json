@@ -1,0 +1,632 @@
+{
+  "head": "74c6b4531111819439e38881ff9be7dc025d57ca",
+  "source_digest": "f6271f17755ff32cedbca5baaa822fbc356e9e1fa4491c485503006af9bf4ab1",
+  "controller_sha256": "f7a4c219169398a37056b608c90fccce9020a989a3d7623ff7b3ab37b5dc5322",
+  "passed": true,
+  "files": {
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/source-types.tar": {
+      "sha256": "502982eed507052c53a09b05de0ff5d0e2d203884cd16dce714eab0f2baff95b",
+      "bytes": 91320320
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/source-types-identity.json": {
+      "sha256": "57a3de2210ff2610b77e3223ebd4d037b2ac70501c65e9a6274e3219266cbbf8",
+      "bytes": 21311
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-prepared.json": {
+      "sha256": "b79bc912ac833a56b5b0c92fa49127e301a1693bf45484c230f857b2ef7d8169",
+      "bytes": 17464
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/dnsmasq-link.map": {
+      "sha256": "1d31636aca498e54ac89d6d3e72e124e75161579ceb551bbab1fd79709573b26",
+      "bytes": 3069548
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/build-types-result.json": {
+      "sha256": "136771836bb925bef1bceba2a8102407c181caaa206c9d67a3f882e3d08656f4",
+      "bytes": 7211
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/build-types.driver.log": {
+      "sha256": "ad7477e571eff8ce1122929ca7bd9bbc4e270feaefb1ffd3e79f1bcaee8c16ae",
+      "bytes": 481
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/dnsmasq-2.93-r3.apk": {
+      "sha256": "1561009e28f831b4b476c3eadb34d141b0772608d6258ac384f46db666626f99",
+      "bytes": 1117233
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq": {
+      "sha256": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+      "bytes": 2054939
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/dnsmasq-pre-strip": {
+      "sha256": "7cfebb76e7d86cab5ef376b4a23a5420c40a38a8f7868d8cb120567b81988b58",
+      "bytes": 2056672
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/manifest.json": {
+      "sha256": "19362cd7f5cf0b96f1dbcefabec1bced7da3d5e370c5eab24f500ffde68ee182",
+      "bytes": 62686
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/prepare.log": {
+      "sha256": "7a0e0c9f789e79c1343f660448114f1f3e2f1c6d7b203f6cd6467ab1d1aa74be",
+      "bytes": 14468
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/compile.log": {
+      "sha256": "6235407fef00c122cdab1d0f4e5d6ac7a491bce82ebe322060350f11ddb866ed",
+      "bytes": 68870
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/elf-readelf.log": {
+      "sha256": "d4bc0d225bef5cf67aa0ba6fde9a9cc86854620ff6db3733536276c107b6e851",
+      "bytes": 2788
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/apk-metadata.log": {
+      "sha256": "4cc4e1eede7c2d96f0035b6bd4792822e19cf1272b9a4ba9d161d3760c43648b",
+      "bytes": 7665
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/sstrip-check.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/dnsmasq-2.93-r3.apk": {
+      "sha256": "1561009e28f831b4b476c3eadb34d141b0772608d6258ac384f46db666626f99",
+      "bytes": 1117233
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/payload/usr/sbin/dnsmasq": {
+      "sha256": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+      "bytes": 2054939
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/dnsmasq-pre-strip": {
+      "sha256": "7cfebb76e7d86cab5ef376b4a23a5420c40a38a8f7868d8cb120567b81988b58",
+      "bytes": 2056672
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/manifest.json": {
+      "sha256": "af596ef0241d451499835b48ba29ed4d03d9da0aad6e0254d02001380b66a445",
+      "bytes": 63873
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/prepare.log": {
+      "sha256": "ddcb1c976730248d0cd999fb1f7f1a4282248122adf0301262c2e78d5510f848",
+      "bytes": 14467
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/compile.log": {
+      "sha256": "6c82a700d9b87fdcfaa08c244eec536009e375ca6709aef8846ea7884ec68304",
+      "bytes": 68930
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/elf-readelf.log": {
+      "sha256": "d4bc0d225bef5cf67aa0ba6fde9a9cc86854620ff6db3733536276c107b6e851",
+      "bytes": 2788
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/apk-metadata.log": {
+      "sha256": "4cc4e1eede7c2d96f0035b6bd4792822e19cf1272b9a4ba9d161d3760c43648b",
+      "bytes": 7665
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/sstrip-check.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/collect_build_types.py": {
+      "sha256": "9ff6ca15552547d899b4568b38ba42e1f5911c7ccec5b32d29cad58074000bd5",
+      "bytes": 3758
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst": {
+      "sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+      "bytes": 252397003
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/.config": {
+      "sha256": "d171dc5c433ab321ab37162fe40342b6aef4b5f377870fff2a1cb7ab492d6018",
+      "bytes": 155751
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/rules.mk": {
+      "sha256": "11a51c7597da4d013e24b3e670e6760f2392e258b90951bba2db2b91154edef5",
+      "bytes": 17647
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/include/package.mk": {
+      "sha256": "fc50744c6108c09a213d85fa6a73411ba081a6774c80e4fc3fbb5d160d0bbc55",
+      "bytes": 14761
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/include/package-pack.mk": {
+      "sha256": "5aa1d250eca44dc47c650a005b24a09077c5fdd9f61389fccfe9fba206fc525f",
+      "bytes": 23593
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/include/feeds.mk": {
+      "sha256": "159d9ac343d638487432874228a9ee3754289cd3850ec61e0867f607537332db",
+      "bytes": 2383
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/scripts/rstrip.sh": {
+      "sha256": "89bd54e8ce186f49b881aa0d72919495a15d716e9f69d9b266ab0ca28265d87d",
+      "bytes": 1261
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/apk": {
+      "sha256": "4081b87131cf08cd7203ff81a3793d22e24ab84e8c714b5cd2fb4edf5a7fa9c3",
+      "bytes": 224
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/sstrip": {
+      "sha256": "8a9b88928ed7822a1227943c4ea085561ce02ed5b7ad75e0fae4539d6cdc7049",
+      "bytes": 227
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/patchelf": {
+      "sha256": "581308a9cc09c0d57d3277f689107524ee0273131f153e8e7a2fcdcd8591b19e",
+      "bytes": 229
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/.apk.bin": {
+      "sha256": "333ac1a66c2d616bedbb3bdf8d1d80fdf4e19f8512e0f4241bf8e865dd710930",
+      "bytes": 1870528
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/.sstrip.bin": {
+      "sha256": "aa0eaf3694af1cfda619463b6bf7ab0e305dbed9bb6b3d1f5bb9ad8fd09fa907",
+      "bytes": 18728
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/.patchelf.bin": {
+      "sha256": "eacd060d78bb98686a8d9540310eac21df61c9d66653c9cd299f82e7b3427a47",
+      "bytes": 236424
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/lib/runas.so": {
+      "sha256": "d27b088a36df3c32b8674e4e902ea8ba149cbfb1da7a1c184adf349d00681c20",
+      "bytes": 14264
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/lib/ld-linux-x86-64.so.2": {
+      "sha256": "fcbc378375d37c0bbdc3472768a83c5174f25bf2bb7006703d68edb1dfd2f52e",
+      "bytes": 177928
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/include/stdio.h": {
+      "sha256": "f158cf8fed586a99533f0d16de2f5e0b4678a3b5bd2aac619c1d277e7bc2811b",
+      "bytes": 6061
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/lib/libc.so": {
+      "sha256": "ce740192431b2e7674b6bf9f690302c30083ea5480e2139f8f490460c2287f1e",
+      "bytes": 3737288
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/lib/crt1.o": {
+      "sha256": "47b44946877c906a27efd904b8db289e1f93b1348ea4b0a6f1186e0ec1b5d5fd",
+      "bytes": 5856
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-addr2line.bin": {
+      "sha256": "9366768fc92b9e07db3ea5c2c948844cb763d6483f55557cdc08b9ee53dcea82",
+      "bytes": 2173288
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ar.bin": {
+      "sha256": "0ee106de80ec96329c3d907041ee44c1cc62ce1db26f32ec23c079ca88699e15",
+      "bytes": 2201808
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-as.bin": {
+      "sha256": "8a6a13969e370d2971d4e48c2e52d880d359adea0d63bf38003da6da8808ab5a",
+      "bytes": 3775160
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-c++.bin": {
+      "sha256": "5b67c8d0beaaa95154f868c346bbdab9da4f5d3e01be78bf86b6e8c63358a6b8",
+      "bytes": 1858520
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-c++filt.bin": {
+      "sha256": "8f11abce7ca83ee8a417a6cd9d198288456255960b07e0b0e5aa4547a0250d0c",
+      "bytes": 2168648
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-cpp.bin": {
+      "sha256": "371b3402612d86b2fb4ef599b9db90eedaa2515267e2f8a8ea504f746adad6f4",
+      "bytes": 1854424
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-elfedit.bin": {
+      "sha256": "8b0fd7b65a9ff2af2d90d3425216852050f821c21f2ab33368cc2111f2e337f7",
+      "bytes": 43968
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-g++.bin": {
+      "sha256": "5b67c8d0beaaa95154f868c346bbdab9da4f5d3e01be78bf86b6e8c63358a6b8",
+      "bytes": 1858520
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-14.3.0.bin": {
+      "sha256": "b707e08ab8c0921f5cd296154cd3cfb665a4ee32ec10b9e625dfe4092385319f",
+      "bytes": 1854424
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-ar.bin": {
+      "sha256": "8a99555a7743f532fdae8190511c1dbd509cafba9b1d93b8ce86938b4f2f2109",
+      "bytes": 35336
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-nm.bin": {
+      "sha256": "7aee61469aec6ccf0f4ff3994b653c1a2e9398b55d8a3dedde706256086cf36e",
+      "bytes": 35336
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc-ranlib.bin": {
+      "sha256": "a8e0259352e463bef131dcd9949c19bda0b1f261319d8beba7895becd28a0e19",
+      "bytes": 35336
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcc.bin": {
+      "sha256": "b707e08ab8c0921f5cd296154cd3cfb665a4ee32ec10b9e625dfe4092385319f",
+      "bytes": 1854424
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcov-dump.bin": {
+      "sha256": "7df5f6060d929ca76f1474f10ff886d5ef0e0894b902385c78f1832225ff6ce2",
+      "bytes": 1065016
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcov-tool.bin": {
+      "sha256": "21181c13394092e0493fc686c4a46bb79dfa21a523f79438e9a75a120c1a3336",
+      "bytes": 1097848
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gcov.bin": {
+      "sha256": "8d7b197076036f2c9d78d9afa9c4ee6b086283fc9a09e0b60ee8085d033e22de",
+      "bytes": 1232984
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gdb.bin": {
+      "sha256": "97e6876c73ee15bd6cd0e024136d9ccc1006e90b5d5344de1ae5af68032569f1",
+      "bytes": 12192560
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-gprof.bin": {
+      "sha256": "a00cc0e7d01cb8f460699968a48e22e3ba011d31ab1a452061cac8e1e051e0e1",
+      "bytes": 2239944
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ld.bfd.bin": {
+      "sha256": "b527dd364b1db366fe7fd87616ad9e44c205ca9679a556d4a197c62f743d727f",
+      "bytes": 4746200
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ld.bin": {
+      "sha256": "b527dd364b1db366fe7fd87616ad9e44c205ca9679a556d4a197c62f743d727f",
+      "bytes": 4746200
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-lto-dump.bin": {
+      "sha256": "db9ba6963ce514ad644cf22684aee6bf6d6009722934c4063d9537c1e5783189",
+      "bytes": 35886752
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-nm.bin": {
+      "sha256": "222d9e887a0ce9e265fc2d6180c6b839c52d6524c4095739df737989ea275aa9",
+      "bytes": 2190408
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-objcopy.bin": {
+      "sha256": "123f61f7f8529ba04b68f341419cffebe18cefe0f1d5a8c572b5dfbedbfe0441",
+      "bytes": 2320656
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-objdump.bin": {
+      "sha256": "c9c3a1a70a13d1648d6f8504cf330b1b4991bf50a7b227f5b8e3e4a28c0f1baa",
+      "bytes": 4090448
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-ranlib.bin": {
+      "sha256": "a7ceaac637c2b9fae99a6935a2545ceef5d521a7b13b7093eb8014602373f05d",
+      "bytes": 2201840
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-readelf.bin": {
+      "sha256": "786b5af4a7b7c677abbb2d3db885b5237311055c637b60a83fce13aaf6760c1c",
+      "bytes": 1301904
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-size.bin": {
+      "sha256": "aef93b19c78d26333fa1e1117751ebd1e316546f1ece70f8783d29e723021642",
+      "bytes": 2173032
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-strings.bin": {
+      "sha256": "c4251b1b57b94df64b066fe9ce2d2f54618de26b59620a2b22338e46dbb10cf2",
+      "bytes": 2177288
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.aarch64-openwrt-linux-musl-strip.bin": {
+      "sha256": "d23d4e9e5408dd507156ec2fed81747044217ee3a0d2ead5e234b1abc6a1726f",
+      "bytes": 2320656
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/.readelf.bin": {
+      "sha256": "786b5af4a7b7c677abbb2d3db885b5237311055c637b60a83fce13aaf6760c1c",
+      "bytes": 1301904
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-addr2line": {
+      "sha256": "463e120d6c1fc79467121b2e91ebdbd0ed7e02c17ffdd264c7701c5e0e532459",
+      "bytes": 281
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ar": {
+      "sha256": "e538e36bdb0272c3017b5e3e3564a70d1e008d1fcca26465fd8edf96b5a3e16e",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-as": {
+      "sha256": "401485ed71176d8359d3068b9339c37d9617b7c6c778d886e206f55fc2bc98f0",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-c++": {
+      "sha256": "e90e469432d147f50aa6cfe0d6ac4fdf791b7d56bdd098009871b1ef980f6c0d",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-c++filt": {
+      "sha256": "b4bec4ad8ca520779aaec5d0272a46a8f2a7026fe40a28d1ef6167954f709de8",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-cpp": {
+      "sha256": "88aea9f5b2785fc00abe7cca911bbd921521b3ba8d21a62c4f03b108f9b4d8f1",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-elfedit": {
+      "sha256": "f8a4378afc84ee332760db9932cd6c0ddc9820a6289d83839e77a2a2b4585d75",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-g++": {
+      "sha256": "43f19198403f84f99e55bffa3779124fff0ca93793553bd7ca47d2c9baae34d3",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc": {
+      "sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-14.3.0": {
+      "sha256": "de04be105b4ad58648a0b330e87d9a646a83101a86efdd00c4a322589242f685",
+      "bytes": 282
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-ar": {
+      "sha256": "a0baa10188b052cfcd99028874f9d7b7b0a215f6104cbdcec038e3234f3b7f6c",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-nm": {
+      "sha256": "20a14a48126dcd661bfa128c86566598da2e1a127e258e34dbaf2984a9e148d8",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcc-ranlib": {
+      "sha256": "91522cd9f21f223ea2dd2677b9114e87485cbf2f927eb78b0fc8010ffa549685",
+      "bytes": 282
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcov": {
+      "sha256": "a2c583b1a72ac13e5b9865373a05e1b2a3a5ef6222f0082c88e4bb60bd0be326",
+      "bytes": 276
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcov-dump": {
+      "sha256": "bb2ebc8c2e56e66da42bf2d341e1d0eea0065539c6957ec36d6454267ec47c8e",
+      "bytes": 281
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gcov-tool": {
+      "sha256": "cc96b7d6a0dbe644b7ab1654d95664a7762afb7c9736cf74af86c993e471063a",
+      "bytes": 281
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gdb": {
+      "sha256": "af3510cf5c9661c71cac7a3717943e050709af01bb7be21e6492776096c835cd",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-gprof": {
+      "sha256": "539f4a899c04da3b1cc9ae987799446fd8967be97e19f368e8184bce97d87429",
+      "bytes": 277
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ld": {
+      "sha256": "e32879d50e32cae6aa7ca7996714597cbec8106d8c554ba6e737ade45bb72e6f",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ld.bfd": {
+      "sha256": "59be81c6750f51edbd04e1f97cb77eb21d8cf740b7aabbd0b1838e4705869f1c",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-lto-dump": {
+      "sha256": "51e788998a27275a02baf6f08b8b87228fd94c2118caa9f2112606118cb7fca6",
+      "bytes": 280
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-addr2line": {
+      "sha256": "463e120d6c1fc79467121b2e91ebdbd0ed7e02c17ffdd264c7701c5e0e532459",
+      "bytes": 281
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ar": {
+      "sha256": "e538e36bdb0272c3017b5e3e3564a70d1e008d1fcca26465fd8edf96b5a3e16e",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-as": {
+      "sha256": "401485ed71176d8359d3068b9339c37d9617b7c6c778d886e206f55fc2bc98f0",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-c++": {
+      "sha256": "e90e469432d147f50aa6cfe0d6ac4fdf791b7d56bdd098009871b1ef980f6c0d",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-c++filt": {
+      "sha256": "b4bec4ad8ca520779aaec5d0272a46a8f2a7026fe40a28d1ef6167954f709de8",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-cpp": {
+      "sha256": "88aea9f5b2785fc00abe7cca911bbd921521b3ba8d21a62c4f03b108f9b4d8f1",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-elfedit": {
+      "sha256": "f8a4378afc84ee332760db9932cd6c0ddc9820a6289d83839e77a2a2b4585d75",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-g++": {
+      "sha256": "43f19198403f84f99e55bffa3779124fff0ca93793553bd7ca47d2c9baae34d3",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc": {
+      "sha256": "92a4d78485698ddb93ca7336572d7caa70e0bbe9538f963453a6e49500f31e57",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-14.3.0": {
+      "sha256": "de04be105b4ad58648a0b330e87d9a646a83101a86efdd00c4a322589242f685",
+      "bytes": 282
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-ar": {
+      "sha256": "a0baa10188b052cfcd99028874f9d7b7b0a215f6104cbdcec038e3234f3b7f6c",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-nm": {
+      "sha256": "20a14a48126dcd661bfa128c86566598da2e1a127e258e34dbaf2984a9e148d8",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc-ranlib": {
+      "sha256": "91522cd9f21f223ea2dd2677b9114e87485cbf2f927eb78b0fc8010ffa549685",
+      "bytes": 282
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcov": {
+      "sha256": "a2c583b1a72ac13e5b9865373a05e1b2a3a5ef6222f0082c88e4bb60bd0be326",
+      "bytes": 276
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcov-dump": {
+      "sha256": "bb2ebc8c2e56e66da42bf2d341e1d0eea0065539c6957ec36d6454267ec47c8e",
+      "bytes": 281
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcov-tool": {
+      "sha256": "cc96b7d6a0dbe644b7ab1654d95664a7762afb7c9736cf74af86c993e471063a",
+      "bytes": 281
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gdb": {
+      "sha256": "af3510cf5c9661c71cac7a3717943e050709af01bb7be21e6492776096c835cd",
+      "bytes": 275
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gprof": {
+      "sha256": "539f4a899c04da3b1cc9ae987799446fd8967be97e19f368e8184bce97d87429",
+      "bytes": 277
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ld": {
+      "sha256": "e32879d50e32cae6aa7ca7996714597cbec8106d8c554ba6e737ade45bb72e6f",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ld.bfd": {
+      "sha256": "59be81c6750f51edbd04e1f97cb77eb21d8cf740b7aabbd0b1838e4705869f1c",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-lto-dump": {
+      "sha256": "51e788998a27275a02baf6f08b8b87228fd94c2118caa9f2112606118cb7fca6",
+      "bytes": 280
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-nm": {
+      "sha256": "63472eee8b40657886ddbe4a12f909df3014b5d644bb29924d703fc48136b9d1",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-objcopy": {
+      "sha256": "9bcdc1d60e4ca067be18433701841e9c5f8ebf72cbae8047c1ce86617333b5b2",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-objdump": {
+      "sha256": "9633771b5329c877b0926d37da3555980da5d7257d79bc576ed49e9152a5b81d",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-ranlib": {
+      "sha256": "b33e3e1ef413c5d200014217ccf4c2fea643fd429544149b77623ebcdd7bc06c",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-readelf": {
+      "sha256": "248e1287f840ae1bfe08acfde781db82ef510e854911b72c01f85310cc1e63df",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-size": {
+      "sha256": "20d8d4c9994e275b1ee09f620ae3948e1c782b4b007021c088ad713648d3a91d",
+      "bytes": 276
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-strings": {
+      "sha256": "4f37d7ebc416363fe608748a3585e137122e5d32c69ff5e4f8389e788f8bb6e3",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-strip": {
+      "sha256": "1efd99ccc95d1549a5c14e697d47d923260c8e6841b3a2769decbb402daf9ac5",
+      "bytes": 277
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-nm": {
+      "sha256": "63472eee8b40657886ddbe4a12f909df3014b5d644bb29924d703fc48136b9d1",
+      "bytes": 274
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-objcopy": {
+      "sha256": "9bcdc1d60e4ca067be18433701841e9c5f8ebf72cbae8047c1ce86617333b5b2",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-objdump": {
+      "sha256": "9633771b5329c877b0926d37da3555980da5d7257d79bc576ed49e9152a5b81d",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-ranlib": {
+      "sha256": "b33e3e1ef413c5d200014217ccf4c2fea643fd429544149b77623ebcdd7bc06c",
+      "bytes": 278
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-readelf": {
+      "sha256": "248e1287f840ae1bfe08acfde781db82ef510e854911b72c01f85310cc1e63df",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-size": {
+      "sha256": "20d8d4c9994e275b1ee09f620ae3948e1c782b4b007021c088ad713648d3a91d",
+      "bytes": 276
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-strings": {
+      "sha256": "4f37d7ebc416363fe608748a3585e137122e5d32c69ff5e4f8389e788f8bb6e3",
+      "bytes": 279
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-strip": {
+      "sha256": "1efd99ccc95d1549a5c14e697d47d923260c8e6841b3a2769decbb402daf9ac5",
+      "bytes": 277
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/readelf": {
+      "sha256": "8fc34286be8210c7bbc36a0122f9b7ecb62bd89432837a833def8157bae2e5cf",
+      "bytes": 252
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-workspace-types/cargo-with-link-map.py": {
+      "sha256": "c8a2d24c764f643ef9ab5d6a816f11edf7303465591b7bcf8440a13b424a64e1",
+      "bytes": 327
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-workspace-types/cc-with-link-map.py": {
+      "sha256": "eda3eada913d88184e868b9dfd3a2dc0ae74ddf54dcb3b49dcf847ef7bae915f",
+      "bytes": 205
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/release-types/dnsmasq-rs": {
+      "sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "bytes": 2056672
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/tests-types/bin-dnsmasq-rs": {
+      "sha256": "154992e05d78ad88e234ab18417f99ad88ffae8d648469cbd9404ec459c843fb",
+      "bytes": 52235856
+    },
+    "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/tests-types/lib-dnsmasq_rs": {
+      "sha256": "57bafdc582167a2d76a5ec3977c409a375ddde1677fe1a80005e9d553e044bf9",
+      "bytes": 70158784
+    }
+  },
+  "sdk": [
+    {
+      "manifest": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/manifest.json",
+        "sha256": "19362cd7f5cf0b96f1dbcefabec1bced7da3d5e370c5eab24f500ffde68ee182",
+        "bytes": 62686
+      },
+      "status": "source-build-candidate-acquired-budget-rejected",
+      "source_commit": "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+      "inputs_match_head": true,
+      "source_inputs_count": 177,
+      "sdk_inputs_count": 106,
+      "sdk_input_digest": "1c5a8201578bdc768de01eaa5d75cda6e43952ee618b7b990cdf1278e9835c67",
+      "source_tree": "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types",
+      "fixed_source_tree": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-workspace-types/source",
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/payload/usr/sbin/dnsmasq",
+        "sha256": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "size": 2054939
+      },
+      "artifact": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-acquire-types/dnsmasq-2.93-r3.apk",
+        "sha256": "1561009e28f831b4b476c3eadb34d141b0772608d6258ac384f46db666626f99",
+        "size": 1117233
+      },
+      "stages": {
+        "prepare": {
+          "exit_code": 0
+        },
+        "compile": {
+          "exit_code": 0
+        }
+      },
+      "artifact_identity_verified": false,
+      "apk_byte_identical": false,
+      "original_budget_passed": false
+    },
+    {
+      "manifest": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/manifest.json",
+        "sha256": "af596ef0241d451499835b48ba29ed4d03d9da0aad6e0254d02001380b66a445",
+        "bytes": 63873
+      },
+      "status": "source-build-identity-verified-budget-rejected",
+      "source_commit": "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+      "inputs_match_head": true,
+      "source_inputs_count": 177,
+      "sdk_inputs_count": 106,
+      "sdk_input_digest": "1c5a8201578bdc768de01eaa5d75cda6e43952ee618b7b990cdf1278e9835c67",
+      "source_tree": "/home/ubuntu/dnsmasq-fix3-repair-20261013/source-types",
+      "fixed_source_tree": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-workspace-types/source",
+      "elf": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/payload/usr/sbin/dnsmasq",
+        "sha256": "61b02fa66a1c2b07753c236c79b4d2be5cbbf4ddc34125b3c00a1aff171671b6",
+        "size": 2054939
+      },
+      "artifact": {
+        "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/sdk-verify-types/dnsmasq-2.93-r3.apk",
+        "sha256": "1561009e28f831b4b476c3eadb34d141b0772608d6258ac384f46db666626f99",
+        "size": 1117233
+      },
+      "stages": {
+        "prepare": {
+          "exit_code": 0
+        },
+        "compile": {
+          "exit_code": 0
+        }
+      },
+      "artifact_identity_verified": true,
+      "apk_byte_identical": true,
+      "original_budget_passed": false
+    }
+  ],
+  "sdk_payloads_identical": true,
+  "sdk_apks_identical": true
+}

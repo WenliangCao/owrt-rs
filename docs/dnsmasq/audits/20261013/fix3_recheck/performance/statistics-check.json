@@ -1,0 +1,357 @@
+{
+  "schema": "dnsmasq-fix3-recheck-local-performance-statistics-v1",
+  "scope": "Local independent arithmetic, identity, and retained-window consistency review; no Oracle access or new workload",
+  "inputs": {
+    "docs/dnsmasq/audits/20261012/fix3_repairs/performance/types-plan.json": {
+      "sha256": "19ceee2f9b9b9dfd976e7031534593175be8d5094196e4871371f1b073937028"
+    },
+    "docs/dnsmasq/audits/20261012/fix3_repairs/performance/types-summary.json": {
+      "sha256": "c15510fee6a14aa89b7b05b83f8397e8304e92230d564a3d6c8d56368ef3453c"
+    },
+    "docs/dnsmasq/audits/20261012/fix3_repairs/performance/types-counter-check.json": {
+      "sha256": "f8edd90136953a35f5eb55a6fc8f8fbd6f0b463df940825413bb69fea2eba971"
+    },
+    "docs/dnsmasq/audits/20261012/fix3_repairs/performance/types-raw-index.json": {
+      "sha256": "f585e4cbefae0b28342da930fcbe8caf543ebc4c40195f8e5e9f20352574c413"
+    }
+  },
+  "all_checks_pass": true,
+  "checks": {
+    "same_32_window_order": true,
+    "plan_hash_matches_summary_raw_index_controller": true,
+    "all_32_accepted_without_validity_or_behavior_errors": true,
+    "cpu_metrics_recompute_from_retained_integer_delta": true,
+    "all_measured_correct_are_120000": true,
+    "all_32_ids_unique": true,
+    "paired_configuration_and_seed_identical": true,
+    "all_config_check_records_present": true,
+    "all_cache_proofs_and_zero_upstream_present": true,
+    "all_actual_ELF_hashes_match_plan": true,
+    "counter_totals_recompute": true,
+    "all_phase_correct_counts_complete": true,
+    "zero_throttle_in_retained_counters": true,
+    "tcp-raw-100_statistics_match": true,
+    "tcp-raw-100_three_AB_three_BA": true,
+    "tcp-raw-1000_statistics_match": true,
+    "tcp-raw-1000_three_AB_three_BA": true,
+    "frozen_source_file_maps_match": true,
+    "all_177_current_worktree_inputs_match_frozen_source": true,
+    "all_177_HEAD_git_inputs_match_frozen_source": true,
+    "execution_and_analysis_scripts_match_frozen_plan": true
+  },
+  "comparison_formula": "For six pair log ratios x_i=ln((final_cgroup_delta/final_correct)/(main_cgroup_delta/main_correct)), geometric ratio=exp(mean(x)); 95% interval=exp(mean(x) +/- 2.570581835636305 * sample_stdev(x)/sqrt(6)). No pooling of per-request observations.",
+  "comparisons": [
+    {
+      "profile": "tcp-raw-100",
+      "paired_windows": [
+        {
+          "pair": 1,
+          "order": "AB",
+          "main_cpu_delta_us": 3655232,
+          "final_cpu_delta_us": 5036019,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 30.460266666666666,
+          "final_us_per_correct": 41.966825,
+          "ratio": 1.377756322991263,
+          "absolute_us_delta": 11.506558333333334
+        },
+        {
+          "pair": 2,
+          "order": "BA",
+          "main_cpu_delta_us": 3682830,
+          "final_cpu_delta_us": 3991809,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 30.69025,
+          "final_us_per_correct": 33.265075,
+          "ratio": 1.083897166038074,
+          "absolute_us_delta": 2.574825000000004
+        },
+        {
+          "pair": 3,
+          "order": "AB",
+          "main_cpu_delta_us": 3681976,
+          "final_cpu_delta_us": 4031019,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 30.683133333333334,
+          "final_us_per_correct": 33.591825,
+          "ratio": 1.094797739040124,
+          "absolute_us_delta": 2.908691666666666
+        },
+        {
+          "pair": 4,
+          "order": "BA",
+          "main_cpu_delta_us": 3631005,
+          "final_cpu_delta_us": 4121115,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 30.258375,
+          "final_us_per_correct": 34.342625,
+          "ratio": 1.1349791586626843,
+          "absolute_us_delta": 4.084249999999997
+        },
+        {
+          "pair": 5,
+          "order": "AB",
+          "main_cpu_delta_us": 3697173,
+          "final_cpu_delta_us": 3955164,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 30.809775,
+          "final_us_per_correct": 32.9597,
+          "ratio": 1.0697806134579042,
+          "absolute_us_delta": 2.1499249999999996
+        },
+        {
+          "pair": 6,
+          "order": "BA",
+          "main_cpu_delta_us": 3636287,
+          "final_cpu_delta_us": 4027886,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 30.302391666666665,
+          "final_us_per_correct": 33.56571666666667,
+          "ratio": 1.1076919946087864,
+          "absolute_us_delta": 3.263325000000002
+        }
+      ],
+      "mean_log_ratio": 0.13132257291667043,
+      "log_ratio_sample_stddev": 0.09481969970543934,
+      "standard_error": 0.038709980307042466,
+      "t_0_975_df5": 2.570581835636305,
+      "geometric_mean_ratio": 1.1403355633591932,
+      "increase_percent": 14.033556335919318,
+      "paired_log_t_95_ratio_interval": [
+        1.032326920868769,
+        1.2596447605642098
+      ],
+      "mean_absolute_us_delta": 4.414595833333334,
+      "order_groups": {
+        "AB": {
+          "ratios": [
+            1.377756322991263,
+            1.094797739040124,
+            1.0697806134579042
+          ],
+          "median_ratio": 1.094797739040124
+        },
+        "BA": {
+          "ratios": [
+            1.083897166038074,
+            1.1349791586626843,
+            1.1076919946087864
+          ],
+          "median_ratio": 1.1076919946087864
+        }
+      },
+      "descriptive_exact_sign_flip_p": 0.03125,
+      "increased_pairs": 6,
+      "lower_bound_above_one": true,
+      "lower_bound_above_1_10": false
+    },
+    {
+      "profile": "tcp-raw-1000",
+      "paired_windows": [
+        {
+          "pair": 1,
+          "order": "AB",
+          "main_cpu_delta_us": 3861072,
+          "final_cpu_delta_us": 4025871,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 32.1756,
+          "final_us_per_correct": 33.548925,
+          "ratio": 1.0426821877447505,
+          "absolute_us_delta": 1.3733249999999941
+        },
+        {
+          "pair": 2,
+          "order": "BA",
+          "main_cpu_delta_us": 3833131,
+          "final_cpu_delta_us": 4090513,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 31.942758333333334,
+          "final_us_per_correct": 34.087608333333336,
+          "ratio": 1.067146674611434,
+          "absolute_us_delta": 2.1448500000000017
+        },
+        {
+          "pair": 3,
+          "order": "AB",
+          "main_cpu_delta_us": 3888739,
+          "final_cpu_delta_us": 4822296,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 32.40615833333333,
+          "final_us_per_correct": 40.1858,
+          "ratio": 1.2400667671448253,
+          "absolute_us_delta": 7.77964166666667
+        },
+        {
+          "pair": 4,
+          "order": "BA",
+          "main_cpu_delta_us": 3984175,
+          "final_cpu_delta_us": 4110552,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 33.201458333333335,
+          "final_us_per_correct": 34.2546,
+          "ratio": 1.0317197412262262,
+          "absolute_us_delta": 1.0531416666666686
+        },
+        {
+          "pair": 5,
+          "order": "AB",
+          "main_cpu_delta_us": 3801858,
+          "final_cpu_delta_us": 4634235,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 31.68215,
+          "final_us_per_correct": 38.618625,
+          "ratio": 1.2189395290408007,
+          "absolute_us_delta": 6.9364750000000015
+        },
+        {
+          "pair": 6,
+          "order": "BA",
+          "main_cpu_delta_us": 3857946,
+          "final_cpu_delta_us": 4593215,
+          "main_correct": 120000,
+          "final_correct": 120000,
+          "main_us_per_correct": 32.14955,
+          "final_us_per_correct": 38.27679166666667,
+          "ratio": 1.1905856121366138,
+          "absolute_us_delta": 6.12724166666667
+        }
+      ],
+      "mean_log_ratio": 0.12093394513533351,
+      "log_ratio_sample_stddev": 0.08380842232637138,
+      "standard_error": 0.03421464514121457,
+      "t_0_975_df5": 2.570581835636305,
+      "geometric_mean_ratio": 1.1285503636636778,
+      "increase_percent": 12.855036366367777,
+      "paired_log_t_95_ratio_interval": [
+        1.0335323487285264,
+        1.2323038798855797
+      ],
+      "mean_absolute_us_delta": 4.235779166666668,
+      "order_groups": {
+        "AB": {
+          "ratios": [
+            1.0426821877447505,
+            1.2400667671448253,
+            1.2189395290408007
+          ],
+          "median_ratio": 1.2189395290408007
+        },
+        "BA": {
+          "ratios": [
+            1.067146674611434,
+            1.0317197412262262,
+            1.1905856121366138
+          ],
+          "median_ratio": 1.067146674611434
+        }
+      },
+      "descriptive_exact_sign_flip_p": 0.03125,
+      "increased_pairs": 6,
+      "lower_bound_above_one": true,
+      "lower_bound_above_1_10": false
+    }
+  ],
+  "counter_totals_by_phase": {
+    "warmup": {
+      "scheduled": 960000,
+      "sent": 960000,
+      "correct": 960000,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    },
+    "measurement": {
+      "scheduled": 3840000,
+      "sent": 3840000,
+      "correct": 3840000,
+      "wrong": 0,
+      "timeout": 0,
+      "transport_error": 0,
+      "scheduled_skipped": 0
+    }
+  },
+  "boundary_capture_lag_ns_range": [
+    558277,
+    5352533
+  ],
+  "actual_measured_artifacts": {
+    "main": {
+      "elf": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "bytes": 1970216
+    },
+    "fix": {
+      "elf": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/release-types/dnsmasq-rs",
+      "sha256": "0410d96c9c42e0fc3616d499547fe4ba7d7657b236d8d55daa0664a483b8b743",
+      "bytes": 2056672
+    }
+  },
+  "source_identity": {
+    "tested_snapshot_commit": "ceea2ec6eb5eeee8e61e3da1c97aeb38aaf999b3",
+    "tested_product_tip": "f47220306d09a480376aa667bb66eb51d002c8be",
+    "current_HEAD": "74c6b4531111819439e38881ff9be7dc025d57ca",
+    "frozen_input_count": 177,
+    "current_worktree_mismatches": [],
+    "current_HEAD_git_mismatches": [],
+    "interpretation": "Measured source snapshot has identical product/recipe input bytes to current HEAD; these are retained snapshot artifacts, not a newly built HEAD artifact.",
+    "main_actual": "be531cee49e366bb5044443d473944dbea45b87e"
+  },
+  "script_identity_checks": {
+    "docs/dnsmasq/audits/20261012/fix3_repairs/performance/paired_tcp_records_phase.py": {
+      "sha256": "e4c98a393bad6bcb78806297f49aad9c073942f62f42bbb89f454bad54341b5b",
+      "frozen_expected": [
+        "e4c98a393bad6bcb78806297f49aad9c073942f62f42bbb89f454bad54341b5b"
+      ],
+      "match": true
+    },
+    "docs/dnsmasq/audits/20261012/fix3_repairs/performance/raw_records_window.py": {
+      "sha256": "cc90d1daf0e2aa6e0a7c2bf5e50ad1a3c2fdf1aa6ccf3d1b5dafcd7854b36d35",
+      "frozen_expected": [
+        "cc90d1daf0e2aa6e0a7c2bf5e50ad1a3c2fdf1aa6ccf3d1b5dafcd7854b36d35"
+      ],
+      "match": true
+    },
+    "docs/dnsmasq/audits/20261011/fix2_repairs/performance-before-driver.py": {
+      "sha256": "096fbf5de8bb12bb4b2b42f7e1ed91855ba5d6a177514eea9b406f711be4848c",
+      "frozen_expected": [
+        "096fbf5de8bb12bb4b2b42f7e1ed91855ba5d6a177514eea9b406f711be4848c"
+      ],
+      "match": true
+    },
+    "tools/dnsmasq/m6a_analyze.py": {
+      "sha256": "0a160d3028a6a91fc74137b4596cd3044185c1df60e13d593abc5c5bb9382409",
+      "frozen_expected": [
+        "0a160d3028a6a91fc74137b4596cd3044185c1df60e13d593abc5c5bb9382409"
+      ],
+      "match": true
+    }
+  },
+  "method_review": [
+    "Exactly 32 predeclared windows (12 per primary and 4 per guard), with all retained in original order. Six adjacent same-seed pairs per primary, three AB and three BA, and alternating primary profile order.",
+    "All 32 summary rows are accepted and valid; no behavior errors, generator limit or exclusions are reported. Collector independently asserts equal pair config hashes, actual executable hashes, complete cache proofs, and zero upstream requests during hits.",
+    "Status helper reads progress/acceptance only. The frozen driver refuses an existing run.json and preserves incomplete/invalid runs. The collector computes secondary descriptive medians after completion; it does not alter primary CPU values.",
+    "The reused estimator is byte-identical to the frozen SHA; the actual types controller is paired_tcp_records_phase.py, not the earlier paired_tcp_records.py.",
+    "All six final/main ratios exceed one in both primary profiles. The higher candidate windows are retained, including 100-record pair 1 ratio 1.377756. Order-group medians differ notably for 1000 records (AB 1.218940, BA 1.067147); direction stays positive in both groups."
+  ],
+  "limits": [
+    "This local review independently recomputes from per-window retained integer cgroup deltas and completion counts in types-summary.json. cpu-points.json, latency binaries, and full original window files are only indexed at Oracle paths; this review did not re-read or re-hash those remote originals.",
+    "The t intervals are per scenario and rely on independence/stability and an approximately appropriate paired-log model with only n=6. Alternation is balanced but deterministic, not randomized; VM neighbor/time effects are not excluded. The exact sign-flip p=0.03125 is descriptive, not a randomized-experiment proof.",
+    "Both numerical lower bounds exceed 1 but neither exceeds 1.10. This supports increased CPU for these fixed Oracle workloads; it does not establish that the increase is at least 10%, nor equivalence, nor an allowed regression tolerance.",
+    "The two-pair TCP/0 and UDP/1000 guards are descriptive; they cannot precisely attribute the residual increase or close ordinary TCP performance concerns. Do not subtract across different profiles to infer causality.",
+    "All cached questions here are A and unrelated raw records are type 65401. They do not measure same-type name misses, ANY, many distinct raw types, arbitrary TCP workloads, saturated throughput, connection capacity, long-duration leakage, or physical router performance.",
+    "The measured main and final artifacts differ by cumulative branch code and declared static-PIE build flags. These numbers cannot attribute cost to the type-summary change or any single commit/function.",
+    "The retained 480 recursive cgroup observations are zero-throttle checks, not 480 independent statistical replicates. Only six window pairs enter each primary confidence interval."
+  ]
+}
