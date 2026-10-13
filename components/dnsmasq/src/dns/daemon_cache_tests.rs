@@ -128,6 +128,27 @@ fn shared_lookup_keeps_udp_tcp_cname_local_cache_order_and_rd_do_gates() {
 }
 
 #[test]
+fn cached_cname_raw_terminal_copies_rdata_pointers_opaquely() {
+    // rfc1035.c writes dns-rr data unchanged; a pointer refers to the final
+    // reply, never to the scratch packet used to evaluate the terminal.
+    for data in ["c00c", "c02b"] {
+        let mut daemon = daemon();
+        let directive = format!("dns-rr=target.test,2,{data}");
+        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        daemon.cache_reply_at(&chain_reply(1, false), 100);
+        let query = packet("alias.test", 2, 0x100).finish();
+        let udp = shared_answer(&mut daemon, &query, 101, false);
+        let tcp = shared_answer(&mut daemon, &query, 101, true);
+        assert_eq!(udp, tcp, "data={data}");
+        let answer = tcp.expect("the configured NS terminates the cached alias");
+        let message = Message::parse(&answer).unwrap();
+        let last = message.records(Section::Answer).last().unwrap();
+        assert_eq!(last.rrtype, 2);
+        assert_eq!(last.rdata, [0xc0, if data == "c00c" { 0x0c } else { 0x2b }]);
+    }
+}
+
+#[test]
 fn reply_known_name_uses_live_cache_or_connection_snapshot() {
     let mut daemon = daemon();
     let forward = super::super::tcp_service::TcpDnsService::new(&daemon.local.config, &[], 1232).unwrap();

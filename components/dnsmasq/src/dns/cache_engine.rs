@@ -1773,7 +1773,11 @@ fn append_local_terminal(
         }
         for record in message.records(section) {
             let owner = record.name()?;
-            let data = record.canonical_rdata()?;
+            // The local answerer writes configured names uncompressed and
+            // dns-rr bytes opaque, as rfc1035.c's raw loop does. Copy RDATA
+            // verbatim: decoding a raw pointer against this scratch packet
+            // would rewrite or reject bytes C emits unchanged.
+            let data = record.rdata.to_vec();
             let compressed = owner.eq_ignore_ascii_case(&previous_name);
             let target_offset =
                 writer.position() + if compressed { 2 } else { owner.as_wire().len() } + 10;
@@ -1801,10 +1805,15 @@ fn append_local_terminal(
                 Err(WireError::Full) => return Ok(Some(message.header.flags | 0x0200)),
                 Err(error) => return Err(error.into()),
             }
+            // A raw TYPE 5 holding a pointer is opaque output, not a cursor.
             if record.rrtype == 5 {
-                previous_name = super::wire::decode_name(&data, 0, 0)?.0;
-                previous_offset =
-                    u16::try_from(target_offset).map_err(|_| WireError::RecordTooLong)?;
+                if let Ok((name, end)) = super::wire::decode_name(&data, 0, 0) {
+                    if end == data.len() {
+                        previous_name = name;
+                        previous_offset =
+                            u16::try_from(target_offset).map_err(|_| WireError::RecordTooLong)?;
+                    }
+                }
             }
         }
     }
