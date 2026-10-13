@@ -110,3 +110,21 @@ other 366 responses. This avoids manufacturing another expected script failure
 without weakening the asserted behavior. Previous plans, failed state and all
 performance/functional evidence remain unchanged. The normal full unit suite also
 covers the type summary's default, duplicate, clone and failed-insertion behavior.
+
+The first types attempt stopped before any state case or daemon query: the old
+standalone `rustc` state harness no longer provides the crate modules on which
+configuration parsing depends. Its failed plan/state/compiler log are retained.
+`config_state_adapter.py` addresses only that test build boundary: it changes the
+probe's two `#[path]` module imports to `use dnsmasq_rs::{config, hosts};`, preserves
+the rest of the probe byte-for-byte, and builds a private feature-off Cargo helper
+against the complete frozen crate. A private copy of the original state tool only
+binds ROOT and replaces its obsolete rustc invocation with this newly built
+helper; the C probe, nineteen inputs and comparison code remain unchanged. Diffs,
+source/helper hashes, Cargo metadata and native GNU profile are recorded.
+
+The updated controller runs from a separately hash-bound private tool path and
+imports all existing checks/probes from the unchanged `source-types` archive.
+`functional-types-v2` is a wholly fresh 49-command execution; the original failed
+`functional-types` directory and plan stay untouched. This auxiliary harness
+repair does not rebuild or change the already verified SDK daemon or performance
+artifact.

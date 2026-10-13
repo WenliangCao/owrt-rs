@@ -16,8 +16,6 @@ import subprocess
 import sys
 import time
 
-from result_checks import check_acl, check_matrix, check_n1, check_n2, observe_stale
-from types_result_checks import check_original_dns
 
 SELECTED = {
     'm5_config_inputs': 'RecordConfig raw encapsulation across config files and scripts',
@@ -55,13 +53,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=('prepare', 'run'))
     parser.add_argument('--plan', type=Path, required=True)
-    for name in ('source', 'image-root', 'rust', 'main', 'link-map', 'base-identity', 'reference-build', 'out'):
+    for name in ('source', 'image-root', 'rust', 'main', 'link-map', 'base-identity', 'reference-build', 'state-probe-driver', 'out'):
         parser.add_argument('--' + name, type=Path)
     parser.add_argument('--source-commit')
     parser.add_argument('--rust-sha256')
+    parser.add_argument('--tool-commit')
     args = parser.parse_args()
+    frozen_source = args.source if args.action == 'prepare' else Path(read(args.plan)['source'])
+    if frozen_source is None:
+        parser.error('--source required for prepare')
+    shared_checks = frozen_source / 'docs/dnsmasq/audits/20261012/fix3_repairs/functional'
+    sys.path.insert(0, str(shared_checks))
+    from result_checks import check_acl, check_matrix, check_n1, check_n2, observe_stale
+    from types_result_checks import check_original_dns
     if args.action == 'prepare':
-        for name in ('source', 'image_root', 'rust', 'main', 'link_map', 'base_identity', 'reference_build', 'out', 'source_commit', 'rust_sha256'):
+        for name in ('source', 'image_root', 'rust', 'main', 'link_map', 'base_identity', 'reference_build', 'state_probe_driver', 'out', 'source_commit', 'rust_sha256', 'tool_commit'):
             if not getattr(args, name):
                 parser.error('--' + name.replace('_', '-') + ' required for prepare')
         assert not args.plan.exists() and not args.out.exists()
@@ -76,13 +82,13 @@ def main():
         review1 = source / 'docs/dnsmasq/audits/20261011/independent'
         review2 = source / 'docs/dnsmasq/audits/20261011/fix2'
         review3 = source / 'docs/dnsmasq/audits/20261012/fix3'
-        current = Path(__file__).resolve().parent
+        current = shared_checks
         state_probe_output = args.out / 'config-state-probe'
         jobs = [{'id': 'config-state-probe', 'argv': [
                     'env', 'RUSTUP_HOME=/home/ubuntu/.rustup', 'CARGO_HOME=/home/ubuntu/.cargo',
                     'PATH=/home/ubuntu/.cargo/bin:/usr/bin:/bin', sys.executable,
-                    str(tools / 'contract_inventory.py'), '--state-differential',
-                    '--reference-build', str(args.reference_build), '--work', str(state_probe_output)],
+                    str(args.state_probe_driver), '--source', str(source),
+                    '--reference-build', str(args.reference_build), '--out', str(state_probe_output)],
                  'result': str(state_probe_output / 'result.json'), 'custom_check': 'state-probe',
                  'reference_binary_sha256': sha(args.reference_build / 'dnsmasq/dnsmasq'),
                  'timeout_seconds': 1800}]
@@ -121,14 +127,14 @@ def main():
         directed('hosts-diagnostics-TCP', tools / 'audit_fix_20261011_hosts.py', image_args, 'hosts-diagnostics')
         assert len(jobs) == 49
         assets = {str(path): sha(path) for path in (args.rust, args.main, args.link_map,
-                  args.image_root / 'usr/sbin/dnsmasq', args.base_identity)}
+                  args.image_root / 'usr/sbin/dnsmasq', args.base_identity, args.state_probe_driver, Path(__file__).resolve())}
         # Native state probes are not SDK daemon artifacts. Bind their exact
         # patched C objects, headers and helper libraries separately.
         assets.update({str(path): sha(path) for path in args.reference_build.rglob('*') if path.is_file()})
         for root in (tools, review1, review2, review3, current):
             assets.update({str(path): sha(path) for path in root.rglob('*')
                            if path.is_file() and '__pycache__' not in path.parts and path.suffix in ('.py', '.sh', '.json')})
-        plan = {'schema': 'dnsmasq-fix3-types-functional-v1', 'source': str(source), 'source_commit': args.source_commit,
+        plan = {'schema': 'dnsmasq-fix3-types-functional-v2', 'tool_commit': args.tool_commit, 'source': str(source), 'source_commit': args.source_commit,
                 'rust': str(args.rust), 'rust_sha256': args.rust_sha256, 'output': str(args.out),
                 'source_files': package.inputs(source), 'assets': assets, 'selected_families': SELECTED,
                 'directed_commands': 14, 'SDK_daemon_family_commands': 48, 'native_state_probe_commands': 1, 'family_commands': len(family_jobs), 'jobs': jobs,
@@ -201,6 +207,13 @@ def main():
                 record['native_probe_identity'] = {name: {'path': str(folder / name), 'sha256': sha(folder / name)}
                                                     for name in ('c-state', 'rust-state', 'state_probe.c', 'dnsmasq-without-main.o')}
                 record['probe_scope'] = value['scope']
+                adaptation = read(folder / 'adapter-identity.json')
+                assert adaptation['probe_imports_only'] and adaptation['C_corpus_and_comparison_unchanged']
+                assert adaptation['target'] == 'aarch64-unknown-linux-gnu' and adaptation['features'] == ''
+                assert adaptation['source'] == str(source)
+                assert sha(folder / 'rust-state') == adaptation['cargo_probe_sha256']
+                record['native_adapter_identity'] = adaptation
+                record['native_adapter_receipt'] = {'path': str(folder / 'adapter-identity.json'), 'sha256': sha(folder / 'adapter-identity.json')}
             if check in ('hosts-original', 'hosts-diagnostics'):
                 assert value['rust_sha256'] == plan['rust_sha256'] and value['c_sha256'] == STOCK_SHA256
                 if check == 'hosts-original':
