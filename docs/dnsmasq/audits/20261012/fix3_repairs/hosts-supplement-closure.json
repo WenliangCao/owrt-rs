@@ -1,0 +1,118 @@
+{
+  "passed": true,
+  "created_ns": 1791909277072313008,
+  "checks": {
+    "root_and_assertions": true,
+    "prior_closure_unchanged": true,
+    "prior_closure_passed": true,
+    "same_frozen_source_and_current_git": true,
+    "actual_command_and_results": true,
+    "supplement_assets": true,
+    "same_SDK_and_original_script": true,
+    "six_original_configurations": true,
+    "addn-hosts-debugFalse_c_exit": true,
+    "addn-hosts-debugFalse_c_phases": true,
+    "addn-hosts-debugFalse_c_UDP_TCP": true,
+    "addn-hosts-debugFalse_rust_exit": true,
+    "addn-hosts-debugFalse_rust_phases": true,
+    "addn-hosts-debugFalse_rust_UDP_TCP": true,
+    "addn-hosts-debugFalse_matched": true,
+    "addn-hosts-debugTrue_c_exit": true,
+    "addn-hosts-debugTrue_c_phases": true,
+    "addn-hosts-debugTrue_c_UDP_TCP": true,
+    "addn-hosts-debugTrue_rust_exit": true,
+    "addn-hosts-debugTrue_rust_phases": true,
+    "addn-hosts-debugTrue_rust_UDP_TCP": true,
+    "addn-hosts-debugTrue_matched": true,
+    "directory-debugFalse_c_exit": true,
+    "directory-debugFalse_c_phases": true,
+    "directory-debugFalse_c_UDP_TCP": true,
+    "directory-debugFalse_rust_exit": true,
+    "directory-debugFalse_rust_phases": true,
+    "directory-debugFalse_rust_UDP_TCP": true,
+    "directory-debugFalse_matched": true,
+    "directory-debugTrue_c_exit": true,
+    "directory-debugTrue_c_phases": true,
+    "directory-debugTrue_c_UDP_TCP": true,
+    "directory-debugTrue_rust_exit": true,
+    "directory-debugTrue_rust_phases": true,
+    "directory-debugTrue_rust_UDP_TCP": true,
+    "directory-debugTrue_matched": true,
+    "hostsdir-debugFalse_c_exit": true,
+    "hostsdir-debugFalse_c_phases": true,
+    "hostsdir-debugFalse_c_UDP_TCP": true,
+    "hostsdir-debugFalse_rust_exit": true,
+    "hostsdir-debugFalse_rust_phases": true,
+    "hostsdir-debugFalse_rust_UDP_TCP": true,
+    "hostsdir-debugFalse_matched": true,
+    "hostsdir-debugTrue_c_exit": true,
+    "hostsdir-debugTrue_c_phases": true,
+    "hostsdir-debugTrue_c_UDP_TCP": true,
+    "hostsdir-debugTrue_rust_exit": true,
+    "hostsdir-debugTrue_rust_phases": true,
+    "hostsdir-debugTrue_rust_UDP_TCP": true,
+    "hostsdir-debugTrue_matched": true,
+    "answer_pair_inventory": true,
+    "no_overlap_with_completed_performance": true,
+    "no_remaining_workloads": true
+  },
+  "inputs": {
+    "prior_closure": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-final-closure-01.json",
+      "sha256": "efa811d8bf922d0062c31823eb7f495e8cda7002f647b2161ef22d8eca1059d3",
+      "bytes": 475434
+    },
+    "git_witness": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/git-witness-hosts-supplement.json",
+      "sha256": "b346c719315b627a21ab4d002c11f028eb02831d32ba0edd285bd38fe231d10c",
+      "bytes": 21704
+    },
+    "source_identity": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/source-types-identity.json",
+      "sha256": "57a3de2210ff2610b77e3223ebd4d037b2ac70501c65e9a6274e3219266cbbf8",
+      "bytes": 21311
+    },
+    "plan.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/plan.json",
+      "sha256": "0f9400dd79355e58559bf2233b3b3f4f8e9e79b377145afa506310d316c4a2ea",
+      "bytes": 2033
+    },
+    "run.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/run.json",
+      "sha256": "98c57b7254586fbbb758a72cf84b6deb7ed8bd9a2e3877fe49948d3d8f518746",
+      "bytes": 942
+    },
+    "driver.log": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/driver.log",
+      "sha256": "4102b226f5cddcbf767be02e29698d9e9e81035547c9aeb2df010adf14adaf45",
+      "bytes": 37
+    },
+    "probe/result.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/probe/result.json",
+      "sha256": "144cecb59bd99d43a0ac2cd1686224cff0e5f7f2a8a94629b02118efd9ebb426",
+      "bytes": 391977
+    },
+    "verification.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/verification.json",
+      "sha256": "21d5a4bd6b795f8640104be5f44e821bfbfb651f84904feef8bd295851749793",
+      "bytes": 4763
+    },
+    "raw-index.json": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts-compat-supplement/raw-index.json",
+      "sha256": "78cb9f47e5053c171623722db30199b4605c63020e99c3d1953948276378eea3",
+      "bytes": 6875
+    },
+    "verifier": {
+      "path": "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/hosts_supplement_closure.py",
+      "sha256": "66a11f00f50571a8f9fcd2bc38a641079c62bbdcefbce4a1e82a0cd0f020bf66",
+      "bytes": 5941
+    }
+  },
+  "scope": "Incremental evidence and cleanup check only; prior 596-check closure retained unchanged.",
+  "remaining_workloads": [],
+  "answer_pairs": {
+    "udp": 114,
+    "tcp": 114
+  },
+  "product_input_count": 177
+}
