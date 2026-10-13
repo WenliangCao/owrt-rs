@@ -249,6 +249,8 @@ impl<'a> LocalAnswerer<'a> {
         let mut extra_rows: Vec<(Vec<u8>, u16, u32, Vec<u8>)> = Vec::new();
         let mut owned = false;
         let mut windows_filtered = false;
+        let mut preserve_negative_authority = true;
+        let mut cname_terminal = None;
 
         // CNAME processing runs before every other local record path in C.
         // Once an alias is found, its own address/TXT/etc. records are not
@@ -263,7 +265,7 @@ impl<'a> LocalAnswerer<'a> {
                     .any(|record| dotted_key(&record.alias) == key)
             };
         if has_cname {
-            owned = add_cname_chain(
+            let (local_owned, terminal) = add_cname_chain(
                 self.config,
                 self.hosts,
                 &question.name,
@@ -274,6 +276,9 @@ impl<'a> LocalAnswerer<'a> {
                 &mut extra_rows,
                 &mut notices,
             );
+            owned = local_owned;
+            preserve_negative_authority = terminal.is_some();
+            cname_terminal = terminal;
         } else if class_in
             && cache
                 .as_deref()
@@ -287,7 +292,7 @@ impl<'a> LocalAnswerer<'a> {
             return Ok(None);
         } else if class_in {
             if let Some(name) = wire_to_dotted(&question.name) {
-                let (local_rows, local_owned) = add_local_records_for_name(
+                let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
                     self.hosts,
                     &name,
@@ -299,6 +304,7 @@ impl<'a> LocalAnswerer<'a> {
                 );
                 rows.extend(local_rows);
                 owned = local_owned;
+                preserve_negative_authority = !reverse_synthesized;
             }
         }
 
@@ -488,14 +494,16 @@ impl<'a> LocalAnswerer<'a> {
         // publication removes conflicting address entries, not NXDOMAIN.
         // Only completed local answers reach this lookup; ordinary cache
         // misses still return above without doing another name lookup.
-        if class_in && !rule_owned && !local_only && !truncated {
+        if class_in && preserve_negative_authority && !rule_owned && !local_only && !truncated {
             if let Some(cache) = cache.as_deref_mut() {
                 let terminal;
-                let name = if extra_owner == question.name.as_wire() {
-                    &question.name
-                } else {
-                    terminal = super::wire::decode_name(&extra_owner, 0, 0)?.0;
+                // Only actual configured-CNAME traversal moves C's cursor.
+                // Raw TYPE_CNAME bytes are opaque output, including pointers.
+                let name = if let Some(name) = cname_terminal.as_deref() {
+                    terminal = Name::from_dotted_bytes(name)?;
                     &terminal
+                } else {
+                    &question.name
                 };
                 if let Some(id) = cache
                     .lookup(name, &[Kind::NxDomain], now, !self.config.no_round_robin)
@@ -869,7 +877,8 @@ pub(super) fn arpa_address(name: &[u8]) -> Option<IpAddr> {
 /// Resolve a configured CNAME chain and answer the requested RR type at its
 /// terminal owner.  `rows` contains the first CNAME (whose owner is the
 /// question name); subsequent CNAMEs and terminal records use explicit owners
-/// in `extra_rows`.
+/// in `extra_rows`. Return the terminal visited for negative SOA lookup, unless
+/// TYPE_CNAME stopped before visiting it or reverse synthesis changed it.
 fn add_cname_chain(
     config: &DnsConfig,
     hosts: &mut Hosts,
@@ -880,10 +889,10 @@ fn add_cname_chain(
     rows: &mut Vec<(u16, u32, Vec<u8>)>,
     extra_rows: &mut Vec<(Vec<u8>, u16, u32, Vec<u8>)>,
     notices: &mut QueryEvents,
-) -> bool {
+) -> (bool, Option<Vec<u8>>) {
     let ttl = leases.local_ttl;
     let Some(mut current) = wire_to_dotted(alias) else {
-        return false;
+        return (false, None);
     };
     let mut visited = Vec::<Vec<u8>>::new();
     let mut first = true;
@@ -916,12 +925,12 @@ fn add_cname_chain(
         }
         // C's CNAME query stops after the first alias record.
         if qtype == TYPE_CNAME {
-            return true;
+            return (true, None);
         }
         current = record.target.clone();
     }
 
-    let (terminal_rows, _terminal_owned) = add_local_records_for_name(
+    let (terminal_rows, _terminal_owned, reverse_synthesized) = add_local_records_for_name(
         config,
         hosts,
         &current,
@@ -937,12 +946,13 @@ fn add_cname_chain(
     }
     // The alias itself owns the answer even when its terminal target has no
     // matching RR (CNAME-only response).
-    true
+    (true, (!reverse_synthesized).then_some(current))
 }
 
 /// Collect all local records for one owner. The returned rows are ownerless;
 /// callers can use them for the question owner or attach an explicit owner
-/// while following a CNAME.
+/// while following a CNAME. The final flag reports actual reverse synthesis,
+/// which replaces C's name cursor and discards the old reverse-zone SOA.
 fn add_local_records_for_name(
     config: &DnsConfig,
     hosts: &mut Hosts,
@@ -952,7 +962,7 @@ fn add_local_records_for_name(
     leases: LeaseView<'_>,
     cache: Option<&Cache>,
     notices: &mut QueryEvents,
-) -> (Vec<(u16, u32, Vec<u8>)>, bool) {
+) -> (Vec<(u16, u32, Vec<u8>)>, bool, bool) {
     // Raw records and address sources compare dotted names directly. Only
     // the other configured RR loops need a wire-format key.
     let records = &config.records;
@@ -1192,7 +1202,7 @@ fn add_local_records_for_name(
     for row in &rows[mail_start..] {
         notices.record(qlog::CONFIG, name, row.0, &row.2);
     }
-    (rows, owned)
+    (rows, owned, synthetic_reverse_name.is_some())
 }
 
 fn add_typed_records(
