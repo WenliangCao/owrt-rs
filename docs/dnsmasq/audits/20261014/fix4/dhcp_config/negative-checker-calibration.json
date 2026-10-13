@@ -1,0 +1,12 @@
+{
+  "script_sha256": "0280dadb8b0bac11d321f56a84d819c5c5b9a621c2f93594c0d8e5d80726509c",
+  "calibration_sha256": "76ce69bf627ab3faf31e9a16ce05198ce9fcb46e357217c5a3e409a46e1e62f8",
+  "synthetic_checker_calibration": {
+    "identical_response": true,
+    "adjacent_soa_tick": true,
+    "excess_soa_age": true,
+    "flags_mismatch": true,
+    "trailing_bytes": true
+  },
+  "scope": "Audit comparator correctness only; no daemon experiment."
+}

@@ -11,6 +11,23 @@
 - `repairs.json`：重新运行 helper 10 场景、TFTP 96 组合、配置 dump 5 场景、C/main/fix 的 SIGUSR1/SIGALRM 6 场景、C/fix 完整指标摘要 2 场景与强制 lease 持久化恢复 2 场景。
 - `check_evidence.py` 独立重算退出状态、观察字典、TFTP 结果和 dump 字段多重集；`check.json` 为其输出。没有任何性能主张。
 
+## 最新 retained-SOA 修复的 fresh SDK 验证
+
+性能独占窗口结束后，又在最终 SDK 上重新运行 `dhcp_negative_cache_diff.py`、`dhcp_negative_soa_boundaries.py`、`dhcp_negative_cursor_diff.py`。`negative_final.py` 仅复用它们的流量生成，另写独立 DNS wire decoder 验证 header 全字段与计数、完整帧边界、名称指针、owner/type/class/TTL、SOA 两个名称及五个整数、其他 RDATA/OPT、请求对应关系、上游行为和 DHCP header/options/timers。它不会仅信任旧 probe 的 `passed`。
+
+| 套件 | 场景数 | 响应对 | 完整解码精确相同 | 受界限 SOA 时钟差 |
+| --- | ---: | ---: | ---: | ---: |
+| NXDOMAIN 缓存后真实 DHCP 发布 | 24 | 504 | 504 | 0 |
+| direct / cached-CNAME、RD/DO、UDP/TCP、大 SOA 截断、normal/debug | 64 | 256 | 255 | 1 |
+| raw CNAME/ANY、原名/目标 NX、配置别名提前终止、reverse synth/显式 PTR | 12 | 80 | 80 | 0 |
+| 合计 | 100 | 840 | 839 | 1 |
+
+唯一时钟差在 `large0-debug1-alias-tcp-rd0-do1` 的 `ack-visible-a`，authority SOA TTL 为 C=3599、Rust=3600；各自从该实例第一次查询起的 elapsed 是 0.003471 / 0.003687 秒，按墙钟相邻秒边界，下限均为 3599。这不是放宽 DHCP TTL、flags、数据或记录次序的白名单。其余所有字段及上游事务均严格相同。详见 1201 行派生收据 `negative-final.json`，200 个完整侧结果的 SHA256 逐项保留，原始 wire 保留于 Oracle `private/dhcp-config/negative-final-01`。
+
+`negative_checker_calibration.py` 对比较器注入 flags 错误、过大 SOA age、帧尾多余字节，均能拒绝；相同报文和有边界的一秒 SOA 差可以通过。校准收据见 `negative-checker-calibration.json`。
+
+这证明最新 footer/cursor 修复在这 100 个场景有效，没有以 main 的旧错误作为正确答案。这里没有运行 stale NXDOMAIN→DHCP 的时间推进扩展，不据此宣称 stale EDE / 后台刷新已与 C 完全一致。
+
 ## 修复确实生效的证据
 
 | 修复 | 新观察与代码依据 | 归属 / 实际影响 |
@@ -36,6 +53,8 @@ sudo -n sh "$SOURCE/tools/dnsmasq/run_isolated.sh" python3 "$WORK/boundaries.py"
   --source "$SOURCE" --image "$IMAGE" --main "$MAIN" --fix "$FIX" --out "$WORK/boundaries-NEW"
 sudo -n sh "$SOURCE/tools/dnsmasq/run_isolated.sh" python3 "$WORK/repair_checks.py" \
   --source "$SOURCE" --image "$IMAGE" --main "$MAIN" --fix "$FIX" --out "$WORK/repairs-NEW"
+sudo -n sh "$SOURCE/tools/dnsmasq/run_isolated.sh" python3 "$WORK/negative_final.py" \
+  --source "$SOURCE" --image "$IMAGE" --fix "$FIX" --out "$WORK/negative-final-NEW"
 ```
 
 原始合成 config / wire / daemon logs 留在 Oracle `private/dhcp-config/boundaries-01` 与 `repairs-01`。Git 中仅脚本与派生结果。`boundaries.py` 比较 DHCP 解析后 option、lease 字段、DNS owner/type/address；没有把 transaction id、绝对租期时钟或者 C/Rust 内部内存布局当作语义差异。
