@@ -1,0 +1,50 @@
+# TCP shared-answer repair verification
+
+`validation_driver.py prepare` freezes a new output directory, product/tool/ELF
+identities and the complete command inventory. `run` executes it sequentially and
+keeps failures intact. All daemon correctness checks use the real SDK payload;
+release performance and SDK compilation use separate controllers.
+
+The ten directed commands replay F02, fresh NXDOMAIN/DHCP publication, F08 stale,
+R1 terminal records, R1 RD/DO controls, N1, the third-review DNS matrix, the original
+A10/DNS boundary probe, N2, and an added same-connection TCP/UDP comparison.
+The thirteen complete affected families contribute 34 registry commands:
+`m5_dns_cache`, `m5_edns`, `m5_local_records`, `m5_option_matrix`,
+`m5_option_matrix_next`, `m5_option_matrix_third`, `m5_option_matrix_lease_names`,
+`m5_rr_filter`, `filterwin2k`, `m5_dns_endpoints`, `m5_interface_records`,
+`dns-files`, and `logging-all-scopes`. Registry checks and full case inventories
+are preserved. The SDK link map must belong to the actual SDK ELF; this round's
+second clean build preserves the map and checks ELF/APK byte identity.
+
+`tcp_udp_parity.py` reuses the third-review profile definitions and packet vectors.
+Its 1,736 paired cases cover 14 profiles, positive/negative terminals, ordinary and
+debug mode, 10 query types and RD/DO controls. Every tested protocol starts from a
+HUP-cleared cache; TCP warms and queries on the same connection. All header bits,
+questions, section counts and order, owner/type/class/RDATA, OPT words and trailing
+bytes are compared. Compression and ordinary RR TTL aging are normalized; full
+wire and upstream observations remain in private results. Large UDP replies may
+only differ from TCP when the C control exhibits the same truncation and both
+implementations match their respective C transport.
+
+The original matrix proves nine C-internal, nontruncating protocol differences:
+`target-local-positive` queries `6/12/15/16/28/33/255/257-rd`, and
+`target-literal-positive/255-rd`. For these exact cases, the required shared behavior
+is Rust TCP = Rust UDP = current C UDP, including upstream counts. This preserves
+the requested single answering path instead of adding C's transport-specific
+routing behavior. No other routing difference is waived.
+
+Two inherited `forward-pointer` parser differences in the original malformed
+matrix are compared against their exact prior Rust result, retained in
+`historical-differences.json`. F08 stale is fully replayed and reported separately:
+its execution/health check never becomes an equivalence claim when the old EDE
+difference remains. N2 must match C's deliberate post-privilege-drop file reading.
+
+Offline calibration against the retained third-review raw inputs rejects the old
+artifact: the matrix checker finds 260 wrong TCP answers and their 260 transport
+mismatches; the N1 checker finds 48 wrong answers. The nine C-internal routing
+cases and two inherited parser cases do not suppress any additional failures.
+The source raw matrix SHA is
+`eecdbd9fc68be4ae86a6b24a607874d5c9fe36b9ecd5b96812bada64fd800fc9`;
+N1 raw SHA is
+`2b5a7a7052d92708b8ffe21e4b6b07b596c061b43d65739df9c0eb98869f1fb6`.
+This calibration is read-only, not a new daemon run.
