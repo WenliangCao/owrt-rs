@@ -1,0 +1,59 @@
+{
+  "scope": "Evidence-only final closure; no build, test, daemon or performance window started.",
+  "local_witness_attempts": [
+    {
+      "interpreter": "python3",
+      "mode": "git-witness",
+      "exit_code": 1,
+      "error": "ModuleNotFoundError: No module named 'tomllib'",
+      "witness_written": false
+    },
+    {
+      "interpreter": "/opt/homebrew/bin/python3.14",
+      "mode": "git-witness",
+      "exit_code": 0,
+      "witness": {
+        "path": "docs/dnsmasq/audits/20261012/fix3_repairs/types-git-witness.json",
+        "sha256": "edde6398c6dd3555e09d88c28e2d0ec47dbb7b870d009c75b7459eb8f47c2ad4",
+        "bytes": 21703
+      }
+    }
+  ],
+  "remote": {
+    "host": "oracle",
+    "via": [
+      "sudo",
+      "-n",
+      "python3"
+    ],
+    "argv": [
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types_final_closure.py",
+      "remote",
+      "--git-witness",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/git-witness-types-final-01.json",
+      "--functional-plan",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-v2-plan.json",
+      "--functional-receipt",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-derived/validation-types.json",
+      "--functional-raw-index",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/functional-types-derived/validation-types-raw-index.json",
+      "--performance-out",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-types-01",
+      "--ready-receipt",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/performance-types-ready.json",
+      "--out",
+      "/home/ubuntu/dnsmasq-fix3-repair-20261013/private/types-final-closure-01.json"
+    ],
+    "exit_code": 0,
+    "result": {
+      "path": "docs/dnsmasq/audits/20261012/fix3_repairs/types-final-closure.json",
+      "sha256": "efa811d8bf922d0062c31823eb7f495e8cda7002f647b2161ef22d8eca1059d3",
+      "bytes": 475434
+    }
+  },
+  "controller": {
+    "path": "docs/dnsmasq/audits/20261012/fix3_repairs/types_final_closure.py",
+    "sha256": "acf9572906bc909b1cbe6089dd323c98af8e72fb3d4a1d801d23f7987100b21d",
+    "bytes": 29856
+  }
+}
