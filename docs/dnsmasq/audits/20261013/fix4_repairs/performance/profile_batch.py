@@ -3,6 +3,7 @@
 
 prepare --base-plan RAW_AFTER/plan.json --source SOURCE_SCAN_V2 --output FRESH
         [--include-tcp] [--main-map-build DIRECTORY/build.json]
+        [--type-absent-plan TYPE_ABSENT/plan.json]
 run --output FRESH
 decode --output FRESH
 
@@ -53,6 +54,11 @@ def prepare(args):
     tools = args.source / 'tools/dnsmasq'
     assets = [Path(__file__).resolve(), args.base_plan.resolve(), *tools.glob('*.py'), tools / 'run_isolated.sh']
     groups = copy.deepcopy(base['groups'])
+    absent = read(args.type_absent_plan) if args.type_absent_plan else None
+    if absent:
+        need(absent['suite'] == 'original-type-absent-short', 'expected original TYPE65401/abcd plan')
+        need(absent['groups']['current']['sha256'] == groups['current']['sha256'], 'type-absent candidate differs')
+        assets.append(args.type_absent_plan.resolve())
     for variant, group in groups.items():
         elf = Path(group['elf'])
         need(sha(elf) == group['sha256'] and elf.stat().st_size == group['bytes'], 'frozen ELF changed')
@@ -81,13 +87,20 @@ def prepare(args):
     selected = [('udp-raw-a-100', 'c', 100), ('udp-raw-a-100', 'current', 100)]
     if args.include_tcp:
         selected = [('tcp-ordinary', 'main', 0), ('tcp-ordinary', 'current', 0), *selected]
+    if absent:
+        selected.append(('tcp-absent-1000', 'current', 1000))
     windows = []
     for profile, variant, count in selected:
         template_profile = 'tcp-raw-a-100' if profile == 'tcp-ordinary' else profile
-        template = next(row for row in base['windows'] if row['profile'] == template_profile
+        source_plan = absent if profile == 'tcp-absent-1000' else base
+        template = next(row for row in source_plan['windows'] if row['profile'] == template_profile
                         and row['variant'] == variant and row['round'] == 1)
         argv = list(template['argv'])
-        need(Path(argv[3]).name == 'raw_window.py', 'unexpected configured-record wrapper')
+        is_absent = profile == 'tcp-absent-1000'
+        expected_wrapper = 'type_absent_window.py' if is_absent else 'raw_window.py'
+        need(Path(argv[3]).name == expected_wrapper, 'unexpected configured-record wrapper')
+        need(sha(argv[3]) == source_plan['assets'][argv[3]], 'wrapper differs from its frozen configuration plan')
+        need(template['rrtype'] == int(argv[6]) == (65401 if is_absent else 1), 'raw RR type differs')
         assets.extend([Path(argv[3]), Path(argv[argv.index('--loadgen') + 1]), Path(argv[argv.index('--upstream') + 1])])
         argv[1], argv[4], argv[5] = str(tools / 'run_isolated.sh'), str(args.source), str(count)
         ident = profile + '-' + variant
@@ -100,9 +113,13 @@ def prepare(args):
         need('--preflight' in argv and '--perf-record' not in argv, 'diagnostic base options')
         argv += ['--perf-record', '--perf-event', 'cpu-clock', '--perf-call-graph', 'none']
         windows.append({'id': ident, 'profile': profile, 'variant': variant,
-                        'declarations': count, 'argv': argv, 'timeout_seconds': 450})
+                        'declarations': count, 'rrtype': template['rrtype'],
+                        'raw_payload_hex': ('abcd' if is_absent else 'c0000201') if count else None,
+                        'argv': argv, 'timeout_seconds': 450})
     save(args.output / 'plan.json', {'scope': 'Excluded attribution only; no primary CPU/latency acceptance claims',
-         'source': str(args.source), 'base_plan_sha256': sha(args.base_plan), 'groups': groups, 'windows': windows,
+         'source': str(args.source), 'base_plan_sha256': sha(args.base_plan),
+         'type_absent_plan_sha256': sha(args.type_absent_plan) if absent else None,
+         'groups': groups, 'windows': windows,
          'method': 'Serial fixed 1000QPS/20clients, warmup30/measure300, cpu-clock997 without callgraph. '
                    'Per-scenario same seed/config. Trace covers warmup+measurement+drain. No retries.',
          'assets': {str(path): sha(path) for path in sorted(set(assets))}})
@@ -187,6 +204,12 @@ def decode(args):
         configs.setdefault(window['profile'], set()).add(sha(folder / 'config'))
         if window['declarations']:
             direct = read(folder / 'same-type-proof.json')
+            expected_lines = [f"dns-rr=unused{i}.audit.test,{window['rrtype']},{window['raw_payload_hex']}"
+                              for i in range(window['declarations'])]
+            need([line for line in (folder / 'config').read_text().splitlines() if line.startswith('dns-rr=')]
+                 == expected_lines, 'raw configuration type/payload/order differs from frozen diagnostic')
+            need(direct['declarations'] == window['declarations'] and direct['rrtype'] == window['rrtype'],
+                 'direct raw proof differs from diagnostic configuration')
             need(set(direct['replies']) == {'udp', 'tcp'} and all(
                 row['correct'] and int.from_bytes(bytes.fromhex(row['hex'])[2:4], 'big') == 0x8580
                 for row in direct['replies'].values()), 'configured raw proof must be authoritative')
@@ -224,6 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('--base-plan', type=Path)
     parser.add_argument('--source', type=Path)
     parser.add_argument('--main-map-build', type=Path)
+    parser.add_argument('--type-absent-plan', type=Path)
     parser.add_argument('--include-tcp', action='store_true')
     args = parser.parse_args()
     globals()[args.action](args)
