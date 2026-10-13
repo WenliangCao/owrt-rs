@@ -93,3 +93,20 @@ original `result.json` bytes must be unchanged. The gate and subsequent source-r
 audit enforce the receipts; they are not bypassed. The final collector separately
 binds archives, manifests, local verification, pack/prune/restore receipts and
 retained result bytes.
+
+For the subsequent raw-type-summary artifact, `types_validation_driver.py` freezes
+and executes 49 fresh commands in a single sequence. It reruns all previous 47
+commands against the new SDK payload, adds the complete `m5_config_inputs` family,
+and runs the existing 19-case `contract_inventory.py --state-differential` corpus.
+The latter compiles separate native C/Rust configuration probes and records their
+identities separately; it is not described as an SDK daemon execution. The 48
+remaining commands use the SDK payload (14 complete families / 35 registry
+commands, plus 13 directed commands). No previous pass is reused.
+
+The original DNS script now records its fresh result without `--require-match`;
+`types_result_checks.py` immediately applies the exact previously calibrated two
+forward-pointer checks, full profile health checks and strict equality for the
+other 366 responses. This avoids manufacturing another expected script failure
+without weakening the asserted behavior. Previous plans, failed state and all
+performance/functional evidence remain unchanged. The normal full unit suite also
+covers the type summary's default, duplicate, clone and failed-insertion behavior.
