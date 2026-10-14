@@ -1,0 +1,368 @@
+{
+  "schema": 1,
+  "baseline_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "rust_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "kernel": "6.17.0-1020-oracle",
+  "scope": "Recovered two same-corpus baseline daemon runs, independently checked saved wires, and performed a fresh bounded cache/caller supplement; not integrated-fix or complete-cache qualification.",
+  "protocol_runs": [
+    {
+      "oracle_original": "/tmp/full-audit-dns-boundary/private/run/result.json",
+      "completed_utc": "2026-10-14T12:19:09.564277+00:00",
+      "execution": "Earlier in the same audit; recovered and independently rechecked during resume",
+      "driver_sha256": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb",
+      "paired_cases": 368,
+      "exact_client_matches": 366,
+      "profiles": {
+        "local": {
+          "paired_cases": 116,
+          "upstream_requests_each_side": 0
+        },
+        "forward": {
+          "paired_cases": 84,
+          "upstream_requests_each_side": 86
+        },
+        "filter": {
+          "paired_cases": 84,
+          "upstream_requests_each_side": 86
+        },
+        "rebind": {
+          "paired_cases": 84,
+          "upstream_requests_each_side": 86
+        }
+      },
+      "differences": [
+        {
+          "profile": "local",
+          "case": "forward-pointer",
+          "protocol": "udp",
+          "classification": "C compression cycle; Rust valid expanded answer"
+        },
+        {
+          "profile": "local",
+          "case": "forward-pointer",
+          "protocol": "tcp",
+          "classification": "C compression cycle; Rust valid expanded answer"
+        }
+      ],
+      "daemon_lifecycles": 8,
+      "input_sha256": "8c68f414b59bd1ebb4a313d6e224558f2d1b22bcfd175d0f059c7ef191687570",
+      "checker_sha256": "a5c370e10e1879f2dcead1e2323d71ce75005858979b90ff09e2ef69413499eb",
+      "negative_controls": [
+        {
+          "control": "missing-case",
+          "rejected": true
+        },
+        {
+          "control": "changed-wire",
+          "rejected": true
+        },
+        {
+          "control": "failed-health",
+          "rejected": true
+        },
+        {
+          "control": "forged-comparison",
+          "rejected": true
+        }
+      ]
+    },
+    {
+      "oracle_original": "/tmp/full-audit-dns2-20261014/private/protocol-matrix/result.json",
+      "completed_utc": "2026-10-14T12:33:30.334739+00:00",
+      "execution": "Earlier in the same audit; recovered and independently rechecked during resume",
+      "driver_sha256": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb",
+      "paired_cases": 368,
+      "exact_client_matches": 366,
+      "profiles": {
+        "local": {
+          "paired_cases": 116,
+          "upstream_requests_each_side": 0
+        },
+        "forward": {
+          "paired_cases": 84,
+          "upstream_requests_each_side": 86
+        },
+        "filter": {
+          "paired_cases": 84,
+          "upstream_requests_each_side": 86
+        },
+        "rebind": {
+          "paired_cases": 84,
+          "upstream_requests_each_side": 86
+        }
+      },
+      "differences": [
+        {
+          "profile": "local",
+          "case": "forward-pointer",
+          "protocol": "udp",
+          "classification": "C compression cycle; Rust valid expanded answer"
+        },
+        {
+          "profile": "local",
+          "case": "forward-pointer",
+          "protocol": "tcp",
+          "classification": "C compression cycle; Rust valid expanded answer"
+        }
+      ],
+      "daemon_lifecycles": 8,
+      "input_sha256": "bb8bd4a503a9c286f1e8c4851fcba4f95a5c32e5a72441971a74ee5d3c93c2f1",
+      "checker_sha256": "a5c370e10e1879f2dcead1e2323d71ce75005858979b90ff09e2ef69413499eb",
+      "negative_controls": [
+        {
+          "control": "missing-case",
+          "rejected": true
+        },
+        {
+          "control": "changed-wire",
+          "rejected": true
+        },
+        {
+          "control": "failed-health",
+          "rejected": true
+        },
+        {
+          "control": "forged-comparison",
+          "rejected": true
+        }
+      ]
+    }
+  ],
+  "cache": {
+    "selected_boundaries": [
+      "EXTRACT-BASE",
+      "NEGATIVE",
+      "ROUND-ROBIN",
+      "TCP-CALLERS"
+    ],
+    "selected_case_count": 110,
+    "passed_case_count": 110,
+    "missing_required_cases": [],
+    "differences": [],
+    "full_cache_family_qualified": false,
+    "wire_verification": [
+      {
+        "side": "c",
+        "scenarios": 110,
+        "observations": 337,
+        "upstream_wires": 150,
+        "all_process_hashes_match": true,
+        "wire_receipts_match_report": true,
+        "driver_sha256": "75e0f13cf03338f2653facd8471fadf48a49107c5bd261218d204fb32e2d7f80",
+        "manifest_sha256": "3e4973239e423f6f68bcd306a53e39a2e06b887a71da1a486aa6ba9c2ab9e359",
+        "report_sha256": "0384b30fbede23cac3ab8da14b617210c5fd9ad4734d99d8ee39664220096da0"
+      },
+      {
+        "side": "rust",
+        "scenarios": 110,
+        "observations": 337,
+        "upstream_wires": 150,
+        "all_process_hashes_match": true,
+        "wire_receipts_match_report": true,
+        "driver_sha256": "75e0f13cf03338f2653facd8471fadf48a49107c5bd261218d204fb32e2d7f80",
+        "manifest_sha256": "3e4973239e423f6f68bcd306a53e39a2e06b887a71da1a486aa6ba9c2ab9e359",
+        "report_sha256": "a7b2c40393502a02efe455f6f7aa99558bf6aeb7bacaed16e93010a464f6376d"
+      }
+    ],
+    "negative_control_count": 452,
+    "negative_controls_all_rejected": true,
+    "reference_order_variation": [
+      "round-reverse-default",
+      "round-reverse-disabled"
+    ],
+    "additional_c_runs": 5,
+    "additional_c_scenarios_each": 2,
+    "retained_initial_comparisons": [
+      {
+        "file": "private/cache-comparison.json",
+        "passed": 108,
+        "differences": [
+          "round-reverse-default",
+          "round-reverse-disabled"
+        ]
+      },
+      {
+        "file": "private/cache-comparison-with-c-order.json",
+        "passed": 109,
+        "differences": [
+          "round-reverse-disabled"
+        ]
+      }
+    ],
+    "ttl_policy": "Existing frozen comparator: named, measured integer-second/expiry windows only; no blanket TTL removal. PTR order relaxation enabled only by fresh C variation plus stable within-process order.",
+    "c_order_proof": {
+      "round-reverse-default": {
+        "distinct_orders": 5,
+        "runs": [
+          {
+            "run": "cache-c",
+            "cached_order": [
+              "first.cache.test",
+              "third.cache.test",
+              "second.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-repeat",
+            "cached_order": [
+              "first.cache.test",
+              "second.cache.test",
+              "third.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-2",
+            "cached_order": [
+              "second.cache.test",
+              "third.cache.test",
+              "first.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-3",
+            "cached_order": [
+              "second.cache.test",
+              "first.cache.test",
+              "third.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-4",
+            "cached_order": [
+              "third.cache.test",
+              "second.cache.test",
+              "first.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-5",
+            "cached_order": [
+              "second.cache.test",
+              "first.cache.test",
+              "third.cache.test"
+            ],
+            "stable_queries": 5
+          }
+        ]
+      },
+      "round-reverse-disabled": {
+        "distinct_orders": 4,
+        "runs": [
+          {
+            "run": "cache-c",
+            "cached_order": [
+              "third.cache.test",
+              "second.cache.test",
+              "first.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-repeat",
+            "cached_order": [
+              "third.cache.test",
+              "second.cache.test",
+              "first.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-2",
+            "cached_order": [
+              "first.cache.test",
+              "third.cache.test",
+              "second.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-3",
+            "cached_order": [
+              "first.cache.test",
+              "second.cache.test",
+              "third.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-4",
+            "cached_order": [
+              "first.cache.test",
+              "second.cache.test",
+              "third.cache.test"
+            ],
+            "stable_queries": 5
+          },
+          {
+            "run": "cache-c-order-5",
+            "cached_order": [
+              "second.cache.test",
+              "third.cache.test",
+              "first.cache.test"
+            ],
+            "stable_queries": 5
+          }
+        ]
+      }
+    }
+  },
+  "dhcp_tcp_callers": {
+    "cases": [
+      "tcp-parent-lease-added",
+      "tcp-parent-lease-renamed",
+      "tcp-parent-lease-released",
+      "tcp-existing-lease-ttl"
+    ],
+    "qualified": true,
+    "negative_control_count": 9,
+    "negative_controls_all_rejected": true,
+    "timing_guard": "Each side first TTL 119..120 must stay EXACTLY unchanged after real 3.2s; ACK-to-accept may cross one integer second. All other fields/upstream counts exact."
+  },
+  "archive": {
+    "local_path": "private/full-audit-20261014/dns/oracle-evidence.tar.gz",
+    "oracle_path": "/home/ubuntu/full-audit-dns-resume-20261014/evidence.tar.gz",
+    "sha256": "30e488e17130a4c3d5b9797703b1cb3583022c3febcac7af1dfd7f7e8d077bc2",
+    "bytes": 903566,
+    "scope": "Original protocol result wires, cache packets/configuration/traces, all comparisons including failures, runners, driver snapshots, invocation and closeout receipts; generated image overlay copies excluded."
+  },
+  "receipts": {
+    "private/protocol-first.json": "8c68f414b59bd1ebb4a313d6e224558f2d1b22bcfd175d0f059c7ef191687570",
+    "private/protocol-repeat.json": "bb8bd4a503a9c286f1e8c4851fcba4f95a5c32e5a72441971a74ee5d3c93c2f1",
+    "private/protocol-first-checked.json": "d60cf6bdabf3af7f04c17e162fc3239bca79b6df45b11aae78e6e7e0eb896a6c",
+    "private/protocol-repeat-checked.json": "47d20695fb3cbd412e28a54d7933af27776254b97b43617d0f3c1377ef814adb",
+    "private/selection.json": "d8f7577c923c85af7bca5779146c9f69e947a1d145cb4e63aa697254b2618a4a",
+    "private/invocations.json": "5178bf166de1fae701136629baa90a9b54ef6701d930c5c483ded079b426eb70",
+    "private/c-order-panel-invocations.json": "27d9e74a9ddf00b215ec54763b4c5ef61ef96e75a9a11c9cf40b3a82c8e08db7",
+    "private/cache-c/result.json": "0384b30fbede23cac3ab8da14b617210c5fd9ad4734d99d8ee39664220096da0",
+    "private/cache-rust/result.json": "a7b2c40393502a02efe455f6f7aa99558bf6aeb7bacaed16e93010a464f6376d",
+    "private/cache-comparison.json": "6e20400cceb6aaf70cec8048a9dbfcc85fd5d09e9b27e948e36d24886d2dc665",
+    "private/cache-comparison-with-c-order.json": "9d2ae083e00cdaa56f276dedfea1546ca19c906b0fdcd4f33716de68ee456ced",
+    "private/cache-comparison-final.json": "050095d4edbf45159bc7c368a7d939e9f3779b8afe3fe34ab0ffd38060411351",
+    "private/cache-wire-verification.json": "fc419d9137e0c8f6f8d3f2b5c5c4b61b2112d289565c5c925be8bcae78c7b7bb",
+    "private/dhcp-caller.json": "73d21845f353b81f9581c3a379cd04f1263e4e052be3e5ad24dd19d1f9811ffa",
+    "private/closeout.json": "359ec7f67fa1d26949017effb568bcf6c2040e22fa2422d849d4e379c846456f",
+    "run_cache.py": "f47999bdabb1243d3d30891b5fe4d993f49ed9f1819dcad3f51f02d2370a78f6",
+    "run_order_panel.py": "396583f0d4a33ce545fdf31dac00e2a6a9243789a0fd9a31119792cb2cea5703",
+    "verify_cache_receipts.py": "7988fdb839f10dd208d61a08f6672f58c362d5599878466f43e2420b126678ff",
+    "check_full_audit_dns.py": "a5c370e10e1879f2dcead1e2323d71ce75005858979b90ff09e2ef69413499eb"
+  },
+  "closeout": {
+    "owned_daemon_processes": [],
+    "host_mounts": [],
+    "product_changes": false,
+    "router_operations": false
+  },
+  "limitations": [
+    "Two protocol runs repeat one 368-pair corpus; not 736 distinct scenarios.",
+    "Protocol matrix uses cache-size=0; its only byte differences are independently decoded C compression cycles versus valid Rust answers.",
+    "Cache supplement covers 110 selected scenarios and does not qualify the complete cache family.",
+    "No final integrated ELF/APK, physical router, resource-failure, long-term fuzz or hardware-performance qualification."
+  ],
+  "client_transport_note": "The first SSH client remained open after the remote runner had exited. It was locally terminated only after checking the remote runner was absent. Durable invocation receipts retain C/Rust exit 0 and initial comparison exit 1; no experiment rerun was caused by the client transport."
+}
