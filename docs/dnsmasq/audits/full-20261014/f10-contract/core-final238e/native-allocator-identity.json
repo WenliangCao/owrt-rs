@@ -1,0 +1,12 @@
+{
+  "source_commit": "238e7ca4374b1889696f91816c1c239d7fe32baa",
+  "original_path": "/dev/shm/full-final-allocator-20261014/target/debug/deps/hosts_allocations-ef15544cf29b1da2",
+  "sha256": "90569be292b6bbd2040a669a2d5c48fea8dda8043b1fb9565ed156fe856b859a",
+  "bytes": 34155744,
+  "log_sha256": "1311a226c16339f4b447cda475e7ee3c8a3f4340aa5b91dfa206d649263a2989",
+  "local_archive": {
+    "path": "private/f10-product-20261014/native-allocator-final238e.tar.gz",
+    "sha256": "426b0b79fe1bdc267f0f5b8e9d0ba783b68ab4b5826da2871bdf3a337e7f1534",
+    "bytes": 6393073
+  }
+}
