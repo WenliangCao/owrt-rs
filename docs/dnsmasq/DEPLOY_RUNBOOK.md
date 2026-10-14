@@ -1,5 +1,7 @@
 # dnsmasq 受监护上线与 ROM C 回退
 
+> **已被 [TRIAL_RUNBOOK](TRIAL_RUNBOOK.md) 取代。** 本文的控制器在[上线前复核](PREDEPLOY_RECHECK.md)中发现 R1/R3/R5 等回退缺陷，保留作为历史记录，不再用于真机。
+
 本流程对应 [上线前审计 B](PREDEPLOY_AUDIT_INTEGRATION.md) 的 B2、B3、B4、B5。目标是在一个受限、可核验的上线窗口内启用 dnsmasq-rs，失败时自动恢复精确镜像的 C dnsmasq。**上线机制通过不等于 Rust 产品的全部上线门槛通过**；B1、资源和协议审计的独立阻断仍须另行处理。
 
 本次只在 Oracle 的精确镜像 rootfs 隔离环境实施和验证；没有操作物理路由器、刷写固件或推送代码。Oracle 用户空间来自目标镜像，宿主内核不等于目标 OpenWrt 内核。物理设备操作须另有明确授权和通过恢复门；Wi-Fi 管理允许，不要求先接 LAN 电缆。

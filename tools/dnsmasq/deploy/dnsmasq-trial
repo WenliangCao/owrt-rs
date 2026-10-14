@@ -1,0 +1,138 @@
+#!/bin/sh
+# Temporary dnsmasq-rs trial on the stock AX3000T image.
+#
+# The candidate is bind-mounted over /usr/sbin/dnsmasq and run by the stock
+# init/procd/ujail. Nothing is written to flash, so a reboot always returns
+# to C. Rollback only unmounts and restarts the stock service; it keeps no
+# state and is safe to run any number of times, from any process.
+#
+#   dnsmasq-trial start CANDIDATE SHA256 NAME [DNS] [SECONDS]
+#   dnsmasq-trial confirm      keep the candidate until reboot or rollback
+#   dnsmasq-trial rollback     back to the C in /rom, idempotent
+#   dnsmasq-trial status
+set -u
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+BIN=/usr/sbin/dnsmasq
+ROM=/rom/usr/sbin/dnsmasq
+DIR=/tmp/dnsmasq-trial
+SELF=$(readlink -f "$0")
+
+log() { logger -t dnsmasq-trial "$*"; echo "dnsmasq-trial: $*"; }
+fail() { log "$*"; exit 1; }
+hash() { sha256sum "$1" 2>/dev/null | cut -d ' ' -f 1; }
+mounted() { grep -q " $BIN " /proc/mounts; }
+
+# Every running dnsmasq executable (TCP children included) must be $1.
+# pidof also reports procd's ujail wrapper, whose executable is not dnsmasq.
+running() {
+    found=
+    for pid in $(pidof dnsmasq); do
+        case "$(readlink "/proc/$pid/exe" 2> /dev/null)" in
+        */dnsmasq | */dnsmasq\ \(deleted\)) ;;
+        *) continue ;;
+        esac
+        [ "$(hash "/proc/$pid/exe")" = "$1" ] || return 1
+        found=1
+    done
+    [ -n "$found" ]
+}
+
+# A local answer from the running daemon within three seconds.
+answers() {
+    nslookup "$NAME" "$DNS" > /dev/null 2>&1 &
+    probe=$!
+    for _ in 1 2 3; do
+        sleep 1
+        kill -0 "$probe" 2> /dev/null || { wait "$probe"; return; }
+    done
+    kill "$probe" 2> /dev/null
+    return 1
+}
+
+stop_helpers() {
+    for f in "$DIR"/*.pid; do
+        [ -f "$f" ] || continue
+        pid=$(cat "$f")
+        [ "$pid" = "$$" ] || kill "$pid" 2> /dev/null
+        rm -f "$f"
+    done
+}
+
+rollback() {
+    stop_helpers
+    while mounted; do umount "$BIN" 2> /dev/null || umount -l "$BIN"; done
+    /etc/init.d/dnsmasq restart
+    c=$(hash "$ROM")
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        running "$c" && { log "rollback (${1:-manual}): C is running"; return 0; }
+        sleep 1
+    done
+    fail "rollback (${1:-manual}): C not confirmed running; check 'ps' and '/etc/init.d/dnsmasq'"
+}
+
+# Three failed checks in a row (about 15 s) return to C. procd still
+# respawns a crashed candidate; an exhausted respawn shows up here.
+watch() {
+    misses=0
+    while mounted; do
+        sleep 5
+        if running "$SHA" && answers; then misses=0; else misses=$((misses + 1)); fi
+        [ "$misses" -lt 3 ] || exec "$SELF" rollback watch
+    done
+}
+
+background() {
+    name=$1; shift
+    setsid "$@" < /dev/null > /dev/null 2>&1 &
+    echo $! > "$DIR/$name.pid"
+}
+
+case "${1:-}" in
+start)
+    [ "$#" -ge 4 ] || fail 'usage: start CANDIDATE SHA256 NAME [DNS] [SECONDS]'
+    CANDIDATE=$2 SHA=$3 NAME=$4 DNS=${5:-127.0.0.1} SECONDS_LEFT=${6:-600}
+    mounted && fail 'a trial is already active; run rollback first'
+    [ "$(hash "$CANDIDATE")" = "$SHA" ] || fail 'candidate hash mismatch'
+    [ "$(hash "$BIN")" = "$(hash "$ROM")" ] || fail "$BIN differs from $ROM"
+    { running "$(hash "$ROM")" && answers; } || fail 'stock C is not healthy; not starting'
+    mkdir -p "$DIR"
+    cp "$CANDIDATE" "$DIR/dnsmasq" && chmod 755 "$DIR/dnsmasq"
+    [ "$(hash "$DIR/dnsmasq")" = "$SHA" ] || fail 'copied candidate hash mismatch'
+    printf '%s %s %s\n' "$SHA" "$NAME" "$DNS" > "$DIR/args"
+    # The dead-man timer exists before the candidate does.
+    background deadline sh -c "sleep $SECONDS_LEFT; exec '$SELF' rollback deadline"
+    mount --bind "$DIR/dnsmasq" "$BIN"
+    /etc/init.d/dnsmasq restart
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        if running "$SHA" && answers; then
+            background watch "$SELF" _watch
+            log "candidate running; rollback in ${SECONDS_LEFT}s unless confirmed"
+            exit 0
+        fi
+        sleep 1
+    done
+    rollback start-failed
+    exit 1
+    ;;
+_watch)
+    read -r SHA NAME DNS < "$DIR/args" || exit 1
+    watch
+    ;;
+confirm)
+    mounted || fail 'no active trial'
+    pid=$(cat "$DIR/deadline.pid" 2> /dev/null) && kill "$pid" 2> /dev/null
+    rm -f "$DIR/deadline.pid"
+    log 'confirmed; health watch continues until reboot or rollback'
+    ;;
+rollback)
+    rollback "${2:-manual}"
+    ;;
+status)
+    if mounted; then echo "trial active: $(cut -d ' ' -f 1 "$DIR/args" 2> /dev/null)"; else echo 'stock C'; fi
+    for pid in $(pidof dnsmasq); do echo "pid $pid $(readlink "/proc/$pid/exe") $(hash "/proc/$pid/exe")"; done
+    ;;
+*)
+    sed -n '9,12p' "$0"
+    exit 2
+    ;;
+esac
