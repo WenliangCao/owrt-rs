@@ -31,7 +31,11 @@ def main():
     main_rs = copied / 'dnsmasq/src/main.rs'
     original_sha = sha(main_rs)
     harness = Path(__file__).with_suffix('.rs')
-    main_rs.write_text(main_rs.read_text() + '\n' + harness.read_text())
+    daemon_source = copied / 'dnsmasq/src/dns/daemon.rs'
+    retirement = 'pub fn retire_cache_for_process_exit(' in daemon_source.read_text()
+    harness_text = harness.read_text().replace('/* RETIRE_CACHE */',
+        'daemon.retire_cache_for_process_exit();' if retirement else '')
+    main_rs.write_text(main_rs.read_text() + '\n' + harness_text)
     environment = os.environ.copy()
     environment['CARGO_TARGET_DIR'] = str(args.target_dir.resolve())
     argv = [args.cargo, '+1.98.1', 'test', '--frozen', '--jobs', '1',
@@ -49,7 +53,9 @@ def main():
     shutil.copy2(binaries[0], out / 'owner-allocation')
     report = {'original_main_sha256': original_sha, 'harness_sha256': sha(harness),
               'instrumented_main_sha256': sha(main_rs), 'argv': argv,
-              'elf_sha256': sha(out / 'owner-allocation'), 'timing_prohibited': True}
+              'elf_sha256': sha(out / 'owner-allocation'), 'timing_prohibited': True,
+              'terminal_cache_retirement': retirement,
+              'daemon_sha256': sha(daemon_source)}
     (out / 'build.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report))
 

@@ -1,0 +1,82 @@
+{
+  "scope": "Untimed actual DnsDaemon destruction in an independent native Linux probe process; explicit 1000-entry empty cache; necessary IO objects drop normally; retirement only valid at executable terminal success",
+  "runs": {
+    "baseline": {
+      "counts": {
+        "cache_records": 1000,
+        "deallocations": 106,
+        "freed_bytes": 96033,
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "build": {
+        "original_main_sha256": "59bc447f2d9aac2536816b305895151bb3e05d7924c163e7b66fb151623ac46c",
+        "harness_sha256": "e940d1a75a769c3b4f5119de6e385e7fc8e2eba55e7a163dd0c04ae3b750809e",
+        "instrumented_main_sha256": "a3540ffafebd766d74dc6d3c4f3193c4046123d92f6eff9f9f7aebda814fba7f",
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-exit-baseline-r2/input/components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "elf_sha256": "289780660218e71489e6c68ea281132036c879f7b5a35c9d3a0fcf76883d31e3",
+        "timing_prohibited": true,
+        "terminal_cache_retirement": false,
+        "daemon_sha256": "ff84cd3c3baeee93c66ad67a43107c985409530000799fca1e5122a5232131bc"
+      }
+    },
+    "candidate": {
+      "counts": {
+        "cache_records": 1000,
+        "deallocations": 7,
+        "freed_bytes": 2785,
+        "fds_before": 4,
+        "fds_after": 4
+      },
+      "build": {
+        "original_main_sha256": "8cd6173427c8ee6551ac93fb0e7c23273601e730057f5dd86acdbf2818eb14a2",
+        "harness_sha256": "e940d1a75a769c3b4f5119de6e385e7fc8e2eba55e7a163dd0c04ae3b750809e",
+        "instrumented_main_sha256": "8092beb7bb46b151d3e6fbcd38c66fa35ae5a603c6fa02ebf2bf43f3ccff8e51",
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "test",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-exit-candidate-r2/input/components/dnsmasq/Cargo.toml",
+          "--bin",
+          "dnsmasq-rs",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "elf_sha256": "38006ed41dd02a49bdecd85f4873ac027443e7999cafef5993413108eae9c352",
+        "timing_prohibited": true,
+        "terminal_cache_retirement": true,
+        "daemon_sha256": "f227e3ea86c520fddae6c2c5fd5a9f7586b36b2faf1a33c14f85db07f08decd9"
+      }
+    }
+  },
+  "independent_review": "correctness agent statically verified only caller is final successful run_inner\u2192run\u2192main return; recursive Cache contents have no IO/custom Drop; normal persistence/helper/endpoint/log/PID cleanup remains",
+  "harness_correction": "First diagnostic-only builds omitted enable_cache and were caught before execution. Original source archive/ELFs retained; corrected independent builds explicitly initialize 1000 slots. No numbers from invalid builds.",
+  "local_targeted_tests": {
+    "passed": 61,
+    "ignored": 3,
+    "failed": 0,
+    "filter": "dns::daemon"
+  },
+  "source_sha256": {
+    "components/dnsmasq/src/main.rs": "8cd6173427c8ee6551ac93fb0e7c23273601e730057f5dd86acdbf2818eb14a2",
+    "components/dnsmasq/src/dns/daemon.rs": "f227e3ea86c520fddae6c2c5fd5a9f7586b36b2faf1a33c14f85db07f08decd9",
+    "components/dnsmasq/src/dns/cache.rs": "d8f065390aac0c63d681f15387de1d4924170173f9d04061bd5c609eb319ca59"
+  }
+}

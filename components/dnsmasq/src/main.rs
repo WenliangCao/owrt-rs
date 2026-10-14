@@ -2040,6 +2040,12 @@ fn run_inner(
     }
     #[cfg(target_os = "linux")]
     pid_file.cleanup();
+    // This is the successful daemon-stop return to main, never a reload or
+    // library restart. All remaining IO objects still drop normally. Only
+    // cache heap storage is left for process exit to reclaim in one pass.
+    if let Some(daemon) = service.borrow_mut().daemon.as_mut() {
+        daemon.retire_cache_for_process_exit();
+    }
     Ok(())
 }
 

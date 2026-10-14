@@ -8,6 +8,8 @@ mod loop_allocation_screen {
     static ALLOCATIONS: AtomicU64 = AtomicU64::new(0);
     static REALLOCATIONS: AtomicU64 = AtomicU64::new(0);
     static BYTES: AtomicU64 = AtomicU64::new(0);
+    static DEALLOCATIONS: AtomicU64 = AtomicU64::new(0);
+    static FREED_BYTES: AtomicU64 = AtomicU64::new(0);
     struct Meter;
     unsafe impl GlobalAlloc for Meter {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -16,6 +18,8 @@ mod loop_allocation_screen {
             unsafe { System.alloc(layout) }
         }
         unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
+            DEALLOCATIONS.fetch_add(1, Relaxed);
+            FREED_BYTES.fetch_add(layout.size() as u64, Relaxed);
             unsafe { System.dealloc(pointer, layout) };
         }
         unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, size: usize) -> *mut u8 {
@@ -102,5 +106,27 @@ mod loop_allocation_screen {
         let counts: Vec<_> = before.iter().zip(after).map(|(a, b)| b - a).collect();
         assert_eq!(daemon.pending_count(), 1);
         println!("UPSTREAM_ALLOCATION {{\"iterations\":{iterations},\"alloc_realloc_bytes\":{counts:?}}}");
+    }
+
+    #[test]
+    fn terminal_cache_retirement_counts() {
+        let descriptors_before = std::fs::read_dir("/proc/self/fd").unwrap().count();
+        let mut config = DnsConfig::default();
+        config.no_hosts = true;
+        config.no_resolv = true;
+        let mut daemon = DnsDaemon::new(config, Hosts::new(), &[], DaemonOptions::default()).unwrap();
+        daemon.enable_cache(1000, 0, 0, dnsmasq_rs::dns::cache::StalePolicy::Disabled);
+        assert!(daemon.current_cache().is_some());
+        let before_calls = DEALLOCATIONS.load(Relaxed);
+        let before_bytes = FREED_BYTES.load(Relaxed);
+        /* RETIRE_CACHE */
+        drop(daemon);
+        let deallocations = DEALLOCATIONS.load(Relaxed) - before_calls;
+        let freed_bytes = FREED_BYTES.load(Relaxed) - before_bytes;
+        let descriptors_after = std::fs::read_dir("/proc/self/fd").unwrap().count();
+        assert_eq!(descriptors_after, descriptors_before);
+        println!("TERMINAL_CACHE {{\"cache_records\":1000,\"deallocations\":{deallocations},\"freed_bytes\":{freed_bytes},\"fds_before\":{descriptors_before},\"fds_after\":{descriptors_after}}}");
+        // Invoke only this test in its own process. Retired memory is reclaimed
+        // by test process exit; this is not a long-lived test-service pattern.
     }
 }
