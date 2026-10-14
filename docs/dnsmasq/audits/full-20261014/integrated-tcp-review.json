@@ -3,7 +3,7 @@
   "reviewed_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
   "source_tag": "audit/dnsmasq-full-19bd6162-20261014",
   "scope": "Independent exact-image Oracle replays of frozen integrated ELF. No product changes, router access, merge or push. Root review separately verifies frozen-source provenance.",
-  "verdict": "Known TCP host/rotation memory counterexamples closed for the frozen candidate; normal snapshots and unique-address rolling pass. A real pre-existing repeated-address response-order incompatibility remains in both original main and final candidate, independently reproduced relative to each daemon own initial order.",
+  "verdict": "Known TCP host/rotation memory counterexamples closed for the frozen candidate; normal snapshots and unique-address rolling pass. A real pre-existing repeated-address compatibility defect remains in original main and final candidate: A response-order mismatch and an omitted PTR answer, independently reproduced.",
   "identity": {
     "candidate_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
     "candidate_bytes": 2089440,
@@ -353,10 +353,12 @@
     "oracle_root": "/dev/shm/full-audit-resume-20261014/rotation-*",
     "local_root": "private/full-audit-20261014/resume/rotation",
     "backup_archive_sha256": "834aa58a394ede563df025f9bb4e395aa571388984548f5a27875ab93e19931e",
-    "raw_inventory_sha256": "cce840372d458325d24c627e0029eaab1e7d6e27e3ef0f5e627fb5ece0058063",
+    "raw_inventory_sha256": "9a7e520c6fd319bb348ed45d35c3fd5084982fb9addae6d9b4b12d94050b7e81",
     "prior_repeated_raw_sha256": "06fa1491b67d4d3cc4eb074ebfb3ac1d52c8787ad9dc933dc0a33b1eb1c2e600",
     "prior_old_repeated_raw_sha256": "2391105d55fd6168a59725807a1cc9c9e6dda87d9e7f4496ee10b89c14e65083",
-    "repeated_backup_archive_sha256": "84f8696e3746ec260691890ffa0b1dcb31e6758435f091ad9d9a8b4fa420ced1"
+    "repeated_backup_archive_sha256": "84f8696e3746ec260691890ffa0b1dcb31e6758435f091ad9d9a8b4fa420ced1",
+    "ptr_backup_archive_sha256": "8eb34fec805b8addf6c7bd610c49f9a6ddd4ae6e6cb646c18d99a91270b538a7",
+    "final340ed_ptr_archive_sha256": "31fffa91136afac48b60041a9781cf2083fa47b11ee30199529322112d820e6a"
   },
   "repeated_address_diagnostic": {
     "driver_sha256": "2827c06df72ba311b3054de3b4294290f320973c34ce503fd654d5c9e2861976",
@@ -673,6 +675,227 @@
         "dump_rows": []
       }
     ],
-    "finding": "For host000313.test exact C retains mixed F_REVERSE group and fixed A order; original main and final Rust alternate that same two-address set. Neighbor host000312.test rotates on all three. No lost address, changed TTL/flags, service failure or page-fix regression observed."
+    "finding": "For host000313.test exact C retains mixed F_REVERSE group and fixed A order; original main and final Rust alternate that same A address set. Neighbor host000312.test rotates on all three. This A-only diagnostic observed no lost A address, changed TTL/flags or service failure; the later PTR diagnostic independently confirms an omitted reverse answer."
+  },
+  "repeated_address_ptr_diagnostic": {
+    "driver_sha256": "8cfde3c9f31e32025392d5da7aebbffac92f034601d908557d503c81d5cd0839",
+    "result_sha256": "cf4e223f1adce2f30e66592da3845ab94af635b6af5b83b85386b199caa1e49e",
+    "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-repeated-ptr/private/result.json",
+    "runs": [
+      {
+        "side": "c",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "alive": true,
+        "observations": [
+          {
+            "address": "192.0.3.64",
+            "transport": "udp",
+            "ptr_names": [
+              "host000063.test",
+              "host000313.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0,
+              0
+            ],
+            "wire_bytes": 99
+          },
+          {
+            "address": "192.0.3.64",
+            "transport": "tcp",
+            "ptr_names": [
+              "host000063.test",
+              "host000313.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0,
+              0
+            ],
+            "wire_bytes": 99
+          },
+          {
+            "address": "192.0.2.64",
+            "transport": "udp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.2.64",
+            "transport": "tcp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          }
+        ],
+        "c_dump_rows": [
+          "Oct 14 13:54:45 dnsmasq[12]: host000063.test                192.0.3.64                               4FRI   H                            /m2/hosts                               ",
+          "Oct 14 13:54:45 dnsmasq[12]: host000063.test                192.0.2.64                               4FRI   H                            /m2/hosts                               ",
+          "Oct 14 13:54:45 dnsmasq[12]: host000313.test                192.0.3.64                               4FRI   H                            /m2/hosts                               "
+        ]
+      },
+      {
+        "side": "main",
+        "elf_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+        "alive": true,
+        "observations": [
+          {
+            "address": "192.0.3.64",
+            "transport": "udp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.3.64",
+            "transport": "tcp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.2.64",
+            "transport": "udp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.2.64",
+            "transport": "tcp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          }
+        ],
+        "c_dump_rows": []
+      },
+      {
+        "side": "final",
+        "elf_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "alive": true,
+        "observations": [
+          {
+            "address": "192.0.3.64",
+            "transport": "udp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.3.64",
+            "transport": "tcp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.2.64",
+            "transport": "udp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          },
+          {
+            "address": "192.0.2.64",
+            "transport": "tcp",
+            "ptr_names": [
+              "host000063.test"
+            ],
+            "flags": 34176,
+            "ttls": [
+              0
+            ],
+            "wire_bytes": 70
+          }
+        ],
+        "c_dump_rows": []
+      }
+    ],
+    "finding": "For 192.0.3.64 both UDP and TCP C answers include host000063.test and host000313.test; original main and final Rust omit host000313.test. Adjacent single-owner 192.0.2.64 matches exactly. This is a pre-existing PTR answer-set defect, beyond A-order differences; service stays alive.",
+    "tracking": "F10",
+    "severity": "P2, conditional repeated-address / multiple-PTR compatibility"
+  },
+  "final340ed_ptr_followup": {
+    "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+    "elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "elf_bytes": 2089440,
+    "driver_sha256": "86b6ae42870fefd7166174ef293e473cc84a2ed64f16235d70b15fe69abcab2a",
+    "raw_sha256": "00c7926f391f7b012a93d234e3aa3a0673242082be11e62e4721ba402c70e2c3",
+    "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-final340ed-ptr/private/result.json",
+    "scope": "Two targeted affected PTR replies only; prior resource and A-order qualification remains bound to 19bd6162.",
+    "observations": [
+      {
+        "transport": "udp",
+        "address": "192.0.3.64",
+        "ptr_names": [
+          "host000063.test"
+        ],
+        "flags": 34176,
+        "ttls": [
+          0
+        ]
+      },
+      {
+        "transport": "tcp",
+        "address": "192.0.3.64",
+        "ptr_names": [
+          "host000063.test"
+        ],
+        "flags": 34176,
+        "ttls": [
+          0
+        ]
+      }
+    ],
+    "alive": true,
+    "finding": "F10 PTR omission persists in 340ed: host000313.test is absent on both UDP and TCP."
   }
 }

@@ -8,7 +8,7 @@
 
 **结论：已知 TCP hosts 复制和 warmed 多地址 rotation 的内存反例在此 ELF 上闭合；
 正常快照与 unique-address rolling 用例通过。独立减化重放另外确认：原 main 与最终候选都存在
-repeated-address 的真实答案顺序兼容缺陷。因此完整行为一致仍不能验收。** [机器可读结果](integrated-tcp-review.json)
+repeated-address 的真实兼容缺陷，包括 A 答案顺序不同及 **PTR 答案集合遗漏**。因此完整行为一致仍不能验收。** [机器可读结果](integrated-tcp-review.json)
 记录每项输入身份、driver/result hash、内存事件和连接结果。
 
 ## 独立最小重放
@@ -54,7 +54,7 @@ TCP 分享页、首次修改只复制该页；已有 records/index generation �
 这与新旧资源对照和快照结果相符。**不是绝对 O(1) 连接成本**：接受时复制的页 handle
 表仍随最高 entry ID/64 增长，单页内地址向量的大小也随各名字地址数量增长。
 
-## 已确认：repeated-address 的既有顺序兼容缺陷
+## F10 / P2（条件性）：repeated-address 的既有 A 顺序及 PTR 集合兼容缺陷
 
 先下载旧原始证据逐字节核对：188/6,020 个差异全部是两个 A 地址位置互换，
 地址集合、TTL、flags 和其余 wire 相同；新 TCP 136、父 UDP 26、旧 TCP 26。
@@ -83,11 +83,35 @@ TCP 分享页、首次修改只复制该页；已有 records/index generation �
 C 固定而两版 Rust 交替。故它是**当前产品的既有兼容缺陷**，不是本次 page 修复引入的回归，
 也不是“C raw order 不稳定”可以排除的噪声。
 
-实际影响限于本证据支持的范围：A 答案顺序、客户端优先取第一条地址时的节点选择不同。
-所有目标观察的地址集合、TTL、flags 和其它 wire 均一致，三个 daemon 始终存活；
-没有观察到地址丢失、错误地址或服务不可用。资源修复可以单独验收，完整 hosts 顺序兼容仍失败。
-独立诊断原始结果为 `rotation-repeated-order/private/result.json`，C dump 在该目录
+A 诊断中，地址集合、TTL、flags 和其它 wire 均一致，三个 daemon 始终存活；
+可观察影响包括优先取第一条 A 的客户端选中不同节点。这不能覆盖反向查询契约。
+A 诊断原始结果为 `rotation-repeated-order/private/result.json`，C dump 在该目录
 `c/service.log`；本页不采用另一审计线的通过计数或把其诊断冒充独立结果。
+
+随后读过修复方 `repeated-order.md` 对多 F_REVERSE 的提醒，独立从**本轮自己的 C dump**
+选取恰有两个 reverse owner 的 `192.0.3.64`，并用单 owner 的 `192.0.2.64` 作相邻对照。
+保持同一 repeated-address fixture，三个 ELF 各对两个地址作 UDP PTR 1 次、TCP PTR 1 次，
+共 **12 条目标 wire**，不扩展其它地址或大矩阵。
+
+| PTR 目标，两种 transport 结果一致 | 精确 C | 原 main | 最终候选 |
+| --- | --- | --- | --- |
+| `192.0.3.64` | `host000063.test`、`host000313.test` | 只有 `host000063.test` | 只有 `host000063.test` |
+| `192.0.2.64`，单 owner 对照 | `host000063.test` | 相同 | 相同 |
+
+**影响升级：这不只改变答案排列；原 main 和最终候选都漏掉了精确 C 返回的一个 PTR 名字。**
+所有该轮响应 flags 为 `0x8580`、TTL 为 0，三个 daemon 保持存活；不是截断响应或服务不可用。
+消费者若需要完整反向名字集合，Rust 会少看到 `host000313.test`。没有证据表明 A 地址集合丢失。
+Rust `hosts.rs:409-413` 的 `reverse()` 只从地址到单 entry 的索引返回一个 Host，
+不能表示此实测的多个 reverse owner；只修 A 轮转仍不能闭合此兼容缺口。
+PTR 原始证据为 `rotation-repeated-ptr/private/result.json`，该轮独立 C dump
+也再次确认 `.3.64` 的两个 F_REVERSE owner。资源修复可以单独验收，完整 hosts 兼容仍失败。
+
+最后对后续冻结候选 `340ed73e83e58ba845e0a645eb21e9ead0d0f108` 独立复制并核验 ELF
+`edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d`（2,089,440 B），
+仅追加 `192.0.3.64` 的 **UDP/TCP 两条 PTR**。仍只有 `host000063.test`，缺少
+`host000313.test`，flags/TTL 与前一候选相同且 daemon 存活，故 **F10 也影响 340ed**。
+原始结果为 `rotation-final340ed-ptr/private/result.json`。这个两条定向复核不把本页
+19bd 的资源矩阵或 A-order 通过数量转记给新候选；F10 保持开放，未修改产品以规避它。
 
 ## 证据与清理
 
@@ -96,7 +120,7 @@ driver、两个 ELF 副本和总日志在 `rotation-input/`。电脑备份在
 `private/full-audit-20261014/resume/rotation/`，含原始 wire/result、stderr、driver、
 ELF、执行脚本与 SHA-256 inventory；生成的 staging rootfs 未打包。
 首次调用因 helper 要求路径含 `private` 而在启动 daemon 前退出，已保留 setup 日志，
-修正输出路径后才开始以上六个资格重放；之后另运行了三端 repeated-address 诊断。
+修正输出路径后才开始以上六个资格重放；之后另运行了三端 A-order 诊断和三端定向 PTR 诊断。
 
 五个 cgroup 用例的两端均记录 `cgroup_removed=true`；最终检查自有进程与宿主挂载均为空。
 Oracle 内核为 `6.17.0-1020-oracle`，不是路由器内核；32/64 MiB 是人工预算，不是当前设备
