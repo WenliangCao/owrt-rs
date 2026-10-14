@@ -92,6 +92,7 @@ const SIGUSR2: i32 = 31;
 const SIGALRM: i32 = 14;
 const UDP_PACKETS_PER_TURN: usize = 16;
 const RELOAD_FILE_TURNS_PER_EVENT: usize = 16;
+const UBUS_RETRY_INTERVAL: Duration = Duration::from_secs(1);
 
 #[cfg(target_os = "linux")]
 unsafe extern "C" {
@@ -385,6 +386,8 @@ struct ParentEvents {
     ubus_name: Option<Vec<u8>>,
     ubus: Option<UbusService>,
     ubus_error_logged: bool,
+    ubus_registration_error_logged: bool,
+    ubus_retry_at: Instant,
     #[cfg(target_os = "linux")]
     ubus_notices: Vec<dnsmasq_rs::logging::LogEvent>,
     local_answered: u32,
@@ -413,6 +416,8 @@ impl ParentEvents {
             ubus_name: name,
             ubus,
             ubus_error_logged: false,
+            ubus_registration_error_logged: false,
+            ubus_retry_at: Instant::now() + UBUS_RETRY_INTERVAL,
             #[cfg(target_os = "linux")]
             ubus_notices: Vec::new(),
             local_answered: 0,
@@ -439,6 +444,8 @@ impl ParentEvents {
             b"Cannot reconnect to UBus: Connection failed".to_vec(),
         ));
         self.ubus_error_logged = false;
+        self.ubus_registration_error_logged = false;
+        self.ubus_retry_at = Instant::now();
     }
 
     #[cfg(target_os = "linux")]
@@ -458,15 +465,21 @@ impl ParentEvents {
             return;
         }
         if self.ubus.is_none() {
+            if Instant::now() < self.ubus_retry_at {
+                return;
+            }
             #[cfg(target_os = "linux")]
             self.queue_missing_ubus_notice();
             let Some(name) = self.ubus_name.as_deref() else {
                 return;
             };
-            match UbusService::connect_bytes(None, name) {
+            match UbusService::connect_bytes_interruptible(
+                None, name, Some(|| STOP_REQUESTED.load(Ordering::Acquire)),
+            ) {
                 Ok(service) => {
                     self.ubus = Some(service);
                     self.ubus_error_logged = false;
+                    self.ubus_registration_error_logged = false;
                     #[cfg(target_os = "linux")]
                     self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
                         dnsmasq_rs::logging::Service::Dns,
@@ -474,17 +487,24 @@ impl ParentEvents {
                         b"connected to system UBus".to_vec(),
                     ));
                 }
-                Err(ConnectError::Transport(_)) => return,
+                Err(ConnectError::Transport(_)) => {
+                    self.ubus_retry_at = Instant::now() + UBUS_RETRY_INTERVAL;
+                    return;
+                }
                 Err(ConnectError::Registration(error)) => {
-                    // C treats registration failure during retry as fatal to
-                    // UBus only. The DNS/DHCP service keeps running.
+                    // ACLs and object collisions can be temporary. Keep the
+                    // configured name and retry, without flooding logs or
+                    // depending on a later DNS/DHCP packet to wake the owner.
                     #[cfg(target_os = "linux")]
-                    self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
-                        dnsmasq_rs::logging::Service::Dns,
-                        dnsmasq_rs::logging::Priority::Error,
-                        ConnectError::registration_message(&error).into_bytes(),
-                    ));
-                    self.ubus_name = None;
+                    if !self.ubus_registration_error_logged {
+                        self.ubus_notices.push(dnsmasq_rs::logging::LogEvent::new(
+                            dnsmasq_rs::logging::Service::Dns,
+                            dnsmasq_rs::logging::Priority::Error,
+                            ConnectError::registration_message(&error).into_bytes(),
+                        ));
+                    }
+                    self.ubus_registration_error_logged = true;
+                    self.ubus_retry_at = Instant::now() + UBUS_RETRY_INTERVAL;
                     return;
                 }
             }
@@ -4091,6 +4111,11 @@ impl SinglePoll {
                     events: POLLIN,
                     revents: 0,
                 });
+            } else {
+                let event = self.parent_events.borrow();
+                if event.ubus_name.is_some() {
+                    wake_at(event.ubus_retry_at);
+                }
             }
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             let dhcp_fd_start = fds.len();

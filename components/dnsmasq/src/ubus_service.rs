@@ -14,8 +14,8 @@ use std::time::{Duration, Instant};
 /// Exact OpenWrt patch 200's per-record synchronous notification budget.
 pub const DNS_NOTIFY_TIMEOUT: Duration = Duration::from_millis(100);
 
-/// C retries an absent transport after a main-loop wakeup; registration errors
-/// disable the integration. Keep those two failure boundaries distinguishable.
+/// Startup registration errors remain fatal. The running daemon retries both
+/// failure kinds without retaining connection-local object or type IDs.
 #[derive(Debug)]
 pub enum ConnectError {
     Transport(io::Error),
@@ -74,10 +74,24 @@ impl UbusService {
 
     /// The configuration parser preserves arbitrary non-NUL name bytes.
     pub fn connect_bytes(socket: Option<&str>, name: &[u8]) -> Result<Self, ConnectError> {
+        Self::connect_bytes_interruptible(socket, name, None)
+    }
+
+    /// Runtime reconnection must also stop promptly while the bus is stalled.
+    pub fn connect_bytes_interruptible(
+        socket: Option<&str>,
+        name: &[u8],
+        cancelled: Option<fn() -> bool>,
+    ) -> Result<Self, ConnectError> {
         let name = c_string(name);
         let mut dns_name = name.to_vec();
         dns_name.extend_from_slice(b".dns");
-        let mut connection = Connection::connect(socket).map_err(ConnectError::Transport)?;
+        let mut connection = match cancelled {
+            Some(cancelled) => Connection::connect_interruptible(
+                socket, Instant::now() + Duration::from_secs(1), cancelled,
+            ),
+            None => Connection::connect(socket),
+        }.map_err(ConnectError::Transport)?;
         connection.set_server_io_timeout(Duration::from_millis(100));
         let main_id = connection
             .add_object_bytes(name, &[("metrics", &[])], 1000)
