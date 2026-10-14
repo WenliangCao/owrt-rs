@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate_built_offline_checks_in_progress_hardware_pending",
+  "status": "ubus_test_fixed_final_ci_artifact_identity_pending_hardware_pending",
   "build": {
     "source_commit": "21e14a95408deaf557b1011a6e4ec705a892e58a",
     "canonical_run": 38626686143,
@@ -29,7 +29,8 @@
       "path": "/usr/sbin/dnsmasq",
       "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
       "bytes": 2124571
-    }
+    },
+    "identity_role": "historical_candidate_not_yet_final_release"
   },
   "dnsmasq_build_identity": {
     "reference_elf": {
@@ -325,5 +326,23 @@
     "offline-protocol/summary.json": "efe87f4cbea3ae80906499c970334d3ef988ceafdcc146b09b403f12a7b1f11b",
     "build-identity-review/final-build-identity-summary.json": "e788c7ac7d55e4093d144a7440ec072dc1d18c5a21d299b2db404179508dae41",
     "ci-38626686143/manifest.json": "6bf28c12dd68ad481f1173719f15f1040114e17a88aaafb91398c6308581b80c"
+  },
+  "release_blocker": {
+    "original_host_tests_run": 38626687422,
+    "test_only_fix_commit": "5c1a2f48f4274c6b91ad39d927accd41f20f08c8",
+    "workflow_fix_commit": "ded73bae",
+    "corrected_ci_status": "namespace_environment_issues_recorded_no_scope_expansion",
+    "final_image_identity": "pending",
+    "tag_created": false,
+    "corrected_ubus_suite_passed": 70,
+    "corrected_ubus_suite_failed": 0,
+    "final_image_run": 38636115402,
+    "final_image_source_prefix": "ded73bae"
+  },
+  "recovery_mode": {
+    "selected_by_user": "manual_v0.1.1_sysupgrade_or_failsafe",
+    "automatic_guard_installation": false,
+    "additional_oracle_validation": false,
+    "existing_guard_evidence_role": "historical_only"
   }
 }
