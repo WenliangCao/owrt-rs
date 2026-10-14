@@ -23,7 +23,7 @@ dns-rr=target.example,5,056f74686572076578616d706c6500
 
 先上游预热 `alias.example A → CNAME target.example + A`，再查 `alias.example ANY`。C 的四个 target CNAME 都指向同一个 `other.example`；未用 CNAME+NS 混用作为主阻断。main 转发时，上游提供 AA 的同语义 CNAME RRset，TTL 为 300/60。fixture 内容与每侧 final/warm 流量均保留。
 
-`cname-dynamic-01/02/03` 三个 fresh 四例矩阵均为 C=main=before、HEAD 无效名称。另以同源码构建方式重新编译 d956 后运行 `cname-same-profile`，排除旧 SDK strip/构建模式造成差异。独立审查者使用新解析器重算首组四例：[checker](independent-cname-check.py)、[完整报文及逐 RR 布局](independent-cname-result.json)、[代码解释](independent-review.md)。它没有使用原比较器，也没有忽略 TTL。
+`cname-dynamic-01/02/03` 三个 fresh 四例矩阵均为 C=main=before、HEAD 无效名称。另以同源码构建方式重新编译 d956 后运行 `cname-same-profile`，排除旧 SDK strip/构建模式造成差异，4/4 同样失败。[同构建方式严格结果](same-profile-recheck.json)、[执行收据](same-profile-invocation-results.json)。独立审查者使用新解析器重算首组四例：[checker](independent-cname-check.py)、[完整报文及逐 RR 布局](independent-cname-result.json)、[代码解释](independent-review.md)。它没有使用原比较器，也没有忽略 TTL。
 
 C 的 154 B 报文中，最后 `c062` 指向 offset 98 的完整 `other.example`；HEAD 的 196 B 报文中，同一位置为先前全写 owner 内的 `0x70`，不能作为 DNS 标签。main 的 223 B、修复前的 209 B 报文均合法且与 C 完整语义相同。C/before/HEAD final 上游次数为 0，main 为 1；后者是旧额外转发，不能豁免 HEAD 的新增坏回答。
 

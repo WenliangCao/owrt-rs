@@ -1,0 +1,98 @@
+{
+  "passed": true,
+  "timestamp": 1791958992.0487168,
+  "product_head": "5b914d32891a5166f8075d108fc98610abc1f885",
+  "source_inputs_checked": 178,
+  "artifacts": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    },
+    "main": {
+      "path": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863"
+    },
+    "before_sdk": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/payload/usr/sbin/dnsmasq",
+      "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca"
+    },
+    "before_release": {
+      "path": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release-before/dnsmasq-rs",
+      "sha256": "45375655c62112c6d99fd1f46034352f1b37350fa92c38b0ccd8fcbdff301827"
+    },
+    "head_release": {
+      "path": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "sha256": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c"
+    }
+  },
+  "remaining_audit_service_or_build_processes": [],
+  "concurrent_other_scope_processes": [
+    {
+      "pid": 2810368,
+      "comm": "dnsmasq",
+      "state": "Z",
+      "root": null,
+      "exe": null,
+      "cwd": null
+    },
+    {
+      "pid": 2810430,
+      "comm": "dnsmasq",
+      "state": "Z",
+      "root": null,
+      "exe": null,
+      "cwd": null
+    },
+    {
+      "pid": 2810437,
+      "comm": "dnsmasq",
+      "state": "Z",
+      "root": null,
+      "exe": null,
+      "cwd": null
+    },
+    {
+      "pid": 2810444,
+      "comm": "dnsmasq",
+      "state": "Z",
+      "root": null,
+      "exe": null,
+      "cwd": null
+    },
+    {
+      "pid": 2810629,
+      "comm": "dnsmasq",
+      "state": "Z",
+      "root": null,
+      "exe": null,
+      "cwd": null
+    },
+    {
+      "pid": 2810679,
+      "comm": "dnsmasq-rs",
+      "state": "S",
+      "root": "/home/ubuntu/dnsmasq-f1-fix2-20261014/private/ext/n1/rootfs",
+      "exe": "/home/ubuntu/dnsmasq-f1-fix2-20261014/private/ext/n1/rootfs/usr/sbin/dnsmasq-rs",
+      "cwd": "/home/ubuntu/dnsmasq-f1-fix2-20261014/private/ext/n1/rootfs"
+    }
+  ],
+  "process_scope": "Match /proc root/exe/cwd to this audit directory; other concurrent work is observed but untouched.",
+  "build_lock_path": "/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock",
+  "build_lock_obtained_and_released": true,
+  "initial_closeout_scope_correction": "Initial process check incorrectly required the whole shared Oracle host to have no DNS/build process. It stopped on concurrent work; nothing was interrupted. Final check scopes root/exe/cwd to this audit directory. Concurrent work was directly observed under /home/ubuntu/dnsmasq-f1-fix2-20261014/private/ext/n1/rootfs.",
+  "local_git_product_inputs_unchanged": true,
+  "main_ref_unchanged": true,
+  "workspace_drift_at_closeout": [
+    {
+      "path": "components/dnsmasq/src/dns/cache_engine.rs",
+      "frozen_sha256": "17a857ecc303c1f81eeb9f46aa20cbfecf53caac247620f249c9921f754117c8",
+      "workspace_sha256": "80f697411fe3d2e3caf19b74781c4c2d3be63a3e738f92bbeea17cd09e43f3dd"
+    },
+    {
+      "path": "components/dnsmasq/src/dns/daemon_cache_tests.rs",
+      "frozen_sha256": "c67277658bca0908a448024df3244977c3751c569a7be078642befea2d74b43f",
+      "workspace_sha256": "5d5b8736c1db59ab445890069badfed088509f1acc4696f0aee840db6083aa86"
+    }
+  ],
+  "workspace_drift_scope": "Concurrent uncommitted product changes were left intact. Runtime conclusions apply to frozen 5b914d32, not these untested workspace bytes."
+}

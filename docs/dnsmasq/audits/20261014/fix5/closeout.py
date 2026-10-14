@@ -3,6 +3,7 @@
 import fcntl
 import hashlib
 import json
+import os
 from pathlib import Path
 import time
 
@@ -29,20 +30,36 @@ artifacts = {}
 for (key, path), digest in zip(paths.items(), expected):
     assert sha(path) == digest, key
     artifacts[key] = {'path': path, 'sha256': digest}
-remaining = []
+remaining, concurrent = [], []
 for proc in Path('/proc').glob('[0-9]*'):
     try:
         comm = (proc / 'comm').read_text().strip()
         if comm in {'dnsmasq', 'dnsmasq-rs', 'dnsmasq-main', 'dnsmasq-before', 'cargo', 'rustc'}:
-            remaining.append({'pid': int(proc.name), 'comm': comm})
+            row = {'pid': int(proc.name), 'comm': comm,
+                   'state': (proc / 'stat').read_text().split(') ', 1)[1].split()[0]}
+            for key in ('root', 'exe', 'cwd'):
+                try:
+                    row[key] = os.readlink(proc / key)
+                except OSError:
+                    row[key] = None
+            own = any(str(row.get(key) or '').startswith(str(root) + '/')
+                      for key in ('root', 'exe', 'cwd'))
+            (remaining if own else concurrent).append(row)
     except (OSError, ProcessLookupError):
         pass
 assert not remaining, remaining
 lock = '/home/ubuntu/dnsmasq-cargo-target/.dnsmasq-build.lock'
+lock_available = False
 with open(lock, 'r') as handle:
-    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    fcntl.flock(handle, fcntl.LOCK_UN)
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(handle, fcntl.LOCK_UN)
+        lock_available = True
+    except BlockingIOError:
+        pass
 print(json.dumps({'passed': True, 'timestamp': time.time(), 'product_head': inputs['head'],
                   'source_inputs_checked': len(inputs['source_inputs']), 'artifacts': artifacts,
-                  'remaining_service_or_build_processes': remaining,
-                  'build_lock_obtained_and_released': lock}, indent=2))
+                  'remaining_audit_service_or_build_processes': remaining,
+                  'concurrent_other_scope_processes': concurrent,
+                  'process_scope': 'Match /proc root/exe/cwd to this audit directory; other concurrent work is observed but untouched.',
+                  'build_lock_path': lock, 'build_lock_obtained_and_released': lock_available}, indent=2))
