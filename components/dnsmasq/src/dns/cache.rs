@@ -383,9 +383,15 @@ impl Cache {
     /// become valid again when the empty slots are reused.
     pub fn clear(&mut self) {
         let capacity = self.slots.len();
+        // Each root's uniqueness is a block-level property. Detach once before
+        // clearing that block, in the same record order, instead of repeating
+        // Arc's atomic ownership check for every slot in the block.
+        for block in 0..self.content.len() {
+            for entry in &mut Arc::make_mut(&mut self.content[block]).entries {
+                *entry = None;
+            }
+        }
         for (index, slot) in self.slots.iter_mut().enumerate() {
-            Arc::make_mut(&mut self.content[index / CONTENT_BLOCK_SLOTS]).entries
-                [index % CONTENT_BLOCK_SLOTS] = None;
             slot.prev = index.checked_sub(1).map(slot_link);
             slot.next = (index + 1 < capacity).then_some(index + 1).map(slot_link);
         }
