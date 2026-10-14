@@ -242,5 +242,58 @@
     "predeploy_resource_analyze.py": "eb679091198768c55226cb951a6942849e17491f4457338e5531b5aee06e9e82",
     "predeploy_resource_prepare.py": "94308d5dbb9761d05c2db51abc373466fc157fdab6787e32cc9796d32ca7af1b",
     "predeploy_loopback_bind.c": "f41b15785435773ccaa57c5d84b52d387ee19349ba83e49d534c5c48a800e009"
+  },
+  "main_tooling_commit": "883dd6a6",
+  "tool_sources_scope": "Main run tool source hashes at freeze; named/capture/retention extensions are recorded separately below.",
+  "supplement_tool_sources": {
+    "tools/dnsmasq/predeploy_resource_retention.py": "d9c62deb2efb701e7a25da4a0f8a77ab921053ed4efbaf24d3917565ff35e684",
+    "tools/dnsmasq/predeploy_resource_probe.c": "129e38a02b15e91fa0d1be6e170a429c161918c13c1ce2af65c371ceee171978",
+    "tools/dnsmasq/predeploy_resource_window.sh": "2a0e7eef9e4ac1c1462b8aef94851c06a24ab559e4ed1a305d03f17edfda4c5d",
+    "tools/dnsmasq/predeploy_resources.py": "65849af164d2a7be2645d695ffdd0eecaea31eaaaeb3ef07cd3ec98304ae3c7b",
+    "tools/dnsmasq/predeploy_resource_retention.sh": "712ac6e6b161800e5edf7b98a8b0c8497bdf1c720717c9a6e4938b20737e5d4b",
+    "tools/dnsmasq/predeploy_resource_analyze.py": "52a6a3710a323c11b47fa2157a3aa43f6055d3f21334f1f6d4e287093376f82c",
+    "tools/dnsmasq/predeploy_resource_prepare.py": "6e3c67d177e34b255fc84510cc244ce8362d420160f9608e4dc0e0c9c1744154"
+  },
+  "supplement_helpers": {
+    "named": {
+      "bind": {
+        "bytes": 67104,
+        "sha256": "a4275ff33886e724cd3261451d53059d0dfcc620a504d8658d7f46c111a22b23"
+      },
+      "probe": {
+        "bytes": 543480,
+        "sha256": "e86e541ac2b519928c97cbb76036068b5e458beb05b54445139425aca0740783"
+      },
+      "upstream": {
+        "bytes": 452440,
+        "sha256": "e1c9b7e01cf00b1426ed058ec8470b23b84d6e2e7df58f2922d30a573c708d66"
+      },
+      "loadgen": {
+        "bytes": 550456,
+        "sha256": "10a916693e60714b5129d113c4dd5ce3506960174cf728a544e40201607b5e90"
+      }
+    },
+    "capture": {
+      "bind": {
+        "bytes": 67104,
+        "sha256": "a4275ff33886e724cd3261451d53059d0dfcc620a504d8658d7f46c111a22b23"
+      },
+      "probe": {
+        "bytes": 543480,
+        "sha256": "e86e541ac2b519928c97cbb76036068b5e458beb05b54445139425aca0740783"
+      },
+      "upstream": {
+        "bytes": 452440,
+        "sha256": "e1c9b7e01cf00b1426ed058ec8470b23b84d6e2e7df58f2922d30a573c708d66"
+      },
+      "loadgen": {
+        "bytes": 544600,
+        "sha256": "2dcf151fc2a1fb115958de6b0902ec82b52a36626cffa5a9cc3686d881098712"
+      }
+    }
+  },
+  "supplement_generated_loadgen_sources": {
+    "named": "8475e513dfe36421a228e1fa236b1ae618d85ccc93e089d33a6ac825aea2622b",
+    "capture": "8efeb17330db3adc5e412db300bfd5fca7004dad6d9197b0edcbe30933df0593"
   }
 }

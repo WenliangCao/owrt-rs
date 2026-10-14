@@ -70,6 +70,9 @@ def main():
                         last_check=time.time();print(json.dumps({'segment':index,'elapsed':round(time.time()-start),'health':'ok'}),flush=True)
                     time.sleep(5)
                 row['health'].append(audit.health(args.output,label+'-after',baseline));save()
+                if index==3:
+                    process.wait(timeout=15)
+                    if process.returncode:raise RuntimeError('retention final cleanup failed')
                 folder=args.output/label;folder.mkdir()
                 with (args.output/(label+'.tar')).open('wb') as archive:
                     subprocess.run(audit.SSH+[f'tar -C {root}/{name}/{segment} -cf - .'],stdout=archive,check=True,timeout=30)

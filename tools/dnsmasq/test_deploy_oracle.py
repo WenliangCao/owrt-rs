@@ -527,6 +527,12 @@ def single(args):
     except Exception:
         result = deployment.row if deployment else {'case': args.case}
         result.update(passed=False, error=traceback.format_exc())
+        if deployment:
+            result['failure_status'] = deployment.control('status', check=False).stdout
+            result['failure_daemons'] = deployment.daemons()
+            result['failure_uptime'] = Path('/proc/uptime').read_text().split()[0]
+            probe_result = deployment.root / 'run/dnsmasq-deploy/probe_result'
+            result['failure_probe_result'] = probe_result.read_text() if probe_result.exists() else None
     finally:
         if deployment:
             try:

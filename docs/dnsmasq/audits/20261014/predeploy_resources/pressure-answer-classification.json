@@ -1,0 +1,1400 @@
+{
+  "audited_rust_artifact": {
+    "scope": "The measured frozen Rust ELF, not subsequent concurrent working-tree product changes",
+    "sha256": "d17a392c8d009c342518fe86d4d1f4c34c32082dd23a2599549a89fce042470e",
+    "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+  },
+  "captured_rust": {
+    "all_packets_completely_decoded": true,
+    "all_replies_without_OPT_or_EDE": true,
+    "all_requests_without_OPT": true,
+    "classification": "DNS REFUSED (RCODE5), not a case-sensitive checker disagreement",
+    "counter_totals": {
+      "dhcp": {
+        "measurement": {
+          "correct": 240,
+          "scheduled": 240,
+          "scheduled_skipped": 0,
+          "sent": 240,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 40,
+          "scheduled": 40,
+          "scheduled_skipped": 0,
+          "sent": 40,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      },
+      "tcp": {
+        "measurement": {
+          "correct": 1191,
+          "scheduled": 1200,
+          "scheduled_skipped": 9,
+          "sent": 1191,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 200,
+          "scheduled": 200,
+          "scheduled_skipped": 0,
+          "sent": 200,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      },
+      "udp": {
+        "measurement": {
+          "correct": 118704,
+          "scheduled": 118800,
+          "scheduled_skipped": 83,
+          "sent": 118717,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 13
+        },
+        "warmup": {
+          "correct": 19780,
+          "scheduled": 19800,
+          "scheduled_skipped": 20,
+          "sent": 19780,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      }
+    },
+    "counts_QD_AN_NS_AR": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "flags": 33157,
+    "latency_and_send_lag": {
+      "dhcp": {
+        "actual_send_to_correct_completion": {
+          "maximum_us": 78178.14,
+          "n": 240,
+          "p50_us": 5029.482,
+          "p95_us": 9334.938,
+          "p99_us": 44631.18
+        },
+        "correct_record_count": 240,
+        "record_count": 240,
+        "scheduled_to_correct_completion": {
+          "maximum_us": 80082.834,
+          "n": 240,
+          "p50_us": 5116.778,
+          "p95_us": 9416.337,
+          "p99_us": 44776.052
+        },
+        "send_lag_all_sent": {
+          "maximum_us": 1904.694,
+          "n": 240,
+          "p50_us": 87.22,
+          "p95_us": 136.459,
+          "p99_us": 360.234
+        },
+        "skipped_sends_have_no_latency_record": true,
+        "worst_correct_scheduled_completion": {
+          "actual_send_to_completion_us": 78178.14,
+          "intended_kind": 2,
+          "qtype": 1,
+          "scheduled_to_completion_us": 80082.834,
+          "send_lag_us": 1904.694,
+          "sequence": 4294968107
+        }
+      },
+      "tcp": {
+        "actual_send_to_correct_completion": {
+          "maximum_us": 43229.832,
+          "n": 1191,
+          "p50_us": 975.704,
+          "p95_us": 2382.438,
+          "p99_us": 6255.557
+        },
+        "correct_record_count": 1191,
+        "record_count": 1191,
+        "scheduled_to_correct_completion": {
+          "maximum_us": 1056230.151,
+          "n": 1191,
+          "p50_us": 1074.005,
+          "p95_us": 2722.513,
+          "p99_us": 7182.573
+        },
+        "send_lag_all_sent": {
+          "maximum_us": 1055124.722,
+          "n": 1191,
+          "p50_us": 94.881,
+          "p95_us": 144.218,
+          "p99_us": 639.635
+        },
+        "skipped_sends_have_no_latency_record": true,
+        "worst_correct_scheduled_completion": {
+          "actual_send_to_completion_us": 1105.429,
+          "intended_kind": 0,
+          "qtype": 16,
+          "scheduled_to_completion_us": 1056230.151,
+          "send_lag_us": 1055124.722,
+          "sequence": 4294968298
+        }
+      },
+      "udp": {
+        "actual_send_to_correct_completion": {
+          "maximum_us": 42633.144,
+          "n": 118704,
+          "p50_us": 226.056,
+          "p95_us": 1024.408,
+          "p99_us": 3455.858
+        },
+        "correct_record_count": 118704,
+        "record_count": 118717,
+        "scheduled_to_correct_completion": {
+          "maximum_us": 42981.784,
+          "n": 118704,
+          "p50_us": 306.923,
+          "p95_us": 1327.157,
+          "p99_us": 3939.98
+        },
+        "send_lag_all_sent": {
+          "maximum_us": 9594.775,
+          "n": 118717,
+          "p50_us": 78.224,
+          "p95_us": 146.016,
+          "p99_us": 762.093
+        },
+        "skipped_sends_have_no_latency_record": true,
+        "worst_correct_scheduled_completion": {
+          "actual_send_to_completion_us": 42633.144,
+          "intended_kind": 0,
+          "qtype": 16,
+          "scheduled_to_completion_us": 42981.784,
+          "send_lag_us": 348.64,
+          "sequence": 4295100918
+        }
+      }
+    },
+    "measurement_wrong_counter": 13,
+    "qtype_counts": {
+      "1": 5,
+      "16": 5,
+      "28": 3
+    },
+    "question_and_id_exactly_preserved_all": true,
+    "records": [
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6963.344,
+        "qtype": 1,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295024444
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6791.843,
+        "qtype": 16,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295026079
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6881.405,
+        "qtype": 28,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295029714
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 7119.002,
+        "qtype": 16,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295040999
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6962.886,
+        "qtype": 1,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295063089
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6777.686,
+        "qtype": 1,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295067889
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 7066.834,
+        "qtype": 28,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295068074
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6859.706,
+        "qtype": 28,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295069074
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6891.176,
+        "qtype": 1,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295070064
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 0,
+        "latency_us": 6785.149,
+        "qtype": 16,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295073318
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 6906.872,
+        "qtype": 1,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295076564
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 1,
+        "latency_us": 7634.284,
+        "qtype": 16,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295083779
+      },
+      {
+        "answer_count": 0,
+        "intended_kind": 0,
+        "latency_us": 9608.391,
+        "qtype": 16,
+        "rcode": 5,
+        "request_id_and_question_preserved_exactly": true,
+        "sequence": 4295099278
+      }
+    ],
+    "refused_percent_of_udp_sent": 0.01095041148276995,
+    "window": "capture-run/02-busy-R",
+    "wrong_wire_records": 13
+  },
+  "conclusions": [
+    "The 13 Rust answers are real DNS refusals under this offered synthetic pressure load.",
+    "The evidence does not establish table exhaustion, socket/send failure, missing route, memory shortage, CPU saturation, or a specific implementation defect as their cause.",
+    "The earlier 17 C failures remain unclassified and cannot be assigned the Rust response type.",
+    "Do not claim a zero-error 1000QPS envelope or infer a service throughput ceiling from these rate-limited windows."
+  ],
+  "earlier_c": {
+    "classification": "Unclassified wrong responses: original sampler had exhausted the per-kind capture allowance; do not label these REFUSED or case mismatches",
+    "counter_totals": {
+      "dhcp": {
+        "measurement": {
+          "correct": 240,
+          "scheduled": 240,
+          "scheduled_skipped": 0,
+          "sent": 240,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 40,
+          "scheduled": 40,
+          "scheduled_skipped": 0,
+          "sent": 40,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      },
+      "tcp": {
+        "measurement": {
+          "correct": 1200,
+          "scheduled": 1200,
+          "scheduled_skipped": 0,
+          "sent": 1200,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 200,
+          "scheduled": 200,
+          "scheduled_skipped": 0,
+          "sent": 200,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      },
+      "udp": {
+        "measurement": {
+          "correct": 118764,
+          "scheduled": 118800,
+          "scheduled_skipped": 19,
+          "sent": 118781,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 17
+        },
+        "warmup": {
+          "correct": 19770,
+          "scheduled": 19800,
+          "scheduled_skipped": 30,
+          "sent": 19770,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      }
+    },
+    "measurement_wrong_counter": 17,
+    "refused_count": null,
+    "window": "main-run/08-busy-C",
+    "wrong_wire_records": 0
+  },
+  "fresh_c": {
+    "classification": "No wrong reply reproduced in this window; scheduled sends were still skipped",
+    "counter_totals": {
+      "dhcp": {
+        "measurement": {
+          "correct": 240,
+          "scheduled": 240,
+          "scheduled_skipped": 0,
+          "sent": 240,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 40,
+          "scheduled": 40,
+          "scheduled_skipped": 0,
+          "sent": 40,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      },
+      "tcp": {
+        "measurement": {
+          "correct": 1200,
+          "scheduled": 1200,
+          "scheduled_skipped": 0,
+          "sent": 1200,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 200,
+          "scheduled": 200,
+          "scheduled_skipped": 0,
+          "sent": 200,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      },
+      "udp": {
+        "measurement": {
+          "correct": 118794,
+          "scheduled": 118800,
+          "scheduled_skipped": 6,
+          "sent": 118794,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        },
+        "warmup": {
+          "correct": 19739,
+          "scheduled": 19800,
+          "scheduled_skipped": 61,
+          "sent": 19739,
+          "timeout": 0,
+          "transport_error": 0,
+          "wrong": 0
+        }
+      }
+    },
+    "latency_and_send_lag": {
+      "dhcp": {
+        "actual_send_to_correct_completion": {
+          "maximum_us": 19712.43,
+          "n": 240,
+          "p50_us": 7172.626,
+          "p95_us": 12381.072,
+          "p99_us": 15810.308
+        },
+        "correct_record_count": 240,
+        "record_count": 240,
+        "scheduled_to_correct_completion": {
+          "maximum_us": 20020.61,
+          "n": 240,
+          "p50_us": 7250.394,
+          "p95_us": 12666.261,
+          "p99_us": 15917.999
+        },
+        "send_lag_all_sent": {
+          "maximum_us": 749.663,
+          "n": 240,
+          "p50_us": 79.627,
+          "p95_us": 106.231,
+          "p99_us": 418.01
+        },
+        "skipped_sends_have_no_latency_record": true,
+        "worst_correct_scheduled_completion": {
+          "actual_send_to_completion_us": 19712.43,
+          "intended_kind": 2,
+          "qtype": 1,
+          "scheduled_to_completion_us": 20020.61,
+          "send_lag_us": 308.18,
+          "sequence": 4294968071
+        }
+      },
+      "tcp": {
+        "actual_send_to_correct_completion": {
+          "maximum_us": 12488.483,
+          "n": 1200,
+          "p50_us": 1109.506,
+          "p95_us": 1832.147,
+          "p99_us": 2835.703
+        },
+        "correct_record_count": 1200,
+        "record_count": 1200,
+        "scheduled_to_correct_completion": {
+          "maximum_us": 12732.485,
+          "n": 1200,
+          "p50_us": 1204.591,
+          "p95_us": 2009.049,
+          "p99_us": 3060.801
+        },
+        "send_lag_all_sent": {
+          "maximum_us": 1926.187,
+          "n": 1200,
+          "p50_us": 88.016,
+          "p95_us": 179.232,
+          "p99_us": 533.964
+        },
+        "skipped_sends_have_no_latency_record": true,
+        "worst_correct_scheduled_completion": {
+          "actual_send_to_completion_us": 12488.483,
+          "intended_kind": 0,
+          "qtype": 1,
+          "scheduled_to_completion_us": 12732.485,
+          "send_lag_us": 244.002,
+          "sequence": 4294967623
+        }
+      },
+      "udp": {
+        "actual_send_to_correct_completion": {
+          "maximum_us": 23548.921,
+          "n": 118794,
+          "p50_us": 130.802,
+          "p95_us": 856.366,
+          "p99_us": 4661.772
+        },
+        "correct_record_count": 118794,
+        "record_count": 118794,
+        "scheduled_to_correct_completion": {
+          "maximum_us": 23673.223,
+          "n": 118794,
+          "p50_us": 211.484,
+          "p95_us": 1047.407,
+          "p99_us": 5198.204
+        },
+        "send_lag_all_sent": {
+          "maximum_us": 8211.289,
+          "n": 118794,
+          "p50_us": 76.681,
+          "p95_us": 130.784,
+          "p99_us": 637.613
+        },
+        "skipped_sends_have_no_latency_record": true,
+        "worst_correct_scheduled_completion": {
+          "actual_send_to_completion_us": 23548.921,
+          "intended_kind": 0,
+          "qtype": 1,
+          "scheduled_to_completion_us": 23673.223,
+          "send_lag_us": 124.302,
+          "sequence": 4295096940
+        }
+      }
+    },
+    "window": "capture-run/01-busy-C",
+    "wrong_wire_records": 0
+  },
+  "independent_decoder": {
+    "negative_controls": [
+      "SERVFAIL flag mutation rejected",
+      "case-only question mutation identified separately from case-insensitive DNS matching"
+    ],
+    "positive_controls": 280,
+    "private_script": "decode_wrong_independent.py",
+    "sha256": "18c710f1f132c36373c08c3eb0d89ebd74c66738d0f684c653c6f511ad2c0692",
+    "unexpected_positive_control_failures": 0
+  },
+  "input_sha256": {
+    "capture-run/01-busy-C/udp.json": "a13d9d515d3d18dbaedb0fb40ae589735a3a402aafe3e354f7442efa99066100",
+    "capture-run/02-busy-R/udp.json": "c41d4b59fdb7469b540375fdb9b130d1506d21da6c256d930f5632d2e1b1f379",
+    "capture-run/02-busy-R/udp.latencies.bin": "f2cb264989ff3d39730be445257cbb0d10380cd3b341898384b68fa3399c95bb",
+    "capture-run/02-busy-R/udp.wire-samples.jsonl": "79c26b492d97cfec83a25358a805568ea77fdd5d6f536e452b97dfb7669ffa1b",
+    "main-run/08-busy-C/udp.json": "662bba97329549ac72dc281103b2ffeefef780b7e222b648d9afafda5779f95b"
+  },
+  "memory_source_context": {
+    "interpretation": "These operations allow retained container capacity and copy-on-write allocation turnover, but no allocation tracing was collected to attribute RSS changes. Same-process measurements, rather than this source context, determine whether the observed window approaches a plateau.",
+    "references": [
+      {
+        "condition": "Name index uses 64 HashMap shards",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 260,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Configured capacity constructs a fixed number of record slots; measured configuration requests 1000",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 323,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "TCP cache snapshot clones the Cache structure",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 284,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Content mutation uses Arc::make_mut copy-on-write",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 292,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Name-index mutation uses Arc::make_mut copy-on-write",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 316,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Eviction removes empty per-name index entries",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 1148,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Slot release takes and drops its Entry payload",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/cache.rs",
+        "line": 1160,
+        "path": "components/dnsmasq/src/dns/cache.rs",
+        "sha256": "a9244aa0f9fce8c137e32743610be0878afcfba66de156a8b3bb220d192e172a",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Non-debug TCP acceptance obtains an inherited cache view",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/main.rs",
+        "line": 5371,
+        "path": "components/dnsmasq/src/main.rs",
+        "sha256": "5a70ef510a6630f5532e8761fee4122f550528fb5a7159174a9e721028ad9c41",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Ended network work releases the DNS-owned connection fields",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/main.rs",
+        "line": 5580,
+        "path": "components/dnsmasq/src/main.rs",
+        "sha256": "5a70ef510a6630f5532e8761fee4122f550528fb5a7159174a9e721028ad9c41",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Completed client removal drops the remaining client object",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/main.rs",
+        "line": 5607,
+        "path": "components/dnsmasq/src/main.rs",
+        "sha256": "5a70ef510a6630f5532e8761fee4122f550528fb5a7159174a9e721028ad9c41",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      }
+    ],
+    "scope": "Structural context only; not a demonstrated explanation of measured anonymous-memory growth, not a leak-freedom proof, and not a measured physical-memory bound",
+    "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+  },
+  "retained_same_process": {
+    "aggregate_measurement_counts": {
+      "dhcp": {
+        "correct": 720,
+        "scheduled": 720,
+        "scheduled_skipped": 0,
+        "sent": 720,
+        "timeout": 0,
+        "transport_error": 0,
+        "wrong": 0
+      },
+      "tcp": {
+        "correct": 3600,
+        "scheduled": 3600,
+        "scheduled_skipped": 0,
+        "sent": 3600,
+        "timeout": 0,
+        "transport_error": 0,
+        "wrong": 0
+      },
+      "udp": {
+        "correct": 356362,
+        "scheduled": 356400,
+        "scheduled_skipped": 0,
+        "sent": 356400,
+        "timeout": 0,
+        "transport_error": 0,
+        "wrong": 38
+      }
+    },
+    "all_ids_and_questions_preserved_exactly": true,
+    "latency_us_of_refused": {
+      "max": 10072.044,
+      "min": 6742.984
+    },
+    "qtype_counts": {
+      "1": 14,
+      "16": 17,
+      "28": 7
+    },
+    "refused_percent_of_udp_sent": 0.010662177328843996,
+    "refused_records": 38,
+    "root_cause": "Unresolved; the same plain-REFUSED ambiguity and source-path limitations apply.",
+    "same_daemon_identity_all_segments": true,
+    "scope": "Three additional approximately180second pressure windows using the same daemon process, cache and heap; workload seed changes between segments",
+    "segment_count": 3,
+    "segments": [
+      {
+        "all_packets_completely_decoded": true,
+        "all_replies_without_OPT_or_EDE": true,
+        "all_requests_without_OPT": true,
+        "classification": "All captured wrong answers are DNS REFUSED, not case-sensitive checker disagreement",
+        "counter_totals": {
+          "dhcp": {
+            "measurement": {
+              "correct": 240,
+              "scheduled": 240,
+              "scheduled_skipped": 0,
+              "sent": 240,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            },
+            "warmup": {
+              "correct": 40,
+              "scheduled": 40,
+              "scheduled_skipped": 0,
+              "sent": 40,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          },
+          "tcp": {
+            "measurement": {
+              "correct": 1200,
+              "scheduled": 1200,
+              "scheduled_skipped": 0,
+              "sent": 1200,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            },
+            "warmup": {
+              "correct": 200,
+              "scheduled": 200,
+              "scheduled_skipped": 0,
+              "sent": 200,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          },
+          "udp": {
+            "measurement": {
+              "correct": 118799,
+              "scheduled": 118800,
+              "scheduled_skipped": 0,
+              "sent": 118800,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 1
+            },
+            "warmup": {
+              "correct": 19781,
+              "scheduled": 19800,
+              "scheduled_skipped": 19,
+              "sent": 19781,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          }
+        },
+        "input_sha256": {
+          "daemon.identity": "5d737484e3459fd98a550d81d6c1c05f1f7f07eb65584fe432cc051af6c2587a",
+          "metrics.jsonl": "03044cfe0d93ca690091b9c4cead6e4ad4eee6bfa766f2e0326f66902703cb01",
+          "udp.json": "f40cb191d128e59f90f88793696e51e572ba2fbf375d42603f3b007557937edc",
+          "udp.latencies.bin": "4628e79c2e18f6bb10611c400d151483f3af417acabd4091a5a1b6c54b71e879",
+          "udp.wire-samples.jsonl": "bf565c7f3b50171e36f62c48d9a162b26726286539b5e90fe0249810fe30e29d"
+        },
+        "measurement_wrong_counter": 1,
+        "records": [
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7247.572,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 4295103739
+          }
+        ],
+        "request_id_and_question_preserved_exactly_all": true,
+        "window": "retention-run/01-busy-R",
+        "wrong_wire_records": 1
+      },
+      {
+        "all_packets_completely_decoded": true,
+        "all_replies_without_OPT_or_EDE": true,
+        "all_requests_without_OPT": true,
+        "classification": "All captured wrong answers are DNS REFUSED, not case-sensitive checker disagreement",
+        "counter_totals": {
+          "dhcp": {
+            "measurement": {
+              "correct": 240,
+              "scheduled": 240,
+              "scheduled_skipped": 0,
+              "sent": 240,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            },
+            "warmup": {
+              "correct": 40,
+              "scheduled": 40,
+              "scheduled_skipped": 0,
+              "sent": 40,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          },
+          "tcp": {
+            "measurement": {
+              "correct": 1200,
+              "scheduled": 1200,
+              "scheduled_skipped": 0,
+              "sent": 1200,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            },
+            "warmup": {
+              "correct": 200,
+              "scheduled": 200,
+              "scheduled_skipped": 0,
+              "sent": 200,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          },
+          "udp": {
+            "measurement": {
+              "correct": 118786,
+              "scheduled": 118800,
+              "scheduled_skipped": 0,
+              "sent": 118800,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 14
+            },
+            "warmup": {
+              "correct": 19800,
+              "scheduled": 19800,
+              "scheduled_skipped": 0,
+              "sent": 19800,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          }
+        },
+        "input_sha256": {
+          "daemon.identity": "5d737484e3459fd98a550d81d6c1c05f1f7f07eb65584fe432cc051af6c2587a",
+          "metrics.jsonl": "f04af11d9a7acf0e9101fa1d30738789d9bb95606c0c468b8861ccdc1166d636",
+          "udp.json": "75f643a728d53ab184b6617bf70486e270913f7ee26ced705e9e332b2960ebf8",
+          "udp.latencies.bin": "edeec52c57e58c3cff8c4e11163d5730088dc97ddfcbf768cf0b1111bed5b182",
+          "udp.wire-samples.jsonl": "bc43a4e215e0df03d8f1962b3a5f6bfb3038a731b1eddd07d9f0c1f3a7c92114"
+        },
+        "measurement_wrong_counter": 14,
+        "records": [
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6870.632,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8589995159
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6782.226,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8589998198
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6752.218,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590007638
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7918.354,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590009654
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6912.489,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590017934
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6853.705,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590023604
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6838.932,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590027798
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6970.426,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590029264
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 7172.476,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590041038
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7382.529,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590044014
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6970.734,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590044409
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6843.01,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590068249
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6885.944,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590068759
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7030.518,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 8590069359
+          }
+        ],
+        "request_id_and_question_preserved_exactly_all": true,
+        "window": "retention-run/02-busy-R",
+        "wrong_wire_records": 14
+      },
+      {
+        "all_packets_completely_decoded": true,
+        "all_replies_without_OPT_or_EDE": true,
+        "all_requests_without_OPT": true,
+        "classification": "All captured wrong answers are DNS REFUSED, not case-sensitive checker disagreement",
+        "counter_totals": {
+          "dhcp": {
+            "measurement": {
+              "correct": 240,
+              "scheduled": 240,
+              "scheduled_skipped": 0,
+              "sent": 240,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            },
+            "warmup": {
+              "correct": 40,
+              "scheduled": 40,
+              "scheduled_skipped": 0,
+              "sent": 40,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          },
+          "tcp": {
+            "measurement": {
+              "correct": 1200,
+              "scheduled": 1200,
+              "scheduled_skipped": 0,
+              "sent": 1200,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            },
+            "warmup": {
+              "correct": 200,
+              "scheduled": 200,
+              "scheduled_skipped": 0,
+              "sent": 200,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          },
+          "udp": {
+            "measurement": {
+              "correct": 118777,
+              "scheduled": 118800,
+              "scheduled_skipped": 0,
+              "sent": 118800,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 23
+            },
+            "warmup": {
+              "correct": 19800,
+              "scheduled": 19800,
+              "scheduled_skipped": 0,
+              "sent": 19800,
+              "timeout": 0,
+              "transport_error": 0,
+              "wrong": 0
+            }
+          }
+        },
+        "input_sha256": {
+          "daemon.identity": "5d737484e3459fd98a550d81d6c1c05f1f7f07eb65584fe432cc051af6c2587a",
+          "metrics.jsonl": "6fa193d0cbcba3ec68ed848e027e33cd1761ed839d2f4c84075760b766fe2caf",
+          "udp.json": "b3a5b6650df9159a3a6b7344ebc9befc1298d5928b4a2713486b7de5e435f359",
+          "udp.latencies.bin": "d5299b7efb060c5057b61f6527de0b699c812c3972c46c0b8a0f5919309c517f",
+          "udp.wire-samples.jsonl": "a661f5aa70849179f517dbe247bb5720cbe18acd7e0355eac21673ebf7fd6fa3"
+        },
+        "measurement_wrong_counter": 23,
+        "records": [
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 7300.816,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884948818
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7086.532,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884949789
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 7183.864,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884968138
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6817.927,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884971998
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 10072.044,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884972514
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7182.325,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884974719
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 7104.921,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884977729
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6979.582,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884980389
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6951.729,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884981844
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6873.325,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884982204
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6756.219,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884991484
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6748.602,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884993374
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6758.296,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884994179
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6922.029,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12884999098
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6853.166,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885002178
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6922.568,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885003484
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6753.526,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885003939
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6964.809,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885005974
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6776.839,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885007504
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6958.269,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885009064
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6742.984,
+            "qtype": 1,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885011689
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 0,
+            "latency_us": 6882.019,
+            "qtype": 16,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885035358
+          },
+          {
+            "answer_count": 0,
+            "intended_kind": 1,
+            "latency_us": 6898.177,
+            "qtype": 28,
+            "rcode": 5,
+            "request_id_and_question_preserved_exactly": true,
+            "sequence": 12885039174
+          }
+        ],
+        "request_id_and_question_preserved_exactly_all": true,
+        "window": "retention-run/03-busy-R",
+        "wrong_wire_records": 23
+      }
+    ],
+    "wrong_wire_records": 38
+  },
+  "schema": 1,
+  "scope": "Synthetic loopback DNS pressure measurement on the router; not a claim about normal LAN failure rate",
+  "source_review": {
+    "observed_log_context": "No Maximum number of concurrent DNS queries, DNS-rebind, or error warning found in captured Rust service log; absence is not a branch-attribution proof.",
+    "paths": [
+      {
+        "condition": "NoMatchingRule: local REFUSED, internal EDE14",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/daemon.rs",
+        "line": 1063,
+        "path": "components/dnsmasq/src/dns/daemon.rs",
+        "sha256": "7f4b76847eb3d48d66777468667e5f1f6dc3f26f20ea09c341ac7a388d663d5b",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "GroupFull or DuplicateFull: local REFUSED without a specific EDE",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/daemon.rs",
+        "line": 1101,
+        "path": "components/dnsmasq/src/dns/daemon.rs",
+        "sha256": "7f4b76847eb3d48d66777468667e5f1f6dc3f26f20ea09c341ac7a388d663d5b",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "ResolveError::Io during upstream start: local REFUSED, internal EDE23",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/daemon.rs",
+        "line": 1135,
+        "path": "components/dnsmasq/src/dns/daemon.rs",
+        "sha256": "7f4b76847eb3d48d66777468667e5f1f6dc3f26f20ea09c341ac7a388d663d5b",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "refusal() adds an EDE only if the request supplied OPT",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/tcp_service.rs",
+        "line": 528,
+        "path": "components/dnsmasq/src/dns/tcp_service.rs",
+        "sha256": "6eb49a70366705771e1afe014483a795c1dba6859a0a8d206c9ff33ce24054ec",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "table_full() creates REFUSED; original malformed/opcode errors retain precedence",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/udp_query.rs",
+        "line": 48,
+        "path": "components/dnsmasq/src/dns/udp_query.rs",
+        "sha256": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "Malformed/skippable query admission can create REFUSED; captured client requests are valid ordinary queries",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/udp_query.rs",
+        "line": 19,
+        "path": "components/dnsmasq/src/dns/udp_query.rs",
+        "sha256": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "DuplicateFull condition: extra_clients reaches configured forward_max",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/forward.rs",
+        "line": 346,
+        "path": "components/dnsmasq/src/dns/forward.rs",
+        "sha256": "f4cc418c81da14ab526d379ac5a5975057f0fe29f22c057d47d55756879611f5",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      },
+      {
+        "condition": "GroupFull condition: sufficiently recent pending queries for the group reach configured forward_max",
+        "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:components/dnsmasq/src/dns/forward.rs",
+        "line": 384,
+        "path": "components/dnsmasq/src/dns/forward.rs",
+        "sha256": "f4cc418c81da14ab526d379ac5a5975057f0fe29f22c057d47d55756879611f5",
+        "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+      }
+    ],
+    "purpose": "Possible paths, not measured attribution; list is not proof which branch executed",
+    "read_method": "git show <audited-commit>:<path>; hashes and line numbers refer to those immutable Git blobs, not the concurrent working branch",
+    "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+    "verification_result": "Potential REFUSED conditions unchanged in the audited source; daemon.rs and tcp_service.rs line numbers/hashes corrected to the audited revision. Wire classifications are unchanged.",
+    "wire_ambiguity": "Plain DNS requests carry no OPT. The EDE14 and EDE23 branches therefore emit the same observed plain REFUSED envelope as forwarding-admission refusal. No errno, admission counter, or branch trace was collected."
+  },
+  "status": "classified wire result; root cause unresolved",
+  "tail_interpretation": {
+    "limitations": [
+      "Latency records omit skipped sends; these are retained separately in scheduled_skipped counts.",
+      "Average CPU utilization below machine saturation does not establish the cause of transient refusals or send delays.",
+      "p99 values with small samples are descriptive order statistics, not reliable tail guarantees."
+    ],
+    "measured": "Rust TCP includes a send lag above one second and nine skipped scheduled sends despite shorter actual-send-to-response latency. See exact scheduled_to_correct_completion maximum, not p95 alone.",
+    "source_candidate": {
+      "description": "Reconnection uses a blocking connect before the first actual send timestamp; socket timeouts are two seconds. Connection setup is therefore one possible contributor to send lag. The measurement does not time connect separately and does not prove it caused the observed delay.",
+      "function": "socket_connect / start_request / actual_send_at",
+      "git_object": "58365e8c8ebe1805573baa02543baf1c9d45be68:tools/dnsmasq/m6a_loadgen.c",
+      "path": "tools/dnsmasq/m6a_loadgen.c",
+      "scope": "Audited base helper source; audit-only helper preparation changes loopback addressing and sampling. The described blocking connection path is inherited.",
+      "sha256": "d0b04e4cc1bb8f4f93bb615e62c0d546c44ecc6d5a0614c30dca5079af8be8bd",
+      "source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68"
+    }
+  },
+  "total_captured_rust_refusals": {
+    "capture_pair": 13,
+    "same_process_retention": 38,
+    "scope": "These are captured and decoded Rust REFUSED replies only; earlier unclassified C failures are not counted as REFUSED.",
+    "total": 51
+  }
+}
