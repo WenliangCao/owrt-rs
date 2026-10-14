@@ -1,8 +1,11 @@
 # AX3000T 救援手册（离线可用）
 
-**当前状态（2026-09-29）：已刷入完整九组件原生 Rust 固件。首先按本页第 7 节恢复，
-`/rom/sbin/*` 也是 Rust。** 本页第 1–3 节的 stock C 原件与恢复出厂回到 C 的描述仅适用于历史镜像；
-按键、lan4 和 TFTP 救援步骤继续作为硬件恢复参考。当前部署见[记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。
+**当前状态（2026-10-14）：已上线 v0.2.0 十组件原生 Rust 固件，当前恢复入口以[发布说明](RELEASE.md#恢复路径)为准。**
+`owrt-recover-c` 从 `/usr/libexec/owrt-stock/` 成套恢复十个 C 程序及 dnsmasq 原 init/ACL，共十二份文件；
+`/rom` 内对应入口也是 Rust，不能作为 C 原件。该操作不等同于回到 v0.1.1；本次版本回滚使用已核验的
+v0.1.1 镜像和独立配置备份，由操作方手动执行，未安装自动回退守卫。
+本页第 1–3 节针对历史 stock/overlay，第 7 节针对历史九组件镜像；不要将其旧文件集合套用到 v0.2.0。
+按键、lan4 和 TFTP 步骤继续作为硬件恢复参考。当前部署见[记录](reviews/DEPLOYMENT_V0_2_0_20261014.md)。
 
 适用：Xiaomi AX3000T（RD03，MT7981，原厂小米 bootloader），OpenWrt 25.12.5 stock 布局，
 本项目六个 Rust 组件以 boot-enable 运行，procd/ubusd/netifd 在 overlay 中替换。写给失联时独自操作的人；每一级都比上一级更重，

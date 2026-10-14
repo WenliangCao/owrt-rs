@@ -65,11 +65,11 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 
 本次最终构建是 [run 38636115402](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/38636115402)，提交 `ded73bae75f44269c93366593481d866a2e68e35`；35 项 CI 校验和已全部通过。发布保持镜像与五个 APK、四份身份清单的原始字节；CI 原 `SHA256SUMS` 改名为 `CI-SHA256SUMS`，补充 `RELEASE_NOTES.md` 和覆盖发布附件的外层 `SHA256SUMS`，共 13 个附件。构建日志保留在 Actions artifact。完整身份与当前真机状态见[部署记录](reviews/DEPLOYMENT_V0_2_0_20261014.md)，后续文档提交不改变标签目标。
 
-[v0.2.0 prerelease](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0) 已于 2026-10-14 21:12:07 UTC 发布；真机资格尚待完成，Latest 仍为 v0.1.1。GitHub 把四个 LuCI 中文 APK 公开名称中的 `26.180.75667~128a781` 改成 `26.180.75667.128a781`，字节及包内版本不变；外层 `SHA256SUMS` 使用公开名称，原 CI 清单保持原始名称和内容。
+[v0.2.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0) 于 2026-10-14 21:12:07 UTC 发布为 prerelease，完成同一镜像保留配置刷写、正常重启、用户断电重启、有效 600 秒资源采集和清理后，于 21:38:46 UTC 核验为正式 Latest。部署保留明确的客户端诊断限制：Mac UDP DNS 在刷前 C 与刷后 Rust 均超时，Rust 健康脚本首组后停止，只执行 1/20 组，不能称完整健康窗口通过；组件/配置、路由器 DNS、客户端 TCP DNS、DHCP、双栈、LuCI 及用户 Wi-Fi 使用验收见[实际报告](reviews/DEPLOYMENT_V0_2_0_20261014.md)。GitHub 把四个 LuCI 中文 APK 公开名称中的 `26.180.75667~128a781` 改成 `26.180.75667.128a781`，字节及包内版本不变；外层 `SHA256SUMS` 使用公开名称，原 CI 清单保持原始名称和内容。
 
 本次恢复 workflow 后 GitHub 延迟触发了 [tag run 38638003434](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/38638003434)，已于 21:10:51 UTC 完成取消；正式整合、上传 artifact 和创建 Release 均跳过，继续使用已核验的 run `38636115402`。
 
-临时关闭只影响发布触发入口，不改变产物身份；记录关闭前后的状态与时间，恢复后再次确认没有误触发的构建。直接推送其他 `v*` 标签的默认 Actions 行为仍是自动构建并创建 **prerelease、非 Latest** 候选，不代表真机资格。本次说明列明新增 dnsmasq-rs、真实性能差异、已知边界以及真机验收尚未完成。
+临时关闭只影响发布触发入口，不改变产物身份；记录关闭前后的状态与时间，恢复后检查并处理误触发的构建。直接推送其他 `v*` 标签的默认 Actions 行为仍是自动构建并创建 **prerelease、非 Latest** 候选，不代表真机资格。本次说明列明新增 dnsmasq-rs、真实性能差异、已知边界以及实际部署验收范围。
 
 按以下顺序完成本次部署，任何尚未完成的项目不能写成通过：
 

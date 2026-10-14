@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "prerelease_flashed_normal_reboot_checked_power_cycle_and_daily_usage_pending",
+  "status": "release_latest_deployment_accepted_with_documented_client_udp_diagnostic_limit",
   "build": {
     "source_commit": "ded73bae75f44269c93366593481d866a2e68e35",
     "canonical_run": 38636115402,
@@ -334,18 +334,150 @@
         }
       }
     },
-    "rust": null,
-    "interpretation": "Uncontrolled daily usage only, not a performance ranking."
+    "rust": {
+      "start_utc": "2026-10-14T21:24:55.683475Z",
+      "end_utc": "2026-10-14T21:34:55.927510Z",
+      "service_age_at_start_seconds": 150.338103184,
+      "probe_sha256": "abdfaa56735b966896261d4c5b596773a5498cc187f811459439f730a64d40c6",
+      "same_probe_as_C": true,
+      "ssh_exit_code": 0,
+      "same_boot_pid_starttime_and_elf_after_window": true,
+      "summary": {
+        "valid_observation_window": true,
+        "errors": [],
+        "samples": 121,
+        "duration_seconds": 600.000070192,
+        "clock_ticks_per_second": 100,
+        "main_cpu_seconds": 0.66,
+        "main_average_one_core_percent": 0.10999998713146818,
+        "main_interval_one_core_percent": {
+          "min": 0.0,
+          "median": 0.0,
+          "max": 0.8002189973734095
+        },
+        "waited_children_cpu_seconds": 0.0,
+        "main_plus_waited_cpu_seconds": 0.66,
+        "main_plus_waited_average_one_core_percent": 0.10999998713146818,
+        "child_free_endpoints_observed": true,
+        "tree_cpu_qualification": "main plus waited children at child-free sampled endpoints; proc reads are not atomic",
+        "main": {
+          "rss_kib": {
+            "min": 2336,
+            "median": 2352,
+            "max": 2352
+          },
+          "rss_anon_kib": {
+            "min": 420,
+            "median": 436,
+            "max": 436
+          },
+          "fd_count": {
+            "min": 40,
+            "median": 44,
+            "max": 44
+          },
+          "thread_count": {
+            "min": 1,
+            "median": 1,
+            "max": 1
+          }
+        },
+        "tree_shared_pages_recounted": {
+          "rss_kib": {
+            "min": 2336,
+            "median": 2352,
+            "max": 2352
+          },
+          "rss_anon_kib": {
+            "min": 420,
+            "median": 436,
+            "max": 436
+          },
+          "fd_count": {
+            "min": 40,
+            "median": 44,
+            "max": 44
+          },
+          "thread_count": {
+            "min": 1,
+            "median": 1,
+            "max": 1
+          }
+        },
+        "process_count": {
+          "min": 1,
+          "median": 1,
+          "max": 1
+        },
+        "children_disappeared_total": 0,
+        "lease_count": {
+          "min": 2,
+          "median": 3,
+          "max": 3
+        },
+        "lease_count_missing_samples": 0,
+        "observer_cpu_seconds": 0.56,
+        "observer_average_one_core_percent": 0.09333332241457908,
+        "sample_duration_ms": {
+          "min": 4.247398,
+          "median": 4.54738,
+          "max": 41.881997
+        },
+        "limitations": [
+          "Daily usage, not controlled workload or performance ranking.",
+          "RSS and RssAnon are not PSS or USS; tree memory recounts shared pages.",
+          "Short-lived children may only appear in waited-child CPU counters.",
+          "Observer CPU excludes SSH, network probes and local analysis.",
+          "No query logging or per-client/name/address collection."
+        ],
+        "raw_sha256": "53d02a41b1f79c32838d8ca3a5ab20008bc9c486798644f213fd7ee3306d1c2f"
+      }
+    },
+    "interpretation": "Uncontrolled daily usage only, not a performance ranking.",
+    "rust_health": {
+      "status": "incomplete_stopped_on_first_group_udp_timeout",
+      "script_modified": false,
+      "restarted_with_altered_method": false,
+      "groups_planned": 20,
+      "groups_executed": 1,
+      "checks_planned": 100,
+      "checks_executed": 5,
+      "checks_passed": 4,
+      "checks_failed": 1,
+      "failure": "mac_dns_udp_timeout_same_as_C_preflash_baseline",
+      "other_checks_passed": [
+        "dns_tcp",
+        "luci",
+        "ipv4_https",
+        "ipv6_https"
+      ],
+      "full_window_health_passed": false,
+      "resource_window_validity_assessed_separately": true
+    },
+    "observed_differences_only": {
+      "main_cpu_seconds_rust_minus_C": 0.44,
+      "main_average_one_core_percentage_points_rust_minus_C": 0.07333332504996909,
+      "rss_median_kib_rust_minus_C": 1088,
+      "rss_anon_median_kib_rust_minus_C": 172,
+      "fd_median_rust_minus_C": 2,
+      "performance_ranking": false,
+      "uncontrolled_differences": [
+        "user_activity_and_query_load",
+        "cache_and_service_age",
+        "lease_count_C7_Rust2_to3",
+        "health_probe_groups_C20_Rust1"
+      ]
+    }
   },
   "hardware": {
     "release_created": true,
     "flashed": true,
     "initial_acceptance": "identity_config_and_health_passed_except_existing_mac_udp_timeout",
     "normal_reboot": "completed_identity_config_health_passed_except_existing_mac_udp_timeout",
-    "physical_power_cycle": "pending",
-    "rust_600s": "pending",
-    "cleanup": "pending",
-    "latest": false,
+    "physical_power_cycle": "user_report_and_new_boot_identity_config_health_verified",
+    "rust_600s": "valid_resource_window_121_samples_health_automation_incomplete",
+    "cleanup": "completed_final_identity_config_and_scoped_health_verified",
+    "latest": true,
     "flash_at_utc": "2026-10-14T21:15:50.267902+00:00",
     "flash_attempts": 1,
     "flash_ssh_exit_code": 246,
@@ -356,7 +488,8 @@
     "launchd_observer_failed_to_report_return": true,
     "direct_ssh_and_identity_check_passed": true,
     "preserved_configuration_files": 45,
-    "configuration_differences": 0
+    "configuration_differences": 0,
+    "rollback_triggered": false
   },
   "evidence_sha256": {
     "config-before.tar.gz": "b0a1012161b8e70498f4fc002b981b48573358a2014bb25145dcf4535888cc9b",
@@ -394,7 +527,21 @@
     "manual-deploy/identities-normal.json": "32e99ccd0dcd58707684edce3ddd10948ce8a736d13a3a10a6162f0a91b75705",
     "manual-deploy/health-normal.json": "12da9f829bc9db0bd4021c1e142b3885d11f4c927bc31141bb6d69e88709524f",
     "manual-deploy/client-normal.json": "10c0bfd7813d93e24dcb450660845c2eec7e60a63547fbb99e9c7f02227b4665",
-    "manual-deploy/udp-normal-conntrack.txt": "ff888f2892219d4fd67383665be2c067da91bf6c0beb84b3632dd92ab9e5884e"
+    "manual-deploy/udp-normal-conntrack.txt": "ff888f2892219d4fd67383665be2c067da91bf6c0beb84b3632dd92ab9e5884e",
+    "manual-deploy/identities-power.json": "36c7863b91b7ed920906b2c87c2a91ac73534082d65b11cd78e30f1101997720",
+    "manual-deploy/health-power.json": "877a990a40e313b97778725715cd831f4a11ab0e37607bd67b94c78585c7d3c7",
+    "manual-deploy/udp-client-counters-after-powercycle.txt": "1cb0a562189629a331a09f67e176e05ff4be74546bcaec780958d5fbe3b5d6a4",
+    "daily-rust-start.json": "f3334684a5c8ff8c083e695bb8d4eb224464ba9278139910eb526c417c150420",
+    "daily-rust/health.jsonl": "d6cd6b1d5ae18565004e0ba1bcf4d26c28ffe7a9b937d931bf142866b19c14b2",
+    "daily-rust/HEALTH_FAILURE": "f7d378e851dc16cf3f9ffa0fe2f71512c83b57fbe13b36aa8c6c100f9cb4e5cc",
+    "daily-rust/summary.json": "6d60fd2178625ca0455ddb1ece19b06502c6eae337a39d90606a6138e5d49d4c",
+    "daily-rust/collection.json": "167778634e86e7f0b15a8b7c951b51d08c168a99ea81c8aef7a9294b87690fe4",
+    "daily-rust/usage.jsonl": "53d02a41b1f79c32838d8ca3a5ab20008bc9c486798644f213fd7ee3306d1c2f",
+    "manual-deploy/cleanup-final.json": "f5d7c32602ab08dc40278209d43a45a0043d8731e2c138a6fae4ca1e846ea68b",
+    "manual-deploy/health-final.json": "877a990a40e313b97778725715cd831f4a11ab0e37607bd67b94c78585c7d3c7",
+    "manual-deploy/client-final.json": "11b6e784d25e7a99b44797b5eca6a4285e6488468dc141cdb101be754d4c6b51",
+    "release-promoted.json": "89b200d770fdb2096b198ab4c4d850a507b28b4091103be280d5970286fbfb67",
+    "final-public-verification.json": "e9ddbafca5ac598aa5771c543fb42f702baea3f11ab4745c0f8b252c012322e9"
   },
   "release_blocker": {
     "original_host_tests_run": 38626687422,
@@ -481,12 +628,12 @@
     "layout": "original CI image and five APKs, four original identity manifests, original CI-SHA256SUMS, RELEASE_NOTES.md, outer SHA256SUMS",
     "ci_checksum_entries": 35,
     "build_logs": "retained in Actions artifact",
-    "prerelease": true,
-    "latest": false,
+    "prerelease": false,
+    "latest": true,
     "public_download_verification": "passed",
     "published_at": "2026-10-14T21:12:07Z",
     "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0",
-    "latest_release": "v0.1.1",
+    "latest_release": "v0.2.0",
     "luci_apk_filename_mapping": {
       "ci_version_fragment": "26.180.75667~128a781",
       "public_version_fragment": "26.180.75667.128a781",
@@ -497,7 +644,15 @@
       "outer_checksums_use": "public_asset_names"
     },
     "public_download_verified_at_utc": "2026-10-14T21:14:53.405414+00:00",
-    "public_checksum_entries_passed": 12
+    "public_checksum_entries_passed": 12,
+    "final_public_verification": {
+      "at": "2026-10-14T21:39:10.684769+00:00",
+      "metadata_redownload_matches": true,
+      "checksum_entries_verified": 12,
+      "github_asset_digests_match": 13,
+      "tag_unchanged": true,
+      "firmware_replaced": false
+    }
   },
   "preflash_health": {
     "running_release": "v0.1.1",
@@ -509,7 +664,7 @@
     "mac_wifi_bound_ipv6_https": "passed",
     "router_local_dns_udp": "passed",
     "existing_device_health": "passed",
-    "diagnosis": "pending",
+    "diagnosis": "unresolved_documented_preexisting_client_diagnostic_limitation",
     "flashed": false,
     "prior_600s_observation_rewritten": false
   },
@@ -564,6 +719,75 @@
     "conntrack_unreplied": false,
     "client_delivery_proven": false,
     "timeout_root_cause_proven": false,
-    "same_client_timeout_observed_before_flash_on_C": true
+    "same_client_timeout_observed_before_flash_on_C": true,
+    "post_power_probe_global_mac_counter_deltas": {
+      "no_socket_drop": 1,
+      "icmp_unreachable": 1,
+      "query_correlation_proven": false,
+      "attribution_proven": false
+    },
+    "product_regression_established": false,
+    "user_reports_current_wifi_web_use_normal": true
+  },
+  "physical_power_cycle_acceptance": {
+    "user_reply_after_explicit_unplug_10s_replug_and_cellular_off_wifi_web_request": "没什么问题，我重新连了网之后一切好像目前看起来挺正常的",
+    "new_boot_independently_verified": true,
+    "ten_installed_and_rom_identities": true,
+    "applicable_running_identities": true,
+    "dnsmasq_init_acl": true,
+    "configuration_files_preserved": 45,
+    "router_and_client_health_checks_passed": true,
+    "boot_id_alone_used_as_physical_action_proof": false
+  },
+  "cleanup": {
+    "at": "2026-10-14T21:35:40.345639+00:00",
+    "boot_id_unchanged": true,
+    "dnsmasq_pid_start_exe_unchanged": true,
+    "config_files_unchanged": 45,
+    "same_probe_removed_after_completed_collection": true,
+    "observer_process_completed": true,
+    "temporary_router_probe_directory_removed": true,
+    "staged_image_and_backup_absent_after_reboots": true,
+    "no_automatic_guard_installed": true,
+    "local_launchd_observer_unloaded": true,
+    "installed_rust_and_stock_checksums_passed": true,
+    "final_log_sha256": "070bef47879b7c450d2fde6414fd8ed4956d966e79eaf494688303ce7cedf302",
+    "no_rollback_triggered": true
+  },
+  "final_acceptance": {
+    "accepted_with_documented_diagnostic_limit": true,
+    "scope": [
+      "exact_components_and_45_preserved_configs",
+      "client_DHCP",
+      "both_radios",
+      "router_DNS_including_UDP",
+      "client_TCP_DNS",
+      "WiFi_bound_IPv4_IPv6_HTTPS",
+      "LuCI",
+      "normal_reboot",
+      "user_power_cycle_and_WiFi_web_feedback",
+      "valid_600s_resource_window",
+      "cleanup_and_final_identities"
+    ],
+    "all_automated_checks_passed": false,
+    "mac_udp_diagnostic": "preexisting_C_and_Rust_timeout_unresolved",
+    "rust_health_groups_executed": 1,
+    "rust_health_groups_planned": 20,
+    "rust_health_checks_not_executed": 95,
+    "product_regression_established": false,
+    "latest_promotion": "completed_same_release_firmware_and_tag"
+  },
+  "release_promotion": {
+    "requested_at": "2026-10-14T21:38:44.176110+00:00",
+    "verified_at": "2026-10-14T21:38:46.161437+00:00",
+    "release_id": 413187962,
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0",
+    "prerelease": false,
+    "latest_tag": "v0.2.0",
+    "image_asset_id": 641679597,
+    "image_sha256": "2f8083e44a548802de1738ecd8ef5231f74fda950a0a69a44f0e10e2e1d30ffd",
+    "asset_count": 13,
+    "body_matches_final_notes": true,
+    "tag_target": "ded73bae75f44269c93366593481d866a2e68e35"
   }
 }
