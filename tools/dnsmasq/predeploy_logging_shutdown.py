@@ -107,8 +107,9 @@ def run(args, side, scenario):
             result["records_before_term"] = len(packets)
             term = time.monotonic()
             process.send_signal(signal.SIGTERM)
-            # The old Rust cap was 100ms. Observe before allowing any progress.
-            time.sleep(.35)
+            # Exceed both the audit's 2s stop window and, in the controlled
+            # tail cases, the old Rust 100ms cap before allowing progress.
+            time.sleep(2.1 if scenario == "audit-overflow" else .35)
             result["held_after_term_seconds"] = time.monotonic() - term
             result["alive_before_release"] = process.poll() is None
             release = time.monotonic()
