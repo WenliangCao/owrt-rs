@@ -38,10 +38,8 @@ impl From<WireError> for AnswerError {
     }
 }
 
-/// Begin a static hosts generation exactly as cache_reload does: configured
-/// host records first, then the caller reads hosts files into this same table.
-/// Replaying only unique file entries later would lose duplicate lookup's
-/// round-robin side effects during bulk loading.
+/// Construct configured records for standalone callers. Runtime reloads use
+/// configured_hosts_bulk so all input sources share C's temporary load state.
 pub fn configured_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
     let mut hosts = Hosts::new();
     hosts.set_round_robin(!config.no_round_robin);
@@ -63,10 +61,54 @@ pub fn configured_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
     hosts
 }
 
+/// Start cache_reload's bulk generation before any configured address is
+/// inserted. The caller reads every hosts source and finishes the bulk state
+/// before publishing. Allocation failure drops this unpublished generation.
+/// packet_limit is C's whole packet buffer: max(edns_packet_max, 512) + 265.
+pub fn configured_hosts_bulk(
+    config: &DnsConfig,
+    local_ttl: u32,
+    packet_limit: usize,
+    cache_size: usize,
+    minimum_hash_capacity: usize,
+    retained_leases: &LeaseNames,
+) -> Result<Hosts, ()> {
+    let mut hosts = Hosts::new();
+    hosts.set_round_robin(!config.no_round_robin);
+    hosts.begin_bulk(packet_limit, cache_size, minimum_hash_capacity).map_err(|_| ())?;
+    // cache_reload retains DHCP entries until the later lease publication.
+    // Their names participate in duplicate lookup's temporary next chain.
+    for entry in retained_leases.active_entries() {
+        hosts.add_bulk_lease(
+            &entry.name,
+            IpAddr::V4(entry.address),
+            entry.reverse,
+            entry.expires.is_none(),
+        ).map_err(|_| ())?;
+    }
+    for record in &config.host_records {
+        for name in &record.names {
+            let ttl = record.ttl.unwrap_or(local_ttl);
+            for address in record.address4.map(IpAddr::V4).into_iter()
+                .chain(record.address6.map(IpAddr::V6))
+            {
+                hosts.insert_checked(
+                    crate::hosts::try_copy(name).map_err(|_| ())?,
+                    address,
+                    ttl,
+                    1, // SRC_CONFIG
+                ).map_err(|_| ())?;
+            }
+        }
+    }
+    Ok(hosts)
+}
+
 /// A local answer engine owns no sockets and performs no upstream I/O.  The
 /// hosts table is mutable because dnsmasq rotates same-name addresses unless
 /// `no-round-robin` is set.
-/// Callers seed the table with [`configured_hosts`] before loading files.
+/// Runtime loaders start with [`configured_hosts_bulk`] and finish loading
+/// before passing the published generation to this answerer.
 pub struct LocalAnswerer<'a> {
     pub config: &'a DnsConfig,
     pub hosts: &'a mut Hosts,
@@ -1072,24 +1114,33 @@ fn add_local_records_for_name(
         }
         if !explicit_ptr {
             let address = arpa_address(name);
-            if let Some(host) = address.and_then(|address| hosts.reverse(address)) {
-                let origin = if host.configured {
-                    qlog::CONFIG
-                } else {
-                    qlog::HOSTS
-                };
-                notices.address(
-                    origin | qlog::REVERSE,
-                    &host.name,
-                    host.address,
-                    hosts.source_name(host.source),
-                );
+            let mut reverse_hosts = address
+                .into_iter()
+                .flat_map(|address| hosts.reverse_all(address))
+                .peekable();
+            if reverse_hosts.peek().is_some() {
+                // cache_find_by_addr can return several F_REVERSE hosts for
+                // one address. answer_request emits every owner, with its own
+                // TTL and source, before considering a DHCP/synthetic miss.
                 owned = true;
-                rows.push((
-                    TYPE_PTR,
-                    host.ttl,
-                    wire_name(&host.name).unwrap_or_else(|| vec![0]),
-                ));
+                for host in reverse_hosts {
+                    let origin = if host.configured {
+                        qlog::CONFIG
+                    } else {
+                        qlog::HOSTS
+                    };
+                    notices.address(
+                        origin | qlog::REVERSE,
+                        &host.name,
+                        host.address,
+                        hosts.source_name(host.source),
+                    );
+                    rows.push((
+                        TYPE_PTR,
+                        host.ttl,
+                        wire_name(&host.name).unwrap_or_else(|| vec![0]),
+                    ));
+                }
             } else if let Some(lease) = address.and_then(|address| match address {
                 IpAddr::V4(address) => leases.names.reverse(address, leases.now),
                 IpAddr::V6(_) => None,
@@ -1889,6 +1940,140 @@ mod tests {
             (rr.rrtype, rr.ttl, rr.rdata),
             (TYPE_PTR, 90, b"\x05owner\x04test\0".as_slice())
         );
+    }
+
+    fn repeated_ptr_hosts(ipv6: bool, first: &str, second: &str) -> Hosts {
+        let (address, control, collision, other) = if ipv6 {
+            ("2001:db8::1", "2001:db8::2", "2001:db8::bc", "2001:db8::bb")
+        } else {
+            ("192.0.2.1", "192.0.2.2", "192.0.3.186", "192.0.3.185")
+        };
+        let mut config = DnsConfig::default();
+        apply(&mut config, format!("host-record={first},{address},90").as_bytes());
+        let mut hosts = configured_hosts_bulk(
+            &config, 37, 1497, 1000, 1000, &LeaseNames::default(),
+        ).unwrap();
+        hosts.set_source_name(7, b"/fixture/repeated.hosts".to_vec());
+        // The collision shares the configured address's C reverse bucket.
+        // The second a.test lookup cuts its temporary chain, so the later
+        // repeated address acquires another F_REVERSE record.
+        let input = format!(
+            "{control} old.test\n{collision} a.test\n{other} a.test\n\
+             {address} {second}\n{control} {second}\n"
+        );
+        let stats = hosts.read(input.as_bytes(), 7, 37, false, |_| None);
+        assert!(!stats.allocation_failed);
+        assert_eq!(stats.inserted, 5);
+        hosts.finish_bulk();
+        hosts
+    }
+
+    #[test]
+    fn repeated_address_ptr_emits_all_owners_with_their_ttls_and_sources() {
+        for (ipv6, name, address) in [
+            (false, "1.2.0.192.in-addr.arpa", "192.0.2.1"),
+            (true, "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa", "2001:db8::1"),
+        ] {
+            let address: IpAddr = address.parse().unwrap();
+            let mut hosts = repeated_ptr_hosts(ipv6, "x.test", "y.test");
+            // Preserve the hosts iterator's order; separately verify its
+            // complete membership instead of treating an arbitrary order as
+            // the fixed output of C's process-specific name hash.
+            let ordered = hosts.reverse_all(address)
+                .map(|host| (host.name.clone(), host.ttl, host.configured))
+                .collect::<Vec<_>>();
+            assert_eq!(ordered.len(), 2);
+            assert!(ordered.contains(&(b"x.test".to_vec(), 90, true)));
+            assert!(ordered.contains(&(b"y.test".to_vec(), 37, false)));
+            let config = DnsConfig::default();
+            for qtype in [TYPE_PTR, 255] {
+                let response = LocalAnswerer {
+                    config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 512,
+                }.answer_with_query_events(
+                    &query(name, qtype), &mut Arc::new(LeaseNames::default()),
+                    100, None, None, &Default::default(), true,
+                ).unwrap().unwrap();
+                let message = super::super::wire::Message::parse(&response.packet).unwrap();
+                assert_eq!(message.header.flags, 0x8580);
+                let records = message.records(Section::Answer).collect::<Vec<_>>();
+                assert_eq!(records.len(), 2);
+                assert_eq!(response.query_events.len(), 2);
+                for ((record, event), (target, ttl, configured)) in records.iter()
+                    .zip(&response.query_events).zip(&ordered)
+                {
+                    assert_eq!((record.rrtype, record.class, record.ttl), (TYPE_PTR, CLASS_IN, *ttl));
+                    assert_eq!(record.rdata, wire_name(target).unwrap());
+                    assert_eq!(event.name.as_deref(), Some(target.as_slice()));
+                    assert_eq!(event.flags, qlog::REVERSE
+                        | if ipv6 { qlog::IPV6 } else { qlog::IPV4 }
+                        | if *configured { qlog::CONFIG } else { qlog::HOSTS });
+                    assert_eq!(event.argument.as_deref(), if *configured {
+                        None
+                    } else {
+                        Some(b"/fixture/repeated.hosts".as_slice())
+                    });
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn multiple_hosts_ptr_keeps_explicit_and_interface_precedence() {
+        use super::super::interface_records::{InterfaceAddress, InterfaceRecords};
+        let mut config = DnsConfig::default();
+        apply(&mut config, b"ptr-record=1.2.0.192.in-addr.arpa,explicit.test");
+        apply(&mut config, b"interface-name=interface.test,fixture0/4");
+        let interface = InterfaceRecords::from_addresses(
+            &config.interface_records.rules,
+            &[InterfaceAddress {
+                label: b"fixture0".to_vec(), address: "192.0.2.1".parse().unwrap(),
+                prefix: 24, flags: 0,
+            }],
+        );
+        for (interfaces, target) in [
+            (InterfaceRecords::default(), "explicit.test"),
+            (interface, "interface.test"),
+        ] {
+            let mut hosts = repeated_ptr_hosts(false, "x.test", "y.test");
+            let response = LocalAnswerer {
+                config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 512,
+            }.answer_on_network_with_interface_cache(
+                &query("1.2.0.192.in-addr.arpa", TYPE_PTR),
+                &mut Arc::new(LeaseNames::default()), 100, None, None, &interfaces,
+            ).unwrap().unwrap();
+            let message = super::super::wire::Message::parse(&response.packet).unwrap();
+            let records = message.records(Section::Answer).collect::<Vec<_>>();
+            assert_eq!(records.len(), 1);
+            assert_eq!((records[0].rrtype, records[0].ttl), (TYPE_PTR, 37));
+            assert_eq!(records[0].rdata, wire_name(target.as_bytes()).unwrap());
+        }
+    }
+
+    #[test]
+    fn multiple_hosts_ptr_discards_an_overflowing_rrset_and_fits_tcp_limit() {
+        let suffix = format!("{}.{}.{}", "a".repeat(63), "b".repeat(63), "c".repeat(60));
+        let first = format!("{}.{}", "x".repeat(63), suffix);
+        let second = format!("{}.{}", "y".repeat(63), suffix);
+        let mut hosts = repeated_ptr_hosts(false, &first, &second);
+        let config = DnsConfig::default();
+        let request = query("1.2.0.192.in-addr.arpa", TYPE_PTR);
+        let mut answerer = LocalAnswerer {
+            config: &config, hosts: &mut hosts, local_ttl: 37, max_packet: 65535,
+        };
+        let full = answerer.answer(&request).unwrap().unwrap();
+        assert!(full.len() > 512);
+        let full_header = Header::parse(&full).unwrap();
+        assert_eq!((full_header.flags, full_header.answers), (0x8580, 2));
+        answerer.max_packet = 512;
+        let short = answerer.answer(&request).unwrap().unwrap();
+        let short_header = Header::parse(&short).unwrap();
+        assert_eq!((short_header.flags, short_header.answers), (0x8780, 0));
+        assert_eq!((short_header.authorities, short_header.additionals), (0, 0));
+        assert_eq!(short.len(), request.len());
+        // A retry with the TCP limit still returns both owners: truncation
+        // does not consume a shared reverse-owner cursor.
+        answerer.max_packet = 65535;
+        assert_eq!(answerer.answer(&request).unwrap().unwrap(), full);
     }
 
     #[test]

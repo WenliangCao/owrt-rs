@@ -365,9 +365,23 @@ struct ParentDns {
     query_ids: dnsmasq_rs::query_logging::QueryIds,
     local: LocalDnsService,
     daemon: Option<DnsDaemon>,
+    /// New static views awaiting the DHCP provider's configured-name update
+    /// and final DNS publication. Queries keep using the published local view.
+    pending_hosts: Option<(Hosts, Hosts)>,
+    /// Initial admission remains closed across HUP until the initial loading
+    /// attempt is published or explicitly abandoned. Runtime HUP is separate.
+    hosts_initializing: bool,
 }
 
 impl ParentDns {
+    fn provider_hosts(&self) -> &Hosts {
+        self.pending_hosts.as_ref().map_or(&self.local.hosts, |(hosts, _)| hosts)
+    }
+
+    fn provider_hosts_mut(&mut self) -> &mut Hosts {
+        self.pending_hosts.as_mut().map_or(&mut self.local.hosts, |(hosts, _)| hosts)
+    }
+
     fn import_tcp_cache_transfer(
         &mut self,
         transaction: dnsmasq_rs::dns::cache::CacheTransaction,
@@ -628,17 +642,29 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             .parent
             .try_borrow_mut()
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-        let ParentDns { local, daemon, .. } = &mut *parent;
+        let ParentDns { local, daemon, pending_hosts, hosts_initializing, .. } = &mut *parent;
         let daemon = daemon
             .as_mut()
             .ok_or_else(|| io::Error::other("DNS publication is disabled"))?;
+        if let Some((hosts, _)) = pending_hosts.as_mut() {
+            // Configuration reconciliation needed the retained DHCP entries.
+            // lease_update_dns then unhashes that old DHCP source before
+            // inserting the new names and performing their static lookups.
+            hosts.finish_bulk();
+        }
+        let hosts = pending_hosts.as_mut().map_or(&mut local.hosts, |(hosts, _)| hosts);
         let names = daemon.publish_lease_names(
             records,
-            &mut local.hosts,
+            hosts,
             &local.config.records.cnames,
             self.policy,
         );
         report_lease_name_warnings(&names);
+        if let Some((hosts, snapshot)) = pending_hosts.take() {
+            daemon.publish_hosts_source(snapshot);
+            local.hosts = hosts;
+            *hosts_initializing = false;
+        }
         local.leases = Arc::new(names);
         Ok(())
     }
@@ -1009,6 +1035,8 @@ fn run_inner(
         ),
         daemon,
         query_ids: Default::default(),
+        pending_hosts: None,
+        hosts_initializing: false,
     }));
     {
         let mut parent = service.borrow_mut();
@@ -1103,7 +1131,7 @@ fn run_inner(
                 let mut parent = config_dns
                     .try_borrow_mut()
                     .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-                let matches = parent.local.hosts.lookup(name, Some(false), false);
+                let matches = parent.provider_hosts_mut().lookup(name, Some(false), false);
                 let selected = if matches.len() == 1 {
                     matches.first().copied()
                 } else {
@@ -1120,8 +1148,7 @@ fn run_inner(
                     .try_borrow_mut()
                     .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 Ok(parent
-                    .local
-                    .hosts
+                    .provider_hosts_mut()
                     .lookup(name, Some(false), false)
                     .first()
                     .and_then(|host| match host.address {
@@ -1135,9 +1162,8 @@ fn run_inner(
                     .try_borrow_mut()
                     .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 Ok(parent
-                    .local
-                    .hosts
-                    .reverse(IpAddr::V4(address))
+                    .provider_hosts()
+                    .provider_reverse(IpAddr::V4(address))
                     .map(|host| host.name.clone()))
             });
             provider.set_dns_publisher(Box::new(LeasePublisher {
@@ -2223,8 +2249,10 @@ struct SinglePoll {
     pending_edns_udp: Vec<PendingEdnsUdp>,
     edns_udp_runnable: bool,
     service: Rc<RefCell<ParentDns>>,
-    /// False only when a failed publication also could not restore this view.
-    hosts_view_valid: bool,
+    /// The loading generation, including its temporary reverse hash, is never
+    /// visible to parent queries or copied into accepted TCP snapshots.
+    hosts_staged: Option<Hosts>,
+    hosts_reload_failed: bool,
     parent_events: Rc<RefCell<ParentEvents>>,
     interfaces: Rc<RefCell<Vec<DnsInterface>>>,
     config: DnsConfig,
@@ -2286,6 +2314,8 @@ struct SinglePoll {
     files_runnable: bool,
     #[cfg(target_os = "linux")]
     hosts_requests: std::collections::VecDeque<dnsmasq_rs::dns::hostsdir::HostChange>,
+    #[cfg(target_os = "linux")]
+    hosts_deferred: std::collections::VecDeque<dnsmasq_rs::dns::hostsdir::HostChange>,
     #[cfg(target_os = "linux")]
     hosts_read: Option<dnsmasq_rs::dns::hostsdir::HostsRead>,
     #[cfg(target_os = "linux")]
@@ -3097,7 +3127,8 @@ impl SinglePoll {
             pending_edns_udp: Vec::new(),
             edns_udp_runnable: false,
             service,
-            hosts_view_valid: true,
+            hosts_staged: None,
+            hosts_reload_failed: false,
             parent_events,
             interfaces,
             config,
@@ -3160,6 +3191,8 @@ impl SinglePoll {
             #[cfg(target_os = "linux")]
             hosts_requests: Default::default(),
             #[cfg(target_os = "linux")]
+            hosts_deferred: Default::default(),
+            #[cfg(target_os = "linux")]
             hosts_read: None,
             #[cfg(target_os = "linux")]
             hosts_bulk: false,
@@ -3198,68 +3231,106 @@ impl SinglePoll {
     }
 
     fn reload_hosts_data(&mut self, local_ttl: u32) -> io::Result<()> {
-        let mut parent = self
-            .service
-            .try_borrow_mut()
-            .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-        let ParentDns { local, daemon, .. } = &mut *parent;
-        if let Some(daemon) = daemon {
-            // Keep the last valid local generation until publication. A failed
-            // load must restore it without another allocation, including when
-            // no TCP client currently shares it. This deliberately retains one
-            // old local table while reading its replacement.
-            let previous = std::mem::take(&mut local.hosts);
-            let previous = if self.hosts_view_valid {
-                Some(previous)
-            } else {
-                drop(previous);
-                None
-            };
-            self.hosts_view_valid = false;
+        self.hosts_staged = None;
+        self.hosts_reload_failed = false;
+        let (cache_size, name_hash_capacity, retained_leases) = {
+            let mut parent = self.service.try_borrow_mut()
+                .map_err(|_| io::Error::other("DNS state already borrowed"))?;
+            let previous_capacity = parent.provider_hosts().name_hash_capacity()
+                .max(parent.local.hosts.name_hash_capacity());
+            let retained_leases = Arc::clone(&parent.local.leases);
+            parent.pending_hosts = None;
+            let Some(daemon) = parent.daemon.as_mut() else { return Ok(()); };
             daemon.begin_hosts_reload();
-            let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
-                #[cfg(target_os = "linux")]
-                if let Some(logger) = self.logger.as_mut() {
-                    logger.emit(notice.into_log_event());
-                }
-                #[cfg(not(target_os = "linux"))]
-                let _ = notice;
-            });
-            let Ok(hosts) = hosts else {
-                // The reader has already dropped its incomplete generation.
-                // Restore from the published view before admitting more work;
-                // never format a completion notice while a failed load owns
-                // all available memory.
-                if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
-                    local.hosts = previous;
-                    self.hosts_view_valid = true;
-                }
-                return Ok(());
-            };
-            let snapshot = match hosts.try_clone() {
-                Ok(snapshot) => snapshot,
-                Err(_) => {
-                    drop(hosts);
-                    if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
-                        local.hosts = previous;
-                        self.hosts_view_valid = true;
-                    }
-                    // A failed reload is recoverable, not an owner-loop error:
-                    // returning Err here would stop the whole DNS/DHCP daemon.
+            (daemon.cache_capacity(), previous_capacity, retained_leases)
+        };
+        #[cfg(target_os = "linux")]
+        {
+            if self.hosts_bulk {
+                // A new HUP supersedes an unfinished bulk scan, including a
+                // reader that still holds an unlinked inode. Real watch events
+                // are in hosts_deferred and must survive this cancellation.
+                self.hosts_read = None;
+                self.hosts_requests.clear();
+            } else {
+                let count = self.hosts_requests.len() + usize::from(self.hosts_read.is_some());
+                if self.hosts_deferred.try_reserve(count).is_err() {
+                    self.hosts_reload_failed = true;
                     return Ok(());
                 }
-            };
-            drop(previous);
+                if let Some(reader) = self.hosts_read.take() {
+                    // Restart this incremental read after the bulk scan, using
+                    // its path again rather than a stale open file descriptor.
+                    self.hosts_deferred.push_back(dnsmasq_rs::dns::hostsdir::HostChange {
+                        source: reader.finish().source,
+                        deleted: false,
+                    });
+                }
+                self.hosts_deferred.append(&mut self.hosts_requests);
+            }
+            self.hosts_bulk = false;
+        }
+        // The same bulk reverse hash continues through config, ordinary files
+        // and the initial/HUP hostsdir scan. Keep the published owners intact
+        // while asynchronous files finish; allocation failure needs no restore.
+        match read_hosts_with_notices(&self.config, local_ttl, self.packet_limit,
+            cache_size, name_hash_capacity, &retained_leases, |notice| {
+            #[cfg(target_os = "linux")]
+            if let Some(logger) = self.logger.as_mut() {
+                logger.emit(notice.into_log_event());
+            }
+            #[cfg(not(target_os = "linux"))]
+            let _ = notice;
+        }) {
+            Ok(hosts) => self.hosts_staged = Some(hosts),
+            Err(()) => self.hosts_reload_failed = true,
+        }
+        #[cfg(not(target_os = "linux"))]
+        self.publish_staged_hosts();
+        Ok(())
+    }
+
+    fn publish_staged_hosts(&mut self) {
+        let Some(mut hosts) = self.hosts_staged.take() else {
+            self.service.borrow_mut().hosts_initializing = false;
+            return;
+        };
+        hosts.seal_bulk();
+        let Ok(mut snapshot) = hosts.try_clone() else {
+            self.hosts_reload_failed = true;
+            self.service.borrow_mut().hosts_initializing = false;
+            return;
+        };
+        snapshot.finish_bulk();
+        let provider_publishes_leases = self.has_dhcp_dns_publisher();
+        let mut parent = self.service.borrow_mut();
+        if provider_publishes_leases {
+            parent.pending_hosts = Some((hosts, snapshot));
+            return;
+        }
+        hosts.finish_bulk();
+        parent.hosts_initializing = false;
+        let ParentDns { local, daemon, .. } = &mut *parent;
+        if let Some(daemon) = daemon {
             daemon.publish_hosts_source(snapshot);
             local.hosts = hosts;
-            self.hosts_view_valid = true;
             local.leases = Arc::new(daemon.rebuild_lease_names(
                 &local.leases,
                 &mut local.hosts,
                 &local.config.records.cnames,
             ));
+        } else {
+            local.hosts = hosts;
         }
-        Ok(())
+    }
+
+    fn has_dhcp_dns_publisher(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        {
+            self.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some())
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        { false }
     }
 
     fn reload_data(&mut self, local_ttl: u32) -> io::Result<()> {
@@ -3267,7 +3338,7 @@ impl SinglePoll {
         #[cfg(target_os = "linux")]
         self.scan_hosts_dirs(true);
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-        if !self.hosts_work_pending() {
+        if !self.hosts_bulk {
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 let mut provider = provider
                     .try_borrow_mut()
@@ -3328,7 +3399,8 @@ impl SinglePoll {
     fn reload_file_work_runnable(&self) -> bool {
         let mut runnable = self.dns_file_work_runnable()
             || self.hosts_read.as_ref().is_some_and(|reader| reader.runnable())
-            || (self.hosts_read.is_none() && !self.hosts_requests.is_empty());
+            || (self.hosts_read.is_none()
+                && (!self.hosts_requests.is_empty() || !self.hosts_deferred.is_empty()));
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
             runnable |= provider.try_borrow().is_ok_and(|provider| {
@@ -3341,7 +3413,8 @@ impl SinglePoll {
     fn hosts_work_pending(&self) -> bool {
         #[cfg(target_os = "linux")]
         {
-            return self.hosts_read.is_some() || !self.hosts_requests.is_empty();
+            return self.hosts_read.is_some() || !self.hosts_requests.is_empty()
+                || !self.hosts_deferred.is_empty();
         }
         #[cfg(not(target_os = "linux"))]
         {
@@ -3393,6 +3466,9 @@ impl SinglePoll {
     }
 
     fn files_initializing(&self) -> bool {
+        if self.service.borrow().hosts_initializing {
+            return true;
+        }
         #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
         if self
             .dhcp
@@ -3404,11 +3480,7 @@ impl SinglePoll {
         }
         #[cfg(target_os = "linux")]
         {
-            // Polling resolvers may finish DnsFiles in the same turn that
-            // queues the initial hostsdir scan. C completes that cache_reload
-            // before admitting packets or dispatching restored-lease scripts.
-            (self.hosts_bulk && !self.hosts_full_reload)
-                || self.dns_files.as_ref().is_some_and(DnsFiles::initializing)
+            self.dns_files.as_ref().is_some_and(DnsFiles::initializing)
         }
         #[cfg(not(target_os = "linux"))]
         {
@@ -3582,7 +3654,11 @@ impl SinglePoll {
         step: dnsmasq_rs::dns::files::FileStep,
         initial_finished: bool,
     ) {
-        self.hosts_requests.extend(step.hosts_changes);
+        if self.hosts_bulk {
+            self.hosts_deferred.extend(step.hosts_changes);
+        } else {
+            self.hosts_requests.extend(step.hosts_changes);
+        }
         if let Some(logger) = &mut self.logger {
             use dnsmasq_rs::logging::{LogEvent, Priority, Service};
             for diagnostic in step.diagnostics {
@@ -3625,13 +3701,14 @@ impl SinglePoll {
             }
         }
         if step.initial_cache_reload {
+            self.service.borrow_mut().hosts_initializing = true;
             let local_ttl = self.service.borrow().local.local_ttl;
             if let Err(error) = self.reload_hosts_data(local_ttl) {
                 self.hosts_notice(dnsmasq_rs::logging::Priority::Error, error.to_string());
             }
             self.scan_hosts_dirs(false);
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
-            if !self.hosts_work_pending() {
+            if !self.hosts_bulk {
                 // EVENT_INIT updates restored lease names after cache_reload,
                 // including configurations with no hostsdir work to finish.
                 if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
@@ -3689,15 +3766,28 @@ impl SinglePoll {
 
     #[cfg(target_os = "linux")]
     fn scan_hosts_dirs(&mut self, full_reload: bool) {
+        if self.hosts_reload_failed {
+            self.service.borrow_mut().hosts_initializing = false;
+            self.resume_deferred_hosts();
+            return;
+        }
         let Some(files) = &mut self.dns_files else {
+            self.publish_staged_hosts();
+            self.resume_deferred_hosts();
             return;
         };
         let (sources, diagnostics) = files.scan_hosts_dirs();
         for diagnostic in diagnostics {
             self.hosts_notice(dnsmasq_rs::logging::Priority::Error, diagnostic.to_string());
         }
-        self.hosts_bulk = !sources.is_empty();
         self.hosts_full_reload = full_reload;
+        if self.hosts_requests.try_reserve(sources.len()).is_err() {
+            self.hosts_staged = None;
+            self.hosts_reload_failed = true;
+            self.service.borrow_mut().hosts_initializing = false;
+            self.resume_deferred_hosts();
+            return;
+        }
         self.hosts_requests
             .extend(
                 sources
@@ -3707,6 +3797,18 @@ impl SinglePoll {
                         deleted: false,
                     }),
             );
+        self.hosts_bulk = !self.hosts_requests.is_empty();
+        if !self.hosts_bulk {
+            self.publish_staged_hosts();
+            self.resume_deferred_hosts();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn resume_deferred_hosts(&mut self) {
+        if !self.hosts_bulk && self.hosts_read.is_none() && self.hosts_requests.is_empty() {
+            std::mem::swap(&mut self.hosts_requests, &mut self.hosts_deferred);
+        }
     }
 
     #[cfg(target_os = "linux")]
@@ -3716,40 +3818,63 @@ impl SinglePoll {
         records: Vec<(Vec<u8>, IpAddr)>,
         ttl: u32,
     ) -> usize {
+        if self.hosts_bulk {
+            if self.hosts_reload_failed {
+                return 0;
+            }
+            let Some(staged) = self.hosts_staged.as_ref() else { return 0; };
+            match staged.try_replace_source(
+                source.uid, source.path.as_os_str().as_encoded_bytes(), records, ttl,
+            ) {
+                Ok((hosts, removed)) => {
+                    self.hosts_staged = Some(hosts);
+                    return removed;
+                }
+                Err(()) => {
+                    self.hosts_staged = None;
+                    self.hosts_reload_failed = true;
+                    return 0;
+                }
+            }
+        }
         let removed;
+        let provider_publishes_leases = self.has_dhcp_dns_publisher();
         {
             let mut parent = self.service.borrow_mut();
-            let ParentDns { local, daemon, .. } = &mut *parent;
-            // A previous double allocation failure may have left only the
-            // daemon view usable. Restore it before applying an incremental
-            // source change, so unrelated published sources cannot be lost.
-            if !self.hosts_view_valid {
-                let Some(daemon) = daemon.as_ref() else { return 0; };
-                let Ok(previous) = daemon.try_clone_hosts_source() else { return 0; };
-                local.hosts = previous;
-                self.hosts_view_valid = true;
-            }
             // Keep both published owners intact until assembly and the second
             // publication copy succeed. Failed insertions must abandon the
             // entire replacement, not silently publish its accepted prefix.
-            let Ok((hosts, source_removed)) = local.hosts.try_replace_source(
+            let retained_leases = parent.local.leases.active_entries().map(|lease| (
+                lease.name.as_slice(), IpAddr::V4(lease.address),
+                lease.reverse, lease.expires.is_none(),
+            ));
+            let Ok((mut hosts, source_removed)) = parent.provider_hosts().try_replace_source_with_leases(
                 source.uid,
                 source.path.as_os_str().as_encoded_bytes(),
                 records,
                 ttl,
+                retained_leases,
             ) else { return 0; };
             removed = source_removed;
-            if let Some(daemon) = daemon {
-                let Ok(snapshot) = hosts.try_clone() else { return 0; };
-                daemon.publish_hosts_source(snapshot);
-                local.hosts = hosts;
-                local.leases = Arc::new(daemon.rebuild_lease_names(
-                    &local.leases,
-                    &mut local.hosts,
-                    &local.config.records.cnames,
-                ));
+            if parent.daemon.is_some() {
+                let Ok(mut snapshot) = hosts.try_clone() else { return 0; };
+                snapshot.finish_bulk();
+                if provider_publishes_leases {
+                    parent.pending_hosts = Some((hosts, snapshot));
+                } else {
+                    let ParentDns { local, daemon, .. } = &mut *parent;
+                    let daemon = daemon.as_mut().unwrap();
+                    hosts.finish_bulk();
+                    daemon.publish_hosts_source(snapshot);
+                    local.hosts = hosts;
+                    local.leases = Arc::new(daemon.rebuild_lease_names(
+                        &local.leases,
+                        &mut local.hosts,
+                        &local.config.records.cnames,
+                    ));
+                }
             } else {
-                local.hosts = hosts;
+                parent.local.hosts = hosts;
             }
         }
         if !self.hosts_bulk {
@@ -3759,10 +3884,12 @@ impl SinglePoll {
                 .as_ref()
                 .and_then(|service| service.provider.as_ref())
             {
-                report_dhcp_maintenance(
-                    &provider.borrow_mut().hosts_changed(now_seconds()),
-                    self.logger.as_mut(),
-                );
+                let mut provider = provider.borrow_mut();
+                if !provider.file_work_pending() {
+                    report_dhcp_maintenance(
+                        &provider.hosts_changed(now_seconds()), self.logger.as_mut(),
+                    );
+                }
             }
         }
         removed
@@ -3771,6 +3898,7 @@ impl SinglePoll {
     #[cfg(target_os = "linux")]
     fn step_hosts_files(&mut self) {
         use dnsmasq_rs::logging::Priority;
+        self.resume_deferred_hosts();
         if let Some(reader) = &mut self.hosts_read {
             if !reader.step(&self.config).unwrap_or(true) {
                 return;
@@ -3780,6 +3908,10 @@ impl SinglePoll {
             };
             let loaded = reader.finish();
             let removed = if loaded.allocation_failed {
+                if self.hosts_bulk {
+                    self.hosts_staged = None;
+                    self.hosts_reload_failed = true;
+                }
                 self.hosts_notice(
                     Priority::Error,
                     format!("failed to load names from {}: Cannot allocate memory", loaded.source.path.display()),
@@ -3879,7 +4011,8 @@ impl SinglePoll {
                 }
             }
         }
-        if self.hosts_bulk && !self.hosts_work_pending() {
+        if self.hosts_bulk && self.hosts_read.is_none() && self.hosts_requests.is_empty() {
+            self.publish_staged_hosts();
             self.hosts_bulk = false;
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = self
@@ -3895,6 +4028,7 @@ impl SinglePoll {
                 };
                 report_dhcp_maintenance(&report, self.logger.as_mut());
             }
+            self.resume_deferred_hosts();
         }
     }
 
@@ -4199,7 +4333,8 @@ impl SinglePoll {
                     .hosts_read
                     .as_ref()
                     .is_some_and(|reader| reader.runnable())
-                || (self.hosts_read.is_none() && !self.hosts_requests.is_empty());
+                || (self.hosts_read.is_none()
+                    && (!self.hosts_requests.is_empty() || !self.hosts_deferred.is_empty()));
             #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
             if let Some(provider) = self.dhcp.as_ref().and_then(|dhcp| dhcp.provider.as_ref()) {
                 runnable |= provider.borrow_mut().files_runnable();
@@ -6824,12 +6959,20 @@ impl HostsReadNotice {
 
 #[cfg(any(test, not(target_os = "linux")))]
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    read_hosts_with_notices(config, local_ttl, |_| {}).unwrap_or_default()
+    let mut hosts = read_hosts_with_notices(config, local_ttl, 1232 + 255 + 10,
+        1000, 1000, &dnsmasq_rs::dns::lease_names::LeaseNames::default(), |_| {})
+        .unwrap_or_default();
+    hosts.finish_bulk();
+    hosts
 }
 
 fn read_hosts_with_notices(
     config: &DnsConfig,
     local_ttl: u32,
+    packet_limit: usize,
+    cache_size: usize,
+    name_hash_capacity: usize,
+    retained_leases: &dnsmasq_rs::dns::lease_names::LeaseNames,
     mut report: impl FnMut(HostsReadNotice),
 ) -> Result<Hosts, ()> {
     fn report_error(
@@ -6866,9 +7009,9 @@ fn read_hosts_with_notices(
                 return Ok(());
             }
         };
-        if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
-            hosts.set_source_name(source, path);
-        }
+        let path_name = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes())
+            .map_err(|_| ())?;
+        hosts.set_source_name_checked(source, path_name).map_err(|_| ())?;
         let stats = hosts.read_from_with_diagnostics(
             file,
             source,
@@ -6901,7 +7044,9 @@ fn read_hosts_with_notices(
         }
         Ok(())
     }
-    let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
+    let mut hosts = dnsmasq_rs::dns::local::configured_hosts_bulk(
+        config, local_ttl, packet_limit, cache_size, name_hash_capacity, retained_leases,
+    )?;
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
     // addn-hosts files remain active in dnsmasq.
     if !config.no_hosts {
@@ -7009,6 +7154,10 @@ mod neighbor_tail_tests;
 mod hostsdir_init_tests;
 
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
+#[path = "main_hosts_initial_hup_tests.rs"]
+mod hosts_initial_hup_tests;
+
+#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
 #[path = "main_newaddress_tests.rs"]
 mod newaddress_tests;
 
@@ -7040,6 +7189,8 @@ mod tests {
         SinglePoll::new(
             Rc::new(RefCell::new(ParentDns {
                 local, daemon, query_ids: Default::default(),
+                pending_hosts: None,
+                hosts_initializing: false,
             })),
             Rc::new(RefCell::new(ParentEvents::new(&UbusConfig::default()).unwrap())),
             Rc::new(RefCell::new(Vec::new())), config, Vec::new(), 1232, 20, 1232,
@@ -8492,6 +8643,8 @@ mod tests {
                 ),
                 daemon: None,
                 query_ids: Default::default(),
+                pending_hosts: None,
+                hosts_initializing: false,
             })),
             Rc::new(RefCell::new(
                 ParentEvents::new(&UbusConfig::default()).unwrap(),
@@ -8602,7 +8755,9 @@ mod tests {
         config.no_hosts = true;
         config.addn_hosts.push(Some(path.clone()));
         let mut notices = Vec::new();
-        let hosts = read_hosts_with_notices(&config, 37, |notice| notices.push(notice)).unwrap();
+        let hosts = read_hosts_with_notices(&config, 37, 1232 + 255 + 10, 1000, 1000,
+            &dnsmasq_rs::dns::lease_names::LeaseNames::default(),
+            |notice| notices.push(notice)).unwrap();
         let message = format!("bad name at {} line 2", path.display()).into_bytes();
         assert_eq!(notices, [
             HostsReadNotice::Error(message.clone()),

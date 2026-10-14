@@ -528,6 +528,51 @@ mod tests {
     }
 
     #[test]
+    fn renamed_retained_lease_publication_preserves_c_post_hup_address_order() {
+        use crate::config::dns::DnsConfig;
+        use crate::dns::local::configured_hosts_bulk;
+
+        // Exact-image finite/infinite restored-lease HUP controls read these
+        // hosts after retaining a.test/a. lease_update_from_configs renames
+        // the lease to x before lease_update_dns publishes its new names.
+        let fixture = b"192.0.2.2 old.test\n192.0.2.1 x.test\n\
+            192.0.3.186 a.test\n192.0.3.185 a.test\n\
+            192.0.2.1 y.test\n192.0.2.2 y.test\n";
+        let order = |hosts: &Hosts| hosts.addresses(b"a.test")
+            .map(|host| host.address.to_string()).collect::<Vec<_>>();
+        for expires in [None, Some(1000)] {
+            let records = [input(b"a.test", 1, expires), input(b"a", 1, expires)];
+            let previous = LeaseNames::build(
+                &records, &mut Hosts::new(), &[], LeasePolicy::default(), &mut (),
+            );
+            let mut hosts = configured_hosts_bulk(
+                &DnsConfig::default(), 37, 1497, 1000, 1000, &previous,
+            ).unwrap();
+            assert!(!hosts.read(fixture, 2, 37, false, |_| None).allocation_failed);
+            hosts.finish_bulk();
+            let mut premature = hosts.try_clone().unwrap();
+            let renamed = [input(b"x.test", 1, expires), input(b"x", 1, expires)];
+            let names = LeaseNames::build(
+                &renamed, &mut hosts, &[], LeasePolicy::default(), &mut (),
+            );
+            assert_eq!(order(&hosts), ["192.0.3.186", "192.0.3.185"]);
+            assert!(names.lookup(b"a.test", 1).next().is_none());
+            assert!(names.lookup(b"x", 1).next().is_some());
+
+            // A speculative rebuild before the provider renames this lease
+            // performs an extra lookup of the stale a.test name. Even its
+            // rejected address rotates the static RRset; the final x-name
+            // publication cannot undo that query side effect.
+            let stale = previous.rebuild(&mut premature, &[], &mut ());
+            assert!(matches!(stale.warnings(), [PublicationWarning::StaticAddress { .. }]));
+            LeaseNames::build(
+                &renamed, &mut premature, &[], LeasePolicy::default(), &mut (),
+            );
+            assert_eq!(order(&premature), ["192.0.3.185", "192.0.3.186"]);
+        }
+    }
+
+    #[test]
     fn cname_warning_does_not_reject_lease() {
         let cnames = [Cname {
             alias: b"lease.example".to_vec(),

@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+"""Negative controls for state-scoped F10 PTR order qualifications."""
+import copy
+import unittest
+
+from f10_contract_check import STOCK_SHA256, build_manifest, check
+
+
+def fixture(kind=12, case='six-addn'):
+    name = '1.2.0.192.in-addr.arpa' if kind == 12 else 'y.test'
+    records = [{'section': 'answer', 'name': name, 'type': kind, 'class': 1,
+                'ttl': 37, 'data': value} for value in ('x.test', 'y.test')]
+    observations = []
+    for phase in ('before', 'after'):
+        for index in range(2):
+            observations.append({'label': f'udp-ptr-{phase}-192.0.2.1-{index}',
+                'transport': 'udp', 'name': name, 'type': kind,
+                'semantics': {'id': 13330, 'flags': 34176, 'questions': [[name, kind, 1]],
+                              'records': copy.deepcopy(records)}})
+    return {'binary_sha256': STOCK_SHA256, 'errors': [], 'cases': [
+        {'case': case, 'completed': True, 'exit': 0, 'observations': observations}]}
+
+
+def reverse(report, indices=None):
+    result = copy.deepcopy(report)
+    rows = result['cases'][0]['observations']
+    for index in range(len(rows)) if indices is None else indices:
+        rows[index]['semantics']['records'].reverse()
+    return result
+
+
+class ContractCheck(unittest.TestCase):
+    def setUp(self):
+        self.reference = fixture()
+        self.alternative = reverse(self.reference)
+        self.manifest = build_manifest(self.reference, [self.alternative])
+
+    def test_observed_complete_track_qualifies_and_preserves_order(self):
+        original = copy.deepcopy(self.alternative)
+        result = check(self.reference, self.alternative, self.manifest)
+        self.assertTrue(result['passed'])
+        self.assertEqual(len(result['qualified_ptr_order']), 4)
+        self.assertEqual(self.alternative, original)
+
+    def test_c_stable_case_reversal_is_not_allowed(self):
+        manifest = build_manifest(self.reference, [copy.deepcopy(self.reference)])
+        result = check(self.reference, self.alternative, manifest)
+        self.assertFalse(result['passed'])
+        self.assertTrue(all(row['reason'] == 'no-corresponding-c-c-state' for row in result['failures']))
+
+    def test_absent_allow_manifest_is_default_deny(self):
+        self.assertFalse(check(self.reference, self.alternative)['passed'])
+
+    def test_absent_state_cannot_borrow_another_phase(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest['entries'][0]['allowed_states'] = [state for state in manifest['entries'][0]['allowed_states']
+                                                  if 'before' in state]
+        result = check(self.reference, self.alternative, manifest)
+        self.assertFalse(result['passed'])
+        self.assertEqual(len(result['failures']), 2)
+        self.assertTrue(all('after' in row['label'] for row in result['failures']))
+
+    def test_changed_case_name_type_or_transport_cannot_borrow_allow(self):
+        for field, replacement in (('case', 'new-five-line'), ('name', '2.2.0.192.in-addr.arpa'),
+                                   ('type', 1), ('transport', 'tcp')):
+            with self.subTest(field=field):
+                reference, actual = copy.deepcopy(self.reference), copy.deepcopy(self.alternative)
+                if field == 'case':
+                    reference['cases'][0]['case'] = actual['cases'][0]['case'] = replacement
+                else:
+                    for report in (reference, actual):
+                        for row in report['cases'][0]['observations']:
+                            row[field] = replacement
+                # Re-anchor only the document identity; allow entries still
+                # identify the original exact question and source state.
+                from f10_contract_check import digest
+                manifest = copy.deepcopy(self.manifest)
+                manifest['reference_document_sha256'] = digest(reference)
+                self.assertFalse(check(reference, actual, manifest)['passed'])
+
+    def test_same_state_repeat_flip_is_not_an_observed_track(self):
+        result = check(self.reference, reverse(self.reference, [1]), self.manifest)
+        self.assertFalse(result['passed'])
+        self.assertTrue(any(row['kind'] == 'same-state-ptr-repeat-instability' for row in result['failures']))
+        self.assertTrue(any(row.get('reason') == 'complete-query-sequence-not-observed-in-c'
+                            for row in result['failures']))
+
+    def test_forward_query_induced_ptr_flip_cannot_mix_control_tracks(self):
+        # Both per-phase orders occur in C, but C keeps one relative order
+        # across before/A/after. A candidate must not splice the two C runs.
+        result = check(self.reference, reverse(self.reference, [2, 3]), self.manifest)
+        self.assertFalse(result['passed'])
+        self.assertTrue(all(row['reason'] == 'complete-query-sequence-not-observed-in-c'
+                            for row in result['failures']))
+
+    def test_unmanifested_five_line_stateful_ptr_bug_fails(self):
+        reference = fixture(case='five-line-a-mutates-ptr')
+        actual = reverse(reference, [2, 3])
+        result = check(reference, actual)
+        self.assertFalse(result['passed'])
+        self.assertEqual(len(result['failures']), 2)
+
+    def test_forward_order_never_qualifies(self):
+        for kind in (1, 28):
+            with self.subTest(kind=kind):
+                reference = fixture(kind)
+                manifest = build_manifest(reference, [copy.deepcopy(reference)])
+                result = check(reference, reverse(reference), manifest)
+                self.assertFalse(result['passed'])
+                self.assertTrue(all(row['kind'] == 'forward-order' for row in result['failures']))
+
+    def test_header_ttl_count_tc_and_rrset_never_qualify(self):
+        mutations = {
+            'flags': lambda row: row['semantics'].__setitem__('flags', 34177),
+            'tc': lambda row: row['semantics'].__setitem__('flags', 34176 | 0x200),
+            'ttl': lambda row: row['semantics']['records'][0].__setitem__('ttl', 90),
+            'count': lambda row: row['semantics']['records'].pop(),
+            'rrset': lambda row: row['semantics']['records'][0].__setitem__('data', 'wrong.test'),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                actual = copy.deepcopy(self.alternative)
+                mutate(actual['cases'][0]['observations'][0])
+                result = check(self.reference, actual, self.manifest)
+                self.assertFalse(result['passed'])
+                self.assertTrue(any(row['kind'] == 'rrset-ttl-count-or-header' for row in result['failures']))
+
+    def test_three_owner_unobserved_permutation_is_not_generalized(self):
+        reference = fixture()
+        for row in reference['cases'][0]['observations']:
+            third = copy.deepcopy(row['semantics']['records'][0])
+            third['data'] = 'z.test'
+            row['semantics']['records'].append(third)
+        manifest = build_manifest(reference, [reverse(reference)])
+        actual = copy.deepcopy(reference)
+        for row in actual['cases'][0]['observations']:
+            rr = row['semantics']['records']
+            row['semantics']['records'] = rr[1:] + rr[:1]
+        self.assertFalse(check(reference, actual, manifest)['passed'])
+
+    def test_wrong_reference_manifest_fails_closed(self):
+        manifest = copy.deepcopy(self.manifest)
+        manifest['reference_document_sha256'] = '0' * 64
+        self.assertFalse(check(self.reference, self.alternative, manifest)['passed'])
+
+    def test_control_rrset_change_cannot_create_allow(self):
+        invalid = copy.deepcopy(self.alternative)
+        invalid['cases'][0]['observations'][0]['semantics']['records'][0]['ttl'] = 90
+        with self.assertRaises(AssertionError):
+            build_manifest(self.reference, [invalid])
+
+    def test_missing_case_fails_unless_explicit_subset_requested(self):
+        reference = copy.deepcopy(self.reference)
+        reference['cases'] += fixture(case='second-case')['cases']
+        actual = copy.deepcopy(self.reference)
+        self.assertFalse(check(reference, actual)['passed'])
+        self.assertTrue(check(reference, actual, expected_cases=['six-addn'])['passed'])
+
+    def test_missing_track_observation_fails(self):
+        actual = copy.deepcopy(self.reference)
+        actual['cases'][0]['observations'].pop()
+        result = check(self.reference, actual, self.manifest)
+        self.assertFalse(result['passed'])
+        self.assertTrue(any(row['kind'] == 'observation-count' for row in result['failures']))
+
+
+if __name__ == '__main__':
+    unittest.main()

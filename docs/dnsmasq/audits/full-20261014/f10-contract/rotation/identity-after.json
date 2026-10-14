@@ -1,0 +1,26 @@
+{
+  "scope": "only the three rotation-b99e output prefixes",
+  "remaining_processes": [],
+  "remaining_host_mounts": [],
+  "files_sha256": {
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-warm/result.json": "d0fd56403857fb9bd2b8a8b3e5cb3bd2015e3db48494352daaee429678e5384e",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-warm/driver.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-warm/rust/result.json": "d5647508196b060927035e222532e5e4bb2d39c8e9bf504d8b73ecf1c764cabe",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-warm/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-warm/c/result.json": "a378d5343f18fa0d5dad8171a2ba6b68a294a5667745e403f9b8830d4c5e502c",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-warm/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-repeated-original/result.json": "7c39b622ef38600cd6d14e293cd37904aac2e179d6d590e7e180f0359c7965d3",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-repeated-original/driver.py": "30f7e009761ac96991269823651b17d05aeadcf8d6a798defb6a9318d00aaa8b",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-repeated-original/rust/result.json": "ae6549efd1fb314775da83c3c4a42b40c72077b32c9f1faab86a141a17d181b5",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-repeated-original/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-repeated-original/c/result.json": "691e4c45b9edba29e08834170ab4fb7934c8a1ece961d86ad1bae66e3308634f",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-repeated-original/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-unique/result.json": "054219e8a5d363f083481678b2b3e7ccc42613f2f93329a9cb9dfd76859bce2d",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-unique/driver.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-unique/rust/result.json": "00824f92e020b48a446409135e598ab27b8ce69376531ecedf7d9fac8ec50224",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-unique/rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-unique/c/result.json": "de263632079dfb74c5ce048da56796b641025db9c3a8f445716199b2f603be28",
+    "/dev/shm/full-f10-product-20261014/private/rotation-b99e-unique/c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/dev/shm/full-f10-product-20261014/private/release-b99e/dnsmasq-rs": "edf0f62ca08946cd35aa5b48255575546baaec53d3273723fb25550eb14e5fac"
+  }
+}

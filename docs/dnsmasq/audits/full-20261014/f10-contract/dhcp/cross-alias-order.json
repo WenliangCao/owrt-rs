@@ -1,0 +1,87 @@
+{
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "finding": "Identical input/query sequence across fresh C processes admits two states: lease .1 renamed x with A .185,.186, or retained a with A .186,.185; PTR owners x in both.",
+  "runs": [
+    {
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-c-repeats/c-retained-1-repeat0/result.json",
+      "result_sha256": "937b9a1c530a9642d36f9366682275354b46a370ce8c33a1673be7e04360dadb",
+      "lease_file_sha256": "63822bd7972b36d27b09b93f833b37147faeca5e923dd50e2a138454c26cc1dc",
+      "leases": [
+        {
+          "address": "192.0.2.9",
+          "hostname": "a.test"
+        },
+        {
+          "address": "192.0.2.1",
+          "hostname": "x"
+        }
+      ],
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "alive": true,
+      "exit": 0
+    },
+    {
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-c-repeats/c-retained-1-repeat1/result.json",
+      "result_sha256": "a9efc7e2700829a11c649b0695ab912e0dadda4ae7f0262f16327291adc263b3",
+      "lease_file_sha256": "db72e911e01f14ea259c9f6cef54485f3933c022ca8c516ca440b96ade0bf9f9",
+      "leases": [
+        {
+          "address": "192.0.2.1",
+          "hostname": "a"
+        },
+        {
+          "address": "192.0.2.9",
+          "hostname": "a.test"
+        }
+      ],
+      "after_a": [
+        "192.0.3.186",
+        "192.0.3.185"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "alive": true,
+      "exit": 0
+    },
+    {
+      "path": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-c-repeats/c-retained-1-repeat2/result.json",
+      "result_sha256": "66fe67874e35ddddf84f0cb0c6877c4e4bc62868810af85fbfda74a16aa33057",
+      "lease_file_sha256": "b253736f9cddc1e539415ee5d6848d43c2543ab32ab36e0cc016f129814ab4bc",
+      "leases": [
+        {
+          "address": "192.0.2.9",
+          "hostname": "a.test"
+        },
+        {
+          "address": "192.0.2.1",
+          "hostname": "x"
+        }
+      ],
+      "after_a": [
+        "192.0.3.185",
+        "192.0.3.186"
+      ],
+      "after_ptr": [
+        "x.test"
+      ],
+      "after_tcp_ptr": [
+        "x.test"
+      ],
+      "alive": true,
+      "exit": 0
+    }
+  ]
+}

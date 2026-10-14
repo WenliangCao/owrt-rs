@@ -1,0 +1,27 @@
+{
+  "runtime_repeated": false,
+  "archives": {
+    "baseline": {
+      "sha256": "9dcfab0fe04b9f65f0e331fd1e9584d01e49e519997f901416a14a119dcfaf7f",
+      "bytes": 5974477
+    },
+    "candidate": {
+      "sha256": "4b148e5c71bf27b9da260bac5d00403a759749a57bc6fd9a7946bbfc24d01b7d",
+      "bytes": 1254798
+    }
+  },
+  "manifest_tracks": 11,
+  "manifest_states": 23,
+  "b99e_passed": false,
+  "qualified_ptr_order": 16,
+  "failure_counts": {
+    "unqualified-ptr-order": 12
+  },
+  "failure_cases": {
+    "leases-dhcp": 12
+  },
+  "candidate_same_state_repeated_families": 205,
+  "candidate_same_state_instability": [],
+  "actual_raw_negative_controls": 12,
+  "checker_sha256": "f0a06e3790bfa4371f861dc68f8afbdc30190770652d9cc8a93bf279f735deec"
+}

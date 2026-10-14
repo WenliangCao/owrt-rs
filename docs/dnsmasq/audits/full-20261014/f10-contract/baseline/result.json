@@ -1,0 +1,273 @@
+{
+  "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+  "negative_candidate_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "cases": [
+    "six-addn",
+    "six-default",
+    "six-host-record",
+    "six-hostsdir-initial",
+    "split-addn-bulk",
+    "ipv6-three-duplicate",
+    "no-round-robin",
+    "mixed-sources",
+    "hostsdir-transitions",
+    "leases-dhcp",
+    "udp-truncation",
+    "ipv6-repeated-ptr",
+    "ptr-truncation"
+  ],
+  "comparisons": {
+    "c_repeat_original": {
+      "case_count": 11,
+      "observation_count": 671,
+      "differences": {
+        "ptr-order-only": 40
+      },
+      "cases": [
+        {
+          "case": "six-addn",
+          "observations": 28,
+          "differences": {
+            "ptr-order-only": 8
+          }
+        },
+        {
+          "case": "six-default",
+          "observations": 28,
+          "differences": {
+            "ptr-order-only": 8
+          }
+        },
+        {
+          "case": "six-host-record",
+          "observations": 28,
+          "differences": {}
+        },
+        {
+          "case": "six-hostsdir-initial",
+          "observations": 28,
+          "differences": {}
+        },
+        {
+          "case": "split-addn-bulk",
+          "observations": 28,
+          "differences": {}
+        },
+        {
+          "case": "ipv6-three-duplicate",
+          "observations": 100,
+          "differences": {
+            "ptr-order-only": 8
+          }
+        },
+        {
+          "case": "no-round-robin",
+          "observations": 100,
+          "differences": {
+            "ptr-order-only": 8
+          }
+        },
+        {
+          "case": "mixed-sources",
+          "observations": 28,
+          "differences": {
+            "ptr-order-only": 8
+          }
+        },
+        {
+          "case": "hostsdir-transitions",
+          "observations": 252,
+          "differences": {}
+        },
+        {
+          "case": "leases-dhcp",
+          "observations": 46,
+          "differences": {}
+        },
+        {
+          "case": "udp-truncation",
+          "observations": 5,
+          "differences": {}
+        }
+      ]
+    },
+    "c_repeat_extra": {
+      "case_count": 2,
+      "observation_count": 33,
+      "differences": {
+        "ptr-order-only": 3
+      },
+      "cases": [
+        {
+          "case": "ipv6-repeated-ptr",
+          "observations": 28,
+          "differences": {}
+        },
+        {
+          "case": "ptr-truncation",
+          "observations": 5,
+          "differences": {
+            "ptr-order-only": 3
+          }
+        }
+      ]
+    },
+    "negative_340ed": {
+      "case_count": 13,
+      "observation_count": 704,
+      "differences": {
+        "rrset-ttl-count-or-header": 81,
+        "forward-order-only": 51
+      },
+      "cases": [
+        {
+          "case": "six-addn",
+          "observations": 28,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "six-default",
+          "observations": 28,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "six-host-record",
+          "observations": 28,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "six-hostsdir-initial",
+          "observations": 28,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "split-addn-bulk",
+          "observations": 28,
+          "differences": {}
+        },
+        {
+          "case": "ipv6-three-duplicate",
+          "observations": 100,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "no-round-robin",
+          "observations": 100,
+          "differences": {
+            "rrset-ttl-count-or-header": 8
+          }
+        },
+        {
+          "case": "mixed-sources",
+          "observations": 28,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "hostsdir-transitions",
+          "observations": 252,
+          "differences": {}
+        },
+        {
+          "case": "leases-dhcp",
+          "observations": 46,
+          "differences": {
+            "rrset-ttl-count-or-header": 12,
+            "forward-order-only": 9
+          }
+        },
+        {
+          "case": "udp-truncation",
+          "observations": 5,
+          "differences": {}
+        },
+        {
+          "case": "ipv6-repeated-ptr",
+          "observations": 28,
+          "differences": {
+            "rrset-ttl-count-or-header": 8,
+            "forward-order-only": 6
+          }
+        },
+        {
+          "case": "ptr-truncation",
+          "observations": 5,
+          "differences": {
+            "rrset-ttl-count-or-header": 5
+          }
+        }
+      ]
+    }
+  },
+  "runs": {
+    "baseline-c": {
+      "result_path": "/dev/shm/full-f10-contract-20261014/private/baseline-c/result.json",
+      "result_sha256": "3bf87af008c084a2b06868acc93fa58ab6deced078ec185d61af77c8c441f6d9",
+      "case_count": 11,
+      "driver_sha256": "94120174538a7f8ed6df42001f16540a91ec7f4daba7fab9763e952853a630b7",
+      "errors": []
+    },
+    "baseline-rust": {
+      "result_path": "/dev/shm/full-f10-contract-20261014/private/baseline-rust/result.json",
+      "result_sha256": "2adc9f36c973ca365710e84a019c0aea3adf98202581eb78cc9c652825463a25",
+      "case_count": 11,
+      "driver_sha256": "94120174538a7f8ed6df42001f16540a91ec7f4daba7fab9763e952853a630b7",
+      "errors": []
+    },
+    "repeat-c": {
+      "result_path": "/dev/shm/full-f10-contract-20261014/private/repeat-c/result.json",
+      "result_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+      "case_count": 13,
+      "driver_sha256": "e42e2f3fd3e82e322ce9d3048ff2fd24a63897eb722b23b2f63948bf7baa477a",
+      "errors": []
+    },
+    "extra-rust": {
+      "result_path": "/dev/shm/full-f10-contract-20261014/private/extra-rust/result.json",
+      "result_sha256": "8a0f99991bf884a66730c4490d7d44d0debc1a66594d2d8d5555eae9ebaa02be",
+      "case_count": 2,
+      "driver_sha256": "e42e2f3fd3e82e322ce9d3048ff2fd24a63897eb722b23b2f63948bf7baa477a",
+      "errors": []
+    },
+    "extra-repeat-c": {
+      "result_path": "/dev/shm/full-f10-contract-20261014/private/extra-repeat-c/result.json",
+      "result_sha256": "af29c9438a3bc6b3d42b94a9a6cad8165f1a8f238bbb92dd64f1e3391825cf12",
+      "case_count": 2,
+      "driver_sha256": "e42e2f3fd3e82e322ce9d3048ff2fd24a63897eb722b23b2f63948bf7baa477a",
+      "errors": []
+    }
+  },
+  "cleanup": {
+    "fixture_processes": [],
+    "host_mounts": []
+  },
+  "scope": "Finite F10 semantic controls only; no 188/6020 rolling, memory gate, router access or product modification.",
+  "raw_backup": {
+    "path": "/Users/USER/Developer/owrt-dnsmasq-full-rotation-contract/private/f10-contract-20261014/baseline-evidence.tar.gz",
+    "sha256": "9dcfab0fe04b9f65f0e331fd1e9584d01e49e519997f901416a14a119dcfaf7f",
+    "bytes": 5974477,
+    "indexed_files_verified": 321
+  },
+  "current_tool_sha256": "7e240b2f03f112b63cb552e725834a378556bc7df6e46908012d0f6d718d21c8",
+  "classification_offline_validation": {
+    "rrset-ttl-count-or-header": 81,
+    "forward-order-only": 51
+  }
+}

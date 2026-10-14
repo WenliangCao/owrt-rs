@@ -1,0 +1,599 @@
+{
+  "scope": "Exact C retained-DHCP controls and same-query candidate-b99e replays; ordered PTR is process hash dependent, owner membership and A phase are separate checks.",
+  "runs": [
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/v2",
+      "result_sha256": "feca663ff97238949d53b3c054f8f757433dd7af0f1b25f6376d5392ec886ab8",
+      "runs": [
+        {
+          "retained": false,
+          "repeat": 0,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "retained": false,
+          "repeat": 1,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test",
+            "y.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test",
+            "y.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/v3",
+      "result_sha256": "761c5b34b1d0648c2a23fe22970d5dbec39e1cd53d9b0c94c4f7de29d9710615",
+      "runs": [
+        {
+          "retained": false,
+          "repeat": 0,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test",
+            "y.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test",
+            "y.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        },
+        {
+          "retained": false,
+          "repeat": 1,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test",
+            "y.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test",
+            "y.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/v4",
+      "result_sha256": "4a6a94fc72efa29f6297bba1bd07b94a3b5080d17d6269ccb848c4d5da4a11c0",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1",
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/v5",
+      "result_sha256": "4992d9052aae5f6a44d436d885f1227ace43fdb6329d8028c007069dce9c94d2",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": null,
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": null,
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/cross-alias-c-matched",
+      "result_sha256": "d8783eefad85b458fa6aa35c109001b6f551e8bd9c28c7c563d580893ad39d20",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 2,
+          "case": "cross-alias",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": null,
+          "source_commit": "exact-image",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1",
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/candidate-b99e",
+      "result_sha256": "05e859caffb1fc55070fbf586f44353abe1cc70121fe3732b00f2931b7c647ab",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": "infinite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "edf0f62ca08946cd35aa5b48255575546baaec53d3273723fb25550eb14e5fac",
+          "source_commit": "b99eae7e54c1d3922368513714da2eaef09cef58",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test",
+            "y.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test",
+            "y.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": "finite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "edf0f62ca08946cd35aa5b48255575546baaec53d3273723fb25550eb14e5fac",
+          "source_commit": "b99eae7e54c1d3922368513714da2eaef09cef58",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 2,
+          "case": "cross-alias",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "edf0f62ca08946cd35aa5b48255575546baaec53d3273723fb25550eb14e5fac",
+          "source_commit": "b99eae7e54c1d3922368513714da2eaef09cef58",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1",
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/candidate-b99e-no-lease",
+      "result_sha256": "c38fd8f852b70db27989d0efd6fcea8cf566696d1e40be772fb2c17107ae9b7d",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": "infinite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "edf0f62ca08946cd35aa5b48255575546baaec53d3273723fb25550eb14e5fac",
+          "source_commit": "b99eae7e54c1d3922368513714da2eaef09cef58",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/candidate-435f",
+      "result_sha256": "424cb9a49e1bd46c6233f055f4f03d3d894a969fce29bc6fd4fd4acd7ed76103",
+      "runs": [
+        {
+          "retained": true,
+          "repeat": 0,
+          "case": "infinite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+          "source_commit": "435fe2d6",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 1,
+          "case": "finite",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+          "source_commit": "435fe2d6",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        },
+        {
+          "retained": true,
+          "repeat": 2,
+          "case": "cross-alias",
+          "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "rust_sha256": "0624759903bfc147cfa177b812111498b351202ecd2a5b776b06a19e7d7313bb",
+          "source_commit": "435fe2d6",
+          "alive": true,
+          "exit": 0,
+          "error": null,
+          "initial_a": [
+            "192.0.2.1",
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
+    }
+  ]
+}

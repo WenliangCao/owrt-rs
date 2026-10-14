@@ -13,7 +13,7 @@ fn query() -> Vec<u8> {
     packet.finish()
 }
 
-fn config() -> DnsConfig {
+pub(super) fn config() -> DnsConfig {
     let mut config = DnsConfig::default();
     config.no_resolv = true;
     config.no_hosts = true;
@@ -21,7 +21,7 @@ fn config() -> DnsConfig {
     config
 }
 
-fn owner(config: DnsConfig) -> SinglePoll {
+pub(super) fn owner(config: DnsConfig) -> SinglePoll {
     let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
         DaemonOptions::default()).unwrap();
     let mut owner = test_owner(config.clone(), Some(daemon));
@@ -30,7 +30,7 @@ fn owner(config: DnsConfig) -> SinglePoll {
     owner
 }
 
-fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
+pub(super) fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
     let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
@@ -39,7 +39,7 @@ fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
     (udp, peer)
 }
 
-fn answer_queued(owner: &mut SinglePoll, peer: &std::net::UdpSocket) {
+pub(super) fn answer_queued(owner: &mut SinglePoll, peer: &std::net::UdpSocket) {
     assert!(!owner.files_initializing());
     owner.wait_for_files().unwrap();
     owner.step().unwrap();
@@ -146,7 +146,7 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     assert!(owner.hosts_bulk && !owner.hosts_full_reload);
     assert!(owner.files_initializing(), "the initial hostsdir is still unpublished");
     owner.hosts_full_reload = true;
-    assert!(!owner.files_initializing(), "a runtime full reload is not initial admission");
+    assert!(owner.files_initializing(), "HUP cannot bypass the first hosts publication");
     owner.hosts_full_reload = false;
     owner.step_hosts_files(); // Open the scanned source, retaining its bulk state.
     assert!(owner.hosts_requests.is_empty() && owner.hosts_read.is_some());
@@ -169,7 +169,16 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
         no_ping: true, script: Some(b"/bin/true".to_vec()),
         lease_file: Some(leases.as_os_str().as_encoded_bytes().to_vec()),
         ..Default::default()
-    }, Vec::new(), 0, || false).unwrap();
+    }, Vec::new(), 53, || false).unwrap();
+    provider.set_dns_config(&config).unwrap();
+    let parent = Rc::clone(&owner.service);
+    provider.set_reverse_host_lookup(move |address| {
+        let parent = parent.borrow();
+        Ok(parent.provider_hosts().reverse(IpAddr::V4(address)).map(|host| host.name.clone()))
+    });
+    provider.set_dns_publisher(Box::new(LeasePublisher {
+        parent: Rc::clone(&owner.service), policy: LeasePolicy::default(),
+    }));
     provider.tick(now_seconds()).unwrap();
     assert!(provider.has_frozen_script_delivery());
     let peer = super::tests::attach_test_dhcp(&mut owner, provider);
@@ -197,8 +206,15 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     owner.wait_for_files().unwrap();
     owner.step_hosts_files();
     assert!(!owner.hosts_work_pending() && !owner.files_initializing());
+    assert!(owner.service.borrow().pending_hosts.is_none(),
+        "the real lease publication commits the initial hosts generation");
     assert!(owner.dhcp_packet_work_allowed());
     assert!(owner.helper_next_due(Instant::now()).is_some());
+    let delivery = owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap()
+        .borrow_mut().take_frozen_script_delivery().unwrap();
+    assert_eq!(delivery.event.name.as_deref(), Some(b"restored".as_slice()),
+        "initial publication must preserve the previously frozen helper name");
+    owner.pending_delivery = Some(delivery);
     owner.wait_for_files().unwrap();
     owner.step_dhcp();
     assert!(!owner.dhcp.as_ref().unwrap().listener.has_input().unwrap(),
@@ -209,27 +225,249 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
 }
 
 #[test]
-fn hostsdir_update_restores_invalid_owner_view_before_replacing_another_source() {
-    let mut owner = owner(config());
-    let retained = HostSource { path: PathBuf::from("/retained"), uid: 10 };
-    let changed = HostSource { path: PathBuf::from("/changed"), uid: 11 };
-    owner.publish_hosts_source(&retained, vec![(b"retained.test".to_vec(),
-        "192.0.2.41".parse().unwrap())], 37);
-    owner.publish_hosts_source(&changed, vec![(b"old.test".to_vec(),
-        "192.0.2.42".parse().unwrap())], 37);
-    // State after both publication-copy and restore-copy allocation failures.
-    // The daemon still owns the last successfully published two-source view.
-    owner.service.borrow_mut().local.hosts = Hosts::new();
-    owner.hosts_view_valid = false;
-    assert_eq!(owner.publish_hosts_source(&changed, vec![(b"new.test".to_vec(),
-        "192.0.2.43".parse().unwrap())], 37), 1);
-    assert!(owner.hosts_view_valid);
+fn hup_hosts_fifo_keeps_the_previous_generation_until_complete_publication() {
+    use dnsmasq_rs::dhcp::persistence::DnsLeaseRecord;
+    use dnsmasq_rs::dns::lease_names::{LeaseNames, LeasePolicy};
+    for fail_generation in [false, true] {
+        let root = std::env::temp_dir().join(format!("hostsdir-hup-atomic-{}-{fail_generation}", std::process::id()));
+        let directory = root.join("hostsdir");
+        std::fs::create_dir_all(&directory).unwrap();
+        let ordinary = root.join("ordinary");
+        std::fs::write(&ordinary, b"192.0.2.41 ready.test\n").unwrap();
+        let source = directory.join("later");
+        std::fs::write(&source, b"192.0.2.1 y.test\n192.0.2.2 y.test\n").unwrap();
+        let mut config = config();
+        config.addn_hosts = vec![Some(ordinary.clone())];
+        config.hosts_dirs = vec![Some(directory)];
+        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+            DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config.clone(), Some(daemon));
+        owner.packet_limit = 1232 + 255 + 10;
+        owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+        let (held, old_leases, old_pointer) = {
+            let mut parent = owner.service.borrow_mut();
+            let leases = LeaseNames::build(&[DnsLeaseRecord {
+                name: b"lease.test", address: "192.0.2.30".parse().unwrap(), expires: None,
+            }], &mut parent.local.hosts, &[], LeasePolicy::default(), &mut ());
+            parent.local.leases = Arc::new(leases);
+            let held = parent.local.hosts.tcp_snapshot();
+            (held, Arc::clone(&parent.local.leases), parent.local.hosts.entries().as_ptr())
+        };
+        std::fs::write(&ordinary, b"192.0.2.42 ready.test\n192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n").unwrap();
+        owner.reload_data(37).unwrap();
+        assert!(owner.hosts_bulk && owner.hosts_staged.is_some());
+        assert!(!owner.files_initializing(), "HUP keeps serving the prior generation");
+        // Model a regular source replaced by a FIFO after the directory scan.
+        std::fs::remove_file(&source).unwrap();
+        assert!(std::process::Command::new("mkfifo").arg(&source).status().unwrap().success());
+        owner.step_hosts_files();
+        let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&source).unwrap();
+        writer.write_all(b"192.0.2.1 y.test\n192.0.2.2 y.test\n").unwrap();
+        owner.step_hosts_files();
+        assert!(owner.hosts_work_pending());
+        {
+            let parent = owner.service.borrow();
+            let daemon_view = parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap();
+            for hosts in [&parent.local.hosts, &daemon_view, &held] {
+                assert_eq!(hosts.addresses(b"ready.test").next().unwrap().address,
+                    "192.0.2.41".parse::<IpAddr>().unwrap());
+                assert_eq!(hosts.addresses(b"x.test").count(), 0);
+            }
+            assert!(Arc::ptr_eq(&parent.local.leases, &old_leases));
+        }
+        let (_udp, peer) = queued_dns(&mut owner);
+        owner.wait_for_files().unwrap();
+        owner.step_udp(0);
+        let mut response = [0; 1232];
+        let length = peer.recv(&mut response).unwrap();
+        assert_eq!(&response[length - 4..length], &[192, 0, 2, 41]);
+        if fail_generation {
+            // The allocator suite drives actual loader failures. Here exercise
+            // the owner state after one source failed, with a later EOF still
+            // pending: neither that EOF nor bulk completion may publish a prefix.
+            owner.hosts_staged = None;
+            owner.hosts_reload_failed = true;
+        }
+        drop(writer);
+        owner.wait_for_files().unwrap();
+        owner.step_hosts_files();
+        assert!(!owner.hosts_work_pending() && !owner.hosts_bulk);
+        assert!(owner.hosts_staged.is_none());
+        let parent = owner.service.borrow();
+        let daemon_view = parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap();
+        for hosts in [&parent.local.hosts, &daemon_view] {
+            assert_eq!(hosts.addresses(b"ready.test").next().unwrap().address,
+                if fail_generation { "192.0.2.41" } else { "192.0.2.42" }.parse::<IpAddr>().unwrap());
+            assert_eq!(hosts.reverse_all("192.0.2.1".parse().unwrap()).count(),
+                if fail_generation { 0 } else { 2 });
+        }
+        if fail_generation {
+            assert_eq!(parent.local.hosts.entries().as_ptr(), old_pointer);
+            assert!(Arc::ptr_eq(&parent.local.leases, &old_leases));
+        }
+        assert_eq!(held.addresses(b"ready.test").next().unwrap().address,
+            "192.0.2.41".parse::<IpAddr>().unwrap());
+        assert_eq!(parent.local.leases.lookup(b"lease.test", 0).count(), 1);
+        drop(parent);
+        if fail_generation {
+            owner.publish_hosts_source(&HostSource { path: root.join("recovery"), uid: 99 },
+                vec![(b"recovered.test".to_vec(), "192.0.2.99".parse().unwrap())], 37);
+            assert_eq!(owner.service.borrow().local.hosts.addresses(b"recovered.test").count(), 1,
+                "a failed bulk generation must not poison later incremental events");
+        }
+        drop(owner);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[test]
+fn failed_bulk_preparation_does_not_consume_an_existing_incremental_event() {
+    use dnsmasq_rs::dns::hostsdir::HostChange;
+    let path = std::env::temp_dir().join(format!("hostsdir-failed-bulk-queued-{}", std::process::id()));
+    std::fs::write(&path, b"192.0.2.42 ready.test\n").unwrap();
+    let config = config();
+    let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+        DaemonOptions::default()).unwrap();
+    let mut owner = test_owner(config.clone(), Some(daemon));
+    owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+    owner.hosts_requests.push_back(HostChange {
+        source: HostSource { path: path.clone(), uid: 10 }, deleted: false,
+    });
+    // In particular, failure to reserve the deferred queue must leave the
+    // existing incremental request available to its original owner path.
+    owner.hosts_reload_failed = true;
+    owner.scan_hosts_dirs(true);
+    assert!(!owner.hosts_bulk);
+    assert!(owner.hosts_staged.is_none());
+    assert_eq!(owner.hosts_requests.len(), 1);
+    assert_eq!(owner.hosts_requests.front().unwrap().source.path, path);
+    for _ in 0..3 { owner.step_hosts_files(); }
+    assert!(!owner.hosts_work_pending());
     let parent = owner.service.borrow();
-    let snapshot = parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap();
-    for hosts in [&parent.local.hosts, &snapshot] {
-        assert_eq!(hosts.len(), 2);
-        assert_eq!(hosts.addresses(b"retained.test").count(), 1);
-        assert_eq!(hosts.addresses(b"new.test").count(), 1);
-        assert_eq!(hosts.addresses(b"old.test").count(), 0);
+    let daemon_view = parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap();
+    for hosts in [&parent.local.hosts, &daemon_view] {
+        assert_eq!(hosts.addresses(b"ready.test").next().unwrap().address,
+            "192.0.2.42".parse::<IpAddr>().unwrap());
+    }
+    drop(parent);
+    drop(owner);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[cfg(target_pointer_width = "64")]
+#[test]
+fn hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names() {
+    use dnsmasq_rs::config::lex_line;
+    use dnsmasq_rs::dhcp::persistence::{DnsLeaseRecord, DnsPublisher};
+    struct CountedPublisher {
+        publisher: LeasePublisher,
+        calls: Rc<std::cell::Cell<usize>>,
+        contains_old_name: Rc<std::cell::Cell<bool>>,
+    }
+    impl DnsPublisher for CountedPublisher {
+        fn replace(&mut self, records: &[DnsLeaseRecord<'_>]) -> io::Result<()> {
+            self.calls.set(self.calls.get() + 1);
+            self.contains_old_name.set(records.iter().any(|record| record.name == b"a.test"));
+            self.publisher.replace(records)
+        }
+    }
+    for slow_options in [false, true] {
+        let root = std::env::temp_dir().join(format!("hostsdir-hup-provider-once-{}-{slow_options}", std::process::id()));
+        std::fs::create_dir(&root).unwrap();
+        let hosts_path = root.join("hosts");
+        let leases_path = root.join("leases");
+        let options_path = root.join("options");
+        std::fs::write(&options_path, b"option:domain-name,initial\n").unwrap();
+        std::fs::write(&hosts_path, b"").unwrap();
+        std::fs::write(&leases_path, format!("{} 02:00:00:00:00:01 192.0.2.1 a *\n", now_seconds() + 3600)).unwrap();
+        let mut config = config();
+        config.apply(&lex_line(b"domain=test").unwrap().unwrap()).unwrap();
+        config.addn_hosts = vec![Some(hosts_path.clone())];
+        let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+            DaemonOptions::default()).unwrap();
+        let mut owner = test_owner(config.clone(), Some(daemon));
+        owner.packet_limit = 1232 + 255 + 10;
+        let mut provider = DhcpProvider::new(DhcpConfig {
+            no_ping: true,
+            lease_file: Some(leases_path.as_os_str().as_encoded_bytes().to_vec()),
+            option_files: if slow_options { vec![options_path.as_os_str().as_encoded_bytes().to_vec()] } else { Vec::new() },
+            ..Default::default()
+        }, Vec::new(), 53, || false).unwrap();
+        provider.set_dns_config(&config).unwrap();
+        let parent = Rc::clone(&owner.service);
+        provider.set_reverse_host_lookup(move |address| {
+            let parent = parent.borrow();
+            Ok(parent.provider_hosts().provider_reverse(IpAddr::V4(address)).map(|host| host.name.clone()))
+        });
+        let calls = Rc::new(std::cell::Cell::new(0));
+        let contains_old_name = Rc::new(std::cell::Cell::new(false));
+        provider.set_dns_publisher(Box::new(CountedPublisher {
+            publisher: LeasePublisher { parent: Rc::clone(&owner.service), policy: LeasePolicy::default() },
+            calls: Rc::clone(&calls),
+            contains_old_name: Rc::clone(&contains_old_name),
+        }));
+        if slow_options {
+            provider.start_file_owner().unwrap();
+            for _ in 0..32 {
+                provider.step_files_with_watch_readiness(now_seconds(), false);
+                if !provider.files_initializing() { break; }
+            }
+            assert!(!provider.files_initializing());
+        } else {
+            provider.initialize(now_seconds());
+        }
+        assert_eq!(owner.service.borrow().local.leases.lookup(b"a.test", now_seconds()).count(), 1);
+        let held = owner.service.borrow_mut().local.hosts.tcp_snapshot();
+        super::tests::attach_test_dhcp(&mut owner, provider);
+        calls.set(0);
+        std::fs::write(&hosts_path,
+            b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n",
+        ).unwrap();
+        let held_options = if slow_options {
+            std::fs::remove_file(&options_path).unwrap();
+            assert!(std::process::Command::new("mkfifo").arg(&options_path).status().unwrap().success());
+            Some(std::fs::OpenOptions::new().read(true).write(true).custom_flags(0o4000).open(&options_path).unwrap())
+        } else { None };
+        owner.reload_data(37).unwrap();
+        if slow_options {
+            let provider = owner.dhcp.as_ref().unwrap().provider.as_ref().unwrap();
+            for _ in 0..32 {
+                let mut provider = provider.borrow_mut();
+                if !provider.files_runnable() { break; }
+                provider.step_files_with_watch_readiness(now_seconds(), false);
+            }
+            assert!(provider.borrow().file_work_pending());
+            assert!(!provider.borrow().files_runnable());
+            assert_eq!(calls.get(), 0, "held DHCP input must prevent the final lease publication");
+            {
+                let parent = owner.service.borrow();
+                assert!(parent.pending_hosts.is_some());
+                assert_eq!(parent.local.hosts.addresses(b"a.test").count(), 0);
+                assert_eq!(parent.local.leases.lookup(b"a.test", now_seconds()).count(), 1);
+                assert_eq!(parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap().addresses(b"a.test").count(), 0);
+                let mut tcp_view = parent.local.hosts.try_clone().unwrap();
+                assert_eq!(tcp_view.tcp_snapshot().addresses(b"a.test").count(), 0);
+            }
+            drop(held_options);
+            for _ in 0..32 {
+                provider.borrow_mut().step_files_with_watch_readiness(now_seconds(), false);
+                if calls.get() != 0 { break; }
+            }
+            assert!(!provider.borrow().file_work_pending());
+        }
+        assert_eq!(calls.get(), 1, "only the real provider publishes the replacement lease source");
+        let parent = owner.service.borrow();
+        assert!(parent.pending_hosts.is_none());
+        assert_eq!(parent.local.leases.lookup(b"a.test", now_seconds()).count(), 0);
+        let order: Vec<_> = parent.local.hosts.addresses(b"a.test").map(|host| host.address).collect();
+        let mut expected = ["192.0.3.186".parse::<IpAddr>().unwrap(), "192.0.3.185".parse().unwrap()];
+        if contains_old_name.get() { expected.reverse(); }
+        assert_eq!(order, expected,
+            "rebuilding the stale a.test lease early adds an extra hosts rotation");
+        assert_eq!(parent.local.hosts.reverse_all("192.0.2.1".parse().unwrap()).count(), 1);
+        assert_eq!(held.addresses(b"a.test").count(), 0);
+        drop(parent);
+        drop(owner);
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

@@ -332,6 +332,10 @@ impl LeaseStore {
         self.changes.dns = false;
     }
 
+    pub(super) fn dns_update_pending(&mut self) {
+        self.changes.dns = true;
+    }
+
     pub fn next_expiry(&self) -> Option<i64> {
         let &(time, _) = self.expiry.first()?;
         if time >= 0 {
