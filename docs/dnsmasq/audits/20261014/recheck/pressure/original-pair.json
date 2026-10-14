@@ -1,0 +1,780 @@
+{
+  "artifact_sha256": "d17a392c8d009c342518fe86d4d1f4c34c32082dd23a2599549a89fce042470e",
+  "state": {
+    "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/state.json",
+    "bytes": 40709,
+    "sha256": "de7882186cf41b1ddc162e463a38d271fd03d5456108aaeeb2a5f408401d6159"
+  },
+  "windows": [
+    {
+      "name": "01-busy-C",
+      "implementation": "C",
+      "socket_isolation": {
+        "pid": 14512,
+        "tracer_pid": 0,
+        "sockets": [
+          {
+            "local": "0100007F:3BF9",
+            "remote": "00000000:0000",
+            "state": "07",
+            "inode": "5152427"
+          },
+          {
+            "local": "0100007F:3C6B",
+            "remote": "00000000:0000",
+            "state": "07",
+            "inode": "5152424"
+          },
+          {
+            "local": "0100007F:3BF9",
+            "remote": "00000000:0000",
+            "state": "0A",
+            "inode": "5152428"
+          }
+        ]
+      },
+      "modes": {
+        "udp": {
+          "rate": 990,
+          "clients": 20,
+          "warmup": {
+            "scheduled": 19800,
+            "sent": 19760,
+            "correct": 19760,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 40,
+            "stale_reply": 0,
+            "datagrams_sent": 19760,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 19760,
+            "send_lag_sum_ns": 2062810059,
+            "send_lag_max_ns": 6811994
+          },
+          "measurement": {
+            "scheduled": 118800,
+            "sent": 118789,
+            "correct": 118788,
+            "timeout": 0,
+            "wrong": 1,
+            "transport_error": 0,
+            "scheduled_skipped": 11,
+            "stale_reply": 0,
+            "datagrams_sent": 118789,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 118788,
+            "correct_after_window": 0,
+            "send_lag_count": 118789,
+            "send_lag_sum_ns": 10759303495,
+            "send_lag_max_ns": 10113014
+          },
+          "measurement_start_ns": 436587050876413
+        },
+        "tcp": {
+          "rate": 10,
+          "clients": 2,
+          "warmup": {
+            "scheduled": 200,
+            "sent": 200,
+            "correct": 200,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 200,
+            "send_lag_sum_ns": 20581234,
+            "send_lag_max_ns": 2572453
+          },
+          "measurement": {
+            "scheduled": 1200,
+            "sent": 1200,
+            "correct": 1200,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 1200,
+            "correct_after_window": 0,
+            "send_lag_count": 1200,
+            "send_lag_sum_ns": 113765330,
+            "send_lag_max_ns": 739693
+          },
+          "measurement_start_ns": 436587055827413
+        },
+        "dhcp": {
+          "rate": 2,
+          "clients": 20,
+          "warmup": {
+            "scheduled": 40,
+            "sent": 40,
+            "correct": 40,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 160,
+            "release_sent": 40,
+            "dora_correct": 40,
+            "renew_correct": 40,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 40,
+            "send_lag_sum_ns": 3155982,
+            "send_lag_max_ns": 113967
+          },
+          "measurement": {
+            "scheduled": 240,
+            "sent": 240,
+            "correct": 240,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 960,
+            "release_sent": 240,
+            "dora_correct": 240,
+            "renew_correct": 240,
+            "correct_in_window": 240,
+            "correct_after_window": 0,
+            "send_lag_count": 240,
+            "send_lag_sum_ns": 21543117,
+            "send_lag_max_ns": 719169
+          },
+          "measurement_start_ns": 436587061577380
+        }
+      },
+      "errors": [
+        {
+          "sequence": 4295104784,
+          "phase": 1,
+          "name": "u000100021910.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436705978335205,
+          "completed_ns": 436705986445067,
+          "latency_ns": 8109862
+        }
+      ],
+      "raw_evidence": [
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/udp.json",
+          "bytes": 1979,
+          "sha256": "338e3ca3de7170eb1930e15ac205c9428d455c6db7e27206a847e18b12543616"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/udp.wire-samples.jsonl",
+          "bytes": 52229,
+          "sha256": "82490de4240d80eb81bf6606eccff33d816bb05bd4bc9b3502d7a128fb81a06d"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/udp.latencies.bin",
+          "bytes": 3801248,
+          "sha256": "8d1401b263ce424295fb7f26fe53f415c1b5132d8093ea8fccee0544ebac47da"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/tcp.json",
+          "bytes": 1928,
+          "sha256": "2b79406ff83e8cf72167fb7d4bb329acd5fe0df9b15a291f28a27cd9234bc818"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/tcp.wire-samples.jsonl",
+          "bytes": 54820,
+          "sha256": "e632f41e296a8277cfbbc6dbdd12e8d9593ed7549e9ffc7b25c48b89acd0da88"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/tcp.latencies.bin",
+          "bytes": 38400,
+          "sha256": "73bd1ed664c4bac48eb98d627d881343d90d092379f48756318206d2d819ea10"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/01-busy-C/dhcp.json",
+          "bytes": 1917,
+          "sha256": "06e3d6be9d436ac54775439c8e48051798aa7b0223dccc962c1553e4161424a7"
+        }
+      ],
+      "error_counts": {
+        "udp/phase1/rcode5/ede[]": 1
+      }
+    },
+    {
+      "name": "02-busy-R",
+      "implementation": "R",
+      "socket_isolation": {
+        "pid": 15342,
+        "tracer_pid": 0,
+        "sockets": [
+          {
+            "local": "0100007F:90CE",
+            "remote": "00000000:0000",
+            "state": "07",
+            "inode": "5190726"
+          },
+          {
+            "local": "0100007F:3BF9",
+            "remote": "00000000:0000",
+            "state": "07",
+            "inode": "5190729"
+          },
+          {
+            "local": "0100007F:3C6B",
+            "remote": "00000000:0000",
+            "state": "07",
+            "inode": "5190728"
+          },
+          {
+            "local": "0100007F:3BF9",
+            "remote": "00000000:0000",
+            "state": "0A",
+            "inode": "5190730"
+          }
+        ]
+      },
+      "modes": {
+        "udp": {
+          "rate": 990,
+          "clients": 20,
+          "warmup": {
+            "scheduled": 19800,
+            "sent": 19786,
+            "correct": 19786,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 14,
+            "stale_reply": 0,
+            "datagrams_sent": 19786,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 19786,
+            "send_lag_sum_ns": 1894672838,
+            "send_lag_max_ns": 5442145
+          },
+          "measurement": {
+            "scheduled": 118800,
+            "sent": 118798,
+            "correct": 118772,
+            "timeout": 0,
+            "wrong": 26,
+            "transport_error": 0,
+            "scheduled_skipped": 2,
+            "stale_reply": 0,
+            "datagrams_sent": 118798,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 118771,
+            "correct_after_window": 1,
+            "send_lag_count": 118798,
+            "send_lag_sum_ns": 11855382865,
+            "send_lag_max_ns": 19255579
+          },
+          "measurement_start_ns": 436772691228961
+        },
+        "tcp": {
+          "rate": 10,
+          "clients": 2,
+          "warmup": {
+            "scheduled": 200,
+            "sent": 200,
+            "correct": 200,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 200,
+            "send_lag_sum_ns": 15658655,
+            "send_lag_max_ns": 412494
+          },
+          "measurement": {
+            "scheduled": 1200,
+            "sent": 1200,
+            "correct": 1200,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 0,
+            "release_sent": 0,
+            "dora_correct": 0,
+            "renew_correct": 0,
+            "correct_in_window": 1200,
+            "correct_after_window": 0,
+            "send_lag_count": 1200,
+            "send_lag_sum_ns": 111831176,
+            "send_lag_max_ns": 6299529
+          },
+          "measurement_start_ns": 436772696319072
+        },
+        "dhcp": {
+          "rate": 2,
+          "clients": 20,
+          "warmup": {
+            "scheduled": 40,
+            "sent": 40,
+            "correct": 40,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 160,
+            "release_sent": 40,
+            "dora_correct": 40,
+            "renew_correct": 40,
+            "correct_in_window": 0,
+            "correct_after_window": 0,
+            "send_lag_count": 40,
+            "send_lag_sum_ns": 3474756,
+            "send_lag_max_ns": 125091
+          },
+          "measurement": {
+            "scheduled": 240,
+            "sent": 240,
+            "correct": 240,
+            "timeout": 0,
+            "wrong": 0,
+            "transport_error": 0,
+            "scheduled_skipped": 0,
+            "stale_reply": 0,
+            "datagrams_sent": 960,
+            "release_sent": 240,
+            "dora_correct": 240,
+            "renew_correct": 240,
+            "correct_in_window": 240,
+            "correct_after_window": 0,
+            "send_lag_count": 240,
+            "send_lag_sum_ns": 19884135,
+            "send_lag_max_ns": 365903
+          },
+          "measurement_start_ns": 436772705524514
+        }
+      },
+      "errors": [
+        {
+          "sequence": 4295020358,
+          "phase": 1,
+          "name": "q0166.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436806302492816,
+          "completed_ns": 436806309426694,
+          "latency_ns": 6933878
+        },
+        {
+          "sequence": 4295020738,
+          "phase": 1,
+          "name": "q02e2.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436806686370923,
+          "completed_ns": 436806693603875,
+          "latency_ns": 7232952
+        },
+        {
+          "sequence": 4295025989,
+          "phase": 1,
+          "name": "u00010000e545.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436811990375794,
+          "completed_ns": 436811997455169,
+          "latency_ns": 7079375
+        },
+        {
+          "sequence": 4295027249,
+          "phase": 1,
+          "name": "u00010000ea31.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436813263102519,
+          "completed_ns": 436813269949990,
+          "latency_ns": 6847471
+        },
+        {
+          "sequence": 4295033199,
+          "phase": 1,
+          "name": "u00010001016f.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436819275228085,
+          "completed_ns": 436819287338634,
+          "latency_ns": 12110549
+        },
+        {
+          "sequence": 4295035249,
+          "phase": 1,
+          "name": "u000100010971.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436821345937613,
+          "completed_ns": 436821346352332,
+          "latency_ns": 414719
+        },
+        {
+          "sequence": 4295039358,
+          "phase": 1,
+          "name": "q009e.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436825496454237,
+          "completed_ns": 436825510303834,
+          "latency_ns": 13849597
+        },
+        {
+          "sequence": 4295040419,
+          "phase": 1,
+          "name": "u000100011da3.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436826568153458,
+          "completed_ns": 436826574986772,
+          "latency_ns": 6833314
+        },
+        {
+          "sequence": 4295041539,
+          "phase": 1,
+          "name": "u000100012203.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436827699469342,
+          "completed_ns": 436827706480238,
+          "latency_ns": 7010896
+        },
+        {
+          "sequence": 4295044049,
+          "phase": 1,
+          "name": "u000100012bd1.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436830234824512,
+          "completed_ns": 436830241765545,
+          "latency_ns": 6941033
+        },
+        {
+          "sequence": 4295048058,
+          "phase": 1,
+          "name": "q003a.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436834284333951,
+          "completed_ns": 436834294870724,
+          "latency_ns": 10536773
+        },
+        {
+          "sequence": 4295052124,
+          "phase": 1,
+          "name": "u000100014b5c.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436838391385230,
+          "completed_ns": 436838398491919,
+          "latency_ns": 7106689
+        },
+        {
+          "sequence": 4295052144,
+          "phase": 1,
+          "name": "u000100014b70.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436838411629415,
+          "completed_ns": 436838418760957,
+          "latency_ns": 7131542
+        },
+        {
+          "sequence": 4295052384,
+          "phase": 1,
+          "name": "u000100014c60.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436838654007582,
+          "completed_ns": 436838660817813,
+          "latency_ns": 6810231
+        },
+        {
+          "sequence": 4295053578,
+          "phase": 1,
+          "name": "q030a.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436839860053578,
+          "completed_ns": 436839867067322,
+          "latency_ns": 7013744
+        },
+        {
+          "sequence": 4295076019,
+          "phase": 1,
+          "name": "u00010001a8b3.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436862527749206,
+          "completed_ns": 436862534741021,
+          "latency_ns": 6991815
+        },
+        {
+          "sequence": 4295077254,
+          "phase": 1,
+          "name": "u00010001ad86.audit.example",
+          "qtype": 28,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436863775219266,
+          "completed_ns": 436863781999720,
+          "latency_ns": 6780454
+        },
+        {
+          "sequence": 4295081934,
+          "phase": 1,
+          "name": "u00010001bfce.audit.example",
+          "qtype": 28,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436868502491924,
+          "completed_ns": 436868509400641,
+          "latency_ns": 6908717
+        },
+        {
+          "sequence": 4295088759,
+          "phase": 1,
+          "name": "u00010001da77.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436875396438570,
+          "completed_ns": 436875403566649,
+          "latency_ns": 7128079
+        },
+        {
+          "sequence": 4295091589,
+          "phase": 1,
+          "name": "u00010001e585.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436878255018070,
+          "completed_ns": 436878262029889,
+          "latency_ns": 7011819
+        },
+        {
+          "sequence": 4295094798,
+          "phase": 1,
+          "name": "q018e.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436881496456036,
+          "completed_ns": 436881503393683,
+          "latency_ns": 6937647
+        },
+        {
+          "sequence": 4295095098,
+          "phase": 1,
+          "name": "q02ba.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436881799462810,
+          "completed_ns": 436881806225721,
+          "latency_ns": 6762911
+        },
+        {
+          "sequence": 4295095794,
+          "phase": 1,
+          "name": "u00010001f5f2.audit.example",
+          "qtype": 28,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436882502491393,
+          "completed_ns": 436882509242148,
+          "latency_ns": 6750755
+        },
+        {
+          "sequence": 4295096154,
+          "phase": 1,
+          "name": "u00010001f75a.audit.example",
+          "qtype": 28,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436882866141317,
+          "completed_ns": 436882873304251,
+          "latency_ns": 7162934
+        },
+        {
+          "sequence": 4295099679,
+          "phase": 1,
+          "name": "u00010002051f.audit.example",
+          "qtype": 16,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436886426741994,
+          "completed_ns": 436886433570538,
+          "latency_ns": 6828544
+        },
+        {
+          "sequence": 4295104649,
+          "phase": 1,
+          "name": "u000100021889.audit.example",
+          "qtype": 1,
+          "rcode": 5,
+          "flags": 33157,
+          "ede": [],
+          "mode": "udp",
+          "sent_ns": 436891446936837,
+          "completed_ns": 436891453973124,
+          "latency_ns": 7036287
+        }
+      ],
+      "raw_evidence": [
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/udp.json",
+          "bytes": 1979,
+          "sha256": "df470e693045f05a5909db0bfd43167d41ec363ed3551dd5b00ff7b697536826"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/udp.wire-samples.jsonl",
+          "bytes": 60557,
+          "sha256": "3fbb8a5d1cfb216ed9de8d1dcad64aab27daa158ac24289f97c7b81d183c6b63"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/udp.latencies.bin",
+          "bytes": 3801536,
+          "sha256": "7f14932d658babb171f1af161ec9ea0b98aacedb5c799e8e187da09f1b62ae62"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/tcp.json",
+          "bytes": 1929,
+          "sha256": "87894b9f8e327901c9e16f19c0649663aeb502174e9c9ef52bb93aba6c69eb17"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/tcp.wire-samples.jsonl",
+          "bytes": 54820,
+          "sha256": "e632f41e296a8277cfbbc6dbdd12e8d9593ed7549e9ffc7b25c48b89acd0da88"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/tcp.latencies.bin",
+          "bytes": 38400,
+          "sha256": "4ce86b74d88855758246901194d329cf1858ffa93c37c95d1e140c7dc5128c80"
+        },
+        {
+          "path": "/Users/USER/Developer/owrt-control-plane-rs/private/dnsmasq-predeploy-recheck-20261014/original-pair/02-busy-R/dhcp.json",
+          "bytes": 1917,
+          "sha256": "2a6e6fde8fc840ab7ae913b525e84345cdb81360db60f0aa0e7a24dd035c206e"
+        }
+      ],
+      "error_counts": {
+        "udp/phase1/rcode5/ede[]": 26
+      }
+    }
+  ],
+  "cleanup": {
+    "root_removed": true,
+    "test_processes_remaining": 0,
+    "test_ports_bound": 0
+  },
+  "health": {
+    "checks": 20,
+    "all_ok": true,
+    "min_mem_available_kib": 106648,
+    "production_identity_unchanged": true
+  }
+}

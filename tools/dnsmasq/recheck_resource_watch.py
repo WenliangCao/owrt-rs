@@ -6,6 +6,7 @@ stays in the caller's private directory. This adds no router configuration,
 firewall rules, signals, or listeners to the existing loopback-only harness.
 """
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -38,6 +39,8 @@ def main():
     parser.add_argument('--helpers', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--windows', default='busy:R,busy:C')
+    parser.add_argument('--observer', type=Path,
+                        help='diagnostic only: attach read-only syscall observer after isolation proof')
     args = parser.parse_args()
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
     (args.output / 'kernel-before.raw').write_text(audit.remote('dmesg'))
@@ -47,11 +50,43 @@ def main():
     (args.output / 'command.json').write_text(json.dumps(command, indent=2) + '\n')
     with (args.output / 'conntrack.jsonl').open('w') as counters:
         process = subprocess.Popen(command)
+        observers = {}
+        uploaded = False
         try:
             while True:
                 row = snapshot()
                 counters.write(json.dumps(row) + '\n')
                 counters.flush()
+                if args.observer:
+                    try:
+                        state = json.loads((args.output / 'run/state.json').read_text())
+                    except (FileNotFoundError, json.JSONDecodeError):
+                        state = {}
+                    root = state.get('root', '')
+                    for window in state.get('windows', []):
+                        name = window['name']
+                        if name in observers or 'socket_proof' not in window or 'end' in window:
+                            continue
+                        if not root.startswith('/tmp/dnsmasq-audit-c-'):
+                            raise ValueError('unexpected test root')
+                        if not uploaded:
+                            subprocess.run(['scp', '-O', '-q', str(args.observer),
+                                            'openwrt:' + root + '/observer'], check=True, timeout=30)
+                            audit.remote('chmod 755 ' + root + '/observer')
+                            expected = hashlib.sha256(args.observer.read_bytes()).hexdigest()
+                            observed = audit.remote('sha256sum ' + root + '/observer').split()[0]
+                            if observed != expected:
+                                raise ValueError('observer upload identity mismatch')
+                            (args.output / 'observer.json').write_text(json.dumps({
+                                'sha256': expected, 'diagnostic_only': True,
+                                'perturbs_scheduling': True}) + '\n')
+                            uploaded = True
+                        pid = int(window['socket_proof']['pid'])
+                        # GO was already published after proof of TracerPid=0 and
+                        # loopback listeners. These windows are diagnostic only.
+                        cmd = (f'{root}/observer {pid} {root} 170 '
+                               f'>{root}/{name}/syscalls.jsonl 2>{root}/{name}/syscalls.log')
+                        observers[name] = subprocess.Popen(audit.SSH + [cmd])
                 try:
                     code = process.wait(timeout=5)
                     break
@@ -61,6 +96,8 @@ def main():
             if process.poll() is None:
                 process.send_signal(2)  # Python's finally performs owned cleanup.
                 process.wait(timeout=60)
+            for observer in observers.values():
+                observer.wait(timeout=20)
     (args.output / 'kernel-after.raw').write_text(audit.remote('dmesg'))
     (args.output / 'exit.json').write_text(json.dumps({'returncode': code}) + '\n')
     return code
