@@ -363,6 +363,7 @@ supervise() {
                     launch
                     wanted=$C_SHA; [ "$mode" = rust ] && wanted=$R_SHA
                     if wait_ready "$wanted" && objects; then
+                        wire_failures=0
                         phase "$before_phase"
                     elif [ "$mode" = rust ]; then
                         fallback bus-repair-failed
