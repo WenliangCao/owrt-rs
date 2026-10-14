@@ -148,6 +148,14 @@ def run_case(args):
                 time.sleep(15)
                 result['after_15_seconds'] = state(d)
                 result['failure_reproduced'] = not d.daemons() and state(d)['phase'] == 'recovery-failed'
+                probe = d.run('/usr/libexec/dnsmasq-deploy-probe', '192.168.1.1',
+                              'lifecycle.lan', '192.0.2.51', 'br-lan', '192.168.1.1', check=False)
+                result['fresh_probe_after_fault'] = {'rc': probe.returncode,
+                                                     'stdout': probe.stdout, 'stderr': probe.stderr}
+                try:
+                    result['client_after_fault'] = d.client()
+                except AssertionError as error:
+                    result['client_after_fault'] = {'failed': True, 'error': str(error)}
             elif args.case == 'c-tcp-connection':
                 d.control('rollback')
                 base.wait(lambda: state(d)['phase'] == 'fallback', 'fallback', 40)

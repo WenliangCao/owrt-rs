@@ -1,0 +1,633 @@
+{
+  "passed": true,
+  "case_count": 19,
+  "cases": [
+    {
+      "case": "crash",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.206,
+      "activation_to_fallback_seconds": 8.361,
+      "service_recovered_seconds": 6.143,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/crash/result.json",
+        "sha256": "5f7843f2ff15b9a5c113fa786e0cd19d964afd78c890aabec55dbec1743045ae"
+      }
+    },
+    {
+      "case": "hang",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 8.29,
+      "activation_to_fallback_seconds": 14.451,
+      "service_recovered_seconds": 12.242,
+      "fallback_stability_seconds": 15.014,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/hang/result.json",
+        "sha256": "01f6375ccc93ad092067d872398b94e9b1c5546f0e10168ab76b1706f69bddde"
+      }
+    },
+    {
+      "case": "startup-failure",
+      "passed": true,
+      "steps": {
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 0.001,
+      "activation_to_fallback_seconds": 7.078,
+      "service_recovered_seconds": 0.137,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/startup-failure/result.json",
+        "sha256": "b4224d0607587db9f7b48416dc3934c9b89758804a00c4851e0bea8bfc5c5f15"
+      },
+      "fault_candidate_sha256": "4d32eec28d6336f3a0d4f727a5e46e9105aa6ffb1608a5e27ea67a42dcde422a"
+    },
+    {
+      "case": "dns-loss",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 8.308,
+      "activation_to_fallback_seconds": 14.46,
+      "service_recovered_seconds": 12.248,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/dns-loss/result.json",
+        "sha256": "7e120057fdcd2433bd0bfe187c438ab49d06aa7e30a537e4be8a77a847b53057"
+      }
+    },
+    {
+      "case": "dhcp-loss",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 12.143,
+      "activation_to_fallback_seconds": 18.292,
+      "service_recovered_seconds": 20.288,
+      "fallback_stability_seconds": 15.014,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/dhcp-loss/result.json",
+        "sha256": "2acf3ffa9bf858890901619cae71e80b131b8ff8abc0c625b8fc44ca4b8c8350"
+      }
+    },
+    {
+      "case": "overlay-full",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.22,
+      "activation_to_fallback_seconds": 8.371,
+      "service_recovered_seconds": 6.16,
+      "fallback_stability_seconds": 15.014,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/overlay-full/result.json",
+        "sha256": "187e6999c88671a4421ef4c5509f10071678d006a963dacb4c4ec038a787d2be"
+      }
+    },
+    {
+      "case": "overlay-readonly",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.22,
+      "activation_to_fallback_seconds": 8.381,
+      "service_recovered_seconds": 6.159,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/overlay-readonly/result.json",
+        "sha256": "cdefeaba8fb67c9954d02d8fcffe20bfc2a0b9854b346a00aa06d0d0dce67f9f"
+      }
+    },
+    {
+      "case": "tmp-full",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "full_tmp_handback_preserves_c": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.21,
+      "activation_to_fallback_seconds": 7.361,
+      "service_recovered_seconds": 6.153,
+      "fallback_stability_seconds": 15.014,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/tmp-full/result.json",
+        "sha256": "a0492e6396d9b377adfc57047d12234bb3695de043d6db998abeffd63ea86edc"
+      }
+    },
+    {
+      "case": "unconfirmed",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 175.913,
+      "activation_to_fallback_seconds": 182.064,
+      "service_recovered_seconds": 184.416,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/unconfirmed/result.json",
+        "sha256": "407b8038430c8ea03bb50b5873d42c9e10ee1b1c6a949b7ba337a184ad23d21c"
+      }
+    },
+    {
+      "case": "confirmed-fault",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "confirmation_cancels_deadline": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.207,
+      "activation_to_fallback_seconds": 188.41,
+      "service_recovered_seconds": 6.341,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/confirmed-fault/result.json",
+        "sha256": "1406b40563eaacf8072a715100e65ec1ad1804620d174fa297bbc2396fdb473f"
+      }
+    },
+    {
+      "case": "ubusd-candidate",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "ubus_objects_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 9.199,
+      "activation_to_fallback_seconds": 15.364,
+      "service_recovered_seconds": 13.33,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/ubusd-candidate/result.json",
+        "sha256": "5a32865b2382648a584e08e67995668f8975f6012274cdc19bae7610e70a18af"
+      }
+    },
+    {
+      "case": "ubusd-fallback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "ubus_objects_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 7.272,
+      "activation_to_fallback_seconds": 13.432,
+      "service_recovered_seconds": 7.423,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/ubusd-fallback/result.json",
+        "sha256": "6cf5fa7c5e83064e8e6327e6bed8b7757e7e3d2f3919ca056fe1977463164d7c"
+      }
+    },
+    {
+      "case": "guard-killed",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 1.206,
+      "activation_to_fallback_seconds": 7.368,
+      "service_recovered_seconds": 4.117,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/guard-killed/result.json",
+        "sha256": "c74f2574efd626a5ff2a698dc6d4ef3af0257fd0accd51f3abf6597a6bef026b"
+      }
+    },
+    {
+      "case": "manual-rollback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "stock_management_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.226,
+      "activation_to_fallback_seconds": 8.389,
+      "service_recovered_seconds": 6.18,
+      "fallback_stability_seconds": 15.014,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/manual-rollback/result.json",
+        "sha256": "bb20e6c19d34cfefc4cf0f4876cd30fcf890ff7b069e2135180eaddbfa5f4e80"
+      }
+    },
+    {
+      "case": "guard-restart-after-fallback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "guard_respawn_keeps_c_pid": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.226,
+      "activation_to_fallback_seconds": 8.38,
+      "service_recovered_seconds": 6.162,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/guard-restart-after-fallback/result.json",
+        "sha256": "b3abd9d0efa52413c9b3dad3ebbbd9e8ee4c8c0d245c530b4dc53edee3d2bf5f"
+      }
+    },
+    {
+      "case": "failed-handback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "failed_handback_restores_c": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.226,
+      "activation_to_fallback_seconds": 8.383,
+      "service_recovered_seconds": 6.174,
+      "fallback_stability_seconds": 15.014,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/failed-handback/result.json",
+        "sha256": "890abda49ea8855712fb491b999da98c953494b07b606983905a8b36efb9dc8f"
+      }
+    },
+    {
+      "case": "lease-before-start",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "lease_since_prepare_preserved": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 2.227,
+      "activation_to_fallback_seconds": 8.375,
+      "service_recovered_seconds": 6.175,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/lease-before-start/result.json",
+        "sha256": "aa97f104d8b4cb408f2f33d8740a9fa80d642f8f8f28de130ed132ace7f1f4e9"
+      }
+    },
+    {
+      "case": "hosts-reload",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "odhcpd_callback_reloads_both_sides": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 3.038,
+      "activation_to_fallback_seconds": 10.305,
+      "service_recovered_seconds": 7.184,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/hosts-reload/result.json",
+        "sha256": "ffa31f525cbacea8afad67f9d2e70091607d651a61527abeaceb8cc0d5018079"
+      }
+    },
+    {
+      "case": "b5-transient-streak",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "b5_transient_streak_reset": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "candidate_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "inputs": {
+        "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+        "init_lock_sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+        "probe_sha256": "f464051753c2d7fff832949ad5c1dc3010774259009bd77a8b24d9c50c8c00b9",
+        "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+        "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+      },
+      "fallback_seconds": 14.341,
+      "activation_to_fallback_seconds": 20.508,
+      "service_recovered_seconds": 18.285,
+      "fallback_stability_seconds": 15.015,
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "returncode": 0,
+      "raw_evidence": {
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/b5-transient-streak/result.json",
+        "sha256": "aedf75ac4685fe6db7cb58f90b95c5725457df1793b6408f69bf6197eabe2ea2"
+      }
+    }
+  ],
+  "raw_summary": {
+    "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/full-matrix/summary.json",
+    "sha256": "2c9a461a17e6d76024db311004c0f60f2027d08defa835d31a9e6bd8a54ee29d"
+  },
+  "cleanup": {
+    "remaining_test_processes": [],
+    "remaining_host_mounts": []
+  },
+  "timing_note": "service_recovered_seconds is measured from the harness fault timestamp; startup-failure can already have recovered when start returns. activation_to_fallback_seconds retains its separate start timestamp."
+}

@@ -12,7 +12,8 @@
         "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
         "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
         "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
-        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+        "recheck_harness_sha256": "89cfbfc489b2023b46e98a2570299a181e35b04d2a9a00a3ba99dddd9c19cbc8"
       },
       "fault": {
         "syscall": "openat",
@@ -27,9 +28,9 @@
         "live_sha256": "",
         "phase": "recovery-failed",
         "reason": "bus-repair-exhausted",
-        "token": "0ddafe43-e7ac-4845-ad56-a5ebdc4b50e1",
-        "started": "1699055",
-        "deadline": "1699235",
+        "token": "88aeeac9-dad5-4f1d-b076-07e2800f4e7f",
+        "started": "1699541",
+        "deadline": "1699721",
         "guard_pid": "769",
         "daemon_pid": "526",
         "actual_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
@@ -44,9 +45,9 @@
         "live_sha256": "",
         "phase": "recovery-failed",
         "reason": "bus-repair-exhausted",
-        "token": "0ddafe43-e7ac-4845-ad56-a5ebdc4b50e1",
-        "started": "1699055",
-        "deadline": "1699235",
+        "token": "88aeeac9-dad5-4f1d-b076-07e2800f4e7f",
+        "started": "1699541",
+        "deadline": "1699721",
         "guard_pid": "769",
         "daemon_pid": "526",
         "actual_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
@@ -54,11 +55,26 @@
         "last_probe_failure": ""
       },
       "failure_reproduced": true,
+      "fresh_probe_after_fault": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "dns=failed\n"
+      },
+      "client_after_fault": {
+        "failed": true,
+        "error": "{'stdout': '', 'stderr': 'Traceback (most recent call last):\\n  File \"<string>\", line 57, in <module>\\n  File \"<string>\", line 49, in exchange\\nAssertionError: DHCP message 2 unavailable\\n'}"
+      },
       "completed": true,
       "raw_evidence": {
-        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-crash-v2/result.json",
-        "sha256": "b759842c37668e5b26ce1276453c484e37c4a38f9a34f3f9ed43e79ffdc972d1"
-      }
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-crash-final/result.json",
+        "sha256": "716f77591e7e331ef13d88d888dedcee3eba31f3a524c6a73362c3ff7a17c0f6"
+      },
+      "replicated_evidence": [
+        {
+          "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-crash-v2/result.json",
+          "sha256": "b759842c37668e5b26ce1276453c484e37c4a38f9a34f3f9ed43e79ffdc972d1"
+        }
+      ]
     },
     {
       "case": "c-attempt-before-crash",
@@ -71,7 +87,8 @@
         "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
         "image_root": "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
         "package_database_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
-        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c"
+        "image_base_manifest_sha256": "d5dd3ffe9243f02d308c08eb76dd4feb1a65da6cd10612808251d2cde5eb3f6c",
+        "recheck_harness_sha256": "89cfbfc489b2023b46e98a2570299a181e35b04d2a9a00a3ba99dddd9c19cbc8"
       },
       "fault": {
         "syscall": "openat",
@@ -85,9 +102,9 @@
         "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
         "phase": "fallback",
         "reason": "guardian-restarted",
-        "token": "346708ae-d76a-43a5-82db-1e4151a80c3b",
-        "started": "1699255",
-        "deadline": "1699435",
+        "token": "4da27adf-fae0-4d00-92b2-31ed655995f0",
+        "started": "1699576",
+        "deadline": "1699756",
         "guard_pid": "769",
         "daemon_pid": "1037",
         "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
@@ -100,10 +117,10 @@
         {
           "pid": 1037,
           "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
-          "exe": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/fixture/rootfs/usr/sbin/dnsmasq",
-          "start_ticks": "169926356",
+          "exe": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash-final/fixture/rootfs/usr/sbin/dnsmasq",
+          "start_ticks": "169958424",
           "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
-          "root": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/fixture/rootfs"
+          "root": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash-final/fixture/rootfs"
         }
       ],
       "after_15_seconds": {
@@ -111,9 +128,9 @@
         "live_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
         "phase": "fallback",
         "reason": "guardian-restarted",
-        "token": "346708ae-d76a-43a5-82db-1e4151a80c3b",
-        "started": "1699255",
-        "deadline": "1699435",
+        "token": "4da27adf-fae0-4d00-92b2-31ed655995f0",
+        "started": "1699576",
+        "deadline": "1699756",
         "guard_pid": "769",
         "daemon_pid": "1037",
         "actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
@@ -121,11 +138,34 @@
         "last_probe_failure": ""
       },
       "failure_reproduced": false,
+      "fresh_probe_after_fault": {
+        "rc": 0,
+        "stdout": "dns=ok\ndhcp=ok address=192.168.1.100 mac=02:64:6e:73:70:01 released=sent\n",
+        "stderr": ""
+      },
+      "client_after_fault": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
       "completed": true,
       "raw_evidence": {
-        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/result.json",
-        "sha256": "fca46817e379aa390e7c9231810b5a0650a3487d8246948bb1fb6a61b0eef4d5"
-      }
+        "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash-final/result.json",
+        "sha256": "bf0b69bccbf5da7f91bb55f594aecf4660235bcbecbb5048a5a24d25ad9c2fc4"
+      },
+      "replicated_evidence": [
+        {
+          "path": "/home/ubuntu/dnsmasq-recheck-guard-20261014/private/c-attempt-before-crash/result.json",
+          "sha256": "fca46817e379aa390e7c9231810b5a0650a3487d8246948bb1fb6a61b0eef4d5"
+        }
+      ]
     },
     {
       "case": "c-tcp-connection",
