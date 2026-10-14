@@ -1,0 +1,18 @@
+{
+  "timestamp": 1791972747.2891471,
+  "matching_processes": [],
+  "matching_host_mounts": [],
+  "artifacts": {
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/run_actual.py": "316b487c79706e5fab95660e0d324c8591332cf1225855044937e24ab3824d7d",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/run_history.py": "f5404fec984cecb416c7595d61f90c1494ddb640997f143e08a4e147817196dd",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/collect.py": "5f4b56fe99e968d60b3072ca7d4194f8f0c8b6cfce2175629c773155f5ba5a22",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/actual/c-invocations.json": "14361aa527e6fec78bed1e83bf6e6b9f5d39ef43223151ac00834c7330071539",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/actual/rust-invocations.json": "a723e858f237b7ef0e36fb31ad307f90a7703ac1d09dcbf2f46bbbb7fd469761",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/history-invocations.json": "90ce0be88a9ec367a3cfd0ab5f11d30128b2b9533647e3f401cac84207beb8a8",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/negative/checked.json": "d3007712ea145939407923e989fb32e134b29bcbf5395a73004e32782c4d763c",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/large-soa/checked.json": "0d0b28b4580d97aa9614a562dfa463a783af2f35caf6adb41364de30c3efe44b",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/regression/checked.json": "32be84a87cfac5afc380bc8d98d625592c36d107eb895a9174f772b6d46d604c",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/private/boundary/invocation.json": "77690db58beea17e66c948e6532243fd5fc7060801a2e2bafcc9b1be25117150"
+  },
+  "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728"
+}

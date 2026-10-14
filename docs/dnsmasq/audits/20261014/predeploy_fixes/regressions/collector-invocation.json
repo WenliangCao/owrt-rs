@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "python3",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/collect.py",
+    "--root",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions",
+    "--out",
+    "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/regressions/derived"
+  ],
+  "exit": 0,
+  "collected_at": 1791972715.238334,
+  "recollection_only": true
+}

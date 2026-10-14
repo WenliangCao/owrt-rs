@@ -1,0 +1,261 @@
+{
+  "strict_client_mismatches": 4,
+  "bounded_ttl_cases": [
+    {
+      "case": "basic-v4-tcp-1-cached",
+      "sides": {
+        "c": {
+          "ttl": 120,
+          "warm_ttl": 120,
+          "elapsed_min": 0.06944894790649414,
+          "elapsed_max": 0.0810089111328125,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791971104.3363965
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "86fcb2877c50dde7efae0e1c3b3204d13426e65fcc022a65d1fa7acc91126c7d",
+              "mtime_ns": 1791971104335185868
+            },
+            "warm_reply": {
+              "sha256": "b1f9a24d9322d34cd222bb74e3a73c73f9eff708d52f21f1bed3c2b030928cdd",
+              "mtime_ns": 1791971104347144567
+            },
+            "query_request": {
+              "sha256": "86fcb2877c50dde7efae0e1c3b3204d13426e65fcc022a65d1fa7acc91126c7d",
+              "mtime_ns": 1791971104416593463
+            },
+            "query_reply": {
+              "sha256": "b1f9a24d9322d34cd222bb74e3a73c73f9eff708d52f21f1bed3c2b030928cdd",
+              "mtime_ns": 1791971104417405390
+            }
+          }
+        },
+        "rust": {
+          "ttl": 119,
+          "warm_ttl": 120,
+          "elapsed_min": 0.07047915458679199,
+          "elapsed_max": 0.08205389976501465,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791972374.9937556
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "86fcb2877c50dde7efae0e1c3b3204d13426e65fcc022a65d1fa7acc91126c7d",
+              "mtime_ns": 1791972374992425275
+            },
+            "warm_reply": {
+              "sha256": "b1f9a24d9322d34cd222bb74e3a73c73f9eff708d52f21f1bed3c2b030928cdd",
+              "mtime_ns": 1791972375004899899
+            },
+            "query_request": {
+              "sha256": "86fcb2877c50dde7efae0e1c3b3204d13426e65fcc022a65d1fa7acc91126c7d",
+              "mtime_ns": 1791972375075378883
+            },
+            "query_reply": {
+              "sha256": "89333c50c0ac011be20e015a5b0446b6f8bbaced5ca06d1f77520f61dfb7b69c",
+              "mtime_ns": 1791972375075809646
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "basic-v6-tcp-1-cached",
+      "sides": {
+        "c": {
+          "ttl": 119,
+          "warm_ttl": 120,
+          "elapsed_min": 0.06906676292419434,
+          "elapsed_max": 0.08067893981933594,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791971104.9365942
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "3051e5b75a2ad112b6ff1b8b7dcaca0bf471361a74a0fc656c2081e75f237312",
+              "mtime_ns": 1791971104935509929
+            },
+            "warm_reply": {
+              "sha256": "a38f2f7f639dce441349c5078c9718f3275754f10e96f84db3514974324c3836",
+              "mtime_ns": 1791971104947314787
+            },
+            "query_request": {
+              "sha256": "3051e5b75a2ad112b6ff1b8b7dcaca0bf471361a74a0fc656c2081e75f237312",
+              "mtime_ns": 1791971105016381480
+            },
+            "query_reply": {
+              "sha256": "a9e3eb2a3b9293455b42b2eaf5bddf19200d2a175a9f823e07bbedc973c4eb64",
+              "mtime_ns": 1791971105017273167
+            }
+          }
+        },
+        "rust": {
+          "ttl": 120,
+          "warm_ttl": 120,
+          "elapsed_min": 0.07755517959594727,
+          "elapsed_max": 0.08961820602416992,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791972375.6775546
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "3051e5b75a2ad112b6ff1b8b7dcaca0bf471361a74a0fc656c2081e75f237312",
+              "mtime_ns": 1791972375676736268
+            },
+            "warm_reply": {
+              "sha256": "a38f2f7f639dce441349c5078c9718f3275754f10e96f84db3514974324c3836",
+              "mtime_ns": 1791972375689113091
+            },
+            "query_request": {
+              "sha256": "3051e5b75a2ad112b6ff1b8b7dcaca0bf471361a74a0fc656c2081e75f237312",
+              "mtime_ns": 1791972375766668294
+            },
+            "query_reply": {
+              "sha256": "a38f2f7f639dce441349c5078c9718f3275754f10e96f84db3514974324c3836",
+              "mtime_ns": 1791972375767172818
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "localhost-rebind-cached",
+      "sides": {
+        "c": {
+          "ttl": 120,
+          "warm_ttl": 120,
+          "elapsed_min": 0.06861186027526855,
+          "elapsed_max": 0.07958054542541504,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791971106.1802537
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "bd497d7a492475c349cd1e9c79c9c44c28326a1a0b8381c1f9eb3d73fefb69cb",
+              "mtime_ns": 1791971106179865773
+            },
+            "warm_reply": {
+              "sha256": "d853d8c26fdc5482251ed406d73866bba46cba226a9981332ff3607babf3bbdc",
+              "mtime_ns": 1791971106190932665
+            },
+            "query_request": {
+              "sha256": "bd497d7a492475c349cd1e9c79c9c44c28326a1a0b8381c1f9eb3d73fefb69cb",
+              "mtime_ns": 1791971106259544554
+            },
+            "query_reply": {
+              "sha256": "d853d8c26fdc5482251ed406d73866bba46cba226a9981332ff3607babf3bbdc",
+              "mtime_ns": 1791971106259834437
+            }
+          }
+        },
+        "rust": {
+          "ttl": 119,
+          "warm_ttl": 120,
+          "elapsed_min": 0.06825900077819824,
+          "elapsed_max": 0.0792391300201416,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791972376.9544172
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "bd497d7a492475c349cd1e9c79c9c44c28326a1a0b8381c1f9eb3d73fefb69cb",
+              "mtime_ns": 1791972376954004937
+            },
+            "warm_reply": {
+              "sha256": "d853d8c26fdc5482251ed406d73866bba46cba226a9981332ff3607babf3bbdc",
+              "mtime_ns": 1791972376965103749
+            },
+            "query_request": {
+              "sha256": "bd497d7a492475c349cd1e9c79c9c44c28326a1a0b8381c1f9eb3d73fefb69cb",
+              "mtime_ns": 1791972377033363035
+            },
+            "query_reply": {
+              "sha256": "80142a60c11a5644b14414821738dc0ca6dc5603621640adf65d11a4951caa1a",
+              "mtime_ns": 1791972377033656317
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": "nx-cross-type",
+      "sides": {
+        "c": {
+          "ttl": 28,
+          "warm_ttl": 30,
+          "elapsed_min": 1.3144211769104004,
+          "elapsed_max": 1.3254966735839844,
+          "allowed_lower": 28,
+          "allowed_upper": 29,
+          "upstream_times": [
+            1791971105.7143967
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "df84e10bd249a2ccc3eff963306d3b7620b8daf2b055f7a6f6fb3ac4c0ec8d8b",
+              "mtime_ns": 1791971105713999028
+            },
+            "warm_reply": {
+              "sha256": "c93f755b1338abe2cc2541af2fdddddb91e0a5a5626c0bb7957c78d156112809",
+              "mtime_ns": 1791971105725160761
+            },
+            "query_request": {
+              "sha256": "8a687d36c9dd4e393a6fff7fb8dcbb83f49a5ec703300382497c9a0fa45d4602",
+              "mtime_ns": 1791971107039581666
+            },
+            "query_reply": {
+              "sha256": "73aaeb1cd3941f2d3ad1d80cff6e1bd96680308d24072af569b2e0a907cc7ca9",
+              "mtime_ns": 1791971107039893629
+            }
+          }
+        },
+        "rust": {
+          "ttl": 29,
+          "warm_ttl": 30,
+          "elapsed_min": 1.3432514667510986,
+          "elapsed_max": 1.354597568511963,
+          "allowed_lower": 28,
+          "allowed_upper": 29,
+          "upstream_times": [
+            1791972376.486186
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "df84e10bd249a2ccc3eff963306d3b7620b8daf2b055f7a6f6fb3ac4c0ec8d8b",
+              "mtime_ns": 1791972376485756655
+            },
+            "warm_reply": {
+              "sha256": "c93f755b1338abe2cc2541af2fdddddb91e0a5a5626c0bb7957c78d156112809",
+              "mtime_ns": 1791972376496981788
+            },
+            "query_request": {
+              "sha256": "8a687d36c9dd4e393a6fff7fb8dcbb83f49a5ec703300382497c9a0fa45d4602",
+              "mtime_ns": 1791972377840233244
+            },
+            "query_reply": {
+              "sha256": "23ef51625ceb41af07b6fbd6cb57355ee33a30120fb10c6304c1b1bc7e604c06",
+              "mtime_ns": 1791972377840783728
+            }
+          }
+        }
+      }
+    }
+  ],
+  "calibration": {
+    "ttl_plus_2": "rejected",
+    "flags": "rejected"
+  }
+}

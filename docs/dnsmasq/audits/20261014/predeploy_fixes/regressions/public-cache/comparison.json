@@ -1,0 +1,126 @@
+{
+  "scope": "Actual captured configuration, exact image C ELF and frozen Rust release; isolated oracle network/mount/PID namespaces",
+  "comparison": "Ignore elapsed time only; keep DNS IDs, flags, questions, ordered records, TTLs, error category/text and daemon liveness",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "config_identity_equal": true,
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+  "executed_tool_sha256": {
+    "c": "7da2d0edf1c29b0aa426c784ac56fb35d7c793dc3066b311090bd63a30587bb6",
+    "rust": "7da2d0edf1c29b0aa426c784ac56fb35d7c793dc3066b311090bd63a30587bb6"
+  },
+  "source_result_sha256": {
+    "c": "57725c652e878929addce107218d0b8271ff75a3f4df6c12cfb764e9a0845d65",
+    "rust": "3290725ab14a0d757923820cafd3b6167a5690a9d66a2df3d03de01efddba29d"
+  },
+  "cases": [
+    {
+      "label": "public-cname-warm",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "25d8ba3cbf4f1175525d16d68a27e1706d356c12c0517194813903e29c69c311",
+      "rust_semantics_sha256": "25d8ba3cbf4f1175525d16d68a27e1706d356c12c0517194813903e29c69c311"
+    },
+    {
+      "label": "public-terminal-a-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "77b20a08587c0d6d94a58dec2a94577ec929fd8a6c5ba2bc79e2a0eb4ae7311a",
+      "rust_semantics_sha256": "77b20a08587c0d6d94a58dec2a94577ec929fd8a6c5ba2bc79e2a0eb4ae7311a"
+    },
+    {
+      "label": "public-terminal-a-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "30f8ba8bc5052811fdd2d11084295eeb7254f75709b109783f8b4c6561242e2a",
+      "rust_semantics_sha256": "3d581ad5db355a18485bec035e3268bbcf964f2046941cad2b49d374d9bd14bb"
+    }
+  ],
+  "upstream": {
+    "c": {
+      "requests": 1,
+      "by_stage": {
+        "public-cname-warm": 1
+      }
+    },
+    "rust": {
+      "requests": 1,
+      "by_stage": {
+        "public-cname-warm": 1
+      }
+    },
+    "endpoint_query_counts_equal": true,
+    "c_only_counts": [],
+    "rust_only_counts": []
+  },
+  "harness_errors": {
+    "c": [],
+    "rust": []
+  },
+  "process_exits": {
+    "c": [
+      0,
+      0
+    ],
+    "rust": [
+      0,
+      0
+    ]
+  },
+  "ubus_checks": {
+    "c": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ],
+    "rust": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ]
+  },
+  "totals": {
+    "scenarios": 3,
+    "exchanges_each": 3,
+    "client_semantic_mismatches": 1
+  }
+}

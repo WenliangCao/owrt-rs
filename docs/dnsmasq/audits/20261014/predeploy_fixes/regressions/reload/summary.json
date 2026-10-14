@@ -1,0 +1,637 @@
+{
+  "c_cleanup": [
+    0,
+    0
+  ],
+  "c_concurrent_hup": {
+    "elapsed_ms": 1.74,
+    "requests": 160,
+    "successful": 160
+  },
+  "c_errors": [],
+  "c_lease_preserved": true,
+  "c_query_failures": 0,
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "c_status": "completed",
+  "config_match": true,
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "matched": 60,
+  "passed": true,
+  "rows": [
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-00",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-01",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-02",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-03",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-04",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-05",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-06",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-07",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-08",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "captured-host-09",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-short-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-fqdn-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-aaaa-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-ptr-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-name-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-ptr-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-short-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-fqdn-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-aaaa-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-ptr-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-name-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-ptr-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-ipv6-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-ipv6-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 4,
+      "case": "cache-fill",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 4
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "cache-hit",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "existing-tcp-before-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-atomic-before-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-atomic-after-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "existing-tcp-after-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-atomic-aaaa",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 3,
+      "c_upstream_count": 0,
+      "case": "hosts-old-ptr-removed",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 3,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-new-ptr",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-after-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "cache-flushed-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 3,
+      "c_upstream_count": 0,
+      "case": "hosts-deleted-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 3,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-recreated-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-0-a",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-0-aaaa",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-1-a",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-1-aaaa",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-2-a",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-2-aaaa",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-3-a",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "resolver-only-3-aaaa",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 5,
+      "c_upstream_count": 0,
+      "case": "resolver-empty",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 5,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 5,
+      "c_upstream_count": 0,
+      "case": "resolver-deleted",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 5,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 4,
+      "case": "resolver-restored",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 4
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 1,
+      "case": "cache-seed-before-resolver-change",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 1
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "cache-retained-resolver-change",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": null,
+      "c_upstream_count": 0,
+      "case": "concurrent-hup-queries",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": null,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 3,
+      "c_upstream_count": 0,
+      "case": "main-config-not-reread-hup",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 3,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-before-restart",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "main-config-read-restart",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "hosts-read-restart",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-restored-restart",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "lease-ptr-restart",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "new-interface-address-udp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "new-interface-address-tcp",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    },
+    {
+      "c_error": null,
+      "c_rcode": 0,
+      "c_upstream_count": 0,
+      "case": "original-interface-after-remove",
+      "match": true,
+      "rust_error": null,
+      "rust_rcode": 0,
+      "rust_upstream_count": 0
+    }
+  ],
+  "rust_cleanup": [
+    0,
+    0
+  ],
+  "rust_concurrent_hup": {
+    "elapsed_ms": 1.73,
+    "requests": 160,
+    "successful": 160
+  },
+  "rust_errors": [],
+  "rust_lease_preserved": true,
+  "rust_query_failures": 0,
+  "rust_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+  "rust_status": "completed",
+  "total": 60
+}

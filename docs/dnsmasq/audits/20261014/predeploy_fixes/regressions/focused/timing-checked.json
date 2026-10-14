@@ -1,0 +1,72 @@
+{
+  "strict_client_mismatches": 1,
+  "bounded_ttl_cases": [
+    {
+      "case": "direct-terminal-a-tcp",
+      "sides": {
+        "c": {
+          "ttl": 119,
+          "warm_ttl": 120,
+          "elapsed_min": 0.6955821514129639,
+          "elapsed_max": 0.7076258659362793,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791971103.3246498
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "ccddae6135f24072acbada281d9bcaf48eb9f1cf3026fabeb2f7f6263568db10",
+              "mtime_ns": 1791971103324064359
+            },
+            "warm_reply": {
+              "sha256": "480c80dadeadd4112bc85a1aaa249769eb5b351000a07d6b277b28aa75e7fd1f",
+              "mtime_ns": 1791971103335951577
+            },
+            "query_request": {
+              "sha256": "0c9b91f503ee7757fe3387573328316771e9a4d4981c64d6bf49f790cd3c5ce5",
+              "mtime_ns": 1791971104031533949
+            },
+            "query_reply": {
+              "sha256": "6370cf6add020ab2a8d3605521dd14d551ad190d309836bceb49a328d87c914c",
+              "mtime_ns": 1791971104032275595
+            }
+          }
+        },
+        "rust": {
+          "ttl": 120,
+          "warm_ttl": 120,
+          "elapsed_min": 0.7457034587860107,
+          "elapsed_max": 0.7569019794464111,
+          "allowed_lower": 119,
+          "allowed_upper": 120,
+          "upstream_times": [
+            1791972374.060306
+          ],
+          "packet_files": {
+            "warm_request": {
+              "sha256": "ccddae6135f24072acbada281d9bcaf48eb9f1cf3026fabeb2f7f6263568db10",
+              "mtime_ns": 1791972374059201899
+            },
+            "warm_reply": {
+              "sha256": "480c80dadeadd4112bc85a1aaa249769eb5b351000a07d6b277b28aa75e7fd1f",
+              "mtime_ns": 1791972374071300359
+            },
+            "query_request": {
+              "sha256": "0c9b91f503ee7757fe3387573328316771e9a4d4981c64d6bf49f790cd3c5ce5",
+              "mtime_ns": 1791972374817003821
+            },
+            "query_reply": {
+              "sha256": "fc7bd617d487e0518b6676b99c30c8b74aa3ef6e0bd8a906911f3c912b5edf7d",
+              "mtime_ns": 1791972374817208183
+            }
+          }
+        }
+      }
+    }
+  ],
+  "calibration": {
+    "ttl_plus_2": "rejected",
+    "flags": "rejected"
+  }
+}
