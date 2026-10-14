@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "conclusion": "The 340ed73e / edb5b4f9 candidate passed all 28 newly executed Rust stack/helper checks. C control results are explicitly reused from the immediately preceding same-fixture runs; this is not a new 56-check run or whole-product acceptance.",
+  "inputs": {
+    "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+    "parent_accepted_source": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+    "source_changes_from_parent": [
+      "components/dnsmasq/src/hosts.rs",
+      "components/dnsmasq/src/main.rs",
+      "components/dnsmasq/tests/hosts_allocations.rs"
+    ],
+    "candidate_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "candidate_bytes": 2089440,
+    "candidate_source": "/dev/shm/full-inotify-fix-20261014/private/release-final/dnsmasq-rs",
+    "candidate_test_copy": "/dev/shm/full-audit-resume-20261014/stack-inotify/input/dnsmasq-rs",
+    "source_and_copy_sha256_equal": true,
+    "support_source_files_checked": 175,
+    "support_source_missing": [],
+    "support_source_mismatches": [],
+    "support_source_map_sha256": "982df226a3ce1772045d9ef0d102ba6785b7de13828a37bd0e699e47bb4133ec",
+    "support_build_source_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+    "driver_hashes": {
+      "helper_replay.py": "5aff63d14ce778ec8eccfd373503ea13caf6451864ffb4e151b70ceff8ae5faa",
+      "stack_replay.py": "cf0ca54888c4b4ee112e931e3864e286e181a2043a086e4c972a00d8f1ef71a0"
+    },
+    "support_artifacts": {
+      "ubusd-rs": {
+        "sha256": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "bytes": 516072
+      },
+      "httpd-rs": {
+        "sha256": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d",
+        "bytes": 1613960
+      },
+      "rpcd-rs": {
+        "sha256": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "bytes": 1257576
+      },
+      "logd-rs": {
+        "sha256": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "bytes": 434120
+      },
+      "uci-rs": {
+        "sha256": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "bytes": 487456
+      },
+      "reload-config-rs": {
+        "sha256": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "bytes": 466944
+      },
+      "netifd-rs": {
+        "sha256": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "bytes": 1081400
+      },
+      "fw4-rs": {
+        "sha256": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "bytes": 1032168
+      },
+      "procd-rs": {
+        "sha256": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "bytes": 876536
+      }
+    }
+  },
+  "fixture_comparison": {
+    "previous_manifest": "/dev/shm/full-audit-resume-20261014/stack-final/inputs.json",
+    "previous_manifest_sha256": "6ecea0e9a31445f2721b1977cf3dfeb9556b9ce07f49ff337394ee83907306a5",
+    "support_tool_files_checked": 458,
+    "tool_manifest_equal": true,
+    "driver_manifest_equal": true
+  },
+  "support_component_git_trees_equal_to_previous_candidate": true,
+  "new_rust_runs": {
+    "stack23": {
+      "passed": true,
+      "new_check_count": 23,
+      "checks": {
+        "init_dns": true,
+        "client_dhcp_udp_tcp": true,
+        "luci_features": true,
+        "luci_leases": true,
+        "metrics": true,
+        "fw4_print": true,
+        "fw4_check": true,
+        "fw4_start": true,
+        "client_after_fw4": true,
+        "http_luci_features": true,
+        "http_luci_leases": true,
+        "init_reload_hosts": true,
+        "reload_config_dispatch": true,
+        "rpcd_uci_apply": true,
+        "client_after_apply": true,
+        "odhcpd_publication": true,
+        "netifd_resolver_handoff": true,
+        "procd_respawn": true,
+        "client_after_respawn": true,
+        "dns_after_ubusd_restart": true,
+        "restart_after_ubusd_dns": true,
+        "restart_after_ubusd_objects": true,
+        "init_stop": true
+      },
+      "running_dnsmasq_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "raw_result_sha256": "0e91aa0061116f8b2e4d5c2ae7ea070146538cca65600c4a4f17e92e033a0072",
+      "raw_rootfs_identity_sha256": "f2b79cb0ba59b37a751dbcd8486be56f56843d73a3e38bcb2fd32a7fdd4de96f",
+      "unchanged_config_same_pid": true,
+      "ubus_after_restart": "",
+      "clients": {
+        "client_dhcp_udp_tcp": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "client_after_fw4": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "client_after_apply": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "client_after_respawn": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        }
+      },
+      "netifd_resolver_handoff": [
+        {
+          "netifd_dns": "127.0.0.2",
+          "resolvfile": "# Interface lan\nnameserver 127.0.0.2\n",
+          "answer": {
+            "flags": 33152,
+            "questions": [
+              [
+                "handoff2.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "handoff2.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.82"
+              }
+            ]
+          }
+        },
+        {
+          "netifd_dns": "127.0.0.3",
+          "resolvfile": "# Interface lan\nnameserver 127.0.0.3\n",
+          "answer": {
+            "flags": 33152,
+            "questions": [
+              [
+                "handoff3.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "handoff3.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.83"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "helper5": {
+      "passed": true,
+      "new_check_count": 5,
+      "checks": {
+        "init_dns": true,
+        "client_dhcp_udp_tcp": true,
+        "hotplug_add": true,
+        "ubus_ack": true,
+        "init_stop": true
+      },
+      "running_dnsmasq_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "1b10de01ddf5542c4502d15aa726429f432bb65f7523f29a51a0a7700ea35cca",
+      "raw_rootfs_identity_sha256": "8cc6c322e9bd61473a7cc63da4bd1bb75eab1ecf312b59d47f148ca5c9df2bc7",
+      "client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "hotplug": "add|192.168.1.101|02:00:00:00:00:27\n",
+      "ubus_ack_events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n"
+    }
+  },
+  "reused_c_controls": {
+    "stack23": {
+      "executed_in_this_addendum": false,
+      "previous_report": "integrated-stack-review.json",
+      "oracle_result": "/dev/shm/full-audit-resume-20261014/stack-final/private/stack23-c/result.json",
+      "raw_result_sha256": "5c776d4a02c7f5a83e16b565c537b29898f49261435be84ced1273cb5fe23c3f",
+      "running_dnsmasq_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "passed": true,
+      "check_count": 23
+    },
+    "helper5": {
+      "executed_in_this_addendum": false,
+      "previous_report": "integrated-stack-review.json",
+      "oracle_result": "/dev/shm/full-audit-resume-20261014/stack-final/private/helper5-c/result.json",
+      "raw_result_sha256": "ddc3020d74d67b83f4a367bdf11bee0579147fa00729c06e625a720ebdcf2920",
+      "running_dnsmasq_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "passed": true,
+      "check_count": 5
+    }
+  },
+  "comparisons": {
+    "dnsmasq_luci_features_equal": true,
+    "metrics_field_names_equal": true,
+    "helper_hotplug_equal": true,
+    "helper_ubus_ack_events_equal": true
+  },
+  "closeout": {
+    "owned_processes_remaining": [],
+    "host_visible_mounts_remaining": [],
+    "candidate_source_sha256_after": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "candidate_test_copy_sha256_after": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "support_artifacts_unchanged": true
+  },
+  "limits": [
+    "The new run scope is Rust stack23 plus helper5 only; C controls and the preceding trial results were not rerun.",
+    "The 19bd6162 reports remain unchanged and apply to their original ELF. This report covers normal integration for 340ed73e only; low-memory publication correctness is accepted separately.",
+    "No new build, firmware/APK lifecycle, router operation, physical Wi-Fi client test or performance qualification.",
+    "Known C-shared loss of management objects after ubusd restart remains; explicit dnsmasq restart restores them.",
+    "All nine support installed files were checked; the six long-lived stack support processes were also checked through /proc. No claim of runtime /proc sampling for one-shot uci, reload-config or fw4."
+  ],
+  "raw_evidence": {
+    "oracle_directory": "/dev/shm/full-audit-resume-20261014/stack-inotify",
+    "oracle_archive": "/dev/shm/full-audit-resume-20261014/stack-inotify-final-evidence.tar.gz",
+    "local_directory": "private/full-audit-20261014/resume/stack/inotify",
+    "local_archive": "private/full-audit-20261014/resume/stack/inotify/verified-evidence.tar.gz",
+    "archive_sha256": "221be7e845a98c5b953582d8fb681f98ffa5f6590568b9fc379a45025544674a",
+    "archive_excludes": "Disposable rootfs and rootfs-overlay; original overlays remain on Oracle."
+  }
+}
