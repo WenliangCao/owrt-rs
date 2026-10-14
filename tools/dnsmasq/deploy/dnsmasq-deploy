@@ -152,7 +152,12 @@ prepare() {
     [ ! -e "$S/ready" ] || fail 'existing deployment: inspect status / release first'
     [ "$(hash "$C")" = "$C_SHA" ] || fail 'wrong /rom C identity'
     [ "$(hash /usr/sbin/dnsmasq)" = "$C_SHA" ] || fail 'stock disk C required; no APK replacement'
+    # Do not mistake a covering bind for the persistent image underneath it.
+    for target in /usr /usr/sbin /usr/sbin/dnsmasq /etc /etc/init.d /etc/init.d/dnsmasq; do
+        grep -q " $target " /proc/mounts && fail "pre-existing mount at $target"
+    done
     cmp -s /etc/init.d/dnsmasq /rom/etc/init.d/dnsmasq || fail 'stock init required'
+    cmp -s /usr/sbin/odhcpd-update /rom/usr/sbin/odhcpd-update || fail 'stock odhcpd callback required'
     [ "$(hash "$1")" = "$2" ] && [ "$2" != "$C_SHA" ] || fail 'candidate SHA mismatch'
     [ -x "$PROBE" ] && [ -x /usr/libexec/dnsmasq-deploy-lock-init ] || fail 'install helpers first'
     case "$*" in *[!a-zA-Z0-9_./:\ -]*) fail 'unsupported argument characters';; esac
@@ -164,6 +169,8 @@ prepare() {
     cp "$1" "$S/candidate" && chmod 755 "$S/candidate" || fail 'stage candidate'
     cp "$PROBE" "$S/probe" || fail 'stage probe'
     cp /usr/libexec/dnsmasq-deploy-lock-init "$S/locked-init" || fail 'stage init lock'
+    printf '%s\n' '#!/bin/sh' 'exec /usr/sbin/dnsmasq-deploy hosts-reload' > "$S/odhcpd-hook"
+    chmod 755 "$S/odhcpd-hook" || fail 'stage odhcpd callback'
     put candidate_sha256 "$2"
     shift 2
     printf '%s %s %s %s %s\n' "$@" > "$S/probe_args"
@@ -243,6 +250,8 @@ activate() {
     put lease_mounted 1
     mount -o bind "$S/pids" /var/run/dnsmasq || return 1
     put pids_mounted 1
+    mount -o bind "$S/odhcpd-hook" /usr/sbin/odhcpd-update || return 1
+    put odhcpd_hook_mounted 1
     # Start deadline before candidate launch; startup is part of the budget.
     started=$(now); put started "$started"; put deadline "$((started + 180))"
     switch_to "$S/candidate" || return 1
@@ -255,7 +264,9 @@ supervise() {
     load
     put guard_pid "$$"; put guard_birth "$(birth $$)"
     requested=0
+    reload_requested=0
     trap 'requested=1' USR1 TERM INT HUP
+    trap 'reload_requested=1' USR2
     mode=rust
     if [ "$(get phase)" = prepared ] && [ -f "$S/fresh" ]; then
         rm -f "$S/fresh"
@@ -290,6 +301,11 @@ supervise() {
             rm -f "$S/release_request"
             handback || restore_ownership
             continue
+        fi
+        if [ "$reload_requested" -eq 1 ] && [ "$mode" != stock ]; then
+            reload_requested=0
+            wanted=$C_SHA; [ "$mode" = rust ] && wanted=$R_SHA
+            if verify "$wanted"; then kill -HUP "$(get daemon_pid)" 2>/dev/null || :; fi
         fi
         if [ "$requested" -eq 1 ] && [ "$mode" = rust ]; then fallback manual; fi
         requested=0
@@ -382,11 +398,12 @@ status() {
 }
 
 unmount_owned() {
-    for item in binary pids lease config init; do
+    for item in binary pids lease config odhcpd_hook init; do
         [ -f "$S/${item}_mounted" ] || continue
         case "$item" in
             binary) target=/usr/sbin/dnsmasq;; pids) target=/var/run/dnsmasq;;
-            lease) target=/tmp/dhcp.leases;; config) target=$CFG;; init) target=/etc/init.d/dnsmasq;;
+            lease) target=/tmp/dhcp.leases;; config) target=$CFG;;
+            odhcpd_hook) target=/usr/sbin/odhcpd-update;; init) target=/etc/init.d/dnsmasq;;
         esac
         umount "$target" || return 1
         rm -f "$S/${item}_mounted"
@@ -412,13 +429,14 @@ restore_ownership() {
     # not permission for the monitoring loop to retry a failed fallback.
     ubus -t 2 call service delete '{"name":"dnsmasq"}' >/dev/null 2>&1 || :
     stop_owned || { phase recovery-failed; return 1; }
-    for item in init config lease pids; do
+    for item in init config lease pids odhcpd_hook; do
         [ -f "$S/${item}_mounted" ] && continue
         case "$item" in
             init) source=$S/locked-init; target=/etc/init.d/dnsmasq;;
             config) source=$S/config; target=$CFG;;
             lease) source=$S/leases; target=/tmp/dhcp.leases;;
             pids) source=$S/pids; target=/var/run/dnsmasq;;
+            odhcpd_hook) source=$S/odhcpd-hook; target=/usr/sbin/odhcpd-update;;
         esac
         mount -o bind "$source" "$target" || { phase recovery-failed; return 1; }
         put "${item}_mounted" 1
@@ -462,7 +480,11 @@ release() {
 command=${1:-}; [ "$#" -eq 0 ] || shift
 case "$command" in
     prepare) prepare "$@";; start) start;; supervise) supervise;; confirm) confirm "$@";;
-    status) status;; rollback)
+    status) status;; hosts-reload)
+        load
+        same "$(get guard_pid)" "$(get guard_birth)" || fail 'guardian unavailable'
+        kill -USR2 "$(get guard_pid)";;
+    rollback)
         load
         same "$(get guard_pid)" "$(get guard_birth)" || fail 'guardian unavailable; procd will respawn into C'
         kill -USR1 "$(get guard_pid)";;
