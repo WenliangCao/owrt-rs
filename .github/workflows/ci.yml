@@ -30,7 +30,7 @@ jobs:
       - name: host component tests
         run: make test COMPONENTS="ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd"
       - name: compile dnsmasq tests as the runner user
-        run: cargo test --quiet --locked --manifest-path components/dnsmasq/Cargo.toml --no-run
+        run: CARGO_INCREMENTAL=${CARGO_INCREMENTAL:-0} cargo test --quiet --locked --manifest-path components/dnsmasq/Cargo.toml --no-run
       - name: dnsmasq tests in private Linux namespaces
         run: |
           dnsmasq_tmp=$(mktemp -d "$RUNNER_TEMP/dnsmasq-tests.XXXXXX")
