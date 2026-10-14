@@ -32,13 +32,14 @@ scripts:
 
 
 class PackageUpgradeGuards(unittest.TestCase):
-    def test_release_default_and_metadata_cannot_silently_use_r2_for_r3(self):
-        self.assertEqual(build.package_id(), '2.93-r2')
-        self.assertEqual(build.audit_metadata(METADATA)['version'], '2.93-r2')
+    def test_release_default_preserves_explicit_history_and_advances_to_r4(self):
+        self.assertEqual(build.package_id(), '2.93-r4')
+        self.assertEqual(build.audit_metadata(METADATA, '2')['version'], '2.93-r2')
+        self.assertEqual(build.audit_metadata(METADATA.replace('r2', 'r4'))['version'], '2.93-r4')
         self.assertEqual(build.audit_metadata(METADATA.replace('r2', 'r3'), '3')['version'], '2.93-r3')
         with self.assertRaises(ValueError): build.audit_metadata(METADATA, '3')
         with self.assertRaises(ValueError): build.audit_metadata(METADATA.replace('r2', 'r3'))
-        for value in ['1', '03', '4', '3;id', 3, None]:
+        for value in ['1', '03', '5', '3;id', 3, None]:
             with self.subTest(value=value), self.assertRaises(ValueError): build.package_id(value)
 
     def test_frozen_release_is_required_for_r3_but_legacy_r2_freeze_stays_valid(self):
@@ -47,11 +48,13 @@ class PackageUpgradeGuards(unittest.TestCase):
                  'rust_elf_sha256': 'e'*64, 'source_files': source, 'sdk_archive_sha256': 'b'*64,
                  'sdk_files': sdk['files'], 'postprocess': {'mode': 'none', 'input_sha256': 'e'*64,
                     'output_sha256': 'e'*64, 'reason': 'qualified ELF'}}
-        build.verify_freeze(value, source, sdk, 'd'*40, '123', 'e'*64)
+        build.verify_freeze(value, source, sdk, 'd'*40, '123', 'e'*64, '2')
         with self.assertRaises(ValueError): build.verify_freeze(value, source, sdk, 'd'*40, '123', 'e'*64, '3')
         value['package_release'] = '3'
         build.verify_freeze(value, source, sdk, 'd'*40, '123', 'e'*64, '3')
         with self.assertRaises(ValueError): build.verify_freeze(value, source, sdk, 'd'*40, '123', 'e'*64)
+        value['package_release'] = '4'
+        build.verify_freeze(value, source, sdk, 'd'*40, '123', 'e'*64)
 
     def test_previous_identity_is_complete_and_exact_and_m5_needs_no_baseline(self):
         args = SimpleNamespace(package_release='2', previous_apk=None, previous_apk_sha256=None,
@@ -66,6 +69,8 @@ class PackageUpgradeGuards(unittest.TestCase):
             args.previous_elf_sha256 = lifecycle.M5_BASELINE['elf_sha256']
             args.previous_source_commit = lifecycle.M5_BASELINE['source_commit']
             with patch.object(lifecycle, 'sha256', return_value=args.previous_apk_sha256):
+                self.assertEqual(lifecycle.previous_inputs(args)['package_id'], '2.93-r2')
+                args.package_release = '4'
                 self.assertEqual(lifecycle.previous_inputs(args)['package_id'], '2.93-r2')
                 for field in ['previous_apk_sha256', 'previous_elf_sha256', 'previous_source_commit']:
                     altered = copy.copy(args); setattr(altered, field, 'f'*len(getattr(args, field)))

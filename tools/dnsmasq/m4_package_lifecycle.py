@@ -19,7 +19,7 @@ import struct
 import subprocess
 import time
 
-from build_package import PACKAGE_ID, PAYLOAD_FILES, audit_metadata, audit_payload, package_id
+from build_package import PACKAGE_ID, PACKAGE_RELEASE, PAYLOAD_FILES, audit_metadata, audit_payload, package_id
 from dns_service_probe import exact_read, query, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, sha256
 
@@ -39,9 +39,10 @@ def previous_inputs(args):
     fields = [args.previous_apk, args.previous_apk_sha256,
               args.previous_elf_sha256, args.previous_source_commit]
     if not any(fields):
-        require(args.package_release == "2", "r3 lifecycle requires the accepted M5 r2 baseline")
+        require(args.package_release == "2", "r3/r4 lifecycle requires the accepted M5 r2 baseline")
         return None
-    require(all(fields) and args.package_release == "3", "M5 baseline requires all identities and candidate r3")
+    require(all(fields) and args.package_release in ("3", "4"),
+            "M5 baseline requires all identities and candidate r3/r4")
     expected = {"package_id": "2.93-r2", "apk_sha256": args.previous_apk_sha256,
                 "elf_sha256": args.previous_elf_sha256, "source_commit": args.previous_source_commit}
     require(expected == M5_BASELINE, "previous package is not the accepted frozen M5 r2 identity")
@@ -446,7 +447,7 @@ class Scenario:
 
 
 def previous_upgrade_chain(case, args, baseline, candidate_files, previous_files, configs, report):
-    """Real r2->r3 add, direct r3->r2 downgrade and removal rollback."""
+    """Real M5-to-candidate add, direct downgrade and removal rollback."""
     identity = report["previous_package"]
     result = dict(identity, passed=False, candidate_package_id=package_id(args.package_release), stages=[])
     report["previous_upgrade"] = result
@@ -593,7 +594,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--candidate-elf-sha256", required=True)
     parser.add_argument("--source-commit", required=True)
-    parser.add_argument("--package-release", choices=["2", "3"], default="2")
+    parser.add_argument("--package-release", choices=["2", "3", "4"], default=PACKAGE_RELEASE)
     parser.add_argument('--automatic-activation', action='store_true',
                         help='Require package transactions to activate the ELF without explicit restart')
     parser.add_argument('--dns-object-acl', action='store_true',

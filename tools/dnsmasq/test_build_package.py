@@ -161,7 +161,7 @@ class PackageBuildTests(unittest.TestCase):
     def test_candidate_metadata_requires_actual_lifecycle_scripts(self):
         metadata = """info:
   name: dnsmasq
-  version: 2.93-r2
+  version: 2.93-r4
   arch: aarch64_cortex-a53
   depends: # 2 items
     - libc
@@ -173,7 +173,7 @@ scripts:
   pre-deinstall: |
   post-upgrade: |
 """
-        self.assertEqual(package.audit_metadata(metadata)["version"], "2.93-r2")
+        self.assertEqual(package.audit_metadata(metadata)["version"], "2.93-r4")
         for script in ("post-install", "pre-deinstall", "post-upgrade"):
             with self.subTest(script=script), self.assertRaisesRegex(ValueError, script):
                 package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
@@ -283,7 +283,7 @@ scripts:
                   "packaging/openwrt/owrt-dnsmasq/Makefile": "b" * 64,
                   "tools/dnsmasq/build_package.py": "c" * 64}
         sdk = {"archive_sha256": "d" * 64, "files": {"rules.mk": "e" * 64}}
-        freeze = {"schema": 1, "frozen": True, "source_commit": "1" * 40,
+        freeze = {"schema": 1, "frozen": True, "package_release": "4", "source_commit": "1" * 40,
                   "source_date_epoch": 123, "rust_elf_sha256": "f" * 64,
                   "source_files": source, "sdk_archive_sha256": sdk["archive_sha256"],
                   "sdk_files": sdk["files"],
