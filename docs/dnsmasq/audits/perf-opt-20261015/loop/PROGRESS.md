@@ -42,6 +42,7 @@ No candidate is qualified yet; full correctness and timing are pending.
 | L04 | Reuse upstream poll interest vectors | screened in: actual pending upstream poll 2 → 0 allocations/poll, 16 → 0 newly allocated bytes with one socket, after warmup |
 | L05 | Startup/config stop-start overhead | screened in: independent terminal-boundary review passed; actual daemon teardown 106 → 7 deallocations, removing 93,248 bytes of allocator cleanup; FD count restored 4 → 4 on both sides |
 | L06 | recvmmsg removes terminal WouldBlock syscall without reducing the 16-packet fairness budget | reject unchecked batching: failure boundary changes; SO_ERROR-screen loses syscall saving and adds single-packet instructions |
+| L07 | Avoid metrics snapshots when no DNS UBus subscriber exists | reject before edits: only 0.046%/0.124% of total instruction samples in control/A; no evidence for a measurable end-to-end gain |
 
 L01 uses `Cow<[u8]>`; pending interface admission still owns its original copy,
 and deferred interface-record/MAC lookups materialize a Vec before returning.
@@ -141,3 +142,33 @@ Adding SO_ERROR inspection restores two syscalls per single-packet batch and
 increases instructions 3.57% in this screen. This specific replacement is
 rejected before product edits/full timing; no claim that every possible receive
 batching design is impossible. Data: `batch-receive-screen.json`.
+
+## Residual release-owner profiling
+
+`owner-profile-hit.json` binds the exact SDK recipe control
+`2bf381716d0f460a6fbb2b87679c1950867f5df8a40cd4570b43bcba03836f1f`
+and A `b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e`
+to their own linker maps and before/after process mappings. Neither control is
+the deployed `8472…` file. Both diagnostic windows completed 4000 measured
+queries; perf enable/disable ACKs bracket the full 5+20-second load. Instrumented
+timing is ineligible. Initial unacknowledged control capture remains private
+for qualitative context only.
+
+The OpenWrt sstrip ELF lacks a section table. The new diagnostic parser checks
+the exact ELF/build/map hashes, executable program headers, unchanged process
+mappings and nonoverlapping GNU input-section ranges. It does not assign the
+nearest symbol. Target ELF IPs have no gaps; unmapped user samples are solely
+vDSO (44/12958 control, 99/12053 A). Unnamed input sections remain explicit,
+29/64 samples respectively. `names_for` is exactly a 380-byte function range
+ending at its final ARM64 `ret`: control `[0xdfcfc,0xdfe78)`, A
+`[0xe01e0,0xe035c)`.
+
+`Cache::names_for` remains 14.11%/15.36% of total instruction samples; the
+generated code contains the existing bytewise FNV shard loop followed by one
+bulk hasher call and HashMap probe, not per-byte Hasher::write calls. DNS core
+is researching safe reuse of the read-only name lookup. Metrics is 6/15
+samples, so L07 is not implemented. Kernel proportions and individual kernel
+labels vary substantially between diagnostic windows; they are not precise
+CPU shares or evidence that all remaining costs are irreducible. More DNS
+scene profiles are in progress; A/B performance and full correctness remain
+root-owned decisions.
