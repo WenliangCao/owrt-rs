@@ -370,17 +370,20 @@ impl LocalDnsService {
         cache: Option<&mut Cache>,
         tcp: bool,
     ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
-        let terminal = super::forward::Question { name: name.clone(), ..question.clone() };
-        let Some(mut answer) = self.lookup_local_parsed(query, header, &terminal, now, cache, tcp)?
-            .filter(|answer| answer.forward_rule)
-        else {
-            return Ok(None);
+        let opt = find_pseudoheader(query, true).ok().and_then(|scan| scan.opt);
+        let limit = if tcp { u16::MAX as usize } else {
+            opt.as_ref().map_or(512, |opt| usize::from(opt.udp_size(self.edns_packet_max)))
         };
-        // These answers contain only A/AAAA literals (owner pointer 12),
-        // or no RRs. No RDATA compression pointers need relocation.
-        let old_end = super::wire::skip_questions(&answer.packet).map_err(AnswerError::Wire)?;
-        let query_end = super::wire::skip_questions(query).map_err(AnswerError::Wire)?;
-        answer.packet.splice(12..old_end, query[12..query_end].iter().copied());
+        let answerer = LocalAnswerer {
+            config: &self.config, hosts: &mut self.hosts,
+            local_ttl: self.local_ttl, max_packet: limit,
+        };
+        let Some(mut answer) = answerer.answer_forward_rule(
+            header, question, name, &self.leases, now, cache.as_deref(), self.query_logging,
+        )? else { return Ok(None); };
+        if let Some(opt) = opt {
+            append_empty_opt(&mut answer.packet, self.edns_packet_max, opt.dnssec_ok() && tcp, limit)?;
+        }
         Ok(Some(answer))
     }
 

@@ -365,48 +365,12 @@ impl<'a> LocalAnswerer<'a> {
             ));
         }
 
-        // A configured/local record owns the query before address rules. A
-        // CNAME also suppresses rules for its alias. Otherwise apply the
-        // domain-match family tiers and progressively shorter suffixes.
-        let (rule_owned, local_only, blocked) = if owned || has_cname {
-            (false, false, false)
-        } else {
-            select_local_rules(
-                self.config,
-                &question.name,
-                question.class,
-                question.rrtype,
-                self.local_ttl,
-                &mut rows,
-                &mut notices,
-            )
-        };
-        owned |= rule_owned;
-        if blocked && !owned {
-            return Ok(None);
-        }
-        let nxdomain = !owned
-            && local_only
-            && !has_descendant_local(self.config, self.hosts, &question.name)
-            && !cache.as_deref().is_some_and(|cache| cache.contains_forward_name(&question.name, now))
-            && !wire_to_dotted(&question.name)
-                .is_some_and(|name| leases.names.name_exists(&name, leases.now));
-        if local_only {
-            // domain-match.c returns F_NXDOMAIN for an unmatched local-only
-            // suffix.  It is a completed response with AA clear, not an empty
-            // NOERROR answer.
-            owned = true;
-            let family = match question.rrtype {
-                TYPE_A => qlog::IPV4,
-                TYPE_AAAA => qlog::IPV6,
-                255 => qlog::IPV4 | qlog::IPV6,
-                _ => 0,
-            };
-            notices.label(
-                qlog::CONFIG | qlog::NEGATIVE | family | if nxdomain { qlog::NXDOMAIN } else { 0 },
-                &question.name.dnsmasq_bytes(),
-                None,
-                0,
+        // Domain rules belong to forward_query/tcp_request, after all local
+        // record candidates. The owner can defer this answer behind its cache.
+        if !owned && !has_cname {
+            return self.answer_forward_rule(
+                header, question, &question.name, lease_names, now,
+                cache.as_deref(), logging,
             );
         }
         if !owned {
@@ -427,8 +391,6 @@ impl<'a> LocalAnswerer<'a> {
             }
             | if notimp {
                 4
-            } else if nxdomain {
-                3
             } else {
                 0
             }
@@ -499,7 +461,7 @@ impl<'a> LocalAnswerer<'a> {
         // publication removes conflicting address entries, not NXDOMAIN.
         // Only completed local answers reach this lookup; ordinary cache
         // misses still return above without doing another name lookup.
-        if class_in && preserve_negative_authority && !rule_owned && !local_only && !truncated {
+        if class_in && preserve_negative_authority && !truncated {
             if let Some(cache) = cache.as_deref_mut() {
                 // Only actual configured-CNAME traversal moves C's cursor.
                 // Raw TYPE_CNAME bytes are opaque output, including pointers.
@@ -559,9 +521,74 @@ impl<'a> LocalAnswerer<'a> {
         }
         Ok(Some(LocalAnswer {
             packet,
-            forward_rule: rule_owned || local_only,
+            forward_rule: false,
             query_events: notices.events,
         }))
+    }
+
+    /// domain-match.c::is_local_answer/make_local_answer. Select by the
+    /// forwarding cursor, but write the original question and owner pointer.
+    /// This boundary does not repeat local records, expiry or cache lookups.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn answer_forward_rule(
+        &self,
+        header: Header,
+        question: &super::forward::Question,
+        name: &Name,
+        leases: &LeaseNames,
+        now: i64,
+        cache: Option<&Cache>,
+        logging: bool,
+    ) -> Result<Option<LocalAnswer>, AnswerError> {
+        let mut rows = Vec::new();
+        let mut notices = QueryEvents::new(logging);
+        let (owned, local_only, _) = select_local_rules(
+            self.config, name, question.class, question.rrtype,
+            self.local_ttl, &mut rows, &mut notices,
+        );
+        if !owned && !local_only {
+            return Ok(None);
+        }
+        let nxdomain = !owned && local_only
+            && !has_descendant_local(self.config, self.hosts, name)
+            && !cache.is_some_and(|cache| cache.contains_forward_name(name, now))
+            && !wire_to_dotted(name).is_some_and(|name| leases.name_exists(&name, now));
+        if local_only {
+            let family = match question.rrtype {
+                TYPE_A => qlog::IPV4,
+                TYPE_AAAA => qlog::IPV6,
+                255 => qlog::IPV4 | qlog::IPV6,
+                _ => 0,
+            };
+            notices.label(
+                qlog::CONFIG | qlog::NEGATIVE | family | if nxdomain { qlog::NXDOMAIN } else { 0 },
+                &name.dnsmasq_bytes(), None, 0,
+            );
+        }
+        let flags = 0x8080 | (header.flags & 0x0150)
+            | if rows.is_empty() { 0 } else { 0x0400 }
+            | if nxdomain { 3 } else { 0 };
+        let mut writer = PacketWriter::new(header.id, flags, self.max_packet.max(super::wire::HEADER_LEN))?;
+        writer.question(&question.name, question.rrtype, question.class)?;
+        let question_end = writer.position();
+        let mut truncated = false;
+        for (rrtype, ttl, data) in rows {
+            match writer.record_at(Section::Answer, 12, rrtype, CLASS_IN, ttl, &data) {
+                Ok(()) => {}
+                Err(WireError::Full) => { truncated = true; break; }
+                Err(error) => return Err(error.into()),
+            }
+        }
+        let mut packet = writer.finish();
+        if truncated {
+            packet.truncate(question_end);
+            let mut header = Header::parse(&packet)?;
+            header.flags |= 0x0200;
+            header.answers = 0;
+            header.write(&mut packet)?;
+            notices.label(0, b"reply", Some(b"truncated"), 0);
+        }
+        Ok(Some(LocalAnswer { packet, forward_rule: true, query_events: notices.events }))
     }
 }
 
@@ -1647,6 +1674,38 @@ mod tests {
         packet.extend(qtype.to_be_bytes());
         packet.extend(class.to_be_bytes());
         packet
+    }
+
+    #[test]
+    fn forward_rule_limit_uses_original_question_not_short_cursor() {
+        let long_name = format!("{}.{}.{}.example", "a".repeat(63), "b".repeat(63), "c".repeat(63));
+        let short = query("t", TYPE_AAAA);
+        let long = query(&long_name, TYPE_AAAA);
+        for limit in [512, 65535] {
+            let mut config = DnsConfig::default();
+            apply(&mut config, b"address=/t/2001:db8::9");
+            // Each compressed-owner AAAA occupies 28 bytes. This fits the
+            // cursor's short question but overflows the original client name.
+            let count = (limit - short.len()) / 28;
+            config.rules.resize(count, config.rules[0].clone());
+            let mut hosts = Hosts::new();
+            let answerer = LocalAnswerer {
+                config: &config, hosts: &mut hosts, local_ttl: 0, max_packet: limit,
+            };
+            for (query, truncated) in [(&short, false), (&long, true)] {
+                let header = Header::parse(query).unwrap();
+                let question = super::super::forward::Question::parse(query).unwrap();
+                let answer = answerer.answer_forward_rule(
+                    header, &question, &Name::from_ascii("t").unwrap(),
+                    &LeaseNames::default(), 100, None, false,
+                ).unwrap().unwrap();
+                let header = Header::parse(&answer.packet).unwrap();
+                assert_eq!(header.flags & 0x0200 != 0, truncated);
+                assert_eq!(header.answers as usize, if truncated { 0 } else { count });
+                assert!(answer.packet.len() <= limit);
+                if truncated { assert_eq!(answer.packet.len(), query.len()); }
+            }
+        }
     }
 
     #[test]
