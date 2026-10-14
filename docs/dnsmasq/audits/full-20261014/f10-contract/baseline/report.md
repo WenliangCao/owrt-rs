@@ -28,7 +28,7 @@ The six-row addn/default/host-record/hostsdir-initial fixtures expose the missin
 
 The focused IPv6 fixture uses the ::1/::bc address-hash collision. The long-PTR control uses two 252-character names: exact C returns UDP 40-byte TC=1/AN=0 replies and complete 572-byte TCP replies with two owners. Old Rust omits an owner and therefore misses the UDP truncation boundary.
 
-`f10_contract_probe.py` retains full ordered semantics and wires. Its `matches_c`/`--require-match` remain strict, including PTR order. `difference_counts` and `set_and_forward_order_match_c` expose the separately reviewed PTR-order exception without altering raw observations. The classification-only update was checked offline against all 704 archived negative-control observations; no runtime cases were repeated for that update.
+`f10_contract_probe.py` retains full ordered semantics and wires. Its `matches_c`/`--require-match` remain strict, including PTR order. The early `set_and_forward_order_match_c` qualifier was later found too broad and is superseded. Current `contract_check` defaults to rejecting every difference; only an explicit manifest can qualify an observed PTR state, and the candidate's complete ordered query track must match one C control. See [qualifier correction](../qualifier/report.md). The original raw observations remain unchanged.
 
 Original 11-case runs were preserved. Two focused cases were then added, with one further C pass over the original cases and independent C repeats for the added pair; only the added pair was rerun on 340ed. No large rolling workload or memory gate was rerun.
 

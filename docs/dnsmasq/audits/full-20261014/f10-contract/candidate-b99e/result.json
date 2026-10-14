@@ -1,5 +1,5 @@
 {
-  "passed": true,
+  "passed": false,
   "identity": {
     "source_commit": "b99eae7e54c1d3922368513714da2eaef09cef58",
     "source_path": "/dev/shm/full-f10-product-20261014/private/source-b99e",
@@ -39,12 +39,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "six-default",
@@ -56,7 +58,8 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {
@@ -568,7 +571,8 @@
             ]
           }
         }
-      ]
+      ],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "six-host-record",
@@ -580,12 +584,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "six-hostsdir-initial",
@@ -597,12 +603,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "split-addn-bulk",
@@ -614,12 +622,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "ipv6-three-duplicate",
@@ -631,7 +641,8 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 100,
       "difference_counts": {
@@ -1143,7 +1154,8 @@
             ]
           }
         }
-      ]
+      ],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "no-round-robin",
@@ -1155,12 +1167,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 100,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "mixed-sources",
@@ -1172,12 +1186,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "hostsdir-transitions",
@@ -1189,16 +1205,18 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 252,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "leases-dhcp",
-      "passed": true,
+      "passed": false,
       "checks": {
         "completed": true,
         "exit_zero": true,
@@ -1207,13 +1225,87 @@
         "ready_after": true,
         "observation_count_matches": true,
         "set_header_ttl_count_tc_and_forward_order_match": true,
-        "dhcp_ack": true
+        "dhcp_ack": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": false
       },
       "observations": 46,
       "difference_counts": {
         "ptr-order-only": 12
       },
-      "strict_failures": [],
+      "strict_failures": [
+        {
+          "case": "leases-dhcp",
+          "label": "udp-ptr-before-192.0.2.1-0",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "udp-ptr-before-192.0.2.1-1",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "udp-ptr-after-192.0.2.1-0",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "udp-ptr-after-192.0.2.1-1",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "tcp-ptr-before-192.0.2.1-0",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "tcp-ptr-before-192.0.2.1-1",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "tcp-ptr-after-192.0.2.1-0",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "tcp-ptr-after-192.0.2.1-1",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "after-dhcp-ptr-before-192.0.2.1-0",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "after-dhcp-ptr-before-192.0.2.1-1",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "after-dhcp-ptr-after-192.0.2.1-0",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        },
+        {
+          "case": "leases-dhcp",
+          "label": "after-dhcp-ptr-after-192.0.2.1-1",
+          "kind": "unqualified-ptr-order",
+          "reason": "no-corresponding-c-c-state"
+        }
+      ],
       "ptr_order_differences": [
         {
           "case": "leases-dhcp",
@@ -1971,7 +2063,8 @@
             ]
           }
         }
-      ]
+      ],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "udp-truncation",
@@ -1985,12 +2078,14 @@
         "observation_count_matches": true,
         "set_header_ttl_count_tc_and_forward_order_match": true,
         "udp_tc": true,
-        "tcp_complete": true
+        "tcp_complete": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 5,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "ipv6-repeated-ptr",
@@ -2002,12 +2097,14 @@
         "elf_matches": true,
         "ready_after": true,
         "observation_count_matches": true,
-        "set_header_ttl_count_tc_and_forward_order_match": true
+        "set_header_ttl_count_tc_and_forward_order_match": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 28,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     },
     {
       "case": "ptr-truncation",
@@ -2022,22 +2119,96 @@
         "set_header_ttl_count_tc_and_forward_order_match": true,
         "udp_tc": true,
         "tcp_complete": true,
-        "udp_whole_rrset_omitted": true
+        "udp_whole_rrset_omitted": true,
+        "ptr_order_qualified_by_exact_state_and_complete_sequence": true
       },
       "observations": 5,
       "difference_counts": {},
       "strict_failures": [],
-      "ptr_order_differences": []
+      "ptr_order_differences": [],
+      "early_global_qualifier_passed": true
     }
   ],
   "case_count": 13,
   "dns_observation_count": 704,
   "matches_c_including_ptr_order": false,
-  "set_and_forward_order_match_c": true,
   "difference_counts": {
     "ptr-order-only": 28
   },
-  "strict_failures": [],
+  "strict_failures": [
+    {
+      "case": "leases-dhcp",
+      "label": "udp-ptr-before-192.0.2.1-0",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "udp-ptr-before-192.0.2.1-1",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "udp-ptr-after-192.0.2.1-0",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "udp-ptr-after-192.0.2.1-1",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "tcp-ptr-before-192.0.2.1-0",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "tcp-ptr-before-192.0.2.1-1",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "tcp-ptr-after-192.0.2.1-0",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "tcp-ptr-after-192.0.2.1-1",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "after-dhcp-ptr-before-192.0.2.1-0",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "after-dhcp-ptr-before-192.0.2.1-1",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "after-dhcp-ptr-after-192.0.2.1-0",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    },
+    {
+      "case": "leases-dhcp",
+      "label": "after-dhcp-ptr-after-192.0.2.1-1",
+      "kind": "unqualified-ptr-order",
+      "reason": "no-corresponding-c-c-state"
+    }
+  ],
   "ptr_order_control": {
     "c_repeat_original": {
       "case_count": 11,
@@ -2069,5 +2240,15 @@
     "sha256": "4b148e5c71bf27b9da260bac5d00403a759749a57bc6fd9a7946bbfc24d01b7d",
     "bytes": 1254798,
     "indexed_files_verified": 101
-  }
+  },
+  "early_global_qualifier_passed": true,
+  "status": "early-global-ptr-qualifier-superseded",
+  "qualifier_recheck": {
+    "path": "../qualifier/b99e-recheck.json",
+    "passed": false,
+    "qualified_ptr_order": 16,
+    "unqualified_ptr_order": 12,
+    "reason": "No matching C/C state and complete-query-sequence evidence for leases-dhcp PTR order differences."
+  },
+  "early_set_and_forward_order_match_c": true
 }

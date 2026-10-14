@@ -20,6 +20,7 @@ import time
 
 from audit_20261011_dhcp import decode, packet
 from dns_service_probe import exact_read, query, semantics
+from f10_contract_check import check as check_contract
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, process_identity, sha256
 
 
@@ -341,6 +342,10 @@ def main():
     parser.add_argument('--reference', type=Path)
     parser.add_argument('--require-match', action='store_true',
                         help='Require full ordered semantic equality, including PTR owner order.')
+    parser.add_argument('--ptr-order-manifest', type=Path,
+                        help='Explicit C/C evidence for exact PTR states and complete query sequences.')
+    parser.add_argument('--require-contract', action='store_true',
+                        help='Fail unqualified differences; PTR order is strict unless explicitly evidenced.')
     parser.add_argument('--case', action='append', choices=CASES,
                         help='Run only the named case; repeat to select several.')
     args = parser.parse_args()
@@ -349,7 +354,7 @@ def main():
     assert sha256(args.image_root / 'usr/sbin/dnsmasq') == STOCK_SHA256
     binary = args.image_root / 'usr/sbin/dnsmasq' if args.implementation == 'c' else args.rust
     assert sha256(binary) == args.expected_sha256
-    assert not args.require_match or args.reference
+    assert not (args.require_match or args.require_contract or args.ptr_order_manifest) or args.reference
     args.output.mkdir(parents=True, exist_ok=False)
     root = prepare(args.image_root, None, args.output / 'stage', args.rust)
     selected = [case for case in CASES if not args.case or case in args.case]
@@ -367,10 +372,13 @@ def main():
         result['differences'] = compare(reference, result)
         result['matches_c'] = not result['differences'] and not result['errors']
         result['difference_counts'] = dict(collections.Counter(row['kind'] for row in result['differences']))
-        result['set_and_forward_order_match_c'] = not result['errors'] and all(
-            row['kind'] == 'ptr-order-only' for row in result['differences'])
+        manifest = json.loads(args.ptr_order_manifest.read_text()) if args.ptr_order_manifest else None
+        result['contract_check'] = check_contract(reference, result, manifest, expected_cases=selected)
+        if args.ptr_order_manifest:
+            result['ptr_order_manifest_sha256'] = sha256(args.ptr_order_manifest)
     write(args.output / 'result.json', result)
-    return int(bool(result['errors'] or (args.require_match and not result['matches_c'])))
+    return int(bool(result['errors'] or (args.require_match and not result['matches_c'])
+                    or (args.require_contract and not result['contract_check']['passed'])))
 
 
 if __name__ == '__main__':
