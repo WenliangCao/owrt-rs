@@ -125,11 +125,12 @@ free_tmp_reserve() {
 
 fallback() {
     # Latch in process memory first, even if the private journal has an I/O error.
-    if [ "$mode" != c ]; then
-        repaired=0
-        rm -f "$S/bus_repair"
-    fi
     mode=c
+    if [ -f "$S/c_attempted" ]; then
+        # Guardian respawn must adopt healthy C, never create a fallback loop.
+        if verify "$C_SHA" && wire; then phase fallback; else phase recovery-failed; fi
+        return
+    fi
     rm -f "$S/reserve"
     # Exact ujail uses /tmp/ujail-XXXXXX before mounting its own tmpfs.
     # Release preallocated shared-/tmp blocks/inodes for this one recovery.
@@ -140,6 +141,7 @@ fallback() {
     # Re-verify immutable recovery artifact before ever starting it.
     [ "$(hash "$C")" = "$C_SHA" ] || { phase recovery-failed; return 1; }
     switch_to "$C" || { phase recovery-failed; return 1; }
+    put c_attempted 1
     launch
     if wait_ready "$C_SHA"; then phase fallback; else phase recovery-failed; fi
     # No automatic retry, including if C itself cannot become healthy.
@@ -233,6 +235,8 @@ activate() {
     }
     put takeover 1
     stop_owned || return 1
+    # Capture the last stock flush, including leases granted after prepare.
+    cp -p /tmp/dhcp.leases "$S/leases" || return 1
     mount -o bind "$S/config" "$CFG" || return 1
     put config_mounted 1
     mount -o bind "$S/leases" /tmp/dhcp.leases || return 1
@@ -259,6 +263,13 @@ supervise() {
             if [ -f "$S/takeover" ]; then fallback activation-failed
             else mode=stock; phase activation-aborted; fi
         fi
+    elif [ "$(get phase)" = releasing ]; then
+        mode=c
+        restore_ownership
+    elif [ "$(get phase)" = released ]; then
+        mode=stock
+    elif [ "$(get phase)" = recovery-failed ]; then
+        mode=c
     else
         # Before takeover no candidate has been started. Delete a possibly
         # remaining stock instance before recovering an interrupted activation.
@@ -273,9 +284,13 @@ supervise() {
         fi
     fi
     previous_bus=$(bus_id)
-    repaired=0
     while :; do
-        [ "$(get phase)" = releasing ] && exit 0
+        if [ "$(get phase)" = released ]; then sleep 2; continue; fi
+        if [ -f "$S/release_request" ] && [ "$(get phase)" = fallback ]; then
+            rm -f "$S/release_request"
+            handback || restore_ownership
+            continue
+        fi
         if [ "$requested" -eq 1 ] && [ "$mode" = rust ]; then fallback manual; fi
         requested=0
         if [ "$mode" = rust ] && [ "$(get phase)" = trial ] && [ -f "$S/confirm_request" ]; then
@@ -294,14 +309,21 @@ supervise() {
                 fallback health-failed
             fi
         fi
+        if [ "$mode" = c ] && [ "$(get phase)" = fallback ]; then
+            if ! verify "$C_SHA" || ! wire; then
+                put reason c-health-failed
+                phase recovery-failed
+            fi
+        fi
         current_bus=$(bus_id)
         if [ "$mode" != stock ] && [ -n "$current_bus" ] && ubus -t 2 list service >/dev/null 2>&1; then
             if [ "$current_bus" != "$previous_bus" ] || ! objects; then
-                if [ "$repaired" -eq 0 ] && [ "$(get phase)" != recovery-failed ]; then
-                    repaired=1
-                    put bus_repair 1
+                if [ ! -f "$S/${mode}_bus_repair" ] && [ "$(get phase)" != recovery-failed ]; then
+                    put "${mode}_bus_repair" 1
+                    put bus_repair "$mode"
                     before_phase=$(get phase)
                     stop_owned
+                    [ "$(get phase)" = releasing ] && exit 0
                     launch
                     wanted=$C_SHA; [ "$mode" = rust ] && wanted=$R_SHA
                     if wait_ready "$wanted" && objects; then
@@ -359,36 +381,79 @@ status() {
     done
 }
 
-release() {
-    load
-    [ "$(get phase)" = fallback ] || fail 'release only after healthy C fallback'
-    verify "$C_SHA" || fail 'C must be running before returning to stock management'
-    ubus -t 2 list service >/dev/null 2>&1 || fail 'procd required for release'
-    # Probe writes before interrupting service. Emergency fallback remains armed
-    # if planned handback cannot acquire normal runtime storage.
-    cp "$S/leases" /tmp/.dnsmasq-deploy-handback && rm /tmp/.dnsmasq-deploy-handback || fail 'writable /tmp required for release'
-    phase releasing
-    stop_owned || fail 'cannot stop owned C'
-    ubus -t 2 call service delete '{"name":"dnsmasq-deploy"}' >/dev/null || fail 'procd required for release'
-    # Reverse mount order, leaving the underlying stock disk/init untouched.
+unmount_owned() {
     for item in binary pids lease config init; do
         [ -f "$S/${item}_mounted" ] || continue
         case "$item" in
             binary) target=/usr/sbin/dnsmasq;; pids) target=/var/run/dnsmasq;;
             lease) target=/tmp/dhcp.leases;; config) target=$CFG;; init) target=/etc/init.d/dnsmasq;;
         esac
-        umount "$target" || fail "unmount $target"
+        umount "$target" || return 1
         rm -f "$S/${item}_mounted"
     done
-    # This planned handback needs writable /tmp and ubus; emergency recovery did not.
-    cp -p "$S/leases" /tmp/dhcp.leases || fail 'cannot hand back current leases'
-    /etc/init.d/dnsmasq restart || fail 'stock management restart failed'
+}
+
+handback() {
+    # Runs in the guardian: no concurrent probe/B5 restart can race teardown.
+    phase releasing
+    stop_owned || return 1
+    unmount_owned || return 1
+    cp -p "$S/leases" /tmp/dhcp.leases || return 1
+    /etc/init.d/dnsmasq restart || return 1
     wrapper=$(ubus -t 2 call service list '{"name":"dnsmasq"}' | jsonfilter -e '@.dnsmasq.instances.*.pid')
     put wrapper_pid "$wrapper"; put wrapper_birth "$(birth "$wrapper")"
-    wait_ready "$C_SHA" && objects || fail 'stock restart identity/health failed; retain reserve'
+    wait_ready "$C_SHA" && objects || return 1
     phase released
-    free_tmp_reserve
+}
+
+restore_ownership() {
+    # Failed planned handback returns to the already-validated emergency path.
+    # Keep the guardian alive throughout. This is an explicit handback attempt,
+    # not permission for the monitoring loop to retry a failed fallback.
+    ubus -t 2 call service delete '{"name":"dnsmasq"}' >/dev/null 2>&1 || :
+    stop_owned || { phase recovery-failed; return 1; }
+    for item in init config lease pids; do
+        [ -f "$S/${item}_mounted" ] && continue
+        case "$item" in
+            init) source=$S/locked-init; target=/etc/init.d/dnsmasq;;
+            config) source=$S/config; target=$CFG;;
+            lease) source=$S/leases; target=/tmp/dhcp.leases;;
+            pids) source=$S/pids; target=/var/run/dnsmasq;;
+        esac
+        mount -o bind "$source" "$target" || { phase recovery-failed; return 1; }
+        put "${item}_mounted" 1
+    done
+    rm -f "$S/c_attempted"
+    fallback handback-failed
+}
+
+release() {
+    load
+    if [ "$(get phase)" != released ]; then
+        [ "$(get phase)" = fallback ] || fail 'release only after healthy C fallback'
+        verify "$C_SHA" || fail 'C must be running before returning to stock management'
+        ubus -t 2 list service >/dev/null 2>&1 || fail 'procd required for release'
+        cp "$S/leases" /tmp/.dnsmasq-deploy-handback && rm /tmp/.dnsmasq-deploy-handback || fail 'writable /tmp required for release'
+        put release_request 1
+        end=$(( $(now) + 60 ))
+        while [ "$(now)" -lt "$end" ]; do
+            case "$(get phase)" in
+                released) break;;
+                recovery-failed) fail 'handback recovery failed; inspect status';;
+                fallback)
+                    if [ ! -f "$S/release_request" ] && [ "$(get reason)" = handback-failed ]; then
+                        fail 'handback failed; guarded C restored'
+                    fi
+                    ;;
+            esac
+            sleep 1
+        done
+        [ "$(get phase)" = released ] || fail 'handback pending; guardian remains armed'
+    fi
+    verify "$C_SHA" || fail 'stock C identity changed during handback'
     status
+    ubus -t 2 call service delete '{"name":"dnsmasq-deploy"}' >/dev/null || fail 'retry release to remove idle guardian'
+    free_tmp_reserve
     umount "$S" || fail 'reserve unmount failed'
     rmdir "$S"
 }
