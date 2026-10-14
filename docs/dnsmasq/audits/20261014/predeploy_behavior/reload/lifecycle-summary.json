@@ -1,0 +1,278 @@
+{
+  "profile": "synthetic UCI lifecycle through exact image init/procd/rpcd/odhcpd",
+  "fixture_jail_procfs": true,
+  "sides": {
+    "c": {
+      "passed": true,
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "identity_matches_expected": true,
+      "steps": {
+        "init_start": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.51"
+            }
+          ]
+        },
+        "initial_identity_matches_expected": true,
+        "dhcp_range_generated": true,
+        "sighup_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "sighup_keeps_pid": true,
+        "init_reload_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "init_reload_keeps_pid": true,
+        "uci_staged_not_committed": true,
+        "uci_pending_dns": {
+          "flags": 33157,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "uci_apply_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "uci.m2",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.60"
+            }
+          ]
+        },
+        "uci_apply_committed": true,
+        "uci_apply_lifecycle": true,
+        "identity_matches_expected": true,
+        "odhcpd_init_start": true,
+        "odhcpd_publication": true,
+        "odhcpd_dns_publication": {
+          "flags": 34176,
+          "questions": [
+            [
+              "m2-dhcp6",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "m2-dhcp6",
+              "type": 28,
+              "class": 1,
+              "ttl": 0,
+              "data": "fd00:2::7ed"
+            }
+          ]
+        },
+        "init_stop_service_gone": true,
+        "init_stop_inner_gone": true
+      },
+      "inner_pid_before": 271,
+      "inner_pid_after": 601,
+      "uci_apply_restarted_by_inner_pid": true,
+      "pidfile_removed": true,
+      "legacy_wrapper_restart_field": false
+    },
+    "rust": {
+      "passed": true,
+      "binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+      "identity_matches_expected": true,
+      "steps": {
+        "init_start": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.51"
+            }
+          ]
+        },
+        "initial_identity_matches_expected": true,
+        "dhcp_range_generated": true,
+        "sighup_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "sighup_keeps_pid": true,
+        "init_reload_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "init_reload_keeps_pid": true,
+        "uci_staged_not_committed": true,
+        "uci_pending_dns": {
+          "flags": 33157,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": []
+        },
+        "uci_apply_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "uci.m2",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "uci.m2",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.60"
+            }
+          ]
+        },
+        "uci_apply_committed": true,
+        "uci_apply_lifecycle": true,
+        "identity_matches_expected": true,
+        "odhcpd_init_start": true,
+        "odhcpd_publication": true,
+        "odhcpd_dns_publication": {
+          "flags": 34176,
+          "questions": [
+            [
+              "m2-dhcp6",
+              28,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "m2-dhcp6",
+              "type": 28,
+              "class": 1,
+              "ttl": 0,
+              "data": "fd00:2::7ed"
+            }
+          ]
+        },
+        "init_stop_service_gone": true,
+        "init_stop_inner_gone": true
+      },
+      "inner_pid_before": 273,
+      "inner_pid_after": 603,
+      "uci_apply_restarted_by_inner_pid": true,
+      "pidfile_removed": true,
+      "legacy_wrapper_restart_field": false
+    }
+  },
+  "step_results_match": true,
+  "harness_caveat": "Nested ujail pidfiles both contain 1, so legacy wrapper PID equality/restart booleans are not process-lifecycle evidence. Verified inner ELF PIDs prove UCI apply restarted both."
+}
