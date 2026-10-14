@@ -107,6 +107,31 @@ ELF 回到精确 C `097a9e21…`，独立 veth 再取得 DHCP OFFER/ACK 与正�
 本机复算一致；见同一 JSON 的 `final_elf_trial`。这只关闭列明的一次中断窗口，
 不声称两个恢复 owner 同时失效、所有信号交错或硬件故障均能恢复。
 
+## 同一组合源码的 Linux 单测
+
+另从 b587 exact Git source 的 components 构建三份独立 musl 测试 ELF，验证 F10
+新增字段/hosts 状态与 F5 runtime 共同编译后的实际测试结果；没有重编最终 daemon
+或 APK，也没有改变冻结源。构建前后各核对全部 660 个 archive 文件，均一致。
+
+经 owner 明确交接后，复用 `/dev/shm/full-integrated-fix-20261014/target`，持有其
+`.dnsmasq-build.lock` 直到三份测试 ELF 拷贝并核 hash 完成；没有 cargo clean 或
+删除其它任务缓存。沿用原 helper 的 SDK musl linker、remap/RELRO 等 flags，
+`CARGO_INCREMENTAL=0`、构建 jobs=1、私有 TMPDIR。每份测试独立进入 network/
+mount/PID namespace，再挂私有 tmpfs `/tmp`，以 `--test-threads=1` 顺序运行。
+
+| 测试 ELF | 通过 | 忽略 | 失败 |
+| --- | ---: | ---: | ---: |
+| lib | 808 | 20 | 0 |
+| bin dnsmasq-rs | 81 | 3 | 0 |
+| hosts_allocations | 16 | 0 | 0 |
+
+这 23 个 ignored 未执行，不算通过。allocator 注入是独立测试制品，不冒称最终
+release 进程所有分配点已经穷举。三份 ELF SHA、完整编译日志、每次串行执行命令/
+日志和源身份保留在同一 JSON 的 `combined_source_tests`，原始归档为
+`private/final-sdk-b5872820-20261014/unit-tests-evidence.tar.gz`，31,805,101 B，SHA
+`fc4fc09593b4dc7d1b95061258d3c83ac4bb69015ef4f1955359ede937b9e2d6`。本机重新
+校验归档及其中三份 ELF；收尾没有测试进程，原共享锁已释放。
+
 ## 保全和范围
 
 [完整派生身份与执行收据](sdk-final-b587.json)。原始源码/SDK 输入、命令、日志、
