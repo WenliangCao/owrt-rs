@@ -1,0 +1,21 @@
+{
+  "unit_command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tools/dnsmasq",
+    "-p",
+    "test_f10_contract_check.py",
+    "-v"
+  ],
+  "unit_exit": 0,
+  "unit_tests": 24,
+  "unit_log_sha256": "f2dd2d0e45e54d5cc1038d99d2805223a079cdd199551b8e8b42be332fa9a266",
+  "added_approval_boundary_control": "An approved host-record entry cannot qualify another known case.",
+  "dhcp_negative_control": "Changed DHCP request, decoded ACK type and after-DHCP order all fail.",
+  "daemon_runs": 0,
+  "cargo_builds": 0,
+  "original_observed_proposed_raw_changed": false
+}

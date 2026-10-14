@@ -1,0 +1,29 @@
+test_absent_allow_manifest_is_default_deny (test_f10_contract_check.ContractCheck) ... ok
+test_absent_state_cannot_borrow_another_phase (test_f10_contract_check.ContractCheck) ... ok
+test_c_stable_case_reversal_is_not_allowed (test_f10_contract_check.ContractCheck) ... ok
+test_changed_case_name_type_or_transport_cannot_borrow_allow (test_f10_contract_check.ContractCheck) ... ok
+test_control_rrset_change_cannot_create_allow (test_f10_contract_check.ContractCheck) ... ok
+test_forward_order_never_qualifies (test_f10_contract_check.ContractCheck) ... ok
+test_forward_query_induced_ptr_flip_cannot_mix_control_tracks (test_f10_contract_check.ContractCheck) ... ok
+test_header_ttl_count_tc_and_rrset_never_qualify (test_f10_contract_check.ContractCheck) ... ok
+test_missing_case_fails_unless_explicit_subset_requested (test_f10_contract_check.ContractCheck) ... ok
+test_missing_track_observation_fails (test_f10_contract_check.ContractCheck) ... ok
+test_observed_complete_track_qualifies_and_preserves_order (test_f10_contract_check.ContractCheck) ... ok
+test_same_state_repeat_flip_is_not_an_observed_track (test_f10_contract_check.ContractCheck) ... ok
+test_three_owner_unobserved_permutation_is_not_generalized (test_f10_contract_check.ContractCheck) ... ok
+test_unmanifested_five_line_stateful_ptr_bug_fails (test_f10_contract_check.ContractCheck) ... ok
+test_wrong_reference_manifest_fails_closed (test_f10_contract_check.ContractCheck) ... ok
+test_changed_input_or_case_is_not_the_declared_contract (test_f10_contract_check.SourceBoundCheck) ... ok
+test_content_and_forward_mutations_cannot_borrow_source_contract (test_f10_contract_check.SourceBoundCheck) ... ok
+test_dhcp_request_and_after_dhcp_track_are_bound (test_f10_contract_check.SourceBoundCheck) ... ok
+test_one_approved_entry_cannot_qualify_another_listed_case (test_f10_contract_check.SourceBoundCheck) ... ok
+test_proposed_entry_is_not_activated (test_f10_contract_check.SourceBoundCheck) ... ok
+test_three_cases_reject_phase_splice_and_same_state_flip (test_f10_contract_check.SourceBoundCheck) ... ok
+test_three_cases_reject_unknown_case_same_input (test_f10_contract_check.SourceBoundCheck) ... ok
+test_transport_phase_or_repeat_splicing_fails (test_f10_contract_check.SourceBoundCheck) ... ok
+test_uniform_cross_transport_initial_order_qualifies (test_f10_contract_check.SourceBoundCheck) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.047s
+
+OK

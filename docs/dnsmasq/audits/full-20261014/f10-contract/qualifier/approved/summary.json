@@ -1,0 +1,62 @@
+{
+  "manifest_file_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+  "manifest_document_sha256": "c2f99f2ae778fe87311fed2b211e4ae4af06f1244d69a6457b58c38e6b24a309",
+  "review_document_sha256": "a36fc74b36a51683a9763acabc361b1220d923f2229c2de7e5f25f2deb5f0cab",
+  "reference_raw_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+  "observed_tracks": 11,
+  "observed_states": 23,
+  "approved_source_contract_ids": [
+    "ipv6-repeated-ptr-initial-order-v1",
+    "leases-dhcp-ptr-initial-order-v1",
+    "six-host-record-ptr-initial-order-v1",
+    "six-hostsdir-initial-ptr-initial-order-v1"
+  ],
+  "runtime_repeated": false,
+  "checker_sha256": "fecf70b5730f1dc7f76d710fe50d611f5f18a1a7adf3767c5e5bf235a3774c62",
+  "actuals": {
+    "final238e": {
+      "passed": true,
+      "case_count": 13,
+      "dns_observations": 704,
+      "elf_sha256": "2692c760be3719b15f4bcadb6c5a1445a9f37993a11c1369619550218e4c76eb",
+      "raw_result_sha256": "911a149bd897b6e6fba8aafc79ec14fe658671339f0a07d13a3c2d32667c8517",
+      "actual_document_sha256": "8440855fed8829d00fa16023c90dcb41a918fc1197237619bfcf28d915b07c0f",
+      "recheck_file_sha256": "04a83c067a1bd39610e65415e4c99c8c9a064291707a1d59b6f18494e07b32c4",
+      "recheck_document_sha256": "e3ae016895d5c665a547940fdb46743ec682a9a42bfc3b8269f748835927cddb",
+      "failures": 0,
+      "qualified_ptr_order": {
+        "qualified-source-bound-ptr-order": 28,
+        "qualified-observed-ptr-order": 16
+      },
+      "qualified_cases": {
+        "six-hostsdir-initial": 8,
+        "no-round-robin": 8,
+        "mixed-sources": 8,
+        "leases-dhcp": 12,
+        "ipv6-repeated-ptr": 8
+      }
+    },
+    "sdk-final": {
+      "passed": true,
+      "case_count": 13,
+      "dns_observations": 704,
+      "elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "raw_result_sha256": "f066b0da9f3291b98d3d6c3defa6fc31c956d3c77c674fb1fd94723cc2f4c88e",
+      "actual_document_sha256": "123058f26e2d49a060c9e896cf8a286153e84c8f1f0300f5d52c25b6cd5664a9",
+      "recheck_file_sha256": "59524687e485e38c5696d3032d7529c4c004dcb6d301f4ce99167957700b02df",
+      "recheck_document_sha256": "49ec089211a5480cffeaf58d919380f73630aa4ef80707b6298f5da1051071c0",
+      "failures": 0,
+      "qualified_ptr_order": {
+        "qualified-source-bound-ptr-order": 28,
+        "qualified-observed-ptr-order": 16
+      },
+      "qualified_cases": {
+        "six-host-record": 8,
+        "six-hostsdir-initial": 8,
+        "ipv6-three-duplicate": 8,
+        "mixed-sources": 8,
+        "leases-dhcp": 12
+      }
+    }
+  }
+}
