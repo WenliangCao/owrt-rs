@@ -229,7 +229,8 @@ def main():
             expected_labels = {f'{args.prefix}-{scene[0]}-r{n}-{s}' for n in range(1,6) for s in ('c','rust')}
             if expected_labels <= completed:
                 continue
-            guard_label = f'{args.prefix}-{scene[0]}-guard'
+            # A resumed scene must never overwrite the previous guard segment.
+            guard_label = f'{args.prefix}-{scene[0]}-guard-{time.time_ns()}'
             guard = guard_start(identity[0], guard_label, threshold)
             for round_number in range(1, 6):
                 for side in (('c', 'rust') if round_number % 2 else ('rust', 'c')):
