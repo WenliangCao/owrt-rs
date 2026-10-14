@@ -41,6 +41,14 @@ def main():
     save()
     try:
         source_files=audit.inputs(source)
+        identity=json.loads((source/'research-git-identity.json').read_text())
+        assert identity['commit']==a.commit and identity['epoch']==a.epoch, 'source Git identity arguments differ'
+        assert set(identity['git_blob_sha1'])==set(source_files), 'source Git inventory differs'
+        for name,expected_blob in identity['git_blob_sha1'].items():
+            data=(source/name).read_bytes()
+            actual_blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+            assert actual_blob==expected_blob, 'source Git blob differs: '+name
+        report['git_identity_sha256']=audit.sha(source/'research-git-identity.json')
         report['source_files']=source_files
         report['source_digest']=hashlib.sha256(json.dumps(source_files,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         archive,expected=json.loads((source/'manifests/release-25.12.5.json').read_text())['inputs']['sdk'].split(' sha256 ')
