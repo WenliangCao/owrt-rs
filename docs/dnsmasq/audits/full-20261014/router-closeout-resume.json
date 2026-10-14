@@ -1,0 +1,27 @@
+{
+  "entries_before": 261,
+  "entries_now": 261,
+  "changed_entries": [],
+  "raw_sha256": "61c1192ec44c027d56e8c4fa17b8bfd7aa30a732ca425dcb9d4b846f593ed280",
+  "config_archive_sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+  "observed_utc": "Wed Oct 14 13:49:10 UTC 2026",
+  "dns_health": {
+    "udp": {
+      "exit": 0,
+      "expected_loopback_returned": true,
+      "raw_sha256": "77785fc7b151a325a39d2c40a7701cb57736f2ce34b7edbef4e538f42c1509d3"
+    },
+    "tcp": {
+      "exit": 0,
+      "expected_loopback_returned": true,
+      "raw_sha256": "77785fc7b151a325a39d2c40a7701cb57736f2ce34b7edbef4e538f42c1509d3"
+    }
+  },
+  "dnsmasq_pid": 2812,
+  "dnsmasq_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "two_ubus_objects_present": true,
+  "mount_records": 12,
+  "mounts_match_prior_closeout": true,
+  "actions": "read-only /etc archive streamed to local private storage; process, ELF, mounts and ubus inspection; one UDP and one TCP localhost DNS query; no router mutation",
+  "private_evidence": "private/full-audit-20261014/resume/router"
+}

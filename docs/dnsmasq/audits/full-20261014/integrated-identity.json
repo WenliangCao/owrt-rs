@@ -1,0 +1,38 @@
+{
+  "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "checked_files": 647,
+  "missing": [],
+  "mismatches": [],
+  "expected_map_sha256": "effc0caa887e2b99875c32cce9972dde6ceb6108dfa6892ca32ddbb9edef5ca4",
+  "elf_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+  "elf_bytes": 2089440,
+  "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+  "build_receipt": {
+    "source": "/dev/shm/full-integrated-fix-20261014/private/source-final",
+    "kind": "release",
+    "cargo_target_dir": "/dev/shm/full-integrated-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-integrated-fix-20261014/private/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2089440,
+        "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b"
+      }
+    ]
+  },
+  "independently_rebuilt": false,
+  "scope": [
+    "components/dnsmasq",
+    "components/ubus",
+    "packaging/openwrt/owrt-dnsmasq",
+    "tools/dnsmasq"
+  ],
+  "source_root_is_scoped_archive": true,
+  "supporting_nine_components_checked_separately": true,
+  "private_input_manifest": "private/full-audit-20261014/resume/identity/expected.json",
+  "trial_and_product_fixes_unmerged": true,
+  "baseline_product_unchanged_in_main": true,
+  "local_elf_copy_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b"
+}
