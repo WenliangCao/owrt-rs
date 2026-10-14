@@ -5,6 +5,7 @@ use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
 static ALLOC: AtomicU64 = AtomicU64::new(0);
 static REALLOC: AtomicU64 = AtomicU64::new(0);
 static BYTES: AtomicU64 = AtomicU64::new(0);
+static LIVE: AtomicU64 = AtomicU64::new(0);
 
 #[cfg(allocation_tracking)]
 mod allocation {
@@ -15,14 +16,21 @@ mod allocation {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
             ALLOC.fetch_add(1, Relaxed);
             BYTES.fetch_add(layout.size() as u64, Relaxed);
+            LIVE.fetch_add(layout.size() as u64, Relaxed);
             unsafe { System.alloc(layout) }
         }
         unsafe fn dealloc(&self, pointer: *mut u8, layout: Layout) {
+            LIVE.fetch_sub(layout.size() as u64, Relaxed);
             unsafe { System.dealloc(pointer, layout) };
         }
         unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, size: usize) -> *mut u8 {
             REALLOC.fetch_add(1, Relaxed);
             BYTES.fetch_add(size as u64, Relaxed);
+            if size >= layout.size() {
+                LIVE.fetch_add((size - layout.size()) as u64, Relaxed);
+            } else {
+                LIVE.fetch_sub((layout.size() - size) as u64, Relaxed);
+            }
             unsafe { System.realloc(pointer, layout, size) }
         }
     }
@@ -54,6 +62,23 @@ fn main() {
     let length: usize = args[2].parse().unwrap();
     let split: usize = args[3].parse().unwrap();
     let iterations: usize = args[4].parse().unwrap();
+    if mode == "retained" {
+        let before = LIVE.load(Relaxed);
+        let mut packet = Vec::with_capacity(split);
+        packet.resize(length, 0xa5);
+        #[cfg(vectored_frame)]
+        let frame = TcpWriteFrame::new(packet).unwrap();
+        #[cfg(not(vectored_frame))]
+        let frame = {
+            let frame = encode_tcp_frame(&packet).unwrap();
+            drop(packet);
+            frame
+        };
+        let retained = LIVE.load(Relaxed) - before;
+        black_box(&frame);
+        println!("{{\"mode\":\"retained\",\"payload_bytes\":{length},\"input_capacity\":{split},\"retained_heap_bytes\":{retained},\"frame_inline_bytes\":{}}}", std::mem::size_of_val(&frame));
+        return;
+    }
     let payload = vec![0xa5; length];
     let input = encode_tcp_frame(&payload).unwrap();
     let mut framer = TcpFramer::new();

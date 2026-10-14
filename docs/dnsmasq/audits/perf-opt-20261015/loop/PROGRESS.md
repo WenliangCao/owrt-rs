@@ -50,8 +50,16 @@ pinned to Oracle CPU 2. Uninstrumented source-extracted functions use rustc
 not daemon end-to-end performance or device claims. Source complete-frame
 copy bytes go from `2 * payload + 2` to `payload`; output framing copy goes
 from `payload + 2` to zero. The answer payload's existing allocation remains.
-The outbound inline prefix adds at most one word to an active TCP frame while
-removing a second live payload allocation. No receive limit changed.
+The outbound inline prefix adds one word to an active TCP frame while removing
+a second transient payload allocation. It retains the answer's original spare
+capacity: a 60-byte answer with PacketWriter's 128-byte initial capacity keeps
+128 heap bytes rather than the old exact 62 bytes, plus 8 inline bytes. Eight
+blocked replies therefore retain 592 additional bytes in this example. The
+separate resource probe also covers a 1232-byte packet with 2048-byte capacity
+(+814 heap bytes) and maximum packets (−2 heap bytes). This explicit storage
+tradeoff must be checked against complete daemon RSS and blocked-client cases;
+the change is not described as unconditionally reducing resident memory.
+No receive limit changed.
 
 Local targeted service tests: 14 passed, including all split boundaries and
 short writes through prefix/payload, maximum 65,535-byte payload, malformed
