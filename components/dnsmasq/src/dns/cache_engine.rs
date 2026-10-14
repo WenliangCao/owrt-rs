@@ -76,6 +76,7 @@ impl CacheContext<'_> {
             edns_packet_max,
             false,
             self.filter_rr.contains(&question.rrtype),
+            None,
         )
     }
 
@@ -101,6 +102,7 @@ impl CacheContext<'_> {
             edns_packet_max,
             true,
             self.filter_rr.contains(&question.rrtype),
+            None,
         )
     }
 
@@ -115,7 +117,7 @@ impl CacheContext<'_> {
         dnssec_requested: bool,
     ) -> Result<CachedAnswer, CacheError> {
         Self::answer_records_filtered(self.cache, question, header, now, local, limit,
-            dnssec_requested, self.filter_rr.contains(&question.rrtype))
+            dnssec_requested, self.filter_rr.contains(&question.rrtype), None)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -130,6 +132,7 @@ impl CacheContext<'_> {
         edns_packet_max: u16,
         tcp: bool,
         filtered_type: bool,
+        name_lookup: Option<&super::cache::NameLookup<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
         // interface-name owns this family even when the current interface
         // enumeration is empty. NXDOMAIN is the earlier cache exception.
@@ -165,11 +168,12 @@ impl CacheContext<'_> {
             let mut stale = false;
             if question.class == 1 {
                 let round_robin = !local.config.no_round_robin;
-                let first = cache.lookup(
+                let first = cache.lookup_with_hint(
                     &question.name,
                     &[Kind::Cname, Kind::NxDomain],
                     now,
                     round_robin,
+                    name_lookup,
                 );
                 let entry = first.first().and_then(|id| cache.get(*id));
                 stale = entry.is_some_and(|entry| entry.is_stale(now));
@@ -187,13 +191,14 @@ impl CacheContext<'_> {
                         _ => None,
                     };
                     if let Some(kind) = kind {
-                        cache.lookup(&question.name, &[kind], now, round_robin);
+                        cache.lookup_with_hint(&question.name, &[kind], now, round_robin, name_lookup);
                     }
-                    cache.lookup(
+                    cache.lookup_with_hint(
                         &question.name,
                         &[Kind::Generic(question.rrtype), Kind::NxDomain],
                         now,
                         round_robin,
+                        name_lookup,
                     );
                 }
             }
@@ -220,6 +225,7 @@ impl CacheContext<'_> {
             max_udp.min(limit),
             dnssec_requested,
             filtered_type,
+            name_lookup,
         )?;
         // The selected cache writer reports overflow before EDNS is appended.
         // Its source is known here independently of the final owner response.
@@ -264,6 +270,7 @@ impl CacheContext<'_> {
         limit: usize,
         dnssec_requested: bool,
         filtered_type: bool,
+        name_lookup: Option<&super::cache::NameLookup<'_>>,
     ) -> Result<CachedAnswer, CacheError> {
         let mut stale = false;
         let round_robin = !local.config.no_round_robin;
@@ -288,7 +295,7 @@ impl CacheContext<'_> {
         } else {
             &ordinary_kinds
         };
-        let ids = cache.lookup(&question.name, kinds, now, round_robin);
+        let ids = cache.lookup_with_hint(&question.name, kinds, now, round_robin, name_lookup);
         if question.rrtype == 12
             && !ids.iter().any(|id| {
                 cache
@@ -357,11 +364,12 @@ impl CacheContext<'_> {
                 && question.rrtype != 255
                 && filtered_type
                 && !cache
-                    .lookup(
+                    .lookup_with_hint(
                         &question.name,
                         &[Kind::Cname, Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
                         now,
                         round_robin,
+                        name_lookup,
                     )
                     .is_empty()
             {
@@ -376,11 +384,12 @@ impl CacheContext<'_> {
             // its lookup promotes it before the caller forwards the query.
             // Generic questions already visited that group above.
             if !matches!(kind, Kind::Generic(_)) {
-                cache.lookup(
+                cache.lookup_with_hint(
                     &question.name,
                     &[Kind::Generic(question.rrtype), Kind::NxDomain],
                     now,
                     round_robin,
+                    name_lookup,
                 );
             }
             return Ok(CachedAnswer {
@@ -416,11 +425,12 @@ impl CacheContext<'_> {
                         .is_some_and(|entry| entry.record.kind == Kind::Cname)
                 })
                 && !cache
-                    .lookup(
+                    .lookup_with_hint(
                         &question.name,
                         &[Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
                         now,
                         round_robin,
+                        name_lookup,
                     )
                     .is_empty()
             {
@@ -902,11 +912,12 @@ impl CacheContext<'_> {
             && filtered_type
             && !dnssec_requested
             && !cache
-                .lookup(
+                .lookup_with_hint(
                     &question.name,
                     &[Kind::Cname, Kind::Ipv4, Kind::Ipv6, Kind::Generic(0)],
                     now,
                     round_robin,
+                    name_lookup,
                 )
                 .is_empty()
         {
