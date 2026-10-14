@@ -1,0 +1,122 @@
+{
+  "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+  "elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+  "elf_bytes": 2124571,
+  "apk_sha256": "880050e82f81ad3dff27dac9716f15f7e167346750a4c8c197e9fe8ce6001742",
+  "protocol": {
+    "paired_cases": 368,
+    "exact_client_matches": 366,
+    "profiles": {
+      "local": {
+        "paired_cases": 116,
+        "upstream_requests_each_side": 0
+      },
+      "forward": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "filter": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "rebind": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      }
+    },
+    "differences": [
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "udp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      },
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "tcp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      }
+    ],
+    "daemon_lifecycles": 8,
+    "input_sha256": "87b211e44b1b02ef8b4b05dc3f754c14618266d47e4523c4f70d2cf3ca05289e",
+    "expected_rust_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "checker_sha256": "f92f1d3bbf3cde2a3ed8b1b65b2ca832fcf111d87dc23b004bd9cae137624020",
+    "negative_controls": [
+      {
+        "control": "missing-case",
+        "rejected": true
+      },
+      {
+        "control": "changed-wire",
+        "rejected": true
+      },
+      {
+        "control": "failed-health",
+        "rejected": true
+      },
+      {
+        "control": "forged-comparison",
+        "rejected": true
+      },
+      {
+        "control": "wrong-rust-identity",
+        "rejected": true
+      }
+    ]
+  },
+  "f10": {
+    "cases": 13,
+    "observations": 704,
+    "all_raw_wires_redecoded": true,
+    "unqualified_failures": [],
+    "qualified_order_counts": {
+      "qualified-source-bound-ptr-order": 28,
+      "qualified-observed-ptr-order": 16
+    },
+    "all_full_records_headers_ttl_count_tc_and_forward_order_match": true,
+    "reference_reused": true,
+    "source_bound_contracts_approved_after_independent_source_review": 4,
+    "manifest_file_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+    "raw_result_sha256": "f066b0da9f3291b98d3d6c3defa6fc31c956d3c77c674fb1fd94723cc2f4c88e",
+    "recheck_file_sha256": "4063b2defc23296db705af71cbd86c845467cf87ddd79469f825803362055b95"
+  },
+  "cache": {
+    "candidate_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "boundaries": [
+      "EXTRACT-BASE",
+      "NEGATIVE",
+      "ROUND-ROBIN",
+      "TCP-CALLERS"
+    ],
+    "required_count": 110,
+    "missing_required_cases": [],
+    "differences": [],
+    "qualified": true,
+    "full_cache_family_qualified": false,
+    "comparator_sha256": "75e0f13cf03338f2653facd8471fadf48a49107c5bd261218d204fb32e2d7f80",
+    "passed_count": 110,
+    "negative_control_count": 452,
+    "raw_verification": [
+      {
+        "side": "rust",
+        "scenarios": 110,
+        "observations": 337,
+        "upstream_wires": 150,
+        "all_process_hashes_match": true,
+        "wire_receipts_match_report": true,
+        "driver_sha256": "75e0f13cf03338f2653facd8471fadf48a49107c5bd261218d204fb32e2d7f80",
+        "manifest_sha256": "3e4973239e423f6f68bcd306a53e39a2e06b887a71da1a486aa6ba9c2ab9e359",
+        "report_sha256": "dc90e81369b0d2fa86495eaaa693408b9e5fcb69f32780e350d7fe417767cc0d"
+      }
+    ],
+    "exact_c_controls_reused": true
+  },
+  "scope": "New final SDK protocol 368 paired; final SDK Rust110 cache vs retained exact C controls; final SDK F10 13/704 vs retained exact C and narrowly approved qualifiers. No router work.",
+  "evidence_archive": {
+    "local": "private/merge-acceptance-20261014/protocol/raw-evidence.tar.gz",
+    "oracle": "/dev/shm/full-merge-final-protocol-20261014/raw-evidence.tar.gz",
+    "sha256": "c134ff3d4b7f690d00c9ba5c3eb15b0fa70eda29332bf4754c2319785ced67c8",
+    "indexed_regular_files": 1361
+  }
+}
