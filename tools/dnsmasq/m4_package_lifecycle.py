@@ -15,11 +15,12 @@ import re
 import shutil
 import signal
 import socket
+import struct
 import subprocess
 import time
 
 from build_package import PACKAGE_ID, PAYLOAD_FILES, audit_metadata, audit_payload, package_id
-from dns_service_probe import query, semantics
+from dns_service_probe import exact_read, query, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, sha256
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -69,6 +70,17 @@ config dnsmasq 'm4'
 def require(condition, message):
     if not condition:
         raise RuntimeError(message)
+
+
+def require_init_contract(stock, candidate, automatic_activation):
+    original = b'\tprocd_set_param file $CONFIGFILE\n'
+    tracked = b'\tprocd_set_param file $CONFIGFILE $PROG\n'
+    if automatic_activation:
+        require(stock.count(original) == 1, 'unexpected stock executable dependency contract')
+        require(candidate == stock.replace(original, tracked),
+                'candidate init differs beyond executable content tracking')
+    else:
+        require(candidate == stock, 'candidate changed stock init contract')
 
 
 def installed_packages(text):
@@ -274,15 +286,24 @@ class Scenario:
                             if "stock_service" in self.report:
                                 require(reply == self.report["stock_service"]["dns_reply"],
                                         "package DNS probe differs from image C semantics")
+                            with socket.create_connection(('127.0.0.1', 1053), .5) as sock:
+                                packet = query('m4-package.lan', 1)
+                                sock.sendall(struct.pack('!H', len(packet)) + packet)
+                                tcp_reply = semantics(exact_read(sock, struct.unpack('!H', exact_read(sock, 2))[0]))
+                            require(tcp_reply == reply, 'package TCP DNS differs from UDP/C semantics')
                             return {"listing": listing, "pid": pid, "wrapper_pid": wrapper,
                                     "wrapper_cmdline": cmdline, "elf_sha256": expected_sha,
-                                    "dns_reply": reply}
+                                    "dns_reply": reply, "tcp_dns_reply": tcp_reply}
                     except (FileNotFoundError, ProcessLookupError) as error:
                         observed.append({"pid": pid, "probe_error": repr(error)})
             return None
         return self.wait(live, f"{stage}: jailed dnsmasq {expected_sha} and DNS answer")
 
     def activate_after_transaction(self, label):
+        if self.report.get('automatic_activation_required'):
+            self.report.setdefault('activation_steps', []).append({
+                'transaction': label, 'command': None, 'automatic_activation_required': True})
+            return
         # The stock SDK's post-upgrade runs init start. procd can keep the
         # existing instance when its configuration is unchanged, including an
         # old ELF whose pathname APK has replaced. Activation is a separate,
@@ -319,6 +340,14 @@ class Scenario:
         stage = {"name": label, "version": version, "packages": packages, "files": actual,
                  "user": user, "group": group, "init_links": init_links,
                  "service": self.service(expected_sha, label)}
+        if self.report.get('automatic_activation_required'):
+            previous = (self.report['stages'][-1].get('service') if self.report['stages']
+                        else self.report.get('stock_service'))
+            if previous and previous['elf_sha256'] != expected_sha:
+                require(stage['service']['pid'] != previous['pid'], 'changed ELF kept the old daemon PID')
+            if label == 'candidate-reinstall':
+                require(stage['service']['pid'] == previous['pid'], 'identical reinstall restarted the daemon')
+                stage['identical_reinstall_kept_pid'] = True
         self.report["stages"].append(stage)
         return stage
 
@@ -453,7 +482,7 @@ def execute(args, root, out, report):
         report["post_upgrade_scripts"] = {
             "stock": upgrade_script(stock_metadata["stdout"]),
             "candidate": upgrade_script(metadata["stdout"]),
-            "semantics": "stock default_postinst invokes init start; explicit restart activates changed ELF"}
+            "semantics": "stock default_postinst invokes init start; activation mode is recorded separately"}
         require(report["post_upgrade_scripts"]["stock"] == report["post_upgrade_scripts"]["candidate"],
                 "candidate changed the stock post-upgrade script")
         (root / "m4/candidate-payload").mkdir()
@@ -465,7 +494,10 @@ def execute(args, root, out, report):
                 "APK ELF differs from frozen identity")
         # Ancillary paths are part of the image contract, including init/ACL,
         # UID declaration, config declarations, hotplug, and ujail invocation.
-        for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list"}:
+        require_init_contract((root / 'etc/init.d/dnsmasq').read_bytes(),
+                              (payload / 'etc/init.d/dnsmasq').read_bytes(),
+                              args.automatic_activation)
+        for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list", "etc/init.d/dnsmasq"}:
             require(candidate_files[path] == stock_files[path], f"candidate changed stock ancillary contract: {path}")
         previous_files = None
         if report.get("previous_package"):
@@ -546,6 +578,8 @@ def main():
     parser.add_argument("--candidate-elf-sha256", required=True)
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--package-release", choices=["2", "3"], default="2")
+    parser.add_argument('--automatic-activation', action='store_true',
+                        help='Require package transactions to activate the ELF without explicit restart')
     parser.add_argument("--previous-apk", type=Path, help="accepted M5 r2 bytes, never rebuild")
     parser.add_argument("--previous-apk-sha256")
     parser.add_argument("--previous-elf-sha256")
@@ -579,6 +613,7 @@ def main():
     out.mkdir(parents=True)
     root = out / "rootfs-stage/rootfs"
     report = {"status": "failed", "source_commit": args.source_commit,
+              "automatic_activation_required": args.automatic_activation,
               "candidate_package_id": package_id(args.package_release), "package_release": args.package_release,
               "previous_package": previous,
               "runner_files": {name: sha256(Path(__file__).with_name(name)) for name in

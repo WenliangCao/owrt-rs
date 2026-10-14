@@ -19,6 +19,22 @@ import m4_package_lifecycle as lifecycle
 
 
 class PackageBuildTests(unittest.TestCase):
+    def test_automatic_activation_allows_only_the_executable_file_dependency(self):
+        stock = b'#!/bin/sh\n\tprocd_set_param file $CONFIGFILE\n\tprocd_set_param respawn\n'
+        candidate = stock.replace(b'file $CONFIGFILE\n', b'file $CONFIGFILE $PROG\n')
+        lifecycle.require_init_contract(stock, candidate, True)
+        lifecycle.require_init_contract(stock, stock, False)
+        for wrong in (stock, candidate.replace(b'respawn', b'reload_signal HUP')):
+            with self.assertRaisesRegex(RuntimeError, 'executable content tracking'):
+                lifecycle.require_init_contract(stock, wrong, True)
+
+    def test_automatic_activation_cannot_hide_a_manual_restart(self):
+        report = {'automatic_activation_required': True}
+        case = lifecycle.Scenario(None, None, report)
+        with patch.object(case, 'run', side_effect=AssertionError('manual activation')):
+            case.activate_after_transaction('candidate-upgrade')
+        self.assertIsNone(report['activation_steps'][0]['command'])
+
     def test_sigterm_unwinds_sdk_recipe_and_records_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp).resolve(); sdk = root / 'sdk'; active = sdk / 'package/owrt-dnsmasq'

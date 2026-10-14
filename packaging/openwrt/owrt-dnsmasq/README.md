@@ -8,6 +8,14 @@ actual APKs; the recipe does not emit a conflicts field. It installs the daemon 
 and carries the stock package's init script, UCI conffiles, hotplug helper,
 dhcp-script, migration scripts, default data and ubus ACL paths.
 
+The init instance tracks both the generated configuration and the executable
+through procd's `file` parameter. APK's normal post-install/post-upgrade `start`
+therefore replaces a running instance when the executable changes. Returning to
+the original stock package also changes this tracked-file set and activates C.
+Reinstalling identical bytes is idempotent; no extra post-install restart runs.
+Package acceptance checks the live `/proc/PID/exe` identity and client answers,
+not just the installed version or executable on disk.
+
 The recipe does not establish deployment readiness. The matching
 SDK build, exact-image install/upgrade/uninstall/rollback checks, complete
 M5 contract, and M6 performance gate must pass before deployment is considered.
