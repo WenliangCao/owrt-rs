@@ -21,6 +21,83 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def dnsmasq_runtime(remote, expected, ujail_sha256, diagnostics):
+    """Verify every supervised instance by executable bytes, not d_path."""
+    evidence = {"processes": []}
+    try:
+        services = json.loads(remote("ubus -S -t 3 call service list '{\"name\":\"dnsmasq\"}'"))
+        instances = services.get("dnsmasq", {}).get("instances", {})
+        require(instances and all(value.get("running") is True and value.get("jail")
+                                 for value in instances.values()), "dnsmasq instances are not running under ujail")
+        evidence["instances"] = instances
+        inventory = remote('''set -eu
+for process in /proc/[0-9]*; do
+    value=$(sha256sum "$process/exe" 2>/dev/null) || continue
+    printf '%s %s\n' "${process#/proc/}" "${value%% *}"
+done
+''', timeout=30)
+        evidence["inventory"] = inventory
+        pids = [line.split()[0] for line in inventory.splitlines() if line.split()[1] == expected]
+        require(len(pids) == len(instances) and len(set(pids)) == len(pids),
+                "dnsmasq executable count differs from configured instances")
+        matched = set()
+        for pid in pids:
+            require(re.fullmatch(r"[0-9]+", pid) is not None, "invalid runtime PID")
+            # FS separates fields while the command lines retain their NULs.
+            script = '''set -eu
+pid=PID_VALUE
+parent=$(awk '$1 == "PPid:" { print $2 }' /proc/$pid/status)
+field() { printf '\\034'; "$@"; }
+cat /proc/$pid/stat
+field readlink /proc/$pid/exe
+field sha256sum /proc/$pid/exe
+field cat /proc/$pid/cmdline
+field cat /proc/$pid/status
+field cat /proc/$parent/stat
+field readlink /proc/$parent/exe
+field sha256sum /proc/$parent/exe
+field cat /proc/$parent/cmdline
+field cat /proc/$parent/stat
+field cat /proc/$pid/stat
+field sha256sum /proc/$pid/exe
+'''.replace("PID_VALUE", pid)
+            fields = remote(script).split("\x1c")
+            require(len(fields) == 12, "invalid runtime snapshot framing")
+            before, exe, digest, command, status, parent_before, parent_exe, parent_digest, parent_command, parent_after, after, final_digest = fields
+            first = before.rsplit(")", 1)[1].split()
+            last = after.rsplit(")", 1)[1].split()
+            parent = int(first[1])
+            require(first[19] == last[19] and first[1] == last[1], "dnsmasq PID changed during capture")
+            require(parent_before.rsplit(")", 1)[1].split()[19] == parent_after.rsplit(")", 1)[1].split()[19],
+                    "dnsmasq supervisor changed during capture")
+            require(digest.split()[0] == final_digest.split()[0] == expected, "dnsmasq runtime executable changed")
+            require(parent_digest.split()[0] == ujail_sha256, "dnsmasq supervisor is not the exact image ujail")
+            names = [name for name, value in instances.items() if value.get("pid") == parent]
+            require(len(names) == 1 and names[0] not in matched, "dnsmasq process is not a unique supervised instance")
+            require(command.endswith("\0"), "truncated dnsmasq command line")
+            argv = command[:-1].split("\0")
+            require(argv == instances[names[0]]["command"], "dnsmasq argv differs from the init submission")
+            matched.add(names[0])
+            evidence["processes"].append({"instance": names[0], "pid": int(pid), "exe": exe.strip(),
+                "sha256": expected, "cmdline": argv, "status": status, "start_ticks": int(first[19]),
+                "parent_pid": parent, "parent_exe": parent_exe.strip(), "parent_sha256": parent_digest.split()[0],
+                "parent_cmdline": parent_command.rstrip("\0").split("\0"),
+                "parent_start_ticks": int(parent_before.rsplit(")", 1)[1].split()[19])})
+        require(matched == set(instances), "not every dnsmasq instance was verified")
+        current = json.loads(remote("ubus -S -t 3 call service list '{\"name\":\"dnsmasq\"}'"))["dnsmasq"]["instances"]
+        require(set(current) == set(instances) and all(current[name].get("running") is True and
+                current[name].get("pid") == value["pid"] and current[name].get("command") == value["command"]
+                for name, value in instances.items()), "dnsmasq instances changed during capture")
+        evidence["passed"] = True
+        return evidence["processes"]
+    except Exception as error:
+        evidence["passed"], evidence["error"] = False, str(error)
+        raise
+    finally:
+        with diagnostics.open("a") as stream:
+            stream.write(json.dumps(evidence) + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("phase", choices=("stage", "activate", "observe"))
@@ -37,6 +114,8 @@ def main():
     require(gate["ready_for_staging"] is True, "recovery gate incomplete")
     require(re.fullmatch(r"[0-9a-f]{40}", gate["rollback_source_commit"]) is not None,
             "verified rollback source identity is missing")
+    require(re.fullmatch(r"[0-9a-f]{64}", gate["ujail_sha256"]) is not None,
+            "exact candidate image ujail identity is missing")
     image = Path(gate["image_path"])
     config = base / "trial-config.tar.gz"
     trial = json.loads((base / "trial-config.tar.json").read_text())
@@ -86,17 +165,14 @@ for name in procd ubusd netifd rpcd logd uhttpd; do
     case "$pid" in ''|*[!0-9]*) exit 1;; esac
     printf '%s %s\n' "$name" "$(sha256sum /proc/$pid/exe | cut -d' ' -f1)"
 done
-for process in /proc/[0-9]*; do
-    exe=$(readlink "$process/exe" 2>/dev/null) || continue
-    case "$exe" in
-        /usr/sbin/dnsmasq) printf 'dnsmasq %s\n' "$(sha256sum "$process/exe" | cut -d' ' -f1)" ;;
-    esac
-done
 '''
         observed = {}
         for line in remote(code).splitlines():
             process, digest = line.split()
             observed.setdefault(process, []).append(digest)
+        dns = dnsmasq_runtime(remote, manifest["components"]["dnsmasq"]["rust_sha256"],
+                              gate["ujail_sha256"], base / ("dnsmasq-runtime-" + args.label + ".jsonl"))
+        observed["dnsmasq"] = [row["sha256"] for row in dns]
         for name, component in manifest["components"].items():
             if name in ("uci", "fw4", "reload-config"):
                 continue
@@ -129,7 +205,7 @@ test ! -e /root/owrt-native-trial/c-bridge-used
 ''')
         payload = "".join(digest + "  /" + path + "\n" for path, digest in trial["payload_sha256"].items())
         remote("printf %s " + shlex.quote(payload) + " | sha256sum -c - >/dev/null", timeout=60)
-        return {"runtime_daemons": observed, "ROM_components_verified": len(manifest["components"]),
+        return {"runtime_daemons": observed, "dnsmasq_runtime": dns, "ROM_components_verified": len(manifest["components"]),
                 "dnsmasq_integration_files_verified": len(manifest["integration_files"]), "executable_bind_mounts": 0}
 
     if args.phase != "observe":
