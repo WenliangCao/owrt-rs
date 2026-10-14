@@ -1,0 +1,1656 @@
+{
+  "schema": 1,
+  "environment": "Physical AX3000T; v3 isolated-loopback performance experiment",
+  "finalized_utc": "2026-10-14T19:16:30.616335+00:00",
+  "main_at_task_start": "36f290929d4d046dee8904687c971074086651f3",
+  "product_freeze": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+  "elf_sha256": {
+    "c": [
+      "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    ],
+    "rust": [
+      "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c"
+    ]
+  },
+  "execution": {
+    "attempts": 112,
+    "controller_valid": 111,
+    "invalid_labels": [
+      "udp-miss-r5-rust"
+    ],
+    "original_plan_attempts": 100,
+    "udp_miss_supplement_attempts": 2,
+    "home6_attempts": 10,
+    "raw_parse_errors": [],
+    "integrity_counts": {
+      "lifecycle_file_identity_windows": 40,
+      "copied_device_files_verified": 3504,
+      "controller_valid": 111,
+      "traffic_live_identity_windows": 72,
+      "controller_invalid": 1,
+      "normalized_config_pairs_equal": 56,
+      "archived_run_members_verified": 3504
+    },
+    "runner_sha256": {
+      "original": "4316eabcf126aeabfd87efd230b90ccbd5d1d4668ba06e54bce9ef8670b44ba8",
+      "home6": "ea03817cd9381ce2f4a919b59b4b5c8456ab06e559a9de4d70ee3c383f88738f"
+    },
+    "lifecycle_identity_limit": "Executed file hash captured; no separate /proc/exe hash for each short-lived child."
+  },
+  "production_health": {
+    "baseline": {
+      "DNS_samples": 48,
+      "DNS_p50_ms": 0.381,
+      "DNS_p95_ms": 0.543,
+      "DNS_max_ms": 0.715,
+      "HTTP_samples": 23,
+      "HTTP_p95_ms": 70.548,
+      "HTTP_max_ms": 99.122,
+      "DNS_limit_ms": 200,
+      "policy": "ceil(max(200ms,10*baselinep95));3consecutive valid replies exceeding limit stop; single error or700ms timeout stop",
+      "baseline_elapsed_seconds": 125.0,
+      "raw_sha256": "7938307cddd50664b2707a906ee03e6fd59017048022423706049e71bc9a4f8a"
+    },
+    "guard_phases": [
+      {
+        "private_file": "final-guard-dns-phase.jsonl",
+        "sha256": "1574cd446f06cb4768acd539d986741bbefca9922086aa43d349c02809c5f623",
+        "sample_rows": 2095,
+        "first_epoch": 1792001407,
+        "last_epoch": 1792003501,
+        "dns_failures": 0,
+        "dns_rtt_ms": {
+          "samples": 816,
+          "min": 0.328,
+          "p50": 0.372,
+          "p95": 0.814,
+          "max": 5.34
+        },
+        "http_rtt_ms": {
+          "samples": 379,
+          "min": 51.482,
+          "p50": 55.591,
+          "p95": 98.105,
+          "max": 205.167
+        },
+        "http_status_counts": {
+          "403": 379
+        },
+        "dns_slow_probe_count_peak": 0,
+        "mem_available_min_kib": 103428,
+        "production_identity_unchanged": true,
+        "default_ipv4_route_present_all_samples": true,
+        "non_sample_events": [
+          {
+            "event": "start",
+            "epoch": 1792001406,
+            "production_pid": 664,
+            "production_starttime": 45650128,
+            "deadline_s": 3600,
+            "min_memory_kib": 65536,
+            "cpu_policy": "record_only",
+            "dns_limit_ms": 200,
+            "dns_slow_samples_limit": 3,
+            "probe_timeout_ms": 700,
+            "ipv4_default_initial": 1
+          },
+          {
+            "event": "monitor_stopped",
+            "epoch": 1792003501,
+            "elapsed_s": 2094.515
+          }
+        ]
+      },
+      {
+        "private_file": "final-guard.jsonl",
+        "sha256": "c3976a4360262050cf91f736b490583ec2a632a92fbafa01c5bc826b67e9480e",
+        "sample_rows": 1883,
+        "first_epoch": 1792003502,
+        "last_epoch": 1792005384,
+        "dns_failures": 0,
+        "dns_rtt_ms": {
+          "samples": 735,
+          "min": 0.33,
+          "p50": 0.379,
+          "p95": 0.584,
+          "max": 6.167
+        },
+        "http_rtt_ms": {
+          "samples": 339,
+          "min": 51.347,
+          "p50": 53.818,
+          "p95": 71.758,
+          "max": 127.041
+        },
+        "http_status_counts": {
+          "403": 339
+        },
+        "dns_slow_probe_count_peak": 0,
+        "mem_available_min_kib": 108396,
+        "production_identity_unchanged": true,
+        "default_ipv4_route_present_all_samples": true,
+        "non_sample_events": [
+          {
+            "event": "start",
+            "epoch": 1792003502,
+            "production_pid": 664,
+            "production_starttime": 45650128,
+            "deadline_s": 3600,
+            "min_memory_kib": 65536,
+            "cpu_policy": "record_only",
+            "dns_limit_ms": 200,
+            "dns_slow_samples_limit": 3,
+            "probe_timeout_ms": 700,
+            "ipv4_default_initial": 1
+          },
+          {
+            "event": "monitor_stopped",
+            "epoch": 1792005384,
+            "elapsed_s": 1882.029
+          }
+        ]
+      }
+    ],
+    "external": {
+      "observations": 130,
+      "checks": 260,
+      "first_utc": "2026-10-14T18:10:40.396854+00:00",
+      "last_utc": "2026-10-14T19:16:10.692606+00:00",
+      "failures": 0
+    },
+    "final_client_checks": {
+      "utc": "2026-10-14T19:16:30.615952+00:00",
+      "checks": [
+        {
+          "check": "luci",
+          "exit": 0,
+          "response": "403 0.061065",
+          "stderr": ""
+        },
+        {
+          "check": "external-ipv4",
+          "exit": 0,
+          "response": "200 0.028183",
+          "stderr": ""
+        },
+        {
+          "check": "external-ipv6",
+          "exit": 0,
+          "response": "200 0.030809",
+          "stderr": ""
+        },
+        {
+          "check": "production-dns-udp",
+          "exit": 0,
+          "noerror": true,
+          "one_or_more_answers": true
+        },
+        {
+          "check": "production-dns-tcp",
+          "exit": 0,
+          "noerror": true,
+          "one_or_more_answers": true
+        }
+      ]
+    }
+  },
+  "final_state": {
+    "production_C_PID_starttime_and_SHA_unchanged": true,
+    "wan_up": true,
+    "wan6_up": true,
+    "configuration": {
+      "identical_file_content_types_modes_owners_links": true,
+      "before_archive_sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+      "after_archive_sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+      "members_before": 261,
+      "members_after": 261,
+      "changed_paths": []
+    },
+    "generated_production_config": {
+      "nonempty_current_config_bytes_found_in_original_preflight": true,
+      "current_equals_bounded_original_config": true,
+      "original_config_boundaries": "auto-generated config header through the byte immediately before the independent wc output line: 6 /tmp/dhcp.leases",
+      "bounded_original_config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+      "scope": "The containment boolean alone cannot prove complete equality. The additional bounded-original comparison preserves all captured trailing newlines; /etc archive comparison verifies persistent inputs.",
+      "current_config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+      "original_preflight_sha256": "028ff2322627945d412be2eda53372d89c0f4045a579ee557e9ec4b3728fb927"
+    },
+    "final_dynamic_libraries": {
+      "final_dynamic_library_hashes_match_phase2_receipt": true,
+      "library_count": 4,
+      "phase2_receipt_sha256": "35edd3388425a47dd437df824ec726ccb438275c3ff6b129d1e0d1db3bca4257",
+      "libraries": [
+        {
+          "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+          "path": "/lib/libc.so"
+        },
+        {
+          "sha256": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+          "path": "/lib/libgcc_s.so.1"
+        },
+        {
+          "sha256": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+          "path": "/lib/libubox.so.20260213"
+        },
+        {
+          "sha256": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+          "path": "/lib/libubus.so.20251202"
+        }
+      ]
+    },
+    "final_raw_copy_verification": {
+      "passed": true,
+      "verified_files": 59,
+      "archive_sha256": "5b605decc78101168c859b9110e6525cbd860b1d131276459be1b3dc6b804399",
+      "manifest_sha256": "a6727040bc2200699b028b5a9f10003294af6f1c29464469b6c5b8b320d2bda9"
+    },
+    "no_owned_process_exe_cwd_or_command_reference": true,
+    "no_owned_mount_or_unix_socket": true,
+    "owned_tmp_directory_removed": true,
+    "production_service_stopped_replaced_or_reloaded": false,
+    "packages_installed_or_configuration_written": false,
+    "only_task_TMP_files_written": true,
+    "product_changes": false,
+    "pushed": false
+  },
+  "private_base": "private/device-perf-20261014/v3",
+  "private_receipts": [
+    {
+      "file": "final-integrity-review.json",
+      "sha256": "8477155259ab1b520c5a31aa87d92afa31a36db92a17259628dce632bf9530c3",
+      "bytes": 41751
+    },
+    {
+      "file": "device-v3-summary.json",
+      "sha256": "e2c9afa48debd1632edfb1ba2d76605eca441fdf802cf1a3b9b161282033d3c4",
+      "bytes": 1068865
+    },
+    {
+      "file": "independent-review.json",
+      "sha256": "aeb21ab9d518a7c8f96cc98967e649420936a1f1f5fc5a5f33effcdc7bd1da72",
+      "bytes": 1242955
+    },
+    {
+      "file": "independent-final-receipt.json",
+      "sha256": "f4b3b0bc6a3fb7e3f13a6c72344e8f1dcf844300a04a8c9af96a5ac9caa1a065",
+      "bytes": 1940
+    },
+    {
+      "file": "independent_analysis.py",
+      "sha256": "dcf18ca195184aca4de33f699729796930d6e6fe1556474e828fca52dd37e323",
+      "bytes": 35398
+    },
+    {
+      "file": "derive_redacted_summary.py",
+      "sha256": "6e8b997658343d81bfbd9ad08107305d0ee760df0158bfae5f9531f6644b8d50",
+      "bytes": 7607
+    },
+    {
+      "file": "final-review-integrity.py",
+      "sha256": "5cfc72b40adf26a8c94d92717db33fb258e0cecc913af984b630a758aaebbbb8",
+      "bytes": 8020
+    },
+    {
+      "file": "finalize-v3.py",
+      "sha256": "536ab574d67fa82bbffb623c9ed76c6d55644e8868030d8a2a4fc5cf715a2e23",
+      "bytes": 7931
+    },
+    {
+      "file": "final-state.sh",
+      "sha256": "8d844b1de3cb741faa9deaaa2c93556485eccd3edfcf1a1d4b56e0572788eec6",
+      "bytes": 1013
+    },
+    {
+      "file": "final-cleanup.sh",
+      "sha256": "7253f7bafb86f6b1bf6586e661f6de7c1a93473be76a5f433dff3a57ad1ccfc6",
+      "bytes": 1123
+    },
+    {
+      "file": "final-copy-check.json",
+      "sha256": "010832092829cdfc9572d2aede367220bc90190b2c99bb41ad2066a4d55f9148",
+      "bytes": 222
+    },
+    {
+      "file": "etc-before.tar.gz",
+      "sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+      "bytes": 165684
+    },
+    {
+      "file": "etc-after.tar.gz",
+      "sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+      "bytes": 165684
+    },
+    {
+      "file": "etc-comparison.json",
+      "sha256": "4054a7b49911cd1a6510f8956c644db267f28e69670603f705193bd47d1f9db1",
+      "bytes": 323
+    },
+    {
+      "file": "device-final-raw.tar.gz",
+      "sha256": "5b605decc78101168c859b9110e6525cbd860b1d131276459be1b3dc6b804399",
+      "bytes": 2570432
+    },
+    {
+      "file": "production-config-after.conf",
+      "sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+      "bytes": 737
+    },
+    {
+      "file": "production-config-comparison.json",
+      "sha256": "c5826d978b4c272ef6e186f360518a58d66a0aa0bd5553b78ad8f55d38a95bb5",
+      "bytes": 784
+    },
+    {
+      "file": "device-final-file-manifest.txt",
+      "sha256": "a6727040bc2200699b028b5a9f10003294af6f1c29464469b6c5b8b320d2bda9",
+      "bytes": 5711
+    },
+    {
+      "file": "guard-final-stop.txt",
+      "sha256": "aaa7ac9249a5d00f641ba608f7541dc0e3671023c1a4c84b5e8774c6ef56c3ce",
+      "bytes": 619
+    },
+    {
+      "file": "device-final-state-before-cleanup.txt",
+      "sha256": "f29d237478888197356b0dfcc496758f97a1b53abab9c34bd5c8fa65dd7227c4",
+      "bytes": 12413
+    },
+    {
+      "file": "final-cleanup.txt",
+      "sha256": "52b25b5623c5f97c656a3724afaf9cc686d274579cadd837caef1dba8a6ced22",
+      "bytes": 752
+    },
+    {
+      "file": "final-client-health.json",
+      "sha256": "ffe5b57b4516362983c1ca15c80b153ddef49d5cf607098eadb7ccfb6d2a3abc",
+      "bytes": 650
+    },
+    {
+      "file": "final-dns-udp.txt",
+      "sha256": "f44050137747a0de74505edd6ad02128632717e1a1303982788fb5116b6338be",
+      "bytes": 536
+    },
+    {
+      "file": "final-dns-tcp.txt",
+      "sha256": "7b670089129b031e0bcbf60c823b4922398457bab8cd56ba08e9bc80c4f26aac",
+      "bytes": 541
+    },
+    {
+      "file": "external-health.jsonl",
+      "sha256": "f437fd9f5cdf7745aa8053945dff29336708e0ea21cf8520b9cb3c383d15f090",
+      "bytes": 22360
+    },
+    {
+      "file": "baseline-guard.jsonl",
+      "sha256": "7938307cddd50664b2707a906ee03e6fd59017048022423706049e71bc9a4f8a",
+      "bytes": 32813
+    },
+    {
+      "file": "baseline-summary.json",
+      "sha256": "4393c59d300be98d9541374d82d17f00e0dfa5ef18471172e740bd37e2b19b1b",
+      "bytes": 439
+    },
+    {
+      "file": "runner-home6-identity.json",
+      "sha256": "e5dea7e6a4c1c0b14fb5c158ac31351e997a1e3b1a5854ab6e4b9164c2a4fcfd",
+      "bytes": 258
+    },
+    {
+      "file": "guard-phase2-start.txt",
+      "sha256": "35edd3388425a47dd437df824ec726ccb438275c3ff6b129d1e0d1db3bca4257",
+      "bytes": 899
+    },
+    {
+      "file": "final-library-comparison.json",
+      "sha256": "6eb5dbd64cf3aa548d3f3e5650273928dfd170a5028fd116ecfbb78cf3f79b63",
+      "bytes": 736
+    },
+    {
+      "file": "derive-v3-evidence.py",
+      "sha256": "0cd3c5eb70c0a86177dd77369f53713e354d341044b8d6352cf6810a3f5cc981",
+      "bytes": 7372
+    }
+  ],
+  "window_archives": [
+    {
+      "file": "config-small-r1-c.tar.gz",
+      "sha256": "971b7a10e994c1af76c8fdcd1576591a02cde2548d229a124835cebb0511b2c0",
+      "bytes": 16800,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r1-rust.tar.gz",
+      "sha256": "e32b534b9208c108eb91f4fe39e059799f6949fcfb0c044579f2bfbceb0d270c",
+      "bytes": 17205,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r2-c.tar.gz",
+      "sha256": "7484d83f84a74964007e4147b82a0d91ea6871d44ec686ee41f83120e61ced0a",
+      "bytes": 17855,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r2-rust.tar.gz",
+      "sha256": "4f88b02006cb1a1e7f2409d950d55d7f59f00a3c98f7ec70ef3c334309b2e883",
+      "bytes": 17580,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r3-c.tar.gz",
+      "sha256": "54189298d42d144d04651eed0e112f52fb8c7359c18f3eec39b2218ddcec6245",
+      "bytes": 18264,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r3-rust.tar.gz",
+      "sha256": "41a2a88cb8050de53459ec027c7f2a0dc6c1b4e59dd438dc3e33d6d6c36c9d1a",
+      "bytes": 18667,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r4-c.tar.gz",
+      "sha256": "f592980a45d4e7a659241c9f126d3836d5c0b5aa28a62c4d1af9f903d399be9e",
+      "bytes": 19361,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r4-rust.tar.gz",
+      "sha256": "7674cd4d9eebc5d32704665bb0770be541f51f7185b31dc11a8811a457afb2b0",
+      "bytes": 19038,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r5-c.tar.gz",
+      "sha256": "3b3d2b7eb4e96eb64664a83fc6dcd7588737fffb73e45271d29060739c038797",
+      "bytes": 19704,
+      "run_members_verified": 15
+    },
+    {
+      "file": "config-small-r5-rust.tar.gz",
+      "sha256": "34a978f69734cce4a2823171bed7ccd13918cde4cb02f8295b4576e2703d8c38",
+      "bytes": 20170,
+      "run_members_verified": 15
+    },
+    {
+      "file": "dhcp-home6-r1-c.tar.gz",
+      "sha256": "4df89ac4bf36a6e0e852bda64d8bd222afd06cd093266daa755526bf31abde8d",
+      "bytes": 71770,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r1-rust.tar.gz",
+      "sha256": "37cc6a5be7870fae92bdefc4c261ee3a89d938b70ac7fc429917ff838894ec3e",
+      "bytes": 71603,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r2-c.tar.gz",
+      "sha256": "5fd5f949b4c0d9019b97c2c19c86a680dbb29613a42ac697611dddfd631cdd06",
+      "bytes": 73174,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r2-rust.tar.gz",
+      "sha256": "0803370fe0a8f7a6bd50527d9fa4b9a40d5a21bbe8255e78e2c7076c1dbdbaf3",
+      "bytes": 72205,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r3-c.tar.gz",
+      "sha256": "09cf6c31a9982abaf14bf437ee9e96cf2f3020c24079c6dd46bdf07283f8a8bb",
+      "bytes": 73871,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r3-rust.tar.gz",
+      "sha256": "f432980ee0db4f8f8a30f65578717cce605b9ec66395b4acc62837711583b2b3",
+      "bytes": 73417,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r4-c.tar.gz",
+      "sha256": "84c0c1a0a49e85859c9aa9477d2b148b1d5d8ea7b956f620d790851f00d020bb",
+      "bytes": 75055,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r4-rust.tar.gz",
+      "sha256": "8468c54c7db3a67cb1296e2cddb2790cee86cff8edabf8bd9e9636c30d67b120",
+      "bytes": 74144,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r5-c.tar.gz",
+      "sha256": "c84eb2f84c12ad71e351cafbca582395017cf4d39f6b096a5f139b35adcdefd1",
+      "bytes": 75536,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-home6-r5-rust.tar.gz",
+      "sha256": "b625b3427763ffdc1fa5dac4b5ba39fd51180cb1a5da026950bc036e8af773ba",
+      "bytes": 76260,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r1-c.tar.gz",
+      "sha256": "9062ad511f0fb7ffb7575749d916b3a4b939f5a0dfe33c137e28cc4cf78d0e96",
+      "bytes": 83382,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r1-rust.tar.gz",
+      "sha256": "05eabf6b524e09a0faae5ba29aad23ff14d0f21123515abd0bdb4a94c3fdd202",
+      "bytes": 83940,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r2-c.tar.gz",
+      "sha256": "a4d63f55eb8d391da3f140c22a8e811a54142bf12c644107d93e97747d16bf4e",
+      "bytes": 84819,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r2-rust.tar.gz",
+      "sha256": "509c1d6291caf4a16c1c567650f66656e230bf10c44d384120458897a664b43d",
+      "bytes": 84535,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r3-c.tar.gz",
+      "sha256": "3481c74ea8129b7a880c549832868717a3d79aa7072ed0a21651264e8ff791f0",
+      "bytes": 85075,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r3-rust.tar.gz",
+      "sha256": "0f5afb6722f7a66a57969aaceb10f4297cd72fa50fa4c28bafc234925916bf81",
+      "bytes": 86115,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r4-c.tar.gz",
+      "sha256": "7bd6596d5b3c020b5648150e1eec3546062a193174cbbc19a48f678191e4040f",
+      "bytes": 86809,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r4-rust.tar.gz",
+      "sha256": "239af0b1b7186f8c382b6ac2f40b58383978513ea945a956ec65b465d89e9630",
+      "bytes": 86328,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r5-c.tar.gz",
+      "sha256": "8fe831f77528d3891d6c48844d36c1ccb0638955e7c35625a57e61784560603b",
+      "bytes": 87112,
+      "run_members_verified": 40
+    },
+    {
+      "file": "dhcp-renew-r5-rust.tar.gz",
+      "sha256": "a132bca196a72c042ce6d1ee57bf1b2efbe167f9e32535fa0ac4dd660f805cdf",
+      "bytes": 88480,
+      "run_members_verified": 40
+    },
+    {
+      "file": "hup-large-r1-c.tar.gz",
+      "sha256": "93e73fdbe8bbe0352ba18fad2705c679b6fd209ad4c8de5f31cfd2a025f2dc45",
+      "bytes": 28853,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r1-rust.tar.gz",
+      "sha256": "7c561adc6c29d53a34919b2c1cd7ed805ae20d40c953c78be276d6b820d7de44",
+      "bytes": 29282,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r2-c.tar.gz",
+      "sha256": "a99b246f29b9cd54d4dc881fb22af47d95181ce752f274bee436837e5b5b643e",
+      "bytes": 29913,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r2-rust.tar.gz",
+      "sha256": "b3cd434a1d6a1a136cf49e0333aa3817ceccad47af5111f40d76a8916f3dd498",
+      "bytes": 29664,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r3-c.tar.gz",
+      "sha256": "91e345828337f935e913287676fcdbbbec68bf6e544676b17531162d6c47b1cf",
+      "bytes": 30271,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r3-rust.tar.gz",
+      "sha256": "1cafddcd950c2d61eb0f31ebd82e06a02e5f15d5e3dbc2e96d432098826b1c3b",
+      "bytes": 30746,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r4-c.tar.gz",
+      "sha256": "fd56bad7bf6154ea8652e11946e82373134f03607ceab3d3be8840e825ac3c8e",
+      "bytes": 31382,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r4-rust.tar.gz",
+      "sha256": "e2048f1b01ac011f3003d0d2ba1b2e722ff97e94c9b6aae90b49520c60c88a1a",
+      "bytes": 31093,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r5-c.tar.gz",
+      "sha256": "3f848044895a4d48bf2c0e02a1bb50b26cc6db26e9a86e23563086169fa7eaa3",
+      "bytes": 31736,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-large-r5-rust.tar.gz",
+      "sha256": "3f59d59522b828d9ea386cf458790c21e38e716f900c6bc5f6644175f4cad066",
+      "bytes": 32124,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r1-c.tar.gz",
+      "sha256": "9e7ce0fbb1dc9441d7c200f40acf5f1ce51f5b3780acd26f503b484334079351",
+      "bytes": 19619,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r1-rust.tar.gz",
+      "sha256": "78d391a1bf316af24c7789c438988d025c6c3828a560d1c047c09fc90a7b4f17",
+      "bytes": 20028,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r2-c.tar.gz",
+      "sha256": "80db2ab06db8e14283539d2471d5741743bec99e1a518f70012aa4179a494a6b",
+      "bytes": 20671,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r2-rust.tar.gz",
+      "sha256": "44dd25709d61bcf578b5272153dbc92a387e4c1fa0cc7eb26cd9624f51f2f788",
+      "bytes": 20391,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r3-c.tar.gz",
+      "sha256": "3f6b6425bc96d20879ce532cc5db64b5e90acd04e387790624e1abf60fd3997b",
+      "bytes": 21034,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r3-rust.tar.gz",
+      "sha256": "d98065b9bdf5e5f89eb30f711913de93b391e261384f6e43cb9f1e3ec38bf369",
+      "bytes": 21409,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r4-c.tar.gz",
+      "sha256": "5c61cd0d2f79d864c202e298f2bdd7a3ffb045d21ce3efd5dbea1b441d18a6ff",
+      "bytes": 22104,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r4-rust.tar.gz",
+      "sha256": "307e737d1a89bae8787493432db7af5eef27f9b3637333a35242dfee591b1bf4",
+      "bytes": 21739,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r5-c.tar.gz",
+      "sha256": "eabaf601c367b44c8738791f4b19dbf934dbfcbea740d7513f933ef1e80bd51e",
+      "bytes": 22452,
+      "run_members_verified": 15
+    },
+    {
+      "file": "hup-small-r5-rust.tar.gz",
+      "sha256": "f51fb6ffba527075d86908a7c5ad9574776348c02429d3789c5014871ab8efe1",
+      "bytes": 22821,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r1-c.tar.gz",
+      "sha256": "7fa6763827660fd039dffb5754b2034c9e12915b29ac6b84f340fc3a5ba7b475",
+      "bytes": 13390,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r1-rust.tar.gz",
+      "sha256": "db9bbedb1aa0cde65b736973c536f8afe8b675e17498ead7785d6ea694dda216",
+      "bytes": 13775,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r2-c.tar.gz",
+      "sha256": "04a26e4e2463e9eb9a57d06d2d88d76bd51c6617b86491d7fd1f6c299ca1d5f0",
+      "bytes": 14417,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r2-rust.tar.gz",
+      "sha256": "e53dd0ab5f23739721fadb7e688d657421efccbc419a760b17d8547869a03d78",
+      "bytes": 14171,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r3-c.tar.gz",
+      "sha256": "841c772d45ab1924d55b67a638f495d7592d5d079ebdb0f8fc493bcaeca9da43",
+      "bytes": 14763,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r3-rust.tar.gz",
+      "sha256": "c6ce43ca31131021e2ddac8dacd9576c6a6ca13172aa4198b0d440169784a3c1",
+      "bytes": 15137,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r4-c.tar.gz",
+      "sha256": "81ca785816c17c34014f073796a00760f8b179d6b81797e80347a2779e8d067f",
+      "bytes": 15737,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r4-rust.tar.gz",
+      "sha256": "68aad2a60138fa6fb6250423569f1c780519f04fb238972189e2d50407548955",
+      "bytes": 15502,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r5-c.tar.gz",
+      "sha256": "049b8cc15530b2fae70780d00e103cd70eb2c85310be8e80dd6155d79b02e7e7",
+      "bytes": 16095,
+      "run_members_verified": 15
+    },
+    {
+      "file": "startup-small-r5-rust.tar.gz",
+      "sha256": "e15af58a522c62b5f7ae47cb5aeb5a2e492a938d3fd154c4f93e0fb62a9c0fa7",
+      "bytes": 16545,
+      "run_members_verified": 15
+    },
+    {
+      "file": "tcp-hit-r1-c.tar.gz",
+      "sha256": "9ad45fa8ef348645a48e3d82a2b1817582af6e8840250549c48edcc34b7168ea",
+      "bytes": 117833,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r1-rust.tar.gz",
+      "sha256": "d03ec1fd403079d3be855ff5c42d3305990ac1837eab9204bdd651bf8ce587b4",
+      "bytes": 118085,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r2-c.tar.gz",
+      "sha256": "3a3800c9ee010569f7bb603e77d6d0422ef90aa64a810ba822b76fdf45617d56",
+      "bytes": 119177,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r2-rust.tar.gz",
+      "sha256": "ef96c06b33ccf05625a9ab058c567ed19f65d364b6de769bad48593b83190cc4",
+      "bytes": 118164,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r3-c.tar.gz",
+      "sha256": "844a6c36a4a86211fdcb6a35081d19ddbea37715e85e0c02dfa0693a8a9a4ef0",
+      "bytes": 119909,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r3-rust.tar.gz",
+      "sha256": "e41239dc9fed5f1897a252a4871f3bf2b593e9ff295a732883068c9773dd2931",
+      "bytes": 123599,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r4-c.tar.gz",
+      "sha256": "bb78c74f9991f858537cf1be2632d73676f1cab114e9fc7bfd67a31966a30878",
+      "bytes": 126720,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r4-rust.tar.gz",
+      "sha256": "e299594129c7826a1b45e78680889675acb824fa065c7d281ff11667e2f45be2",
+      "bytes": 125064,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r5-c.tar.gz",
+      "sha256": "3787cb5fc14e0508e82d43049c8d907936073f0e0590464b4a11568027f3aaeb",
+      "bytes": 127540,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-hit-r5-rust.tar.gz",
+      "sha256": "690507c97e57957b9707c6b0a09aa8082a851c1249fa5bb13a50394533beadf5",
+      "bytes": 123936,
+      "run_members_verified": 43
+    },
+    {
+      "file": "tcp-miss-r1-c.tar.gz",
+      "sha256": "c11619bcccd8b8b039926cf1093c008eed3e46b97af476a09111c85dae5b76fc",
+      "bytes": 105507,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r1-rust.tar.gz",
+      "sha256": "0b887fc3e1f40ba1ab8feef79b0006f74df98e98f8969ed80a51a93db42dd652",
+      "bytes": 104616,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r2-c.tar.gz",
+      "sha256": "e4a3be3b013bfdad3311a9c67b73e02d752385e3bf2dfc40810be5cf8b658704",
+      "bytes": 107999,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r2-rust.tar.gz",
+      "sha256": "8a2d541709a5cf0be586e57e785a3ddbbf42171b5ba4d29b059d1b6b58f6ba83",
+      "bytes": 105300,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r3-c.tar.gz",
+      "sha256": "3c2bee594392eafdeec32be3109913e9351f137ed9770edd69bf553a7b9690f4",
+      "bytes": 108346,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r3-rust.tar.gz",
+      "sha256": "613c0f79c920381c8ca7bef92ba1a4c6d46871fd79759ac61613114a767840f2",
+      "bytes": 108303,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r4-c.tar.gz",
+      "sha256": "7af3e91af6b497033ad94ede8127fd68a16caaa1f42055c0606a978d8ad6f2e1",
+      "bytes": 109861,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r4-rust.tar.gz",
+      "sha256": "725b6600e7b037aeda78029048e8f6ecefca9d04cf14b9a4e618f7400f7d16f2",
+      "bytes": 107191,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r5-c.tar.gz",
+      "sha256": "da76f7a5a3bf7f148ccbe5b96559a412abc7ef42e8810f8cd1eef846c752db8c",
+      "bytes": 110103,
+      "run_members_verified": 37
+    },
+    {
+      "file": "tcp-miss-r5-rust.tar.gz",
+      "sha256": "b966a54289891a65bd1d74d335e1da1eedd2ad288c39cbeae35daeadf1125e13",
+      "bytes": 108807,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-hit-r1-c.tar.gz",
+      "sha256": "da43e0d71c2f6bd8f5e8a3484daa394bc27d27932180d735a3a34a1118f10553",
+      "bytes": 99353,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r1-rust.tar.gz",
+      "sha256": "15a2f9b63d5b7b8cfba28aeadd123b0da392968f3b45420b3fa2e5df6fb8022b",
+      "bytes": 100122,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r2-c.tar.gz",
+      "sha256": "d5c8cf1515d6147c065a576ad86928afdc78eb8f431410bb6a2b24bfeed1089d",
+      "bytes": 101103,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r2-rust.tar.gz",
+      "sha256": "bd2eb3e54a95a27daa00a109107603a60780c4211a5d65150e57b3bbd5e613b8",
+      "bytes": 100527,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r3-c.tar.gz",
+      "sha256": "a4bc848dcf81fd81a5db01c2de9f66d12881f555b364ea2e1e71f66cc7aa2f0f",
+      "bytes": 102219,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r3-rust.tar.gz",
+      "sha256": "725a370dcedf2837c71a3f13480bf488e18ab44e1a9b763d46fb302e73a865cc",
+      "bytes": 102106,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r4-c.tar.gz",
+      "sha256": "a5248870bbc2ab2f97042a01def477ec0531a9d1afb48322068ed2a5e582f4be",
+      "bytes": 103497,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r4-rust.tar.gz",
+      "sha256": "04739059e210ee61ffc4eaea9361f8e3b9e2b02e4eb9d0be4e9423aa90ab916a",
+      "bytes": 103124,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r5-c.tar.gz",
+      "sha256": "587095fd91252b206e13892b49036d1ae300e66ceb83cbb2a8262991e8c50e2b",
+      "bytes": 104168,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-hit-r5-rust.tar.gz",
+      "sha256": "d2d8b2b25b9f7961eb3303815b7097c437a43f277844b6fc00ee77ed4db2f3db",
+      "bytes": 104166,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-miss-r1-c.tar.gz",
+      "sha256": "61007aedf1250f62f8c9757bbbb417b495c55253bd9e4a51edef6331311caac5",
+      "bytes": 86269,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r1-rust.tar.gz",
+      "sha256": "e3d99bbeecc97c15aca92686f7cdcd1fc44cee1def12375aab743f5e26a39762",
+      "bytes": 87199,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r2-c.tar.gz",
+      "sha256": "ad8b3a9983ea48821b6b37c0f655e42e34965c76e0f10709a60afdff8feab36d",
+      "bytes": 87933,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r2-rust.tar.gz",
+      "sha256": "9fe34cbc58baf47a475b7d4490ac89cf32f44acbc402a9329e622a8a45197e26",
+      "bytes": 87161,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r3-c.tar.gz",
+      "sha256": "f62fd363472ae19ec5fe660144efa7e94aad779e555efe67d13b4d7a0a8b13b7",
+      "bytes": 87636,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r3-rust.tar.gz",
+      "sha256": "417ec4b929a482f400dd61751f81a3ef84245c9f5ceea0cad64b6ff1bcf0aa40",
+      "bytes": 87860,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r4-c.tar.gz",
+      "sha256": "c5ac16365791fbaf4b4685d500f661a49e1aa2aca2c992c985f2575eb63c9feb",
+      "bytes": 89219,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r4-rust.tar.gz",
+      "sha256": "d05361619a449dbbafa8b480e2f402cd1d38f5a2922d91807910f756f7b1262a",
+      "bytes": 88831,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r5-c.tar.gz",
+      "sha256": "09224c8e2b3427a86355aeb20e0f794c08dd1561c528a1e48c2af2d112509ffa",
+      "bytes": 90417,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r5-rust.tar.gz",
+      "sha256": "de1c6bd2787a98bb96df822d239bdce0b20722dd6fb5fca0270ab671096f023c",
+      "bytes": 90890,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r6-c.tar.gz",
+      "sha256": "47399ad92fd04b83b39485b9e30223ccac1e733a6f1e19d92e7a57f08176142e",
+      "bytes": 81966,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-miss-r6-rust.tar.gz",
+      "sha256": "412461f25bfa40470682e7925a1403b974ee5d0d9d944e37d4962a357abb33be",
+      "bytes": 80962,
+      "run_members_verified": 37
+    },
+    {
+      "file": "udp-mixed-r1-c.tar.gz",
+      "sha256": "9ea0643ed553dc2d725aff0b4f067a8c2e24cfa54c2f23cdadfe1b1b769cf161",
+      "bytes": 117505,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r1-rust.tar.gz",
+      "sha256": "7b899a7f6f03401e5d328d6c9a5e28854abe9df047adeb4d4fdb958341cc2d8b",
+      "bytes": 118175,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r2-c.tar.gz",
+      "sha256": "c520847603a9385805244641f35cb096be32d36abe7fd49a439da91f11c516ce",
+      "bytes": 118973,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r2-rust.tar.gz",
+      "sha256": "3136dbed21d168116c46cc71c27286aa1ca18c0b93a05f79900afdfb2a2ec4d3",
+      "bytes": 118033,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r3-c.tar.gz",
+      "sha256": "5649ad3e63e0235a53bc8698e060211185d30634f6a280e0a5940aaa3ff6d2c3",
+      "bytes": 119323,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r3-rust.tar.gz",
+      "sha256": "4750fb4260ef0a93273119a7db04ce9716e30886420489801efae87944882543",
+      "bytes": 119565,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r4-c.tar.gz",
+      "sha256": "ea4577c40b2a92e7fde143c09ef5dd450d6754fb2490538faeb4d2f2d7e5990e",
+      "bytes": 120220,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r4-rust.tar.gz",
+      "sha256": "62519adc1818a0d686b15ed2efb0231093179848397c84ee28f31a88334f75f2",
+      "bytes": 119925,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r5-c.tar.gz",
+      "sha256": "aeee3135fe0beb48ca24b8b56fa762eeb21ef0b1020caea48e92de898a329810",
+      "bytes": 121142,
+      "run_members_verified": 43
+    },
+    {
+      "file": "udp-mixed-r5-rust.tar.gz",
+      "sha256": "60e7ec8f0d95cb30c42a5f30149a15a88dc7b63ce2246ea0a8fc11b2689d46c8",
+      "bytes": 122361,
+      "run_members_verified": 43
+    }
+  ],
+  "window_manifest_checks": [
+    {
+      "label": "config-small-r1-c",
+      "manifest_sha256": "29ac4468de6396b438a52cf7210c049a3ca408929b0d6d572a7e0a13ff5da07d",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r1-rust",
+      "manifest_sha256": "79d06e439d51b9a6dabd12b94acb840916629d0fa52d5566164abb7232de8034",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r2-c",
+      "manifest_sha256": "fc81c982beef7a04ea88191184a702db3568d0f3135ebe6ecd64653672d67e42",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r2-rust",
+      "manifest_sha256": "85aa4b0c42054227215d45168a8cb7bdd8cac403328502a11742cbb0cc57e0b9",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r3-c",
+      "manifest_sha256": "02d7c5363d4683ab2d3eb8d1253f52c8a21c6e782766b317f492e72edc6838f8",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r3-rust",
+      "manifest_sha256": "72e60a994b9cdfa71f26ac607f550b773d5527946b2a53778c50c3db4c7b79a4",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r4-c",
+      "manifest_sha256": "c76dd20af82655f4efc6e718eddb546e86c75b98df8508d938199cef9825df3b",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r4-rust",
+      "manifest_sha256": "15481d69bdb21c4cd80b959c45173c2f69a361a4ac48bd797770bdf2657fa472",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r5-c",
+      "manifest_sha256": "68c7b4f057d6d5f9c2df02b6f7766c543903f4b76c5451cda213bfa2a5b23b52",
+      "files_verified": 15
+    },
+    {
+      "label": "config-small-r5-rust",
+      "manifest_sha256": "85bec8809db49b7dc83acb9a38532fdf3c88ae0986d7caebad9f418d718dbf8c",
+      "files_verified": 15
+    },
+    {
+      "label": "dhcp-home6-r1-c",
+      "manifest_sha256": "daf61fa3d98c81313dda754127a63f049bae6b0a88f0ac1b925ef385b96fc773",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r1-rust",
+      "manifest_sha256": "5d594a3adaf7f799c5978052d2868a2861f18ff696b822dfae303023fcf08cc4",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r2-c",
+      "manifest_sha256": "74a95c76c28824d1d1a1f9a12b8323e94b035fc5e23ad1a62589666e8f5b41ac",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r2-rust",
+      "manifest_sha256": "d86ebba8b7857cb3ba1219459e5748d6d6ba842689d2fe6ce3821e3bed765b78",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r3-c",
+      "manifest_sha256": "fcc38deca82d2e31080e97b25f202f1ad2da359ea3041bf38aa012ddf78f998f",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r3-rust",
+      "manifest_sha256": "8eb7f0721fbc1d7fdfef54cabb5b47d39405871809c4d90c12e6a2226d022b73",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r4-c",
+      "manifest_sha256": "68fdb1cb3e37cf1f47aa2730543110d6438b1a3419810484b40d1e082d0b3e36",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r4-rust",
+      "manifest_sha256": "3a99861853ed9802eaa53332761143dad4b2797a7594310371518206fc5b281a",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r5-c",
+      "manifest_sha256": "f60ee7ad38cc0547e0a1caa79fc2ea0f2c9939f0677cfe083ddaa511e03a0e0e",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-home6-r5-rust",
+      "manifest_sha256": "a90eadf61754f98e81d60429bdc0d27af4bc81967fc56230e9092d36569d0b15",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r1-c",
+      "manifest_sha256": "562cdd6eba419330a80688b065ff17c0a5b8ecf5065d1a5b71fabded0b947ca3",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r1-rust",
+      "manifest_sha256": "c100c51ab2859b3017882501b04ba6cbfc6e500d03d416a64c9ed85902a61ac7",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r2-c",
+      "manifest_sha256": "ffe5f40f62625b15ac98a61492015816806fa907fea9e720efbcdafdc3b660e1",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r2-rust",
+      "manifest_sha256": "d8ce77eb69bec162ddae8ecc0eedb8c9c929e0ed7410c6c980919f0262699de3",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r3-c",
+      "manifest_sha256": "2936101bd5dfba2442da75934fc19e5d6847faf54539cb04bb24b1a36178b85a",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r3-rust",
+      "manifest_sha256": "9d4c20a08e2e652a621ac24ece16f4c1f23b9fdfaa9b1c23fa69b0794f87b7aa",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r4-c",
+      "manifest_sha256": "84eea9cccc4e223d1dbb86061141dbe2ec0e2496036a5dd51ff72a800ab1a965",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r4-rust",
+      "manifest_sha256": "4d78167ad7da37b6b72f7db66660e1eeeccaba4b910706ad2713384791ecce45",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r5-c",
+      "manifest_sha256": "caa41d712f3126a11b095fbcff4d42b2f2412a3b37a53f9f1c4a8975374eada2",
+      "files_verified": 40
+    },
+    {
+      "label": "dhcp-renew-r5-rust",
+      "manifest_sha256": "7def99b8a7f0dcc04db847e89dba7c6a91bffd423f9d07815496f14666b10be3",
+      "files_verified": 40
+    },
+    {
+      "label": "hup-large-r1-c",
+      "manifest_sha256": "5b35bf33855ae2f9e3bb9dbc75e02abede31593747cf47c6d87796494206844d",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r1-rust",
+      "manifest_sha256": "34e4aa9a23bdbc01407cdb37f857e5fe0bba17c87f352e3ae5446e3e7dc3e90d",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r2-c",
+      "manifest_sha256": "5e0b79d48433e942db7bbfa9754da4b566fc62531f3ab3741538492841a4415d",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r2-rust",
+      "manifest_sha256": "50075125a0e12ac63c36ccb67cdb67ab2d315b73ce87bda19696c299b8966983",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r3-c",
+      "manifest_sha256": "bbb4111764d531429cdfeef4cac8690c526adcccedf3b0b365493caafc2491a4",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r3-rust",
+      "manifest_sha256": "04340f1713f050e9a4d6d3c80a3ba8bba5f0c11a2a5fc32c362d4527d44d2ccb",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r4-c",
+      "manifest_sha256": "6f4aaa32db02153e17ab635a529b5d60e06ee5ac3fd15a8d9edbb65695dd8543",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r4-rust",
+      "manifest_sha256": "e9e99e2c194c96ae532f8f9b8ca465f3455809a04389c1437e1b708e99e7e5e5",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r5-c",
+      "manifest_sha256": "74fd71413b1aa174151b4e1d641ab432428f0aef9c5f130c4252c81203c5fb69",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-large-r5-rust",
+      "manifest_sha256": "41eb93b49f5890aff21b251350faaf8feede2429bbc429ba36b6cbf396d6aa14",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r1-c",
+      "manifest_sha256": "ebee061fe98c2fc8e6ebe108e7c55651b8af5b75a134d32ee6632c61632e99c4",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r1-rust",
+      "manifest_sha256": "457df46f82551d79653b65daddbbf48007581213bfb4bca2c1d65e3e7f3e152c",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r2-c",
+      "manifest_sha256": "45ca6e427a56f4ada223d240fc534cffa013dc6aa3c63bebd89301112ecb9ea4",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r2-rust",
+      "manifest_sha256": "356ab3387ad411cad33c5063f1e1cb86767beb200d8ded306536d3c474858de7",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r3-c",
+      "manifest_sha256": "9d985444d44bbe2ebcfe19414ec438576b6049a6e1ecb7807b847374831e1143",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r3-rust",
+      "manifest_sha256": "64f769a9365967b877ece18b5b333c9c850196b968852edc4ca99487ae4d26d3",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r4-c",
+      "manifest_sha256": "6b5f291173bfd85dfcbc2dea1d591b7a4ab349488182b1b3c27f239a36adcb6b",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r4-rust",
+      "manifest_sha256": "abbe948d71df6fe8e9d469379b1c8d5bfcfa02468d9b4d6fd1d1216103e2afcc",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r5-c",
+      "manifest_sha256": "502b3e11f407307ed49a92a393fa51db86fb79366df35050e28c7ac27084d771",
+      "files_verified": 15
+    },
+    {
+      "label": "hup-small-r5-rust",
+      "manifest_sha256": "87da141c4448d0a5c4dc23819862f9ac697f244a105d9bc3e150f7e0af3f2362",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r1-c",
+      "manifest_sha256": "e814c6514a5c391adef234edf0deafab9107538828ed2dd9e1a8e89351f09004",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r1-rust",
+      "manifest_sha256": "566ba9a8fd130a010940747782f84c630304d52176144c453dd5c36e8b1c03f6",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r2-c",
+      "manifest_sha256": "260f3890e86f234016edb02c2073077e6e41a31b31b3dfed717f7d4b78b79e3a",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r2-rust",
+      "manifest_sha256": "69ff092efbef84f0be1815c9416b3ec517f36e4e54d2e0ad58a8ddb1e84b05d7",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r3-c",
+      "manifest_sha256": "7ea6520b73824d66596c113dfb92538581c03d1d9fbe7e8eae03e79e6a8fbf86",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r3-rust",
+      "manifest_sha256": "88fac6883a687d39a230165efb2a5c20b64c94037ad23472cff641a6fe9ada6b",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r4-c",
+      "manifest_sha256": "ebf792eb6e66c919322de9f394163303c55d0f1dadc51a89d206ac3020dfce79",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r4-rust",
+      "manifest_sha256": "08809279cebbbf6daf55285e93544b9b76a21e54226ca2d3184daa19452ba489",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r5-c",
+      "manifest_sha256": "eb9c0f2be9838ded9f0b6f759bc2aa77dfb9569ea6c810903c06c5f9ee6ad67d",
+      "files_verified": 15
+    },
+    {
+      "label": "startup-small-r5-rust",
+      "manifest_sha256": "50afcecabbf42d97d5019b5c5bd579b316ba8d3e68b7fd8dfa713686b036b3d9",
+      "files_verified": 15
+    },
+    {
+      "label": "tcp-hit-r1-c",
+      "manifest_sha256": "1f4a42bbabe5e77aa7f7f43fc75e3234c5db7a5e6e2b828f55db23d788df6c44",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r1-rust",
+      "manifest_sha256": "e0146faa260c8a41c3ba57581eabd64b029f258d268bd33e558e3305d230e496",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r2-c",
+      "manifest_sha256": "239bb91fcd24c1bf944919b700bc9d6734a35a629468cde33959362de417dd01",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r2-rust",
+      "manifest_sha256": "090feac6c531ce380bc1541e68a67040b61f0d2977cef24f2a9bd538d8aa58d7",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r3-c",
+      "manifest_sha256": "17a883dabd8a3799b8a8471064c84b27a5008c7bad955ff266e32dea83f17664",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r3-rust",
+      "manifest_sha256": "c402d68a887ef82dd8b5baa50b5b41bf515989f8b0e1a6b9dd86cef3ad90e91f",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r4-c",
+      "manifest_sha256": "af099cce4d0358e407208f812f10a609c2f0dcf52d0ef0966497129fe0f8e1d4",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r4-rust",
+      "manifest_sha256": "0d2b2e0b710a3f4c2ab953622629db1ffe350eb4765b818192f1b826fd738c6c",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r5-c",
+      "manifest_sha256": "ae4014f370d398076d76bce0076875051e3ac282070b4d86a9b270c1dfb2a63d",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-hit-r5-rust",
+      "manifest_sha256": "b69d79e27ef05b6b7f84c4fa6e31d9b3c588d9d1ebaa725c60ea70b1832d48d3",
+      "files_verified": 43
+    },
+    {
+      "label": "tcp-miss-r1-c",
+      "manifest_sha256": "4841ecf2070f31fc515297b8a34b290b250abde4c74092f55e928179c12615e6",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r1-rust",
+      "manifest_sha256": "0587f34601a46f073aeafef2a32a2ca3a3ced7146e4037a4f9f7459d04efb3a2",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r2-c",
+      "manifest_sha256": "c88332418a183afdc00a9c29b36a2fa57e44d724741983a914a031916caef05f",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r2-rust",
+      "manifest_sha256": "f91c459af10500a5b24441230227a0acfeb64a666607829bac604717d94b3317",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r3-c",
+      "manifest_sha256": "18f03ca56c49019e2a4b8fa084ee616d938a960c92a9471e25f5abcbbc88b6f9",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r3-rust",
+      "manifest_sha256": "697a4a43cc00dcf98448664c8e1268ec2b0235d2ca04ccda0085a3b3d349d9d1",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r4-c",
+      "manifest_sha256": "206a200a8df8a095b949c761d2246f984bb1742c93e83b911d3dd8b8d9943448",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r4-rust",
+      "manifest_sha256": "0c68effa66d3048c441c6b5521345e70a7d1fa3908d0c7727cd0c967a91df359",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r5-c",
+      "manifest_sha256": "7d05bd3370678a949c11dba945660a96028520c71c5c60a85b880030413c3abc",
+      "files_verified": 37
+    },
+    {
+      "label": "tcp-miss-r5-rust",
+      "manifest_sha256": "ce08d6e8f9f81980f0f02d7c3f33741c440d6fd671ffbe4111607542badf9c27",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-hit-r1-c",
+      "manifest_sha256": "a0f9830cd6537d41032437488f72b391c3c9251516d5026585f426c337f09535",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r1-rust",
+      "manifest_sha256": "fe7ffde6c7c68dc20fa00460e8e069b18c3021f5fbbdbb2aa3bcb671e8f420fc",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r2-c",
+      "manifest_sha256": "17e691847b5bf6a5ca55ea3c08f9988958db1478a42267b047577ab299fe68ad",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r2-rust",
+      "manifest_sha256": "62b05189f8865ddecd153130b473bcb79e43a169f14dd98b85c82a0123077d8b",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r3-c",
+      "manifest_sha256": "6646b990fb8c2e648117e88b71704039620f44a195a20c3100b60b4a98eb391d",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r3-rust",
+      "manifest_sha256": "2fef08495b6f9de631d30227f078881842dfcbc10b285e4676e6781bd084e763",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r4-c",
+      "manifest_sha256": "fe21d5be35075a137f62b1e0a847ec500934fade8690c4ca6f0655ca5638d4ff",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r4-rust",
+      "manifest_sha256": "9988384bd5283ce2f7541bccea583b693e56655d3e1a4c6a521dc021e8c15450",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r5-c",
+      "manifest_sha256": "3ca825a2125ca1ca16ceefa3c6748a6978bff0610540867c0fd9e3d49e8e1f68",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-hit-r5-rust",
+      "manifest_sha256": "d29429fa9cf41608a074bc56e1a44c468889d6dcad8b9d0aeed12779894a5473",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-miss-r1-c",
+      "manifest_sha256": "d013c898ae8a9a64b1b7153540589c9244b98fdc1c80c41a645c769beb6dcf57",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r1-rust",
+      "manifest_sha256": "929e000e35d9e56f0e498cc54f7070bfd59cb6ab2d2511a806f046c39c85d56b",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r2-c",
+      "manifest_sha256": "6c8f9ed2cd4d86c66ac9e109517f738448684ae860b5348eeaa755ae04a1ae5d",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r2-rust",
+      "manifest_sha256": "27fa1c06967dad0144d80e67873c019238b1d71aa080ba9c18a04824d4d7cb1b",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r3-c",
+      "manifest_sha256": "359cc068d10bf6785a8b7bc9b9b9a1cdecf1467dcf2804ee36f1d241a8d012f9",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r3-rust",
+      "manifest_sha256": "756ccb3ffc08575537bdf9c95b455a8efa53f1a06cbd0dc96616cd35cfc60cec",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r4-c",
+      "manifest_sha256": "6aca78420873a7d2cf2dbff6296f665ca59e92f76c62a050193403b430ada9fd",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r4-rust",
+      "manifest_sha256": "82f986a1d25e90bee98a85243c00df604550e4f27507f346d79d08f1ef4c7000",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r5-c",
+      "manifest_sha256": "8e63c2b687447bddece77e15018209be7799580abefa41f4e31c1a922495b891",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r5-rust",
+      "manifest_sha256": "e3d34e3bc036d6b35c9b9fcec51de7d24453fc3245aec39d1b1a1fa6c1dde314",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r6-c",
+      "manifest_sha256": "fddfc33843a7bfa2b10d1f05418ec9b6f1b1c7c4b0932c8c5bbae768776fbf53",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-miss-r6-rust",
+      "manifest_sha256": "8ee53e53d62c0e8e774ec583295d3ae01fc3f6d01c875eb9830981f37402d634",
+      "files_verified": 37
+    },
+    {
+      "label": "udp-mixed-r1-c",
+      "manifest_sha256": "de243a1bf74dfe93d537dbb0776bedcc735485dc687f36825cb3b72a0e38941b",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r1-rust",
+      "manifest_sha256": "f2da4d6831ce179cd5ab424afa9b3b35e52c831738f8566e2f1e4c2b94d60e13",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r2-c",
+      "manifest_sha256": "323ec42fc66bc3c49fdd0d72e9328ec23fd7bbc7e22c9727e59c1812e423dc33",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r2-rust",
+      "manifest_sha256": "fa6bd1094236e7b5260e014ebbeba128aceca5012c0062ccf948745042abea6e",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r3-c",
+      "manifest_sha256": "54176b66641d6729e7e7e92c28df899bf01229c0af2d82adc920c00458fa8413",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r3-rust",
+      "manifest_sha256": "c6d200ea9f73b7267086f9438001974dc8a1c99b80be084e514a319e2d521d97",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r4-c",
+      "manifest_sha256": "39e8946d0c7050bef1e2295625f6c55836128cb4a6ec5ac2c19139bd8987cf4d",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r4-rust",
+      "manifest_sha256": "78d23f637d5cdeb1038db3f18d6a6d02842f26d85a29bc116f381fef55cfdb50",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r5-c",
+      "manifest_sha256": "a94261a0203578d50c5367c6288fcf47caa48b127a4e2b74e401029c5340f704",
+      "files_verified": 43
+    },
+    {
+      "label": "udp-mixed-r5-rust",
+      "manifest_sha256": "ea288323e51277556b5c63f57620029c06494d9c0f3555bf2e817b092523d4f3",
+      "files_verified": 43
+    }
+  ],
+  "limits": [
+    "Health polling can miss brief events between probes.",
+    "HTTP loopback 403 validates the existing management entry response, not a full authenticated LuCI interaction.",
+    "No maximum-capacity, long-duration deployment, physical DHCP client, or installation-integration claim.",
+    "The retained UDP-miss anomaly remains unexplained; the conditional subset does not repair original qualification."
+  ]
+}
