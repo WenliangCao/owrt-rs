@@ -106,6 +106,7 @@ def fetch(work, spec, apk):
 
 
 def prepare(work, spec, apk):
+    assert os.geteuid() == 0, "native image prepare requires root to verify protected stock configuration"
     out = work / "out"
     root = work / "native/base-rootfs"
     binary_root = work / "verify/rootfs"
@@ -173,7 +174,10 @@ def prepare(work, spec, apk):
     listing.write_text("\n".join(sorted("/" + str(p.relative_to(payload))
                        for p in payload.rglob("*") if p.is_file())) + "\n")
     preserve_directory_modes(payload, root)
-    epoch = int(run("git", "-C", REPO, "show", "-s", "--format=%ct", image["source_commit"]))
+    # prepare runs as root while Actions' checkout belongs to the runner.
+    # Trust only this invocation's repository, never a global wildcard.
+    epoch = int(run("git", "-c", "safe.directory=" + str(REPO), "-C", REPO,
+                    "show", "-s", "--format=%ct", image["source_commit"]))
     for path in [*payload.rglob("*"), payload]:
         os.utime(path, (epoch, epoch))
     # Explicit root ownership; the payload is disposable and contains no

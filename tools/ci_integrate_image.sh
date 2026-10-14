@@ -17,7 +17,9 @@ mkdir "$work/native/base-image"
 tar -xf "$work/dl/$stock" -C "$work/native/base-image"
 sudo -n unsquashfs -n -d "$work/native/base-rootfs" \
     "$work"/native/base-image/sysupgrade-*/root > "$work/native/base-unpack.log" 2>&1
-python3 "$repo/tools/native_image.py" prepare "$work" "$spec" "$apk"
+# Exact stock configuration includes root-owned 0600 files. Preserve those
+# modes and compare as root, just as the final extracted-filesystem audit does.
+sudo -n python3 "$repo/tools/native_image.py" prepare "$work" "$spec" "$apk"
 
 # Reuse the verified original filesystem. ImageBuilder's ordinary package
 # install resolves rolling feeds, even for a fixed OpenWrt release number.

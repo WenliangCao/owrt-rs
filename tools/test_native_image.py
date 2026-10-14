@@ -19,6 +19,13 @@ FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 
 
 class NativeDnsmasqTests(unittest.TestCase):
+    def test_prepare_rejects_unprivileged_before_reading_or_mutating_files(self):
+        with patch.object(native_image.os, "geteuid", return_value=1000), \
+                patch.object(native_image, "read", side_effect=AssertionError("read before privilege gate")), \
+                patch.object(native_image, "install", side_effect=AssertionError("write before privilege gate")):
+            with self.assertRaisesRegex(AssertionError, "requires root"):
+                native_image.prepare(Path("/unused"), SPEC, Path("/unused-apk"))
+
     def test_reinstall_fixtures_cover_every_original_package_owner(self):
         owners = {component["stock_package"] for component in SPEC["components"].values()}
         owners |= {item["stock_package"] for item in SPEC["integration_files"].values()}
