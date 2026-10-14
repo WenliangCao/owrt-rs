@@ -1,0 +1,387 @@
+{
+  "status": "partial-baseline-independent-audit",
+  "summary_sha256": "af43f409794da44b7f75b9b6c0a9f3cc72a42828ffb61a8e4ce118d664d4a5fe",
+  "scope": "Recomputed original C/deployed baseline only; no research candidate is evaluated.",
+  "deployed_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "reference_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "traffic_windows_verified": 37,
+  "archived_member_hashes_verified": 1531,
+  "all_recomputed_latency_and_cpu_values_match_primary_analyzer": true,
+  "completed_five_pair_scenes": [
+    {
+      "scene": "udp-hit",
+      "c": {
+        "p50_ms": {
+          "median": 0.135418,
+          "min": 0.127263,
+          "max": 0.140188,
+          "relative_full_range_pct": 9.54452140778923,
+          "rounds": [
+            0.140188,
+            0.138035,
+            0.13134,
+            0.135418,
+            0.127263
+          ]
+        },
+        "p95_ms": {
+          "median": 0.299076,
+          "min": 0.202281,
+          "max": 0.373786,
+          "relative_full_range_pct": 57.344955797188675,
+          "rounds": [
+            0.331774,
+            0.299076,
+            0.202281,
+            0.373786,
+            0.210668
+          ]
+        },
+        "cpu_us": {
+          "median": 82.0,
+          "min": 74.0,
+          "max": 84.0,
+          "relative_full_range_pct": 12.195121951219512,
+          "rounds": [
+            84.0,
+            82.0,
+            74.0,
+            82.0,
+            74.0
+          ]
+        },
+        "cpu_ticks": {
+          "median": 41,
+          "min": 37,
+          "max": 42,
+          "relative_full_range_pct": 12.195121951219512,
+          "rounds": [
+            42,
+            41,
+            37,
+            41,
+            37
+          ]
+        }
+      },
+      "rust": {
+        "p50_ms": {
+          "median": 0.194974,
+          "min": 0.190204,
+          "max": 0.201127,
+          "relative_full_range_pct": 5.602285432929513,
+          "rounds": [
+            0.201127,
+            0.194974,
+            0.190204,
+            0.193203,
+            0.200434
+          ]
+        },
+        "p95_ms": {
+          "median": 0.404637,
+          "min": 0.300925,
+          "max": 0.550288,
+          "relative_full_range_pct": 61.62634657730261,
+          "rounds": [
+            0.404637,
+            0.356784,
+            0.300925,
+            0.425186,
+            0.550288
+          ]
+        },
+        "cpu_us": {
+          "median": 138.0,
+          "min": 130.0,
+          "max": 144.0,
+          "relative_full_range_pct": 10.144927536231885,
+          "rounds": [
+            142.0,
+            138.0,
+            130.0,
+            136.0,
+            144.0
+          ]
+        },
+        "cpu_ticks": {
+          "median": 69,
+          "min": 65,
+          "max": 72,
+          "relative_full_range_pct": 10.144927536231885,
+          "rounds": [
+            71,
+            69,
+            65,
+            68,
+            72
+          ]
+        }
+      },
+      "planning_only_floors": {
+        "p50_baseline_full_range_us": 10.922999999999988,
+        "p95_baseline_full_range_us": 249.363,
+        "cpu_one_tick_us_per_operation": 2.0,
+        "cpu_precision_requires_more_than_us_per_operation": 16.0,
+        "cpu_observed_baseline_and_precision_minimum_integral_tick_gap": 9,
+        "cpu_minimum_integral_gap_us_per_operation": 18.0,
+        "cpu_minimum_integral_gap_pct": 13.043478260869565
+      }
+    },
+    {
+      "scene": "udp-miss",
+      "c": {
+        "p50_ms": {
+          "median": 1.646621,
+          "min": 1.630616,
+          "max": 1.661477,
+          "relative_full_range_pct": 1.874201774421681,
+          "rounds": [
+            1.652551,
+            1.661477,
+            1.642779,
+            1.646621,
+            1.630616
+          ]
+        },
+        "p95_ms": {
+          "median": 2.913624,
+          "min": 1.936772,
+          "max": 3.674656,
+          "relative_full_range_pct": 59.64681784609134,
+          "rounds": [
+            2.913624,
+            3.674656,
+            1.936772,
+            2.987631,
+            1.991931
+          ]
+        },
+        "cpu_us": {
+          "median": 406.0,
+          "min": 380.0,
+          "max": 422.0,
+          "relative_full_range_pct": 10.344827586206897,
+          "rounds": [
+            406.0,
+            422.0,
+            400.0,
+            406.0,
+            380.0
+          ]
+        },
+        "cpu_ticks": {
+          "median": 203,
+          "min": 190,
+          "max": 211,
+          "relative_full_range_pct": 10.344827586206897,
+          "rounds": [
+            203,
+            211,
+            200,
+            203,
+            190
+          ]
+        }
+      },
+      "rust": {
+        "p50_ms": {
+          "median": 1.73472,
+          "min": 1.719949,
+          "max": 1.736644,
+          "relative_full_range_pct": 0.9624031543995646,
+          "rounds": [
+            1.736644,
+            1.736113,
+            1.719949,
+            1.73472,
+            1.733662
+          ]
+        },
+        "p95_ms": {
+          "median": 2.262615,
+          "min": 2.144378,
+          "max": 2.649103,
+          "relative_full_range_pct": 22.307153448554004,
+          "rounds": [
+            2.262615,
+            2.649103,
+            2.336559,
+            2.144817,
+            2.144378
+          ]
+        },
+        "cpu_us": {
+          "median": 522.0,
+          "min": 512.0,
+          "max": 536.0,
+          "relative_full_range_pct": 4.597701149425287,
+          "rounds": [
+            522.0,
+            536.0,
+            518.0,
+            512.0,
+            524.0
+          ]
+        },
+        "cpu_ticks": {
+          "median": 261,
+          "min": 256,
+          "max": 268,
+          "relative_full_range_pct": 4.597701149425287,
+          "rounds": [
+            261,
+            268,
+            259,
+            256,
+            262
+          ]
+        }
+      },
+      "planning_only_floors": {
+        "p50_baseline_full_range_us": 16.695000000000128,
+        "p95_baseline_full_range_us": 504.7250000000001,
+        "cpu_one_tick_us_per_operation": 2.0,
+        "cpu_precision_requires_more_than_us_per_operation": 16.0,
+        "cpu_observed_baseline_and_precision_minimum_integral_tick_gap": 13,
+        "cpu_minimum_integral_gap_us_per_operation": 26.0,
+        "cpu_minimum_integral_gap_pct": 4.980842911877395
+      }
+    },
+    {
+      "scene": "udp-mixed",
+      "c": {
+        "p50_ms": {
+          "median": 0.148343,
+          "min": 0.135572,
+          "max": 0.155038,
+          "relative_full_range_pct": 13.122290906884727,
+          "rounds": [
+            0.155038,
+            0.148343,
+            0.143342,
+            0.135572,
+            0.154961
+          ]
+        },
+        "p95_ms": {
+          "median": 1.742968,
+          "min": 1.691791,
+          "max": 1.9958,
+          "relative_full_range_pct": 17.442029916785618,
+          "rounds": [
+            1.9958,
+            1.756424,
+            1.691791,
+            1.701114,
+            1.742968
+          ]
+        },
+        "cpu_us": {
+          "median": 148.0,
+          "min": 142.0,
+          "max": 148.0,
+          "relative_full_range_pct": 4.054054054054054,
+          "rounds": [
+            148.0,
+            148.0,
+            144.0,
+            142.0,
+            148.0
+          ]
+        },
+        "cpu_ticks": {
+          "median": 74,
+          "min": 71,
+          "max": 74,
+          "relative_full_range_pct": 4.054054054054054,
+          "rounds": [
+            74,
+            74,
+            72,
+            71,
+            74
+          ]
+        }
+      },
+      "rust": {
+        "p50_ms": {
+          "median": 0.207436,
+          "min": 0.203048,
+          "max": 0.208514,
+          "relative_full_range_pct": 2.6350295994909265,
+          "rounds": [
+            0.207436,
+            0.205743,
+            0.203048,
+            0.208514,
+            0.208436
+          ]
+        },
+        "p95_ms": {
+          "median": 1.809673,
+          "min": 1.784667,
+          "max": 1.823743,
+          "relative_full_range_pct": 2.1592851305180485,
+          "rounds": [
+            1.784667,
+            1.785126,
+            1.823743,
+            1.821223,
+            1.809673
+          ]
+        },
+        "cpu_us": {
+          "median": 218.0,
+          "min": 216.0,
+          "max": 218.0,
+          "relative_full_range_pct": 0.9174311926605505,
+          "rounds": [
+            218.0,
+            216.0,
+            218.0,
+            216.0,
+            218.0
+          ]
+        },
+        "cpu_ticks": {
+          "median": 109,
+          "min": 108,
+          "max": 109,
+          "relative_full_range_pct": 0.9174311926605505,
+          "rounds": [
+            109,
+            108,
+            109,
+            108,
+            109
+          ]
+        }
+      },
+      "planning_only_floors": {
+        "p50_baseline_full_range_us": 5.465999999999998,
+        "p95_baseline_full_range_us": 39.07599999999989,
+        "cpu_one_tick_us_per_operation": 2.0,
+        "cpu_precision_requires_more_than_us_per_operation": 16.0,
+        "cpu_observed_baseline_and_precision_minimum_integral_tick_gap": 9,
+        "cpu_minimum_integral_gap_us_per_operation": 18.0,
+        "cpu_minimum_integral_gap_pct": 8.256880733944953
+      }
+    }
+  ],
+  "incomplete_scenes_not_ranked": [
+    {
+      "scene": "tcp-hit",
+      "windows": {
+        "c": 3,
+        "rust": 4
+      }
+    }
+  ],
+  "limitations": [
+    "These are planning floors from this baseline series, not new acceptance thresholds.",
+    "Final W uses both fresh baseline and candidate ranges; candidate variation can raise the floor.",
+    "At least four of five fresh pairs must agree and every CPU window must have at least ten ticks.",
+    "Current data cannot prove remaining cost is irreducible or establish a candidate stopping point."
+  ]
+}

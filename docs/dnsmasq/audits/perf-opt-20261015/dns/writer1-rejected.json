@@ -1,0 +1,165 @@
+{
+  "label": "DNS-4 / WRITER-1",
+  "decision": "reject from candidate B; no full timing requested",
+  "reason": "Ordinary hit removes about54 user instructions per query (1.038% of this native core-only probe), before accounting for service/syscall work. Expected whole-daemon benefit is below current device variation/CPU precision. Eight-RR auxiliary result does not establish a frozen-scene benefit.",
+  "source_diff_ref": "30828e02, wire.rs and wire_tests.rs only; remote screen applied atop2979b341 withoutDNS-3",
+  "baseline_source": "2979b341",
+  "normal_allocator": "System unchanged",
+  "operations_per_process": 500000,
+  "rounds": 3,
+  "rows": [
+    {
+      "scene": "hit",
+      "clear2": {
+        "instructions": [
+          2580400960,
+          2580489345,
+          2580500722
+        ],
+        "cycles": [
+          1013126610,
+          1007704900,
+          1016854857
+        ],
+        "median_instructions": 2580489345
+      },
+      "writer1": {
+        "instructions": [
+          2553698944,
+          2553615918,
+          2553763005
+        ],
+        "cycles": [
+          998811273,
+          998857019,
+          1000930416
+        ],
+        "median_instructions": 2553698944
+      },
+      "change_percent": -1.0381907234730314
+    },
+    {
+      "scene": "miss",
+      "clear2": {
+        "instructions": [
+          1819497378,
+          1819497814,
+          1819497718
+        ],
+        "cycles": [
+          734797356,
+          735972659,
+          736372477
+        ],
+        "median_instructions": 1819497718
+      },
+      "writer1": {
+        "instructions": [
+          1819997836,
+          1819998383,
+          1819998399
+        ],
+        "cycles": [
+          734565389,
+          732278045,
+          732181753
+        ],
+        "median_instructions": 1819998383
+      },
+      "change_percent": 0.0275166599576826
+    },
+    {
+      "scene": "host",
+      "clear2": {
+        "instructions": [
+          3380832903,
+          3415417207,
+          3399411014
+        ],
+        "cycles": [
+          1311346990,
+          1320522013,
+          1315370682
+        ],
+        "median_instructions": 3399411014
+      },
+      "writer1": {
+        "instructions": [
+          3388517464,
+          3379097668,
+          3359876715
+        ],
+        "cycles": [
+          1316297609,
+          1312509065,
+          1303638861
+        ],
+        "median_instructions": 3379097668
+      },
+      "change_percent": -0.5975548680739795
+    },
+    {
+      "scene": "rrset",
+      "clear2": {
+        "instructions": [
+          6319975162,
+          6319974462,
+          6320560983
+        ],
+        "cycles": [
+          2227374684,
+          2233457347,
+          2233896575
+        ],
+        "median_instructions": 6319975162
+      },
+      "writer1": {
+        "instructions": [
+          6106732946,
+          6106732570,
+          6106732546
+        ],
+        "cycles": [
+          2172958317,
+          2170710126,
+          2168435863
+        ],
+        "median_instructions": 6106732570
+      },
+      "change_percent": -3.3741049060154515
+    },
+    {
+      "scene": "cname",
+      "clear2": {
+        "instructions": [
+          4948180872,
+          4948060218,
+          4948068377
+        ],
+        "cycles": [
+          1905707238,
+          1915893310,
+          1909191350
+        ],
+        "median_instructions": 4948068377
+      },
+      "writer1": {
+        "instructions": [
+          4925087945,
+          4925080120,
+          4924741612
+        ],
+        "cycles": [
+          1899644788,
+          1906197425,
+          1905880319
+        ],
+        "median_instructions": 4925080120
+      },
+      "change_percent": -0.4645905280302065
+    }
+  ],
+  "tests": "24 wire-unit tests including untrusted interior/second-question offsets passed; complete gates not run because direction rejected.",
+  "raw_sha256": "ac40c35de27e02b241c81ef8028feb6caf421d5776dda5a22d0385f056db4c92",
+  "qualification": "Counter-only screening while other non-timing work could run; cycles are not performance qualification."
+}
