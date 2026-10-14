@@ -1,0 +1,1107 @@
+{
+  "scope": "Fresh exact-image Oracle network/mount/PID namespaces; no physical router operations; product source unchanged.",
+  "reviewed_head": "aa8f12db",
+  "product_commit": "807db8a15e43452414acc048874bf04a4c639bd9",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+  "original_b1": [
+    {
+      "side": "c",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial": {
+        "VmPeak": 1332,
+        "VmSize": 1332,
+        "VmRSS": 1040
+      },
+      "limit_bytes": 2412544,
+      "after_reload_exit": null,
+      "pressure_status": {
+        "VmPeak": 2332,
+        "VmSize": 2332,
+        "VmRSS": 1972
+      },
+      "before_stop_exit": null,
+      "exit": 0,
+      "enomem_count": 20455,
+      "pressure_ready": true,
+      "recovered": true,
+      "last_host_answers": []
+    },
+    {
+      "side": "rust",
+      "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "initial": {
+        "VmPeak": 2328,
+        "VmSize": 2328,
+        "VmRSS": 1912
+      },
+      "limit_bytes": 3432448,
+      "after_reload_exit": null,
+      "pressure_status": {
+        "VmPeak": 3312,
+        "VmSize": 2348,
+        "VmRSS": 1936
+      },
+      "before_stop_exit": null,
+      "exit": 0,
+      "enomem_count": 26418,
+      "pressure_ready": true,
+      "recovered": true,
+      "last_host_answers": []
+    }
+  ],
+  "no_pressure_control": [
+    {
+      "side": "c",
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial": {
+        "VmPeak": 1332,
+        "VmSize": 1332,
+        "VmRSS": 1036
+      },
+      "limit_bytes": null,
+      "after_reload_exit": null,
+      "pressure_status": {
+        "VmPeak": 4264,
+        "VmSize": 4264,
+        "VmRSS": 3952
+      },
+      "before_stop_exit": null,
+      "exit": 0,
+      "enomem_count": 0,
+      "pressure_ready": true,
+      "recovered": true,
+      "last_host_answers": [
+        {
+          "section": "answer",
+          "name": "h029999.test",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.250"
+        }
+      ]
+    },
+    {
+      "side": "rust",
+      "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "initial": {
+        "VmPeak": 2328,
+        "VmSize": 2328,
+        "VmRSS": 2032
+      },
+      "limit_bytes": null,
+      "after_reload_exit": null,
+      "pressure_status": {
+        "VmPeak": 16384,
+        "VmSize": 16384,
+        "VmRSS": 15916
+      },
+      "before_stop_exit": null,
+      "exit": 0,
+      "enomem_count": 0,
+      "pressure_ready": true,
+      "recovered": true,
+      "last_host_answers": [
+        {
+          "section": "answer",
+          "name": "h029999.test",
+          "type": 1,
+          "class": 1,
+          "ttl": 0,
+          "data": "192.0.2.250"
+        }
+      ]
+    }
+  ],
+  "sweep": {
+    "driver_sha256": "510802fb16a59b0f05c0a70abc617654a1b8dafa6eb6198bfd8651207d7aeb61",
+    "rust_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+    "cases": [
+      {
+        "side": "c",
+        "initial_rows": 1,
+        "headroom_kib": 256,
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1116
+        },
+        "limit_bytes": 1626112,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 1564,
+          "VmSize": 1564,
+          "VmRSS": 1352
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 27636,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial1-extra256/result.json",
+        "trace_tail": [
+          "12    --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "19    <... munmap resumed>)             = 0",
+          "12    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=19, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 1,
+        "headroom_kib": 256,
+        "initial": {
+          "VmPeak": 2328,
+          "VmSize": 2328,
+          "VmRSS": 1984
+        },
+        "limit_bytes": 2646016,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2568,
+          "VmSize": 2332,
+          "VmRSS": 1992
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 29106,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial1-extra256/result.json",
+        "trace_tail": [
+          "29    munmap(0xfd888d3c1000, 16384)     = 0",
+          "29    munmap(0xfd888d3c6000, 4096)      = 0",
+          "29    munmap(0xfd888d3c8000, 16384)     = 0"
+        ]
+      },
+      {
+        "side": "c",
+        "initial_rows": 1,
+        "headroom_kib": 512,
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1120
+        },
+        "limit_bytes": 1888256,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 1816,
+          "VmSize": 1816,
+          "VmRSS": 1600
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 25236,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial1-extra512/result.json",
+        "trace_tail": [
+          "42    --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "49    <... munmap resumed>)             = 0",
+          "42    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=49, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 1,
+        "headroom_kib": 512,
+        "initial": {
+          "VmPeak": 2328,
+          "VmSize": 2328,
+          "VmRSS": 1928
+        },
+        "limit_bytes": 2908160,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2788,
+          "VmSize": 2336,
+          "VmRSS": 1940
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 28210,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial1-extra512/result.json",
+        "trace_tail": [
+          "59    munmap(0xf23b4800f000, 16384)     = 0",
+          "59    munmap(0xf23b48014000, 4096)      = 0",
+          "59    munmap(0xf23b48016000, 16384)     = 0"
+        ]
+      },
+      {
+        "side": "c",
+        "initial_rows": 1,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1120
+        },
+        "limit_bytes": 2412544,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2300,
+          "VmSize": 2300,
+          "VmRSS": 2072
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 20436,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial1-extra1024/result.json",
+        "trace_tail": [
+          "72    --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "79    <... munmap resumed>)             = 0",
+          "72    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=79, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 1,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 2328,
+          "VmSize": 2328,
+          "VmRSS": 1864
+        },
+        "limit_bytes": 3432448,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 3232,
+          "VmSize": 2344,
+          "VmRSS": 1884
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 26418,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial1-extra1024/result.json",
+        "trace_tail": [
+          "89    munmap(0xeffe0860e000, 16384)     = 0",
+          "89    munmap(0xeffe08613000, 4096)      = 0",
+          "89    munmap(0xeffe08615000, 16384)     = 0"
+        ]
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1328
+        },
+        "limit_bytes": 1855488,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 1800,
+          "VmSize": 1800,
+          "VmRSS": 1552
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 25800,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial2000-extra256/result.json",
+        "trace_tail": [
+          "109   munmap(0xf86d69e65000, 69632)     = 0",
+          "109   --- SIGALRM {si_signo=SIGALRM, si_code=SI_USER, si_pid=102, si_uid=0} ---",
+          "102   --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=109, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "initial": {
+          "VmPeak": 3428,
+          "VmSize": 3428,
+          "VmRSS": 2992
+        },
+        "limit_bytes": 3772416,
+        "pressure_exit": -6,
+        "pressure_status": null,
+        "exit_before_stop": -6,
+        "exit": -6,
+        "enomem_count": 26638,
+        "error": null,
+        "after_hup_answers": {},
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial2000-extra256/result.json",
+        "trace_tail": [
+          "119   mmap(NULL, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)",
+          "119   --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=119, si_uid=0} ---",
+          "119   +++ killed by SIGABRT (core dumped) +++"
+        ]
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 512,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1332
+        },
+        "limit_bytes": 2117632,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2056,
+          "VmSize": 2056,
+          "VmRSS": 1844
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 22836,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial2000-extra512/result.json",
+        "trace_tail": [
+          "132   --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "139   <... munmap resumed>)             = 0",
+          "132   --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=139, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 512,
+        "initial": {
+          "VmPeak": 3428,
+          "VmSize": 3428,
+          "VmRSS": 3036
+        },
+        "limit_bytes": 4034560,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 3916,
+          "VmSize": 3384,
+          "VmRSS": 2972
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 26418,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial2000-extra512/result.json",
+        "trace_tail": [
+          "149   munmap(0xf003bb4b9000, 16384)     = 0",
+          "149   munmap(0xf003bb4be000, 4096)      = 0",
+          "149   munmap(0xf003bb4c0000, 16384)     = 0"
+        ]
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1328
+        },
+        "limit_bytes": 2641920,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2520,
+          "VmSize": 2520,
+          "VmRSS": 2320
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 18036,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "162   --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "169   <... munmap resumed>)             = 0",
+          "162   --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=169, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 3428,
+          "VmSize": 3428,
+          "VmRSS": 3024
+        },
+        "limit_bytes": 4558848,
+        "pressure_exit": -6,
+        "pressure_status": null,
+        "exit_before_stop": -6,
+        "exit": -6,
+        "enomem_count": 23848,
+        "error": null,
+        "after_hup_answers": {},
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "179   mmap(NULL, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)",
+          "179   --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=179, si_uid=0} ---",
+          "179   +++ killed by SIGABRT (core dumped) +++"
+        ]
+      }
+    ]
+  },
+  "sweep_repeat": {
+    "driver_sha256": "510802fb16a59b0f05c0a70abc617654a1b8dafa6eb6198bfd8651207d7aeb61",
+    "rust_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+    "cases": [
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1328
+        },
+        "limit_bytes": 1855488,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 1800,
+          "VmSize": 1800,
+          "VmRSS": 1548
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 25800,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/c-initial2000-extra256/result.json",
+        "trace_tail": [
+          "19    munmap(0xf23a25df7000, 69632)     = 0",
+          "19    --- SIGALRM {si_signo=SIGALRM, si_code=SI_USER, si_pid=12, si_uid=0} ---",
+          "12    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=19, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "initial": {
+          "VmPeak": 3428,
+          "VmSize": 3428,
+          "VmRSS": 3028
+        },
+        "limit_bytes": 3772416,
+        "pressure_exit": -6,
+        "pressure_status": null,
+        "exit_before_stop": -6,
+        "exit": -6,
+        "enomem_count": 26638,
+        "error": null,
+        "after_hup_answers": {},
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/rust-initial2000-extra256/result.json",
+        "trace_tail": [
+          "29    mmap(NULL, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)",
+          "29    --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=29, si_uid=0} ---",
+          "29    +++ killed by SIGABRT (core dumped) +++"
+        ]
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1328
+        },
+        "limit_bytes": 2641920,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2520,
+          "VmSize": 2520,
+          "VmRSS": 2324
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 18036,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/c-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "42    --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "49    munmap(0xf6e6a35db000, 69632)     = 0",
+          "42    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=49, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 3428,
+          "VmSize": 3428,
+          "VmRSS": 3040
+        },
+        "limit_bytes": 4558848,
+        "pressure_exit": -6,
+        "pressure_status": null,
+        "exit_before_stop": -6,
+        "exit": -6,
+        "enomem_count": 23848,
+        "error": null,
+        "after_hup_answers": {},
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/rust-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "59    mmap(NULL, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)",
+          "59    --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=59, si_uid=0} ---",
+          "59    +++ killed by SIGABRT (core dumped) +++"
+        ]
+      }
+    ]
+  },
+  "sweep_final": {
+    "driver_sha256": "a80098a56218072e5377d66cce5ecdb0b0e3bf5f77d3d16e44d43a2c98edc625",
+    "rust_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+    "cases": [
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1328
+        },
+        "limit_bytes": 2641920,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2520,
+          "VmSize": 2520,
+          "VmRSS": 2324
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 18036,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-final-03/c-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "19    munmap(0xf2a7e819c000, 69632)     = 0",
+          "12    --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "12    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=19, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 3428,
+          "VmSize": 3428,
+          "VmRSS": 3016
+        },
+        "limit_bytes": 4558848,
+        "pressure_exit": -6,
+        "pressure_status": null,
+        "exit_before_stop": -6,
+        "exit": -6,
+        "enomem_count": 23848,
+        "error": null,
+        "after_hup_answers": {},
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-final-03/rust-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "29    mmap(NULL, 32768, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)",
+          "29    --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=29, si_uid=0} ---",
+          "29    +++ killed by SIGABRT (core dumped) +++"
+        ]
+      }
+    ]
+  },
+  "old_rust_negative": {
+    "driver_sha256": "510802fb16a59b0f05c0a70abc617654a1b8dafa6eb6198bfd8651207d7aeb61",
+    "rust_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+    "cases": [
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1320
+        },
+        "limit_bytes": 2641920,
+        "pressure_exit": null,
+        "pressure_status": {
+          "VmPeak": 2520,
+          "VmSize": 2520,
+          "VmRSS": 2316
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 18036,
+        "error": null,
+        "after_hup_answers": {
+          "udp": true,
+          "tcp": true
+        },
+        "ready_under_pressure": true,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-old-01/c-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "19    munmap(0xfc0d6e1c4000, 69632)     = 0",
+          "12    --- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=1, si_uid=0} ---",
+          "12    --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=19, si_uid=0, si_status=0, si_utime=0, si_stime=0} ---"
+        ]
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "initial": {
+          "VmPeak": 3420,
+          "VmSize": 3420,
+          "VmRSS": 3084
+        },
+        "limit_bytes": 4550656,
+        "pressure_exit": -6,
+        "pressure_status": null,
+        "exit_before_stop": -6,
+        "exit": -6,
+        "enomem_count": 1,
+        "error": null,
+        "after_hup_answers": {},
+        "ready_under_pressure": false,
+        "raw_result": "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-old-01/rust-initial2000-extra1024/result.json",
+        "trace_tail": [
+          "29    mmap(NULL, 802844, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = -1 ENOMEM (Cannot allocate memory)",
+          "29    --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=29, si_uid=0} ---",
+          "29    +++ killed by SIGABRT (core dumped) +++"
+        ]
+      }
+    ]
+  },
+  "hosts_pressure": [
+    {
+      "side": "c",
+      "source": "file",
+      "expand": false,
+      "passed": true,
+      "limit_bytes": 2412544,
+      "initial_memory": {
+        "VmPeak": 1332,
+        "VmSize": 1332,
+        "VmRSS": 1116
+      },
+      "pressure_tcp_healthy": false,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 40936,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "rust",
+      "source": "file",
+      "expand": false,
+      "passed": true,
+      "limit_bytes": 3526656,
+      "initial_memory": {
+        "VmPeak": 2436,
+        "VmSize": 2420,
+        "VmRSS": 2144
+      },
+      "pressure_tcp_healthy": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 52836,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "c",
+      "source": "file",
+      "expand": true,
+      "passed": true,
+      "limit_bytes": 2412544,
+      "initial_memory": {
+        "VmPeak": 1332,
+        "VmSize": 1332,
+        "VmRSS": 1132
+      },
+      "pressure_tcp_healthy": false,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 99336,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "rust",
+      "source": "file",
+      "expand": true,
+      "passed": true,
+      "limit_bytes": 3526656,
+      "initial_memory": {
+        "VmPeak": 2436,
+        "VmSize": 2420,
+        "VmRSS": 2168
+      },
+      "pressure_tcp_healthy": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 112836,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "c",
+      "source": "directory",
+      "expand": false,
+      "passed": true,
+      "limit_bytes": 2412544,
+      "initial_memory": {
+        "VmPeak": 1336,
+        "VmSize": 1332,
+        "VmRSS": 1120
+      },
+      "pressure_tcp_healthy": false,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 39336,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "rust",
+      "source": "directory",
+      "expand": false,
+      "passed": true,
+      "limit_bytes": 3522560,
+      "initial_memory": {
+        "VmPeak": 2432,
+        "VmSize": 2416,
+        "VmRSS": 2092
+      },
+      "pressure_tcp_healthy": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 148,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "c",
+      "source": "directory",
+      "expand": true,
+      "passed": true,
+      "limit_bytes": 2412544,
+      "initial_memory": {
+        "VmPeak": 1336,
+        "VmSize": 1332,
+        "VmRSS": 1128
+      },
+      "pressure_tcp_healthy": false,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 99336,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    },
+    {
+      "side": "rust",
+      "source": "directory",
+      "expand": true,
+      "passed": true,
+      "limit_bytes": 3522560,
+      "initial_memory": {
+        "VmPeak": 2432,
+        "VmSize": 2416,
+        "VmRSS": 2132
+      },
+      "pressure_tcp_healthy": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 106,
+      "rounds": 2,
+      "udp_ready_and_lease_all": true,
+      "dhcp_ack_all": true,
+      "recovery_udp_tcp": true
+    }
+  ],
+  "logging": [
+    {
+      "side": "c",
+      "scenario": "audit-overflow",
+      "failures": [],
+      "forced": false,
+      "alive_before_release": true,
+      "exit": 0,
+      "held_after_term_seconds": 2.100113911088556,
+      "exit_after_release_seconds": 0.0021987378131598234,
+      "shutdown_records": 1,
+      "query_records_after_term": 8,
+      "answer_records_after_term": 8,
+      "tail_messages": null,
+      "queries": {
+        "sent": 300,
+        "answered": 300
+      }
+    },
+    {
+      "side": "rust",
+      "scenario": "audit-overflow",
+      "failures": [],
+      "forced": false,
+      "alive_before_release": true,
+      "exit": 0,
+      "held_after_term_seconds": 2.100110389990732,
+      "exit_after_release_seconds": 0.002174858935177326,
+      "shutdown_records": 1,
+      "query_records_after_term": 8,
+      "answer_records_after_term": 8,
+      "tail_messages": null,
+      "queries": {
+        "sent": 300,
+        "answered": 300
+      }
+    },
+    {
+      "side": "c",
+      "scenario": "tail-drain",
+      "failures": [],
+      "forced": false,
+      "alive_before_release": true,
+      "exit": 0,
+      "held_after_term_seconds": 0.35009665903635323,
+      "exit_after_release_seconds": 0.002196938032284379,
+      "shutdown_records": 1,
+      "query_records_after_term": 1,
+      "answer_records_after_term": 1,
+      "tail_messages": [
+        "query[A] ready.test from 127.0.0.1",
+        "config ready.test is 192.0.2.41",
+        "exiting on receipt of SIGTERM"
+      ],
+      "queries": null
+    },
+    {
+      "side": "rust",
+      "scenario": "tail-drain",
+      "failures": [],
+      "forced": false,
+      "alive_before_release": true,
+      "exit": 0,
+      "held_after_term_seconds": 0.35011989902704954,
+      "exit_after_release_seconds": 0.002179497852921486,
+      "shutdown_records": 1,
+      "query_records_after_term": 1,
+      "answer_records_after_term": 1,
+      "tail_messages": [
+        "query[A] ready.test from 127.0.0.1",
+        "config ready.test is 192.0.2.41",
+        "exiting on receipt of SIGTERM"
+      ],
+      "queries": null
+    },
+    {
+      "side": "c",
+      "scenario": "peer-close",
+      "failures": [],
+      "forced": false,
+      "alive_before_release": true,
+      "exit": 0,
+      "held_after_term_seconds": 0.3501109390053898,
+      "exit_after_release_seconds": 0.001224610023200512,
+      "shutdown_records": 0,
+      "query_records_after_term": 0,
+      "answer_records_after_term": 0,
+      "tail_messages": null,
+      "queries": null
+    },
+    {
+      "side": "rust",
+      "scenario": "peer-close",
+      "failures": [],
+      "forced": false,
+      "alive_before_release": true,
+      "exit": 0,
+      "held_after_term_seconds": 0.350101059069857,
+      "exit_after_release_seconds": 0.00119968899525702,
+      "shutdown_records": 0,
+      "query_records_after_term": 0,
+      "answer_records_after_term": 0,
+      "tail_messages": null,
+      "queries": null
+    }
+  ],
+  "generation": {
+    "queries_per_side": 204,
+    "rounds": [
+      {
+        "no_round_robin": true,
+        "queries_per_side": 102,
+        "mismatches": [],
+        "c_transition_errors": [],
+        "rust_transition_errors": [],
+        "raw_order_differences": [],
+        "calibration": {
+          "equal": 1,
+          "negative_order_and_ttl": 2
+        }
+      },
+      {
+        "no_round_robin": false,
+        "queries_per_side": 102,
+        "mismatches": [],
+        "c_transition_errors": [],
+        "rust_transition_errors": [],
+        "raw_order_differences": [],
+        "calibration": {
+          "equal": 1,
+          "negative_order_and_ttl": 2
+        }
+      }
+    ]
+  },
+  "tool_sha256": {
+    "run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+    "audit_integration_resources.py": "df8ba4b90e7d2879701acd082de0953b86bc47e56113fdf4695eb2890c511361",
+    "predeploy_hosts_pressure.py": "c92cc4615378eab1f47d0478702516369bdbe6d3e490757f7b7d9d3b6f116361",
+    "predeploy_logging_shutdown.py": "8253df7c77f14aa467da8f548a4b8b9448ba153ed07f30f345c74220bd8c4097",
+    "predeploy_hosts_generation.py": "8a8a40a753f57a4476360f9dc1aa9128a4149b7300761255caf78e02f0009e4a",
+    "dns_hosts_generation_diff.py": "e6024f68833c79d60c3eda6c61d28213c1b7c295db23eca48fbd5b60e308872e",
+    "recheck_hosts_limits.py": "a80098a56218072e5377d66cce5ecdb0b0e3bf5f77d3d16e44d43a2c98edc625"
+  },
+  "tool_revision_note": "sweep-01/repeat-02/old-01 used private/recheck_hosts_limits-v1.py; final-03 uses committed driver. Only rcode extraction changed from absent key to flags & 15; fault setup is identical.",
+  "limits": [
+    "RLIMIT_AS synthetic process ENOMEM, not cgroup/global OOM or physical-router failure rate.",
+    "No failure call stack; SIGABRT is observed, not attributed to a single source allocation.",
+    "Existing hosts snapshot fallback differs from C per-record state under failed reload.",
+    "Fresh B6 replay covers three selected scenarios; the prior 329-scenario logging suite was inspected but not rerun."
+  ],
+  "artifacts": {
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/memory-01/result.json": "bf1c843e9ae1d21a7f7b4d0b9fa3563ab65c699bc27a14ef30ba2f2bef39e316",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/memory-01/memory-c/syscalls.log": "e51e2cb50f1b8ae5c03ee24031875099eae4413bb132718db2b284395bf78bc1",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/memory-01/memory-rust/syscalls.log": "536cb352a55df112643de2f2f598c8a5f6fc936a2b6a2a4b93b49363551028ff",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/memory-control-01/result.json": "5cc2ee22c12701cdb29fe0358da6c6675e8a1f36fea37b3bf75b693f82fda788",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/memory-control-01/memory-c/syscalls.log": "1d573c0280753e2edccf4069ac159705b99325677827bc4c2f03c4121e0a5dc6",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/memory-control-01/memory-rust/syscalls.log": "6733588ddd952a01fb27b72fc71062b75ba22c38b112ab676eb6231382fe4db9",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/result.json": "a5c4cbc3de66fe6f6727a81c5dc3f0966e9b1aab8b6aef7d83d313ae6b779ccd",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial1-extra256/syscalls": "3cff6b5a36bb65bc556e54a185eb4b6466f107fd74073bed0d6ed9135cc7231b",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial1-extra256/syscalls": "32fb3a44c0cf191b66d00f97dc7d284a5fc931b955cf3edc4615bb1624846114",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial1-extra512/syscalls": "f83c3d661a12f75cf84121d19686cc8da007c19e7c2ebfc29283fe0c53d4c3fd",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial1-extra512/syscalls": "afa89bb59d6499005e580c69d019bf77d84cf12e07293c29443dc216bda02d89",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial1-extra1024/syscalls": "c5638802a30de19dd68242c001c6c09141362bf7802ba258cf43b81ba1b44477",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial1-extra1024/syscalls": "ca546a730d3a10ed8aba4f4c3853174e708bfce8fbcee4fec3201daca761d5c6",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial2000-extra256/syscalls": "61ead64814630569ba109f005e803a4047749071575fa283dd2e47077b1bee9a",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial2000-extra256/syscalls": "c00e8e3af713a30b235cf90d4dafecd42d19ed467277128e6edd1ecde7caf405",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial2000-extra512/syscalls": "d2b281c3807883871d5ad9562a4333fa2739783ce35a0ec39c82976dc9f915d9",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial2000-extra512/syscalls": "aa08abbc92345587d80b158f637406fd4095ad08d5534d6d07fd0be2c3f24d6b",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/c-initial2000-extra1024/syscalls": "c804f8d31773941646399cf59d7387c79178a5cea6c2f8a78ed4eb86d4dc1a87",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-01/rust-initial2000-extra1024/syscalls": "cc99e0f5981dbd215ab9faf52618aeab28964fd130cdd62ad0bbe63d5cd15d2e",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/result.json": "e1dfab014cafd6d13dfe93d1617511129ec839188d47d02a0d64916f721ece04",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/c-initial2000-extra256/syscalls": "c24af8fedbfe80c1b978999b4c745757abbf5054155a8bdc40d026b84a539f2d",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/rust-initial2000-extra256/syscalls": "19c8ed3f5345946de9113551c7f2551cd75f3f36777881ef74ffafa8e4f46f11",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/c-initial2000-extra1024/syscalls": "5d385b8e33170669beecac24c35b625065fa6fe0a261f6d392d1cc57f3045b52",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-repeat-02/rust-initial2000-extra1024/syscalls": "b129c314ff4eae3a079dbe7205ed167bee6d29c06dfd308f0d4e0a80fa15e021",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-final-03/result.json": "b84ae344891406fbd673598eb814a47093a053bceb80ec2f51b9d83f34bb9aff",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-final-03/c-initial2000-extra1024/syscalls": "e8319221f705856b6da1121b87ec7cb7f520c02b06289f153d960c7b769356f8",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-final-03/rust-initial2000-extra1024/syscalls": "47f0270c7f406d300eabf138943fe1ca6e9605ad5af2f9ba222ec5b979833201",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-old-01/result.json": "43914c8432a3c87664009ef29491e3e3673f3f668c7e331bca404120c2568d70",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-old-01/c-initial2000-extra1024/syscalls": "a85ebc7ae0cd3c8d8d932e3bcb580d440496be5d25975176930c535603be0825",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/sweep-old-01/rust-initial2000-extra1024/syscalls": "9d78796387dfd6e905ff27577fb13a9b90f15954900f6c76cbeef3a59337303b",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/pressure-01/result.json": "0cb80af474f9fbdeab70dec71c9ccda85436fa2740e099d24aedd54f1c1b6cea",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/result.json": "ceb5e03a96de2b3da0cb2442bbd115cdbedbbddfa56ec3facb8c3b0bd529bde6",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/audit-overflow-c/syslog.json": "e513e94140be7c07dd7a56da887b06f7cc4b5bde45cff3ce69da3127e1afa364",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/audit-overflow-c/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/audit-overflow-c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/audit-overflow-rust/syslog.json": "22fed8b72dd175f5ead5ab85ef8dba238c1671c776cfc7d21752a0eae6f4c9fa",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/audit-overflow-rust/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/audit-overflow-rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/tail-drain-c/syslog.json": "a80e3f51079ea8df4f5ce31811bfbf9efd7473d57d18749de66905a8b71e637d",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/tail-drain-c/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/tail-drain-c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/tail-drain-rust/syslog.json": "af851ae7caf7af609302d0afa9e8658df3230b2e0ea1ad2daa4e8f09d89844e6",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/tail-drain-rust/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/tail-drain-rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/peer-close-c/syslog.json": "fdbd9b6f836744b54d4288e3eef06d80007684c574383043eb3ccd862d2de694",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/peer-close-c/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/peer-close-c/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/peer-close-rust/syslog.json": "a96bfd0b7d27352bddf16b9f05ad682a84cee6a83bcf578d5298d7be9085779d",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/peer-close-rust/stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/logging-01/peer-close-rust/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/generation-01/summary.json": "e831e18c62f99495638720647ffbba8ef30a629d55766bb45890dc4efd293af4",
+    "/home/ubuntu/dnsmasq-recheck-hosts-20261014/private/recheck_hosts_limits-v1.py": "510802fb16a59b0f05c0a70abc617654a1b8dafa6eb6198bfd8651207d7aeb61"
+  }
+}
