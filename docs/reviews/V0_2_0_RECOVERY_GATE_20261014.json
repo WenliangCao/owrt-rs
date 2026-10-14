@@ -127,7 +127,9 @@
     "regular_files_verified": 23649,
     "symlinks_verified": 5259,
     "gzip_crc_verified": true,
-    "special_entries_in_remote_inventory": 48
+    "special_entries_in_remote_inventory": 48,
+    "character_device_entries_verified": 48,
+    "device_metadata_check": "Tar major/minor matches explicit Linux dev_t decoding; macOS native dev_t encoding is not used."
   },
   "scope": "Exact candidate image shell and C recovery; actual candidate PID1/ubusd/sysupgrade validation and handoff to inert upgraded recorder. Guard unit cases mock clock/health/sysupgrade/reboot. No physical device accessed.",
   "schema_version": 1,
