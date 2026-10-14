@@ -1,0 +1,33 @@
+{
+  "bad_root_returncode": 2,
+  "bad_root_stderr": "refused: invalid duration or target cmdline outside exclusive /tmp root\n",
+  "returncode": 0,
+  "stderr": "",
+  "target_alive_after_observer": true,
+  "target_tracer_after": "TracerPid:\t0",
+  "failures": 192,
+  "failure_errno_counts": {
+    "101": 192
+  },
+  "first_record": {
+    "event": "attached",
+    "pid": 3207663,
+    "starttime_ticks": 169925782,
+    "seconds": 2,
+    "realtime_ns": 1791974640610533788,
+    "monotonic_ns": 1699257826086971,
+    "monotonic_raw_ns": 1699243779588000,
+    "boottime_ns": 1699257826087131
+  },
+  "last_record": {
+    "event": "complete",
+    "network_entries": 193,
+    "failures": 192,
+    "realtime_ns": 1791974642610580279,
+    "monotonic_ns": 1699259826133462,
+    "monotonic_raw_ns": 1699245779617960,
+    "boottime_ns": 1699259826133662
+  },
+  "observer_sha256": "45ca888d3b6dce3b1c02a799330249bc42330471e72b265315e160585952d0b9",
+  "scope": "Isolated oracle netns; only dedicated synthetic target; real sendto failure observed without injection; no production/router process attached"
+}

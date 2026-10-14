@@ -1,0 +1,175 @@
+{
+  "scope": "Unmodified ELF, isolated oracle network namespace, ptrace inject first sendto only; no product code modification",
+  "identities": {
+    "C": {
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+    },
+    "R_final": {
+      "sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728"
+    }
+  },
+  "plain_fault_packets_equal": true,
+  "edns_fault_packets_equal": true,
+  "cases": [
+    {
+      "implementation": "C",
+      "errno": "EPERM",
+      "edns": false,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000000066661756c7431056175646974076578616d706c650000010001",
+      "ede": null,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "C",
+      "errno": "EPERM",
+      "edns": true,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000001066661756c7431056175646974076578616d706c65000001000100002904d0000000000006000f00020017",
+      "ede": 23,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "C",
+      "errno": "ENOBUFS",
+      "edns": false,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000000066661756c7431056175646974076578616d706c650000010001",
+      "ede": null,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "C",
+      "errno": "ENOBUFS",
+      "edns": true,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000001066661756c7431056175646974076578616d706c65000001000100002904d0000000000006000f00020017",
+      "ede": 23,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "C",
+      "errno": "ECONNREFUSED",
+      "edns": false,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000000066661756c7431056175646974076578616d706c650000010001",
+      "ede": null,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "C",
+      "errno": "ECONNREFUSED",
+      "edns": true,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000001066661756c7431056175646974076578616d706c65000001000100002904d0000000000006000f00020017",
+      "ede": 23,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "R_final",
+      "errno": "EPERM",
+      "edns": false,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000000066661756c7431056175646974076578616d706c650000010001",
+      "ede": null,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "R_final",
+      "errno": "EPERM",
+      "edns": true,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000001066661756c7431056175646974076578616d706c65000001000100002904d0000000000006000f00020017",
+      "ede": 23,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "R_final",
+      "errno": "ENOBUFS",
+      "edns": false,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000000066661756c7431056175646974076578616d706c650000010001",
+      "ede": null,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "R_final",
+      "errno": "ENOBUFS",
+      "edns": true,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000001066661756c7431056175646974076578616d706c65000001000100002904d0000000000006000f00020017",
+      "ede": 23,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "R_final",
+      "errno": "ECONNREFUSED",
+      "edns": false,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000000066661756c7431056175646974076578616d706c650000010001",
+      "ede": null,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    },
+    {
+      "implementation": "R_final",
+      "errno": "ECONNREFUSED",
+      "edns": true,
+      "one_injected_upstream_sendto": true,
+      "injected_destination": "127.0.0.1:15354",
+      "first_response_rcode": 5,
+      "first_response_hex": "120181850001000000000001066661756c7431056175646974076578616d706c65000001000100002904d0000000000006000f00020017",
+      "ede": 23,
+      "failed_query_reached_upstream": false,
+      "next_query_rcode": 0,
+      "next_query_reached_upstream": true
+    }
+  ],
+  "tool_sha256": {
+    "recheck_send_error_injection.py": "bdf3e12d5d221e4803c7aa43890fefbef1af81ff2b02767f9c8053ef01753a85",
+    "recheck_syscall_observer.c": "74f4879b9cdc1b9603d92edaa509a3bbee57b6ced19446f7fa055349defdc814"
+  }
+}
