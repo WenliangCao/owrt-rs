@@ -45,6 +45,19 @@ class PackageBuildTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'exact dnsmasq.dns'):
                 lifecycle.require_acl_contract(stock, wrong, True)
 
+    def test_ubus_mount_preserves_jail_flags_and_mount_scope(self):
+        stock = b'\tprocd_set_param file $CONFIGFILE\n\tprocd_add_jail dnsmasq ubus log\n'
+        candidate = (b'\tprocd_set_param file $CONFIGFILE $PROG\n'
+                     b'\t# Bind the socket directory so an ubusd restart can replace ubus.sock.\n'
+                     b'\t# The ubus jail shortcut pins the old socket inode until dnsmasq restarts.\n'
+                     b'\tprocd_add_jail dnsmasq log\n\tprocd_add_jail_mount /var/run/ubus\n')
+        lifecycle.require_init_contract(stock, candidate, True, True)
+        for wrong in (candidate.replace(b'/var/run/ubus', b'/var/run'),
+                      candidate.replace(b'procd_add_jail_mount ', b'procd_add_jail_mount_rw '),
+                      candidate.replace(b'dnsmasq log', b'dnsmasq log procfs')):
+            with self.assertRaisesRegex(RuntimeError, 'exact ubus directory mount'):
+                lifecycle.require_init_contract(stock, wrong, True, True)
+
     def test_sigterm_unwinds_sdk_recipe_and_records_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp).resolve(); sdk = root / 'sdk'; active = sdk / 'package/owrt-dnsmasq'

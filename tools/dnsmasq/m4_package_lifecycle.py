@@ -73,15 +73,23 @@ def require(condition, message):
         raise RuntimeError(message)
 
 
-def require_init_contract(stock, candidate, automatic_activation):
+def require_init_contract(stock, candidate, automatic_activation, ubus_directory_mount=False):
     original = b'\tprocd_set_param file $CONFIGFILE\n'
     tracked = b'\tprocd_set_param file $CONFIGFILE $PROG\n'
+    expected = stock
     if automatic_activation:
         require(stock.count(original) == 1, 'unexpected stock executable dependency contract')
-        require(candidate == stock.replace(original, tracked),
-                'candidate init differs beyond executable content tracking')
-    else:
-        require(candidate == stock, 'candidate changed stock init contract')
+        expected = expected.replace(original, tracked)
+    if ubus_directory_mount:
+        original = b'\tprocd_add_jail dnsmasq ubus log\n'
+        mounted = (b'\t# Bind the socket directory so an ubusd restart can replace ubus.sock.\n'
+                   b'\t# The ubus jail shortcut pins the old socket inode until dnsmasq restarts.\n'
+                   b'\tprocd_add_jail dnsmasq log\n'
+                   b'\tprocd_add_jail_mount /var/run/ubus\n')
+        require(stock.count(original) == 1, 'unexpected stock ubus jail contract')
+        expected = expected.replace(original, mounted)
+    require(candidate == expected,
+            'candidate init differs beyond executable content tracking and the exact ubus directory mount')
 
 
 def require_acl_contract(stock, candidate, dns_object_acl):
@@ -515,7 +523,7 @@ def execute(args, root, out, report):
         # UID declaration, config declarations, hotplug, and ujail invocation.
         require_init_contract((root / 'etc/init.d/dnsmasq').read_bytes(),
                               (payload / 'etc/init.d/dnsmasq').read_bytes(),
-                              args.automatic_activation)
+                              args.automatic_activation, args.ubus_directory_mount)
         require_acl_contract((root / 'usr/share/acl.d/dnsmasq_acl.json').read_bytes(),
                              (payload / 'usr/share/acl.d/dnsmasq_acl.json').read_bytes(),
                              args.dns_object_acl)
@@ -605,6 +613,8 @@ def main():
                         help='Require package transactions to activate the ELF without explicit restart')
     parser.add_argument('--dns-object-acl', action='store_true',
                         help='Require only the exact dnsmasq.dns publish addition to the stock ACL')
+    parser.add_argument('--ubus-directory-mount', action='store_true',
+                        help='Require the exact read-only ubus directory jail mount replacement')
     parser.add_argument("--previous-apk", type=Path, help="accepted M5 r2 bytes, never rebuild")
     parser.add_argument("--previous-apk-sha256")
     parser.add_argument("--previous-elf-sha256")
@@ -640,6 +650,7 @@ def main():
     report = {"status": "failed", "source_commit": args.source_commit,
               "automatic_activation_required": args.automatic_activation,
               "dns_object_acl_required": args.dns_object_acl,
+              "ubus_directory_mount_required": args.ubus_directory_mount,
               "candidate_package_id": package_id(args.package_release), "package_release": args.package_release,
               "previous_package": previous,
               "runner_files": {name: sha256(Path(__file__).with_name(name)) for name in
