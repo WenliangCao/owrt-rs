@@ -1,0 +1,395 @@
+{
+  "independent_decoder": true,
+  "decoded_responses": 43,
+  "result_sha256": {
+    "c": "a9e36756d831648b473d21b8b6c79f4471605381f070e58433f334b2261dbfb7",
+    "rust": "bc49edaa51563210e679fffbed2ed348c02d02405626605160a33d2ccb59dbb2"
+  },
+  "raw_directories": {
+    "c": "/home/ubuntu/dnsmasq-predeploy-behavior-20261014/private/root-repeat-c",
+    "rust": "/home/ubuntu/dnsmasq-predeploy-behavior-20261014/private/root-repeat-rust"
+  },
+  "b01_outage_confirmed": true,
+  "outage_upstream_types": {
+    "c": [
+      1
+    ],
+    "rust": [
+      1,
+      28
+    ]
+  },
+  "observations": {
+    "c": {
+      "local-chain": [
+        {
+          "type": 1,
+          "request_sha256": "ccddae6135f24072acbada281d9bcaf48eb9f1cf3026fabeb2f7f6263568db10",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "480c80dadeadd4112bc85a1aaa249769eb5b351000a07d6b277b28aa75e7fd1f"
+        },
+        {
+          "type": 28,
+          "request_sha256": "9702f7b5c990f54f25ea20058e101061d524e257315ede20f4c29c4e4cc101a7",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "1da6f07e1c3d8eb2346f1009772d13a4379c997f761940b9233b9dc6a880987d"
+        },
+        {
+          "type": 16,
+          "request_sha256": "5ee1aa47b012cbd2873e8ef7062f1c8facc90da8d8b04501417d8d8967321490",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "cd3b12e88ace7a85f1b172b8173084fea625855ced55a3672036d1a2dd8c0847"
+        },
+        {
+          "type": 255,
+          "request_sha256": "6f8a7f2934cec83b18a1cf2dd14ef7280e5f911f37a0c87ebfa22da4be3062cd",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "916e8fb638baba30a23ddb80a0a265622d93ae053b407d26be9634abeef26e51"
+        }
+      ],
+      "local-chain-invalid": [
+        {
+          "type": 1,
+          "request_sha256": "f166f34f6169c7741cfda3b5183fcf2834117204421a3237d9f6db06e2157fca",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "f31d8d37c6dfd0a8c13934a8ea39831900a90ab350d52f26a94e7bf749daa8d4"
+        },
+        {
+          "type": 28,
+          "request_sha256": "9552bbfafe0c2e09111f577fc6ca92b644b104eae569cc2a46e2dc5bea94aa23",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "c038e09743e4dae7c39d028be115bd038f23efcbcad9171f7902fd8ab5b048a6"
+        },
+        {
+          "type": 16,
+          "request_sha256": "22327a28f4831257edc29f22c7c7ef35fbf661670daf514797669a1b8efb8cbd",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "41ad69da7917c29efa2bec06a4aab11fc38e58bfd2797634fe2b374523332c5d"
+        },
+        {
+          "type": 255,
+          "request_sha256": "96d12fdb9867f04b7b292030991b28820e1eaa34631a8eb9ab7a3f21f754fd4d",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "9d977444c525f50921e21a504906bef5691fc3bf6d19392499421e78b4e619f8"
+        }
+      ],
+      "local-chain-outage": [
+        {
+          "type": 1,
+          "request_sha256": "a547500193cf522ed31411cefbad63760c9076792bde50003abbfdd3682e5b84",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "5d812ff0d3c86f5c75e69636c5e3f3be4255c4ca9548f5835f78096084dc9b4c"
+        },
+        {
+          "type": 28,
+          "request_sha256": "5626b2653268984bd23eb390729a6d1b5e0875ede381c773dc8626bbe746d607",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "23008237c9e37543b33121b0b090372613a39cdd00273b8800ba57359e32b887"
+        }
+      ],
+      "udp-local-chain-warm": [
+        {
+          "type": 1,
+          "request_sha256": "4b94d92465abff63592f30d103f724ffd65250c819c9b69d3947daa43fdc0a6c",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "a68831d8e5b7bc8e902f193e4fe01248ef3b2bf584fecfd77d8694f10a6064c1"
+        }
+      ],
+      "udp-local-chain-aaaa": [
+        {
+          "type": 28,
+          "request_sha256": "792a02d3a7dc64f4890af4f40d5dff60aaa7150791a77e9a0f6a7b5310685880",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "0fedc2e1bda0bfaaa76bc9145b5346cf10126be72a357eb614506f3e719b2d00"
+        }
+      ],
+      "new-tcp-after-udp-warm": [
+        {
+          "type": 28,
+          "request_sha256": "792a02d3a7dc64f4890af4f40d5dff60aaa7150791a77e9a0f6a7b5310685880",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "4b640b41456a043fd3aba396c40b51468944ee39c9454668a9572d4dc0224107"
+        }
+      ],
+      "direct-terminal-udp": [
+        {
+          "type": 28,
+          "request_sha256": "56974f6ca5159aa4df185ed37cc96ce502d3b22ae533fa61f5acf85528265677",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "4a8aa68b701f7397272a759425d4f739704c7682b1d9f17d70a75df8da53fc29"
+        }
+      ],
+      "direct-terminal-tcp": [
+        {
+          "type": 28,
+          "request_sha256": "56974f6ca5159aa4df185ed37cc96ce502d3b22ae533fa61f5acf85528265677",
+          "rcode": 0,
+          "records": 0,
+          "reply_sha256": "4a8aa68b701f7397272a759425d4f739704c7682b1d9f17d70a75df8da53fc29"
+        }
+      ],
+      "fresh-alias-tcp-aaaa": [
+        {
+          "type": 28,
+          "request_sha256": "5699fddf1cc0dec043d97f3272b0e62304a3f64ad52bc7477fcc6489007636d5",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "78ac58a4ec7b28fd46eb96c116ab7f69dff6a73250fc360a171f9a3a1fa36c99"
+        }
+      ],
+      "tcp-warm-tcp-close": [
+        {
+          "type": 1,
+          "request_sha256": "125a23dd9dd3dfeefc0e79762918918e31346975f4ff8a5bf5c24df7efcc0056",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "62b285ec8115e487b406e90ad8470bd6f050b66ddf540209e91047a52021f1ff"
+        }
+      ],
+      "tcp-failover-tcp-close": [
+        {
+          "type": 1,
+          "request_sha256": "c1e4c934958fbccc72aa7a7ce5f7145b2bb9bed22bd9ae73ace549f86368e995",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "9ab41c1f7eefcd871f2fcd6f5739e39363670f1074224ccb3de3e22fff37c574"
+        }
+      ],
+      "tcp-warm-servfail": [
+        {
+          "type": 1,
+          "request_sha256": "76de02474a6cc1d1a832b94e3dea20bcf617ddefa0f0bb90f97f0536a6f5d55e",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "7a9338a2aec700a067e7da75ca39ed2b3e8ac405d450169154eb02576526197b"
+        }
+      ],
+      "tcp-failover-servfail": [
+        {
+          "type": 1,
+          "request_sha256": "fe2a436ef321cc1b28be00a9cf94eb9d64330f5bc8c57e9b743f0fbc612eef7d",
+          "rcode": 2,
+          "records": 0,
+          "reply_sha256": "ff12f1c2643abbb818edf2a20dabccc41a03ffcf2e16d4cced1de53a402b6e0b"
+        }
+      ],
+      "tcp-warm-refused": [
+        {
+          "type": 1,
+          "request_sha256": "041b6c0f7985c221b91335a4af3d80f790df9ef9803b017f15e223c20a246506",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "2e93b48244897ecd4c85ff238012752f0da32d6dbcb678585a708773d567ddc2"
+        }
+      ],
+      "tcp-failover-refused": [
+        {
+          "type": 1,
+          "request_sha256": "33ac5f7d69dfb875cc342d4cf93715a83545948ede230e2b3afe53e826a5f035",
+          "rcode": 5,
+          "records": 0,
+          "reply_sha256": "13fba7b187b600ca5fea882627feab62667f434e2ee5b21c9d2b2626c2c21107"
+        }
+      ]
+    },
+    "rust": {
+      "local-chain": [
+        {
+          "type": 1,
+          "request_sha256": "ccddae6135f24072acbada281d9bcaf48eb9f1cf3026fabeb2f7f6263568db10",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "480c80dadeadd4112bc85a1aaa249769eb5b351000a07d6b277b28aa75e7fd1f"
+        },
+        {
+          "type": 28,
+          "request_sha256": "9702f7b5c990f54f25ea20058e101061d524e257315ede20f4c29c4e4cc101a7",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "eae4cbd51e0f8626bf4679dab6ccbe8ba665d25dbff8eae19f1a79ade6a482d9"
+        },
+        {
+          "type": 16,
+          "request_sha256": "5ee1aa47b012cbd2873e8ef7062f1c8facc90da8d8b04501417d8d8967321490",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "278d7640aec493f5f2608a44a65821cfdf4cba52f89ddfbec71768820cad1447"
+        },
+        {
+          "type": 255,
+          "request_sha256": "6f8a7f2934cec83b18a1cf2dd14ef7280e5f911f37a0c87ebfa22da4be3062cd",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "7c65ee4c8bee6ef26beaf71a7927d44c5bd125216ef85344fe9352f2216fdfbc"
+        }
+      ],
+      "local-chain-invalid": [
+        {
+          "type": 1,
+          "request_sha256": "f166f34f6169c7741cfda3b5183fcf2834117204421a3237d9f6db06e2157fca",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "f31d8d37c6dfd0a8c13934a8ea39831900a90ab350d52f26a94e7bf749daa8d4"
+        },
+        {
+          "type": 28,
+          "request_sha256": "9552bbfafe0c2e09111f577fc6ca92b644b104eae569cc2a46e2dc5bea94aa23",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "406afe7fc411f91af89bb8e46f9d2d34e07d3a04ed1454db6660ba043eb09ca0"
+        },
+        {
+          "type": 16,
+          "request_sha256": "22327a28f4831257edc29f22c7c7ef35fbf661670daf514797669a1b8efb8cbd",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "86ecc7b396b7544c8e78b2671d0621b60c59d752c5bf68be84f0d6a466f88468"
+        },
+        {
+          "type": 255,
+          "request_sha256": "96d12fdb9867f04b7b292030991b28820e1eaa34631a8eb9ab7a3f21f754fd4d",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "1a752e0246483d396797941eccc6a21bb562b69ad1dfdb12ec19293284100dc2"
+        }
+      ],
+      "local-chain-outage": [
+        {
+          "type": 1,
+          "request_sha256": "a547500193cf522ed31411cefbad63760c9076792bde50003abbfdd3682e5b84",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "5d812ff0d3c86f5c75e69636c5e3f3be4255c4ca9548f5835f78096084dc9b4c"
+        },
+        {
+          "type": 28,
+          "request_sha256": "5626b2653268984bd23eb390729a6d1b5e0875ede381c773dc8626bbe746d607",
+          "error": "TimeoutError: timed out"
+        }
+      ],
+      "udp-local-chain-warm": [
+        {
+          "type": 1,
+          "request_sha256": "4b94d92465abff63592f30d103f724ffd65250c819c9b69d3947daa43fdc0a6c",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "a68831d8e5b7bc8e902f193e4fe01248ef3b2bf584fecfd77d8694f10a6064c1"
+        }
+      ],
+      "udp-local-chain-aaaa": [
+        {
+          "type": 28,
+          "request_sha256": "792a02d3a7dc64f4890af4f40d5dff60aaa7150791a77e9a0f6a7b5310685880",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "0fedc2e1bda0bfaaa76bc9145b5346cf10126be72a357eb614506f3e719b2d00"
+        }
+      ],
+      "new-tcp-after-udp-warm": [
+        {
+          "type": 28,
+          "request_sha256": "792a02d3a7dc64f4890af4f40d5dff60aaa7150791a77e9a0f6a7b5310685880",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "a69b952c7caad1658eb7258d7597a955ebc71d23558ff5db651fc4fd2e2e7f62"
+        }
+      ],
+      "direct-terminal-udp": [
+        {
+          "type": 28,
+          "request_sha256": "56974f6ca5159aa4df185ed37cc96ce502d3b22ae533fa61f5acf85528265677",
+          "rcode": 3,
+          "records": 0,
+          "reply_sha256": "81af1defc95bdf6c2b38dd53300c7909b1363dba3e56ae639599286f246f0de7"
+        }
+      ],
+      "direct-terminal-tcp": [
+        {
+          "type": 28,
+          "request_sha256": "56974f6ca5159aa4df185ed37cc96ce502d3b22ae533fa61f5acf85528265677",
+          "rcode": 3,
+          "records": 0,
+          "reply_sha256": "81af1defc95bdf6c2b38dd53300c7909b1363dba3e56ae639599286f246f0de7"
+        }
+      ],
+      "fresh-alias-tcp-aaaa": [
+        {
+          "type": 28,
+          "request_sha256": "5699fddf1cc0dec043d97f3272b0e62304a3f64ad52bc7477fcc6489007636d5",
+          "rcode": 0,
+          "records": 2,
+          "reply_sha256": "78ac58a4ec7b28fd46eb96c116ab7f69dff6a73250fc360a171f9a3a1fa36c99"
+        }
+      ],
+      "tcp-warm-tcp-close": [
+        {
+          "type": 1,
+          "request_sha256": "125a23dd9dd3dfeefc0e79762918918e31346975f4ff8a5bf5c24df7efcc0056",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "62b285ec8115e487b406e90ad8470bd6f050b66ddf540209e91047a52021f1ff"
+        }
+      ],
+      "tcp-failover-tcp-close": [
+        {
+          "type": 1,
+          "request_sha256": "c1e4c934958fbccc72aa7a7ce5f7145b2bb9bed22bd9ae73ace549f86368e995",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "9ab41c1f7eefcd871f2fcd6f5739e39363670f1074224ccb3de3e22fff37c574"
+        }
+      ],
+      "tcp-warm-servfail": [
+        {
+          "type": 1,
+          "request_sha256": "76de02474a6cc1d1a832b94e3dea20bcf617ddefa0f0bb90f97f0536a6f5d55e",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "7a9338a2aec700a067e7da75ca39ed2b3e8ac405d450169154eb02576526197b"
+        }
+      ],
+      "tcp-failover-servfail": [
+        {
+          "type": 1,
+          "request_sha256": "fe2a436ef321cc1b28be00a9cf94eb9d64330f5bc8c57e9b743f0fbc612eef7d",
+          "rcode": 2,
+          "records": 0,
+          "reply_sha256": "ff12f1c2643abbb818edf2a20dabccc41a03ffcf2e16d4cced1de53a402b6e0b"
+        }
+      ],
+      "tcp-warm-refused": [
+        {
+          "type": 1,
+          "request_sha256": "041b6c0f7985c221b91335a4af3d80f790df9ef9803b017f15e223c20a246506",
+          "rcode": 0,
+          "records": 1,
+          "reply_sha256": "2e93b48244897ecd4c85ff238012752f0da32d6dbcb678585a708773d567ddc2"
+        }
+      ],
+      "tcp-failover-refused": [
+        {
+          "type": 1,
+          "request_sha256": "33ac5f7d69dfb875cc342d4cf93715a83545948ede230e2b3afe53e826a5f035",
+          "rcode": 5,
+          "records": 0,
+          "reply_sha256": "13fba7b187b600ca5fea882627feab62667f434e2ee5b21c9d2b2626c2c21107"
+        }
+      ]
+    }
+  },
+  "checker_sha256": "26d05ab964f7ba0e070f11dcc3fced0e7c1ce1d28f63951cae32f0cff4c2e542"
+}

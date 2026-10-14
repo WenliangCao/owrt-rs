@@ -1,0 +1,16 @@
+{
+  "checks": [
+    {
+      "mutation": "response_ttl",
+      "rejected": true
+    },
+    {
+      "mutation": "outage_result",
+      "rejected": true
+    },
+    {
+      "mutation": "upstream_count",
+      "rejected": true
+    }
+  ]
+}

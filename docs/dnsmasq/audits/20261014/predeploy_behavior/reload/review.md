@@ -3,7 +3,8 @@
 2026-10-14；冻结产品源码 `58365e8c8ebe1805573baa02543baf1c9d45be68`。
 本分项未发现阻止上线的行为差异。实际配置实验的 **60/60 行比较一致**，
 包括 24 次 HUP 期间的 160 个 IPv4/IPv6 UDP/TCP 查询，两边均 160/160 成功。
-另以精确镜像的 init/procd/rpcd/odhcpd 运行合成 UCI 生命周期，18 项结果相同。
+另以精确镜像的 init/procd/rpcd/odhcpd 运行合成 UCI 生命周期，流程结果相同；
+旧工具的 pidfile 布尔字段不计作生命周期证明，见后文。
 这不是整个 DNS/DHCP 审计的最终上线结论。
 
 ## 权威与隔离
@@ -70,7 +71,8 @@ rpcd UCI staged edit/apply、真实 odhcpd DHCPv6 租约发布、init stop。
 **不是原 737 字节配置的重放**。嵌套隔离环境使用工具既有
 `--jail-procfs` fixture，仅为 jail 加入 procfs。
 
-[lifecycle-summary.json](lifecycle-summary.json) 保留 18 项相同结果：
+[lifecycle-summary.json](lifecycle-summary.json) 保留 18 个相同结果字段，
+其中两个 pidfile 相等字段不作为有效生命周期证据。实际业务结果为：
 UCI apply 前记录未生效，apply 后新地址能解析；C 内层 ELF PID 从 271
 变为 601，Rust 从 273 变为 603，说明两边实际重启。随后镜像 odhcpd 经
 真实 DHCPv6 Solicit/Request 建立租约并更新 hosts，dnsmasq 的 AAAA 回答

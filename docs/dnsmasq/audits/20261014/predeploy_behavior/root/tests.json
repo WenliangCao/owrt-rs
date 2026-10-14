@@ -1,0 +1,38 @@
+{
+  "build": {
+    "source": "/home/ubuntu/dnsmasq-predeploy-behavior-20261014/source",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-predeploy-behavior-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52334776,
+        "sha256": "9e0a9d13f330dae5cda6a8e0ad2601c88e829b2d7f2586a84df601618b667916"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70553504,
+        "sha256": "62f91861adb1aeece5957e68c18b95c37c6452593c6bf2092652442ee71d85a9"
+      }
+    ]
+  },
+  "tests": {
+    "lib": {
+      "passed": 780,
+      "failed": 0,
+      "ignored": 20,
+      "log_sha256": "bdb1c4f50a3bc7cec5fac2da255a0b40ae29442efed46c24641ef286a35d1381",
+      "log_private_path": "/home/ubuntu/dnsmasq-predeploy-behavior-20261014/private/tests/lib.log"
+    },
+    "bin": {
+      "passed": 77,
+      "failed": 0,
+      "ignored": 3,
+      "log_sha256": "826ccb17080455ddd8373d4ea510ce086260d0a91138a859e80ccb7b3856bdf4",
+      "log_private_path": "/home/ubuntu/dnsmasq-predeploy-behavior-20261014/private/tests/bin.log"
+    }
+  }
+}
