@@ -1,0 +1,148 @@
+{
+  "head": "5b914d32891a5166f8075d108fc98610abc1f885",
+  "main": "be531cee49e366bb5044443d473944dbea45b87e",
+  "source_digest": "547bbd55bda3b13ec75c42b24e71f18b97f7fea35cd30ca27552fe5bfa1cd231",
+  "source_files_verified": 178,
+  "scope": "Fresh SDK-linker Cargo release and test-profile builds; no fresh full SDK package build.",
+  "commands": [
+    {
+      "name": "fresh-tests-build",
+      "argv": [
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/oracle_build.sh",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/source",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/tests",
+        "tests"
+      ],
+      "started": 1791957374.0939698,
+      "exit": 0,
+      "elapsed_seconds": 33.76187825202942,
+      "log_sha256": "9dae1adfff1e2f7b69e1a43f4924a4700caedeca190e70d33facbf951e3a7602"
+    },
+    {
+      "name": "unit-lib-dnsmasq_rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "set -eu; mount -t tmpfs -o mode=1777 tmpfs /tmp; TMPDIR=$(mktemp -d /tmp/fix5-tests.XXXXXX); export TMPDIR; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/tests/lib-dnsmasq_rs",
+        "--test-threads=1"
+      ],
+      "started": 1791957407.8565032,
+      "exit": 0,
+      "elapsed_seconds": 4.072407245635986,
+      "log_sha256": "a3765777e28bf6048a2073a0da04f9c55bca25680fca1ae602c263b2630c031f",
+      "elf_sha256": "06aad206befeaea130521a264b5e2dc74b989dec1c60cab1799624224a3a2844",
+      "test_summary": [
+        "test result: ok. 778 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 4.01s"
+      ]
+    },
+    {
+      "name": "unit-bin-dnsmasq-rs",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/run_isolated.sh",
+        "sh",
+        "-c",
+        "set -eu; mount -t tmpfs -o mode=1777 tmpfs /tmp; TMPDIR=$(mktemp -d /tmp/fix5-tests.XXXXXX); export TMPDIR; exec \"$@\"",
+        "unit",
+        "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/tests/bin-dnsmasq-rs",
+        "--test-threads=1"
+      ],
+      "started": 1791957412.0003817,
+      "exit": 0,
+      "elapsed_seconds": 4.122535943984985,
+      "log_sha256": "d267efdf36501183f303253c9b5cdb63169f6d87efb5367e8a7f4572395c1e33",
+      "elf_sha256": "fb7fd4fbf0e2c38171f4f46f00bd61686322bc87b31f7e3b703394cc82c0f65f",
+      "test_summary": [
+        "test result: ok. 77 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.08s"
+      ]
+    }
+  ],
+  "complete": true,
+  "retained_artifacts": {
+    "exact_image_c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/usr/sbin/dnsmasq",
+      "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "bytes": 269305
+    },
+    "main_release": {
+      "path": "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "sha256": "ad103449368b6f6f94a988163165b24557af54f35eb9db9a8decdfef600fd863",
+      "bytes": 1970216
+    },
+    "pre_f1_fix_sdk": {
+      "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-verify-final/payload/usr/sbin/dnsmasq",
+      "sha256": "55ea363f626f3e14279f280b1dba708a1d751877ab22a3503d312985c9efd6ca",
+      "bytes": 2054939
+    }
+  },
+  "reference_source": {
+    "path": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93",
+    "files_verified": {
+      "src/rfc1035.c": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+      "src/util.c": "33920165ef3e92f65d1cab75fe8da7772ad7389b37da79ba881957080f12f973"
+    },
+    "patched_files_verified": 148,
+    "identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "basis": "Hashes from committed matching-source identity; actual image C determines semantics."
+  },
+  "release_build": {
+    "source": "/home/ubuntu/dnsmasq-audit-fix5-20261014/source",
+    "kind": "release",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix5-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2056672,
+        "sha256": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c"
+      }
+    ]
+  },
+  "release_build_argv": [
+    "sh",
+    "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/oracle_build.sh",
+    "/home/ubuntu/dnsmasq-audit-fix5-20261014/source",
+    "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release",
+    "release"
+  ],
+  "release_build_logs": {
+    "build.json": "35f85664c6a3813fb568762bc9eca8a7f34da4a1e4139472a06101a247061320",
+    "build.log": "4e09cbf5acbff5d59ae882fa3b58126d47589309228b63b371540725c9d38abb",
+    "build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clean.log": "b0c835f545a9e5b644118746b7a2df835f38ac95bfcc24291337b94468aacc1f",
+    "clean.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "test_build": {
+    "source": "/home/ubuntu/dnsmasq-audit-fix5-20261014/source",
+    "kind": "tests",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix5-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 52327024,
+        "sha256": "fb7fd4fbf0e2c38171f4f46f00bd61686322bc87b31f7e3b703394cc82c0f65f"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 70336272,
+        "sha256": "06aad206befeaea130521a264b5e2dc74b989dec1c60cab1799624224a3a2844"
+      }
+    ]
+  },
+  "source_postcheck_passed": true
+}

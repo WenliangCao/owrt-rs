@@ -1,0 +1,83 @@
+{
+  "private_evidence": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01",
+  "suites": [
+    {
+      "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "image_provenance_sha256": null,
+      "image_sha256": null,
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "filesystem": {
+        "kind": "overlay",
+        "lower_read_only": true,
+        "base": "/home/ubuntu/dnsmasq-image-bases/aae9c1c5230d0b9dd335cb533a143e040195fc81d41c2b71bafe6ea62e290e60",
+        "base_manifest_sha256": "aae9c1c5230d0b9dd335cb533a143e040195fc81d41c2b71bafe6ea62e290e60",
+        "lower": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/negative/rootfs-overlay/lower",
+        "upper": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/negative/rootfs-overlay/upper",
+        "work": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/negative/rootfs-overlay/work"
+      },
+      "rust_source_path": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "rust_sha256": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+      "kernel": "6.17.0-1020-oracle",
+      "machine": "aarch64",
+      "namespaces": {
+        "mnt": "mnt:[4026532710]",
+        "net": "net:[4026533131]",
+        "pid": "pid:[4026533122]"
+      },
+      "name": "negative",
+      "rootfs_identity_sha256": "194b1ef04b7874fc0e45d99eb9b376fac287669b4303a659a370f5dcadadea33"
+    },
+    {
+      "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "image_provenance_sha256": null,
+      "image_sha256": null,
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "filesystem": {
+        "kind": "overlay",
+        "lower_read_only": true,
+        "base": "/home/ubuntu/dnsmasq-image-bases/aae9c1c5230d0b9dd335cb533a143e040195fc81d41c2b71bafe6ea62e290e60",
+        "base_manifest_sha256": "aae9c1c5230d0b9dd335cb533a143e040195fc81d41c2b71bafe6ea62e290e60",
+        "lower": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/soa/rootfs-overlay/lower",
+        "upper": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/soa/rootfs-overlay/upper",
+        "work": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/soa/rootfs-overlay/work"
+      },
+      "rust_source_path": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "rust_sha256": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+      "kernel": "6.17.0-1020-oracle",
+      "machine": "aarch64",
+      "namespaces": {
+        "mnt": "mnt:[4026532710]",
+        "net": "net:[4026533131]",
+        "pid": "pid:[4026533122]"
+      },
+      "name": "soa",
+      "rootfs_identity_sha256": "9a14ef56bc29dd16c80271ad2b08a040635c36088aa0c87dd88a6c1a3afea99e"
+    },
+    {
+      "image_root": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "image_provenance_sha256": null,
+      "image_sha256": null,
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "filesystem": {
+        "kind": "overlay",
+        "lower_read_only": true,
+        "base": "/home/ubuntu/dnsmasq-image-bases/aae9c1c5230d0b9dd335cb533a143e040195fc81d41c2b71bafe6ea62e290e60",
+        "base_manifest_sha256": "aae9c1c5230d0b9dd335cb533a143e040195fc81d41c2b71bafe6ea62e290e60",
+        "lower": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/cursor/rootfs-overlay/lower",
+        "upper": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/cursor/rootfs-overlay/upper",
+        "work": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/cursor/rootfs-overlay/work"
+      },
+      "rust_source_path": "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "rust_sha256": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+      "kernel": "6.17.0-1020-oracle",
+      "machine": "aarch64",
+      "namespaces": {
+        "mnt": "mnt:[4026532710]",
+        "net": "net:[4026533131]",
+        "pid": "pid:[4026533122]"
+      },
+      "name": "cursor",
+      "rootfs_identity_sha256": "39e27d2d10c55f253f93c1dbb43957bd313005f254e8ed1b2bb6f98948e6e56e"
+    }
+  ]
+}

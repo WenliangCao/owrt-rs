@@ -1,0 +1,1340 @@
+{
+  "status": "passed",
+  "script_sha256": "ff7118920f9234c9d5f1d5a4a9569c092853893579ffe58b41c920842d44d93a",
+  "fix_sha256": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+  "suites": [
+    {
+      "name": "negative",
+      "cases": 24,
+      "summary_sha256": "8912c94156dcb7e17cb04cf3fb9bb6c61c75c962cc9871c712386985adccbca1",
+      "invocation": {
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/dhcp_negative_cache_diff.py",
+          "--image-root",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+          "--rust",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+          "--out",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/negative"
+        ],
+        "exit": 0,
+        "started": 1791957289.5514925,
+        "finished": 1791957291.7198284,
+        "tool_sha256": "a35318a14a15641631785b96e9e7fa4d494d0d6e04091520e85ba584fc5f2450"
+      },
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "rust": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "a35318a14a15641631785b96e9e7fa4d494d0d6e04091520e85ba584fc5f2450"
+      },
+      "checks": [
+        {
+          "name": "rcode3-soa0-debug0-q1-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "df186681f9c532663cbe0a69700fe159ee65625bff84937be9d8bb425a3dce91",
+            "ef218353b314ed97ab49d0c348a90907a308d73a546dc0082e8bd4c6d6a9cbe7"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug0-q1-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "42f75f618d2e9d49a4a1444330f6111fdfc5a4a974843b63263cc9dd4a06ac1b",
+            "9f4dc3da2b8be44436dd1e8b22e69616a5bdc02615420945b8eb2b3543562498"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug0-q28-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "4aeb67eaa261980b910e1dd82a7cc008e5a7798813e061a4d236ee897a9cd2b7",
+            "4e27eb4bd44ea8fe0ae4126bac443f6924127938bb512d124204c10f5afa4611"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug0-q28-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "c345cda1762faae32ae871e1b8ee43f3f6ac62b01829442ac66eba797333126e",
+            "8383fe3a9dc78fc0b385f5054b6f30fb3a3c1e5ee5f7d62a1bf50236eaf241ce"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug0-q16-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "451f752e316e5cfbed9d88f74114097ac966d2c3e7f7f7eebfad3f873cb4d658",
+            "e9ab9c866bdf9b4f5aea745373b1ea076f901b32aaca6b1a5085612a403bd0ac"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug0-q16-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "b85a33ab50ff2b3acdef35d0ab9be41a8c1210917c910ca8d949aaea5315fb29",
+            "0fb4b1a825778b4f45ca15a9f689be7d3c534015ea62d79d45c59543d90b62d4"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug1-q1-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "8147e0df0e4c298bae5c1dc8eef1e2d8122ea2719608688b27e8696751494dfb",
+            "d7573c781e186789e93450004f0f963bc3816e7fd495a94299c6e6c1bb56155e"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug1-q1-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ceacbef7bacce40d7e8a9bcf418ea8461ff3ac84b36209bab5416757d9a05273",
+            "6c371a572e56364eaf38295655cd90ab9044fed72d6513e3382d74e272c157cf"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug1-q28-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "6b2f6b191056cc389086f036b03d0ce9e14eb45e50041b39dccbd0e91b7fe022",
+            "7242c7f129637bc53c8b2a90e93ec4bbc0cb67687e11c98fbb94109bdb11baaa"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug1-q28-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "01bb07b2fb4e52fe1796f382ddb5a8ae7c00d2a2603fb9faf2a560c84750e0e9",
+            "2b0770d0ffcfb40028b2a6acf69c332d9b8946f14c96c9c6413f738c96b8546c"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug1-q16-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a399eef1eb04623b916505107f99544bcd241375e433a513686a4012c03b9f1b",
+            "21ddffd07abb59d23c500ebe9caa8068a9b6e79c7de0881ebd3d2842ec1a2e67"
+          ]
+        },
+        {
+          "name": "rcode3-soa0-debug1-q16-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ab4698477f5e1a9fcc44ec0d08d0e10f138e4691ba5d48423c35857f1fe4fbfb",
+            "7663c03b22e0da7301cf00ed6f5d7d6cf54198bc674ce5cf109e76c6173a7a95"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug0-q1-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "9dd684bba2bdf7947745f35a8e7b91ba2306641bb85a386566a7839e4db7c174",
+            "166f0ebc60c9ffcc0fd046bd8f0ef4fa258a61c760b68275f09bc8fa1da8ca56"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug0-q1-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "4488dfeda1508068d69eb455e20013afee0fac9b5221ae6e3b4127562ba89a17",
+            "4a152064c918ed6ac624d7862dafa13db5883d20f8042916923a5864d0a79ca3"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug0-q28-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "daabfcc505f679c15b39145dd81f29848d3706a74f54f47a206eeec9b65577ef",
+            "1b5f148e33db5ae8751e595bcc8a098b842a71ddaec4e48ce7839d83ba81d756"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug0-q28-tcp",
+          "responses": 21,
+          "exact": 19,
+          "bounded_soa": 2,
+          "ttl_bounds": [
+            {
+              "label": "after-ack-65401-udp",
+              "c_ttl": 3599,
+              "rust_ttl": 3600,
+              "sides": [
+                {
+                  "side": "c",
+                  "elapsed": 0.03453272697515786,
+                  "allowed_lower": 3599,
+                  "allowed_upper": 3600
+                },
+                {
+                  "side": "rust",
+                  "elapsed": 0.03145174100063741,
+                  "allowed_lower": 3599,
+                  "allowed_upper": 3600
+                }
+              ]
+            },
+            {
+              "label": "after-ack-65401-tcp",
+              "c_ttl": 3599,
+              "rust_ttl": 3600,
+              "sides": [
+                {
+                  "side": "c",
+                  "elapsed": 0.034964051097631454,
+                  "allowed_lower": 3599,
+                  "allowed_upper": 3600
+                },
+                {
+                  "side": "rust",
+                  "elapsed": 0.031876105116680264,
+                  "allowed_lower": 3599,
+                  "allowed_upper": 3600
+                }
+              ]
+            }
+          ],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ef2f0f5e701316989c880432b4d04dfb9f0a22cf2aa8e198ef64c53f6bb138fd",
+            "2075822cb3724dae999c750cfa1ccf8d9fc7ed05519657822f060c61ad02d71b"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug0-q16-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "4d748f0c2ec38cf45341e03c758ba6a362133c5b5a7493b12687052ad766c759",
+            "59a2ac11481db43bcddd562e27fba69a5420af0586256a1e2fc9c328f94d32d0"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug0-q16-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "abf48df42e75a290659e1eee343846412c22a37a69b0e37fa764b8652b11a677",
+            "bad54cf625c85b18e44b6af072d6de63d13f8ada6137e3a3b26d3948654bf325"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug1-q1-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "61f5ce9003fb1eaac9769227ca24c7cfe586609dc8a8aef4e31b039943214b91",
+            "5d6743726e8e49073e0fbe5e4c3342426b76a99a585900920ac5863a1b518310"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug1-q1-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "acfb504f704db1160247937b4986f7413e4ef2221d9e5e2109f423b885f2cbd0",
+            "d8a78479be2c8d1a135cbd8cee48793c08c5e9496aba63315b9f23d5630390b9"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug1-q28-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "0e82e97236eb0d673f3aa325b4ee98c9c0214eff1c426e9c07f1d976341b06fe",
+            "bcae9487ee69236b297e167835a6aead118583bc783df74e628c1e93f66df049"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug1-q28-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "88cb25eaebe8dd388302bd4f5831c2475d7e08be01e3084b7e7bd421a731c586",
+            "f6b765c362c5032cde7cc5fea38722fc7c8a485f72bef10196c4a8e22c41acf1"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug1-q16-udp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "10abdc78ac01a438b82f3717e7512c5fd4432668677a28e4115bb20242692ff9",
+            "b595e11b4d37a396d783024bebf23efe40a1e8f2bb14957faf4b32cb79b7d5ac"
+          ]
+        },
+        {
+          "name": "rcode3-soa1-debug1-q16-tcp",
+          "responses": 21,
+          "exact": 21,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "1a40c1bbea8c624d73d2058b127f574ea5136f99290a30a860c2b104ae237215",
+            "8bcf4fb1e52b75438f412e9f617cbfcd3ca58cd3a536d31ea458c818d87c465c"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "soa",
+      "cases": 64,
+      "summary_sha256": "acc40a3a3017b9276c299501c1f849371e7ec5f02f3889484c8423efdd038f55",
+      "invocation": {
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/dhcp_negative_soa_boundaries.py",
+          "--image-root",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+          "--rust",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+          "--out",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/soa",
+          "--config-evidence",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/negative/summary.json"
+        ],
+        "exit": 0,
+        "started": 1791957291.747662,
+        "finished": 1791957294.717058,
+        "tool_sha256": "31641ce8e1a55ea0c46df9280207bfb33a8a1cd6645d22a98f01f0601f1b64a7"
+      },
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "rust": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "31641ce8e1a55ea0c46df9280207bfb33a8a1cd6645d22a98f01f0601f1b64a7",
+        "base_driver": "a35318a14a15641631785b96e9e7fa4d494d0d6e04091520e85ba584fc5f2450"
+      },
+      "checks": [
+        {
+          "name": "large0-debug0-client1-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "627db37a9e705c44548a570f61e6b01b258fde07e2d0e68126cd0240262041de",
+            "e1e8c0988badd7431aa6dc8e7be581af02c95c05c582fa82ab2ef33cd016ab46"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "5ed3fc61f704449c95d7d5e362d1c5aacd5bc460ff04c9b254507a300246fb5f",
+            "3b5b4f211d52cacfa7069d837f6ddc6b7a78bde132225dfd7fca09409729df59"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a04bb56dee00021264b7f1e5a2c7cbdef6668f08845dd2567fe222aed7ea715c",
+            "a8e1484cbcd1a03b35627190e2beec28826eac1912f54f760f01546a7daafee5"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "051471e4a6be3adf0afa01e4c326033f3e8a31adc4eadc86dadbbd78f80efbc9",
+            "34df080640018cedd238d66c5b5aee5937c4f0b3744d508afe7493858f15671e"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "375a5309f3b76c9008f99f2e27cab38719f282e4b2d7b2b893807d859bf549ea",
+            "a40202451ee6be0200aa0c62180da7f97e4f011183db8ae6c8e684217d99fff4"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ba73ac871460383fc7d9a778b6add6fc00235a13e5bf5a41947e9513329c36bb",
+            "9c8f695857c678ff1479be640f69fac375e050e2ae576079a64860e77253527a"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "2d7018474c731e903d6ea9970ea590de749bec7466d40e911e6d19ad7cd80f18",
+            "2091a263054d951ff411d29364babc4d10118df60ba4a4d9548ec5e329897d73"
+          ]
+        },
+        {
+          "name": "large0-debug0-client1-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "f3d19cdca6b1f0a0dc1c5465f868d1894bc001a3e28de4cf67ee711fbadf53da",
+            "b294aaacb4d0d04eab2de1da900f07160a392f2a3032c8fc94825e6750bdcc72"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "206ae5c686b7421650a7edde3cdf4583767516ffdfb68714ee734e3b9471726d",
+            "c9eb5b704487d24795e2ba5584953a948dbca88ff1e28814f3b15170d069d50e"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "8706e8b77a92c5697ff040e74cf2492ec3cf75cbe6376fd3cd0e55fbc091d484",
+            "d26f0dca3ef33edcf2102e39def4e0ca2cf227015a148f9e0b7114c28eb4d11a"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "2b99926beb02c61e76881ea4c45f535cf00aafe4d80dd317f7c514cfc0ce2258",
+            "4634ea1668d40cc0c689b0c7c6249babcbf6e6f8512fc161e2070d3c730ddf15"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "3391c0a71672dda624a199514cc474bcab31031d254377c8f3087c68c87a0d83",
+            "f7c6a0525673bd88ab308d4636275cec541a5bbd19da9f2eb079c8c9c4158446"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a386f2e969493fdf51e157e3dfe836990dcd4874f0c5d6084ffa9cec14943ee0",
+            "79c2f31e893bbf5e8c2bbf8b0720d00e238505eafdb705544acf8802d5195253"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "433bd6cda66d4f6e183c82966cbc37f4ac1c060faa909be557eff30f5d3313dc",
+            "1e3d48427d8d8e75bec180afd016739177d42e60ad2a115079ab13b6687f2390"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "52b50d84ccb4263f3dc5c446c9746fe688e758d3c69dffc2c08458758c2099db",
+            "df8419531793487fa1d6f3025bd1a2d713232d53f930b2a8120e48f74e9561fd"
+          ]
+        },
+        {
+          "name": "large0-debug0-alias-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "173b86e8db8da2c0d6ec625d378ab11f1ed25b56098a8b8108026caef669c1fc",
+            "054d1fed4c4b63047901677a0714dab8cfc9dd5447893678edaf0efa2e49f7df"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "32edf064a2750d31a40f711e230420e3baa38cbf0d8d0c8bf1242d3bc4686a7c",
+            "d7a1545efe3fb7aac9beb07cf9950f348d3c9d869fbc1c040d3c27cbbd2950dd"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "9647440d52205fe1cf1f7b083ca30fbf2f8ffb35264c8daa066fdef1a9249de0",
+            "8e6a57cecb05b6ce194d453832e7e58f2cb931a4569c470d729e2464823d85c2"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "535a12e1f3f694d740b609dc80247a33b4bd10106148a20a42b8bcd2e269d83c",
+            "6ba2ab96eff4392a04df0cc5896e97cc6647228b365ced5ac1279124b66eaacf"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "b38b556dca37b971ab0fdf52512dd36b2f44224eaf59bd48f33ab64af363af47",
+            "741a8aaf0a9c1c4c08212eaa6bcd06d3f5622d3b803283ec20ced4eaf8a70811"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "7a42c1cfb8c4879438560dd4545b7c2e1c2edde870ac812e2165ecc214ca330a",
+            "c6b9ef1b3a84a3fa2ab59958ae44d0f4b60b3dceb3d40e02751e71a9e4e783eb"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "7d733736de3424520cb924137c44b93bde222637a2e0c1747664b161a87c7580",
+            "2970ca119ea084cbdd01871df1b23aa4d79e2ac7c5567e22ecbedad7879c5a7e"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "718f32e6682403dbd01e47c0fd1789ad7028a9dbcf35634b5f2ff1f677f10685",
+            "80646cea1c3ba301321bec38c8002f80fea16329f9aaaf543a103303b0155a2c"
+          ]
+        },
+        {
+          "name": "large0-debug1-client1-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a95bfad0c489521be107c6c02cdb8950ed5ba4b4fc06fbf98ff6e97eded994e6",
+            "390936f607f2a2e4bb4f5e60fda4c4d9f1bce324dfc3a18612f5d7b1e5c78a10"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "e90f334201e0d31733e8475654d00b466f12aeb108d1343bea22fb9306ef255e",
+            "ebaaac007c962409634d276bccf6ef462a922f34d0f28cc4a53b6fc5139ac87c"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "2baa52d52f05cc49640ee4081006890a22338535b1a50496d9beb75643f2ae27",
+            "3bcc86af7bae6c121f9d1e80583461883756a9f8cd8301bdfda37523535ec9f4"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "7a3df5373208e01127e3805f5bc57771efa3d107bb6d61c310c86ff32ce31ef0",
+            "31aeec916fb48c4c9607faad4f79232665de9751f0437c941dd930108d81d8c5"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "3071a70308e2495d9af424c07e7d92ff5674b66210f8d1451321071c9361305a",
+            "a88a6f4fe21a5c86e9649203d5c0d73ae868046d52a19d203e7861b5bb81af07"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "37ed4c138efda25bb9edacd3f3aba9283b40f15e838d3af7d7ec7f55e339b213",
+            "c89d75a60caa9a41105303c5fd3468ab42e2ba8486dc5763ad43bfecc19d2c22"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "2f1ba791a65a6b7619b0e67f797537a53de363ca647f0d379c48d5bf9eb20a75",
+            "6983009ce9c20c0d2f3933e1454120d6e27549dccd1339cc981dc3ad2a5df40e"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ca56f893c5283ba40e8be70b5dfb7e0f4f01dbf111dd10c71c22c0fa5010d7b7",
+            "f62838ec7640274068021a43ebff6efdf5b826fcecb8a11d9f4909d98a0f67db"
+          ]
+        },
+        {
+          "name": "large0-debug1-alias-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "70981a1cdda93ea2223a7a464fd04f8a65fdff535f2ed6bd923b57d2ebeb03fc",
+            "aab0dc80724297dd4d85fda77cc248970082b3b1ce2cff8671b589d9dc003a6d"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "d5c821ab9a0d1140601d54fda606e8f93e7dade7e6ca9017ef06ea2c1e075aa5",
+            "9207890ade614a9a81cfabb3759a3cf8d333987c7994f068b4a7c9e248dcd3bd"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "4d15faea207b8de177d8a4d33680fecde9ec4b259091cc3b828f0bd610428480",
+            "9c75fcbbe02fa089104bfd99cae7eaf5c22b4126ca2528be10c24bbbd54e5e01"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "81f92471cbf36848cc516984958294781099f88eceb3f8296454af3315212d7e",
+            "f105784895bb5c003f8ed8b40681e7636235cec7f8c74cabc918309731b12645"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "1712627826143e2181e7f6ca25cbad556dde3598ca0baf98298d4fb23f6147cb",
+            "769370a48128316561a8b87f60a619338664333d08b9615c34e4f5af99d41c17"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "f1a6c51ede56a724df93ee58c32277a8259b23ffb3ddffb805362679609fff9f",
+            "d6865a5f04f04faa15dbc16187eda18109fe0c7ef45bf455be7f26f6a10373d2"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "9750c33ad070e73abd49dd4c9abb2fed38e127e7e5ab558e9f98576c08b5bff4",
+            "bc4267e4dfda7ed12423ee11271cc76bbcb9e391a1dcc63fd71b625b8cb2e7b0"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "5da242a8501368eeefe2cf3d282fc3c5ff37a6a0f0a103b11221d9b2e72d853a",
+            "70e413544ed7e69a8646509791cbbc103538594b85bdda745df402e3ce00349f"
+          ]
+        },
+        {
+          "name": "large1-debug0-client1-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "6b4e570137db1b7665a4447b4514b39b5fe4d546f4bf072157e6fffbce907910",
+            "ca876756a86a0e926470a7e254a6a4e6884da67c2aa02d46e343c725abb17ce3"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "b6df5d3dfdcdc5084fe7c9d584f17b1085caf9378925be0ea9ae1982f7af9b16",
+            "24fe84956d3f51035920216ffb7a7febabcd4e8f922daea78fd4bfbad56905cb"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "5e26f9bcf002e26cacd4887754e4b73f9964c653320ef9a6ced0dbf51b8e4504",
+            "8a5c06ee6761d15b7d1ad5790728624565ff032beb12cd96c952d2f73f90109a"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "15368f6bfae46856340176a96e5f8353179c9d41aff566385ea6c7fccd8a17c9",
+            "bf90dea4796aa3e794ea6dc7c276c18bc32b8931544a63dab3a73f8cfc84ff51"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "41e9bbcfb267039a8366c1152e1ed43c1f629e492c36e5133d51c9df71554d79",
+            "7bcf32454b0c936328619580e3f50b2d54fd6fd2bf5b35c53ceac8880319ea09"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "cee37bb0fa85853fc0c8cf944c866042afb8784fe0aa7a9f491042c7669c1426",
+            "6a480dd3c2bcb2bc91d9f6ea4c3239f0de31a9d2a2ef9bd131bf09e0d5365e40"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "8cec2288bc1b2397fdc5b42b9092ec7f32ca221708658eb83ca0168675e77cc4",
+            "804c9cefdc75dd852ad259eb90950cf17dd476221a6e415dab7dc019287a85f3"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ce74f2d336dcb0604b73b96591c27ab4bef81b062742de0b7a288b4552b114a1",
+            "f1315f1ba6e9bc07f2f04d54b8dfa4b766562817a49e276bf958336c9782dad5"
+          ]
+        },
+        {
+          "name": "large1-debug0-alias-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "139663037a34e12a670ea63c3a2503d0f5b79b1ef2520fc2a1ed5488725fac83",
+            "bef7ccb0b069d086b66e8e1f2362b5d085f8b49a80be8e5ca091734de387a148"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "51d18928daafd096b3324dd487412a9f892ab1268c63a17c4708fbc18de03d60",
+            "b414ace62e318ea303bed4db93eed1dc723a35538924dcffcd8b8a257de114be"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "ac019448879bbd4b56cf10a81931894387ddc6d70de53bd3bb213011fad06417",
+            "5b14cf91901318fd2f00d42c6899a89fc6aaa8b3611edba96d501eaafe7f4f91"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "5fabaea6685691916114dc540e9c63488bc4758f38c7aec72d34bb1c5440d11e",
+            "949c05607c8f7d46786f7f8e081743fcaa89fc3846f9c2fa2f59eaa343a7a123"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "92078684d4794c47a8eef1b5d4f5c220db72bcec6b531b81a8f1d7145a9c279d",
+            "a56f1c3cd54b643d88ae4f0b13b5c3b327d3809c569e8076e30362d9ac1b5d99"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "86678e1a8759d206fd4d6ec58bb7c03d1f6fa5a875c85fa8fb7689b2b9a4ed77",
+            "7fe358dfe3253a011acf5307ade10819231d32d6cc36f695a187a7223642f92d"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "2b58593a85f48bbee5742233d352b98628fc8d323cf86116122bfa31058ecd54",
+            "c72497316a7c4ffd5cc75d377f9188a152f271b8be1da99dcfdd2fa5351a9df3"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a72446364e52cbbb89bc01f05180f998e678d29939597bada12f26e45b226c72",
+            "dfb64cc0be3363318b878eab88eb11661ee89c3831d7becefe77e8b32f4bd377"
+          ]
+        },
+        {
+          "name": "large1-debug1-client1-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "4b854ec1196e376bc07d959dcbdee8dbfae6c228f9e2d6653eaa607d4a986442",
+            "eefc05e4a1f8d7cd5b808c8f54e87b0747e0182289fd506ab31de336a087ec09"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-udp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a8cd83bfd6624475eb4e22d37c155c6e1030a3e236fdbf32e3ba4f7461d99386",
+            "e5082d728f0a68382c95657eda5d69121579ae4ad8812570f43b245985785dbc"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-udp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "9f6ec926cf03741e412a1b573ac90b930383af5badb1ee17e0e82a162722fc34",
+            "8e431ee3178930fecb1751fafaef3e9f3e746829f7e3e4972a567dab81f8ec85"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-udp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "1312163ad758364fe39e79955169e2fbd82a22c215d5abf2b99d0186fe4f8624",
+            "3a0150f2c5aa292910791342fe18fc4657b6be2cfbcbcba401a4dac8342405af"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-udp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "dcd07249d7c78966043d2d1c44f139651cf23f86e42c1831afe23b55698aa03d",
+            "3f675487df334b9388de85fc5dbe9372313c52cabf23d623d5b34847d87e273d"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-tcp-rd0-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "c6590e222f25b323d18317963d44fd30041585fcb0b2b800a7b892aa13c54bfb",
+            "65ab23b050d75f52cc97585ed8cb4606702852e3c2c191eab56f04d6e72db7cf"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-tcp-rd0-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "da2d1a705b15672e830dc8e24bb2afb576418207f9c327350f805cd8afbf32ec",
+            "f2a8c08944a1aa278027988bf5324daa660ac0dccf8aad0b9e84e34f21e1cfc6"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-tcp-rd1-do0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "a2aa4369c0637d286b63466b34601df5192099f5e07a29e649664896d47bc66d",
+            "4fd86a81afae669b3d703e9060416f87a075f9a104ca6e8e92ba31a1724ba0d2"
+          ]
+        },
+        {
+          "name": "large1-debug1-alias-tcp-rd1-do1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "4e69c8c72836b22d2b3361a8079de6a454d091a18f04f8716abef693ee90bdbb",
+            "d38581d0e9d12825fedfc6c30bce4ab1b005f8e0c9babde41fd3ead7e4fed226"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cursor",
+      "cases": 12,
+      "summary_sha256": "0de744296f3d9b1f609e0cb937768dd781e73b2e966b65820239fe4d1e9e0531",
+      "invocation": {
+        "argv": [
+          "python3",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/source/tools/dnsmasq/dhcp_negative_cursor_diff.py",
+          "--image-root",
+          "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+          "--rust",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+          "--out",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/cursor",
+          "--config-evidence",
+          "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/negative-01/negative/summary.json"
+        ],
+        "exit": 0,
+        "started": 1791957294.7572088,
+        "finished": 1791957295.672785,
+        "tool_sha256": "e4134100ae96c8a3124798eeaa319938fd9818786ab5ad62d8350e8963e8cde0"
+      },
+      "identities": {
+        "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "rust": "7a56d4302dc8fbd3df8d5c441d2b910c0cf2222d9d3b105ef599ad4ca2150f7c",
+        "driver": "e4134100ae96c8a3124798eeaa319938fd9818786ab5ad62d8350e8963e8cde0",
+        "base_driver": "a35318a14a15641631785b96e9e7fa4d494d0d6e04091520e85ba584fc5f2450",
+        "config_evidence": "8912c94156dcb7e17cb04cf3fb9bb6c61c75c962cc9871c712386985adccbca1"
+      },
+      "checks": [
+        {
+          "name": "raw-pointer-debug0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "7d17403307eb76508be69f85777455a837ba504058a8d92bf219b2a886e3d55f",
+            "48b349fc8dfadc1da9bb6a3ef2fb7d0a016f423732007f671af2937bb4c9181d"
+          ]
+        },
+        {
+          "name": "raw-pointer-debug1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "406281cf5fb3bbb6a909a1e2f395bd6c8ed87f9033ab7069f800dda3581d622c",
+            "d6df721f58b3b93d106605b64e9994e9a45078ffbb9a97f85b2c771aeac58d80"
+          ]
+        },
+        {
+          "name": "raw-target-nx-debug0",
+          "responses": 6,
+          "exact": 6,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "a6f9f01fe5b307b192a0209dc49d67e834261328ce574a431588d75ebf8e7d84",
+            "54efa6840550831163d1e579c1c91be368d079639b087b28fa1f920a62f896a6"
+          ]
+        },
+        {
+          "name": "raw-target-nx-debug1",
+          "responses": 6,
+          "exact": 6,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "2782d877e297c90a59578ff87e196ba77f64afa78d0d083144d6cc48cd6ef181",
+            "a76bcc38ec8f95e92c761a6c5ffd53f1b24c0a1eb4aed107bd21fba40c48230e"
+          ]
+        },
+        {
+          "name": "raw-owner-nx-debug0",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "104eb2dfdc2bb90b5613ba6d6e6ca91a7def3a06e1e2c812e6b0bb59c1b4f2cf",
+            "8fbcdef8bb8aa2cb05eafddff48a9bb513b9cfe6dae6e23a63297e70bf7e5bff"
+          ]
+        },
+        {
+          "name": "raw-owner-nx-debug1",
+          "responses": 4,
+          "exact": 4,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "9a8de1956de7f3589bd71e10bde8ce3cf8dea0415ef4421a17eddfd5c68a2769",
+            "01eff89c8a33e90a24f469c19cfe37305cbec17b1ea1c975a3710772d2b2502e"
+          ]
+        },
+        {
+          "name": "configured-cname-stop-debug0",
+          "responses": 6,
+          "exact": 6,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "01fb2c70730229b3a187f21ceb16525e031394ff658b1d2437c4b1cad28ceff5",
+            "cd4b1e634503397be5476836c214733485954a7cc0b816e8f743dc898d8b3559"
+          ]
+        },
+        {
+          "name": "configured-cname-stop-debug1",
+          "responses": 6,
+          "exact": 6,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 2,
+          "result_sha256": [
+            "e20f1092781099eb022985cdd8401734398c0cc09627553b5d2d5c1a0f6fea7a",
+            "d26a10fcd5f4968871e495598bad0b127652b798b51355926ef6c85b9777bbf9"
+          ]
+        },
+        {
+          "name": "reverse-synth-debug0",
+          "responses": 10,
+          "exact": 10,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "35eaccd2361ada7115187f2622e63a580c7981c7adb5fe0c2e5290b4db68cc63",
+            "d5495ff87c2bd6158509475e934a56be069db39d4c230790467592042a1749c0"
+          ]
+        },
+        {
+          "name": "reverse-synth-debug1",
+          "responses": 10,
+          "exact": 10,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "fc41560c79a649fbd3481b9356f0ca39462722672a4c4b4f406d0b662279cef8",
+            "e1bb2b01596d5c3eecec3057297b03a098f8172de81d9dd9e8cc2d79e0d1196d"
+          ]
+        },
+        {
+          "name": "reverse-explicit-debug0",
+          "responses": 10,
+          "exact": 10,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "7aedab16406be212dd70f96d322a21cb490609e9332b782a1fe6f4f2cf233eb8",
+            "92658b1c278ce6c1b961f95713f6854f0aa4003b6669d4bd1e36f00905126c05"
+          ]
+        },
+        {
+          "name": "reverse-explicit-debug1",
+          "responses": 10,
+          "exact": 10,
+          "bounded_soa": 0,
+          "ttl_bounds": [],
+          "dhcp_replies": 0,
+          "result_sha256": [
+            "7448320bed1e0038fe2185fc19b1af10b4ae8f1d94d7a11e0812f43237b14815",
+            "050b8b5d5a6f929dab209f5ad49661120b82978999e05d8cf306055852890d7e"
+          ]
+        }
+      ]
+    }
+  ],
+  "response_pairs": 840,
+  "exact": 838,
+  "bounded_soa": 2
+}
