@@ -1,0 +1,376 @@
+{
+  "schema": 1,
+  "status": "historical thresholds corrected; final SDK measured delta and engineering acceptance pending",
+  "legacy_targets": {
+    "elf_bytes": 1000000,
+    "apk_bytes": 700000,
+    "current_unconditional_hard_gate": false,
+    "reason": "M5 ELF and APK sizes were explicitly accepted later; do not infer unlimited future growth."
+  },
+  "authorizations": [
+    {
+      "session_id": "01a0f7c1-94e0-7790-af64-df2fcb06564b",
+      "utc_timestamp": "2026-10-03T11:40:42.878Z",
+      "response_item_line": 19328,
+      "message_sha256": "24284daba92ad5d268401668173379e023d4feeb21ff9ea04d2034a22a17c04d",
+      "meaning": "M4 target changed to ELF <= 1,000,000 bytes, opt3 and stable toolchain."
+    },
+    {
+      "session_id": "01a0f7c1-94e0-7790-af64-df2fcb06564b",
+      "utc_timestamp": "2026-10-03T12:20:11.228Z",
+      "response_item_line": 20011,
+      "message_sha256": "c8c80c4f75e3b62ace5ec3bfb18d5e2faae7025b68a92cd3e7f738c319865361",
+      "meaning": "User accepts exact M4 opt3 ELF at 1,159,280 bytes."
+    },
+    {
+      "session_id": "01a10be1-3788-7593-92e4-18bb2953f0e5",
+      "utc_timestamp": "2026-10-06T12:38:06.723Z",
+      "response_item_line": 14620,
+      "message_sha256": "7d58cc2f5ff662f582efba3e81002970c17ed80d3451a7e2e92c4bffc3d44795",
+      "meaning": "User accepts M5 size after assistant requested acceptance of ELF 1,929,256 bytes and APK 1,065,071 bytes; begins M6a."
+    },
+    {
+      "session_id": "01a12a38-7070-7aa3-a3bc-5847163f6479",
+      "utc_timestamp": "2026-10-11T09:50:16.075Z",
+      "response_item_line": 661,
+      "message_sha256": "c2d91827d7d5aeeaaf12bf5d132aeb06ddd29c6d2abde60f166884e007861019",
+      "meaning": "User delegates whether PIE size/performance tradeoff is acceptable to engineering judgment."
+    },
+    {
+      "session_id": "01a12a38-7070-7aa3-a3bc-5847163f6479",
+      "utc_timestamp": "2026-10-11T21:38:15.657Z",
+      "response_item_line": 7143,
+      "message_sha256": "8db26e18db2f4a3e81f28d79167d14446869e88c4bf2cc92760b71ed70a8d89e",
+      "meaning": "User excludes R3 size from that repair round."
+    }
+  ],
+  "recording_commit": "51d1ba62",
+  "m4_artifact_exception_commit": "d629861b",
+  "candidate_340ed": {
+    "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+    "elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "elf_bytes": 2089440,
+    "section_file_bytes": 2085114,
+    "headers_padding_and_gaps_bytes": 4326,
+    "sections": [
+      {
+        "name": ".hash",
+        "type": 5,
+        "offset": 456,
+        "size": 20,
+        "file_bytes": 20,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".gnu.hash",
+        "type": 1879048182,
+        "offset": 480,
+        "size": 28,
+        "file_bytes": 28,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".dynsym",
+        "type": 11,
+        "offset": 512,
+        "size": 72,
+        "file_bytes": 72,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".dynstr",
+        "type": 3,
+        "offset": 584,
+        "size": 1,
+        "file_bytes": 1,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".rela.dyn",
+        "type": 4,
+        "offset": 592,
+        "size": 52176,
+        "file_bytes": 52176,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".init",
+        "type": 1,
+        "offset": 52768,
+        "size": 16,
+        "file_bytes": 16,
+        "alloc": true,
+        "write": false,
+        "execute": true
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "offset": 52784,
+        "size": 1774404,
+        "file_bytes": 1774404,
+        "alloc": true,
+        "write": false,
+        "execute": true
+      },
+      {
+        "name": ".fini",
+        "type": 1,
+        "offset": 1827188,
+        "size": 16,
+        "file_bytes": 16,
+        "alloc": true,
+        "write": false,
+        "execute": true
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "offset": 1827216,
+        "size": 91484,
+        "file_bytes": 91484,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".eh_frame_hdr",
+        "type": 1,
+        "offset": 1918700,
+        "size": 18476,
+        "file_bytes": 18476,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".eh_frame",
+        "type": 1,
+        "offset": 1937176,
+        "size": 94800,
+        "file_bytes": 94800,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".gcc_except_table",
+        "type": 1,
+        "offset": 2031976,
+        "size": 5640,
+        "file_bytes": 5640,
+        "alloc": true,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".tbss",
+        "type": 8,
+        "offset": 2039984,
+        "size": 48,
+        "file_bytes": 0,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".init_array",
+        "type": 14,
+        "offset": 2039984,
+        "size": 24,
+        "file_bytes": 24,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".fini_array",
+        "type": 15,
+        "offset": 2040008,
+        "size": 8,
+        "file_bytes": 8,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".data.rel.ro",
+        "type": 1,
+        "offset": 2040016,
+        "size": 44240,
+        "file_bytes": 44240,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".dynamic",
+        "type": 6,
+        "offset": 2084256,
+        "size": 384,
+        "file_bytes": 384,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".got",
+        "type": 1,
+        "offset": 2084640,
+        "size": 224,
+        "file_bytes": 224,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "offset": 2084864,
+        "size": 2848,
+        "file_bytes": 2848,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "offset": 2087712,
+        "size": 4464,
+        "file_bytes": 0,
+        "alloc": true,
+        "write": true,
+        "execute": false
+      },
+      {
+        "name": ".comment",
+        "type": 1,
+        "offset": 2087712,
+        "size": 61,
+        "file_bytes": 61,
+        "alloc": false,
+        "write": false,
+        "execute": false
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "offset": 2087773,
+        "size": 192,
+        "file_bytes": 192,
+        "alloc": false,
+        "write": false,
+        "execute": false
+      }
+    ],
+    "comparison": {
+      "accepted_m5_elf_bytes": 1929256,
+      "accepted_m5_apk_bytes": 1065071,
+      "elf_delta_bytes": 160184,
+      "elf_delta_percent": 8.302889818665848,
+      "stock_c_elf_bytes": 269305,
+      "elf_vs_c_ratio": 7.758637975529604,
+      "elf_delta_from_c_bytes": 1820135
+    },
+    "note": "340ed engineering candidate, not the final SDK payload; no symbol attribution inferred from the stripped ELF.",
+    "accepted_m5": {
+      "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+      "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+      "elf_bytes": 1929256,
+      "apk_sha256": "bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa",
+      "apk_bytes": 1065071,
+      "sections_file_bytes": {
+        ".init": 16,
+        ".text": 1675172,
+        ".fini": 16,
+        ".rodata": 90044,
+        ".eh_frame_hdr": 17756,
+        ".eh_frame": 91432,
+        ".gcc_except_table": 5724,
+        ".tbss": 0,
+        ".init_array": 24,
+        ".fini_array": 8,
+        ".data.rel.ro": 42920,
+        ".got": 224,
+        ".data": 2840,
+        ".bss": 0,
+        ".comment": 61,
+        ".shstrtab": 147
+      },
+      "headers_padding_and_gaps_bytes": 2872
+    },
+    "section_delta_from_m5": {
+      ".bss": 0,
+      ".comment": 0,
+      ".data": 8,
+      ".data.rel.ro": 1320,
+      ".dynamic": 384,
+      ".dynstr": 1,
+      ".dynsym": 72,
+      ".eh_frame": 3368,
+      ".eh_frame_hdr": 720,
+      ".fini": 0,
+      ".fini_array": 0,
+      ".gcc_except_table": -84,
+      ".gnu.hash": 28,
+      ".got": 0,
+      ".hash": 20,
+      ".init": 0,
+      ".init_array": 0,
+      ".rela.dyn": 52176,
+      ".rodata": 1440,
+      ".shstrtab": 45,
+      ".tbss": 0,
+      ".text": 99232
+    },
+    "headers_padding_delta": 1454
+  },
+  "final_sdk": {
+    "status": "pending",
+    "owner": "repo_handoff",
+    "source_commit": null,
+    "elf_sha256": null,
+    "elf_bytes": null,
+    "apk_sha256": null,
+    "apk_bytes": null,
+    "budget_decision": null
+  },
+  "release_constraints": {
+    "opt_level": 3,
+    "lto": true,
+    "codegen_units": 1,
+    "panic": "abort",
+    "strip": true,
+    "force_unwind_tables": false,
+    "target": "aarch64-unknown-linux-musl",
+    "static_pie": true,
+    "relro": true,
+    "allocator_change": false,
+    "feature_reduction": false,
+    "retained_cgroup_limit_bytes": 67108864
+  },
+  "workspace_cleanup": {
+    "raw_files_verified": 10825,
+    "staged_rootfs_deleted": 48,
+    "active_stage_roots": [],
+    "tmpfs_available_delta_bytes": 104194048,
+    "receipt_sha256": "710d14d9ece3cc430e2f2912dcc1e1a42f1d34ca97b33808549ee0c87c2562ee"
+  },
+  "limits": [
+    "340ed is an intermediate engineering ELF, not the final SDK-built payload.",
+    "Current stripped ELF has no symbol attribution; historical M5 map attribution is not relabeled as current.",
+    "No new numeric ceiling or user acceptance is invented.",
+    "No physical router action or deployment qualification."
+  ]
+}
