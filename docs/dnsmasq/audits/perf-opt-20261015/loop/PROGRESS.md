@@ -33,11 +33,21 @@ No candidate is qualified yet; full correctness and timing are pending.
 
 | ID | Hypothesis | Screen / status |
 | --- | --- | --- |
-| L01 | Borrow UDP receive bytes until asynchronous retention is needed | planned; allocation/copy count first |
+| L01 | Borrow UDP receive bytes until asynchronous retention is needed | screened in: actual owner local-answer path 11 → 10 allocations/query, 566 → 538 allocated bytes for 28-byte query; 1000 correct responses each |
 | L02 | Send TCP header + existing packet via vectored I/O | screened in: one framing allocation and payload copy removed; 32/1232/65535-byte instructions −37.3%/−45.2%/−49.6% in isolated framing loop |
 | L03 | Complete TCP input need not round-trip through retained fragment buffer | screened in provisionally: complete 32/1232/65535-byte instructions −20.6%/−25.3%/−48.6%; small fragmented input +2.1–3.7% (10–18 instructions/frame), retain as explicit control |
 | L04 | Reuse upstream poll interest vectors | inspect/profile after L01–L03; no timer/readiness shortcut |
 | L05 | Startup/config stop-start overhead | trace lifecycle before any change |
+
+L01 uses `Cow<[u8]>`; pending interface admission still owns its original copy,
+and deferred interface-record/MAC lookups materialize a Vec before returning.
+The existing receive scratch is moved out only across synchronous processing
+and is restored on every ordinary return. The actual-owner probe verifies its
+65,535-byte length after every response. `enumerate_interfaces` queues work
+without recursively receiving packets; no consumer can reuse that scratch in
+the synchronous call. Upstream forwarding still takes its required ownership.
+Oracle native diagnostic builds are private copies with a counting allocator;
+they are never timing or product artifacts.
 
 Historical fixed UDP budget 1, opt-s, CPU-specific codegen and special owner
 gates are rejected as starting points: `PERF_RESEARCH_UDP_DHCP_RELOAD.md` records
