@@ -1,0 +1,320 @@
+{
+  "product_commit": "4ff6a8a27f6a835b5e8cb90a256211fa96383eb5",
+  "rust_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+  "cases": {
+    "warm": {
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "observations": 20,
+      "raw_differences": [],
+      "relative_orders_matched": null,
+      "sides": [
+        {
+          "side": "c",
+          "healthy": true,
+          "peak_bytes": 17051648,
+          "pss_kib": {
+            "startup": 7220,
+            "seed_held": 7336,
+            "parent_udp_warmed": 12212,
+            "new_tcp_1": 12334,
+            "new_tcp_10": 13447,
+            "new_tcp_19": 14591,
+            "new_tcp_20": 9729
+          }
+        },
+        {
+          "side": "rust",
+          "healthy": true,
+          "peak_bytes": 27119616,
+          "pss_kib": {
+            "startup": 25588,
+            "seed_held": 25688,
+            "parent_udp_warmed": 26300,
+            "new_tcp_1": 26412,
+            "new_tcp_10": 26888,
+            "new_tcp_19": 27356,
+            "new_tcp_20": 26712
+          }
+        }
+      ]
+    },
+    "repeated-original": {
+      "driver_sha256": "30f7e009761ac96991269823651b17d05aeadcf8d6a798defb6a9318d00aaa8b",
+      "observations": 6020,
+      "raw_differences": [],
+      "relative_orders_matched": null,
+      "sides": [
+        {
+          "side": "c",
+          "healthy": true,
+          "peak_bytes": 16584704,
+          "pss_kib": {
+            "startup": 7152,
+            "seed_held": 7264,
+            "parent_udp_warmed": 12140,
+            "new_tcp_1": 12258,
+            "new_tcp_10": 13335,
+            "new_tcp_19": 14408,
+            "new_tcp_20": 9542,
+            "rolling_start": 7276,
+            "rolling_end": 7276
+          }
+        },
+        {
+          "side": "rust",
+          "healthy": true,
+          "peak_bytes": 26755072,
+          "pss_kib": {
+            "startup": 25588,
+            "seed_held": 25688,
+            "parent_udp_warmed": 26300,
+            "new_tcp_1": 26412,
+            "new_tcp_10": 26884,
+            "new_tcp_19": 27356,
+            "new_tcp_20": 26712,
+            "rolling_start": 25780,
+            "rolling_end": 25808
+          }
+        }
+      ]
+    },
+    "unique": {
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "observations": 6020,
+      "raw_differences": [],
+      "relative_orders_matched": true,
+      "sides": [
+        {
+          "side": "c",
+          "healthy": true,
+          "peak_bytes": 16842752,
+          "pss_kib": {
+            "startup": 7148,
+            "seed_held": 7260,
+            "parent_udp_warmed": 12140,
+            "new_tcp_1": 12258,
+            "new_tcp_10": 13339,
+            "new_tcp_19": 14453,
+            "new_tcp_20": 9580,
+            "rolling_start": 7272,
+            "rolling_end": 7280
+          }
+        },
+        {
+          "side": "rust",
+          "healthy": true,
+          "peak_bytes": 34988032,
+          "pss_kib": {
+            "startup": 33348,
+            "seed_held": 33444,
+            "parent_udp_warmed": 34060,
+            "new_tcp_1": 34164,
+            "new_tcp_10": 34644,
+            "new_tcp_19": 35116,
+            "new_tcp_20": 34472,
+            "rolling_start": 33540,
+            "rolling_end": 33568
+          }
+        }
+      ]
+    }
+  },
+  "query_order": [
+    {
+      "side": "c",
+      "fixture": "192.0.2.1 x.test\n10.0.98.143 a.test\n192.0.4.2 a.test\n192.0.2.1 y133.test\n192.0.4.1 x.test\n",
+      "selected": "y133.test",
+      "sequence": {
+        "before": [
+          "y133.test",
+          "x.test"
+        ],
+        "forward": [
+          "192.0.4.1",
+          "192.0.2.1"
+        ],
+        "after": [
+          "x.test",
+          "y133.test"
+        ]
+      },
+      "raw_minimal": {
+        "before": {
+          "wire": "1521858000010002000000000131013201300331393207696e2d61646472046172706100000c0001c00c000c000100000000000b0479313333047465737400c00c000c00010000000000080178047465737400",
+          "flags": 34176,
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "y133.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "x.test"
+            }
+          ]
+        },
+        "forward": {
+          "wire": "152185800001000200000000017804746573740000010001c00c00010001000000000004c0000401c00c00010001000000000004c0000201",
+          "flags": 34176,
+          "records": [
+            {
+              "section": "answer",
+              "name": "x.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.4.1"
+            },
+            {
+              "section": "answer",
+              "name": "x.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.1"
+            }
+          ]
+        },
+        "after": {
+          "wire": "1521858000010002000000000131013201300331393207696e2d61646472046172706100000c0001c00c000c00010000000000080178047465737400c00c000c000100000000000b0479313333047465737400",
+          "flags": 34176,
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "y133.test"
+            }
+          ]
+        }
+      },
+      "identity": {
+        "pid": 12,
+        "root": "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs",
+        "exe": "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/usr/sbin/dnsmasq",
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "cmdline": "/usr/sbin/dnsmasq -k --conf-file= --no-resolv --no-hosts --user=root --group=root --listen-address=127.0.0.1 --bind-interfaces --port=15353 --pid-file=/m2/pid --host-record=ready.test,192.0.2.41 --addn-hosts=/m2/hosts --cache-size=0 --edns-packet-max=1232 --log-facility=/dev/null ",
+        "maps": "c98e5127e000-c98e512bc000 r-xp 00000000 00:aa 9223372036858233507        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/usr/sbin/dnsmasq\nc98e512bc000-c98e512bf000 r--p 0003d000 00:aa 9223372036858233507        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/usr/sbin/dnsmasq\nc98e512bf000-c98e512c1000 rw-p 00040000 00:aa 9223372036858233507        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/usr/sbin/dnsmasq\nc98e512c1000-c98e512c2000 rw-p 00000000 00:00 0 \nc98e5d0a5000-c98e5d0a6000 ---p 00000000 00:00 0                          [heap]\nc98e5d0a6000-c98e5d0a7000 rw-p 00000000 00:00 0                          [heap]\nf055da038000-f055da042000 rw-p 00000000 00:00 0 \nf055da042000-f055da071000 r-xp 00000000 00:aa 9223372036858236795        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libgcc_s.so.1\nf055da071000-f055da072000 r--p 0001f000 00:aa 9223372036858236795        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libgcc_s.so.1\nf055da072000-f055da073000 rw-p 00020000 00:aa 9223372036858236795        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libgcc_s.so.1\nf055da073000-f055da083000 r-xp 00000000 00:aa 9223372036858234256        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libubox.so.20260213\nf055da083000-f055da084000 r--p 0000f000 00:aa 9223372036858234256        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libubox.so.20260213\nf055da084000-f055da085000 rw-p 00010000 00:aa 9223372036858234256        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libubox.so.20260213\nf055da085000-f055da10c000 r-xp 00000000 00:aa 9223372036858236818        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libc.so\nf055da10c000-f055da115000 rw-p 00000000 00:00 0 \nf055da115000-f055da11b000 r-xp 00000000 00:aa 9223372036858236677        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libubus.so.20251202\nf055da11b000-f055da11c000 r--p 00006000 00:aa 9223372036858236677        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libubus.so.20251202\nf055da11c000-f055da11d000 rw-p 00007000 00:aa 9223372036858236677        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libubus.so.20251202\nf055da11d000-f055da121000 r--p 00000000 00:00 0                          [vvar]\nf055da121000-f055da123000 r-xp 00000000 00:00 0                          [vdso]\nf055da123000-f055da126000 rw-p 0008e000 00:aa 9223372036858236818        /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/c/stage/rootfs/lib/libc.so\nf055da126000-f055da128000 rw-p 00000000 00:00 0 \nfffffed90000-fffffedb1000 rw-p 00000000 00:00 0                          [stack]\n"
+      }
+    },
+    {
+      "side": "rust",
+      "fixture": "192.0.2.1 x.test\n10.0.70.12 a.test\n192.0.4.2 a.test\n192.0.2.1 y098.test\n192.0.4.1 x.test\n",
+      "selected": "y098.test",
+      "sequence": {
+        "before": [
+          "y098.test",
+          "x.test"
+        ],
+        "forward": [
+          "192.0.4.1",
+          "192.0.2.1"
+        ],
+        "after": [
+          "x.test",
+          "y098.test"
+        ]
+      },
+      "raw_minimal": {
+        "before": {
+          "wire": "1521858000010002000000000131013201300331393207696e2d61646472046172706100000c0001c00c000c000100000000000b0479303938047465737400c00c000c00010000000000080178047465737400",
+          "flags": 34176,
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "y098.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "x.test"
+            }
+          ]
+        },
+        "forward": {
+          "wire": "152185800001000200000000017804746573740000010001c00c00010001000000000004c0000401c00c00010001000000000004c0000201",
+          "flags": 34176,
+          "records": [
+            {
+              "section": "answer",
+              "name": "x.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.4.1"
+            },
+            {
+              "section": "answer",
+              "name": "x.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.1"
+            }
+          ]
+        },
+        "after": {
+          "wire": "1521858000010002000000000131013201300331393207696e2d61646472046172706100000c0001c00c000c00010000000000080178047465737400c00c000c000100000000000b0479303938047465737400",
+          "flags": 34176,
+          "records": [
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "x.test"
+            },
+            {
+              "section": "answer",
+              "name": "1.2.0.192.in-addr.arpa",
+              "type": 12,
+              "class": 1,
+              "ttl": 0,
+              "data": "y098.test"
+            }
+          ]
+        }
+      },
+      "identity": {
+        "pid": 27,
+        "root": "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/stage/rootfs",
+        "exe": "/dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/stage/rootfs/usr/sbin/dnsmasq-rs",
+        "sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+        "cmdline": "/usr/sbin/dnsmasq-rs -k --conf-file= --no-resolv --no-hosts --user=root --group=root --listen-address=127.0.0.1 --bind-interfaces --port=15353 --pid-file=/m2/pid --host-record=ready.test,192.0.2.41 --addn-hosts=/m2/hosts --cache-size=0 --edns-packet-max=1232 --log-facility=/dev/null ",
+        "maps": "aaaabde91000-aaaabde92000 ---p 00000000 00:00 0                          [heap]\naaaabde92000-aaaabde94000 rw-p 00000000 00:00 0                          [heap]\nf6cac56f4000-f6cac5754000 rw-p 00000000 00:00 0 \nf6cac5754000-f6cac5755000 ---p 00000000 00:00 0 \nf6cac5755000-f6cac5758000 rw-p 00000000 00:00 0 \nf6cac5758000-f6cac575c000 r--p 00000000 00:00 0                          [vvar]\nf6cac575c000-f6cac575e000 r-xp 00000000 00:00 0                          [vdso]\nf6cac575e000-f6cac5956000 r-xp 00000000 00:121 117124                    /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/stage/rootfs/usr/sbin/dnsmasq-rs\nf6cac5956000-f6cac5962000 r--p 001f7000 00:121 117124                    /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/stage/rootfs/usr/sbin/dnsmasq-rs\nf6cac5962000-f6cac5963000 rw-p 00203000 00:121 117124                    /dev/shm/full-f10-product-20261014/private/ptr-collision-4ff6/rust/stage/rootfs/usr/sbin/dnsmasq-rs\nf6cac5963000-f6cac5964000 rw-p 00000000 00:00 0 \nffffd4c32000-ffffd4c53000 rw-p 00000000 00:00 0                          [stack]\n"
+      }
+    }
+  ],
+  "inputs_sha256": {
+    "private/f10-rotation-4ff6/oracle/rotation-4ff6-warm/result.json": "9a21242806fcf44f3e9af5551773dcd9f55d1b86fb05a2df4dd3e008225811ae",
+    "private/f10-rotation-4ff6/oracle/rotation-4ff6-repeated-original/result.json": "9f363bd3d9395f549923450e5a9c4ff20b94c85549be460bef80d209e3c4d877",
+    "private/f10-rotation-4ff6/oracle/rotation-4ff6-unique/result.json": "9dd3f4026d74d64fb8d28bc8658cf129cc93940060155b4ccb1e7f47177a30f4",
+    "private/f10-rotation-4ff6/oracle/ptr-collision-4ff6/result.json": "0939a7da81eb6e1529b525b4cdcd523ee6fb7bdb1199c8cb4b3b9ef0beae41c7"
+  }
+}
