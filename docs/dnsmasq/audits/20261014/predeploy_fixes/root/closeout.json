@@ -1,0 +1,7 @@
+{
+  "verified_declared_evidence_files": 54,
+  "errors": [],
+  "remaining_task_processes": [],
+  "host_mounts": [],
+  "scope": "Reread the 54 selected absolute-path evidence identities collected from the delivered reports; per-suite evidence indexes remain in their reports. Process scan checks cmdline/exe/cwd/root, excluding this checker and ancestors."
+}
