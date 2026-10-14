@@ -395,9 +395,16 @@ impl Cache {
             slot.prev = index.checked_sub(1).map(slot_link);
             slot.next = (index + 1 < capacity).then_some(index + 1).map(slot_link);
         }
-        self.names = (0..NAME_SHARDS)
-            .map(|_| Arc::new(NameIndex::new()))
-            .collect();
+        for root in &mut self.names {
+            // An unused unique root is already the reset state. Do not retain
+            // allocated buckets or a shared empty root: both must be replaced
+            // here, preserving memory release and the next insertion's COW
+            // allocation boundary.
+            let unused = Arc::get_mut(root).is_some_and(|names| names.capacity() == 0);
+            if !unused {
+                *root = Arc::new(NameIndex::new());
+            }
+        }
         self.reverse_chain.clear();
         self.pending.clear();
         self.failed = false;
