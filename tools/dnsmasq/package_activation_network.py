@@ -82,7 +82,10 @@ class PackageActivation(Deployment):
                   if line.startswith(('VmRSS:', 'VmHWM:'))}
         self.row['steps'][label] = {'daemon': daemon, 'client': client,
                                     'service': service, 'procd_memory': memory,
-                                    'package': database(self.root).get('dnsmasq')}
+                                    'package': database(self.root).get('dnsmasq'),
+                                    'disk_elf': ({'sha256': sha256(self.root / 'usr/sbin/dnsmasq'),
+                                                  'bytes': (self.root / 'usr/sbin/dnsmasq').stat().st_size}
+                                                 if (self.root / 'usr/sbin/dnsmasq').exists() else None)}
         self.save()
         return daemon
 
@@ -95,6 +98,7 @@ class PackageActivation(Deployment):
         result = self.state(label, expected, previous, identical)
         version = '2.93-r1' if expected == STOCK_SHA256 else self.candidate_version
         assert self.row['steps'][label]['package']['version'] == version
+        assert self.row['steps'][label]['disk_elf']['sha256'] == expected
         self.row['steps'][label]['transaction_and_health_seconds'] = time.monotonic() - started
         self.save()
         return result

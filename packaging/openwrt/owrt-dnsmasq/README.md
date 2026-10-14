@@ -19,12 +19,19 @@ Reinstalling identical bytes is idempotent; no extra post-install restart runs.
 Package acceptance checks the live `/proc/PID/exe` identity and client answers,
 not just the installed version or executable on disk.
 
+A failed APK transaction is not a completed rollback. A surviving daemon can
+still answer while the package database or files are incomplete. Keep the
+verified C recovery path and offline stock APK available; after restoring space
+and management access, repair with the stock package, explicitly restart, then
+verify the database, disk and live ELF identities plus DHCP and DNS clients.
+Executable tracking does not make interrupted APK transactions atomic.
+
 The recipe does not establish deployment readiness. The matching
 SDK build, exact-image install/upgrade/uninstall/rollback checks, complete
 M5 contract, and M6 performance gate must pass before deployment is considered.
 
 For activation and automatic recovery, follow the
-[guarded deployment runbook](../../../docs/dnsmasq/DEPLOY_RUNBOOK.md).
+[temporary trial runbook](../../../docs/dnsmasq/TRIAL_RUNBOOK.md).
 This recipe builds a package artifact; APK installation alone is not a rollback
 mechanism. The guarded procedure keeps stock C on disk and activates a separate
 candidate through temporary runtime mounts, with recovery from `/rom`.
