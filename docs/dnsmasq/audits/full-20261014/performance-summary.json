@@ -1,0 +1,628 @@
+{
+  "identity": {
+    "git_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+    "source_archive_sha256": "dafd43698257749fbbd3f76c40762e0a49e0ae7f74679ee1379568f88aebdab9",
+    "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "release": {
+      "source": "/home/ubuntu/full-audit-20261014/private/source",
+      "kind": "release",
+      "cargo_target_dir": "/dev/shm/full-audit-perf-20261014/target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/home/ubuntu/full-audit-20261014/private/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+      "artifacts": [
+        {
+          "path": "dnsmasq-rs",
+          "bytes": 2073056,
+          "sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0"
+        }
+      ]
+    },
+    "tests": {
+      "source": "/home/ubuntu/full-audit-20261014/private/source",
+      "kind": "tests",
+      "cargo_target_dir": "/dev/shm/full-audit-perf-20261014/target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/home/ubuntu/full-audit-20261014/private/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+      "artifacts": [
+        {
+          "path": "bin-dnsmasq-rs",
+          "bytes": 52657168,
+          "sha256": "9f94964a44c3057288eee96f69b15d7d6d2f6a8e9fd846a4cb6f7a6eaec6b55a"
+        },
+        {
+          "path": "lib-dnsmasq_rs",
+          "bytes": 70782712,
+          "sha256": "f63a9865049b4654793f0c88a44a97eeca17364705133c0453b8b4701dcb4705"
+        }
+      ]
+    },
+    "scope": "Fresh SDK-linker release and dev-profile test binaries. No fresh APK packaging or SDK sstrip; runtime exact image rootfs, Oracle host kernel.",
+    "source_verification": {
+      "files": 647,
+      "changed": [],
+      "manifest_sha256": "fb4c977276f999b4473053c13b1996da202d2841b1b0abe6ed124437c3d753fb"
+    },
+    "matching_c_source": {
+      "dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+      "forward.c": "ac05784d4233ed10bd166da5fe91e464afecf2883d3c2a0063305d3e81692f95",
+      "cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c"
+    }
+  },
+  "tcp_hosts_pss": [
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "c",
+      "hosts": 0,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 1212,
+          "tree_rss_kib": 1220,
+          "processes": 1,
+          "fd": 9
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 1328,
+          "tree_rss_kib": 2200,
+          "processes": 2,
+          "fd": 20
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 2406,
+          "tree_rss_kib": 11020,
+          "processes": 11,
+          "fd": 164
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 3589,
+          "tree_rss_kib": 20820,
+          "processes": 21,
+          "fd": 419
+        }
+      ],
+      "drained_pss_kib": 1216,
+      "drained_processes": 1,
+      "drained_fd": 9,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "rust",
+      "hosts": 0,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 2032,
+          "tree_rss_kib": 2040,
+          "processes": 1,
+          "fd": 10
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 2056,
+          "tree_rss_kib": 2064,
+          "processes": 1,
+          "fd": 11
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 2292,
+          "tree_rss_kib": 2300,
+          "processes": 1,
+          "fd": 20
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 2544,
+          "tree_rss_kib": 2552,
+          "processes": 1,
+          "fd": 30
+        }
+      ],
+      "drained_pss_kib": 2100,
+      "drained_processes": 1,
+      "drained_fd": 10,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "rust",
+      "hosts": 1000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 2492,
+          "tree_rss_kib": 2500,
+          "processes": 1,
+          "fd": 10
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 2772,
+          "tree_rss_kib": 2780,
+          "processes": 1,
+          "fd": 11
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 5340,
+          "tree_rss_kib": 5348,
+          "processes": 1,
+          "fd": 20
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 8192,
+          "tree_rss_kib": 8200,
+          "processes": 1,
+          "fd": 30
+        }
+      ],
+      "drained_pss_kib": 2636,
+      "drained_processes": 1,
+      "drained_fd": 10,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "c",
+      "hosts": 1000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 1324,
+          "tree_rss_kib": 1332,
+          "processes": 1,
+          "fd": 9
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 1436,
+          "tree_rss_kib": 2408,
+          "processes": 2,
+          "fd": 20
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 2477,
+          "tree_rss_kib": 12092,
+          "processes": 11,
+          "fd": 164
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 3625,
+          "tree_rss_kib": 22852,
+          "processes": 21,
+          "fd": 419
+        }
+      ],
+      "drained_pss_kib": 1324,
+      "drained_processes": 1,
+      "drained_fd": 9,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "c",
+      "hosts": 10000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 2232,
+          "tree_rss_kib": 2240,
+          "processes": 1,
+          "fd": 9
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 2344,
+          "tree_rss_kib": 4216,
+          "processes": 2,
+          "fd": 20
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 3387,
+          "tree_rss_kib": 22000,
+          "processes": 11,
+          "fd": 164
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 4536,
+          "tree_rss_kib": 41760,
+          "processes": 21,
+          "fd": 419
+        }
+      ],
+      "drained_pss_kib": 2236,
+      "drained_processes": 1,
+      "drained_fd": 9,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "rust",
+      "hosts": 10000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 6792,
+          "tree_rss_kib": 6800,
+          "processes": 1,
+          "fd": 10
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 9020,
+          "tree_rss_kib": 9028,
+          "processes": 1,
+          "fd": 11
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 29108,
+          "tree_rss_kib": 29116,
+          "processes": 1,
+          "fd": 20
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 51424,
+          "tree_rss_kib": 51432,
+          "processes": 1,
+          "fd": 30
+        }
+      ],
+      "drained_pss_kib": 7680,
+      "drained_processes": 1,
+      "drained_fd": 10,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "rust",
+      "hosts": 50000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 24060,
+          "tree_rss_kib": 24068,
+          "processes": 1,
+          "fd": 10
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 34232,
+          "tree_rss_kib": 34240,
+          "processes": 1,
+          "fd": 11
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 125844,
+          "tree_rss_kib": 125852,
+          "processes": 1,
+          "fd": 20
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 227632,
+          "tree_rss_kib": 227640,
+          "processes": 1,
+          "fd": 30
+        }
+      ],
+      "drained_pss_kib": 28172,
+      "drained_processes": 1,
+      "drained_fd": 10,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory.json",
+      "side": "c",
+      "hosts": 50000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 6244,
+          "tree_rss_kib": 6252,
+          "processes": 1,
+          "fd": 9
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 6360,
+          "tree_rss_kib": 12324,
+          "processes": 2,
+          "fd": 20
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 7439,
+          "tree_rss_kib": 66972,
+          "processes": 11,
+          "fd": 164
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 8631,
+          "tree_rss_kib": 127692,
+          "processes": 21,
+          "fd": 419
+        }
+      ],
+      "drained_pss_kib": 6248,
+      "drained_processes": 1,
+      "drained_fd": 9,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory-repeat.json",
+      "side": "c",
+      "hosts": 50000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 6240,
+          "tree_rss_kib": 6248,
+          "processes": 1,
+          "fd": 9
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 6360,
+          "tree_rss_kib": 12196,
+          "processes": 2,
+          "fd": 20
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 7471,
+          "tree_rss_kib": 65728,
+          "processes": 11,
+          "fd": 164
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 8709,
+          "tree_rss_kib": 125208,
+          "processes": 21,
+          "fd": 419
+        }
+      ],
+      "drained_pss_kib": 6240,
+      "drained_processes": 1,
+      "drained_fd": 9,
+      "exit": 0
+    },
+    {
+      "experiment": "tcp-hosts-memory-repeat.json",
+      "side": "rust",
+      "hosts": 50000,
+      "snapshots": [
+        {
+          "connections": 0,
+          "tree_pss_kib": 24024,
+          "tree_rss_kib": 24032,
+          "processes": 1,
+          "fd": 10
+        },
+        {
+          "connections": 1,
+          "tree_pss_kib": 34196,
+          "tree_rss_kib": 34204,
+          "processes": 1,
+          "fd": 11
+        },
+        {
+          "connections": 10,
+          "tree_pss_kib": 125808,
+          "tree_rss_kib": 125816,
+          "processes": 1,
+          "fd": 20
+        },
+        {
+          "connections": 20,
+          "tree_pss_kib": 227596,
+          "tree_rss_kib": 227604,
+          "processes": 1,
+          "fd": 30
+        }
+      ],
+      "drained_pss_kib": 28120,
+      "drained_processes": 1,
+      "drained_fd": 10,
+      "exit": 0
+    }
+  ],
+  "tcp_hosts_equal_cgroup_budget": [
+    {
+      "side": "c",
+      "budget_bytes": 67108864,
+      "successful_tcp": 20,
+      "attempted_tcp": 20,
+      "udp_after": true,
+      "exit_before_cleanup": null,
+      "final_cgroup": {
+        "memory.current": "10797056",
+        "memory.peak": "10797056",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "cgroup.procs": "12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+      },
+      "cgroup_removed": true
+    },
+    {
+      "side": "rust",
+      "budget_bytes": 67108864,
+      "successful_tcp": 4,
+      "attempted_tcp": 5,
+      "udp_after": false,
+      "exit_before_cleanup": -9,
+      "final_cgroup": {
+        "memory.current": "237568",
+        "memory.peak": "67108864",
+        "memory.events": "low 0\nhigh 0\nmax 35\noom 1\noom_kill 1\noom_group_kill 0",
+        "cgroup.procs": ""
+      },
+      "cgroup_removed": true
+    }
+  ],
+  "hosts_reload_enomem": [
+    {
+      "side": "c",
+      "initial_rows": 2000,
+      "headroom_kib": 1024,
+      "initial_vmsize_kib": 1556,
+      "pressure_exit": null,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 18036,
+      "after_hup": {
+        "udp": {
+          "ok": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "recovered.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.44"
+            }
+          ],
+          "error": null
+        },
+        "tcp": {
+          "ok": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "recovered.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.44"
+            }
+          ],
+          "error": null
+        }
+      },
+      "error": null,
+      "trace_sha256": "cee5713d7bb403092c50f167a88f800f9709a09654bf002764475eeb8354dad8"
+    },
+    {
+      "side": "rust",
+      "initial_rows": 2000,
+      "headroom_kib": 1024,
+      "initial_vmsize_kib": 3428,
+      "pressure_exit": -6,
+      "exit_before_stop": -6,
+      "exit": -6,
+      "enomem_count": 23848,
+      "after_hup": null,
+      "error": null,
+      "trace_sha256": "21c3dd912298c6cd89e2da391cd36008961cf872e736f70afc8a080ff539b1e0"
+    }
+  ],
+  "test_results": {
+    "lib": "784 passed; 20 ignored",
+    "bin": "78 passed; 3 ignored",
+    "hosts_allocations": {
+      "elf": "/dev/shm/full-audit-perf-20261014/target/aarch64-unknown-linux-musl/debug/deps/hosts_allocations-bf760a757fc21a5c",
+      "sha256": "a7f923e91ed9f3faf1484246e39a9bdb3405744f0b51f6d19a795caae6e94726",
+      "exit": 0,
+      "log": "\nrunning 5 tests\ntest consecutive_publication_and_restore_failures_leave_last_daemon_snapshot_intact ... ok\ntest expanded_names_skip_failed_allocations_without_becoming_bad_names ... ok\ntest failed_hosts_allocations_keep_indexes_valid_and_allow_later_reload ... ok\ntest failed_snapshot_copy_leaves_original_order_and_sources_intact ... ok\ntest staged_hosts_records_and_diagnostics_tolerate_failed_growth ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    }
+  },
+  "excluded_common_flood_boundary": [
+    {
+      "side": "c",
+      "flood_ip": "127.0.0.1",
+      "correct": 388,
+      "probed": 388,
+      "floods": [
+        "3469568 5.000023\n",
+        "3493312 5.000024\n"
+      ]
+    },
+    {
+      "side": "rust",
+      "flood_ip": "127.0.0.1",
+      "correct": 3,
+      "probed": 39,
+      "floods": [
+        "3399360 5.000018\n",
+        "3275392 5.000079\n"
+      ]
+    },
+    {
+      "side": "rust",
+      "flood_ip": "127.0.0.2",
+      "correct": 372,
+      "probed": 372,
+      "floods": [
+        "3455936 5.000082\n",
+        "3446528 5.000061\n"
+      ]
+    },
+    {
+      "side": "c",
+      "flood_ip": "127.0.0.2",
+      "correct": 3,
+      "probed": 39,
+      "floods": [
+        "3194944 5.000083\n",
+        "3340608 5.000072\n"
+      ]
+    }
+  ],
+  "raw_evidence": {
+    "tcp-hosts-memory.json": {
+      "local_private_path": "private/full-audit-20261014/perf/tcp-hosts-memory.json",
+      "sha256": "bd0cfa35fc2a9e74db8b8c27a44c4325db84d8074b516690e517b324e0aac388"
+    },
+    "tcp-hosts-memory-repeat.json": {
+      "local_private_path": "private/full-audit-20261014/perf/tcp-hosts-memory-repeat.json",
+      "sha256": "6ccce800399ebb8b4adfb50cc363cda5fda66c6de955f375678d2165bca44e82"
+    },
+    "tcp-hosts-cgroup.json": {
+      "local_private_path": "private/full-audit-20261014/perf/tcp-hosts-cgroup.json",
+      "sha256": "4969041e90f6556fb3da8fb52d8d68a686a6c5f8c64441868c4fa5ea2a80ca67"
+    },
+    "hosts-oom-1.json": {
+      "local_private_path": "private/full-audit-20261014/perf/hosts-oom-1.json",
+      "sha256": "dd220d8921a68a599b5405d7c3da5cc061606c0fe101142e1f1f46c4fc104179"
+    },
+    "udp-listener-fairness.json": {
+      "local_private_path": "private/full-audit-20261014/perf/udp-listener-fairness.json",
+      "sha256": "4d464c38b7fcd1a27aaeaa5e7ad0ab21fd5a92e9d1b0b820ee1ba78cdcd9265e"
+    },
+    "hosts-allocation-test.json": {
+      "local_private_path": "private/full-audit-20261014/perf/hosts-allocation-test.json",
+      "sha256": "e475651ba76c731c974e7f2a7fe936e190467803c104af01e5439df22e0abd18"
+    }
+  },
+  "scripts": {
+    "tcp_hosts_memory.py": "cf76790e3267eb4ab172c2c3aa2e6e0ed4dedf96a70b4554b8fe57642ea1877b",
+    "tcp_hosts_cgroup.py": "a68d4764fb61c4e52d9ff3d35d5533cb1194167a85b5bd9f83b20eb88a494a85",
+    "udp_listener_fairness.py": "aae279d446c05aafddcee41227853b31aad582453cec1b25b466b0905bc0a423",
+    "udp_flood.c": "d0d800ef68e8ea1c66e16ebbb66c18685990fa94ef1d3c4efe54e8e05bddaf75",
+    "hosts_allocation_test.sh": "124ab3bc4904751bf98792869a5417d1bf79898c25118fb5e2430dbd36334479"
+  },
+  "limitations": [
+    "Oracle memory experiments only; no physical router changes by this sub-audit.",
+    "Concurrent independent builds existed during PSS/cgroup experiments; no CPU/latency ratios claimed.",
+    "No fresh throughput/CPU window because independent repair builds could not satisfy exclusive-load conditions.",
+    "C/Rust cgroup memory.max includes each complete daemon process tree; Python control is outside the group.",
+    "PSS samples are process-tree totals; RSS is not physical RAM and C shared pages are not summed as physical usage."
+  ]
+}

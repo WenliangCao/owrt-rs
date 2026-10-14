@@ -1,0 +1,886 @@
+{
+  "schema": 1,
+  "source_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "date": "2026-10-14",
+  "scope": "Fresh frozen-main Rust9 source builds + exact image C / fresh frozen-main Rust dnsmasq paired in isolated Oracle mount/network/PID namespaces. Synthetic bridge/veth clients; no router use. Not a rebuilt firmware or APK lifecycle test.",
+  "kernel": "6.17.0-1020-oracle",
+  "identity": {
+    "source_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+    "checked_files": 334,
+    "all_match": true,
+    "source_map_sha256": "9dceb4e2a76b85e3b18572a03a48c2dc91016fa6500788fab5f6e05ef0838109",
+    "toolchain": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "artifacts": {
+      "ubusd-rs": {
+        "sha256": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "bytes": 516072
+      },
+      "httpd-rs": {
+        "sha256": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d",
+        "bytes": 1613960
+      },
+      "rpcd-rs": {
+        "sha256": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "bytes": 1257576
+      },
+      "logd-rs": {
+        "sha256": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "bytes": 434120
+      },
+      "uci-rs": {
+        "sha256": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "bytes": 487456
+      },
+      "reload-config-rs": {
+        "sha256": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "bytes": 466944
+      },
+      "netifd-rs": {
+        "sha256": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "bytes": 1081400
+      },
+      "fw4-rs": {
+        "sha256": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "bytes": 1032168
+      },
+      "procd-rs": {
+        "sha256": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "bytes": 876536
+      }
+    },
+    "fixture": {
+      "stack_replay.py": "0971441348c1bf390ecdb882af1fd75a726c6db2d40bab6fb1b233b3bc0e44b3",
+      "helper_replay.py": "00ee5f57f6f935b2cafb6ee39277370be95ba647d2d136ba23cca74cb55917bb",
+      "build-stack.sh": "d36f329b368db1b4d0daedf1273e495041799975315923330d2865a611ae25f6"
+    }
+  },
+  "image_verification": {
+    "squashfs_sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc",
+    "fresh_extract_all_contents_modes_symlinks_match_test_lower": true,
+    "regular_files": 881,
+    "symlinks": 213,
+    "content_manifest_sha256": "9540b2d0fbb36534fb2a4644737d1e37ec72c98dce1b2c8262ed2b8cf02f8944",
+    "selected": {
+      "lib/functions.sh": {
+        "sha256": "9517db82e694624559c41f3773f3f18bf5d3cd1b0ffc41bfb514fa2c08d08062",
+        "mode": 420
+      },
+      "etc/init.d/dnsmasq": {
+        "sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+        "mode": 493
+      },
+      "sbin/ujail": {
+        "sha256": "b141627f4c2064b69f214ecc1425904544b69b5b2210fb3195f10ad587c48644",
+        "mode": 493
+      },
+      "usr/sbin/odhcpd": {
+        "sha256": "53e534a12d412b1f138ab95d15431bc109bbb356dbfadfb8625397d585d2be82",
+        "mode": 493
+      },
+      "usr/lib/dnsmasq/dhcp-script.sh": {
+        "sha256": "62c292e28a1d595b5eff38fcc26170ac9c7036b9631362accaa5983a4e37cf26",
+        "mode": 493
+      },
+      "usr/share/acl.d/dnsmasq_acl.json": {
+        "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+        "mode": 420
+      }
+    }
+  },
+  "matrix": {
+    "c": {
+      "passed": true,
+      "checks": {
+        "init_dns": true,
+        "client_dhcp_udp_tcp": true,
+        "luci_features": true,
+        "luci_leases": true,
+        "metrics": true,
+        "fw4_print": true,
+        "fw4_check": true,
+        "fw4_start": true,
+        "client_after_fw4": true,
+        "http_luci_features": true,
+        "http_luci_leases": true,
+        "init_reload_hosts": true,
+        "reload_config_dispatch": true,
+        "rpcd_uci_apply": true,
+        "client_after_apply": true,
+        "odhcpd_publication": true,
+        "netifd_resolver_handoff": true,
+        "procd_respawn": true,
+        "client_after_respawn": true,
+        "dns_after_ubusd_restart": true,
+        "restart_after_ubusd_dns": true,
+        "restart_after_ubusd_objects": true,
+        "init_stop": true
+      },
+      "selected": {
+        "init_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.51"
+            }
+          ]
+        },
+        "client_dhcp_udp_tcp": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "client_after_fw4": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "http_luci_leases": [
+          {
+            "dhcp_leases": [
+              {
+                "expires": 120,
+                "macaddr": "02:00:00:00:00:27",
+                "ipaddr": "192.168.1.101"
+              }
+            ],
+            "dhcp6_leases": []
+          }
+        ],
+        "init_reload_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "reload.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "reload.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "reload_config_dispatch": {
+          "flags": 34176,
+          "questions": [
+            [
+              "dispatch.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "dispatch.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.61"
+            }
+          ]
+        },
+        "rpcd_uci_apply": {
+          "flags": 34176,
+          "questions": [
+            [
+              "apply.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "apply.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.62"
+            }
+          ]
+        },
+        "client_after_apply": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "netifd_resolver_handoff": [
+          {
+            "netifd_dns": "127.0.0.2",
+            "resolvfile": "# Interface lan\nnameserver 127.0.0.2\n",
+            "answer": {
+              "flags": 33152,
+              "questions": [
+                [
+                  "handoff2.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "handoff2.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.82"
+                }
+              ]
+            }
+          },
+          {
+            "netifd_dns": "127.0.0.3",
+            "resolvfile": "# Interface lan\nnameserver 127.0.0.3\n",
+            "answer": {
+              "flags": 33152,
+              "questions": [
+                [
+                  "handoff3.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "handoff3.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.83"
+                }
+              ]
+            }
+          }
+        ],
+        "procd_respawn": true,
+        "client_after_respawn": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "dns_after_ubusd_restart": {
+          "flags": 34176,
+          "questions": [
+            [
+              "apply.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "apply.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.62"
+            }
+          ]
+        },
+        "restart_after_ubusd_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "apply.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "apply.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.62"
+            }
+          ]
+        },
+        "restart_after_ubusd_objects": true,
+        "init_stop": true
+      },
+      "unchanged_config_reload_preserved_pid": true,
+      "installed_nine": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "dnsmasq_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial_uid_gid": [
+        "Uid:\t453\t453\t453\t453",
+        "Gid:\t453\t453\t453\t453",
+        "CapEff:\t0000000000003400",
+        "NoNewPrivs:\t0",
+        "Seccomp:\t0"
+      ],
+      "ubus_objects_after_bus_restart": "",
+      "odhcpd_client_address": "fd00:2::7ed",
+      "odhcpd_aaaa": {
+        "flags": 34176,
+        "questions": [
+          [
+            "m2-dhcp6",
+            28,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "m2-dhcp6",
+            "type": 28,
+            "class": 1,
+            "ttl": 0,
+            "data": "fd00:2::7ed"
+          }
+        ]
+      },
+      "metric_names": [
+        "bootp",
+        "dhcp_ack",
+        "dhcp_decline",
+        "dhcp_discover",
+        "dhcp_inform",
+        "dhcp_lease_actve",
+        "dhcp_lease_unassigned",
+        "dhcp_lease_unknown",
+        "dhcp_leasequery",
+        "dhcp_nak",
+        "dhcp_offer",
+        "dhcp_release",
+        "dhcp_request",
+        "dns_auth_answered",
+        "dns_cache_inserted",
+        "dns_cache_live_freed",
+        "dns_local_answered",
+        "dns_queries_forwarded",
+        "dns_stale_answered",
+        "dns_unanswered",
+        "dnssec_max_crypto_use",
+        "dnssec_max_sig_fail",
+        "dnssec_max_work",
+        "leases_allocated_4",
+        "leases_allocated_6",
+        "leases_pruned_4",
+        "leases_pruned_6",
+        "noanswer",
+        "pxe",
+        "tcp_connections"
+      ],
+      "dnsmasq_luci_features": {
+        "ipv6": true,
+        "gnu-getopt": true,
+        "dbus": false,
+        "ubus": true,
+        "i18n": false,
+        "idn": false,
+        "dhcp": true,
+        "dhcpv6": false,
+        "lua": false,
+        "tftp": true,
+        "conntrack": false,
+        "ipset": false,
+        "nftset": false,
+        "auth": false,
+        "dnssec": false,
+        "id": false,
+        "loop-detect": true,
+        "inotify": true,
+        "dumpfile": true
+      },
+      "raw_result_sha256": "be850e7dff9ebd666dc83ac4a7a2440ae05ec28256d26eb5883972d970323988"
+    },
+    "rust": {
+      "passed": true,
+      "checks": {
+        "init_dns": true,
+        "client_dhcp_udp_tcp": true,
+        "luci_features": true,
+        "luci_leases": true,
+        "metrics": true,
+        "fw4_print": true,
+        "fw4_check": true,
+        "fw4_start": true,
+        "client_after_fw4": true,
+        "http_luci_features": true,
+        "http_luci_leases": true,
+        "init_reload_hosts": true,
+        "reload_config_dispatch": true,
+        "rpcd_uci_apply": true,
+        "client_after_apply": true,
+        "odhcpd_publication": true,
+        "netifd_resolver_handoff": true,
+        "procd_respawn": true,
+        "client_after_respawn": true,
+        "dns_after_ubusd_restart": true,
+        "restart_after_ubusd_dns": true,
+        "restart_after_ubusd_objects": true,
+        "init_stop": true
+      },
+      "selected": {
+        "init_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "lifecycle.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "lifecycle.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.51"
+            }
+          ]
+        },
+        "client_dhcp_udp_tcp": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "client_after_fw4": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "http_luci_leases": [
+          {
+            "dhcp_leases": [
+              {
+                "expires": 120,
+                "macaddr": "02:00:00:00:00:27",
+                "ipaddr": "192.168.1.101"
+              }
+            ],
+            "dhcp6_leases": []
+          }
+        ],
+        "init_reload_hosts": {
+          "flags": 34176,
+          "questions": [
+            [
+              "reload.lan",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "reload.lan",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.52"
+            }
+          ]
+        },
+        "reload_config_dispatch": {
+          "flags": 34176,
+          "questions": [
+            [
+              "dispatch.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "dispatch.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.61"
+            }
+          ]
+        },
+        "rpcd_uci_apply": {
+          "flags": 34176,
+          "questions": [
+            [
+              "apply.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "apply.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.62"
+            }
+          ]
+        },
+        "client_after_apply": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "netifd_resolver_handoff": [
+          {
+            "netifd_dns": "127.0.0.2",
+            "resolvfile": "# Interface lan\nnameserver 127.0.0.2\n",
+            "answer": {
+              "flags": 33152,
+              "questions": [
+                [
+                  "handoff2.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "handoff2.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.82"
+                }
+              ]
+            }
+          },
+          {
+            "netifd_dns": "127.0.0.3",
+            "resolvfile": "# Interface lan\nnameserver 127.0.0.3\n",
+            "answer": {
+              "flags": 33152,
+              "questions": [
+                [
+                  "handoff3.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "handoff3.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 0,
+                  "data": "192.0.2.83"
+                }
+              ]
+            }
+          }
+        ],
+        "procd_respawn": true,
+        "client_after_respawn": {
+          "dhcp_offer": true,
+          "dhcp_ack": true,
+          "address": "192.168.1.101",
+          "server": "192.168.1.1",
+          "dns_option": "192.168.1.1",
+          "router_option": "192.168.1.1",
+          "dns": {
+            "udp": true,
+            "tcp": true
+          }
+        },
+        "dns_after_ubusd_restart": {
+          "flags": 34176,
+          "questions": [
+            [
+              "apply.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "apply.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.62"
+            }
+          ]
+        },
+        "restart_after_ubusd_dns": {
+          "flags": 34176,
+          "questions": [
+            [
+              "apply.audit",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "apply.audit",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.62"
+            }
+          ]
+        },
+        "restart_after_ubusd_objects": true,
+        "init_stop": true
+      },
+      "unchanged_config_reload_preserved_pid": true,
+      "installed_nine": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "dnsmasq_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+      "initial_uid_gid": [
+        "Uid:\t453\t453\t453\t453",
+        "Gid:\t453\t453\t453\t453",
+        "CapEff:\t0000000000003400",
+        "NoNewPrivs:\t0",
+        "Seccomp:\t0"
+      ],
+      "ubus_objects_after_bus_restart": "",
+      "odhcpd_client_address": "fd00:2::7ed",
+      "odhcpd_aaaa": {
+        "flags": 34176,
+        "questions": [
+          [
+            "m2-dhcp6",
+            28,
+            1
+          ]
+        ],
+        "records": [
+          {
+            "section": "answer",
+            "name": "m2-dhcp6",
+            "type": 28,
+            "class": 1,
+            "ttl": 0,
+            "data": "fd00:2::7ed"
+          }
+        ]
+      },
+      "metric_names": [
+        "bootp",
+        "dhcp_ack",
+        "dhcp_decline",
+        "dhcp_discover",
+        "dhcp_inform",
+        "dhcp_lease_actve",
+        "dhcp_lease_unassigned",
+        "dhcp_lease_unknown",
+        "dhcp_leasequery",
+        "dhcp_nak",
+        "dhcp_offer",
+        "dhcp_release",
+        "dhcp_request",
+        "dns_auth_answered",
+        "dns_cache_inserted",
+        "dns_cache_live_freed",
+        "dns_local_answered",
+        "dns_queries_forwarded",
+        "dns_stale_answered",
+        "dns_unanswered",
+        "dnssec_max_crypto_use",
+        "dnssec_max_sig_fail",
+        "dnssec_max_work",
+        "leases_allocated_4",
+        "leases_allocated_6",
+        "leases_pruned_4",
+        "leases_pruned_6",
+        "noanswer",
+        "pxe",
+        "tcp_connections"
+      ],
+      "dnsmasq_luci_features": {
+        "ipv6": true,
+        "gnu-getopt": true,
+        "dbus": false,
+        "ubus": true,
+        "i18n": false,
+        "idn": false,
+        "dhcp": true,
+        "dhcpv6": false,
+        "lua": false,
+        "tftp": true,
+        "conntrack": false,
+        "ipset": false,
+        "nftset": false,
+        "auth": false,
+        "dnssec": false,
+        "id": false,
+        "loop-detect": true,
+        "inotify": true,
+        "dumpfile": true
+      },
+      "raw_result_sha256": "5628d92cdd92a35b97c2740dad94a7a8fb295fc15825c72859d0d32753af4f4e"
+    }
+  },
+  "helper": {
+    "c": {
+      "passed": true,
+      "checks": {
+        "init_dns": true,
+        "client_dhcp_udp_tcp": true,
+        "hotplug_add": true,
+        "ubus_ack": true,
+        "init_stop": true
+      },
+      "hotplug": "add|192.168.1.101|02:00:00:00:00:27\n",
+      "ubus_ack_events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n",
+      "raw_result_sha256": "b9727f9003bd80e86cc9b0ef5ac8b07683581157174e2ffd356c81f359b9b087"
+    },
+    "rust": {
+      "passed": true,
+      "checks": {
+        "init_dns": true,
+        "client_dhcp_udp_tcp": true,
+        "hotplug_add": true,
+        "ubus_ack": true,
+        "init_stop": true
+      },
+      "hotplug": "add|192.168.1.101|02:00:00:00:00:27\n",
+      "ubus_ack_events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n",
+      "raw_result_sha256": "6b10666790e967ed0f5544b80d8bfa7551f42d632db4b4e0b7b022e9696d8b0f"
+    }
+  },
+  "cross_side": {
+    "feature_map_equal": true,
+    "metric_names_equal": true,
+    "dhcp_ack_notification_bytes_equal": true,
+    "hotplug_add_bytes_equal": true
+  },
+  "harness_corrections": [
+    {
+      "attempt": "run1-rust",
+      "cause": "Test harness read httpd process root before asynchronous chroot completed; added explicit process-root wait.",
+      "raw_sha256": "d5ebf9ea75f1c2adb8e1acbb08f7b63f60bea3e478b3ffaf7142d5e4e7b5a47c"
+    },
+    {
+      "attempt": "run2-rust",
+      "cause": "Test harness looked for nonexistent semantic decoder key rcode during respawn assertion; replaced with exact answer address check.",
+      "raw_sha256": "02ee59c748fc9f49ecb4a54195e9138fc910a9b0742caf71becf2b308a9c5256"
+    }
+  ],
+  "apk_scope": {
+    "fresh_transaction_run": false,
+    "historical_source_commit": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+    "recipe_and_payload_unchanged_at_audit_head": true,
+    "only_packaging_diff": "README.md +6 lines",
+    "post_upgrade": "default_postinst -> init start",
+    "upgrade_downgrade_activation": "Explicit restart plus live /proc/PID/exe hash and client checks required. Current source applicability; old exact-image APK runtime evidence not represented as fresh run.",
+    "erase": "No verified live-daemon-left-behind defect: prior lifecycle uninstall passed; default_prerm calls init stop."
+  },
+  "closeout": {
+    "remaining_owned_processes": [],
+    "remaining_owned_host_mounts": [],
+    "router_accessed": false
+  }
+}

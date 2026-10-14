@@ -1,0 +1,119 @@
+{
+  "commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "rust_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+  "exact_image_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "oracle_dir": "/tmp/full-audit-dhcp-20261014/private",
+  "local_raw_archive": "private/full-audit-20261014/dhcp/oracle-evidence.tar.gz",
+  "archive_sha256": "8a95ba8280cdfdccc50f27fea013866b36dec8ca25120980febe179b48b9cc60",
+  "matrix": {
+    "unique_requests": 750,
+    "same_seed_runs": 2,
+    "rigorously_checked_run": 2,
+    "counts": {
+      "request_4": 66,
+      "silent": 173,
+      "request_10": 60,
+      "reply_11": 14,
+      "matched_reply": 577,
+      "request_3": 205,
+      "reply_5": 183,
+      "ack_bootp_expiry_validated": 402,
+      "timer_validated": 610,
+      "request_8": 73,
+      "request_1": 211,
+      "reply_2": 165,
+      "request_0": 61,
+      "reply_0": 61,
+      "request_7": 74,
+      "reply_12": 26,
+      "reply_6": 108,
+      "remaining_time_validated": 58,
+      "one_second_aged_fields": 9,
+      "reply_13": 20,
+      "leasequery_timer_checked": 14,
+      "helper_c": 264,
+      "helper_rust": 264
+    },
+    "failures": 0,
+    "calibration": [
+      {
+        "mutation": "wire-header",
+        "rejected": true,
+        "exit": 1,
+        "stderr_last_line": "AssertionError: [{'index': 1, 'kind': 'wire_semantics', 'c': {'header': '0201060000410001000000007f0000130000000000000000ffffffff02000000000900000000000000000000', 'cookie': '63825363', 'options': [[53, '0b']], 'timers': {}, 'file': '0000000000000000"
+      },
+      {
+        "mutation": "lease-name",
+        "rejected": true,
+        "exit": 1,
+        "stderr_last_line": "AssertionError: [{'index': 2, 'kind': 'lease_snapshot', 'c': [['finite', '02:00:00:00:00:1c', '127.0.0.38', 'client', '00:63:6c:69:65:6e:74:1c']], 'rust': [['finite', '02:00:00:00:00:1c', '127.0.0.38', 'mutant', '00:63:6c:69:65:6e:74:1c']]}]"
+      },
+      {
+        "mutation": "timer",
+        "rejected": true,
+        "exit": 1,
+        "stderr_last_line": "AssertionError: (2, 'rust', {58: 301, 59: 525}, 600)"
+      },
+      {
+        "mutation": "missing-row",
+        "rejected": true,
+        "exit": 1,
+        "stderr_last_line": "AssertionError"
+      },
+      {
+        "mutation": "helper-event",
+        "rejected": true,
+        "exit": 1,
+        "stderr_last_line": "AssertionError: helper event multiset mismatch"
+      }
+    ]
+  },
+  "lease_recovery": {
+    "paired_scenarios": 70,
+    "boundaries": 50,
+    "all_boundaries_checked": true,
+    "failures": [],
+    "closed": true
+  },
+  "helper": {
+    "paired_cases": 16,
+    "runs": 32,
+    "passed": true,
+    "negative_controls": {
+      "changed-credentials-or-status": true,
+      "changed-environment-or-cleanup": true,
+      "changed-order-or-duplicate-side": true,
+      "missing-init-barrier-both-sides": true,
+      "missing-startup-cleanup-both-sides": true,
+      "missing-whole-scenario": true,
+      "premature-init-DNS": true,
+      "premature-init-PID": true
+    }
+  },
+  "tftp": {
+    "paired_cases": 24,
+    "exact_matched": 22,
+    "reference_failures_rust_succeeds": [
+      "netascii-one-byte-block",
+      "bound-ipv4-single-port"
+    ],
+    "all_rust_verified": true,
+    "all_daemon_exits_zero": true,
+    "warning": "Legacy tool source_commit is hardcoded and incorrect for this run; use verified ELF SHA and root build identity."
+  },
+  "receipts": {
+    "matrix-01-summary.json": "70ad607fab92a8e0c9bd040c97d4e40b24bcfcbda92d5fc109e2d497f24127b0",
+    "matrix-02-summary.json": "eaeacf722d26a96fb999725eb6bb337b0d7f3c8c04ee11f43ba06d2b791a6e6a",
+    "matrix-02-checked.json": "a0a53559b44fb4987d8ac257ceeecea3830fb129eef8e18965ed73f0d2415492",
+    "matrix-02-calibration.json": "bcd23e350b6ea5ca0a0312fbdb2360c543b2dd23b3877fa20fb71276bb25dfcd",
+    "lease-01.json": "f5e6b9bea7808673995fe19ad80d6a069ae17c474f1b9735495f2a3439cef8e4",
+    "helper-01.json": "f0c420a8ba5feba8adac06c3ca3a7b8a0d95c925df83c6f913396e2acc40d8f5",
+    "tftp-01.json": "4b1695ba33ca29f9f5517d7f10ea99819e4eb3d6c3a7f0e81abd18cccaddf441",
+    "dhcp_matrix.py": "71a7d15247f194117f3e8cb9e153bc54be3b17d9d3ac871e78c4ae9518601ee2",
+    "check_matrix.py": "f9f6b5ee70eee380ad8efb2e73913f996c30f3e685204d0c0c8eb152b329de7d",
+    "calibrate_matrix.py": "0f2c156718a8f77ad97fbdeeeae2ec46f4d818b01bf1f9555bcf7ed693f4c41b"
+  },
+  "router_access": false,
+  "product_code_changes": false,
+  "remaining_processes": false
+}

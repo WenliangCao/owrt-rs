@@ -1,0 +1,23 @@
+{
+  "baseline_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "remote_main": "9f251f6e880f22afa27e6d130a43da767d9275ea",
+  "remote_is_ancestor": true,
+  "source_check": {
+    "count": 185,
+    "manifest_sha256": "728c0ea5363a9470880951fabfded91d2dea1b6c842ae4cd3bd66808266db024",
+    "missing": [],
+    "mismatched": []
+  },
+  "device": {
+    "model": "Xiaomi Mi Router AX3000T",
+    "release": "25.12.5",
+    "revision": "r33051-f5dae5ece4",
+    "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+  },
+  "reference": {
+    "package": "dnsmasq 2.93-r1 nodhcpv6",
+    "openwrt_recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "firmware_sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea"
+  },
+  "scope": "Fresh immutable source snapshot and actual image C. Firmware identity is retained project evidence; no flashing. Integration audit freshly extracted the retained matching root SquashFS and verified 881 regular files and 213 symlinks against the test base."
+}
