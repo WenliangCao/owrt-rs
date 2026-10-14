@@ -6,15 +6,15 @@
 
 [上线前复核](PREDEPLOY_RECHECK.md)发现原控制器在回退途中被杀会卡在「没有任何 dnsmasq」的状态（R1），把 C 的正常 TCP 子进程误判为冲突实例（R3），监护本身停止调度时无人接手（R5）。这些问题都来自同一个根源：控制器要接管 procd 实例、自己维护状态机。逐个修补会继续引出新的边界。
 
-新方案只用 [`tools/dnsmasq/deploy/dnsmasq-trial`](../../tools/dnsmasq/deploy/dnsmasq-trial)（约 140 行 POSIX sh）：
+新方案只用 [`tools/dnsmasq/deploy/dnsmasq-trial`](../../tools/dnsmasq/deploy/dnsmasq-trial)（POSIX sh）：
 
 - **不接管 procd：** 把候选 ELF bind mount 到 `/usr/sbin/dnsmasq`，由原装 init、procd、ujail 照常启动。odhcpd 的 hosts 信号、LuCI/UCI 修改、`/etc/init.d/dnsmasq reload` 都走原路径。
-- **不写闪存、不保留状态：** 候选放在 `/tmp`，bind mount 不跨重启。**路由器重启一定回到 C。**
-- **回退幂等：** `rollback` 只做两件事：卸掉所有 bind mount，然后重启原装服务，再核对正在运行的程序就是 `/rom` 里的 C。从任何中间状态、由任何进程、重复执行多少次都安全，所以不存在 R1 那种「回退到一半」的问题。R3、R5 也随之消失：不再统计子进程，也不依赖单个监护进程。
+- **不写闪存：** 候选、回退请求和锁文件只放在 `/tmp`，bind mount 不跨重启。**路由器重启一定回到 C。**
+- **回退可重试，并保留独立恢复进程：** `rollback` 先留下临时请求，用镜像自带的 `flock` 串行卸载和原装服务重启。只有 mount 已消失、所有 dnsmasq 进程都匹配 `/rom` 中的 C、且本地 DNS 能回答时，才取消计时器和健康监护。监护不会因 mount 消失而退出；它会继续处理回退请求，直到确认 C 健康。恢复命令在独立进程组中运行，单次杀死恢复进程后，仍在运行的监护或计时器会重试。幂等本身不能保证跨进程中断恢复；FULL-TRIAL-1 已证明旧版本提前取消两个 helper 会丢失自动回退。
 - **两道互相独立的自动回退：**
-  1. **到期回退：** 启动候选之前先起一个计时器，到期未 `confirm` 就回退。
+  1. **到期回退：** 启动候选之前先起一个计时器，到期未 `confirm` 就回退，恢复失败或进程被杀后继续重试。
   2. **健康监护：** 每 5 秒检查一次「所有 dnsmasq 进程都是候选 ELF，且本地名字能在 3 秒内解析」，连续 3 次失败就回退。崩溃先由 procd 重启；连续崩溃耗尽重启次数、进程卡住或不再应答，都会触发回退。
-- **最后兜底：** 两道都失效时，手动执行 `dnsmasq-trial rollback` 或重启路由器。
+- **最后兜底：** 两个 owner 都失效，或 `confirm` 后唯一的健康监护停止调度时，仍需手动执行 `dnsmasq-trial rollback` 或重启路由器。新脚本不宣称 R5 在这些情况下消失。
 
 ## 验证
 
@@ -29,6 +29,8 @@
 | watch-killed | 杀掉健康监护 | 通过；到期计时器仍回退到 C |
 | partial-rollback | 杀掉监护和计时器，手动卸载 mount 后 Rust 仍在运行，再执行 rollback | 通过；回到 C |
 | reload | 候选运行中执行 `/etc/init.d/dnsmasq reload` | 通过；同一进程继续服务，客户端正常 |
+
+FULL-TRIAL-1 的当前修复另外覆盖真实脚本中的单次 SIGKILL：回退请求写入后、确认后的卸载与重启之间、以及两个 helper 文件清除后。精确镜像、命令和新结果见 [trial 修复证据](audits/full-20261014/TRIAL_FIXES.md)。原始七用例记录如下，不能替代上述中断验证。
 
 七个用例共进入试运行阶段 16 次，全部通过。另有 3 次在试运行开始之前失败：测试框架启动阶段，原装 C 没能给测试客户端发出 DHCP OFFER（`DHCP message 2 unavailable`）。这发生在 `dnsmasq-trial` 运行之前，与本脚本无关，属于既有测试框架的启动时序问题；失败记录保留在 `final/`、`rerunB/`。
 
