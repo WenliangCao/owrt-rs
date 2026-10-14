@@ -746,9 +746,8 @@ impl HashOrder {
     }
 }
 
-/// One reload generation. TCP children share its records and indexes, retaining
-/// their accepted generation after HUP. Only queried multi-address names need
-/// private ordering pages; querying a single-address name never copies a page.
+/// One reload generation. TCP children share records and 64-link order pages,
+/// retaining both their accepted generation and private query order after HUP.
 #[derive(Clone, Default)]
 pub struct Hosts {
     records: Snapshot<HostsRecords>,
@@ -906,8 +905,8 @@ impl Hosts {
         }
     }
 
-    /// Structural changes fork the generation, folding private query order
-    /// into its indexes. All copying remains fallible for hostsdir ingestion.
+    /// Structural changes fork records and the current link order together.
+    /// All copying remains fallible for hostsdir ingestion.
     fn writable_records(&mut self) -> Result<&mut HostsRecords, TryReserveError> {
         if self.records.get_mut().is_none() {
             *self = self.try_clone()?;
@@ -953,8 +952,8 @@ impl Hosts {
         self.no_round_robin = !enabled;
     }
 
-    /// Preserves first-address PTR ownership and same-name/address deduplication
-    /// across all input files in this generation.
+    /// Apply the current bulk/incremental reverse-owner contract and deduplicate
+    /// same-name/address records across input files in this generation.
     pub fn insert(&mut self, name: Vec<u8>, address: IpAddr, ttl: u32, source: u32) -> bool {
         self.insert_with_origin(name, address, ttl, source, source == 1)
     }
