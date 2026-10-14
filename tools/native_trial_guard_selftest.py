@@ -141,8 +141,14 @@ exec /bin/sh /{BASE}/native_trial_guard.sh {command}
         assert len(submitted) == int(handoff), (name, calls)
         if handoff:
             restored = root / "tmp/restored-config"
-            with tarfile.open(root / "tmp/owrt-native-rollback/config.tar.gz") as archive:
+            with tarfile.open(root / "tmp/owrt-native-rollback/config.tar.gz") as archive, tarfile.open(base / "rollback-config.tar.gz") as original:
                 assert "etc" not in archive.getnames() and "etc/config" not in archive.getnames()
+                for old in original.getmembers():
+                    new = archive.getmember(old.name)
+                    assert (old.type, old.mode, old.uid, old.gid, old.linkname, int(old.mtime)) == (
+                        new.type, new.mode, new.uid, new.gid, new.linkname, int(new.mtime))
+                    if old.isfile():
+                        assert original.extractfile(old).read() == archive.extractfile(new).read()
             for p in (source / "etc/config").iterdir():
                 assert p.read_bytes() == (restored / "etc/config" / p.name).read_bytes()
                 assert p.stat().st_mode & 0o777 == (restored / "etc/config" / p.name).stat().st_mode & 0o777
