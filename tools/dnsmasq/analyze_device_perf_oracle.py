@@ -119,16 +119,26 @@ def lifecycle(folder):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('raw',type=Path);p.add_argument('output',type=Path);a=p.parse_args()
-    complete=json.loads((a.raw/'complete.json').read_text());assert complete['complete']
-    groups=defaultdict(lambda:defaultdict(list));windows={}
+    p=argparse.ArgumentParser();p.add_argument('raw',type=Path);p.add_argument('output',type=Path);p.add_argument('--allow-partial',action='store_true');a=p.parse_args()
+    completion=a.raw/'complete.json'
+    complete=json.loads((completion if completion.exists() else a.raw/'interrupted.json').read_text())
+    assert complete.get('complete') or a.allow_partial
+    groups=defaultdict(lambda:defaultdict(list));windows={};excluded=[]
     for folder in sorted((a.raw/'runs').iterdir()):
         scenario,round_,side=folder.name.rsplit('-',2)
+        if not (folder/'result.json').exists():
+            assert a.allow_partial
+            excluded.append({'window':folder.name,'reason':'collector did not complete; retained raw excluded'})
+            continue
         v=traffic(folder) if (folder/'client.json').exists() else lifecycle(folder)
         v['round']=int(round_[1:]);windows[folder.name]=v;groups[scenario][side].append(v)
     summaries={}
     for scenario,sides in sorted(groups.items()):
-        assert set(sides)=={'c','rust'} and all(len(rows)==5 for rows in sides.values())
+        if set(sides)!={'c','rust'} or not all(len(rows)==5 for rows in sides.values()):
+            assert a.allow_partial
+            excluded.append({'scenario':scenario,'reason':'fewer than five complete pairs; no comparison',
+                             'completed_windows':sum(len(rows) for rows in sides.values())})
+            continue
         selected=(['throughput_qps','window_cpu_ticks','cpu_us_per_completion','parent_fd_peak','tree_fd_peak','tree_rss_peak_kib',
                    'tree_pss_peak_kib','tree_private_peak_kib'] if 'throughput_qps' in sides['c'][0]
                   else ['children_whole_run_cpu_us','fd_peak'])
@@ -177,7 +187,7 @@ def main():
     result={'environment':'Oracle supplementary only; not AX3000T performance',
       'identity_sha256':hashlib.sha256((a.raw/'identity.json').read_bytes()).hexdigest(),
       'protocol_sha256':hashlib.sha256((a.raw/'protocol.md').read_bytes()).hexdigest(),
-      'complete':complete,'summaries':summaries,'windows':windows,
+      'complete':complete,'summaries':summaries,'windows':windows,'excluded':excluded,
       'notes':['No p99: each round has fewer than 10000 correct replies.',
                'CPU rankings require at least 10 service ticks in every window, more than 8 median ticks between versions, and difference greater than range.',
                'Helper and full daemon wait4 figures are separate from warmup+measurement service tick CPU.',

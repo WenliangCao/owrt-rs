@@ -1,0 +1,28 @@
+{
+  "inputs": {
+    "device_perf_guard": {
+      "elf_sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+      "source_sha256": "81d7cd6cfa2cf16c8d769d75eff114489e19c8980f770176002343a329607e7a",
+      "bytes": 561456
+    },
+    "device_perf_resource_probe": {
+      "elf_sha256": "826ccec9fd3e0592dc9fb8169d1bf0dfd1bbf4216c838d86999b387ab869d12e",
+      "source_sha256": "3ff3c4aa5e7a0fbea7c2c51c69c504c3c42066d4839eee716a1e76dd84b803ea",
+      "bytes": 544584
+    }
+  },
+  "calibration": {
+    "passed": true,
+    "rows": 5,
+    "tree_processes_each": 9,
+    "proc_scans_each": 1,
+    "known_helper_user_delta": 191,
+    "service_tree_tick_delta": 0,
+    "observer_tick_delta": 1,
+    "sample_duration_ns_max": 4600757,
+    "missing_helper_is_nonfatal": true
+  },
+  "scope": "Oracle static SDK helper calibration, not device performance",
+  "old_tools_retained": true,
+  "product_code_changed": false
+}
