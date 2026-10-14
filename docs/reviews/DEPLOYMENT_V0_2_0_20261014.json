@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "status": "candidate_built_offline_checks_in_progress_hardware_pending",
+  "build": {
+    "source_commit": "21e14a95408deaf557b1011a6e4ec705a892e58a",
+    "canonical_run": 38626686143,
+    "image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 13639968,
+      "sha256": "2d7f0dec811a671f7ddc08eb51fc45e3fb3bb9ed14c9253cc577d7ee9620f138"
+    },
+    "unified_package": "owrt-control-plane 0.2.0-r1",
+    "downloaded_files_checksums_verified": 35,
+    "ci_validation": {
+      "ten_native_paths": true,
+      "package_ownership": true,
+      "stock_recovery_hashes": true,
+      "stock_service_scripts_except_qualified_dnsmasq": true,
+      "qualified_dnsmasq_init_and_acl": true,
+      "dnsmasq_source_recipe_identical": true,
+      "dnsmasq_reference_elf_identical": false,
+      "stock_config_defaults": true,
+      "unchanged_execution_files": 864,
+      "stock_package_versions_unchanged": 159,
+      "production_Chinese_catalogs_identical": 4,
+      "physical_boot_tested": false
+    },
+    "dnsmasq_elf": {
+      "path": "/usr/sbin/dnsmasq",
+      "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "bytes": 2124571
+    }
+  },
+  "dnsmasq_build_identity": {
+    "reference_elf": {
+      "sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "bytes": 2124571
+    },
+    "candidate_elf": {
+      "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "bytes": 2124571
+    },
+    "accepted_source_inputs": 179,
+    "source_digest": "3c9a37d5e5f5db8b2f1c098abba3144b0eb04b312539ca0b1a6177d5bfa8214c",
+    "normalized_compile_and_strip_equal": true,
+    "program_headers_identical": true,
+    "different_LOAD_bytes": 992248,
+    "different_bytes_outside_LOAD": 0,
+    "difference_root_cause_proven": false,
+    "prior_reference_performance_transfers_to_candidate": false
+  },
+  "nine_components": [
+    {
+      "component": "fw4",
+      "v0.1.1_sha256": "77e2a33ead41736ce313780adf92473765d008f9137165a39ae94bf97028582e",
+      "v0.2.0_sha256": "d3b9dc0b19d41ef6ac2c9485f93a54184ee0674956f31ac3160adf6dc39e5ab1",
+      "identical": false,
+      "v0.1.1_bytes": 1030867,
+      "v0.2.0_bytes": 1030867
+    },
+    {
+      "component": "httpd",
+      "v0.1.1_sha256": "bf7b29260f008622b1157bb39bcd969ae39932c534828be8429c50343670e904",
+      "v0.2.0_sha256": "c27a4acbb408a0473c09a3d917174ae800ffd8dbc3262d92017a82e0f4fe36bc",
+      "identical": false,
+      "v0.1.1_bytes": 1612535,
+      "v0.2.0_bytes": 1612535
+    },
+    {
+      "component": "logd",
+      "v0.1.1_sha256": "e1d29e61f2a1c6d5242747156a215e0a7d934a3079f17bd5ea582b2dccb73151",
+      "v0.2.0_sha256": "324621fe9dc0ac85646098077eb263962182e20f5866b60b28a8fae414d39c05",
+      "identical": false,
+      "v0.1.1_bytes": 432819,
+      "v0.2.0_bytes": 432819
+    },
+    {
+      "component": "netifd",
+      "v0.1.1_sha256": "7ce3a64d094e05484721ec68855eff5f4d68a484a6ce5f073bd013d2fbb79eb1",
+      "v0.2.0_sha256": "282a4c224d984228a0ab7c6d7169e4797f3e3e60cc03fa78b61fbe0fdd43bad2",
+      "identical": false,
+      "v0.1.1_bytes": 1081400,
+      "v0.2.0_bytes": 1081400
+    },
+    {
+      "component": "procd",
+      "v0.1.1_sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "v0.2.0_sha256": "59fbe5235d630e15296d5c66c09a2f5db4c466f69fb8cb8b7e94ee3eb918c72e",
+      "identical": false,
+      "v0.1.1_bytes": 876536,
+      "v0.2.0_bytes": 876536
+    },
+    {
+      "component": "reload-config",
+      "v0.1.1_sha256": "c96823a2e4b8ea3b5dd79ad375220514ae1ac2357e7f61714a722c4a2269dc7a",
+      "v0.2.0_sha256": "ee1c0ec463d88245f48acd21eb2554236de8235d4d0fe47f3091de12dfb23340",
+      "identical": false,
+      "v0.1.1_bytes": 465643,
+      "v0.2.0_bytes": 465643
+    },
+    {
+      "component": "rpcd",
+      "v0.1.1_sha256": "c65491f434f35b6771b3fa9e0336a3580bf88522dfd222d3cc6cc45a8c6227c1",
+      "v0.2.0_sha256": "fa4af38a2761636329a14436587eae871e8902eaf617ec787ab9d79434262226",
+      "identical": false,
+      "v0.1.1_bytes": 1256203,
+      "v0.2.0_bytes": 1260299
+    },
+    {
+      "component": "ubusd",
+      "v0.1.1_sha256": "ab3bff56b6ba5d798701d0e73d20469a36cf1ea0773fdd64a0eb9411ec1fc42d",
+      "v0.2.0_sha256": "ab3bff56b6ba5d798701d0e73d20469a36cf1ea0773fdd64a0eb9411ec1fc42d",
+      "identical": true,
+      "v0.1.1_bytes": 516072,
+      "v0.2.0_bytes": 516072
+    },
+    {
+      "component": "uci",
+      "v0.1.1_sha256": "50ba9ed8f5cf5686313be3e1d32a281278daf3d17c319b71211fb96a4dbd76a7",
+      "v0.2.0_sha256": "50ba9ed8f5cf5686313be3e1d32a281278daf3d17c319b71211fb96a4dbd76a7",
+      "identical": true,
+      "v0.1.1_bytes": 486155,
+      "v0.2.0_bytes": 486155
+    }
+  ],
+  "offline": {
+    "protocol": {
+      "actual_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "f10": {
+        "cases": 13,
+        "observations": 704,
+        "runtime_errors": [],
+        "unqualified_failures": [],
+        "raw_order_difference_counts": {
+          "ptr-order-only": 19
+        },
+        "qualified_order_counts": {
+          "qualified-source-bound-ptr-order": 8,
+          "qualified-observed-ptr-order": 11
+        },
+        "manifest_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+        "reference_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+        "raw_result_sha256": "9473f31270379a0c7452b2e6fa656b26815e65a31eb860708762e486a3ce92a3",
+        "wire_semantics_redecoded": 704
+      },
+      "tcp_conditions_per_elf": 13,
+      "tcp_paired_queries": 50,
+      "tcp_paired_counts": {
+        "tcp_reply": 36,
+        "udp_reply": 13,
+        "tcp_error": 1
+      },
+      "tcp_successful_wires_identical": true,
+      "scope": "Oracle isolated finite actual-artifact contracts, not physical-router or performance qualification"
+    },
+    "recovery": {
+      "passed": true,
+      "guard_cases_passed": 23,
+      "actual_PID1_handoff_cases_passed": 2,
+      "physical_flash_tested": false,
+      "physical_reboot_tested": false,
+      "stage2_executed": false,
+      "archive_sha256": "db11ed1ae9db770cf3182f0731575a7866d739cb674a917efb31dc124c07adf5"
+    },
+    "native_image_check": "pending",
+    "native_boot_check": "pending"
+  },
+  "daily_usage": {
+    "protocol_seconds": 600,
+    "interval_seconds": 5,
+    "c": {
+      "start_utc": "2026-10-14T19:35:54.251186+00:00",
+      "end_utc": "2026-10-14T19:45:54.248382+00:00",
+      "service_age_at_start_seconds": 12361.034198897949,
+      "summary": {
+        "valid_observation_window": true,
+        "errors": [],
+        "samples": 121,
+        "duration_seconds": 600.0000750300242,
+        "clock_ticks_per_second": 100,
+        "main_cpu_seconds": 0.22,
+        "main_average_one_core_percent": 0.036666662081499095,
+        "main_interval_one_core_percent": {
+          "min": 0.0,
+          "median": 0.0,
+          "max": 0.4000000029616058
+        },
+        "waited_children_cpu_seconds": 0.02,
+        "main_plus_waited_cpu_seconds": 0.24,
+        "main_plus_waited_average_one_core_percent": 0.039999994997999014,
+        "child_free_endpoints_observed": true,
+        "tree_cpu_qualification": "main plus waited children at child-free sampled endpoints; proc reads are not atomic",
+        "main": {
+          "rss_kib": {
+            "min": 1264,
+            "median": 1264,
+            "max": 1264
+          },
+          "rss_anon_kib": {
+            "min": 264,
+            "median": 264,
+            "max": 264
+          },
+          "fd_count": {
+            "min": 38,
+            "median": 42,
+            "max": 44
+          },
+          "thread_count": {
+            "min": 1,
+            "median": 1,
+            "max": 1
+          }
+        },
+        "tree_shared_pages_recounted": {
+          "rss_kib": {
+            "min": 1264,
+            "median": 1264,
+            "max": 1264
+          },
+          "rss_anon_kib": {
+            "min": 264,
+            "median": 264,
+            "max": 264
+          },
+          "fd_count": {
+            "min": 38,
+            "median": 42,
+            "max": 44
+          },
+          "thread_count": {
+            "min": 1,
+            "median": 1,
+            "max": 1
+          }
+        },
+        "process_count": {
+          "min": 1,
+          "median": 1,
+          "max": 1
+        },
+        "children_disappeared_total": 0,
+        "lease_count": {
+          "min": 7,
+          "median": 7,
+          "max": 7
+        },
+        "lease_count_missing_samples": 0,
+        "observer_cpu_seconds": 0.56,
+        "observer_average_one_core_percent": 0.09333332166199772,
+        "sample_duration_ms": {
+          "min": 4.385168,
+          "median": 4.604454,
+          "max": 7.575577
+        },
+        "limitations": [
+          "Daily usage, not controlled workload or performance ranking.",
+          "RSS and RssAnon are not PSS or USS; tree memory recounts shared pages.",
+          "Short-lived children may only appear in waited-child CPU counters.",
+          "Observer CPU excludes SSH, network probes and local analysis.",
+          "No query logging or per-client/name/address collection."
+        ],
+        "raw_sha256": "0834af8b810a7748e7c57a8b9e5cc4365d17455c92372f92825cf2382dee7a11"
+      },
+      "health": {
+        "dns-udp": {
+          "samples": 20,
+          "passed": 20,
+          "min_ms": 11.971917000039412,
+          "median_ms": 13.939645999982986,
+          "max_ms": 23.800499999993008
+        },
+        "dns-tcp": {
+          "samples": 20,
+          "passed": 20,
+          "min_ms": 10.952833000000002,
+          "median_ms": 15.536771000000726,
+          "max_ms": 17.320166999979847
+        },
+        "luci": {
+          "samples": 20,
+          "passed": 20,
+          "min_ms": 60.343,
+          "median_ms": 61.7025,
+          "max_ms": 78.069
+        },
+        "ipv4": {
+          "samples": 20,
+          "passed": 20,
+          "min_ms": 27.047,
+          "median_ms": 32.6515,
+          "max_ms": 40.86
+        },
+        "ipv6": {
+          "samples": 20,
+          "passed": 20,
+          "min_ms": 28.504,
+          "median_ms": 31.7425,
+          "max_ms": 38.836000000000006
+        }
+      }
+    },
+    "rust": null,
+    "interpretation": "Uncontrolled daily usage only, not a performance ranking."
+  },
+  "hardware": {
+    "release_created": false,
+    "flashed": false,
+    "initial_acceptance": "pending",
+    "normal_reboot": "pending",
+    "physical_power_cycle": "pending",
+    "rust_600s": "pending",
+    "cleanup": "pending",
+    "latest": false
+  },
+  "evidence_sha256": {
+    "config-before.tar.gz": "b0a1012161b8e70498f4fc002b981b48573358a2014bb25145dcf4535888cc9b",
+    "rollback-assets-verified.json": "ffe1cc3be75eee2a1d954005294f3fc5d29921750b7744fa4a35270f1a14579d",
+    "daily-c/usage.jsonl": "0834af8b810a7748e7c57a8b9e5cc4365d17455c92372f92825cf2382dee7a11",
+    "daily-c/health.jsonl": "0c9feb26946881484d6982171e6f200fd9214fb531653638f72d798cd53f68e6",
+    "daily-c/summary.json": "0ee0da8b42c3b7185352b4b3b610944e58540bda4ec2e666d598f4b55066dbf3",
+    "nine-component-comparison.json": "e9735a87b0da7b42f869e3fac1d04fcad80f61f926ba12f40ed366d4af16b4e8",
+    "offline-recovery/summary.json": "cf6decba3f1c79e4e6125aa331180c379f0f718d84fce7a867e4a46f28a03702",
+    "offline-recovery/recovery-evidence.tar.gz": "db11ed1ae9db770cf3182f0731575a7866d739cb674a917efb31dc124c07adf5",
+    "offline-protocol/summary.json": "efe87f4cbea3ae80906499c970334d3ef988ceafdcc146b09b403f12a7b1f11b",
+    "build-identity-review/final-build-identity-summary.json": "e788c7ac7d55e4093d144a7440ec072dc1d18c5a21d299b2db404179508dae41",
+    "ci-38626686143/manifest.json": "6bf28c12dd68ad481f1173719f15f1040114e17a88aaafb91398c6308581b80c"
+  }
+}
