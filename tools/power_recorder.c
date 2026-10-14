@@ -36,7 +36,7 @@ static double seconds(clockid_t clock) {
     return ts.tv_sec + ts.tv_nsec / 1e9;
 }
 
-static int bounded(int argc, char **argv) {
+static int bounded(int argc, char **argv, int limit_output) {
     if (argc < 4) return 2;
     char *end;
     long duration = strtol(argv[2], &end, 10);
@@ -46,8 +46,10 @@ static int bounded(int argc, char **argv) {
     if (!child) {
         if (setsid() < 0) _exit(126);
         // Each capture uses a fresh file; also limits faulty command output.
-        struct rlimit limit = {65536, 65536};
-        if (setrlimit(RLIMIT_FSIZE, &limit)) _exit(126);
+        if (limit_output) {
+            struct rlimit limit = {65536, 65536};
+            if (setrlimit(RLIMIT_FSIZE, &limit)) _exit(126);
+        }
         execvp(argv[3], argv + 3);
         _exit(127);
     }
@@ -242,13 +244,16 @@ int main(int argc, char **argv) {
     struct sigaction action = {.sa_handler = stop};
     sigemptyset(&action.sa_mask);
     if (sigaction(SIGTERM, &action, NULL) || sigaction(SIGINT, &action, NULL)) return 1;
-    if (argc >= 2 && !strcmp(argv[1], "bounded")) return bounded(argc, argv);
+    if (argc >= 2 && !strcmp(argv[1], "bounded")) return bounded(argc, argv, 1);
+    // Deployment-only commands must copy verified images/configuration into
+    // RAM. Retain the timeout/process-group boundary without a 64 KiB cap.
+    if (argc >= 2 && !strcmp(argv[1], "bounded-no-file-limit")) return bounded(argc, argv, 0);
     if (argc == 5 && !strcmp(argv[1], "events")) {
         char *end;
         unsigned long duration = strtoul(argv[4], &end, 10);
         if (*end || duration > 86400) return 2;
         return events(argv[2], argv[3], (unsigned)duration);
     }
-    fprintf(stderr, "usage: power-recorder bounded SECONDS COMMAND... | events DIRECTORY INTERFACE SECONDS_OR_0\n");
+    fprintf(stderr, "usage: power-recorder bounded|bounded-no-file-limit SECONDS COMMAND... | events DIRECTORY INTERFACE SECONDS_OR_0\n");
     return 2;
 }

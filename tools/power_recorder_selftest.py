@@ -59,6 +59,11 @@ def main():
     with big.open("wb") as stream:
         capped = subprocess.run([str(helper), "bounded", "2", "head", "-c", "200000", "/dev/zero"], stdout=stream)
     assert capped.returncode != 0 and big.stat().st_size <= 65536
+    uncapped = output / "deployment-output.txt"
+    with uncapped.open("wb") as stream:
+        result = subprocess.run([str(helper), "bounded-no-file-limit", "2", "head", "-c", "200000", "/dev/zero"], stdout=stream)
+    assert result.returncode == 0 and uncapped.stat().st_size == 200000
+    assert subprocess.run([str(helper), "bounded-no-file-limit", "1", "sleep", "30"]).returncode == 124
 
     capture = output / "capture"
     capture.mkdir()
@@ -116,7 +121,8 @@ def main():
         assert (capture / "wan.pcap").read_bytes().startswith(saved)
         packets(capture / "wan.pcap")  # Restart did not inject a second header.
         result = {"timeout_kills_command_tree": True, "exit_status_preserved": True,
-                  "output_limit": True, "late_wan_observed": True,
+                  "output_limit": True, "deployment_mode_preserves_large_files_and_timeout": True,
+                  "late_wan_observed": True,
                   "DHCPv4_DHCPv6_ARP_captured": True, "ordinary_DNS_excluded": True,
                   "unrelated_ARP_excluded": True,
                   "link_address_route_events": True, "abrupt_process_death_evidence_retained": True,

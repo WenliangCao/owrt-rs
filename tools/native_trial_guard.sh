@@ -1,39 +1,96 @@
 #!/bin/sh
-# Temporary native-image deployment protection, carried in the private config
-# backup. Uses saved C originals, never /rom/sbin/* (which are Rust here).
+# Temporary deployment protection, carried only in a private config archive.
+# Roll back the complete firmware and original config to v0.1.1. A verified C
+# bridge is allowed once if the current PID1/bus cannot hand off sysupgrade.
 set -eu
 umask 077
 BASE=/root/owrt-native-trial
 HELPER=$BASE/bounded
+STAGE=/tmp/owrt-native-rollback
 
 uptime_seconds() { cut -d. -f1 /proc/uptime; }
 record() {
-    printf 'boot=%s uptime=%s %s\n' "$(cat /proc/sys/kernel/random/boot_id)" "$(uptime_seconds)" "$*" >> "$BASE/guard.log"
+    printf 'boot=%s uptime=%s %s\n' "$(cat /proc/sys/kernel/random/boot_id)" "$(uptime_seconds)" "$*" >> "$BASE/guard.log" &&
     sync
 }
 put() {
-    printf '%s\n' "$2" > "$BASE/$1.new"
-    sync
-    mv -f "$BASE/$1.new" "$BASE/$1"
+    printf '%s\n' "$2" > "$BASE/$1.new" &&
+    sync &&
+    mv -f "$BASE/$1.new" "$BASE/$1" &&
     sync
 }
 restore() {
-    mkdir /tmp/owrt-native-decision-lock 2>/dev/null || return 1
-    record 'restore-start'
-    if ! sha256sum -c "$BASE/recovery.sha256" >> "$BASE/restore.log" 2>&1 ||
-       ! /usr/sbin/owrt-recover-c >> "$BASE/restore.log" 2>&1; then
-        record 'restore-refused: originals or recovery operation failed'
+    if [ -f "$BASE/rollback-requested" ]; then
+        record 'rollback already submitted; refusing another automatic flash'
+        return 1
+    fi
+    mkdir /tmp/owrt-native-decision-lock 2>/dev/null || return 75
+    record 'restore-start' || return 1
+    # Validate both persistent inputs before copying to RAM. sysupgrade must
+    # not read its image from an overlay that it is about to replace.
+    if ! sha256sum -c "$BASE/rollback.sha256" >> "$BASE/restore.log" 2>&1 ||
+       ! sha256sum -c "$BASE/recovery.sha256" >> "$BASE/restore.log" 2>&1 ||
+       ! mkdir "$STAGE" ||
+       ! cp "$BASE/rollback-v0.1.1.bin" "$STAGE/image.bin" ||
+       ! cp "$BASE/rollback-config.tar.gz" "$STAGE/config.tar.gz" ||
+       ! cmp -s "$BASE/rollback-v0.1.1.bin" "$STAGE/image.bin" ||
+       ! cmp -s "$BASE/rollback-config.tar.gz" "$STAGE/config.tar.gz"; then
+        record 'restore-refused: input identity, RAM staging or sysupgrade preflight failed'
         rmdir /tmp/owrt-native-decision-lock
         return 1
     fi
-    put restored "$(cat /proc/sys/kernel/random/boot_id)"
-    record 'all-nine-C-staged; force-reboot without a working Rust bus'
+    # Carry the reason across the rollback without carrying the guard, its
+    # startup service, or either firmware image. Original config members are
+    # unchanged; the only addition is this private receipt directory.
+    receipt=$STAGE/config/root/owrt-v0.2.0-rollback-receipt
+    if ! mkdir "$STAGE/config" ||
+       ! tar -xzf "$BASE/rollback-config.tar.gz" -C "$STAGE/config" ||
+       ! mkdir -p "$receipt" ||
+       ! cp "$BASE/guard.log" "$receipt/guard.log" ||
+       ! cp "$BASE/rollback.sha256" "$receipt/inputs.sha256" ||
+       ! cp "$BASE/recovery.sha256" "$receipt/recovery.sha256" ||
+       ! printf '%s\n' 'Prepared for full v0.1.1 rollback; this receipt is not proof of completed flashing.' > "$receipt/status.txt" ||
+       ! tar -czf "$STAGE/config.tar.gz" -C "$STAGE/config" -T "$BASE/rollback-members.txt" root/owrt-v0.2.0-rollback-receipt ||
+       ! "$HELPER" bounded-no-file-limit 90 /sbin/sysupgrade -T -f "$STAGE/config.tar.gz" "$STAGE/image.bin" >> "$BASE/restore.log" 2>&1; then
+        record 'restore-refused: receipt archive or sysupgrade preflight failed'
+        rmdir /tmp/owrt-native-decision-lock
+        return 1
+    fi
+    boot=$(cat /proc/sys/kernel/random/boot_id)
+    if "$HELPER" bounded 15 ubus -S -t 3 call system board > "$STAGE/board.json" 2>> "$BASE/restore.log" &&
+       [ "$(jsonfilter -i "$STAGE/board.json" -e '@.board_name')" = xiaomi,mi-router-ax3000t ]; then
+        put rollback-requested "$boot" || return 1
+        record 'v0.1.1 rollback requested with original configuration' || return 1
+        # The request may be accepted while PID1 is still stopping services.
+        # A client timeout or return is not proof that flash has not begun.
+        # Never force a reboot or start another upgrade after this boundary.
+        rc=0
+        "$HELPER" bounded-no-file-limit 60 /sbin/sysupgrade -f "$STAGE/config.tar.gz" "$STAGE/image.bin" >> "$BASE/restore.log" 2>&1 || rc=$?
+        record "sysupgrade handoff uncertain (client rc=$rc); no automatic second action"
+        return 0
+    fi
+    record 'control bus/PID1 pre-handoff check failed; no sysupgrade request sent'
+    if [ -f "$BASE/c-bridge-used" ]; then
+        record 'rollback failed after one C bridge; refusing any further reboot or flash loop'
+        return 1
+    fi
+    # Persist the one-shot fuse before staging any C target or rebooting.
+    put c-bridge-used "$boot" || return 1
+    if ! sha256sum -c "$BASE/recovery.sha256" >> "$BASE/restore.log" 2>&1 ||
+       ! /usr/sbin/owrt-recover-c >> "$BASE/restore.log" 2>&1; then
+        record 'C bridge refused: recovery identity or operation failed'
+        return 1
+    fi
+    put c-bridge-staged "$boot" || return 1
+    record 'C bridge staged; this is not a completed v0.1.1 rollback' || return 1
     sync
     reboot -f
 }
 
 case "${1:-}" in
     health)
+        health_dir=$(mktemp -d /tmp/owrt-native-health.XXXXXX)
+        trap 'rm -f "$health_dir/luci.css"; rmdir "$health_dir"' EXIT
         [ "$(cat /sys/class/net/wan/carrier 2>/dev/null)" = 1 ]
         ip -4 route show default | awk '$1=="default" {for(i=1;i<NF;i++) if($i=="dev" && $(i+1)=="wan") ok=1} END {exit !ok}'
         for name in lan wan; do
@@ -45,6 +102,9 @@ case "${1:-}" in
             [ "$(printf '%s' "$wireless" | jsonfilter -e "@.$name.pending")" = false ]
         done
         ping -4 -I wan -c 1 -W 2 -w 3 1.1.1.1 >/dev/null 2>&1 || ping -4 -I wan -c 1 -W 2 -w 3 9.9.9.9 >/dev/null 2>&1
+        nslookup example.com 127.0.0.1 >/dev/null 2>&1
+        uclient-fetch -q -T 4 -O "$health_dir/luci.css" http://127.0.0.1/luci-static/bootstrap/cascade.css
+        cmp -s "$health_dir/luci.css" /www/luci-static/bootstrap/cascade.css
         ;;
     confirm)
         token=${2:?trial token required}
@@ -53,21 +113,36 @@ case "${1:-}" in
         trap 'rmdir /tmp/owrt-native-decision-lock' EXIT
         [ "$(cat "$BASE/armed")" = "$token" ]
         [ "$(cat /proc/sys/kernel/random/boot_id)" = "$boot" ]
-        [ ! -f "$BASE/restored" ]
+        [ ! -f "$BASE/rollback-requested" ]
         sha256sum -c /usr/share/owrt-control-plane/rust.sha256 >/dev/null
-        "$HELPER" bounded 15 /bin/sh "$BASE/native_trial_guard.sh" health
-        put accepted "$token"
-        record 'client-confirmed; future-boot protection remains armed'
+        "$HELPER" bounded 25 /bin/sh "$BASE/native_trial_guard.sh" health
+        put accepted "$token $boot"
+        record 'client confirmed this boot; every future boot still needs fresh confirmation'
         ;;
     run)
         [ -f "$BASE/armed" ] || exit 0
         mkdir /tmp/owrt-native-guard-lock 2>/dev/null || exit 0
         echo "$$" > /tmp/owrt-native-guard-lock/pid
-        if cmp -s /proc/1/exe /usr/libexec/owrt-stock/sbin/procd; then
-            record 'C-boot: guard idle'
-            exit 0
+        trap '[ "$(cat /tmp/owrt-native-guard-lock/pid 2>/dev/null)" != "$$" ] || { rm -f /tmp/owrt-native-guard-lock/pid; rmdir /tmp/owrt-native-guard-lock; }' EXIT
+        if [ -f "$BASE/rollback-requested" ]; then
+            record 'previous handoff unresolved; refusing another automatic flash after reboot'
+            exit 1
+        fi
+        if [ -f "$BASE/c-bridge-used" ]; then
+            # The bridge retains this private archive for one more startup;
+            # the final v0.1.1 flash restores the original archive without it.
+            if [ -f "$BASE/c-bridge-rollback-attempted" ] ||
+               ! cmp -s /proc/1/exe /usr/libexec/owrt-stock/sbin/procd; then
+                record 'C bridge retry refused: already attempted or PID1 is not verified C'
+                exit 1
+            fi
+            put c-bridge-rollback-attempted "$(cat /proc/sys/kernel/random/boot_id)"
+            record 'C bridge boot: retrying complete v0.1.1 rollback once'
+            restore
+            exit $?
         fi
         token=$(cat "$BASE/armed")
+        boot=$(cat /proc/sys/kernel/random/boot_id)
         count=0
         [ ! -f "$BASE/unhealthy-boots" ] || count=$(cat "$BASE/unhealthy-boots")
         case "$count" in ''|*[!0-9]*) record 'invalid-boot-counter'; restore; exit 1 ;; esac
@@ -81,9 +156,9 @@ case "${1:-}" in
         healthy=0
         while [ -f "$BASE/armed" ] && [ "$(cat "$BASE/armed")" = "$token" ]; do
             accepted=$(cat "$BASE/accepted" 2>/dev/null || true)
-            if "$HELPER" bounded 15 /bin/sh "$BASE/native_trial_guard.sh" health >/dev/null 2>&1; then
+            if "$HELPER" bounded 25 /bin/sh "$BASE/native_trial_guard.sh" health >/dev/null 2>&1; then
                 good=$((good + 1))
-                if [ "$good" -ge 3 ] && [ "$accepted" = "$token" ]; then
+                if [ "$good" -ge 3 ] && [ "$accepted" = "$token $boot" ]; then
                     bad_since=$(uptime_seconds)
                     if [ "$healthy" -eq 0 ]; then
                         put unhealthy-boots 0
@@ -102,12 +177,18 @@ case "${1:-}" in
                 fi
             fi
             limit=600
-            [ "$accepted" != "$token" ] || limit=300
+            [ "$accepted" != "$token $boot" ] || limit=300
             now=$(uptime_seconds)
             if [ "$healthy" -eq 0 ] && [ $((now - bad_since)) -ge "$limit" ]; then
                 record "deadline expired after $limit seconds"
-                restore
-                exit 0
+                if restore; then
+                    exit 0
+                else
+                    status=$?
+                    # A simultaneous confirm owns the decision lock. Re-read
+                    # its result next iteration instead of losing the guard.
+                    [ "$status" -eq 75 ] || exit "$status"
+                fi
             fi
             sleep 15
         done
