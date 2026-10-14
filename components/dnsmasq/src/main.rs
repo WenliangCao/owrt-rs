@@ -364,9 +364,20 @@ struct ParentDns {
     query_ids: dnsmasq_rs::query_logging::QueryIds,
     local: LocalDnsService,
     daemon: Option<DnsDaemon>,
+    /// New static views awaiting the DHCP provider's configured-name update
+    /// and final DNS publication. Queries keep using the published local view.
+    pending_hosts: Option<(Hosts, Hosts)>,
 }
 
 impl ParentDns {
+    fn provider_hosts(&self) -> &Hosts {
+        self.pending_hosts.as_ref().map_or(&self.local.hosts, |(hosts, _)| hosts)
+    }
+
+    fn provider_hosts_mut(&mut self) -> &mut Hosts {
+        self.pending_hosts.as_mut().map_or(&mut self.local.hosts, |(hosts, _)| hosts)
+    }
+
     fn import_tcp_cache_transfer(
         &mut self,
         transaction: dnsmasq_rs::dns::cache::CacheTransaction,
@@ -608,17 +619,22 @@ impl dnsmasq_rs::dhcp::persistence::DnsPublisher for LeasePublisher {
             .parent
             .try_borrow_mut()
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-        let ParentDns { local, daemon, .. } = &mut *parent;
+        let ParentDns { local, daemon, pending_hosts, .. } = &mut *parent;
         let daemon = daemon
             .as_mut()
             .ok_or_else(|| io::Error::other("DNS publication is disabled"))?;
+        let hosts = pending_hosts.as_mut().map_or(&mut local.hosts, |(hosts, _)| hosts);
         let names = daemon.publish_lease_names(
             records,
-            &mut local.hosts,
+            hosts,
             &local.config.records.cnames,
             self.policy,
         );
         report_lease_name_warnings(&names);
+        if let Some((hosts, snapshot)) = pending_hosts.take() {
+            daemon.publish_hosts_source(snapshot);
+            local.hosts = hosts;
+        }
         local.leases = Arc::new(names);
         Ok(())
     }
@@ -989,6 +1005,7 @@ fn run_inner(
         ),
         daemon,
         query_ids: Default::default(),
+        pending_hosts: None,
     }));
     {
         let mut parent = service.borrow_mut();
@@ -1083,7 +1100,7 @@ fn run_inner(
                 let mut parent = config_dns
                     .try_borrow_mut()
                     .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-                let matches = parent.local.hosts.lookup(name, Some(false), false);
+                let matches = parent.provider_hosts_mut().lookup(name, Some(false), false);
                 let selected = if matches.len() == 1 {
                     matches.first().copied()
                 } else {
@@ -1100,8 +1117,7 @@ fn run_inner(
                     .try_borrow_mut()
                     .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 Ok(parent
-                    .local
-                    .hosts
+                    .provider_hosts_mut()
                     .lookup(name, Some(false), false)
                     .first()
                     .and_then(|host| match host.address {
@@ -1115,8 +1131,7 @@ fn run_inner(
                     .try_borrow_mut()
                     .map_err(|_| io::Error::other("DNS state already borrowed"))?;
                 Ok(parent
-                    .local
-                    .hosts
+                    .provider_hosts()
                     .reverse(IpAddr::V4(address))
                     .map(|host| host.name.clone()))
             });
@@ -3190,8 +3205,10 @@ impl SinglePoll {
         let (cache_size, name_hash_capacity, retained_leases) = {
             let mut parent = self.service.try_borrow_mut()
                 .map_err(|_| io::Error::other("DNS state already borrowed"))?;
-            let previous_capacity = parent.local.hosts.name_hash_capacity();
+            let previous_capacity = parent.provider_hosts().name_hash_capacity()
+                .max(parent.local.hosts.name_hash_capacity());
             let retained_leases = Arc::clone(&parent.local.leases);
+            parent.pending_hosts = None;
             let Some(daemon) = parent.daemon.as_mut() else { return Ok(()); };
             daemon.begin_hosts_reload();
             (daemon.cache_capacity(), previous_capacity, retained_leases)
@@ -3249,7 +3266,12 @@ impl SinglePoll {
             self.hosts_reload_failed = true;
             return;
         };
+        let provider_publishes_leases = self.has_dhcp_dns_publisher();
         let mut parent = self.service.borrow_mut();
+        if provider_publishes_leases {
+            parent.pending_hosts = Some((hosts, snapshot));
+            return;
+        }
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
             daemon.publish_hosts_source(snapshot);
@@ -3262,6 +3284,15 @@ impl SinglePoll {
         } else {
             local.hosts = hosts;
         }
+    }
+
+    fn has_dhcp_dns_publisher(&self) -> bool {
+        #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
+        {
+            self.dhcp.as_ref().is_some_and(|dhcp| dhcp.provider.is_some())
+        }
+        #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
+        { false }
     }
 
     fn reload_data(&mut self, local_ttl: u32) -> io::Result<()> {
@@ -3767,30 +3798,36 @@ impl SinglePoll {
             }
         }
         let removed;
+        let provider_publishes_leases = self.has_dhcp_dns_publisher();
         {
             let mut parent = self.service.borrow_mut();
-            let ParentDns { local, daemon, .. } = &mut *parent;
             // Keep both published owners intact until assembly and the second
             // publication copy succeed. Failed insertions must abandon the
             // entire replacement, not silently publish its accepted prefix.
-            let Ok((hosts, source_removed)) = local.hosts.try_replace_source(
+            let Ok((hosts, source_removed)) = parent.provider_hosts().try_replace_source(
                 source.uid,
                 source.path.as_os_str().as_encoded_bytes(),
                 records,
                 ttl,
             ) else { return 0; };
             removed = source_removed;
-            if let Some(daemon) = daemon {
+            if parent.daemon.is_some() {
                 let Ok(snapshot) = hosts.try_clone() else { return 0; };
-                daemon.publish_hosts_source(snapshot);
-                local.hosts = hosts;
-                local.leases = Arc::new(daemon.rebuild_lease_names(
-                    &local.leases,
-                    &mut local.hosts,
-                    &local.config.records.cnames,
-                ));
+                if provider_publishes_leases {
+                    parent.pending_hosts = Some((hosts, snapshot));
+                } else {
+                    let ParentDns { local, daemon, .. } = &mut *parent;
+                    let daemon = daemon.as_mut().unwrap();
+                    daemon.publish_hosts_source(snapshot);
+                    local.hosts = hosts;
+                    local.leases = Arc::new(daemon.rebuild_lease_names(
+                        &local.leases,
+                        &mut local.hosts,
+                        &local.config.records.cnames,
+                    ));
+                }
             } else {
-                local.hosts = hosts;
+                parent.local.hosts = hosts;
             }
         }
         if !self.hosts_bulk {
@@ -3800,10 +3837,12 @@ impl SinglePoll {
                 .as_ref()
                 .and_then(|service| service.provider.as_ref())
             {
-                report_dhcp_maintenance(
-                    &provider.borrow_mut().hosts_changed(now_seconds()),
-                    self.logger.as_mut(),
-                );
+                let mut provider = provider.borrow_mut();
+                if !provider.file_work_pending() {
+                    report_dhcp_maintenance(
+                        &provider.hosts_changed(now_seconds()), self.logger.as_mut(),
+                    );
+                }
             }
         }
         removed
@@ -7094,6 +7133,7 @@ mod tests {
         SinglePoll::new(
             Rc::new(RefCell::new(ParentDns {
                 local, daemon, query_ids: Default::default(),
+                pending_hosts: None,
             })),
             Rc::new(RefCell::new(ParentEvents::new(&UbusConfig::default()).unwrap())),
             Rc::new(RefCell::new(Vec::new())), config, Vec::new(), 1232, 20, 1232,
@@ -8546,6 +8586,7 @@ mod tests {
                 ),
                 daemon: None,
                 query_ids: Default::default(),
+                pending_hosts: None,
             })),
             Rc::new(RefCell::new(
                 ParentEvents::new(&UbusConfig::default()).unwrap(),
