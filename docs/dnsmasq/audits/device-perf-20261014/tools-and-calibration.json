@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "purpose": "measurement tools only, no product code",
+  "compiler": "OpenWrt 25.12.5 GCC 14.3.0 aarch64-openwrt-linux-musl-gcc",
+  "flags": [
+    "-O2",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-static"
+  ],
+  "build_host": "Oracle aarch64 using SDK x86_64 compiler wrappers",
+  "files": [
+    {
+      "name": "m6a_loadgen",
+      "source_sha256": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4",
+      "elf_sha256": "c858aeda6c4077b521d5e6c2947fa4ffe425ef8d4b86d935a9e5f9b7ffab65ca",
+      "elf_bytes": 544688
+    },
+    {
+      "name": "m6a_upstream",
+      "source_sha256": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee",
+      "elf_sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+      "elf_bytes": 449464
+    },
+    {
+      "name": "predeploy_resource_probe",
+      "source_sha256": "129e38a02b15e91fa0d1be6e170a429c161918c13c1ce2af65c371ceee171978",
+      "elf_sha256": "5c712499a88ddf62812918c1377d9789a9b315241fd9f1e47ca93494dc18bf41",
+      "elf_bytes": 543504
+    },
+    {
+      "name": "device_perf_netns",
+      "source_sha256": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4",
+      "elf_sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+      "elf_bytes": 348152
+    },
+    {
+      "name": "device_perf_lifecycle",
+      "source_sha256": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+      "elf_sha256": "0046530f5e227b089c377818eb77e4565e399137ff507c5fad3ebabd0e868349",
+      "elf_bytes": 635936
+    },
+    {
+      "name": "device_perf_guard",
+      "source_sha256": "de0e6de4b3db47171845da136d3b0bfbacd0a69c5150ce64339013b6c32ef964",
+      "elf_sha256": "72d1c478b0b6410a586360f1cba6cbaee359398bbc7cbb5aa6d399649771c488",
+      "elf_bytes": 560184
+    }
+  ],
+  "raw_archive_sha256": "1dba52e5a5e65b5cce7ef478729b26ee2334464798a6636a2413850ddf58c305",
+  "raw_archive_bytes": 2463404,
+  "calibration": {
+    "environment": "Oracle only; validates tools, not router performance",
+    "dns_final_sdk_tools": {
+      "passed": true,
+      "cases": 5,
+      "checks": [
+        "UDP and TCP semantic replies",
+        "70 percent A / 30 percent AAAA",
+        "at least configured 1 ms upstream delay",
+        "disabled upstream produces all 600 measured timeouts",
+        "32 concurrent 10 ms delays do not serialize"
+      ],
+      "command": "python3 test_device_perf_tools.py BIN_DIR NEW_OUTPUT_DIR"
+    },
+    "dhcp_renew": {
+      "passed": true,
+      "reference_and_rust_each": {
+        "warmup_dora": 150,
+        "warmup_renew": 850,
+        "measurement_renew": 600,
+        "measurement_dora": 0,
+        "releases": 0,
+        "errors": 0,
+        "retained_leases": 150
+      },
+      "incomplete_setup_negative": {
+        "exit": 2,
+        "measurement_sent": 0,
+        "renew_setup_failed": true
+      }
+    },
+    "lifecycle": {
+      "passed": true,
+      "reference_and_rust_each": {
+        "modes": [
+          "startup",
+          "hup",
+          "config"
+        ],
+        "repeats_each": 2,
+        "hosts": 1000,
+        "retained_leases": 150
+      },
+      "no_isolated_namespace_negative": {
+        "exit": 2,
+        "files_created": 0
+      }
+    },
+    "guard": {
+      "passed": true,
+      "native_linux_test_exit": 0,
+      "checks": [
+        "strict parse",
+        "production and self exclusion",
+        "stale starttime rejection",
+        "nonleader rejection",
+        "unrelated argv rejection",
+        "symlink rejection",
+        "SIGTERM stops without killing",
+        "valid private group kill",
+        "STOP written"
+      ]
+    }
+  },
+  "limitations": [
+    "No tools directly contact the physical router during calibration.",
+    "Measurement processes and helper allocations must be reported separately from dnsmasq.",
+    "UDP delay queue has 128 entries; delay_queue_dropped must remain zero in every valid window.",
+    "TCP uses at most 64 upstream connections; loadgen rotates each client connection after 100 replies.",
+    "DNS tools do not turn timeout counters into nonzero exit status; caller must check all counters.",
+    "CPU sampling is non-atomic across children; final CPU endpoint must wait for TCP children to be reaped."
+  ],
+  "lifecycle_and_actual_dhcp_archive_sha256": "b28aba1cb170fe695125e9c50a572e3666c2b2e22608a8641aa4e32ac9894dc9",
+  "lifecycle_and_actual_dhcp_archive_bytes": 119377
+}
