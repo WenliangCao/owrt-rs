@@ -742,6 +742,11 @@ impl<R: Random> DnsDaemon<R> {
         self.cache_counters
     }
 
+    /// Initial name-hash sizing for a new static hosts generation.
+    pub fn cache_capacity(&self) -> usize {
+        self.cache.as_ref().map_or(0, Cache::capacity)
+    }
+
     pub fn forward_counters(&self) -> super::forward::ForwardCounters {
         self.upstream.counters()
     }
