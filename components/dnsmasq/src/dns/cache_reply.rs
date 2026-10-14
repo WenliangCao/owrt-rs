@@ -78,7 +78,7 @@ pub fn append_cname_record(
     if entry.record.kind != Kind::Cname || entry.record.negative {
         return Ok(None);
     }
-    let (_, end) = super::wire::decode_name(&entry.record.data, 0, 0)?;
+    let end = super::wire::validate_name(&entry.record.data, 0, 0)?;
     if end != entry.record.data.len() {
         return Err(WireError::InvalidName);
     }

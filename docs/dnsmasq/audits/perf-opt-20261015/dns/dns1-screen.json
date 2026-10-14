@@ -1,0 +1,124 @@
+{
+  "status": "screen-only-not-correctness-qualified",
+  "baseline_source": "51b039597af13f9c9cf07c9f80e388e25cd8ae5d",
+  "label": "DNS-1",
+  "mechanism": "Validate existing DNS names without materializing discarded decoded labels. Both decode/validation share the same label/pointer walk.",
+  "scope": "Actual public local/cache answer path; native aarch64-unknown-linux-gnu diagnostic, not shipped musl ELF or device performance",
+  "allocation_rows": [
+    {
+      "scene": "hit",
+      "operations": 8000,
+      "baseline_allocations_per_op": 5.0,
+      "candidate_allocations_per_op": 4.0,
+      "baseline_requested_bytes_per_op": 277.0,
+      "candidate_requested_bytes_per_op": 245.0,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    },
+    {
+      "scene": "hit-upper",
+      "operations": 8000,
+      "baseline_allocations_per_op": 7.0,
+      "candidate_allocations_per_op": 6.0,
+      "baseline_requested_bytes_per_op": 323.0,
+      "candidate_requested_bytes_per_op": 291.0,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    },
+    {
+      "scene": "hit-leases",
+      "operations": 8000,
+      "baseline_allocations_per_op": 7.7,
+      "candidate_allocations_per_op": 6.7,
+      "baseline_requested_bytes_per_op": 333.7,
+      "candidate_requested_bytes_per_op": 301.7,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    },
+    {
+      "scene": "miss",
+      "operations": 8000,
+      "baseline_allocations_per_op": 2.0,
+      "candidate_allocations_per_op": 2.0,
+      "baseline_requested_bytes_per_op": 53.0,
+      "candidate_requested_bytes_per_op": 53.0,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    },
+    {
+      "scene": "miss-leases",
+      "operations": 8000,
+      "baseline_allocations_per_op": 4.7,
+      "candidate_allocations_per_op": 4.7,
+      "baseline_requested_bytes_per_op": 109.7,
+      "candidate_requested_bytes_per_op": 109.7,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    },
+    {
+      "scene": "host",
+      "operations": 8000,
+      "baseline_allocations_per_op": 9.0,
+      "candidate_allocations_per_op": 8.0,
+      "baseline_requested_bytes_per_op": 531.6,
+      "candidate_requested_bytes_per_op": 499.6,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    },
+    {
+      "scene": "rrset",
+      "operations": 8000,
+      "baseline_allocations_per_op": 13.0,
+      "candidate_allocations_per_op": 5.0,
+      "baseline_requested_bytes_per_op": 1102.6,
+      "candidate_requested_bytes_per_op": 846.6,
+      "live_balance": [
+        0,
+        0
+      ],
+      "checksum_equal": true
+    }
+  ],
+  "one_pass_perf": {
+    "operations": 1000000,
+    "baseline_instructions": 5497266981,
+    "candidate_instructions": 5179704843,
+    "instruction_change_percent": -5.7767275829531,
+    "baseline_cycles": 2135057322,
+    "candidate_cycles": 2045636821,
+    "qualification": "Concurrent screen only. Setup included. Cycles can reflect interference and do not qualify timing. Samples need an isolated follow-up."
+  },
+  "tests": {
+    "wire_existing": 22,
+    "wire_total_after": 23,
+    "pass": 23,
+    "complete_gate": "pending independent owner"
+  },
+  "raw_sha256": {
+    "dns1-alloc.jsonl": "1644a4b1d31953e1a134b97f927567a2c3a4a3212a05ebacf9fba570f99a8d85",
+    "baseline-alloc.jsonl": "b3f5f44047edd5463feab2ad66c77b9bb090c8f77deccbbda1e41510b7cdf239"
+  },
+  "changed_source_sha256": {
+    "components/dnsmasq/src/dns/wire.rs": "de06a442bf131ef75cdf0ee1204a62bedc0da553736b90ab998b69999733bd3e",
+    "components/dnsmasq/src/dns/wire_tests.rs": "652503bf8420e67fba588455721ab1879e2c71f293e88571297a9f759ddcf9bc",
+    "components/dnsmasq/src/dns/cache_reply.rs": "f77a58ce7ad27e43ff71ac59f3c2d2f156c19f1810b4250cb5553c087ce5e94d"
+  }
+}
