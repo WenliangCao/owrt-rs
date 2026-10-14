@@ -1,0 +1,92 @@
+{
+  "label": "CACHE-CLEAR-1",
+  "baseline_source": "70390467",
+  "status": "screen-only-pending-timing/full-correctness",
+  "mechanism": "One Arc::make_mut per existing 64-slot content block instead of once per slot. Same representation, content drop order, block detach allocation order, slots and limits.",
+  "allocation_rows_both_identical": [
+    {
+      "scene": "clear-0",
+      "operations": 1000,
+      "capacity": 0,
+      "allocations": 65000,
+      "reallocations": 0,
+      "requested_bytes": 4608000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "clear-6",
+      "operations": 1000,
+      "capacity": 6,
+      "allocations": 65000,
+      "reallocations": 0,
+      "requested_bytes": 4608000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "clear-150",
+      "operations": 1000,
+      "capacity": 150,
+      "allocations": 65000,
+      "reallocations": 0,
+      "requested_bytes": 4608000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "clear-1000",
+      "operations": 1000,
+      "capacity": 1000,
+      "allocations": 65000,
+      "reallocations": 0,
+      "requested_bytes": 4608000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "snapshot-clear-1000",
+      "operations": 1000,
+      "capacity": 1000,
+      "allocations": 100000,
+      "reallocations": 0,
+      "requested_bytes": 93760000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "new-1000",
+      "operations": 1000,
+      "capacity": 1000,
+      "allocations": 99000,
+      "reallocations": 0,
+      "requested_bytes": 93248000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    }
+  ],
+  "perf": {
+    "operations": 100000,
+    "baseline_instructions": 9281071157,
+    "candidate_instructions": 4034418788,
+    "instruction_change_percent": -56.53067711955697,
+    "baseline_cycles": 4944542709,
+    "candidate_cycles": 1616047291,
+    "qualification": "Concurrent native screen. Cycles are not qualified timing; setup included."
+  },
+  "tests": {
+    "mac_cache_related_pass": 55,
+    "ignored": 1,
+    "ignored_name": "exact_c_transfer_probe",
+    "note": "Existing Oracle exact-C transfer gate must still run with its fixture."
+  },
+  "product_source_sha256": "86552c162d1f9d2773162f5b8de45614c29966be4e3a209bf504f08a74a03a88",
+  "raw_sha256": {
+    "clear1-clear1000.perf": "5278129e89030013c0812a6311c7f6cc045700dfb88009ef59ba0b9e7a4976ea",
+    "baseline-clear1000.perf": "f5cce03b0753ce303c2047c2f61a102c38f91af815a290696e43a4a5d2cdf2cd",
+    "baseline-clear-alloc.jsonl": "39ad99c30e6812ef735665e73cc6d888fb84628ac3537fc7ba8827cc14593e7b",
+    "clear1-mac-tests.stderr": "1c5ed4f576504fc632ab40e895a35c4f9b5e2ad89b8e36e57f4053d623c49ffd",
+    "clear1-mac-tests.stdout": "96981e0dabddae05f670964cfcf80c7f7ba1ce35afe27ee6dbd822cfed6234ff",
+    "clear1-clear-alloc.jsonl": "39ad99c30e6812ef735665e73cc6d888fb84628ac3537fc7ba8827cc14593e7b"
+  }
+}
