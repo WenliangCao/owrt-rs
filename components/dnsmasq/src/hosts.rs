@@ -140,6 +140,7 @@ enum BulkLink {
 
 #[derive(Clone)]
 struct BulkLease {
+    name: Vec<u8>,
     address: IpAddr,
     reverse: bool,
     immortal: bool,
@@ -181,11 +182,10 @@ pub(crate) fn name_hash_bucket(name: &[u8], capacity: usize) -> usize {
 /// This state belongs to the loader, never to a published TCP snapshot.
 #[derive(Clone)]
 struct BulkReverse {
+    active: bool,
     buckets: Vec<BulkLink>,
     next: Vec<BulkLink>,
     leases: Vec<BulkLease>,
-    // Only names with a retained DHCP entry need a mixed lookup list.
-    lease_names: HashMap<Vec<u8>, Vec<BulkLink>>,
     name_count: usize,
     rehash_checkpoint: usize,
 }
@@ -197,29 +197,32 @@ impl BulkReverse {
         buckets.try_reserve_exact(count)?;
         buckets.resize(count, BulkLink::End);
         Ok(Self {
+            active: true,
             buckets,
             next: Vec::new(),
             leases: Vec::new(),
-            lease_names: HashMap::new(),
             name_count: cache_size,
             rehash_checkpoint: cache_size,
         })
     }
 
     fn try_clone(&self) -> Result<Self, TryReserveError> {
-        let mut lease_names = HashMap::new();
-        lease_names.try_reserve(self.lease_names.len())?;
-        for (name, ids) in &self.lease_names {
-            lease_names.insert(try_copy(name)?, try_copy(ids)?);
-        }
         let mut leases = Vec::new();
         leases.try_reserve_exact(self.leases.len())?;
-        leases.extend(self.leases.iter().cloned());
+        for lease in &self.leases {
+            leases.push(BulkLease {
+                name: try_copy(&lease.name)?,
+                address: lease.address,
+                reverse: lease.reverse,
+                immortal: lease.immortal,
+                next: lease.next,
+            });
+        }
         Ok(Self {
+            active: self.active,
             buckets: try_copy(&self.buckets)?,
             next: try_copy(&self.next)?,
             leases,
-            lease_names,
             name_count: self.name_count,
             rehash_checkpoint: self.rehash_checkpoint,
         })
@@ -234,22 +237,6 @@ impl BulkReverse {
         match address {
             IpAddr::V4(address) => hash(&address.octets()),
             IpAddr::V6(address) => hash(&address.octets()),
-        }
-    }
-
-    fn flags(link: BulkLink, entries: &[Host], leases: &[BulkLease]) -> (bool, bool) {
-        match link {
-            BulkLink::Host(id) => (entries[id].reverse, true),
-            BulkLink::Lease(id) => (leases[id].reverse, leases[id].immortal),
-            BulkLink::End => unreachable!(),
-        }
-    }
-
-    fn address(link: BulkLink, entries: &[Host], leases: &[BulkLease]) -> IpAddr {
-        match link {
-            BulkLink::Host(id) => entries[id].address,
-            BulkLink::Lease(id) => leases[id].address,
-            BulkLink::End => unreachable!(),
         }
     }
 
@@ -269,128 +256,29 @@ impl BulkReverse {
         }
     }
 
-    fn insert_at(
-        order: &[BulkLink],
-        flags: (bool, bool),
-        entries: &[Host],
-        leases: &[BulkLease],
-    ) -> usize {
-        let mut at = 0;
-        if !flags.0 {
-            while at < order.len() && Self::flags(order[at], entries, leases).0 {
-                at += 1;
-            }
-            if flags.1 {
-                while at < order.len() && !Self::flags(order[at], entries, leases).1 {
-                    at += 1;
-                }
-            }
-        }
-        while at < order.len() && Self::flags(order[at], entries, leases) == flags {
-            at += 1;
-        }
-        at
-    }
-
-    fn add_lease(
-        &mut self,
-        name: &[u8],
-        address: IpAddr,
-        reverse: bool,
-        immortal: bool,
-    ) -> Result<(), TryReserveError> {
-        assert!(
-            self.next.is_empty(),
-            "retained leases must precede configured records"
-        );
-        let mut key = try_copy(name)?;
-        key.make_ascii_lowercase();
-        self.leases.try_reserve(1)?;
-        self.lease_names.try_reserve(1)?;
-        let mut fresh = Vec::new();
-        if let Some(order) = self.lease_names.get_mut(&key) {
-            order.try_reserve(1)?;
-        } else {
-            fresh.try_reserve(1)?;
-        }
-        let id = self.leases.len();
-        let order = self.lease_names.entry(key).or_insert(fresh);
-        let at = Self::insert_at(order, (reverse, immortal), &[], &self.leases);
-        order.insert(at, BulkLink::Lease(id));
-        self.leases.push(BulkLease {
-            address,
-            reverse,
-            immortal,
-            next: BulkLink::End,
-        });
-        Ok(())
-    }
-
-    /// Returns true when it also applied the mixed host/DHCP rotation.
-    fn lookup_name(
-        &mut self,
-        key: &[u8],
-        indices: &mut [usize],
-        entries: &[Host],
-        ipv6: bool,
-        no_rr: bool,
-    ) -> bool {
+    fn lookup_name(&mut self, nodes: &[usize]) {
         let mut previous = BulkLink::End;
-        if let Some(order) = self.lease_names.get_mut(key) {
-            for &link in order.iter() {
-                if Self::address(link, entries, &self.leases).is_ipv6() == ipv6 {
-                    Self::set_next(&mut self.next, &mut self.leases, previous, link);
-                    previous = link;
-                }
-            }
-            Self::set_next(&mut self.next, &mut self.leases, previous, BulkLink::End);
-            if !no_rr {
-                if let Some(first) = order
-                    .iter()
-                    .position(|&link| Self::address(link, entries, &self.leases).is_ipv6() == ipv6)
-                {
-                    let first_link = order[first];
-                    let flags = Self::flags(first_link, entries, &self.leases);
-                    let mut previous = first;
-                    for pos in first + 1..order.len() {
-                        let link = order[pos];
-                        if Self::address(link, entries, &self.leases).is_ipv6() == ipv6
-                            && Self::flags(link, entries, &self.leases) == flags
-                        {
-                            order[previous] = link;
-                            previous = pos;
-                        }
-                    }
-                    order[previous] = first_link;
-                }
-            }
-            for (target, id) in indices.iter_mut().zip(order.iter().filter_map(|link| {
-                if let BulkLink::Host(id) = link {
-                    Some(*id)
-                } else {
-                    None
-                }
-            })) {
-                *target = id;
-            }
-            true
-        } else {
-            for &id in indices.iter() {
-                if entries[id].address.is_ipv6() == ipv6 {
-                    let link = BulkLink::Host(id);
-                    Self::set_next(&mut self.next, &mut self.leases, previous, link);
-                    previous = link;
-                }
-            }
-            Self::set_next(&mut self.next, &mut self.leases, previous, BulkLink::End);
-            false
+        for &node in nodes {
+            let link = if node < self.leases.len() {
+                BulkLink::Lease(node)
+            } else {
+                BulkLink::Host(node - self.leases.len())
+            };
+            Self::set_next(&mut self.next, &mut self.leases, previous, link);
+            previous = link;
         }
+        Self::set_next(&mut self.next, &mut self.leases, previous, BulkLink::End);
     }
 
     fn contains(&self, address: IpAddr, entries: &[Host]) -> bool {
         let mut id = self.buckets[self.bucket(address)];
         while id != BulkLink::End {
-            if Self::address(id, entries, &self.leases) == address {
+            let found = match id {
+                BulkLink::Host(id) => entries[id].address,
+                BulkLink::Lease(id) => self.leases[id].address,
+                BulkLink::End => unreachable!(),
+            };
+            if found == address {
                 return true;
             }
             id = self.next_link(id);
@@ -398,13 +286,9 @@ impl BulkReverse {
         false
     }
 
-    fn push(&mut self, key: &[u8], address: IpAddr, reverse: bool, entries: &[Host]) {
+    fn push(&mut self, address: IpAddr, reverse: bool) {
         let bucket = self.bucket(address);
         let id = self.next.len();
-        if let Some(order) = self.lease_names.get_mut(key) {
-            let at = Self::insert_at(order, (reverse, true), entries, &self.leases);
-            order.insert(at, BulkLink::Host(id));
-        }
         self.next.push(if reverse {
             self.buckets[bucket]
         } else {
@@ -416,6 +300,9 @@ impl BulkReverse {
     }
 
     fn try_remap(&self, relocated: &[Option<usize>]) -> Result<Self, TryReserveError> {
+        if !self.active {
+            return self.try_clone();
+        }
         let remap = |mut link: BulkLink| {
             while let BulkLink::Host(id) = link {
                 if let Some(new) = relocated[id] {
@@ -441,68 +328,421 @@ impl BulkReverse {
         for lease in &mut result.leases {
             lease.next = remap(lease.next);
         }
-        for order in result.lease_names.values_mut() {
-            order.retain_mut(|link| match *link {
-                BulkLink::Host(id) => {
-                    if let Some(new) = relocated[id] {
-                        *link = BulkLink::Host(new);
-                        true
-                    } else {
-                        false
-                    }
-                }
-                _ => true,
-            });
-        }
         Ok(result)
     }
 }
 
-// Stable entry IDs partition query order into bounded copy-on-write pages.
-// A TCP snapshot copies the page handles; its first mutation copies at most
-// this many names' orders, irrespective of how many names the parent queried.
-// There is no chain of historical deltas to retain after clients disconnect.
+// Both next links and bucket heads use bounded, independent copy-on-write
+// pages. There are no query histories, registries or per-client table copies.
 const ROTATION_PAGE_ENTRIES: usize = 64;
-type RotationPage = HashMap<usize, Vec<usize>>;
+const CHAIN_END: usize = usize::MAX;
 
 #[derive(Clone, Default)]
-struct RotationPages {
-    pages: Vec<Snapshot<RotationPage>>,
-    populated: bool,
+struct LinkPages {
+    pages: Vec<Snapshot<Vec<usize>>>,
+    len: usize,
 }
 
-impl RotationPages {
-    fn is_empty(&self) -> bool {
-        !self.populated
+impl LinkPages {
+    fn with_len(len: usize) -> Result<Self, TryReserveError> {
+        let mut result = Self::default();
+        result.resize(len)?;
+        Ok(result)
     }
 
-    fn get(&self, key: &usize) -> Option<&Vec<usize>> {
-        self.pages.get(key / ROTATION_PAGE_ENTRIES)?.get(key)
+    fn resize(&mut self, len: usize) -> Result<(), TryReserveError> {
+        let count = len.div_ceil(ROTATION_PAGE_ENTRIES);
+        self.pages
+            .try_reserve(count.saturating_sub(self.pages.len()))?;
+        while self.pages.len() < count {
+            let mut page = Vec::new();
+            page.try_reserve_exact(ROTATION_PAGE_ENTRIES)?;
+            page.resize(ROTATION_PAGE_ENTRIES, CHAIN_END);
+            self.pages.push(Snapshot::Owned(page));
+        }
+        self.pages.truncate(count);
+        self.len = len;
+        Ok(())
+    }
+
+    fn get(&self, id: usize) -> usize {
+        self.pages[id / ROTATION_PAGE_ENTRIES][id % ROTATION_PAGE_ENTRIES]
+    }
+
+    fn prepare(&mut self, id: usize) -> Result<(), TryReserveError> {
+        let page = &mut self.pages[id / ROTATION_PAGE_ENTRIES];
+        if page.get_mut().is_none() {
+            *page = Snapshot::Owned(try_copy(page)?);
+        }
+        Ok(())
+    }
+
+    fn set(&mut self, id: usize, value: usize) {
+        self.pages[id / ROTATION_PAGE_ENTRIES].get_mut().unwrap()[id % ROTATION_PAGE_ENTRIES] =
+            value;
     }
 
     fn snapshot(&mut self) -> Self {
         Self {
             pages: self.pages.iter_mut().map(Snapshot::snapshot).collect(),
-            populated: self.populated,
+            len: self.len,
         }
     }
 
-    fn page_mut(&mut self, key: usize) -> Result<&mut RotationPage, TryReserveError> {
-        let page_id = key / ROTATION_PAGE_ENTRIES;
-        if page_id >= self.pages.len() {
-            self.pages.try_reserve(page_id + 1 - self.pages.len())?;
-            self.pages.resize_with(page_id + 1, Snapshot::default);
+    fn try_clone(&self) -> Result<Self, TryReserveError> {
+        let mut pages = Vec::new();
+        pages.try_reserve_exact(self.pages.len())?;
+        for page in &self.pages {
+            pages.push(Snapshot::Owned(try_copy(page)?));
         }
-        let page = &mut self.pages[page_id];
-        if page.get_mut().is_none() {
-            let mut copy = HashMap::new();
-            copy.try_reserve(page.len())?;
-            for (&id, indices) in page.iter() {
-                copy.insert(id, try_copy(indices)?);
+        Ok(Self {
+            pages,
+            len: self.len,
+        })
+    }
+}
+
+#[derive(Clone, Default)]
+struct HashOrder {
+    heads: LinkPages,
+    next: LinkPages,
+}
+
+struct Chain<'a> {
+    links: &'a LinkPages,
+    next: usize,
+}
+impl Iterator for Chain<'_> {
+    type Item = usize;
+    fn next(&mut self) -> Option<usize> {
+        if self.next == CHAIN_END {
+            return None;
+        }
+        let id = self.next;
+        self.next = self.links.get(id);
+        Some(id)
+    }
+}
+
+struct HashRecord<'a> {
+    name: &'a [u8],
+    address: IpAddr,
+    reverse: bool,
+    immortal: bool,
+}
+fn hash_record<'a>(id: usize, entries: &'a [Host], leases: &'a [BulkLease]) -> HashRecord<'a> {
+    if id < leases.len() {
+        let lease = &leases[id];
+        HashRecord {
+            name: &lease.name,
+            address: lease.address,
+            reverse: lease.reverse,
+            immortal: lease.immortal,
+        }
+    } else {
+        let host = &entries[id - leases.len()];
+        HashRecord {
+            name: &host.name,
+            address: host.address,
+            reverse: host.reverse,
+            immortal: true,
+        }
+    }
+}
+
+impl HashOrder {
+    fn first_reverse(
+        &self,
+        address: IpAddr,
+        entries: &[Host],
+        leases: &[BulkLease],
+    ) -> Option<usize> {
+        for bucket in 0..self.heads.len {
+            for node in self.bucket(bucket) {
+                let record = hash_record(node, entries, leases);
+                if !record.reverse {
+                    break;
+                }
+                if record.address == address {
+                    return Some(node);
+                }
             }
-            *page = Snapshot::Owned(copy);
         }
-        Ok(page.get_mut().unwrap())
+        None
+    }
+
+    fn bucket(&self, bucket: usize) -> Chain<'_> {
+        Chain {
+            links: &self.next,
+            next: if self.heads.len == 0 {
+                CHAIN_END
+            } else {
+                self.heads.get(bucket)
+            },
+        }
+    }
+
+    fn snapshot(&mut self) -> Self {
+        Self {
+            heads: self.heads.snapshot(),
+            next: self.next.snapshot(),
+        }
+    }
+
+    fn try_clone(&self) -> Result<Self, TryReserveError> {
+        Ok(Self {
+            heads: self.heads.try_clone()?,
+            next: self.next.try_clone()?,
+        })
+    }
+
+    fn prepare_insert(
+        &mut self,
+        host: HashRecord<'_>,
+        entries: &[Host],
+        leases: &[BulkLease],
+        capacity: usize,
+    ) -> Result<(usize, usize, usize), TryReserveError> {
+        let bucket = name_hash_bucket(host.name, capacity);
+        if self.heads.len == 0 {
+            self.heads.resize(name_hash_size(capacity))?;
+        }
+        let id = self.next.len;
+        self.next.resize(id + 1)?;
+        let mut previous = CHAIN_END;
+        let mut current = self.heads.get(bucket);
+        if !host.reverse {
+            while current != CHAIN_END && hash_record(current, entries, leases).reverse {
+                previous = current;
+                current = self.next.get(current);
+            }
+            if host.immortal {
+                while current != CHAIN_END && !hash_record(current, entries, leases).immortal {
+                    previous = current;
+                    current = self.next.get(current);
+                }
+            }
+        }
+        while current != CHAIN_END {
+            let old = hash_record(current, entries, leases);
+            if (old.reverse, old.immortal) != (host.reverse, host.immortal)
+                || !old.name.eq_ignore_ascii_case(host.name)
+            {
+                break;
+            }
+            previous = current;
+            current = self.next.get(current);
+        }
+        let prepared = (|| {
+            self.next.prepare(id)?;
+            if previous == CHAIN_END {
+                self.heads.prepare(bucket)?;
+            } else {
+                self.next.prepare(previous)?;
+            }
+            Ok::<(), TryReserveError>(())
+        })();
+        if let Err(error) = prepared {
+            self.next.len = id;
+            return Err(error);
+        }
+        Ok((bucket, previous, current))
+    }
+
+    fn commit_insert(&mut self, id: usize, (bucket, previous, current): (usize, usize, usize)) {
+        self.next.set(id, current);
+        if previous == CHAIN_END {
+            self.heads.set(bucket, id);
+        } else {
+            self.next.set(previous, id);
+        }
+    }
+
+    fn rehashed(
+        &self,
+        entries: &[Host],
+        leases: &[BulkLease],
+        capacity: usize,
+    ) -> Result<Self, TryReserveError> {
+        let mut result = Self {
+            heads: LinkPages::with_len(name_hash_size(capacity))?,
+            next: LinkPages::with_len(entries.len() + leases.len())?,
+        };
+        for bucket in 0..self.heads.len {
+            for id in self.bucket(bucket) {
+                let record = hash_record(id, entries, leases);
+                let new_bucket = name_hash_bucket(record.name, capacity);
+                let mut previous = CHAIN_END;
+                let mut current = result.heads.get(new_bucket);
+                if !record.reverse {
+                    while current != CHAIN_END && hash_record(current, entries, leases).reverse {
+                        previous = current;
+                        current = result.next.get(current);
+                    }
+                    if record.immortal {
+                        while current != CHAIN_END
+                            && !hash_record(current, entries, leases).immortal
+                        {
+                            previous = current;
+                            current = result.next.get(current);
+                        }
+                    }
+                }
+                while current != CHAIN_END {
+                    let old = hash_record(current, entries, leases);
+                    if (old.reverse, old.immortal) != (record.reverse, record.immortal)
+                        || !old.name.eq_ignore_ascii_case(record.name)
+                    {
+                        break;
+                    }
+                    previous = current;
+                    current = result.next.get(current);
+                }
+                result.commit_insert(id, (new_bucket, previous, current));
+            }
+        }
+        Ok(result)
+    }
+
+    /// Prepare every changed page before writing any pointer. Failure leaves
+    /// the old chain usable; already-private copies still contain old values.
+    fn replace_bucket(&mut self, bucket: usize, ids: &[usize]) -> Result<(), TryReserveError> {
+        let head = ids.first().copied().unwrap_or(CHAIN_END);
+        if self.heads.get(bucket) != head {
+            self.heads.prepare(bucket)?;
+        }
+        for (index, &id) in ids.iter().enumerate() {
+            let next = ids.get(index + 1).copied().unwrap_or(CHAIN_END);
+            if self.next.get(id) != next {
+                self.next.prepare(id)?;
+            }
+        }
+        if self.heads.get(bucket) != head {
+            self.heads.set(bucket, head);
+        }
+        for (index, &id) in ids.iter().enumerate() {
+            let next = ids.get(index + 1).copied().unwrap_or(CHAIN_END);
+            if self.next.get(id) != next {
+                self.next.set(id, next);
+            }
+        }
+        Ok(())
+    }
+
+    fn rotate(
+        &mut self,
+        key: &[u8],
+        ipv6: Option<bool>,
+        entries: &[Host],
+        leases: &[BulkLease],
+        capacity: usize,
+    ) -> Result<(), TryReserveError> {
+        let bucket = name_hash_bucket(key, capacity);
+        let matches = |id: usize| {
+            let host = hash_record(id, entries, leases);
+            host.name.eq_ignore_ascii_case(key)
+                && ipv6.is_none_or(|family| host.address.is_ipv6() == family)
+        };
+        let mut ids = Vec::new();
+        for id in self.bucket(bucket) {
+            ids.try_reserve(1)?;
+            ids.push(id);
+        }
+        let Some(first) = ids.iter().position(|&id| matches(id)) else {
+            return Ok(());
+        };
+        let first_record = hash_record(ids[first], entries, leases);
+        let flags = (first_record.reverse, first_record.immortal);
+        let mut insertion = first;
+        let mut position = first + 1;
+        while position < ids.len() {
+            let id = ids[position];
+            let record = hash_record(id, entries, leases);
+            if matches(id) && (record.reverse, record.immortal) == flags {
+                ids[insertion..=position].rotate_right(1);
+                insertion += 1;
+            }
+            position += 1;
+        }
+        self.replace_bucket(bucket, &ids)
+    }
+
+    fn remapped(
+        &self,
+        relocated: &[Option<usize>],
+        lease_count: usize,
+    ) -> Result<Self, TryReserveError> {
+        let mut result = Self {
+            heads: LinkPages::with_len(self.heads.len)?,
+            next: LinkPages::with_len(
+                lease_count + relocated.iter().filter(|id| id.is_some()).count(),
+            )?,
+        };
+        for bucket in 0..self.heads.len {
+            let mut previous = CHAIN_END;
+            for old in self.bucket(bucket) {
+                let mapped = if old < lease_count {
+                    Some(old)
+                } else {
+                    relocated[old - lease_count].map(|id| id + lease_count)
+                };
+                if let Some(id) = mapped {
+                    if previous == CHAIN_END {
+                        result.heads.set(bucket, id);
+                    } else {
+                        result.next.set(previous, id);
+                    }
+                    previous = id;
+                }
+            }
+        }
+        Ok(result)
+    }
+
+    fn remove_leases(&mut self, count: usize) {
+        if count == 0 {
+            return;
+        }
+        assert!(
+            self.heads
+                .pages
+                .iter_mut()
+                .all(|page| page.get_mut().is_some())
+        );
+        assert!(
+            self.next
+                .pages
+                .iter_mut()
+                .all(|page| page.get_mut().is_some())
+        );
+        let skip = |mut id: usize, links: &LinkPages| {
+            while id != CHAIN_END && id < count {
+                id = links.get(id);
+            }
+            if id == CHAIN_END {
+                CHAIN_END
+            } else {
+                id - count
+            }
+        };
+        for bucket in 0..self.heads.len {
+            self.heads
+                .set(bucket, skip(self.heads.get(bucket), &self.next));
+        }
+        let len = self.next.len - count;
+        // Every source lies above its destination, so this forward compaction
+        // cannot overwrite a yet-unread host link or retained lease link.
+        for id in count..self.next.len {
+            let next = skip(self.next.get(id), &self.next);
+            self.next.set(id, next);
+        }
+        for id in 0..len {
+            self.next.set(id, self.next.get(id + count));
+        }
+        self.next.len = len;
+        self.next
+            .pages
+            .truncate(len.div_ceil(ROTATION_PAGE_ENTRIES));
     }
 }
 
@@ -512,7 +752,7 @@ impl RotationPages {
 #[derive(Clone, Default)]
 pub struct Hosts {
     records: Snapshot<HostsRecords>,
-    rotations: RotationPages,
+    order: HashOrder,
     no_round_robin: bool,
     bulk: Option<BulkReverse>,
 }
@@ -549,8 +789,27 @@ impl Hosts {
         Ok(())
     }
 
+    /// Stop bulk address-hash ingestion before provider lookups/publication.
+    /// Retained lease nodes remain in the global name chain until finish_bulk.
+    pub fn seal_bulk(&mut self) {
+        if let Some(bulk) = &mut self.bulk {
+            bulk.active = false;
+            bulk.buckets = Vec::new();
+            bulk.next = Vec::new();
+        }
+    }
+
     pub fn finish_bulk(&mut self) {
+        if let Some(bulk) = &self.bulk {
+            self.order.remove_leases(bulk.leases.len());
+        }
         self.bulk = None;
+    }
+
+    fn retained_leases(&self) -> &[BulkLease] {
+        self.bulk
+            .as_ref()
+            .map_or(&[], |bulk| bulk.leases.as_slice())
     }
 
     /// Retained DHCP cache entries can appear in duplicate-name lookup while
@@ -562,10 +821,34 @@ impl Hosts {
         reverse: bool,
         immortal: bool,
     ) -> Result<(), TryReserveError> {
-        self.bulk
+        let bulk = self
+            .bulk
             .as_mut()
-            .expect("begin_bulk must precede retained leases")
-            .add_lease(name, address, reverse, immortal)
+            .expect("begin_bulk must precede retained leases");
+        assert!(bulk.active && self.records.entries.is_empty());
+        let name = try_copy(name)?;
+        bulk.leases.try_reserve(1)?;
+        let plan = self.order.prepare_insert(
+            HashRecord {
+                name: &name,
+                address,
+                reverse,
+                immortal,
+            },
+            &self.records.entries,
+            &bulk.leases,
+            self.records.name_hash_capacity,
+        )?;
+        let id = bulk.leases.len();
+        bulk.leases.push(BulkLease {
+            name,
+            address,
+            reverse,
+            immortal,
+            next: BulkLink::End,
+        });
+        self.order.commit_insert(id, plan);
+        Ok(())
     }
 
     /// Retain C's largest name-hash table across reloads. Rehashing traverses
@@ -574,32 +857,11 @@ impl Hosts {
         if name_hash_size(capacity) <= name_hash_size(self.records.name_hash_capacity) {
             return Ok(());
         }
-        let mut order = Vec::new();
-        order.try_reserve_exact(
-            self.records
-                .reverse_extra
-                .values()
-                .map(|ids| ids.len() + 1)
-                .max()
-                .unwrap_or(0),
-        )?;
-        let records = self.writable_records()?;
-        for (address, extra) in &mut records.reverse_extra {
-            order.clear();
-            order.push((records.reverse[address], 0));
-            order.extend(extra.iter().enumerate().map(|(rank, &id)| (id, rank + 1)));
-            order.sort_unstable_by_key(|&(id, rank)| {
-                (
-                    name_hash_bucket(&records.entries[id].name, capacity),
-                    std::cmp::Reverse(rank),
-                )
-            });
-            *records.reverse.get_mut(address).unwrap() = order[0].0;
-            for (target, &(id, _)) in extra.iter_mut().zip(&order[1..]) {
-                *target = id;
-            }
-        }
-        records.name_hash_capacity = capacity;
+        let order = self
+            .order
+            .rehashed(&self.records.entries, self.retained_leases(), capacity)?;
+        self.writable_records()?.name_hash_capacity = capacity;
+        self.order = order;
         Ok(())
     }
 
@@ -612,7 +874,7 @@ impl Hosts {
         accepted: usize,
         file_end: bool,
     ) -> Result<(), TryReserveError> {
-        let Some(bulk) = &mut self.bulk else {
+        let Some(bulk) = self.bulk.as_mut().filter(|bulk| bulk.active) else {
             return Ok(());
         };
         bulk.name_count = bulk.name_count.saturating_add(accepted);
@@ -632,9 +894,13 @@ impl Hosts {
     /// Like fork's copy-on-write view: snapshot both the accepted generation
     /// and its current round-robin order without copying any hosts records.
     pub fn tcp_snapshot(&mut self) -> Self {
+        assert!(
+            self.bulk.is_none(),
+            "TCP snapshots require a published hosts generation"
+        );
         Self {
             records: self.records.snapshot(),
-            rotations: self.rotations.snapshot(),
+            order: self.order.snapshot(),
             no_round_robin: self.no_round_robin,
             bulk: None,
         }
@@ -643,7 +909,7 @@ impl Hosts {
     /// Structural changes fork the generation, folding private query order
     /// into its indexes. All copying remains fallible for hostsdir ingestion.
     fn writable_records(&mut self) -> Result<&mut HostsRecords, TryReserveError> {
-        if !self.rotations.is_empty() || self.records.get_mut().is_none() {
+        if self.records.get_mut().is_none() {
             *self = self.try_clone()?;
         }
         Ok(self.records.get_mut().unwrap())
@@ -673,21 +939,14 @@ impl Hosts {
             .or((source == 0).then_some(b"/etc/hosts".as_slice()))
     }
 
-    fn ordered<'a>(&'a self, indices: &'a [usize]) -> &'a [usize] {
-        indices
-            .first()
-            .and_then(|id| self.rotations.get(id))
-            .map_or(indices, Vec::as_slice)
-    }
-
-    /// Current static address order without the lookup/round-robin mutation.
-    pub fn addresses(&self, name: &[u8]) -> impl Iterator<Item = &Host> {
-        self.records
-            .forward
-            .get(&name.to_ascii_lowercase())
-            .into_iter()
-            .flat_map(|indices| self.ordered(indices))
-            .map(|&id| &self.records.entries[id])
+    /// Current static records in the actual global bucket order.
+    pub fn addresses<'a>(&'a self, name: &'a [u8]) -> impl Iterator<Item = &'a Host> {
+        let bucket = name_hash_bucket(name, self.records.name_hash_capacity);
+        let offset = self.retained_leases().len();
+        self.order.bucket(bucket).filter_map(move |node| {
+            let host = self.records.entries.get(node.checked_sub(offset)?)?;
+            host.name.eq_ignore_ascii_case(name).then_some(host)
+        })
     }
 
     pub fn set_round_robin(&mut self, enabled: bool) {
@@ -758,40 +1017,43 @@ impl Hosts {
     ) -> Result<bool, TryReserveError> {
         let mut key = try_copy(&name)?;
         key.make_ascii_lowercase();
-        let no_round_robin = self.no_round_robin;
         self.writable_records()?;
+        let bucket = name_hash_bucket(&key, self.records.name_hash_capacity);
+        let mut selected = Vec::new();
+        let leases = self.retained_leases();
+        for node in self.order.bucket(bucket) {
+            let record = hash_record(node, &self.records.entries, leases);
+            if record.name.eq_ignore_ascii_case(&key)
+                && record.address.is_ipv6() == address.is_ipv6()
+            {
+                selected.try_reserve(1)?;
+                selected.push(node);
+            }
+        }
+        let duplicate = selected.iter().any(|&node| {
+            node >= leases.len() && self.records.entries[node - leases.len()].address == address
+        });
+        if let Some(bulk) = self.bulk.as_mut().filter(|bulk| bulk.active) {
+            bulk.lookup_name(&selected);
+        }
+        if !self.no_round_robin && selected.len() > 1 {
+            let leases = self
+                .bulk
+                .as_ref()
+                .map_or(&[][..], |bulk| bulk.leases.as_slice());
+            self.order.rotate(
+                &key,
+                Some(address.is_ipv6()),
+                &self.records.entries,
+                leases,
+                self.records.name_hash_capacity,
+            )?;
+        }
+        if duplicate {
+            return Ok(false);
+        }
         let records = self.records.get_mut().unwrap();
         let bulk = &mut self.bulk;
-        // Duplicate lookup rotates the same flags group as cache_find_by_name,
-        // but must not allocate a temporary result/positions Vec while loading.
-        if let Some(indices) = records.forward.get_mut(&key) {
-            let mixed_rotation = bulk.as_mut().is_some_and(|bulk| {
-                bulk.lookup_name(
-                    &key,
-                    indices,
-                    &records.entries,
-                    address.is_ipv6(),
-                    no_round_robin,
-                )
-            });
-            let duplicate = indices
-                .iter()
-                .any(|&id| records.entries[id].address == address);
-            if !no_round_robin && !mixed_rotation {
-                rotate_indices(indices, &records.entries, Some(address.is_ipv6()));
-            }
-            if duplicate {
-                return Ok(false);
-            }
-        } else if let Some(bulk) = bulk {
-            bulk.lookup_name(
-                &key,
-                &mut [],
-                &records.entries,
-                address.is_ipv6(),
-                no_round_robin,
-            );
-        }
         // Reserve all mandatory indexes before publishing any new entry. An
         // unsuccessful reservation leaves existing entries and PTR ownership live.
         records.entries.try_reserve(1)?;
@@ -802,15 +1064,23 @@ impl Hosts {
         } else {
             fresh_indices.try_reserve(1)?;
         }
-        let reverse = match bulk {
+        let reverse = match bulk.as_mut().filter(|bulk| bulk.active) {
             Some(bulk) => {
                 bulk.next.try_reserve(1)?;
-                if let Some(order) = bulk.lease_names.get_mut(&key) {
-                    order.try_reserve(1)?;
-                }
                 !bulk.contains(address, &records.entries)
             }
-            None => !records.reverse.contains_key(&address),
+            None => {
+                let leases = bulk.as_ref().map_or(&[][..], |bulk| bulk.leases.as_slice());
+                if leases.is_empty() {
+                    !records.reverse.contains_key(&address)
+                } else {
+                    // Incremental add_hosts_entry clears F_REVERSE only when
+                    // the first current reverse record is a hosts record.
+                    self.order
+                        .first_reverse(address, &records.entries, leases)
+                        .is_none_or(|node| node < leases.len())
+                }
+            }
         };
         let mut fresh_reverse = Vec::new();
         if reverse {
@@ -844,38 +1114,32 @@ impl Hosts {
                 }
             }
         }
-        if let Some(bulk) = bulk {
-            bulk.push(&key, address, reverse, &records.entries);
+        let leases = bulk.as_ref().map_or(&[][..], |bulk| bulk.leases.as_slice());
+        let node = records.entries.len() + leases.len();
+        let plan = self.order.prepare_insert(
+            HashRecord {
+                name: &name,
+                address,
+                reverse,
+                immortal: true,
+            },
+            &records.entries,
+            leases,
+            records.name_hash_capacity,
+        )?;
+        if let Some(bulk) = bulk.as_mut().filter(|bulk| bulk.active) {
+            bulk.push(address, reverse);
         }
         let indices = records.forward.entry(key).or_insert(fresh_indices);
         let id = records.entries.len();
-        let at = if reverse {
-            indices
-                .iter()
-                .position(|&id| !records.entries[id].reverse)
-                .unwrap_or(indices.len())
-        } else {
-            indices.len()
-        };
-        indices.insert(at, id);
+        indices.push(id);
         if reverse {
-            if let Some(first) = records.reverse.get_mut(&address) {
-                let capacity = records.name_hash_capacity;
-                let bucket = name_hash_bucket(&name, capacity);
-                let extra = records
+            if records.reverse.contains_key(&address) {
+                records
                     .reverse_extra
                     .entry(address)
-                    .or_insert(fresh_reverse);
-                // Two owners cannot share the same name/address (deduplicated
-                // above), so a new matching bucket entry precedes its peers.
-                if name_hash_bucket(&records.entries[*first].name, capacity) >= bucket {
-                    extra.insert(0, std::mem::replace(first, id));
-                } else {
-                    let at = extra.partition_point(|&old| {
-                        name_hash_bucket(&records.entries[old].name, capacity) < bucket
-                    });
-                    extra.insert(at, id);
-                }
+                    .or_insert(fresh_reverse)
+                    .push(id);
             } else {
                 records.reverse.insert(address, id);
             }
@@ -888,6 +1152,7 @@ impl Hosts {
             configured,
             reverse,
         });
+        self.order.commit_insert(node, plan);
         Ok(true)
     }
 
@@ -915,8 +1180,7 @@ impl Hosts {
             copy.sources.insert(source, try_copy(name)?);
         }
         for (name, indices) in &records.forward {
-            copy.forward
-                .insert(try_copy(name)?, try_copy(self.ordered(indices))?);
+            copy.forward.insert(try_copy(name)?, try_copy(indices)?);
         }
         copy.reverse
             .extend(records.reverse.iter().map(|(&address, &id)| (address, id)));
@@ -928,7 +1192,7 @@ impl Hosts {
         }
         Ok(Self {
             records: Snapshot::Owned(copy),
-            rotations: RotationPages::default(),
+            order: self.order.try_clone()?,
             no_round_robin: self.no_round_robin,
             bulk: self.bulk.as_ref().map(BulkReverse::try_clone).transpose()?,
         })
@@ -976,18 +1240,38 @@ impl Hosts {
     }
 
     pub fn reverse_all(&self, address: IpAddr) -> impl Iterator<Item = &Host> {
-        self.records
-            .reverse
-            .get(&address)
+        let single = (!self.records.reverse_extra.contains_key(&address))
+            .then(|| self.records.reverse.get(&address).copied())
+            .flatten();
+        let multiple = self.records.reverse_extra.contains_key(&address);
+        let leases = self.retained_leases();
+        let offset = leases.len();
+        single
             .into_iter()
             .chain(
-                self.records
-                    .reverse_extra
-                    .get(&address)
-                    .into_iter()
-                    .flatten(),
+                (0..if multiple { self.order.heads.len } else { 0 })
+                    .flat_map(move |bucket| {
+                        self.order.bucket(bucket).take_while(move |&node| {
+                            hash_record(node, &self.records.entries, leases).reverse
+                        })
+                    })
+                    .filter_map(move |node| node.checked_sub(offset))
+                    .filter(move |&id| self.records.entries[id].address == address),
             )
-            .map(|&id| &self.records.entries[id])
+            .map(|id| &self.records.entries[id])
+    }
+
+    /// DHCP host_from_dns only renames from a static first reverse record.
+    /// A retained DHCP record first in the real chain suppresses that rename.
+    pub fn provider_reverse(&self, address: IpAddr) -> Option<&Host> {
+        let leases = self.retained_leases();
+        if leases.is_empty() {
+            return self.reverse_all(address).next();
+        }
+        self.order
+            .first_reverse(address, &self.records.entries, leases)?
+            .checked_sub(leases.len())
+            .map(|id| &self.records.entries[id])
     }
 
     /// cache_remove_uid removes this path's accepted entries, without reloading
@@ -1022,6 +1306,9 @@ impl Hosts {
             .as_ref()
             .map(|bulk| bulk.try_remap(&relocated))
             .transpose()?;
+        let order = self
+            .order
+            .remapped(&relocated, self.retained_leases().len())?;
         let records = self.writable_records()?;
         records.entries.retain(|entry| entry.source != source);
         records.forward.retain(|_, indices| {
@@ -1065,6 +1352,7 @@ impl Hosts {
         // are not reconstructed from remaining address records on removal.
         let removed = before - records.entries.len();
         self.bulk = bulk;
+        self.order = order;
         Ok(removed)
     }
 
@@ -1073,78 +1361,42 @@ impl Hosts {
         self.records.forward.contains_key(&key) || self.records.non_terminals.contains(&key)
     }
 
-    fn rotate_shared(&mut self, key: usize, initial: &[usize], ipv6: Option<bool>) {
-        // A failed page reservation preserves the last valid order and answer.
-        let Ok(rotations) = self.rotations.page_mut(key) else {
-            return;
-        };
-        if !rotations.contains_key(&key) {
-            let Ok(indices) = try_copy(initial) else {
-                return;
-            };
-            if rotations.try_reserve(1).is_err() {
-                return;
-            }
-            rotations.insert(key, indices);
-        }
-        rotate_indices(
-            rotations.get_mut(&key).unwrap(),
-            &self.records.entries,
-            ipv6,
-        );
-        self.rotations.populated = true;
-    }
-
-    /// Returns the current order, then rotates the first matching flags group
-    /// for the next call, as cache_find_by_name does. `ipv6=None` means both.
+    /// Return current static bucket order, then apply C's first matching
+    /// flags-group rotation, including retained lease nodes before publication.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
-        if self.records.forward.is_empty() {
-            return Vec::new();
-        }
-        let canonical;
-        let key = if name.iter().any(u8::is_ascii_uppercase) {
-            canonical = name.to_ascii_lowercase();
-            canonical.as_slice()
-        } else {
-            name
-        };
-        let Some(indices) = self.records.forward.get(key) else {
-            return Vec::new();
-        };
-        let rotation_key = indices[0];
-        let ordered = self.ordered(indices);
-        let selected: Vec<_> = ordered
-            .iter()
-            .copied()
-            .filter(|&id| ipv6.is_none_or(|v| self.records.entries[id].address.is_ipv6() == v))
-            .collect();
-        if !no_round_robin && !self.no_round_robin && selected.len() > 1 {
-            if self.rotations.is_empty() && self.records.get_mut().is_some() {
-                let records = self.records.get_mut().unwrap();
-                rotate_indices(
-                    records.forward.get_mut(key).unwrap(),
-                    &records.entries,
-                    ipv6,
-                );
-            } else {
-                // The initial index remains immutable while shared; copy only
-                // this name's order before taking the mutable view.
-                let initial = match try_copy(self.ordered(&self.records.forward[key])) {
-                    Ok(indices) => indices,
-                    Err(_) => {
-                        return selected
-                            .into_iter()
-                            .map(|id| &self.records.entries[id])
-                            .collect();
+        let records = &self.records;
+        let leases = self
+            .bulk
+            .as_ref()
+            .map_or(&[][..], |bulk| bulk.leases.as_slice());
+        let bucket = name_hash_bucket(name, records.name_hash_capacity);
+        let mut matched = 0;
+        let mut answer = Vec::new();
+        for node in self.order.bucket(bucket) {
+            let record = hash_record(node, &records.entries, leases);
+            if record.name.eq_ignore_ascii_case(name)
+                && ipv6.is_none_or(|family| record.address.is_ipv6() == family)
+            {
+                matched += 1;
+                if let Some(id) = node.checked_sub(leases.len()) {
+                    if answer.try_reserve(1).is_err() {
+                        return Vec::new();
                     }
-                };
-                self.rotate_shared(rotation_key, &initial, ipv6);
+                    answer.push(&records.entries[id]);
+                }
             }
         }
-        selected
-            .into_iter()
-            .map(|id| &self.records.entries[id])
-            .collect()
+        // The complete answer is allocated before any chain link changes.
+        if !no_round_robin && !self.no_round_robin && matched > 1 {
+            let _ = self.order.rotate(
+                name,
+                ipv6,
+                &records.entries,
+                leases,
+                records.name_hash_capacity,
+            );
+        }
+        answer
     }
 
     /// The caller opens the file and records any open errors before this method.
@@ -1245,25 +1497,6 @@ impl Hosts {
         stats.allocation_failed = failed;
         stats
     }
-}
-
-// Rotate only the first matching address-family/reverse flags group.
-fn rotate_indices(indices: &mut [usize], entries: &[Host], ipv6: Option<bool>) {
-    let matches = |id: usize| ipv6.is_none_or(|v| entries[id].address.is_ipv6() == v);
-    let Some(first_pos) = indices.iter().position(|&id| matches(id)) else {
-        return;
-    };
-    let first = indices[first_pos];
-    let reverse = entries[first].reverse;
-    let mut previous = first_pos;
-    for pos in first_pos + 1..indices.len() {
-        let id = indices[pos];
-        if matches(id) && entries[id].reverse == reverse {
-            indices[previous] = id;
-            previous = pos;
-        }
-    }
-    indices[previous] = first;
 }
 
 /// cache.c gettok retains at most MAXDNAMESTR - 1 bytes and consumes the rest.
@@ -1395,6 +1628,121 @@ pub fn visit_hosts(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn colliding_name(name: &[u8], capacity: usize) -> Vec<u8> {
+        (0..10000)
+            .map(|id| format!("cross{id}.test").into_bytes())
+            .find(|candidate| {
+                name_hash_bucket(candidate, capacity) == name_hash_bucket(name, capacity)
+            })
+            .expect("bounded name pool has a matching bucket")
+    }
+
+    fn crossed_hosts(y: &[u8]) -> Hosts {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(1497, 0, 0).unwrap();
+        let mut fixture =
+            b"192.0.2.1 x.test\n10.0.63.213 a.test\n192.0.4.2 a.test\n192.0.2.1 ".to_vec();
+        fixture.extend_from_slice(y);
+        fixture.extend_from_slice(b"\n192.0.4.1 x.test\n");
+        assert!(
+            !hosts
+                .read(&fixture, 2, 37, false, |_| None)
+                .allocation_failed
+        );
+        hosts.finish_bulk();
+        hosts
+    }
+
+    #[test]
+    fn forward_rotation_moves_cross_name_ptr_links_privately_in_tcp_snapshot() {
+        let y = colliding_name(b"x.test", 0);
+        let mut parent = crossed_hosts(&y);
+        let mut child = parent.tcp_snapshot();
+        let address = "192.0.2.1".parse().unwrap();
+        let names = |hosts: &Hosts| {
+            hosts
+                .reverse_all(address)
+                .map(|host| host.name.clone())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(names(&parent), [y.clone(), b"x.test".to_vec()]);
+        let before = child
+            .lookup(b"x.test", Some(false), false)
+            .into_iter()
+            .map(|host| host.address)
+            .collect::<Vec<_>>();
+        assert_eq!(before, ["192.0.4.1".parse::<IpAddr>().unwrap(), address]);
+        assert_eq!(names(&child), [b"x.test".to_vec(), y.clone()]);
+        assert_eq!(names(&parent), [y.clone(), b"x.test".to_vec()]);
+        let held = child.try_clone().unwrap();
+        assert_eq!(names(&held), names(&child));
+        parent.lookup(b"x.test", Some(false), false);
+        assert_eq!(names(&parent), names(&child));
+    }
+
+    #[test]
+    fn rehash_reinserts_old_bucket_chain_instead_of_sorting_ptr_owners() {
+        let y = colliding_name(b"x.test", 1000);
+        let mut hosts = crossed_hosts(&y);
+        let address = "192.0.2.1".parse().unwrap();
+        assert_eq!(
+            hosts
+                .addresses(b"x.test")
+                .map(|host| host.address)
+                .collect::<Vec<_>>(),
+            ["192.0.4.1".parse::<IpAddr>().unwrap(), address]
+        );
+        hosts.set_name_hash_capacity(1000).unwrap();
+        assert_eq!(
+            hosts
+                .addresses(b"x.test")
+                .map(|host| host.address)
+                .collect::<Vec<_>>(),
+            [address, "192.0.4.1".parse::<IpAddr>().unwrap()]
+        );
+        assert_eq!(
+            hosts
+                .reverse_all(address)
+                .map(|host| host.name.clone())
+                .collect::<Vec<_>>(),
+            [b"x.test".to_vec(), y]
+        );
+    }
+
+    #[test]
+    fn sealing_bulk_keeps_retained_first_kind_until_allocation_free_finish() {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(1497, 0, 0).unwrap();
+        hosts
+            .add_bulk_lease(b"same.test", "192.0.2.1".parse().unwrap(), true, true)
+            .unwrap();
+        hosts
+            .insert_checked(b"same.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 2)
+            .unwrap();
+        hosts.seal_bulk();
+        assert!(
+            hosts
+                .provider_reverse("192.0.2.1".parse().unwrap())
+                .is_none()
+        );
+        assert_eq!(hosts.reverse_all("192.0.2.1".parse().unwrap()).count(), 1);
+        // Sealed ingestion uses actual reverse ownership, not the discarded
+        // temporary address chain. Retained leases never become static hosts.
+        hosts
+            .insert_checked(b"late.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 3)
+            .unwrap();
+        assert!(hosts.addresses(b"late.test").next().unwrap().reverse);
+        hosts.finish_bulk();
+        assert!(hosts.bulk.is_none());
+        assert_eq!(
+            reverse_names(&hosts, "192.0.2.1"),
+            [b"late.test".to_vec(), b"same.test".to_vec()]
+        );
+        assert_eq!(hosts.order.next.len, hosts.len());
+        let mut child = hosts.tcp_snapshot();
+        assert_eq!(child.lookup(b"same.test", Some(false), false).len(), 1);
+    }
 
     const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";
 
@@ -1571,6 +1919,7 @@ mod tests {
         );
         assert_eq!(hosts.records.reverse_extra.len(), 374);
         assert_eq!(hosts.bulk.as_ref().unwrap().name_count, 61000);
+        hosts.finish_bulk();
         let mut snapshot = hosts.tcp_snapshot();
         assert!(snapshot.bulk.is_none());
         assert_eq!(
@@ -1634,9 +1983,10 @@ mod tests {
                 .cloned()
                 .collect();
             assert_eq!(actual, expected);
-            assert_eq!(child.rotations.pages.len(), parent.rotations.pages.len());
+            assert_eq!(child.order.next.pages.len(), parent.order.next.pages.len());
             let private: Vec<_> = child
-                .rotations
+                .order
+                .next
                 .pages
                 .iter()
                 .filter_map(|page| {
@@ -1647,12 +1997,12 @@ mod tests {
                     }
                 })
                 .collect();
-            assert_eq!(private.len(), 1);
+            assert!(private.len() <= 4);
             assert!(private[0].len() <= ROTATION_PAGE_ENTRIES);
             assert!(std::ptr::eq(child.entries(), parent.entries()));
         }
         drop((children, seed));
-        for page in &parent.rotations.pages {
+        for page in &parent.order.next.pages {
             let Snapshot::Shared(page) = page else {
                 panic!("published page");
             };
@@ -1689,10 +2039,10 @@ mod tests {
             );
             old = new;
             old_reference = new_reference;
-            assert!(parent.rotations.pages.len() <= 256usize.div_ceil(ROTATION_PAGE_ENTRIES));
+            assert!(parent.order.next.pages.len() <= 256usize.div_ceil(ROTATION_PAGE_ENTRIES));
         }
         drop(old);
-        for page in &parent.rotations.pages {
+        for page in &parent.order.next.pages {
             let Snapshot::Shared(page) = page else {
                 panic!("published page");
             };

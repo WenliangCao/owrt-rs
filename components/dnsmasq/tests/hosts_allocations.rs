@@ -7,9 +7,13 @@ use std::cell::Cell;
 thread_local! {
     static FAIL_AFTER: Cell<Option<usize>> = const { Cell::new(None) };
     static FAIL_REPEAT: Cell<usize> = const { Cell::new(1) };
+    static FAIL_MIN_BYTES: Cell<usize> = const { Cell::new(0) };
 }
 struct FailOne;
-fn fail_now() -> bool {
+fn fail_now(bytes: usize) -> bool {
+    if FAIL_MIN_BYTES.try_with(|minimum| bytes < minimum.get()).unwrap_or(false) {
+        return false;
+    }
     FAIL_AFTER
         .try_with(|remaining| match remaining.get() {
             Some(0) => {
@@ -32,21 +36,21 @@ fn fail_now() -> bool {
 }
 unsafe impl GlobalAlloc for FailOne {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        if fail_now() {
+        if fail_now(layout.size()) {
             std::ptr::null_mut()
         } else {
             System.alloc(layout)
         }
     }
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-        if fail_now() {
+        if fail_now(layout.size()) {
             std::ptr::null_mut()
         } else {
             System.alloc_zeroed(layout)
         }
     }
     unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, size: usize) -> *mut u8 {
-        if fail_now() {
+        if fail_now(size) {
             std::ptr::null_mut()
         } else {
             System.realloc(ptr, layout, size)
@@ -487,14 +491,19 @@ fn bulk_hosts() -> Hosts {
 }
 
 #[test]
-fn tcp_snapshot_drops_bulk_state_while_parent_keeps_cross_source_links() {
+fn completed_generation_snapshots_do_not_keep_bulk_ingestion_links() {
     for no_round_robin in [false, true] {
         let mut parent = Hosts::new();
         parent.set_round_robin(!no_round_robin);
         parent.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
         assert!(!parent.read(BULK_PREFIX, 2, 37, false, |_| None).allocation_failed);
-        let mut child = parent.tcp_snapshot();
-        assert_eq!(parent.entries().as_ptr(), child.entries().as_ptr());
+        // Only completed generations may reach a TCP reader. Publishing a
+        // completed copy must not destroy the separate loader's cross-source
+        // history, or retain that history in the published copy's snapshots.
+        let mut published = parent.try_clone().unwrap();
+        published.finish_bulk();
+        let mut child = published.tcp_snapshot();
+        assert_eq!(published.entries().as_ptr(), child.entries().as_ptr());
         assert!(!parent.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
         assert!(!child.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
         assert_eq!(ptr_names(&parent, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
@@ -704,5 +713,38 @@ fn retained_dhcp_bulk_links_match_finite_and_infinite_c_lease_controls() {
                 assert!(completed);
             }
         }
+    }
+}
+
+#[test]
+fn failed_query_page_copy_keeps_the_shared_chain_and_complete_answer() {
+    fn answer(hosts: &mut Hosts) -> [std::net::IpAddr; 3] {
+        let rows = hosts.lookup(b"many.test", Some(false), false);
+        assert_eq!(rows.len(), 3);
+        [rows[0].address, rows[1].address, rows[2].address]
+    }
+    for persistent in [false, true] {
+        let mut parent = Hosts::new();
+        parent.read(b"192.0.2.1 many.test\n192.0.2.2 many.test\n192.0.2.3 many.test\n",
+            2, 37, false, |_| None);
+        let mut reference = parent.try_clone().unwrap();
+        let expected = answer(&mut reference);
+        let mut child = parent.tcp_snapshot();
+        // Three-answer scratch allocations are small; fail only the 512-byte
+        // copy-on-write link/head pages, after the answer has been selected.
+        FAIL_MIN_BYTES.with(|minimum| minimum.set(128));
+        let (actual, failed) = if persistent {
+            with_persistent_failure(0, || [answer(&mut child), answer(&mut child)])
+        } else {
+            let (first, failed) = with_failure(0, || answer(&mut child));
+            ([first, expected], failed)
+        };
+        FAIL_MIN_BYTES.with(|minimum| minimum.set(0));
+        assert!(failed, "a shared global chain page must exercise the copy failure");
+        assert_eq!(actual, [expected, expected]);
+        assert_eq!(answer(&mut child), expected,
+            "a failed page copy must not publish part of a rotation");
+        assert_eq!(answer(&mut child), answer(&mut reference));
+        assert_eq!(answer(&mut parent), expected, "the TCP child cannot change its parent's chain");
     }
 }
