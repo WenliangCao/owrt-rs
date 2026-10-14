@@ -149,6 +149,42 @@ fn cached_cname_raw_terminal_copies_rdata_pointers_opaquely() {
 }
 
 #[test]
+fn cached_cname_raw_cname_terminals_keep_c_owner_layout() {
+    // Raw TYPE 5 data never moves C's name cursor, so every raw owner stays a
+    // pointer to the terminal and C's absolute RDATA pointer stays valid.
+    // C emits raw RRs in reverse declaration order: the pointer comes last.
+    let configured = |pointer: &str| {
+        let mut daemon = daemon();
+        for directive in [format!("dns-rr=target.test,5,{pointer}")].into_iter()
+            .chain(std::iter::repeat_n("dns-rr=target.test,5,056f74686572047465737400".into(), 3)) {
+            daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        }
+        daemon.cache_reply_at(&chain_reply(1, false), 100);
+        daemon
+    };
+    let query = packet("alias.test", 255, 0x100).finish();
+    // A same-length placeholder fixes the layout before choosing the pointer.
+    let probe = shared_answer(&mut configured("c00c"), &query, 101, true)
+        .expect("raw CNAMEs terminate the cached alias");
+    let other = probe.windows(7).position(|w| w == b"\x05other\x04").unwrap();
+    let mut daemon = configured(&format!("{:04x}", 0xc000 | other));
+    let udp = shared_answer(&mut daemon, &query, 101, false);
+    let tcp = shared_answer(&mut daemon, &query, 101, true);
+    assert_eq!(udp, tcp);
+    let answer = tcp.unwrap();
+    let message = Message::parse(&answer).unwrap();
+    let cnames: Vec<_> = message.records(Section::Answer).filter(|rr| rr.rrtype == 5).collect();
+    assert!(cnames.len() >= 4);
+    let raw = &cnames[cnames.len() - 4..];
+    let owner = &answer[raw[0].start..raw[0].start + 2];
+    assert_eq!(owner[0] & 0xc0, 0xc0, "raw owners are pointers, as C writes them");
+    for rr in raw {
+        assert_eq!(&answer[rr.start..rr.fixed], owner, "raw TYPE 5 must not move the cursor");
+        assert_eq!(rr.rdata_name(0).unwrap().0, Name::from_ascii("other.test").unwrap());
+    }
+}
+
+#[test]
 fn reply_known_name_uses_live_cache_or_connection_snapshot() {
     let mut daemon = daemon();
     let forward = super::super::tcp_service::TcpDnsService::new(&daemon.local.config, &[], 1232).unwrap();

@@ -1760,8 +1760,12 @@ fn append_local_terminal(
         local.record_query_event(event);
     }
     let message = Message::parse(&answer.packet)?;
-    let mut previous_name = target.clone();
-    let mut previous_offset = owner_offset;
+    // Scratch byte ranges already copied verbatim, as (start, end, final start).
+    // Owner pointers are translated through these so the reply keeps the
+    // scratch layout: the terminal question maps to the cached CNAME target,
+    // configured CNAME targets to their copied RDATA. Raw RRs never move
+    // C's name cursor (rfc1035.c passes NULL), and neither does this.
+    let mut spans: Vec<(usize, usize, usize)> = Vec::new();
     for section in [Section::Answer, Section::Authority, Section::Additional] {
         if matches!(section, Section::Authority) && message.header.authorities == 0 {
             if let Some(id) = negative {
@@ -1777,44 +1781,38 @@ fn append_local_terminal(
             // dns-rr bytes opaque, as rfc1035.c's raw loop does. Copy RDATA
             // verbatim: decoding a raw pointer against this scratch packet
             // would rewrite or reject bytes C emits unchanged.
-            let data = record.rdata.to_vec();
-            let compressed = owner.eq_ignore_ascii_case(&previous_name);
-            let target_offset =
-                writer.position() + if compressed { 2 } else { owner.as_wire().len() } + 10;
-            let result = if compressed {
-                writer.record_at(
+            let data = record.rdata;
+            let pointer = owner_pointer(&answer.packet, record.start).and_then(|scratch| {
+                if scratch == 12 {
+                    return Some(owner_offset);
+                }
+                spans
+                    .iter()
+                    .find(|(start, end, _)| (*start..*end).contains(&scratch))
+                    .and_then(|(start, _, copied)| u16::try_from(copied + scratch - start).ok())
+            });
+            let start = writer.position();
+            let result = match pointer {
+                Some(offset) => writer.record_at(
                     section,
-                    previous_offset,
+                    offset,
                     record.rrtype,
                     record.class,
                     record.ttl,
-                    &data,
-                )
-            } else {
-                writer.record(
-                    section,
-                    &owner,
-                    record.rrtype,
-                    record.class,
-                    record.ttl,
-                    &data,
-                )
+                    data,
+                ),
+                None => writer.record(section, &owner, record.rrtype, record.class, record.ttl, data),
             };
             match result {
                 Ok(()) => {}
                 Err(WireError::Full) => return Ok(Some(message.header.flags | 0x0200)),
                 Err(error) => return Err(error.into()),
             }
-            // A raw TYPE 5 holding a pointer is opaque output, not a cursor.
-            if record.rrtype == 5 {
-                if let Ok((name, end)) = super::wire::decode_name(&data, 0, 0) {
-                    if end == data.len() {
-                        previous_name = name;
-                        previous_offset =
-                            u16::try_from(target_offset).map_err(|_| WireError::RecordTooLong)?;
-                    }
-                }
+            let owner_len = if pointer.is_some() { 2 } else { owner.as_wire().len() };
+            if pointer.is_none() && owner_pointer(&answer.packet, record.start).is_none() {
+                spans.push((record.start, record.fixed, start));
             }
+            spans.push((record.fixed + 10, record.end, start + owner_len + 10));
         }
     }
     // A filterwin2k terminal has no local RR of its own, but the retained
@@ -1825,6 +1823,16 @@ fn append_local_terminal(
         message.header.flags
     };
     Ok(Some(flags))
+}
+
+/// Offset named by an RR owner that is a single compression pointer.
+fn owner_pointer(packet: &[u8], start: usize) -> Option<usize> {
+    match packet.get(start..start + 2) {
+        Some(&[high, low]) if high & 0xc0 == 0xc0 => {
+            Some(usize::from(u16::from_be_bytes([high & 0x3f, low])))
+        }
+        _ => None,
+    }
 }
 
 /// Select the first IN SOA in the authority section whose owner is a label
