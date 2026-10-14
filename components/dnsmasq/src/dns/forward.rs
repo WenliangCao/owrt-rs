@@ -4,7 +4,7 @@
 //! socket allocation remain in the caller. A socket token denotes a caller-owned
 //! socket reference; release notifications must be consumed to drop that reference.
 
-use super::wire::{decode_name, Header, Name, WireError, HEADER_LEN};
+use super::wire::{decode_name, validate_name, Header, Name, WireError, HEADER_LEN};
 use std::collections::HashMap;
 use std::io;
 use std::net::{IpAddr, SocketAddr};
@@ -833,7 +833,7 @@ fn canonical_scope(scope: Scope) -> Scope {
 /// Flip the first bitmap.len()*32 ASCII letters, LSB first; other bytes and
 /// label lengths do not consume bits. Decode first to make failure atomic.
 pub fn flip_question_case(packet: &mut [u8], bitmap: &[u32]) -> Result<(), WireError> {
-    decode_name(packet, HEADER_LEN, 0)?;
+    validate_name(packet, HEADER_LEN, 0)?;
     let mut letter = 0;
     visit_label_bytes(packet, |byte| {
         if byte.is_ascii_alphabetic() {
