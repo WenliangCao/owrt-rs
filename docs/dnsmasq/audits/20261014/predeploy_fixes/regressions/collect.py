@@ -6,6 +6,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import struct
 import subprocess
 
 
@@ -34,6 +35,22 @@ def main():
     a.out.mkdir(parents=True, exist_ok=True)
     decoder = module(source / 'docs/dnsmasq/audits/20261014/fix5/dns/collect.py', 'wire')
     actual_decoder = module(source / 'docs/dnsmasq/audits/20261014/predeploy_behavior/root/check_dns.py', 'actual_wire')
+
+    def decode_actual(packet):
+        # The focused-audit decoder keeps SOA opaque; the broader corpus also
+        # checks its two names and five integers with the independent RR decoder.
+        result = actual_decoder.decode(packet)
+        decoded = decoder.decode(dict(status='reply', hex=packet.hex()))
+        assert 'parse_error' not in decoded
+        records = [rr for section in decoded['sections'] for rr in section]
+        assert len(result['records']) == len(records)
+        for record, rr in zip(result['records'], records):
+            if record['type'] == 6:
+                labels = lambda value: '.'.join(bytes.fromhex(part).decode('ascii') for part in value).lower()
+                record['data'] = [labels(rr[4][0]), labels(rr[4][1]),
+                                  *struct.unpack('!5I', bytes.fromhex(rr[4][2]))]
+        return result
+
     summary = dict(checker_sha256=sha(__file__), actual={}, history={})
     for label in ('focused', 'public-cache', 'regular'):
         folders = {side: private / 'actual' / (side + '-' + label) for side in ('c', 'rust')}
@@ -49,10 +66,10 @@ def main():
         for side, folder in folders.items():
             for case in raw[side]['cases']:
                 for index, client in enumerate(case['clients']):
-                    request = actual_decoder.decode((folder / case['label'] / f'{index}.request').read_bytes())
+                    request = decode_actual((folder / case['label'] / f'{index}.request').read_bytes())
                     assert request['questions'] == [[client['host'], client['type'], 1]]
                     if 'response' in client:
-                        reply = actual_decoder.decode((folder / case['label'] / f'{index}.reply').read_bytes())
+                        reply = decode_actual((folder / case['label'] / f'{index}.reply').read_bytes())
                         assert reply == client['response']
                         assert (reply['id'], reply['questions']) == (request['id'], request['questions'])
                         decoded += 1
