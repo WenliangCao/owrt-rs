@@ -1,0 +1,288 @@
+{
+  "scope": "Source-bound native Linux factory counts, not elapsed-time acceptance. 1000 calls per case per side. Full SDK A DNS-miss trace motivates removing exactly two setup syscalls per fresh upstream UDP socket.",
+  "sdk_constants": {
+    "SOCK_DGRAM": "2",
+    "SOCK_NONBLOCK": "04000",
+    "SOCK_CLOEXEC": "02000000"
+  },
+  "independent_static_review": "No blocker: same modern-Linux atomics already used by listener/TCP factory; bind/source/error/RAII unchanged; Mac fallback retained.",
+  "runs": {
+    "baseline": {
+      "build": {
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/socket-baseline/input/components/dnsmasq/Cargo.toml",
+          "--example",
+          "loop-source-socket-screen",
+          "--message-format=json"
+        ],
+        "harness_sha256": "c28d59c9154b92936f8cc66c51db00ba6fe41f195a783212a3fc1863238c8b23",
+        "factory_sha256": "03baf34d0df5a0b71c2ad08762cf1c550960d5f65b1f604887c8f5a6b9558da8",
+        "elf_sha256": "5ed0c667adc266931ef19155f33265f4f09d8a866c9b2495d770f20b5b954e5d",
+        "timing_prohibited": true
+      },
+      "cases": {
+        "wild4": {
+          "result": {
+            "case": "wild4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 1000,
+            "F_SETFD": 1000,
+            "bind": 0,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "a1e55fd279b74797e0876ca0328afa256f850048c7b02748f9ee9127620b3f1b"
+        },
+        "wild6": {
+          "result": {
+            "case": "wild6",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 1000,
+            "F_SETFD": 1000,
+            "bind": 0,
+            "IPV6_V6ONLY": 1000
+          },
+          "trace_sha256": "6aa0e338ec3efd2e5c2e2f7e8a5e469d783d6638ba461ab106b0e72ec5c1c698"
+        },
+        "bound4": {
+          "result": {
+            "case": "bound4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 1000,
+            "F_SETFD": 1000,
+            "bind": 1000,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "3bbdba22316d9c9723f35818d8bee6eae0154241230d2d8306b1f16bde24dbab"
+        },
+        "bound6": {
+          "result": {
+            "case": "bound6",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 1000,
+            "F_SETFD": 1000,
+            "bind": 1000,
+            "IPV6_V6ONLY": 1000
+          },
+          "trace_sha256": "882a4601f97ea4977ec2400856efafdb431f783cf00ffd5ac1a72055f4a1301e"
+        },
+        "range4": {
+          "result": {
+            "case": "range4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 1000
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 1000,
+            "F_SETFD": 1000,
+            "bind": 1000,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "b388709e7f2c8215e46de4b66edd1440a8c25673e685f4d21a604198b89d4f50"
+        },
+        "invalid4": {
+          "result": {
+            "case": "invalid4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 0,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "7b91230fa43ab364b210881b4f7a74bc6f380dc1b008a71ed8c852459bfc5cea"
+        }
+      }
+    },
+    "candidate": {
+      "build": {
+        "argv": [
+          "/home/ubuntu/.cargo/bin/cargo",
+          "+1.98.1",
+          "build",
+          "--frozen",
+          "--jobs",
+          "1",
+          "--manifest-path",
+          "/home/ubuntu/dnsmasq-perf-20261015/loop/private/socket-candidate/input/components/dnsmasq/Cargo.toml",
+          "--example",
+          "loop-source-socket-screen",
+          "--message-format=json"
+        ],
+        "harness_sha256": "c28d59c9154b92936f8cc66c51db00ba6fe41f195a783212a3fc1863238c8b23",
+        "factory_sha256": "dfefa1100fcea9bcce82b6646002e695ebf47731125df24ee649d8265cc1c9e7",
+        "elf_sha256": "4c6379c35c5db2c8fe51bd859ed0f87be3e489e994db9cc89535c39cfe99e1c8",
+        "timing_prohibited": true
+      },
+      "cases": {
+        "wild4": {
+          "result": {
+            "case": "wild4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 0,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "41b9194966453ff16c8e0d46bf67a28f41203025a53cbf47a1c8805ad397a95b"
+        },
+        "wild6": {
+          "result": {
+            "case": "wild6",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 0,
+            "IPV6_V6ONLY": 1000
+          },
+          "trace_sha256": "0f9714f9bf675a281841852576c23820d5ad3c4bf78c167bf5e3fae8c232b784"
+        },
+        "bound4": {
+          "result": {
+            "case": "bound4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 1000,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "edb8001dd8a69e6e296d4a7ec7353d0e6a4eda65915267c521eabb851ae8a0ab"
+        },
+        "bound6": {
+          "result": {
+            "case": "bound6",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 1000,
+            "IPV6_V6ONLY": 1000
+          },
+          "trace_sha256": "5af44284f859bcb79ae5fdf8588f447bd99e8272bcfdbbaf9de143a2e6ff04ee"
+        },
+        "range4": {
+          "result": {
+            "case": "range4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 1000
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 1000,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "781ab9983420d93d22cf7d69aceca8502527eae09ce663002826757c4f517be1"
+        },
+        "invalid4": {
+          "result": {
+            "case": "invalid4",
+            "calls": 1000,
+            "fds_before": 4,
+            "fds_after": 4,
+            "random_calls": 0
+          },
+          "counts": {
+            "socket": 1000,
+            "FIONBIO": 0,
+            "F_SETFD": 0,
+            "bind": 0,
+            "IPV6_V6ONLY": 0
+          },
+          "trace_sha256": "4a02e736a1389e18bed6c7e36a403d49d654403b0f6969837bb707291473b08e"
+        }
+      }
+    }
+  },
+  "sdk_a_full_miss_trace": {
+    "elf_sha256": "b353039e1e85cb2b91a9539460dc6623532757699e6a63f5cf20482d7946952e",
+    "correct_operations": 5000,
+    "counts": {
+      "ppoll": 19879,
+      "recvmsg": 9993,
+      "socket": 5000,
+      "ioctl": 5000,
+      "fcntl": 5000,
+      "sendto": 5000,
+      "recvfrom": 5000,
+      "close": 5000,
+      "sendmsg": 5000
+    },
+    "total_selected_syscalls": 64872,
+    "zero_timeout_ppoll": 9943,
+    "one_fd_zero_timeout_ppoll": 9931,
+    "removed_setup_calls_if_factory_used": 10000,
+    "selected_call_reduction_percent": 15.414971019854482,
+    "trace_sha256": "0ce95e4abb0680fe31bbdc351b6c38c638c7d50754ca070b15c37707d1949a63",
+    "note": "This is a mechanistic count projection, not measured end-to-end candidate performance. A previous hand-summed total was corrected to this computed value."
+  },
+  "local_targeted_tests": {
+    "scope": "macOS upstream test filter, Linux-specific flag unit not included; actual Linux factory bridge covers flags separately",
+    "passed": 54,
+    "failed": 0
+  }
+}
