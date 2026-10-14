@@ -193,6 +193,33 @@ fn tcp_snapshot_clear_is_private_at_zero_small_and_large_capacity() {
 }
 
 #[test]
+fn clear_reuses_only_unique_roots_without_allocated_buckets() {
+    let mut cache = Cache::new(128, Policy::default());
+    let empty_root = Arc::as_ptr(&cache.names[0]);
+    cache.clear();
+    assert_eq!(Arc::as_ptr(&cache.names[0]), empty_root);
+    assert_eq!(cache.names[0].capacity(), 0);
+
+    let retained = cache.snapshot();
+    cache.clear();
+    for (parent, child) in retained.names.iter().zip(&cache.names) {
+        assert!(!Arc::ptr_eq(parent, child), "clear must detach even shared empty roots");
+        assert_eq!(Arc::strong_count(child), 1);
+        assert_eq!(child.capacity(), 0);
+    }
+
+    cache.start_insert();
+    let name = Name::from_ascii("allocated.root.test").unwrap();
+    cache.insert(record("allocated.root.test", Kind::Ipv4, 1), 100, 60).unwrap();
+    assert!(cache.commit());
+    let shard = Cache::key_shard(&name.canonical_wire());
+    assert!(cache.names[shard].capacity() > 0);
+    cache.clear();
+    assert_eq!(cache.names[shard].capacity(), 0, "clear still releases allocated buckets");
+    assert_eq!(Arc::strong_count(&cache.names[shard]), 1);
+}
+
+#[test]
 fn compact_slot_links_preserve_zero_absence_and_production_capacity_limit() {
     assert_eq!(slot_index(None), None);
     for index in [0, 1, 149, 4095, 4_999_999, u32::MAX as usize - 1] {

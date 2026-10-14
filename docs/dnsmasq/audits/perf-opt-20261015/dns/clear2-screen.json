@@ -1,0 +1,83 @@
+{
+  "label": "CACHE-CLEAR-2",
+  "status": "screen-only-pending-timing/full-correctness",
+  "mechanism": "Reuse root vector and only unique empty name-index roots whose HashMap bucket capacity is zero. Shared roots and roots with allocated buckets are replaced during clear, as before.",
+  "allocation_rows": [
+    {
+      "scene": "clear-0",
+      "operations": 1000,
+      "capacity": 0,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "clear-6",
+      "operations": 1000,
+      "capacity": 6,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "clear-150",
+      "operations": 1000,
+      "capacity": 150,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "clear-1000",
+      "operations": 1000,
+      "capacity": 1000,
+      "allocations": 0,
+      "reallocations": 0,
+      "requested_bytes": 0,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "snapshot-clear-1000",
+      "operations": 1000,
+      "capacity": 1000,
+      "allocations": 99000,
+      "reallocations": 0,
+      "requested_bytes": 93248000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "new-1000",
+      "operations": 1000,
+      "capacity": 1000,
+      "allocations": 99000,
+      "reallocations": 0,
+      "requested_bytes": 93248000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    }
+  ],
+  "perf": {
+    "operations": 100000,
+    "baseline_instructions": 9281071157,
+    "clear1_instructions": 4034418788,
+    "clear2_instructions": 2411794333,
+    "vs_baseline_percent": -74.01383641821377,
+    "clear2_cycles": 1006414296,
+    "qualification": "Concurrent native screen; cycles not timing qualification."
+  },
+  "memory_boundary": "Same 64 roots and vector capacity. Never retain allocated buckets. Never preserve shared empty roots, so first-insert allocation boundary is not deferred. Construction remains 99 allocations/93248 requested bytes at capacity1000.",
+  "tests": {
+    "mac_cache_related_pass": 56,
+    "ignored_exact_c_transfer_probe": 1,
+    "added": "unique unused-root reuse, shared-empty-root detachment, and allocated-bucket release"
+  },
+  "product_source_sha256": "326d357e618762f89abbe8f6bb0931006cc869a8b3c0589a355b4d5ce2988f1b"
+}

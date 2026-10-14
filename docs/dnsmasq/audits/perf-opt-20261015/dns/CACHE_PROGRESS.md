@@ -20,3 +20,21 @@ expiry, abort, handle-reuse and cache-transfer tests remain unchanged.
 probe remains ignored in this standalone run and must run through its Oracle
 fixture in the full gate. Raw data stays private; `clear1-screen.json` contains
 derived counts. No router access, no new unsafe code, no capacity change.
+
+
+CACHE-CLEAR-2 now screens the naturally idempotent empty-index case. It reuses
+only an `Arc::get_mut`-proven unique root with **zero allocated buckets**.
+Shared empty roots and every allocated HashMap are replaced at clear time,
+so later insertions neither inherit an extra COW allocation nor retain old
+bucket storage. The 64-element root vector is also reused. Source instrumentation
+still has the original constructor/detach anchors; no diagnostic tool changes
+or C expectation changes are required.
+
+Counter screen: empty unique clear at all tested capacities drops 65
+allocations/4608 requested bytes to zero; a retained-snapshot clear saves only
+the 512-byte root-vector allocation (100→99 allocations), preserving actual
+content/name detachment. Constructor counts remain exactly 99/93248B at 1000
+slots. A million-slot-scale inference is not claimed. Native clear-1000
+instructions fall 74.01% vs the original and 40.22% vs CLEAR-1; cycles remain
+unqualified until a root-issued quiet slot. The new graph/bucket test and 55
+existing cache-related tests pass; exact-C fixture/full gates are pending.
