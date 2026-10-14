@@ -149,5 +149,7 @@
       "evidence": "Actual SDK ACK profile metrics0.046%control/0.124%A samples; expected whole daemon benefit below device variation/CPU precision; no extra gates added",
       "commit": ""
     }
-  ]
+  ],
+  "candidate_a_status": "rejected_pending_stale_metadata_gate_root_cause; no device/performance qualification",
+  "candidate_b_status": "unqualified, inherits A gate hold and needs all new combination gates"
 }
