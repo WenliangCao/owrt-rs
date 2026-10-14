@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import select
+import re
 import shutil
 import signal
 import socket
@@ -33,6 +34,7 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--mode', choices=('udp', 'tcp'), required=True)
     parser.add_argument('--profile', choices=('hit', 'miss', 'mixed'), required=True)
+    parser.add_argument('--strace', action='store_true', help='syscall counts instead of PMU capture')
     args = parser.parse_args()
     assert os.readlink('/proc/self/ns/net') != os.readlink('/proc/1/ns/net')
     assert {name for _, name in socket.if_nameindex()} == {'lo'}
@@ -48,6 +50,7 @@ def main():
     assert sha(out / 'link.map') == build['link_map']['sha256']
     save(out / 'profile-scope.json', {'scope': __doc__, 'mode': args.mode,
          'profile': args.profile, 'elf_sha256': expected,
+         'observer': 'strace' if args.strace else 'perf',
          'source_commit': build.get('source_commit'),
          'deployed_baseline': expected == '8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7'})
     (out / 'config').write_text(
@@ -141,31 +144,44 @@ def main():
         save(out / 'process-identity.json', identity)
         if args.profile != 'miss':
             load('udp', 'hit', 5, 0, 'prewarm')
-        record = instrument(['perf', 'record', '-e', 'instructions', '-c', '10000', '-p', daemon.pid,
-                             '-o', out / 'perf.data'], 'perf-record')
-        stat = instrument(['perf', 'stat', '-x,', '-e', 'instructions,cycles', '-p', daemon.pid,
-                           '-o', out / 'perf-stat.csv'], 'perf-stat')
-        for channel in (record, stat):
-            control(channel, 'enable')
+        if args.strace:
+            tracer = start(['strace', '-I2', '-yy', '-ttt', '-s', '0', '-e',
+                'trace=network,ppoll,close,fcntl,ioctl', '-p', daemon.pid,
+                '-o', out / 'syscalls.txt'], 'strace')
+            deadline = time.monotonic() + 5
+            while not re.search(r'TracerPid:\s+[1-9]', (proc / 'status').read_text()):
+                assert tracer.poll() is None and time.monotonic() < deadline
+                time.sleep(.01)
+        else:
+            record = instrument(['perf', 'record', '-e', 'instructions', '-c', '10000', '-p', daemon.pid,
+                                 '-o', out / 'perf.data'], 'perf-record')
+            stat = instrument(['perf', 'stat', '-x,', '-e', 'instructions,cycles', '-p', daemon.pid,
+                               '-o', out / 'perf-stat.csv'], 'perf-stat')
+            for channel in (record, stat):
+                control(channel, 'enable')
         load_start = time.monotonic_ns()
         counts = load(args.mode, args.profile, 20, 5, 'client')
         load_end = time.monotonic_ns()
-        for channel in (record, stat):
-            control(channel, 'disable')
-        save(out / 'perf-controls.json', {'controls': controls,
-             'load_start_ns': load_start, 'load_end_ns': load_end})
+        if not args.strace:
+            for channel in (record, stat):
+                control(channel, 'disable')
+            save(out / 'perf-controls.json', {'controls': controls,
+                 'load_start_ns': load_start, 'load_end_ns': load_end})
         (out / 'maps-after').write_text((proc / 'maps').read_text())
         assert sha(proc / 'exe') == expected
-        statuses = [finish(channel[0], signal.SIGINT) for channel in (record, stat)]
+        statuses = ([finish(tracer, signal.SIGINT)] if args.strace else
+                    [finish(channel[0], signal.SIGINT) for channel in (record, stat)])
         assert all(status in (0, 130, -signal.SIGINT) for status in statuses)
+        assert re.search(r'TracerPid:\s+0\b', (proc / 'status').read_text())
         assert finish(daemon, signal.SIGTERM) == 0
         assert finish(upstream, signal.SIGTERM) == 0
-        for argv, name in [(['perf', 'script', '-i', out / 'perf.data', '--hide-call-graph',
+        exports = [] if args.strace else [(['perf', 'script', '-i', out / 'perf.data', '--hide-call-graph',
                             '-F', 'pid,tid,misc,period,event,ip,sym,dso'], 'samples.txt'),
                            (['perf', 'report', '-i', out / 'perf.data', '--stdio', '--no-children',
                             '--sort', 'dso,symbol', '--show-nr-samples', '--show-total-period',
                             '--percent-limit', '0', '-g', 'none', '--field-separator', ';',
-                            '--no-demangle'], 'self.txt')]:
+                            '--no-demangle'], 'self.txt')]
+        for argv, name in exports:
             with (out / name).open('wb') as stdout:
                 subprocess.run(list(map(str, argv)), stdout=stdout, check=True)
         save(out / 'complete.json', {'valid_count_profile': True, 'measurement': counts,

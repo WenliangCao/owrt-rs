@@ -2,6 +2,7 @@
 
 Initial branch `perf/dnsmasq-loop-20261015`, starts at `51b03959`; A loop changes
 end at `e1bdcd4a`. B research continues on `perf/dnsmasq-loop-exit-20261015`.
+C socket-creation research is on `perf/dnsmasq-loop-socket-20261015`.
 Freeze acknowledged:
 `d358c3a0`; never accesses the router. Oracle root is
 `/home/ubuntu/dnsmasq-perf-20261015/loop`. Raw artifacts stay in `private`.
@@ -43,6 +44,9 @@ No candidate is qualified yet; full correctness and timing are pending.
 | L05 | Startup/config stop-start overhead | screened in: independent terminal-boundary review passed; actual daemon teardown 106 → 7 deallocations, removing 93,248 bytes of allocator cleanup; FD count restored 4 → 4 on both sides |
 | L06 | recvmmsg removes terminal WouldBlock syscall without reducing the 16-packet fairness budget | reject unchecked batching: failure boundary changes; SO_ERROR-screen loses syscall saving and adds single-packet instructions |
 | L07 | Avoid metrics snapshots when no DNS UBus subscriber exists | reject before edits: only 0.046%/0.124% of total instruction samples in control/A; no evidence for a measurable end-to-end gain |
+| L08 | Inline the common single upstream-socket owner | reject isolated prototype: ~601 instructions saved per single-owner lifetime, but 150-owner lifetime adds ~1376; expected whole-query gain too small for added container state |
+| L09 | Create upstream UDP descriptors with both flags atomically | screened in: 2 setup syscalls/socket removed; flags, bound tuples, port-range random calls, errors and FD cleanup verified |
+| L10 | Reuse owner readiness instead of nested zero-timeout upstream ppoll | investigate saved-call cost first; token/epoch and consumed-error safeguards required |
 
 L01 uses `Cow<[u8]>`; pending interface admission still owns its original copy,
 and deferred interface-record/MAC lookups materialize a Vec before returning.
@@ -172,3 +176,25 @@ labels vary substantially between diagnostic windows; they are not precise
 CPU shares or evidence that all remaining costs are irreducible. More DNS
 scene profiles are in progress; A/B performance and full correctness remain
 root-owned decisions.
+
+`source-socket-screen.json` records L09. An SDK A miss strace window completed
+1000 warmup + 4000 measured queries. It made exactly 5000 plain UDP socket
+creates, 5000 FIONBIO ioctls and 5000 F_SETFD calls. The computed selected-call
+total is 64,872 (an earlier hand sum was corrected); 10,000 removed setup calls
+would be 15.4% of those calls, **not a measured latency/CPU speedup**.
+
+Linux now supplies SOCK_NONBLOCK|SOCK_CLOEXEC to socket, matching the existing
+listener/TCP factories. SDK headers confirm octal 04000/02000000. Source-bound
+baseline/candidate bridges each ran six 1000-call cases: wildcard/bound IPv4
+and IPv6, a two-port range, and an inverted invalid range. Returned nonblocking
+and close-on-exec flags, selected address/port, random call counts, InvalidInput
+with binding=false, and FD count 4→4 matched. Every successful factory case
+removed exactly 1000 ioctls + 1000 F_SETFD calls; bind and IPv6-only option counts
+were unchanged. Independent static review passed; 54 local upstream tests
+passed. Linux full unit/C/upstream-bind/exec gates remain root-owned and pending.
+
+The same trace contains 9943 zero-timeout ppoll calls, 9931 polling one fd,
+within 19,879 total ppolls. Removing them safely requires accounting for fd
+reuse, already-consumed POLLERR, new socket generations and unchanged timer/
+reply ordering. L10 is not implemented yet; its expected benefit must justify
+the additional state and pass the frozen precision gate.
