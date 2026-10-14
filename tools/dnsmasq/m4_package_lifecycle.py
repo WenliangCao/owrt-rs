@@ -15,11 +15,12 @@ import re
 import shutil
 import signal
 import socket
+import struct
 import subprocess
 import time
 
-from build_package import PACKAGE_ID, PAYLOAD_FILES, audit_metadata, audit_payload, package_id
-from dns_service_probe import query, semantics
+from build_package import PACKAGE_ID, PACKAGE_RELEASE, PAYLOAD_FILES, audit_metadata, audit_payload, package_id
+from dns_service_probe import exact_read, query, semantics
 from m2_rootfs import STOCK_SHA256, command, image_path, prepare, sha256
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,9 +39,10 @@ def previous_inputs(args):
     fields = [args.previous_apk, args.previous_apk_sha256,
               args.previous_elf_sha256, args.previous_source_commit]
     if not any(fields):
-        require(args.package_release == "2", "r3 lifecycle requires the accepted M5 r2 baseline")
+        require(args.package_release == "2", "r3/r4 lifecycle requires the accepted M5 r2 baseline")
         return None
-    require(all(fields) and args.package_release == "3", "M5 baseline requires all identities and candidate r3")
+    require(all(fields) and args.package_release in ("3", "4"),
+            "M5 baseline requires all identities and candidate r3/r4")
     expected = {"package_id": "2.93-r2", "apk_sha256": args.previous_apk_sha256,
                 "elf_sha256": args.previous_elf_sha256, "source_commit": args.previous_source_commit}
     require(expected == M5_BASELINE, "previous package is not the accepted frozen M5 r2 identity")
@@ -69,6 +71,37 @@ config dnsmasq 'm4'
 def require(condition, message):
     if not condition:
         raise RuntimeError(message)
+
+
+def require_init_contract(stock, candidate, automatic_activation, ubus_directory_mount=False):
+    original = b'\tprocd_set_param file $CONFIGFILE\n'
+    tracked = b'\tprocd_set_param file $CONFIGFILE $PROG\n'
+    expected = stock
+    if automatic_activation:
+        require(stock.count(original) == 1, 'unexpected stock executable dependency contract')
+        expected = expected.replace(original, tracked)
+    if ubus_directory_mount:
+        original = b'\tprocd_add_jail dnsmasq ubus log\n'
+        mounted = (b'\t# Bind the socket directory so an ubusd restart can replace ubus.sock.\n'
+                   b'\t# The ubus jail shortcut pins the old socket inode until dnsmasq restarts.\n'
+                   b'\tprocd_add_jail dnsmasq log\n'
+                   b'\tprocd_add_jail_mount /var/run/ubus\n')
+        require(stock.count(original) == 1, 'unexpected stock ubus jail contract')
+        expected = expected.replace(original, mounted)
+    require(candidate == expected,
+            'candidate init differs beyond executable content tracking and the exact ubus directory mount')
+
+
+def require_acl_contract(stock, candidate, dns_object_acl):
+    original = b'"publish": [ "dnsmasq" ]'
+    expanded = b'"publish": [ "dnsmasq", "dnsmasq.dns" ]'
+    if dns_object_acl:
+        require(json.loads(stock).get('user') == 'dnsmasq' and stock.count(original) == 1,
+                'unexpected stock dnsmasq ACL contract')
+        require(candidate == stock.replace(original, expanded),
+                'candidate ACL differs beyond the exact dnsmasq.dns publish object')
+    else:
+        require(candidate == stock, 'candidate changed stock ACL contract')
 
 
 def installed_packages(text):
@@ -274,23 +307,35 @@ class Scenario:
                             if "stock_service" in self.report:
                                 require(reply == self.report["stock_service"]["dns_reply"],
                                         "package DNS probe differs from image C semantics")
+                            with socket.create_connection(('127.0.0.1', 1053), .5) as sock:
+                                packet = query('m4-package.lan', 1)
+                                sock.sendall(struct.pack('!H', len(packet)) + packet)
+                                tcp_reply = semantics(exact_read(sock, struct.unpack('!H', exact_read(sock, 2))[0]))
+                            require(tcp_reply == reply, 'package TCP DNS differs from UDP/C semantics')
                             return {"listing": listing, "pid": pid, "wrapper_pid": wrapper,
                                     "wrapper_cmdline": cmdline, "elf_sha256": expected_sha,
-                                    "dns_reply": reply}
+                                    "dns_reply": reply, "tcp_dns_reply": tcp_reply}
                     except (FileNotFoundError, ProcessLookupError) as error:
                         observed.append({"pid": pid, "probe_error": repr(error)})
             return None
         return self.wait(live, f"{stage}: jailed dnsmasq {expected_sha} and DNS answer")
 
-    def activate_after_transaction(self, label):
+    def activate_after_transaction(self, label, *, legacy_setup=False):
+        require(not legacy_setup or label == 'stock-to-m5-baseline', 'unexpected legacy setup restart')
+        if self.report.get('automatic_activation_required') and not legacy_setup:
+            self.report.setdefault('activation_steps', []).append({
+                'transaction': label, 'command': None, 'automatic_activation_required': True})
+            return
         # The stock SDK's post-upgrade runs init start. procd can keep the
         # existing instance when its configuration is unchanged, including an
         # old ELF whose pathname APK has replaced. Activation is a separate,
         # explicitly recorded operator step; never attribute it to postinst.
         command = ["/etc/init.d/dnsmasq", "restart"]
         self.run(command, f"{label}-explicit-restart")
-        self.report.setdefault("activation_steps", []).append({
-            "transaction": label, "command": command, "automatic_restart_claimed": False})
+        step = {"transaction": label, "command": command, "automatic_restart_claimed": False}
+        if legacy_setup:
+            step['legacy_reference_setup'] = True
+        self.report.setdefault("activation_steps", []).append(step)
 
     def stopped(self):
         listing = self.bus("service", "list", {"name": "dnsmasq"})
@@ -319,6 +364,14 @@ class Scenario:
         stage = {"name": label, "version": version, "packages": packages, "files": actual,
                  "user": user, "group": group, "init_links": init_links,
                  "service": self.service(expected_sha, label)}
+        if self.report.get('automatic_activation_required'):
+            previous = (self.report['stages'][-1].get('service') if self.report['stages']
+                        else self.report.get('stock_service'))
+            if previous and previous['elf_sha256'] != expected_sha:
+                require(stage['service']['pid'] != previous['pid'], 'changed ELF kept the old daemon PID')
+            if label == 'candidate-reinstall':
+                require(stage['service']['pid'] == previous['pid'], 'identical reinstall restarted the daemon')
+                stage['identical_reinstall_kept_pid'] = True
         self.report["stages"].append(stage)
         return stage
 
@@ -405,7 +458,7 @@ class Scenario:
 
 
 def previous_upgrade_chain(case, args, baseline, candidate_files, previous_files, configs, report):
-    """Real r2->r3 add, direct r3->r2 downgrade and removal rollback."""
+    """Real M5-to-candidate add, direct downgrade and removal rollback."""
     identity = report["previous_package"]
     result = dict(identity, passed=False, candidate_package_id=package_id(args.package_release), stages=[])
     report["previous_upgrade"] = result
@@ -417,7 +470,12 @@ def previous_upgrade_chain(case, args, baseline, candidate_files, previous_files
     ]
     for label, apk, elf_sha, version, files in steps:
         case.apk(["add", apk], label)  # No force-reinstall can masquerade as upgrade.
-        case.activate_after_transaction(label)
+        # Neither of these two historical packages contains the activation fix.
+        # Establish a genuinely running M5 baseline before testing the candidate.
+        if label == 'stock-to-m5-baseline' and report.get('automatic_activation_required'):
+            case.activate_after_transaction(label, legacy_setup=True)
+        else:
+            case.activate_after_transaction(label)
         case.capture(label, elf_sha, version, baseline, files, configs)
         result["stages"].append(label)
     case.remove("candidate-remove-for-m5-rollback", configs)
@@ -444,6 +502,12 @@ def execute(args, root, out, report):
             shutil.copy2(source, root / "m4" / name)
         metadata = case.apk(["adbdump", "/m4/candidate.apk"], "candidate-metadata")
         report["candidate_metadata"] = audit_metadata(metadata["stdout"], args.package_release)
+        if args.package_release == '4':
+            report['release_order'] = {}
+            for older in ('2.93-r2', '2.93-r3'):
+                order = case.apk(['version', '-t', candidate_id, older], 'compare-' + older)
+                require(order['stdout'].strip() == '>', 'new package does not upgrade ' + older)
+                report['release_order'][older] = order['stdout'].strip()
         stock_metadata = case.apk(["adbdump", "/m4/stock.apk"], "stock-metadata")
         def upgrade_script(text):
             match = re.search(r"^  post-upgrade: \|\n(.*?)(?=^  [a-z]|^#|\Z)", text,
@@ -453,7 +517,7 @@ def execute(args, root, out, report):
         report["post_upgrade_scripts"] = {
             "stock": upgrade_script(stock_metadata["stdout"]),
             "candidate": upgrade_script(metadata["stdout"]),
-            "semantics": "stock default_postinst invokes init start; explicit restart activates changed ELF"}
+            "semantics": "stock default_postinst invokes init start; activation mode is recorded separately"}
         require(report["post_upgrade_scripts"]["stock"] == report["post_upgrade_scripts"]["candidate"],
                 "candidate changed the stock post-upgrade script")
         (root / "m4/candidate-payload").mkdir()
@@ -465,7 +529,14 @@ def execute(args, root, out, report):
                 "APK ELF differs from frozen identity")
         # Ancillary paths are part of the image contract, including init/ACL,
         # UID declaration, config declarations, hotplug, and ujail invocation.
-        for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list"}:
+        require_init_contract((root / 'etc/init.d/dnsmasq').read_bytes(),
+                              (payload / 'etc/init.d/dnsmasq').read_bytes(),
+                              args.automatic_activation, args.ubus_directory_mount)
+        require_acl_contract((root / 'usr/share/acl.d/dnsmasq_acl.json').read_bytes(),
+                             (payload / 'usr/share/acl.d/dnsmasq_acl.json').read_bytes(),
+                             args.dns_object_acl)
+        for path in PAYLOAD_FILES - {"usr/sbin/dnsmasq", "lib/apk/packages/dnsmasq.list", "etc/init.d/dnsmasq",
+                                     "usr/share/acl.d/dnsmasq_acl.json"}:
             require(candidate_files[path] == stock_files[path], f"candidate changed stock ancillary contract: {path}")
         previous_files = None
         if report.get("previous_package"):
@@ -545,7 +616,13 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--candidate-elf-sha256", required=True)
     parser.add_argument("--source-commit", required=True)
-    parser.add_argument("--package-release", choices=["2", "3"], default="2")
+    parser.add_argument("--package-release", choices=["2", "3", "4"], default=PACKAGE_RELEASE)
+    parser.add_argument('--automatic-activation', action='store_true',
+                        help='Require package transactions to activate the ELF without explicit restart')
+    parser.add_argument('--dns-object-acl', action='store_true',
+                        help='Require only the exact dnsmasq.dns publish addition to the stock ACL')
+    parser.add_argument('--ubus-directory-mount', action='store_true',
+                        help='Require the exact read-only ubus directory jail mount replacement')
     parser.add_argument("--previous-apk", type=Path, help="accepted M5 r2 bytes, never rebuild")
     parser.add_argument("--previous-apk-sha256")
     parser.add_argument("--previous-elf-sha256")
@@ -579,6 +656,9 @@ def main():
     out.mkdir(parents=True)
     root = out / "rootfs-stage/rootfs"
     report = {"status": "failed", "source_commit": args.source_commit,
+              "automatic_activation_required": args.automatic_activation,
+              "dns_object_acl_required": args.dns_object_acl,
+              "ubus_directory_mount_required": args.ubus_directory_mount,
               "candidate_package_id": package_id(args.package_release), "package_release": args.package_release,
               "previous_package": previous,
               "runner_files": {name: sha256(Path(__file__).with_name(name)) for name in

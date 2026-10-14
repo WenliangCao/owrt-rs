@@ -27,7 +27,7 @@ RECIPE = "owrt-dnsmasq"
 TARGET = "aarch64-unknown-linux-musl"
 ARCH = "aarch64_cortex-a53"
 PACKAGE_VERSION = "2.93"
-PACKAGE_RELEASE = "2"
+PACKAGE_RELEASE = "4"
 PACKAGE_ID = f"{PACKAGE_VERSION}-r{PACKAGE_RELEASE}"
 REPLACEMENT_FILES = {
     "etc/config/dhcp",
@@ -56,7 +56,7 @@ OWNERSHIP_LIST = sorted("/" + path for path in REPLACEMENT_FILES | {
 
 
 def package_id(release=PACKAGE_RELEASE):
-    require(release in ('2', '3'), 'package release must be 2 or 3')
+    require(release in ('2', '3', '4'), 'package release must be 2, 3 or 4')
     return f'{PACKAGE_VERSION}-r{release}'
 
 
@@ -134,7 +134,7 @@ def verify_freeze(freeze, source_files, sdk, source_commit, epoch, expected_elf_
     require(freeze.get("schema") == 1 and freeze.get("frozen") is True,
             "freeze manifest must have schema 1 and frozen=true")
     require(not freeze.get("pending"), "freeze manifest still has pending validation")
-    require(freeze.get("package_release", PACKAGE_RELEASE) == package_release,
+    require(freeze.get("package_release", "2") == package_release,
             "freeze manifest package release differs from --package-release")
     require(freeze.get("source_commit") == source_commit,
             "freeze manifest product commit differs from --source-commit")
@@ -462,8 +462,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sdk", type=Path)
     parser.add_argument("out", type=Path)
-    parser.add_argument("--package-release", choices=["2", "3"], default=PACKAGE_RELEASE,
-                        help="APK release; default 2 preserves M5, M6b uses 3")
+    parser.add_argument("--package-release", choices=["2", "3", "4"], default=PACKAGE_RELEASE,
+                        help="APK release; default 4, historical M5/M6b replays use 2/3")
     parser.add_argument("--budget", type=Path, required=True,
                         help="frozen JSON with elf_max_bytes/apk_max_bytes")
     parser.add_argument("--source-commit", help="original commit of a copied source snapshot")

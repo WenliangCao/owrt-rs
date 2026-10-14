@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsmasq
 PKG_VERSION:=2.93
-PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),2)
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),4)
 
 PKG_MAINTAINER:=owrt-control-plane-rs project
 PKG_LICENSE:=GPL-2.0-only OR GPL-3.0-only

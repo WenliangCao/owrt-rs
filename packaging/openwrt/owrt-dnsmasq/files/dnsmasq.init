@@ -1265,7 +1265,7 @@ dnsmasq_start()
 
 	procd_open_instance $cfg
 	procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq."${cfg}".pid
-	procd_set_param file $CONFIGFILE
+	procd_set_param file $CONFIGFILE $PROG
 	[ -n "$user_dhcpscript" ] && procd_set_param env USER_DHCPSCRIPT="$user_dhcpscript"
 	procd_set_param respawn
 

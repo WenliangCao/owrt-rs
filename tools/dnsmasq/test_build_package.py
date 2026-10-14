@@ -19,6 +19,56 @@ import m4_package_lifecycle as lifecycle
 
 
 class PackageBuildTests(unittest.TestCase):
+    def test_automatic_activation_allows_only_the_executable_file_dependency(self):
+        stock = b'#!/bin/sh\n\tprocd_set_param file $CONFIGFILE\n\tprocd_set_param respawn\n'
+        candidate = stock.replace(b'file $CONFIGFILE\n', b'file $CONFIGFILE $PROG\n')
+        lifecycle.require_init_contract(stock, candidate, True)
+        lifecycle.require_init_contract(stock, stock, False)
+        for wrong in (stock, candidate.replace(b'respawn', b'reload_signal HUP')):
+            with self.assertRaisesRegex(RuntimeError, 'executable content tracking'):
+                lifecycle.require_init_contract(stock, wrong, True)
+
+    def test_automatic_activation_cannot_hide_a_manual_restart(self):
+        report = {'automatic_activation_required': True}
+        case = lifecycle.Scenario(None, None, report)
+        with patch.object(case, 'run', side_effect=AssertionError('manual activation')):
+            case.activate_after_transaction('candidate-upgrade')
+        self.assertIsNone(report['activation_steps'][0]['command'])
+
+    def test_legacy_setup_restart_cannot_be_used_for_candidate_transactions(self):
+        report = {'automatic_activation_required': True}
+        case = lifecycle.Scenario(None, None, report)
+        with patch.object(case, 'run') as run:
+            case.activate_after_transaction('stock-to-m5-baseline', legacy_setup=True)
+            run.assert_called_once_with(['/etc/init.d/dnsmasq', 'restart'],
+                                        'stock-to-m5-baseline-explicit-restart')
+            self.assertTrue(report['activation_steps'][0]['legacy_reference_setup'])
+            with self.assertRaisesRegex(RuntimeError, 'unexpected legacy setup'):
+                case.activate_after_transaction('m5-to-candidate-upgrade', legacy_setup=True)
+
+    def test_dns_object_acl_allows_only_the_exact_publish_addition(self):
+        stock = b'{"user":"dnsmasq","publish": [ "dnsmasq" ],"access":{"hotplug.dhcp":{"methods":["call"]}}}'
+        candidate = stock.replace(b'[ "dnsmasq" ]', b'[ "dnsmasq", "dnsmasq.dns" ]')
+        lifecycle.require_acl_contract(stock, candidate, True)
+        lifecycle.require_acl_contract(stock, stock, False)
+        for wrong in (stock, candidate.replace(b'dnsmasq.dns', b'dnsmasq.*'),
+                      candidate.replace(b'"call"', b'"*"'), candidate.replace(b'"user":"dnsmasq"', b'"user":"root"')):
+            with self.assertRaisesRegex(RuntimeError, 'exact dnsmasq.dns'):
+                lifecycle.require_acl_contract(stock, wrong, True)
+
+    def test_ubus_mount_preserves_jail_flags_and_mount_scope(self):
+        stock = b'\tprocd_set_param file $CONFIGFILE\n\tprocd_add_jail dnsmasq ubus log\n'
+        candidate = (b'\tprocd_set_param file $CONFIGFILE $PROG\n'
+                     b'\t# Bind the socket directory so an ubusd restart can replace ubus.sock.\n'
+                     b'\t# The ubus jail shortcut pins the old socket inode until dnsmasq restarts.\n'
+                     b'\tprocd_add_jail dnsmasq log\n\tprocd_add_jail_mount /var/run/ubus\n')
+        lifecycle.require_init_contract(stock, candidate, True, True)
+        for wrong in (candidate.replace(b'/var/run/ubus', b'/var/run'),
+                      candidate.replace(b'procd_add_jail_mount ', b'procd_add_jail_mount_rw '),
+                      candidate.replace(b'dnsmasq log', b'dnsmasq log procfs')):
+            with self.assertRaisesRegex(RuntimeError, 'exact ubus directory mount'):
+                lifecycle.require_init_contract(stock, wrong, True, True)
+
     def test_sigterm_unwinds_sdk_recipe_and_records_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp).resolve(); sdk = root / 'sdk'; active = sdk / 'package/owrt-dnsmasq'
@@ -135,7 +185,7 @@ class PackageBuildTests(unittest.TestCase):
     def test_candidate_metadata_requires_actual_lifecycle_scripts(self):
         metadata = """info:
   name: dnsmasq
-  version: 2.93-r2
+  version: 2.93-r4
   arch: aarch64_cortex-a53
   depends: # 2 items
     - libc
@@ -147,7 +197,7 @@ scripts:
   pre-deinstall: |
   post-upgrade: |
 """
-        self.assertEqual(package.audit_metadata(metadata)["version"], "2.93-r2")
+        self.assertEqual(package.audit_metadata(metadata)["version"], "2.93-r4")
         for script in ("post-install", "pre-deinstall", "post-upgrade"):
             with self.subTest(script=script), self.assertRaisesRegex(ValueError, script):
                 package.audit_metadata(metadata.replace(f"  {script}: |\n", ""))
@@ -257,7 +307,7 @@ scripts:
                   "packaging/openwrt/owrt-dnsmasq/Makefile": "b" * 64,
                   "tools/dnsmasq/build_package.py": "c" * 64}
         sdk = {"archive_sha256": "d" * 64, "files": {"rules.mk": "e" * 64}}
-        freeze = {"schema": 1, "frozen": True, "source_commit": "1" * 40,
+        freeze = {"schema": 1, "frozen": True, "package_release": "4", "source_commit": "1" * 40,
                   "source_date_epoch": 123, "rust_elf_sha256": "f" * 64,
                   "source_files": source, "sdk_archive_sha256": sdk["archive_sha256"],
                   "sdk_files": sdk["files"],
