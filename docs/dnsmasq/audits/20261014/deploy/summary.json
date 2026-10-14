@@ -1,0 +1,1793 @@
+{
+  "passed": true,
+  "case_count": 18,
+  "controller_git_commit": "6fe5804c",
+  "harness_git_commit": "c0cdee0f",
+  "controller_source": {
+    "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/executed-sources/ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28-dnsmasq-deploy",
+    "sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28"
+  },
+  "harness_sources": [
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/executed-sources/18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f-test_deploy_oracle.py",
+      "sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/executed-sources/c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7-test_deploy_oracle.py",
+      "sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/executed-sources/5d3527faaac3240c448e9590692c72684feec95c59881f204cda63e8a254c243-test_deploy_oracle.py",
+      "sha256": "5d3527faaac3240c448e9590692c72684feec95c59881f204cda63e8a254c243"
+    }
+  ],
+  "harness_revision_difference": "Main matrix used18eb663...; the lease-before-start rerun adds one5s retry only after proving initial refusal left stock C running and phaseprepared. FocusedB5case was added later; each exact harness SHA/source is retained. Existing passed cases were not rerun solely for diagnostic test changes.",
+  "rootfs_identity": {
+    "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/fresh-image-identity/result.json",
+    "sha256": "debf7a08812690cc7f8b3f4840eb75de3caacc77eebb3b5f4a262c01cf21841c"
+  },
+  "raw_group_summaries": [
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/summary.json",
+      "sha256": "2530e5362a2b641316bb5ee9613558666d202ca20425adb7a1b25f89fffa9ff5"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/summary.json",
+      "sha256": "6574fac570f125334a4a774e2844368f4c73a86be4b915d3d7b73474fe1df448"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-unconfirmed/summary.json",
+      "sha256": "550da7f16c2d087f542cc3e46ca78d1e510c400e3171809a065ee203f1d7c7ee"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-confirmed/summary.json",
+      "sha256": "7675e23600e2d7b510bdaff60f6488c96953b553ecedb819f626bece9c1725fd"
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-base/summary.json",
+      "sha256": "500f6759a4db1e962c50071afdb281f8114339dcab35976b2694b03d1ad3ab15"
+    }
+  ],
+  "cases": [
+    {
+      "case": "confirmed-fault",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "confirmation_cancels_deadline": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "identity-failed",
+      "fallback_pid": 4470,
+      "no_restart_observation_seconds": 15.014,
+      "time_to_c_elf_seconds": 1.204,
+      "time_to_verified_service_seconds": 5.354,
+      "activation_to_c_elf_seconds": 187.385,
+      "activation_to_verified_service_seconds": 191.535,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-confirmed/confirmed-fault/result.json",
+        "sha256": "b33f2662cc87c34256d54cc06c103db140621ed70aeb7798a51ec440d73e0095"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-confirmed/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-confirmed/confirmed-fault-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-confirmed/confirmed-fault",
+        "--case",
+        "confirmed-fault"
+      ],
+      "confirmed_past_deadline_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      }
+    },
+    {
+      "case": "crash",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "identity-failed",
+      "fallback_pid": 765,
+      "no_restart_observation_seconds": 15.014,
+      "time_to_c_elf_seconds": 2.206,
+      "time_to_verified_service_seconds": 6.158,
+      "activation_to_c_elf_seconds": 8.371,
+      "activation_to_verified_service_seconds": 12.323,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/crash/result.json",
+        "sha256": "7f8fa5808b06ab598ec5501432008283d55c48a4db3d24c74f5a1be14738a70c"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/crash-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/crash",
+        "--case",
+        "crash"
+      ]
+    },
+    {
+      "case": "dhcp-loss",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "health-failed",
+      "fallback_pid": 833,
+      "no_restart_observation_seconds": 15.016,
+      "time_to_c_elf_seconds": 12.146,
+      "time_to_verified_service_seconds": 16.298,
+      "activation_to_c_elf_seconds": 18.305,
+      "activation_to_verified_service_seconds": 22.457,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/dhcp-loss/result.json",
+        "sha256": "1cc0926a15a2bf4a036e84ed982da4031ea27a15ae5cd7729471e33500136e99"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/dhcp-loss-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/dhcp-loss",
+        "--case",
+        "dhcp-loss"
+      ]
+    },
+    {
+      "case": "dns-loss",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "health-failed",
+      "fallback_pid": 834,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 8.299,
+      "time_to_verified_service_seconds": 12.239,
+      "activation_to_c_elf_seconds": 14.454,
+      "activation_to_verified_service_seconds": 18.394,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/dns-loss/result.json",
+        "sha256": "8f70ffa726633bf48e2a5fdb2965876bbf9ae96cc619f491c05db8ff3d9b7ac2"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/dns-loss-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/dns-loss",
+        "--case",
+        "dns-loss"
+      ]
+    },
+    {
+      "case": "failed-handback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "failed_handback_restores_c": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 774,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 2.228,
+      "time_to_verified_service_seconds": 6.179,
+      "activation_to_c_elf_seconds": 8.377,
+      "activation_to_verified_service_seconds": 12.328,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/failed-handback/result.json",
+        "sha256": "fd42443921b14d0194ff7e29a9bfba5a1ed002af2a8d28e1884783334ba1b97b"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/failed-handback-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/failed-handback",
+        "--case",
+        "failed-handback"
+      ],
+      "failed_handback_process": {
+        "pid": 1410,
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "failed_handback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "failed_release": {
+        "rc": 1,
+        "stdout": "",
+        "stderr": "dnsmasq-deploy: handback failed; guarded C restored\n"
+      }
+    },
+    {
+      "case": "guard-killed",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "guardian-restarted",
+      "fallback_pid": 777,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 1.207,
+      "time_to_verified_service_seconds": 5.156,
+      "activation_to_c_elf_seconds": 7.362,
+      "activation_to_verified_service_seconds": 11.311,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/guard-killed/result.json",
+        "sha256": "d4d5e097c88497d754e560fdcd1d00c25455168e3c7e17c7b709fd4c4f916cdc"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/guard-killed-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/guard-killed",
+        "--case",
+        "guard-killed"
+      ]
+    },
+    {
+      "case": "guard-restart-after-fallback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "guard_respawn_keeps_c_pid": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 774,
+      "no_restart_observation_seconds": 15.014,
+      "time_to_c_elf_seconds": 2.227,
+      "time_to_verified_service_seconds": 6.168,
+      "activation_to_c_elf_seconds": 8.387,
+      "activation_to_verified_service_seconds": 12.328,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/guard-restart-after-fallback/result.json",
+        "sha256": "3b16d0e8c91854b8cac8043076e9adfeeb127d9ec8ec9a0b1d1e515706ead328"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/guard-restart-after-fallback-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/guard-restart-after-fallback",
+        "--case",
+        "guard-restart-after-fallback"
+      ]
+    },
+    {
+      "case": "hang",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "health-failed",
+      "fallback_pid": 830,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 8.289,
+      "time_to_verified_service_seconds": 12.238,
+      "activation_to_c_elf_seconds": 14.446,
+      "activation_to_verified_service_seconds": 18.395,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/hang/result.json",
+        "sha256": "bd1753d65d164d1676597a048441ae0fadf548e220c96b2ad548fa2265c3f76e"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/hang-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/hang",
+        "--case",
+        "hang"
+      ]
+    },
+    {
+      "case": "hosts-reload",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "odhcpd_callback_reloads_both_sides": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 853,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 3.039,
+      "time_to_verified_service_seconds": 7.196,
+      "activation_to_c_elf_seconds": 10.314,
+      "activation_to_verified_service_seconds": 14.471,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/hosts-reload/result.json",
+        "sha256": "514c4492b68fc0c8b5fa70d6b8f5507e9e4270c4fe34597049d15dbd20307839"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/hosts-reload-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/hosts-reload",
+        "--case",
+        "hosts-reload"
+      ]
+    },
+    {
+      "case": "lease-before-start",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "lease_since_prepare_preserved": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 778,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 2.227,
+      "time_to_verified_service_seconds": 6.178,
+      "activation_to_c_elf_seconds": 8.378,
+      "activation_to_verified_service_seconds": 12.329,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-base/lease-before-start/result.json",
+        "sha256": "e18293bb514512f475ae0c7a5671bed0ba6afd4f9d4f2118ab6cac2165fa9a9b"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-base/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-base/lease-before-start-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-base/lease-before-start",
+        "--case",
+        "lease-before-start"
+      ]
+    },
+    {
+      "case": "manual-rollback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "stock_management_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 774,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 2.228,
+      "time_to_verified_service_seconds": 6.177,
+      "activation_to_c_elf_seconds": 8.378,
+      "activation_to_verified_service_seconds": 12.327,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/manual-rollback/result.json",
+        "sha256": "060b640a081feb2531f61eff6cd9ea01173dbfcd40f8f1eae93a310c95f475df"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/manual-rollback-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/manual-rollback",
+        "--case",
+        "manual-rollback"
+      ],
+      "released_process": {
+        "pid": 1445,
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      },
+      "released_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      }
+    },
+    {
+      "case": "overlay-full",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "identity-failed",
+      "fallback_pid": 767,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 2.22,
+      "time_to_verified_service_seconds": 6.164,
+      "activation_to_c_elf_seconds": 8.373,
+      "activation_to_verified_service_seconds": 12.317,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/overlay-full/result.json",
+        "sha256": "c9198631dc38067599ba523abf81c0b32280a1d0d8df932b6f630ec25d1c6fb8"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/overlay-full-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/overlay-full",
+        "--case",
+        "overlay-full"
+      ],
+      "space_fault": {
+        "errno": "ENOSPC",
+        "bytes_written": 31334400,
+        "available_bytes": 0
+      }
+    },
+    {
+      "case": "overlay-readonly",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "identity-failed",
+      "fallback_pid": 764,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 2.223,
+      "time_to_verified_service_seconds": 5.101,
+      "activation_to_c_elf_seconds": 8.395,
+      "activation_to_verified_service_seconds": 11.273,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/overlay-readonly/result.json",
+        "sha256": "8c36d4f18c4863c7b6c45de9499781bb3c77b38342ee3ffb3f5e86e996f6dbbe"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/overlay-readonly-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/overlay-readonly",
+        "--case",
+        "overlay-readonly"
+      ],
+      "space_fault": {
+        "errno": "EROFS"
+      }
+    },
+    {
+      "case": "startup-failure",
+      "passed": true,
+      "steps": {
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": null,
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "activation-failed",
+      "fallback_pid": 614,
+      "no_restart_observation_seconds": 15.014,
+      "time_to_c_elf_seconds": 0.001,
+      "time_to_verified_service_seconds": 0.141,
+      "activation_to_c_elf_seconds": 7.074,
+      "activation_to_verified_service_seconds": 7.214,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": null,
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/startup-failure/result.json",
+        "sha256": "226e3edb2ae1c995430ea207796579547f32d33212b0a8e34c1db30b4e03672a"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/startup-failure-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/startup-failure",
+        "--case",
+        "startup-failure"
+      ],
+      "fault_candidate_sha256": "4d32eec28d6336f3a0d4f727a5e46e9105aa6ffb1608a5e27ea67a42dcde422a"
+    },
+    {
+      "case": "tmp-full",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "full_tmp_handback_preserves_c": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "identity-failed",
+      "fallback_pid": 767,
+      "no_restart_observation_seconds": 15.014,
+      "time_to_c_elf_seconds": 2.211,
+      "time_to_verified_service_seconds": 6.161,
+      "activation_to_c_elf_seconds": 8.358,
+      "activation_to_verified_service_seconds": 12.308,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/tmp-full/result.json",
+        "sha256": "aaaff36d767d0268072434688839252606495417b35dd11bebe69ff5ed5f6c33"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/tmp-full-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-fast/tmp-full",
+        "--case",
+        "tmp-full"
+      ],
+      "space_fault": {
+        "errno": "ENOSPC",
+        "bytes_written": 65536,
+        "available_bytes": 0
+      }
+    },
+    {
+      "case": "ubusd-candidate",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "ubus_objects_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 929,
+      "no_restart_observation_seconds": 15.014,
+      "time_to_c_elf_seconds": 9.204,
+      "time_to_verified_service_seconds": 13.354,
+      "activation_to_c_elf_seconds": 15.364,
+      "activation_to_verified_service_seconds": 19.514,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/ubusd-candidate/result.json",
+        "sha256": "5b336cdb0b6e6ebe684d7b578e4b9b2ed46d467975601b225f4be80ee21d48e5"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/ubusd-candidate-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/ubusd-candidate",
+        "--case",
+        "ubusd-candidate"
+      ],
+      "before_bus_restart": {
+        "pid": 526,
+        "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9"
+      },
+      "after_bus_restart": {
+        "pid": 798,
+        "sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9"
+      }
+    },
+    {
+      "case": "ubusd-fallback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "ubus_objects_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "manual",
+      "fallback_pid": 902,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 7.268,
+      "time_to_verified_service_seconds": 7.422,
+      "activation_to_c_elf_seconds": 13.422,
+      "activation_to_verified_service_seconds": 13.576,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/ubusd-fallback/result.json",
+        "sha256": "261624426f9182f91f8545c4580a2e285980b9ddbe44a5c8b016e61e4ea31b1b"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/ubusd-fallback-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/ubusd-fallback",
+        "--case",
+        "ubusd-fallback"
+      ],
+      "before_bus_restart": {
+        "pid": 775,
+        "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87"
+      }
+    },
+    {
+      "case": "unconfirmed",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+      "harness_sha256": "18eb663447378519915953830e19b03a1c99f95c456ca89bdccf07b7e2b3ae0f",
+      "candidate_expected_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_expected_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "fallback_phase": "fallback",
+      "fallback_reason": "confirmation-timeout",
+      "fallback_pid": 4275,
+      "no_restart_observation_seconds": 15.015,
+      "time_to_c_elf_seconds": 175.861,
+      "time_to_verified_service_seconds": 184.325,
+      "activation_to_c_elf_seconds": 182.023,
+      "activation_to_verified_service_seconds": 190.487,
+      "timing_note": "fault timer starts after start() and initial candidate client; activation timer starts before start(); startup-failure and unconfirmed use activation timing",
+      "stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "package_database_before_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "package_database_after_sha256": "4c7b6466a333633b07c87fa5d89b1379cafd4c3eab8d9e783da6d7c01f3a7341",
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-unconfirmed/unconfirmed/result.json",
+        "sha256": "8a99f23ca9c1c5bf8e477b1a72f7041d82d1006cef9d2e746303a98b352417d9"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-unconfirmed/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-unconfirmed/unconfirmed-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-unconfirmed/unconfirmed",
+        "--case",
+        "unconfirmed"
+      ]
+    }
+  ],
+  "rejected_test_setups": [
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/final-lifecycle/failed-handback/result.json",
+      "sha256": "da56648b88fa51e112c1d6312100068404b883835fb5ce3533e6bc39827f82eb",
+      "classification": "test-fixture failure",
+      "explanation": "Rejected fault setup: BusyBox standalone umount ignored PATH shim; handback succeeded; replaced by real held-file EBUSY test."
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/final-lifecycle/lease-before-start/result.json",
+      "sha256": "098109728798d63cad573c8cdd4fdce90ef70c93418bcc2cc884c2de904cde0b",
+      "classification": "test-fixture failure",
+      "explanation": "Test-client OFFER receive loop ended each attempt after 0.5s, below stock 3s ping delay; fixed retry deadline."
+    },
+    {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/verified-confirmed/confirmed-fault/result.json",
+      "sha256": "f46b5b371fab6e560a2e08a6f18b13a54abb7462c603b15ea781979dc08d212f",
+      "classification": "test-fixture failure",
+      "explanation": "Same too-short test-client OFFER retry after its 2-minute lease expired; rerun with fixed harness."
+    }
+  ],
+  "scope": "Exact OpenWrt image userspace in fresh private mount/PID/network namespaces on AArch64 Oracle Linux; no physical router, Wi-Fi hardware, target kernel, flash, reboot, global OOM or power-loss test.",
+  "network_evidence": "Each fixture uses a real separate veth client with unconfigured-interface AF_PACKET DHCP OFFER/ACK, assigned DNS/router options and UDP+TCP DNS; synthetic local names, addresses and MACs only.",
+  "timing_interpretation": "First C ELF appearance is separate from verified client DNS/DHCP + ubus objects + controller fallback phase. For startup failure, start() already waited for C; use activation timings. Unconfirmed uses production180s deadline. confirmed-fault remains healthy after started+185s before SIGKILL.",
+  "no_package_transaction": true,
+  "previous_controller_regression": {
+    "controller_sha256": "9474152bb9507b2005b8ffc9ef976caf0e77d4f748a66ceaa625be599a30f011",
+    "evidence": {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/confirm-diagnostic/confirmed-fault/result.json",
+      "sha256": "ffe1e3d73b66e54083182c4a694f7c862e3e89e7157b174af697e71fc0b32688"
+    },
+    "observation": "At154s an external client completed DHCP and DNS; confirmation then lost to reason health-failed at161.5s, before180sdeadline. Rootcause was not conclusively separated from previous combined identity/wire reason.",
+    "change": "One protocol probe per guardian iteration now serves monitoring and confirmation; two consecutive wire failures separated by loop delay trigger rollback, while identity failure is immediate. Final confirmed-fault exercises the same expired-client-lease interaction and remains healthy past185s before intentional SIGKILL."
+  },
+  "final_controller_git_commit": "af66fd2d",
+  "final_controller_source": {
+    "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/executed-sources/83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1-dnsmasq-deploy",
+    "sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1"
+  },
+  "focused_check_count": 4,
+  "unique_case_count": 19,
+  "focused_checks": [
+    {
+      "case": "b5-transient-streak",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "b5_transient_streak_reset": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+      "harness_sha256": "5d3527faaac3240c448e9590692c72684feec95c59881f204cda63e8a254c243",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "service_recovered_seconds": 18.29,
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/b5-transient-streak/result.json",
+        "sha256": "0b89eb7201e6a20501784fa1e396671aaacf0a91bd6d5f8cb8d237a283aa783c"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/b5-transient-streak-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy-b5-final",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/b5-transient-streak",
+        "--case",
+        "b5-transient-streak"
+      ],
+      "probe_fault_injection": "calls 1 and 3 fail; call 1 waits for ubusd restart; all other calls exec unchanged helper",
+      "probe_calls": 4,
+      "b5_repaired_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      }
+    },
+    {
+      "case": "ubusd-candidate",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "ubus_objects_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+      "harness_sha256": "5d3527faaac3240c448e9590692c72684feec95c59881f204cda63e8a254c243",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "service_recovered_seconds": 13.34,
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/ubusd-candidate/result.json",
+        "sha256": "d08133e4c1a283cb00bdefcd0cbc04dedf72231743fcaf82c770bf8a4904ad1a"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/ubusd-candidate-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy-b5-final",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/ubusd-candidate",
+        "--case",
+        "ubusd-candidate"
+      ]
+    },
+    {
+      "case": "ubusd-fallback",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "ubus_objects_restored": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+      "harness_sha256": "5d3527faaac3240c448e9590692c72684feec95c59881f204cda63e8a254c243",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "service_recovered_seconds": 10.189,
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/ubusd-fallback/result.json",
+        "sha256": "5c9ed5d0564496aa49bc24032a22d10959921eb914efa321b003cf4e5881e626"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/ubusd-fallback-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy-b5-final",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-final/ubusd-fallback",
+        "--case",
+        "ubusd-fallback"
+      ]
+    },
+    {
+      "case": "lease-before-start",
+      "passed": true,
+      "steps": {
+        "candidate_actual_elf": true,
+        "lease_since_prepare_preserved": true,
+        "actual_rom_elf": true,
+        "real_client_dns_dhcp": true,
+        "no_fallback_restart_loop": true,
+        "package_database_unchanged": true
+      },
+      "controller_sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+      "harness_sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+      "candidate_actual_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+      "fallback_actual_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "service_recovered_seconds": 6.155,
+      "fallback_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "dns_udp": true,
+        "dns_tcp": true
+      },
+      "raw_result": {
+        "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-final/lease-before-start/result.json",
+        "sha256": "da2295c96559abc69227dbf5fa5748c01dff9689c8a86b6476bedf09ef0a3a00"
+      },
+      "replay_command": [
+        "sh",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/run_isolated.sh",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/actual_config_network.py",
+        "--source-root",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-final/network-source",
+        "--router-cidr",
+        "192.168.1.1/24",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-final/lease-before-start-network",
+        "--",
+        "/usr/bin/python3",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/test_deploy_oracle.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust-binary",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--probe-binary",
+        "/home/ubuntu/dnsmasq-deploy-probe-20261014/private/build-01/dnsmasq-deploy-probe",
+        "--deploy-dir",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/tools/deploy-b5-final",
+        "--output",
+        "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/lease-preflight-final/lease-before-start",
+        "--case",
+        "lease-before-start"
+      ]
+    }
+  ],
+  "final_delta": "Exactly one wire_failures=0 assignment after a successful B5 repair; full18-case matrix covers parent6fe5804c, four focusedchecks cover finalaf66fd2d, including exactnegative/positive regression control.",
+  "b5_negative_control": {
+    "expected_failure": true,
+    "matched_prediction": true,
+    "controller_sha256": "ae4cf7a01cef0f9057350b44c9b744527caa44ef7a58dd0ad1e2d98d992b8c28",
+    "observation": "The two injected failures were separated by successful B5 restart/readiness, but the old counter retained the first failure; thirdcall caused undesired C fallback.",
+    "failure_status": "live_pid=937\nlive_sha256=097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87\nphase=fallback\nreason=health-failed\ntoken=8594b9bb-bccd-482d-a03e-407195f8d16c\nstarted=1697972\ndeadline=1698152\nguard_pid=449\ndaemon_pid=937\nactual_sha256=097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87\nbus_repair=rust\nlast_probe_failure=injected-third-failure\n",
+    "raw_result": {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/b5-before-fix/b5-transient-streak/result.json",
+      "sha256": "ccfffc19d2440fed3d0747c881b27781d627a051b25a2bca929bdf865a253cce"
+    }
+  },
+  "safe_preflight_refusal": {
+    "raw_result": {
+      "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/guard-v2-lifecycle/lease-before-start/result.json",
+      "sha256": "4d041c1be3d1443fcd5314926e7bffd08cf6b5ae192d58a9560d3217ab761176"
+    },
+    "observation": "New externalclient was healthy but start preflight DHCPprobe failed; startrefused, phase remained prepared and liveC unchanged. Targeted rerun permits one5s retry only after checking that exact safe state."
+  },
+  "final_harness_git_commit": "fc178729",
+  "cleanup": {
+    "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/cleanup.json",
+    "sha256": "a458856c3df952ecf1e0f9966d45eb127d321b00cab5f9bbcc0dc532eccfe4a3"
+  },
+  "derivation_script": {
+    "path": "/home/ubuntu/dnsmasq-deploy-oracle-harness-20261014/private/summarize_verified_deploy.py",
+    "sha256": "c1f4e7bf652eb8ae924a961772a866cdf695b76f0d55b19e89d9787487989996"
+  }
+}
