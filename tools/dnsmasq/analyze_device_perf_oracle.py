@@ -24,9 +24,28 @@ def spread(values):
 
 def traffic(folder):
     load=json.loads((folder/'client.json').read_text())
+    identity=json.loads((folder/'daemon-identity.json').read_text())
+    mapped=identity['mapped_files']
+    side=folder.name.rsplit('-',1)[1]
+    required=('097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87' if side=='c' else
+              '50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c')
+    assert required in mapped.values(), 'actual mapped daemon identity'
+    if side=='c':
+        expected={'8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b',
+                  '33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c',
+                  'a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063',
+                  '2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04'}
+        assert expected <= set(mapped.values()), 'exact image library identities'
     lat=list(struct.iter_unpack('<QQQHHBBBB',(folder/'client.latencies.bin').read_bytes()))
-    lag=dict(struct.iter_unpack('<QQ',(folder/'client.send-lag.bin').read_bytes()))
+    lag_rows=list(struct.iter_unpack('<QQ',(folder/'client.send-lag.bin').read_bytes()))
+    lag=dict(lag_rows)
+    assert len(lag)==len(lag_rows)==len(lat)==len({r[0] for r in lat})
     assert set(lag)=={r[0] for r in lat}
+    assert all(r[6]==1 and r[8]==0 and r[5] in (0,1,2,3) for r in lat)
+    count=load['measurement']
+    assert len(lat)==count['sent']==sum(count[k] for k in ('correct','timeout','wrong','transport_error'))
+    for status,key in enumerate(('correct','timeout','wrong','transport_error')):
+        assert sum(r[5]==status for r in lat)==count[key]
     good=[r for r in lat if r[5]==0]
     assert len(good)==load['measurement']['correct']
     resources=[json.loads(x) for x in (folder/'resources.stdout').read_text().splitlines()]
@@ -68,7 +87,8 @@ def traffic(folder):
        'tree_fd_peak':max(sum(p['fd_count'] for p in r['processes']) for r in measured),
        'tree_rss_peak_kib':max(r['tree_rss_kib'] for r in measured),
        'tree_pss_peak_kib':max((r['tree_pss_kib'] for r in measured if r['tree_pss_kib'] is not None),default=None),
-       'tree_private_peak_kib':max(sum(p['private_clean_kib']+p['private_dirty_kib'] for p in r['processes']) for r in measured),
+       'tree_private_peak_kib':(max(sum(p['private_clean_kib']+p['private_dirty_kib'] for p in r['processes']) for r in measured)
+           if all(p['pss_kib'] is not None for r in measured for p in r['processes']) else None),
        'tree_process_peak':max(len(r['processes']) for r in measured),
        'threads_peak':max(sum(p['thread_count'] for p in r['processes']) for r in measured),
        'upstream_steady_requests':base['upstream_steady_requests'],
@@ -87,7 +107,9 @@ def lifecycle(folder):
     rows=[json.loads(x) for x in (folder/'lifecycle.stdout').read_text().splitlines()]
     err=(folder/'lifecycle.stderr').read_text()
     match=re.search(r'children_cpu_usec=(\d+)',err)
-    return {'valid':all(x['ok'] for x in rows),'samples':len(rows),'hosts':rows[0]['hosts'],
+    collector=json.loads((folder/'result.json').read_text())
+    usage=json.loads((folder/'lifecycle.usage.json').read_text())
+    return {'valid':len(rows)==10 and collector['valid'] and usage['exit']==0 and all(x['ok'] for x in rows),'samples':len(rows),'hosts':rows[0]['hosts'],
             'initial_leases':rows[0]['initial_leases'],'latency_us':quantiles([x['latency_ns']/1000 for x in rows]),
             'cpu_ticks':sum(x['cpu_ticks'] for x in rows),'cpu_scope':rows[0]['cpu_scope'],
             'children_whole_run_cpu_us':int(match.group(1)) if match else None,
@@ -127,21 +149,37 @@ def main():
             if not isinstance(c,dict) or not c['median']:continue
             delta=100*(r['median']/c['median']-1)
             noise=max((c['max']-c['min'])/c['median'],(r['max']-r['min'])/r['median'] if r['median'] else 0)*100
+            def metric(row):
+                if key in row:return row[key]
+                for suffix in ('_p50','_p95','_median'):
+                    if key.endswith(suffix):return row[key[:-len(suffix)]][suffix[1:] if suffix!='_median' else 'p50']
+                raise KeyError(key)
+            paired_c={v['round']:v for v in sides['c']};paired_r={v['round']:v for v in sides['rust']}
+            assert set(paired_c)==set(paired_r)==set(range(1,6))
+            differences=[metric(paired_r[i])-metric(paired_c[i]) for i in range(1,6)]
+            same_direction=sum(d>0 for d in differences) if delta>0 else sum(d<0 for d in differences) if delta<0 else 0
+            all_valid=all(v['valid'] for rows in sides.values() for v in rows)
             comparisons[key]={'rust_vs_c_percent':delta,'max_relative_range_percent':noise,
-                              'absolute_percent_difference_exceeds_range':abs(delta)>noise}
+                              'absolute_percent_difference_exceeds_range':abs(delta)>noise,
+                              'paired_differences':differences,'pairs_in_median_direction':same_direction,
+                              'all_ten_windows_valid':all_valid,
+                              'direction_supported':all_valid and same_direction>=4 and abs(delta)>noise}
         if 'window_cpu_ticks' in summary['c']:
             tick_gap=abs(summary['rust']['window_cpu_ticks']['median']-summary['c']['window_cpu_ticks']['median'])
-            summary['cpu_ranking_resolution_ok']=(tick_gap>=8 and
+            summary['cpu_ranking_resolution_ok']=(tick_gap>8 and
                 summary['c']['cpu_all_windows_at_least_10_ticks'] and
                 summary['rust']['cpu_all_windows_at_least_10_ticks'])
             summary['cpu_median_tick_gap']=tick_gap
+            for key in ('window_cpu_ticks','cpu_us_per_completion'):
+                comparisons[key]['resolution_ok']=summary['cpu_ranking_resolution_ok']
+                comparisons[key]['direction_supported'] &= summary['cpu_ranking_resolution_ok']
         summary['comparisons']=comparisons;summaries[scenario]=summary
     result={'environment':'Oracle supplementary only; not AX3000T performance',
       'identity_sha256':hashlib.sha256((a.raw/'identity.json').read_bytes()).hexdigest(),
       'protocol_sha256':hashlib.sha256((a.raw/'protocol.md').read_bytes()).hexdigest(),
       'complete':complete,'summaries':summaries,'windows':windows,
       'notes':['No p99: each round has fewer than 10000 correct replies.',
-               'CPU rankings require at least 10 service ticks in every window, at least 8 median ticks between versions, and difference greater than range.',
+               'CPU rankings require at least 10 service ticks in every window, more than 8 median ticks between versions, and difference greater than range.',
                'Helper and full daemon wait4 figures are separate from warmup+measurement service tick CPU.',
                'Tree RSS includes shared mappings and is not private memory.',
                'Lifecycle whole-run children CPU includes shutdown and idle; signal-to-ready tick counters remain in raw.']}
