@@ -273,17 +273,21 @@ impl<'a> LocalAnswerer<'a> {
         {
             return Ok(None);
         }
-        // Lease expiry and the subsequent local lookup use the same original
-        // name. Retain that conversion; a configured CNAME still changes only
-        // the expiry traversal cursor, not the caller's question.
-        let dotted_name = if class_in {
+        // This temporary name never enters the cache or a published generation.
+        // Its dotted form is bounded by the validated wire name. Keep only a
+        // length across lookups so the buffer can also be filled lazily when
+        // there are no leases or a cached CNAME owns the question.
+        let mut dotted_buffer = [0; super::wire::MAX_NAME_LEN];
+        let dotted_length = if class_in && !lease_names.entries().is_empty() {
+            let length = wire_to_dotted_into(&question.name, &mut dotted_buffer);
             expire_lease_lookups(
                 self.config,
                 lease_names,
-                &question.name,
+                length.map(|length| &dotted_buffer[..length]),
                 question.rrtype,
                 now,
-            )
+            );
+            length
         } else {
             None
         };
@@ -316,10 +320,12 @@ impl<'a> LocalAnswerer<'a> {
                     .any(|record| dotted_key(&record.alias) == key)
             };
         if has_cname {
+            let length = dotted_length
+                .or_else(|| wire_to_dotted_into(&question.name, &mut dotted_buffer));
             let (local_owned, terminal) = add_cname_chain(
                 self.config,
                 self.hosts,
-                &question.name,
+                length.map(|length| &dotted_buffer[..length]),
                 question.rrtype,
                 leases,
                 cache.as_deref_mut(),
@@ -342,11 +348,14 @@ impl<'a> LocalAnswerer<'a> {
             // published DHCP A can coexist with an older negative marker.
             return Ok(None);
         } else if class_in {
-            if let Some(name) = dotted_name.or_else(|| wire_to_dotted(&question.name)) {
+            if let Some(length) = dotted_length
+                .or_else(|| wire_to_dotted_into(&question.name, &mut dotted_buffer))
+            {
+                let name = &dotted_buffer[..length];
                 let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
                     self.hosts,
-                    &name,
+                    name,
                     question.rrtype,
                     self.local_ttl,
                     leases,
@@ -807,21 +816,20 @@ fn append_mail_addresses(
 fn expire_lease_lookups(
     config: &DnsConfig,
     leases: &mut Arc<LeaseNames>,
-    query: &Name,
+    name: Option<&[u8]>,
     qtype: u16,
     now: i64,
-) -> Option<Vec<u8>> {
+) {
     if leases.entries().is_empty() {
-        return None;
+        return;
     }
-    let query_name = wire_to_dotted(query)?;
-    let mut name = query_name.as_slice();
+    let Some(mut name) = name else { return };
     for _ in 0..100 {
         if leases.has_expired_name(&name, now) {
             Arc::make_mut(leases).expire_name(&name, now);
         }
         if qtype == TYPE_CNAME {
-            return Some(query_name);
+            return;
         }
         let Some(cname) = config
             .records
@@ -844,7 +852,6 @@ fn expire_lease_lookups(
     {
         Arc::make_mut(leases).expire_reverse(now);
     }
-    Some(query_name)
 }
 
 fn dotted_key(name: &[u8]) -> Vec<u8> {
@@ -857,14 +864,41 @@ fn dotted_key(name: &[u8]) -> Vec<u8> {
 }
 
 pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
+    let mut out = Vec::with_capacity(name.as_wire().len().saturating_sub(2));
+    emit_dotted_name(name, |label, first| {
+        if !first {
+            out.push(b'.');
+        }
+        out.extend(label.iter().map(u8::to_ascii_lowercase));
+    })?;
+    Some(out)
+}
+
+fn wire_to_dotted_into(name: &Name, out: &mut [u8; super::wire::MAX_NAME_LEN]) -> Option<usize> {
+    let mut length = 0;
+    emit_dotted_name(name, |label, first| {
+        if !first {
+            out[length] = b'.';
+            length += 1;
+        }
+        let end = length + label.len();
+        for (output, input) in out[length..end].iter_mut().zip(label) {
+            *output = input.to_ascii_lowercase();
+        }
+        length = end;
+    })?;
+    Some(length)
+}
+
+fn emit_dotted_name(name: &Name, mut emit: impl FnMut(&[u8], bool)) -> Option<()> {
     let wire = name.as_wire();
-    let mut out = Vec::with_capacity(wire.len().saturating_sub(2));
     let mut pos = 0;
+    let mut first = true;
     while pos < wire.len() {
         let len = usize::from(wire[pos]);
         pos += 1;
         if len == 0 {
-            return Some(out);
+            return Some(());
         }
         if len > 63 || pos.checked_add(len)? > wire.len() {
             return None;
@@ -874,10 +908,8 @@ pub(super) fn wire_to_dotted(name: &Name) -> Option<Vec<u8>> {
         if wire[pos..pos + len].contains(&b'.') {
             return None;
         }
-        if !out.is_empty() {
-            out.push(b'.');
-        }
-        out.extend(wire[pos..pos + len].iter().map(u8::to_ascii_lowercase));
+        emit(&wire[pos..pos + len], first);
+        first = false;
         pos += len;
     }
     None
@@ -973,7 +1005,7 @@ pub(super) fn arpa_address(name: &[u8]) -> Option<IpAddr> {
 fn add_cname_chain(
     config: &DnsConfig,
     hosts: &mut Hosts,
-    alias: &Name,
+    alias: Option<&[u8]>,
     qtype: u16,
     leases: LeaseView<'_>,
     cache: Option<&mut Cache>,
@@ -982,7 +1014,7 @@ fn add_cname_chain(
     notices: &mut QueryEvents,
 ) -> (bool, Option<Vec<u8>>) {
     let ttl = leases.local_ttl;
-    let Some(mut current) = wire_to_dotted(alias) else {
+    let Some(mut current) = alias else {
         return (false, None);
     };
     let mut visited = Vec::<Vec<u8>>::new();
@@ -1018,7 +1050,7 @@ fn add_cname_chain(
         if qtype == TYPE_CNAME {
             return (true, None);
         }
-        current = record.target.clone();
+        current = &record.target;
     }
 
     let (terminal_rows, _terminal_owned, reverse_synthesized) = add_local_records_for_name(
@@ -1037,7 +1069,7 @@ fn add_cname_chain(
     }
     // The alias itself owns the answer even when its terminal target has no
     // matching RR (CNAME-only response).
-    (true, (!reverse_synthesized).then_some(current))
+    (true, (!reverse_synthesized).then(|| current.to_vec()))
 }
 
 /// Collect all local records for one owner. The returned rows are ownerless;
@@ -1704,6 +1736,32 @@ fn labels(wire: &[u8]) -> Vec<&[u8]> {
 mod tests {
     use super::*;
     use crate::config::{lex_line, validate_directive};
+
+    #[test]
+    fn dotted_scratch_preserves_root_binary_case_and_maximum_boundaries() {
+        let mut scratch = [0x99; super::super::wire::MAX_NAME_LEN];
+        assert_eq!(wire_to_dotted_into(&Name::root(), &mut scratch), Some(0));
+        let name = Name::from_dotted_bytes(b"UPPER.l\xffase").unwrap();
+        let length = wire_to_dotted_into(&name, &mut scratch).unwrap();
+        assert_eq!(&scratch[..length], b"upper.l\xffase");
+        let (name, _) = super::super::wire::decode_name(&[3, 0, 1, b'A', 0], 0, 0).unwrap();
+        let length = wire_to_dotted_into(&name, &mut scratch).unwrap();
+        assert_eq!(&scratch[..length], &[0, 1, b'a']);
+        let (dot, _) = super::super::wire::decode_name(&[3, b'a', b'.', b'b', 0], 0, 0).unwrap();
+        assert_eq!(wire_to_dotted_into(&dot, &mut scratch), None);
+        let mut maximum = Vec::new();
+        for length in [63, 63, 63, 61] {
+            maximum.push(length);
+            maximum.extend(std::iter::repeat_n(b'A', length.into()));
+        }
+        maximum.push(0);
+        let (name, _) = super::super::wire::decode_name(&maximum, 0, 0).unwrap();
+        let length = wire_to_dotted_into(&name, &mut scratch).unwrap();
+        assert_eq!(length, 253);
+        assert_eq!(scratch.iter().filter(|&&byte| byte == b'.').count(), 3);
+        assert!(scratch[..length].iter().all(|&byte| byte == b'a' || byte == b'.'));
+        assert_eq!(&scratch[length..], &[0x99; 2]);
+    }
 
     fn apply(config: &mut DnsConfig, line: &[u8]) {
         let directive = lex_line(line).unwrap().unwrap();

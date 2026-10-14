@@ -1,0 +1,122 @@
+{
+  "status": "screen-only-pending-timing-and-correctness",
+  "label": "DNS-3",
+  "mechanism": "Lazily populate a 255-byte local stack buffer for dotted query names. Reuse its borrowed prefix for expiry/local/configured-CNAME processing; neither persistent Name nor cache layout changes.",
+  "source_sha256": "ae69f9d7d74ed320c6b6a9e38e85659577cbeed045267758da697ca6d28a09ec",
+  "allocation_rows": [
+    {
+      "scene": "hit",
+      "operations": 8000,
+      "dns2_allocations_per_op": 4.0,
+      "dns3_allocations_per_op": 3.0,
+      "dns2_requested_bytes_per_op": 245.0,
+      "dns3_requested_bytes_per_op": 224.0,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "hit-upper",
+      "operations": 8000,
+      "dns2_allocations_per_op": 6.0,
+      "dns3_allocations_per_op": 5.0,
+      "dns2_requested_bytes_per_op": 291.0,
+      "dns3_requested_bytes_per_op": 270.0,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "hit-leases",
+      "operations": 8000,
+      "dns2_allocations_per_op": 5.7,
+      "dns3_allocations_per_op": 4.7,
+      "dns2_requested_bytes_per_op": 280.7,
+      "dns3_requested_bytes_per_op": 259.7,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "miss",
+      "operations": 8000,
+      "dns2_allocations_per_op": 2.0,
+      "dns3_allocations_per_op": 1.0,
+      "dns2_requested_bytes_per_op": 53.0,
+      "dns3_requested_bytes_per_op": 32.0,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "miss-leases",
+      "operations": 8000,
+      "dns2_allocations_per_op": 3.7,
+      "dns3_allocations_per_op": 2.7,
+      "dns2_requested_bytes_per_op": 88.7,
+      "dns3_requested_bytes_per_op": 67.7,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "host",
+      "operations": 8000,
+      "dns2_allocations_per_op": 8.0,
+      "dns3_allocations_per_op": 7.0,
+      "dns2_requested_bytes_per_op": 499.6,
+      "dns3_requested_bytes_per_op": 478.6,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "rrset",
+      "operations": 8000,
+      "dns2_allocations_per_op": 5.0,
+      "dns3_allocations_per_op": 4.0,
+      "dns2_requested_bytes_per_op": 846.6,
+      "dns3_requested_bytes_per_op": 825.6,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "cname",
+      "operations": 8000,
+      "dns2_allocations_per_op": 10.0,
+      "dns3_allocations_per_op": 9.0,
+      "dns2_requested_bytes_per_op": 544.0,
+      "dns3_requested_bytes_per_op": 521.0,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "cname-leases",
+      "operations": 8000,
+      "dns2_allocations_per_op": 13.7,
+      "dns3_allocations_per_op": 11.7,
+      "dns2_requested_bytes_per_op": 625.1,
+      "dns3_requested_bytes_per_op": 581.1,
+      "checksum_equal": true,
+      "live_balance": 0
+    },
+    {
+      "scene": "cname-config",
+      "operations": 8000,
+      "dns2_allocations_per_op": 819.0,
+      "dns3_allocations_per_op": 818.0,
+      "dns2_requested_bytes_per_op": 19436.6,
+      "dns3_requested_bytes_per_op": 19415.6,
+      "checksum_equal": true,
+      "live_balance": 0
+    }
+  ],
+  "one_pass_perf": {
+    "operations": 1000000,
+    "dns2_instructions": 5151672746,
+    "dns3_instructions": 4929813964,
+    "change_percent": -4.306538729042164,
+    "dns2_cycles": 2018133409,
+    "dns3_cycles": 1960099629,
+    "qualification": "Concurrent screen only, setup included, cycles not timing-qualified."
+  },
+  "tests": {
+    "mac_local_module_passed": 40,
+    "note": "Includes new independent root/binary/literal-dot/maximum-output test; not the Linux full correctness gate."
+  },
+  "memory_tradeoff": "255-byte transient stack scratch replaces temporary heap name; no heap/cache capacity expansion. Stack frame and shipped ELF size still need final measurement."
+}

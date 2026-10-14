@@ -4,6 +4,7 @@
 //! isolated perf/timing. All setup, priming and output are outside the scope.
 
 use dnsmasq_rs::config::dns::DnsConfig;
+use dnsmasq_rs::config::records::Cname;
 use dnsmasq_rs::dhcp::persistence::DnsLeaseRecord;
 use dnsmasq_rs::dns::cache::{Cache, Kind, Policy, Record};
 use dnsmasq_rs::dns::daemon::{DnsDaemon, QueryResult};
@@ -74,11 +75,14 @@ struct Fixture {
 
 impl Fixture {
     fn new(scene: &str) -> Self {
-        let known = ["hit", "hit-upper", "hit-leases", "miss", "miss-leases", "host", "rrset"];
+        let known = ["hit", "hit-upper", "hit-leases", "miss", "miss-leases", "host", "rrset",
+                     "cname", "cname-leases", "cname-config"];
         assert!(known.contains(&scene), "unknown diagnostic scene");
         let rrset = scene == "rrset";
-        let population = if rrset { 100 } else { 800 };
+        let chain = scene.starts_with("cname");
+        let population = if rrset { 100 } else if chain { 400 } else { 800 };
         let mut cache = Cache::new(1000, Policy::default());
+        let mut config = DnsConfig::default();
         let mut hosts = Hosts::new();
         let mut queries = Vec::new();
         for i in 0..population {
@@ -86,6 +90,26 @@ impl Fixture {
             let name = Name::from_ascii(&dotted).unwrap();
             let rrtype = if i % 10 < 7 { 1 } else { 28 };
             let ipv6 = rrtype == 28;
+            if chain {
+                let target_dotted = format!("target{i:04}.perf.invalid");
+                let target_name = Name::from_ascii(&target_dotted).unwrap();
+                if scene == "cname-config" {
+                    config.records.cnames.push(Cname {
+                        alias: dotted.as_bytes().to_vec(), target: target_dotted.as_bytes().to_vec(), ttl: None,
+                    });
+                    hosts.insert(target_dotted.into_bytes(), if ipv6 {
+                        IpAddr::V6("2001:db8::1".parse().unwrap())
+                    } else { IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)) }, 120, 2);
+                } else {
+                    cache.start_insert();
+                    let alias = cache.insert(Record { name: name.clone(), kind: Kind::Cname,
+                        negative: false, data: target_name.as_wire().to_vec() }, 100, 120).unwrap();
+                    let target = cache.insert(Record { name: target_name, kind: if ipv6 { Kind::Ipv6 } else { Kind::Ipv4 },
+                        negative: false, data: if ipv6 { vec![1; 16] } else { vec![192, 0, 2, 1] } }, 100, 120).unwrap();
+                    assert!(cache.set_cname_target(alias, target));
+                    assert!(cache.commit());
+                }
+            }
             if scene.starts_with("hit") || rrset {
                 cache.start_insert();
                 for j in 0..if rrset { 8 } else { 1 } {
@@ -107,7 +131,7 @@ impl Fixture {
             writer.question(&question_name, rrtype, 1).unwrap();
             queries.push(writer.finish());
         }
-        let mut local = LocalDnsService::new(DnsConfig::default(), hosts, 120, 1232);
+        let mut local = LocalDnsService::new(config, hosts, 120, 1232);
         if scene.ends_with("leases") {
             let names: Vec<_> = (0..6).map(|i| format!("lease{i}.perf.invalid").into_bytes()).collect();
             let leases: Vec<_> = names.iter().enumerate().map(|(i, name)| DnsLeaseRecord {
@@ -115,7 +139,7 @@ impl Fixture {
             }).collect();
             local.leases = Arc::new(LeaseNames::build(&leases, &mut local.hosts, &[], LeasePolicy::default(), &mut ()));
         }
-        Self { cache, local, queries, expected_answers: if scene.starts_with("miss") { 0 } else if rrset { 8 } else { 1 } }
+        Self { cache, local, queries, expected_answers: if scene.starts_with("miss") { 0 } else if rrset { 8 } else if chain { 2 } else { 1 } }
     }
 
     fn query(&mut self, index: usize, validate: bool) -> u64 {

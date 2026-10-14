@@ -60,3 +60,15 @@ persistent Name representation. Ordinary hit still allocates a 21-byte dotted
 copy. Keep literal-dot rejection, binary labels, lowercase conversion and
 root handling exact. Do not change public Name, cache/snapshot layout or
 lookup ordering. Only adopt if allocation/PMU screen and isolated timing help.
+
+
+DNS-3 is now screened (not yet timing-qualified): `dns3-screen.json` records
+one fewer allocation for ordinary hit/miss/host/RRset and cached CNAME, two
+fewer for CNAME with leases. Identical v2-probe instructions for a million hits
+fall 4.31% vs DNS-2. The only new storage is a transient 255-byte stack array;
+its 253-byte maximum dotted result is checked with independent bytes. Forty
+local module tests pass on macOS; the final Linux/full-C gate is still owned
+by the independent reviewer. The original `wire_to_dotted` API shares the same
+label conversion logic and still allocates when a caller needs owned bytes.
+Configured CNAME traversal borrows immutable targets and copies only its final
+owned terminal result. No retained Name/cache/snapshot layout was changed.
