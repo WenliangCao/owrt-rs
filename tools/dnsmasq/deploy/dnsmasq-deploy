@@ -51,7 +51,7 @@ verify() {
     put actual_sha256 "$actual"
     [ "$actual" = "$expected" ]
 }
-wire() { "$S/probe" "$DNS" "$NAME" "$ANSWER" "$IFACE" "$SERVER" >/dev/null 2>&1; }
+wire() { "$S/probe" "$DNS" "$NAME" "$ANSWER" "$IFACE" "$SERVER" > "$S/probe_result" 2>&1; }
 objects() {
     names=$(ubus -t 2 list 'dnsmasq*' 2>/dev/null) || return 1
     printf '%s\n' "$names" | grep -qx dnsmasq &&
@@ -126,6 +126,7 @@ free_tmp_reserve() {
 fallback() {
     # Latch in process memory first, even if the private journal has an I/O error.
     mode=c
+    wire_failures=0
     if [ -f "$S/c_attempted" ]; then
         # Guardian respawn must adopt healthy C, never create a fallback loop.
         if verify "$C_SHA" && wire; then phase fallback; else phase recovery-failed; fi
@@ -264,6 +265,7 @@ supervise() {
     load
     put guard_pid "$$"; put guard_birth "$(birth $$)"
     requested=0
+    wire_failures=0
     reload_requested=0
     trap 'requested=1' USR1 TERM INT HUP
     trap 'reload_requested=1' USR2
@@ -309,26 +311,44 @@ supervise() {
         fi
         if [ "$requested" -eq 1 ] && [ "$mode" = rust ]; then fallback manual; fi
         requested=0
-        if [ "$mode" = rust ] && [ "$(get phase)" = trial ] && [ -f "$S/confirm_request" ]; then
-            if [ "$(get confirm_request)" = "$(get token)" ] &&
-                [ "$(now)" -ge "$(( $(get started) + 150 ))" ] &&
-                [ "$(now)" -lt "$(get deadline)" ] && verify "$R_SHA" && wire && objects &&
-                [ "$(now)" -lt "$(get deadline)" ]; then
-                phase confirmed
-            fi
-            rm -f "$S/confirm_request"
-        fi
         if [ "$mode" = rust ]; then
             if [ "$(get phase)" = trial ] && [ "$(now)" -ge "$(get deadline)" ]; then
                 fallback confirmation-timeout
-            elif ! verify "$R_SHA" || ! wire; then
-                fallback health-failed
+            elif ! verify "$R_SHA"; then
+                fallback identity-failed
+            elif wire; then
+                wire_failures=0
+                # One protocol probe per iteration serves both monitoring and
+                # confirmation. Do not run back-to-back synthetic DHCP clients.
+                if [ "$(get phase)" = trial ] && [ -f "$S/confirm_request" ] &&
+                    [ "$(get confirm_request)" = "$(get token)" ] &&
+                    [ "$(now)" -ge "$(( $(get started) + 150 ))" ] && objects &&
+                    [ "$(now)" -lt "$(get deadline)" ]; then
+                    phase confirmed
+                    rm -f "$S/confirm_request"
+                fi
+            else
+                wire_failures=$((wire_failures + 1))
+                put last_probe_failure "$(get probe_result)"
+                [ "$wire_failures" -lt 2 ] || fallback health-failed
             fi
+            # A slow probe cannot extend the original confirmation cutoff.
+            if [ "$mode" = rust ] && [ "$(get phase)" = trial ] &&
+                [ "$(now)" -ge "$(get deadline)" ]; then fallback confirmation-timeout; fi
         fi
         if [ "$mode" = c ] && [ "$(get phase)" = fallback ]; then
-            if ! verify "$C_SHA" || ! wire; then
-                put reason c-health-failed
+            if ! verify "$C_SHA"; then
+                put reason c-identity-failed
                 phase recovery-failed
+            elif wire; then
+                wire_failures=0
+            else
+                wire_failures=$((wire_failures + 1))
+                put last_probe_failure "$(get probe_result)"
+                if [ "$wire_failures" -ge 2 ]; then
+                    put reason c-health-failed
+                    phase recovery-failed
+                fi
             fi
         fi
         current_bus=$(bus_id)
@@ -392,7 +412,7 @@ status() {
             printf 'live_pid=\nlive_sha256=\n'
         fi
     fi
-    for key in phase reason token started deadline guard_pid daemon_pid actual_sha256 bus_repair; do
+    for key in phase reason token started deadline guard_pid daemon_pid actual_sha256 bus_repair last_probe_failure; do
         printf '%s=%s\n' "$key" "$(get "$key")"
     done
 }
