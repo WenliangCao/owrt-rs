@@ -27,13 +27,15 @@ def main():
     p.add_argument('--out',type=Path,required=True)
     p.add_argument('--cargo',type=Path,required=True)
     p.add_argument('--expected-baseline-sha')
+    p.add_argument('--build-slot',type=Path)
+    p.add_argument('--cargo-target',type=Path)
     a=p.parse_args()
     source,sdk,out=map(lambda x:audit.safe_path(x.resolve()),(a.source,a.sdk,a.out))
     # rustup dispatches by argv[0]; resolving cargo's symlink selects rustup.
     cargo=audit.safe_path(a.cargo.absolute())
     assert 'private' in out.parts and not out.exists()
     out.mkdir(parents=True)
-    report={'source':str(source),'source_commit':a.commit,'features':'','opt_level':'3','status':'building',
+    report={'source':str(source),'source_commit':a.commit,'source_date_epoch':a.epoch,'features':'','opt_level':'3','status':'building',
             'scope':'SDK recipe research artifact; compatibility and performance pending'}
     def save(): (out/'build.json').write_text(json.dumps(report,indent=2)+'\n')
     save()
@@ -57,8 +59,10 @@ def main():
             'cargo':audit.run([str(cargo),'--version'],out/'cargo-version.log',env=env).strip(),
             'rustc':audit.run([str(cargo.with_name('rustc')),'-Vv'],out/'rustc-version.log',env=env).strip(),
             'map_wrapper_sha256':audit.sha(map_cc)}
-        build,output=out/'package-build',out/'sdk-output'
-        variables=['V=s','-j1','V1_PACKAGE_RELEASE=4',f'OWRT_COMPONENTS_SOURCE={source / "components"}',
+        build=audit.safe_path(a.build_slot.resolve()) if a.build_slot else out/'package-build'
+        output=out/'sdk-output'
+        assert 'private' in build.parts
+        variables=['V=s','-j1','CONFIG_AUTOREMOVE=','V1_PACKAGE_RELEASE=4',f'OWRT_COMPONENTS_SOURCE={source / "components"}',
                    f'OWRT_DNSMASQ_BUILD_DIR={build}',f'OWRT_DNSMASQ_OUTPUT_DIR={output}',f'V1_CARGO={cargo}',
                    'V1_CARGO_HOME=/home/ubuntu/.cargo','V1_RUSTUP_HOME=/home/ubuntu/.rustup',
                    f'TARGET_CC_NOCACHE={map_cc}']
@@ -75,6 +79,14 @@ def main():
                         for name,digest in source_files.items():
                             if name.startswith('components/'):
                                 assert audit.sha(build/name.removeprefix('components/'))==digest
+                        if a.cargo_target:
+                            cache=audit.safe_path(a.cargo_target.resolve())
+                            assert 'private' in cache.parts and not cache.is_relative_to(build)
+                            cache.mkdir(parents=True,exist_ok=True)
+                            (build/'dnsmasq/target').symlink_to(cache,target_is_directory=True)
+                            audit.run([str(cargo),'clean','--manifest-path',str(build/'dnsmasq/Cargo.toml'),
+                                       '-p','dnsmasq-rs','--release','--target','aarch64-unknown-linux-musl'],out/'invalidate-product.log',env=env)
+                            report['shared_cargo_target']=str(cache)
         packages=list(output.rglob('dnsmasq-*.apk'))
         assert len(packages)==1
         artifact=out/packages[0].name;shutil.copy2(packages[0],artifact)
@@ -88,7 +100,9 @@ def main():
         report['artifacts']=[{'path':elf.name,'bytes':elf.stat().st_size,'sha256':audit.sha(elf)}]
         report['link_map']={'path':'link.map','sha256':audit.sha(out/'link.map')}
         report['artifact']={'name':artifact.name,'bytes':artifact.stat().st_size,'sha256':audit.sha(artifact)}
-        report['prestrip']={'sha256':audit.sha(build/'dnsmasq/target/aarch64-unknown-linux-musl/release/dnsmasq-rs')}
+        prestrip=build/'dnsmasq/target/aarch64-unknown-linux-musl/release/dnsmasq-rs'
+        retained=out/'dnsmasq-prestrip';shutil.copy2(prestrip,retained)
+        report['prestrip']={'sha256':audit.sha(retained),'bytes':retained.stat().st_size}
         report['baseline_expected']=a.expected_baseline_sha
         report['baseline_matches_expected']=(audit.sha(elf)==a.expected_baseline_sha if a.expected_baseline_sha else None)
         report['source_unchanged']=audit.inputs(source)==source_files
