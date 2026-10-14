@@ -288,6 +288,9 @@ pub fn update_dns(
             error: None,
         };
     }
+    // A forced hosts/config reconciliation may start from clean lease state.
+    // Keep that request pending until the replacement is actually published.
+    store.dns_update_pending();
     let Some(publisher) = publisher else {
         return DnsReport {
             status: DnsStatus::Pending,
@@ -429,5 +432,34 @@ mod tests {
             DnsStatus::NotNeeded
         );
         assert!(store.changes().dns);
+    }
+
+    #[test]
+    fn failed_forced_dns_publication_retries_without_another_force() {
+        struct Retry {
+            fail: bool,
+            calls: usize,
+        }
+        impl DnsPublisher for Retry {
+            fn replace(&mut self, _: &[DnsLeaseRecord<'_>]) -> io::Result<()> {
+                self.calls += 1;
+                if self.fail { Err(io::Error::other("publication temporarily unavailable")) }
+                else { Ok(()) }
+            }
+        }
+        let mut store = LeaseStore::new(1);
+        let mut publisher = Retry { fail: false, calls: 0 };
+        assert_eq!(update_dns(&mut store, true, true, false, Some(&mut publisher)).status,
+            DnsStatus::Published);
+        assert!(!store.changes().dns);
+        publisher.fail = true;
+        assert_eq!(update_dns(&mut store, true, true, false, Some(&mut publisher)).status,
+            DnsStatus::Failed);
+        assert!(store.changes().dns, "a forced replacement remains pending after failure");
+        publisher.fail = false;
+        assert_eq!(update_dns(&mut store, true, false, false, Some(&mut publisher)).status,
+            DnsStatus::Published);
+        assert_eq!(publisher.calls, 3);
+        assert!(!store.changes().dns);
     }
 }

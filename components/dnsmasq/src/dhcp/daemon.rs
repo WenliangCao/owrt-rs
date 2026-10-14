@@ -914,6 +914,16 @@ impl LocalProvider {
             self.config.fqdn_only,
             self.dns_publisher.as_deref_mut(),
         );
+        if matches!(dns.status, persistence::DnsStatus::Failed | persistence::DnsStatus::Pending) {
+            // A clean, infinite lease set may have no expiry alarm. Retry a
+            // failed forced publication without requiring another packet/HUP,
+            // while preserving any earlier lease or file-retry deadline.
+            if let Some(retry) = Instant::now().checked_add(Duration::from_secs(
+                persistence::LEASE_RETRY_SECONDS as u64,
+            )) {
+                self.alarm_deadline = Some(self.alarm_deadline.map_or(retry, |due| due.min(retry)));
+            }
+        }
         let lost_names = LeaseStore::names_lost(&removed);
         MaintenanceReport {
             file,
@@ -3563,6 +3573,57 @@ fn generated_hostname(
 #[cfg(test)]
 mod startup_tests {
     use super::*;
+
+    #[test]
+    fn failed_forced_dns_publication_gets_an_idle_retry_without_delaying_an_alarm() {
+        use std::cell::Cell;
+        use std::rc::Rc;
+        struct RetryPublisher {
+            fail: Rc<Cell<bool>>,
+            calls: Rc<Cell<usize>>,
+        }
+        impl DnsPublisher for RetryPublisher {
+            fn replace(&mut self, _: &[persistence::DnsLeaseRecord<'_>]) -> io::Result<()> {
+                self.calls.set(self.calls.get() + 1);
+                if self.fail.get() { Err(io::Error::other("temporary DNS publication failure")) }
+                else { Ok(()) }
+            }
+        }
+        for earlier_alarm in [false, true] {
+            let mut provider = LocalProvider::new(DhcpConfig {
+                no_ping: true, lease_read_only: true, ..Default::default()
+            }, Vec::new(), 53, || false).unwrap();
+            let fail = Rc::new(Cell::new(false));
+            let calls = Rc::new(Cell::new(0));
+            provider.set_dns_publisher(Box::new(RetryPublisher {
+                fail: Rc::clone(&fail), calls: Rc::clone(&calls),
+            }));
+            assert_eq!(provider.initialize(100).dns.status, persistence::DnsStatus::Published);
+            assert!(!provider.leases.changes().dns);
+            let earlier = Instant::now() + Duration::from_secs(5);
+            provider.alarm_deadline = earlier_alarm.then_some(earlier);
+            fail.set(true);
+            let before = Instant::now();
+            assert_eq!(provider.hosts_changed(100).dns.status, persistence::DnsStatus::Failed);
+            let deadline = provider.alarm_deadline.unwrap();
+            if earlier_alarm {
+                assert_eq!(deadline, earlier);
+            } else {
+                assert!(deadline >= before + Duration::from_secs(60));
+                assert!(deadline <= Instant::now() + Duration::from_secs(60));
+            }
+            assert!(provider.leases.changes().dns);
+            // Advance only the existing alarm boundary, without a packet or
+            // another forced publication. A successful retry consumes it.
+            fail.set(false);
+            provider.alarm_deadline = Some(Instant::now());
+            assert_eq!(provider.tick(160).unwrap().dns.status, persistence::DnsStatus::Published);
+            assert_eq!(calls.get(), 3);
+            assert!(!provider.leases.changes().dns);
+            assert!(provider.alarm_deadline.is_none());
+            assert!(provider.tick(160).is_none());
+        }
+    }
 
     struct RunnableFilesFixture(std::path::PathBuf);
 
