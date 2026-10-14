@@ -1,0 +1,719 @@
+{
+  "baseline_source": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "product_source": "22fe5dd9a6539ef7381b0bab43b39786b0bceae7",
+  "source_files_checked": 184,
+  "original_elf": {
+    "path": "/home/ubuntu/full-audit-20261014/private/release/dnsmasq-rs",
+    "sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0"
+  },
+  "fixed_elf": {
+    "path": "/dev/shm/full-tcp-fix-20261014/private/release-final/dnsmasq-rs",
+    "bytes": 2089440,
+    "sha256": "0ac4ad216c071ae708af52f5d4d4cd6e4c2130b451655033efc463888bff0834"
+  },
+  "exact_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "memory": {
+    "baseline": [
+      {
+        "side": "c",
+        "hosts": 0,
+        "pss_kib": [
+          [
+            0,
+            1216
+          ],
+          [
+            1,
+            1332
+          ],
+          [
+            10,
+            2116
+          ],
+          [
+            20,
+            3348
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 0,
+        "pss_kib": [
+          [
+            0,
+            2040
+          ],
+          [
+            1,
+            2064
+          ],
+          [
+            10,
+            2300
+          ],
+          [
+            20,
+            2552
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            6808
+          ],
+          [
+            1,
+            9036
+          ],
+          [
+            10,
+            29124
+          ],
+          [
+            20,
+            51440
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "c",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            2152
+          ],
+          [
+            1,
+            2268
+          ],
+          [
+            10,
+            3341
+          ],
+          [
+            20,
+            4531
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "c",
+        "hosts": 50000,
+        "pss_kib": [
+          [
+            0,
+            6160
+          ],
+          [
+            1,
+            6276
+          ],
+          [
+            10,
+            7350
+          ],
+          [
+            20,
+            8536
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 50000,
+        "pss_kib": [
+          [
+            0,
+            24032
+          ],
+          [
+            1,
+            34204
+          ],
+          [
+            10,
+            125816
+          ],
+          [
+            20,
+            227604
+          ]
+        ],
+        "exit": 0
+      }
+    ],
+    "fixed": [
+      {
+        "side": "c",
+        "hosts": 0,
+        "pss_kib": [
+          [
+            0,
+            387
+          ],
+          [
+            1,
+            524
+          ],
+          [
+            10,
+            1688
+          ],
+          [
+            20,
+            3333
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 0,
+        "pss_kib": [
+          [
+            0,
+            1884
+          ],
+          [
+            1,
+            1904
+          ],
+          [
+            10,
+            2120
+          ],
+          [
+            20,
+            2352
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            6796
+          ],
+          [
+            1,
+            6812
+          ],
+          [
+            10,
+            7024
+          ],
+          [
+            20,
+            7260
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "c",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            1391
+          ],
+          [
+            1,
+            1610
+          ],
+          [
+            10,
+            2868
+          ],
+          [
+            20,
+            4091
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "c",
+        "hosts": 50000,
+        "pss_kib": [
+          [
+            0,
+            5436
+          ],
+          [
+            1,
+            5631
+          ],
+          [
+            10,
+            6976
+          ],
+          [
+            20,
+            8261
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 50000,
+        "pss_kib": [
+          [
+            0,
+            23964
+          ],
+          [
+            1,
+            23980
+          ],
+          [
+            10,
+            24196
+          ],
+          [
+            20,
+            24428
+          ]
+        ],
+        "exit": 0
+      }
+    ],
+    "baseline_direct": [
+      {
+        "side": "c",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            2870
+          ],
+          [
+            1,
+            3103
+          ],
+          [
+            10,
+            4301
+          ],
+          [
+            20,
+            5588
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            11808
+          ],
+          [
+            1,
+            15168
+          ],
+          [
+            10,
+            46228
+          ],
+          [
+            20,
+            80740
+          ]
+        ],
+        "exit": 0
+      }
+    ],
+    "fixed_direct": [
+      {
+        "side": "c",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            2589
+          ],
+          [
+            1,
+            2783
+          ],
+          [
+            10,
+            4093
+          ],
+          [
+            20,
+            5355
+          ]
+        ],
+        "exit": 0
+      },
+      {
+        "side": "rust",
+        "hosts": 10000,
+        "pss_kib": [
+          [
+            0,
+            11708
+          ],
+          [
+            1,
+            11724
+          ],
+          [
+            10,
+            11936
+          ],
+          [
+            20,
+            12168
+          ]
+        ],
+        "exit": 0
+      }
+    ]
+  },
+  "cgroup": {
+    "baseline": [
+      {
+        "side": "c",
+        "successful_connections": 20,
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "peak_bytes": 10481664,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true,
+        "hup": null
+      },
+      {
+        "side": "rust",
+        "successful_connections": 4,
+        "udp_after": false,
+        "exit_before_cleanup": -9,
+        "peak_bytes": 67108864,
+        "events": "low 0\nhigh 0\nmax 38\noom 1\noom_kill 1\noom_group_kill 0",
+        "removed": true,
+        "hup": null
+      }
+    ],
+    "fixed": [
+      {
+        "side": "c",
+        "successful_connections": 20,
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "peak_bytes": 10510336,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true,
+        "hup": null
+      },
+      {
+        "side": "rust",
+        "successful_connections": 20,
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "peak_bytes": 23846912,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true,
+        "hup": null
+      }
+    ],
+    "fixed_hup": [
+      {
+        "side": "c",
+        "successful_connections": 20,
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "peak_bytes": 15806464,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true,
+        "hup": {
+          "old_answers": [
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201"
+          ],
+          "new_answers": [
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202"
+          ]
+        }
+      },
+      {
+        "side": "rust",
+        "successful_connections": 20,
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "peak_bytes": 46518272,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true,
+        "hup": {
+          "old_answers": [
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201"
+          ],
+          "new_answers": [
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202"
+          ]
+        }
+      }
+    ],
+    "unique_name_driver_plain": [
+      {
+        "side": "c",
+        "peak_bytes": 10543104,
+        "udp_after": true,
+        "successful_connections": 20,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true
+      },
+      {
+        "side": "rust",
+        "peak_bytes": 23846912,
+        "udp_after": true,
+        "successful_connections": 20,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true
+      }
+    ],
+    "unique_name_driver_hup": [
+      {
+        "side": "c",
+        "peak_bytes": 16125952,
+        "udp_after": true,
+        "successful_connections": 20,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true
+      },
+      {
+        "side": "rust",
+        "peak_bytes": 46518272,
+        "udp_after": true,
+        "successful_connections": 20,
+        "events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "removed": true
+      }
+    ]
+  },
+  "snapshot": {
+    "matched": true,
+    "observations": 42
+  },
+  "lease_cache": [
+    {
+      "case": "ptr-expiry-refresh",
+      "matched": true
+    },
+    {
+      "case": "tcp-accept-clock-fixed-ttl",
+      "matched": true
+    },
+    {
+      "case": "tcp-parent-udp-replaces-record",
+      "matched": true
+    },
+    {
+      "case": "tcp-parent-lease-added",
+      "matched": true
+    },
+    {
+      "case": "tcp-parent-lease-renamed",
+      "matched": true
+    },
+    {
+      "case": "tcp-parent-lease-released",
+      "matched": true
+    },
+    {
+      "case": "tcp-existing-lease-ttl",
+      "matched": true
+    }
+  ],
+  "new_leases": [
+    {
+      "case": "tcp-parent-lease-added",
+      "matched": true
+    },
+    {
+      "case": "tcp-parent-lease-renamed",
+      "matched": true
+    },
+    {
+      "case": "tcp-parent-lease-released",
+      "matched": true
+    }
+  ],
+  "unit_tests": {
+    "lib-dnsmasq_rs": "test result: ok. 786 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 4.06s",
+    "bin-dnsmasq-rs": "test result: ok. 78 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.10s"
+  },
+  "evidence": {
+    "source-identity.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/source-identity.json",
+      "sha256": "b562c716422e16aed562d75ae497d7af32f95fcb5fd6bd71fd52fdb140944652"
+    },
+    "release-final/build.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/release-final/build.json",
+      "sha256": "2fe0c4409e54f9ff3b3cb56eeb07f50ebe7e8efbe6ce18d1ebc942cf335d582f"
+    },
+    "baseline-memory/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/baseline-memory/result.json",
+      "sha256": "342bdb2ed64860df41ee9fa5cf10f3fec461bec67a98bccb6f2540556c1524c3"
+    },
+    "baseline-cgroup/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/baseline-cgroup/result.json",
+      "sha256": "7b3bd0dd679cf24de4df1b30fbd7a31c6c5b73680ce8a7f4c71fd8d379841a26"
+    },
+    "baseline-direct-config/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/baseline-direct-config/result.json",
+      "sha256": "e07b04e15eace096bb2db2cd43c69a67d6e997128ff4882bfeb6236a5f30106b"
+    },
+    "final-memory/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-memory/result.json",
+      "sha256": "bd23a2bac36a43eab91fd698cf46793fd4f237834fc1d98c6ae236d9fbf9e98e"
+    },
+    "final-direct-config/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-direct-config/result.json",
+      "sha256": "a96bc95a58c39bb9c410fd89deae3d6b20b2e0a583202ab93272a760a6676378"
+    },
+    "final-cgroup/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-cgroup/result.json",
+      "sha256": "3018eed2c57dd7472ad6f7a9a8b5a40642b957b422a33cae4636fa1261802da6"
+    },
+    "final-cgroup-hup/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-cgroup-hup/result.json",
+      "sha256": "a3295201644248e51cde97448938f5405259ffe7e99b37542d144a64c3ea8f39"
+    },
+    "final-snapshot/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-snapshot/result.json",
+      "sha256": "1125a2394708dc9eb6c194ca9bc29cbe8821a338c55555e647a919ccfb0af584"
+    },
+    "final-lease-cache-comparison.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-lease-cache-comparison.json",
+      "sha256": "f463b67a631c66968a14d13466f3b8bd569e49f260f24a541e758166a897655a"
+    },
+    "final-new-leases-comparison.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-new-leases-comparison.json",
+      "sha256": "582fa47fc6dc71f12cc24578c66ee301a90fca4ac8163e04dfc0136a8ddfc66e"
+    },
+    "final-lease-cache-c/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-lease-cache-c/result.json",
+      "sha256": "82a1f9780124925924c10a5682e28f98be470f4bee4ac0a00db7304d856a0a42"
+    },
+    "final-lease-cache-rust/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-lease-cache-rust/result.json",
+      "sha256": "09f34b1274b493930a13d6345c6af5f28674e8d8d91d71fe4800aa57341e821c"
+    },
+    "final-new-leases-c/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-new-leases-c/result.json",
+      "sha256": "0b642537098cc99d67f0dee067120ea6348b1de9e57f19685e748dce624eec2f"
+    },
+    "final-new-leases-rust/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-new-leases-rust/result.json",
+      "sha256": "709aa9acc98252024303d6fd9fa2c0a948d0a6c3225c212c693bdd9c16b57a6c"
+    },
+    "tests-final/build.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/tests-final/build.json",
+      "sha256": "4fc25f0420a6205b9d176e459ebc28211bf7cbe23ab18dd7d6128423c8f4954c"
+    },
+    "tests-final/lib-dnsmasq_rs.run.log": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/tests-final/lib-dnsmasq_rs.run.log",
+      "sha256": "51fbcd7017f14372c8327c9d2da95ec2b08e9ad6c4e6db913c4a85f74b08b14e"
+    },
+    "tests-final/bin-dnsmasq-rs.run.log": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/tests-final/bin-dnsmasq-rs.run.log",
+      "sha256": "90ead17d6fef351714d6cac93506504981d9b7d7cb5fa5d73bb7671524194ab8"
+    },
+    "final-cgroup-v2-plain/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-cgroup-v2-plain/result.json",
+      "sha256": "2bb2e899fca2c9ad7dbaeeadef89cc8a8239852605c9d31e2a6470082620b1c9"
+    },
+    "final-cgroup-v2-plain/driver.py": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-cgroup-v2-plain/driver.py",
+      "sha256": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2"
+    },
+    "final-cgroup-v2-hup/result.json": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-cgroup-v2-hup/result.json",
+      "sha256": "e697e32d289321dd78501d874b5018449d23fbf8cfb47fdf0f54255f1be4f1e4"
+    },
+    "final-cgroup-v2-hup/driver.py": {
+      "path": "/dev/shm/full-tcp-fix-20261014/private/final-cgroup-v2-hup/driver.py",
+      "sha256": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2"
+    }
+  },
+  "tools": {
+    "full_tcp_hosts_memory.py": "05f892b1d29c6b47827915bb4e690f786ab4928785e41268ffcf6036b8e98129",
+    "full_tcp_hosts_snapshot.py": "17b2a2df4c6468c4859630fa0e907133687d86662b089190fed297c8dfb62998",
+    "full_tcp_hosts_cgroup.py": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2",
+    "full_tcp_lease_snapshots.py": "44ba7155ee74bd3cd145d9f5b00b0d5d124c50f20ed34a1caa0db606150e1daf"
+  }
+}
