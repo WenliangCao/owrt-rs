@@ -939,11 +939,23 @@ fn take_name(lease: &mut Lease, lost: &mut Vec<NameLost>) {
 }
 
 fn write_hex(writer: &mut impl Write, bytes: &[u8]) -> io::Result<()> {
-    for (i, byte) in bytes.iter().enumerate() {
-        if i != 0 {
-            writer.write_all(b":")?;
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    // Lease files contain this encoding for every hardware/client ID. Encode
+    // bounded chunks directly instead of invoking fmt for every byte. The
+    // same bound also handles arbitrary-length leasequery extension fields.
+    let mut output = [0; 192];
+    for (chunk_index, chunk) in bytes.chunks(64).enumerate() {
+        let mut length = 0;
+        for (index, &byte) in chunk.iter().enumerate() {
+            if chunk_index != 0 || index != 0 {
+                output[length] = b':';
+                length += 1;
+            }
+            output[length] = HEX[usize::from(byte >> 4)];
+            output[length + 1] = HEX[usize::from(byte & 15)];
+            length += 2;
         }
-        write!(writer, "{byte:02x}")?;
+        writer.write_all(&output[..length])?;
     }
     Ok(())
 }
@@ -951,6 +963,39 @@ fn write_hex(writer: &mut impl Write, bytes: &[u8]) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hex_chunks_preserve_all_bytes_and_partial_write_failures() {
+        struct Limited {
+            bytes: Vec<u8>,
+            limit: usize,
+        }
+        impl Write for Limited {
+            fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+                let count = bytes.len().min(self.limit - self.bytes.len());
+                if count == 0 {
+                    return Err(io::ErrorKind::StorageFull.into());
+                }
+                self.bytes.extend_from_slice(&bytes[..count]);
+                Ok(count)
+            }
+            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+        }
+        for length in [0, 1, 6, 16, 63, 64, 65, 255, 256, 1025] {
+            let input: Vec<_> = (0..length).map(|byte| byte as u8).collect();
+            let expected = input.iter().map(|byte| format!("{byte:02x}"))
+                .collect::<Vec<_>>().join(":").into_bytes();
+            let mut actual = Vec::new();
+            write_hex(&mut actual, &input).unwrap();
+            assert_eq!(actual, expected);
+            for limit in [0, 1, 190, 191, 192, 193, expected.len()] {
+                let mut writer = Limited { bytes: Vec::new(), limit };
+                let result = write_hex(&mut writer, &input);
+                assert_eq!(writer.bytes, expected[..limit.min(expected.len())]);
+                assert_eq!(result.is_ok(), limit >= expected.len());
+            }
+        }
+    }
 
     fn address(last: u8) -> Ipv4Addr {
         Ipv4Addr::new(192, 0, 2, last)

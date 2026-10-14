@@ -63,3 +63,15 @@ device performance claims. Private raw: `counts-baseline-mac.json`.
 First screen: replace per-byte `fmt` hex encoding with bounded stack formatting,
 retaining writer/error semantics and byte order. Publication and lowercase
 lookup remain independent directions. Full same-ABI Oracle profiling follows.
+
+## D1 — bounded hex serialization
+
+Implemented a 192-byte stack encoder, independent of lease or field size. This
+removes per-byte `fmt`; it retains all separators, long extension fields,
+partial writes and errors. 19 lease unit tests pass, including a new check over
+all byte values, chunk edges and partial-write failures.
+
+Deterministic screen: write calls 192 → 96 for 6 leases; 4665 → 2400 for 150.
+Output lengths and rolling hashes are identical (336 bytes /
+18024159028762036603; 8592 bytes / 931816954775507130). Allocation counts unchanged.
+Pending Oracle instruction counts; not yet a fully qualified candidate.
