@@ -77,7 +77,9 @@ impl UbusService {
         Self::connect_bytes_interruptible(socket, name, None)
     }
 
-    /// Runtime reconnection must also stop promptly while the bus is stalled.
+    /// Runtime reconnection shares a short budget across HELLO and both
+    /// registrations, so a stalled bus cannot repeatedly block DNS/DHCP for
+    /// seconds. The cancellation callback also bounds shutdown latency.
     pub fn connect_bytes_interruptible(
         socket: Option<&str>,
         name: &[u8],
@@ -86,18 +88,28 @@ impl UbusService {
         let name = c_string(name);
         let mut dns_name = name.to_vec();
         dns_name.extend_from_slice(b".dns");
+        let deadline = cancelled.map(|_| Instant::now() + Duration::from_millis(100));
         let mut connection = match cancelled {
             Some(cancelled) => Connection::connect_interruptible(
-                socket, Instant::now() + Duration::from_secs(1), cancelled,
+                socket, deadline.unwrap(), cancelled,
             ),
             None => Connection::connect(socket),
         }.map_err(ConnectError::Transport)?;
         connection.set_server_io_timeout(Duration::from_millis(100));
+        let registration_timeout = || -> Result<i32, ConnectError> {
+            match deadline {
+                None => Ok(1000),
+                Some(deadline) => deadline.checked_duration_since(Instant::now())
+                    // Zero means unlimited to libubus; round up instead.
+                    .map(|left| left.as_millis().saturating_add(1) as i32)
+                    .ok_or_else(|| ConnectError::Registration(io::Error::from(io::ErrorKind::TimedOut))),
+            }
+        };
         let main_id = connection
-            .add_object_bytes(name, &[("metrics", &[])], 1000)
+            .add_object_bytes(name, &[("metrics", &[])], registration_timeout()?)
             .map_err(ConnectError::Registration)?;
         let dns_id = connection
-            .add_object_bytes(&dns_name, &[], 1000)
+            .add_object_bytes(&dns_name, &[], registration_timeout()?)
             .map_err(ConnectError::Registration)?;
         Ok(Self {
             connection,
