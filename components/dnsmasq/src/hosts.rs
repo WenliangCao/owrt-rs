@@ -181,7 +181,11 @@ impl Hosts {
     }
 
     pub fn source_name(&self, source: u32) -> Option<&[u8]> {
-        self.records.sources.get(&source).map(Vec::as_slice)
+        self.records
+            .sources
+            .get(&source)
+            .map(Vec::as_slice)
+            .or((source == 0).then_some(b"/etc/hosts".as_slice()))
     }
 
     fn ordered<'a>(&'a self, indices: &'a [usize]) -> &'a [usize] {
@@ -191,6 +195,7 @@ impl Hosts {
             .map_or(indices, Vec::as_slice)
     }
 
+    /// Current static address order without the lookup/round-robin mutation.
     pub fn addresses(&self, name: &[u8]) -> impl Iterator<Item = &Host> {
         self.records
             .forward
@@ -443,6 +448,9 @@ impl Hosts {
     /// Returns the current order, then rotates the first matching flags group
     /// for the next call, as cache_find_by_name does. `ipv6=None` means both.
     pub fn lookup(&mut self, name: &[u8], ipv6: Option<bool>, no_round_robin: bool) -> Vec<&Host> {
+        if self.records.forward.is_empty() {
+            return Vec::new();
+        }
         let canonical;
         let key = if name.iter().any(u8::is_ascii_uppercase) {
             canonical = name.to_ascii_lowercase();
@@ -784,6 +792,7 @@ mod tests {
         assert_eq!(first.len(), 5);
         assert_eq!(later.len(), 5);
         assert!(!same_records(&parent, &first));
+        assert_eq!(first.source_name(0), Some(b"/etc/hosts".as_slice()));
         assert_eq!(first.source_name(2), None);
         assert_eq!(
             first.reverse("2001:db8::1".parse().unwrap()).unwrap().name,
