@@ -1,0 +1,907 @@
+{
+  "schema": 1,
+  "product_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+  "runtime_elf_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+  "stock_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "scope": "F4 successful APK activation with content-tracked procd instances; real SDK packaging of a prevalidated frozen ELF, not the final combined SDK source build.",
+  "release": "2.93-r4",
+  "build": {
+    "build_mode": "package-frozen-elf",
+    "status": "failed",
+    "error": "APK size 1134350 exceeds target 700000 bytes; ELF size 2089440 exceeds target 1000000 bytes",
+    "source_digest": "0b5ff08fe82b087556fdffc019a63940b5ee5a0daf4d0a3cfbe55e32cf380b1a",
+    "artifact": {
+      "name": "dnsmasq-2.93-r4.apk",
+      "sha256": "bc7bd1514ededb1e9f5350a31487e767346cbf407a1b625f30f1f6c779bcde77",
+      "size": 1134350
+    },
+    "elf": {
+      "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "size": 2089440,
+      "install_path": "/usr/sbin/dnsmasq",
+      "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+      "expected_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d"
+    },
+    "apk_metadata": {
+      "name": "dnsmasq",
+      "version": "2.93-r4",
+      "arch": "aarch64_cortex-a53",
+      "provides": [
+        "dnsmasq-any"
+      ],
+      "replacement": "same package name dnsmasq, newer release 2.93-r4",
+      "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+      "depends": [
+        "libc",
+        "libubus20251202"
+      ]
+    },
+    "budget_checks": {
+      "apk": false,
+      "elf": false
+    },
+    "sdk_recipe_restored": true,
+    "postprocess": {
+      "mode": "none",
+      "input_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "output_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "reason": "F4 lifecycle-only frozen product from independently accepted 340ed73e; preserve product identity, no new compilation or SDK-strip claim."
+    }
+  },
+  "sdk": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+    "archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+    "verified_tool_file_count": 106,
+    "tool_map_sha256": "6a62863276cd35df8574f46f4162d71b82b0c35ef47ea869988036b2a584d53e"
+  },
+  "lifecycle": {
+    "status": "passed",
+    "stages": [
+      "stock-to-candidate-upgrade",
+      "candidate-reinstall",
+      "candidate-uninstall",
+      "candidate-fresh-install",
+      "candidate-remove-for-rollback",
+      "stock-rollback-after-removal",
+      "candidate-upgrade-for-downgrade",
+      "direct-stock-downgrade",
+      "stock-to-m5-baseline",
+      "m5-to-candidate-upgrade",
+      "direct-m5-downgrade",
+      "m5-to-candidate-for-removal",
+      "candidate-remove-for-m5-rollback",
+      "m5-rollback-after-removal"
+    ],
+    "automatic_activation_required": true,
+    "activation_steps": [
+      {
+        "transaction": "stock-to-candidate-upgrade",
+        "command": null,
+        "automatic_activation_required": true
+      },
+      {
+        "transaction": "candidate-reinstall",
+        "command": null,
+        "automatic_activation_required": true
+      },
+      {
+        "transaction": "candidate-upgrade-for-downgrade",
+        "command": null,
+        "automatic_activation_required": true
+      },
+      {
+        "transaction": "direct-stock-downgrade",
+        "command": null,
+        "automatic_activation_required": true
+      },
+      {
+        "transaction": "stock-to-m5-baseline",
+        "command": [
+          "/etc/init.d/dnsmasq",
+          "restart"
+        ],
+        "automatic_restart_claimed": false,
+        "legacy_reference_setup": true
+      },
+      {
+        "transaction": "m5-to-candidate-upgrade",
+        "command": null,
+        "automatic_activation_required": true
+      },
+      {
+        "transaction": "direct-m5-downgrade",
+        "command": null,
+        "automatic_activation_required": true
+      },
+      {
+        "transaction": "m5-to-candidate-for-removal",
+        "command": null,
+        "automatic_activation_required": true
+      }
+    ],
+    "release_order": {
+      "2.93-r2": ">",
+      "2.93-r3": ">"
+    },
+    "previous_m5": {
+      "package_id": "2.93-r2",
+      "apk_sha256": "bfed44eaf49703745a2c08a8ee1fbc5325b44f833d07baee2224a0084a6ee8aa",
+      "elf_sha256": "37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b",
+      "source_commit": "dc1b740d7973838e2ae7f098d0726b0484e55074",
+      "path": "/dev/shm/full-merge-f4-20261014/private/m5-r2.apk"
+    },
+    "previous_upgrade_passed": true,
+    "cleanup": {
+      "errors": [],
+      "remaining_children": []
+    },
+    "runner_files": {
+      "m4_package_lifecycle.py": "382b652f5070c2e9cdd8cfc90072fccf7d43a54a9dcaef8ce2ce39d1f898cba5",
+      "build_package.py": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+      "m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "dns_service_probe.py": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2"
+    }
+  },
+  "network": {
+    "stock": {
+      "passed": true,
+      "procd_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "steps": {
+        "stock": {
+          "package_version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": {
+            "pid": 266,
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171302769"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1028 kB",
+            "VmRSS": "1028 kB"
+          }
+        },
+        "upgrade": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 460,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303121"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1028 kB",
+            "VmRSS": "1028 kB"
+          }
+        },
+        "identical-reinstall": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 460,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq (deleted)",
+            "start_ticks": "171303121"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1032 kB",
+            "VmRSS": "1032 kB"
+          }
+        },
+        "unchanged-reload": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 460,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq (deleted)",
+            "start_ticks": "171303121"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1032 kB",
+            "VmRSS": "1032 kB"
+          }
+        },
+        "direct-stock-downgrade": {
+          "package_version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": {
+            "pid": 990,
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303187"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1032 kB",
+            "VmRSS": "1032 kB"
+          }
+        },
+        "upgrade-before-failed-reinstall": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 1180,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303212"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1032 kB",
+            "VmRSS": "1032 kB"
+          }
+        },
+        "rejected-broken-archive": {
+          "package_version": null,
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 1180,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303212"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1032 kB",
+            "VmRSS": "1032 kB"
+          }
+        },
+        "stock-repair-after-failed-reinstall": {
+          "package_version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": {
+            "pid": 1387,
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303248"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "1032 kB",
+            "VmRSS": "1032 kB"
+          }
+        }
+      },
+      "tool_sha256": "176845ed5a3b6f098bddb0cd5d536a82a476e8ee389fc3ca0118887632353a8c",
+      "explicit_restarts": []
+    },
+    "rust-procd": {
+      "passed": true,
+      "procd_sha256": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+      "steps": {
+        "stock": {
+          "package_version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": {
+            "pid": 265,
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303369"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "800 kB",
+            "VmRSS": "800 kB"
+          }
+        },
+        "upgrade": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 459,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303721"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4752 kB",
+            "VmRSS": "808 kB"
+          }
+        },
+        "identical-reinstall": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 459,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq (deleted)",
+            "start_ticks": "171303721"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4756 kB",
+            "VmRSS": "812 kB"
+          }
+        },
+        "unchanged-reload": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 459,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq (deleted)",
+            "start_ticks": "171303721"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4760 kB",
+            "VmRSS": "812 kB"
+          }
+        },
+        "direct-stock-downgrade": {
+          "package_version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": {
+            "pid": 992,
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303791"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4760 kB",
+            "VmRSS": "812 kB"
+          }
+        },
+        "upgrade-before-failed-reinstall": {
+          "package_version": "2.93-r4",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 1176,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303816"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4760 kB",
+            "VmRSS": "812 kB"
+          }
+        },
+        "rejected-broken-archive": {
+          "package_version": null,
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": {
+            "pid": 1176,
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303816"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4760 kB",
+            "VmRSS": "812 kB"
+          }
+        },
+        "stock-repair-after-failed-reinstall": {
+          "package_version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": {
+            "pid": 1386,
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "exe": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs/usr/sbin/dnsmasq",
+            "start_ticks": "171303853"
+          },
+          "client": {
+            "dhcp_offer": true,
+            "dhcp_ack": true,
+            "address": "192.168.1.101",
+            "server": "192.168.1.1",
+            "dns_option": "192.168.1.1",
+            "router_option": "192.168.1.1",
+            "dns": {
+              "udp": true,
+              "tcp": true
+            }
+          },
+          "procd_memory": {
+            "VmHWM": "4760 kB",
+            "VmRSS": "812 kB"
+          }
+        }
+      },
+      "tool_sha256": "176845ed5a3b6f098bddb0cd5d536a82a476e8ee389fc3ca0118887632353a8c",
+      "explicit_restarts": []
+    }
+  },
+  "failed_transactions": {
+    "enospc-upgrade": {
+      "candidate_apk_sha256": "a2b51b470784aff2f5c175910fab94b5bf88043467575460979a4dca59e0e6e1",
+      "release": "2.93-r2",
+      "available_bytes": 131072,
+      "apk_exit": 2,
+      "failure_stage": "extract usr/sbin/dnsmasq: ENOSPC; upgrade also failed database write",
+      "observations": [
+        {
+          "label": "before-space-fault",
+          "version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": [
+            {
+              "pid": 137,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-transaction",
+          "version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": [
+            {
+              "pid": 137,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-restart",
+          "version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": [
+            {
+              "pid": 288,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-space-released-c-repair",
+          "version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": [
+            {
+              "pid": 599,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-upgrade/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        }
+      ],
+      "repair_exit": 0,
+      "manual_diagnostic_and_repair_restarts": true,
+      "no_claim_of_client_health_before_manual_diagnostic_restart": true,
+      "cleanup": {
+        "errors": [],
+        "remaining_children": []
+      }
+    },
+    "enospc-rollback": {
+      "candidate_apk_sha256": "a2b51b470784aff2f5c175910fab94b5bf88043467575460979a4dca59e0e6e1",
+      "release": "2.93-r2",
+      "available_bytes": 131072,
+      "apk_exit": 1,
+      "failure_stage": "extract usr/sbin/dnsmasq: ENOSPC",
+      "observations": [
+        {
+          "label": "before-space-fault",
+          "version": "2.93-r2",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": [
+            {
+              "pid": 445,
+              "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-transaction",
+          "version": "2.93-r2",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": [
+            {
+              "pid": 445,
+              "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-low-space-restart",
+          "version": "2.93-r2",
+          "disk_elf": {
+            "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+            "bytes": 2089440
+          },
+          "running": [
+            {
+              "pid": 596,
+              "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        },
+        {
+          "label": "after-space-released-c-repair",
+          "version": "2.93-r1",
+          "disk_elf": {
+            "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+            "bytes": 269305
+          },
+          "running": [
+            {
+              "pid": 905,
+              "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+              "exe": "/dev/shm/full-merge-f4-20261014/source/private/enospc-rollback/stage/rootfs/usr/sbin/dnsmasq"
+            }
+          ]
+        }
+      ],
+      "repair_exit": 0,
+      "manual_diagnostic_and_repair_restarts": true,
+      "no_claim_of_client_health_before_manual_diagnostic_restart": true,
+      "cleanup": {
+        "errors": [],
+        "remaining_children": []
+      }
+    }
+  },
+  "unit_tests": {
+    "package": 25,
+    "historical_m6b": 6
+  },
+  "archive": {
+    "path": "private/full-merge-f4-20261014/f4-evidence-final.tar.gz",
+    "sha256": "290d42588e437dc1915b6077d1d32bb5914ca9f9b55d243800242e44edaafe48",
+    "bytes": 25037137,
+    "scope": "Source archives, SDK package inputs/logs/APKs/ELFs, actual transaction results, client observations, pre-correction failures, tools and cleanup receipts; rebuildable filesystem overlays excluded."
+  },
+  "rootfs_identity_backup": {
+    "path": "private/full-merge-f4-20261014/rootfs-identities.tar.gz",
+    "sha256": "5c9eedeb9b7ad42d2c4ad17ff5de371409b62ed901d403a42df86ecf4553f263",
+    "count": 12
+  },
+  "closeout": {
+    "owned_processes": [],
+    "host_mounts": [],
+    "physical_router_operations": false,
+    "reference_instance_c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/h1-3a/build/openwrt/build_dir/target-aarch64_cortex-a53_musl/procd-default/procd-2026.03.13~58eb263d/service/instance.c",
+      "sha256": "28e43ad5657de62132a231766dc165b5c7dd27c64ee6692434cb84ca2f8fc36f"
+    }
+  },
+  "stage_cleanup": {
+    "task_owned_removed": [
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source/private/activation-rust-procd/fixture/rootfs-overlay",
+        "regular_bytes": 5320655
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source/private/activation-rust-procd/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source/private/activation-stock/fixture/rootfs-overlay",
+        "regular_bytes": 4444119
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source/private/activation-stock/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source/private/lifecycle-automatic-stock/rootfs-stage/rootfs-overlay",
+        "regular_bytes": 3883039
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs-overlay",
+        "regular_bytes": 5320654
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-rust-procd/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs-overlay",
+        "regular_bytes": 4444118
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-qualified-stock/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-r4-stock-final/fixture/rootfs-overlay",
+        "regular_bytes": 4444118
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-r4-stock-final/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-r4-rust-procd/fixture/rootfs-overlay",
+        "regular_bytes": 5320654
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-r4-rust-procd/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-r4-stock/fixture/rootfs-overlay",
+        "regular_bytes": 4444118
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/activation-r4-stock/fixture/rootfs",
+        "regular_bytes": 0
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/lifecycle-r4-m5-final/rootfs-stage/rootfs-overlay",
+        "regular_bytes": 8581169
+      },
+      {
+        "path": "/dev/shm/full-merge-f4-20261014/source-r4/private/lifecycle-r4-m5/rootfs-stage/rootfs-overlay",
+        "regular_bytes": 8581169
+      }
+    ],
+    "total_regular_bytes": 54783813,
+    "source_package_logs_archives_retained": true
+  },
+  "receipts": {
+    "source/private/package-r2/manifest.json": "98b2694f034ca8e87d9c6a5daddc83000ec3eb45c6134c75844a8062ca343d48",
+    "source/private/lifecycle-automatic-stock/result.json": "e63c85adf6dfa74e1c111bd3feed0eafb996342374e45b49d1f90f0df10f9c18",
+    "source/private/enospc-upgrade/result.json": "a5c48858462be709c233a7911e4a3d926fac8ac5db58f7531fdc2b986ae210fb",
+    "source/private/enospc-rollback/result.json": "8b92ec5a1ae70e7230125edc49043b73af6df845f116a03aeda923c109b2853b",
+    "source-r4/private/package-r4/manifest.json": "02f7a1ed07ad01d01a69a8ee78e2855d5e012b82bb4e69a602c7f8964f5f9c94",
+    "source-r4/private/lifecycle-r4-m5/result.json": "7dd65162fbba51705b7f6ae730ffe190f5c7983c45c764b7141879f0f4ea56f6",
+    "source-r4/private/lifecycle-r4-m5-final/result.json": "edb30254e2466a3f2c11cffd83850c97038b1f9947ee23ade0413e26777afb56",
+    "source-r4/private/activation-r4-stock/result.json": "d9a6e38b9430e0ff737526dad2ee290402ff8659439f790668dff3fea0d99437",
+    "source-r4/private/activation-r4-rust-procd/result.json": "8b304bab1bdb28fd383bb672b96539521252a6886772073f71580256c57aec5c",
+    "source-r4/private/activation-qualified-stock/result.json": "adb02bbe96ec8e5eed3b5cb2c53a7714327415b6ee83ae6111a88bf7c49a84c1",
+    "source-r4/private/activation-qualified-rust-procd/result.json": "b1970ddd54f56cf2a4cd05c9f20b76385e06d80fa5035a9a3b84813062c9aed1",
+    "private/freeze-r4.json": "d10fb7e622f316b2608fafab0264f091d2fbb6b797d40d003d0980ff8f2bb0d6",
+    "private/final-network-invocations.json": "4c90cd63367767e61cd482f258af9dd2519a6fd7e3aaf31062a20b2f638f2961",
+    "private/package-tests.log": "a2ec228f248f8d94c43e191a3753304abd8dd6e0d2de2a8762ce0e48e735ed8d",
+    "private/history-tests.log": "65378dcad145da2497120819bebfc3c46534dce9714ce064b3d809a56654aca2"
+  },
+  "limitations": [
+    "Not final F4/F5/F10 combined qualification; final source build, SDK stripping and unified final-ELF acceptance remain separate.",
+    "Successful activation does not imply atomic APK install or rollback. Broken-archive extraction removed the installed database entry while leaving the previous ELF running.",
+    "ENOSPC used a bounded tmpfs overlay and an r2 packaging-stage artifact; it is not flash/UBIFS/power-loss qualification.",
+    "No physical router operations, no push, no main merge."
+  ],
+  "retained_m5_setup_failure": {
+    "status": "failed",
+    "error": "RuntimeError('stock-to-m5-baseline: jailed dnsmasq 37f85d22e29591e722096b6ccd48f8eb85d63d248af606b939f86f7109ce7f7b and DNS answer not ready: None')",
+    "scope": "Unmodified stock C -> unmodified M5 baseline needs its known explicit activation step; candidate transactions did not receive a manual restart."
+  }
+}
