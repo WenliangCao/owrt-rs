@@ -126,7 +126,7 @@ def cases():
         rows.append({'id': 'blocked-sink-' + kind + '-shutdown', 'scope': 'blocked-sink', 'kind': 'run',
                      'argv': [], 'blocked_kind': kind, 'blocked_never_release': True,
                      'options': ['log-facility'], 'policy_source': 'log.c:135-160,301-319,459-475',
-                     'policy_difference': 'The reader never recovers. C startup SIGTERM exits5 for FIFO/primary stderr; debug fprintf remains blocked in libc exit and needs external SIGKILL. Rust serves and exits0 with its existing bounded 100ms logger shutdown, discarding undrained records.'})
+                     'policy_difference': 'The reader never recovers. C startup SIGTERM exits5 for FIFO/primary stderr; debug fprintf remains blocked in libc exit and needs external SIGKILL. Rust serves before TERM, then retains queued records while waiting for the reader and needs external SIGKILL.'})
     rows.append({'id': 'fifo-peer-disconnect-fallback', 'scope': 'blocked-sink', 'kind': 'run',
                  'argv': [], 'blocked_kind': 'fifo-peer-disconnect', 'options': ['log-facility'],
                  'policy_source': 'log.c:289-335',
@@ -2385,9 +2385,9 @@ def compare(reference, candidate, case, reference_only=False):
     for side, row in [('c', reference)] + ([] if reference_only else [('rust', candidate)]):
         expectations = [('exit', case.get('exit', 0)), ('ready', expected_ready), ('forced', False)]
         if case.get('blocked_never_release'):
-            blocked_echo = side == 'c' and case['blocked_kind'] == 'debug-echo-full'
-            expectations = [('exit', (-9 if blocked_echo else 5) if side == 'c' else 0),
-                            ('ready', side == 'rust'), ('forced', blocked_echo)]
+            waiting_for_reader = side == 'rust' or case['blocked_kind'] == 'debug-echo-full'
+            expectations = [('exit', -9 if waiting_for_reader else 5),
+                            ('ready', side == 'rust'), ('forced', waiting_for_reader)]
         for field, expected in expectations:
             if row[field] != expected:
                 failures.append({'side': side, 'field': field, 'expected': expected, 'actual': row[field]})

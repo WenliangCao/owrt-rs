@@ -1975,8 +1975,9 @@ fn run_inner(
             Priority::Info,
             b"exiting on receipt of SIGTERM".to_vec(),
         ));
-        let deadline = Instant::now() + Duration::from_millis(100);
-        while !logger.finish() && Instant::now() < deadline {
+        // C flush_log waits while the destination remains connected. Backpressure
+        // alone must not discard the queue; finish also stops on connection failure.
+        while !logger.finish() {
             let mut fds: Vec<_> = logger
                 .poll_fds()
                 .map(|fd| owrt_ubus::sys::PollFd {
