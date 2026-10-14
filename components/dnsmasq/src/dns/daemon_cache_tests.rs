@@ -802,6 +802,22 @@ fn response_counters_count_committed_records_and_follow_real_reload() {
 }
 
 #[test]
+fn failed_hosts_reload_still_invalidates_unexpired_forwarded_answers() {
+    let mut daemon = daemon();
+    daemon.local.hosts.insert(b"retained.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 2);
+    daemon.cache_reply_at(&chain_reply(1, false), 100);
+    assert!(cached(&mut daemon, "alias.test", 1, 101).is_some());
+
+    // Model an allocation failure: begin reload, but never publish a replacement.
+    daemon.begin_hosts_reload();
+    assert!(cached(&mut daemon, "alias.test", 1, 102).is_none());
+    assert_eq!(daemon.cache_counters(), CacheCounters::default());
+    assert_eq!(daemon.local.hosts.addresses(b"retained.test").count(), 1);
+    daemon.cache_reply_at(&chain_reply(1, false), 102);
+    assert!(cached(&mut daemon, "alias.test", 1, 103).is_some());
+}
+
+#[test]
 fn cname_query_stops_at_first_alias_and_keeps_exact_c_flags() {
     for negative in [false, true] {
         let mut daemon = daemon();

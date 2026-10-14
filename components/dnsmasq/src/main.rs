@@ -3188,6 +3188,7 @@ impl SinglePoll {
             // the second old copy before reading the replacement.
             local.hosts = Hosts::new();
             self.hosts_view_valid = false;
+            daemon.begin_hosts_reload();
             let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
                 #[cfg(target_os = "linux")]
                 if let Some(logger) = self.logger.as_mut() {
@@ -3196,8 +3197,6 @@ impl SinglePoll {
                 #[cfg(not(target_os = "linux"))]
                 let _ = notice;
             });
-            // cache.c:1644: cache_reload borrows the shared packet scratch.
-            daemon.invalidate_udp_resend();
             let Ok(hosts) = hosts else {
                 // The reader has already dropped its incomplete generation.
                 // Restore from the published view before admitting more work;
@@ -3222,7 +3221,7 @@ impl SinglePoll {
                     return Ok(());
                 }
             };
-            daemon.reload_hosts(snapshot);
+            daemon.publish_hosts_source(snapshot);
             local.hosts = hosts;
             self.hosts_view_valid = true;
             local.leases = Arc::new(daemon.rebuild_lease_names(
