@@ -302,6 +302,8 @@ pub struct UpstreamResolver<R = OsRandom> {
     clock_origin: Instant,
     next_socket: u64,
     receive_buffer: Vec<u8>,
+    poll_tokens: Vec<SocketToken>,
+    poll_fds: Vec<PollFd>,
     socket_settings: SocketSettings,
     source_bindings: HashMap<ServerId, SourceSpec>,
     server_counters: HashMap<ServerId, ServerCounters>,
@@ -379,6 +381,8 @@ impl<R: Random> UpstreamResolver<R> {
             clock_origin: Instant::now(),
             next_socket: 0,
             receive_buffer: vec![0; receive_capacity],
+            poll_tokens: Vec::new(),
+            poll_fds: Vec::new(),
             socket_settings: SocketSettings::default(),
             source_bindings: HashMap::new(),
             server_counters: HashMap::new(),
@@ -762,14 +766,20 @@ impl<R: Random> UpstreamResolver<R> {
         let call_deadline = Instant::now()
             .checked_add(max_wait)
             .unwrap_or_else(Instant::now);
-        loop {
+        // A pending upstream is polled on multiple owner turns. Keep the
+        // interest storage, but rebuild its contents and deadlines every time.
+        let mut tokens = std::mem::take(&mut self.poll_tokens);
+        let mut fds = std::mem::take(&mut self.poll_fds);
+        let result = loop {
             self.run_timers();
             if !self.events.is_empty() || (self.transactions.is_empty() && self.sockets.is_empty())
             {
-                return Ok(self.events.drain(..).collect());
+                break Ok(self.events.drain(..).collect());
             }
-            let mut tokens = Vec::with_capacity(self.sockets.len());
-            let mut fds = Vec::with_capacity(self.sockets.len());
+            tokens.clear();
+            fds.clear();
+            tokens.reserve_exact(self.sockets.len());
+            fds.reserve_exact(self.sockets.len());
             let now = Instant::now();
             let mut deadline = self.next_wakeup(call_deadline);
             for (&token, owned) in &self.sockets {
@@ -801,11 +811,11 @@ impl<R: Random> UpstreamResolver<R> {
                 Err(error) => {
                     // poll-wide failures cannot leave hidden pending work.
                     self.clear();
-                    return Err(error);
+                    break Err(error);
                 }
                 Ok(_) => {}
             }
-            for (token, fd) in tokens.into_iter().zip(fds) {
+            for (&token, fd) in tokens.iter().zip(&fds) {
                 if fd.revents & (POLLIN | POLLERR | POLLHUP | POLLNVAL) != 0 {
                     self.receive_ready(token, fd.revents, &ignore);
                 }
@@ -813,8 +823,13 @@ impl<R: Random> UpstreamResolver<R> {
             self.run_timers();
             // One ready batch per call makes work bounded under continuous
             // input and gives a containing daemon its other work back.
-            return Ok(self.events.drain(..).collect());
-        }
+            break Ok(self.events.drain(..).collect());
+        };
+        tokens.clear();
+        fds.clear();
+        self.poll_tokens = tokens;
+        self.poll_fds = fds;
+        result
     }
 
     /// Expire fixed deadlines and perform only configured fast-retry sends.

@@ -1,0 +1,99 @@
+{
+  "baseline": {
+    "build": {
+      "original_main_sha256": "59bc447f2d9aac2536816b305895151bb3e05d7924c163e7b66fb151623ac46c",
+      "harness_sha256": "d69b66b2bfc73badac0e37b9f00a3138618c4f9543cfe10b90566a2b2804e805",
+      "instrumented_main_sha256": "58c80ee355ae6f37d2015deb6343af0544c88b07082f38a77414d6f8e15cb963",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/cargo",
+        "+1.98.1",
+        "test",
+        "--frozen",
+        "--jobs",
+        "1",
+        "--manifest-path",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-baseline2/input/components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "elf_sha256": "378d05f032fddb07b0504c9b012902d8d0b33d86cb40d0f196971ea9da830046",
+      "timing_prohibited": true
+    },
+    "counts": {
+      "owner": {
+        "iterations": 1000,
+        "query_bytes": 28,
+        "alloc_realloc_bytes": [
+          11000,
+          0,
+          566000
+        ]
+      },
+      "upstream": {
+        "iterations": 1000,
+        "alloc_realloc_bytes": [
+          2000,
+          0,
+          16000
+        ]
+      }
+    }
+  },
+  "candidate": {
+    "build": {
+      "original_main_sha256": "d32c9f8f13adc9b750537f74ba434751c81b3d1e2a1fbe6867dd11b651164632",
+      "harness_sha256": "d69b66b2bfc73badac0e37b9f00a3138618c4f9543cfe10b90566a2b2804e805",
+      "instrumented_main_sha256": "ef4b754710029bb7ff1b5c50f509c180e22611e3757d260146939b08fc2f72d8",
+      "argv": [
+        "/home/ubuntu/.cargo/bin/cargo",
+        "+1.98.1",
+        "test",
+        "--frozen",
+        "--jobs",
+        "1",
+        "--manifest-path",
+        "/home/ubuntu/dnsmasq-perf-20261015/loop/private/owner-loop4/input/components/dnsmasq/Cargo.toml",
+        "--bin",
+        "dnsmasq-rs",
+        "--no-run",
+        "--message-format=json"
+      ],
+      "elf_sha256": "0c2e4849598a294e9c29b84df2130406927f944a0ee6d81f300a7d64da04f14e",
+      "timing_prohibited": true
+    },
+    "counts": {
+      "owner": {
+        "iterations": 1000,
+        "query_bytes": 28,
+        "alloc_realloc_bytes": [
+          10000,
+          0,
+          538000
+        ]
+      },
+      "upstream": {
+        "iterations": 1000,
+        "alloc_realloc_bytes": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "source_sha256": {
+    "baseline": {
+      "components/dnsmasq/src/main.rs": "59bc447f2d9aac2536816b305895151bb3e05d7924c163e7b66fb151623ac46c",
+      "components/dnsmasq/src/dns/service.rs": "02f937171b806f043ff09f7afc46ab3d006fcb570e18be012006d905c140c40f",
+      "components/dnsmasq/src/dns/upstream.rs": "479e4d90b91dc85111b72a1ac221ad26e25b7b9e16686441fbfec7f53a826b07"
+    },
+    "candidate": {
+      "components/dnsmasq/src/main.rs": "d32c9f8f13adc9b750537f74ba434751c81b3d1e2a1fbe6867dd11b651164632",
+      "components/dnsmasq/src/dns/service.rs": "2926443cf97b6f8163133d641ac660700ab7d85e3c76a63dfa6f0475e0b93867",
+      "components/dnsmasq/src/dns/upstream.rs": "00c6e0a884345514ec1b4956e89a86d18e5c2b364e4c33818960a45ab6afd943"
+    }
+  },
+  "scope": "Actual owner and upstream poll in native Linux test-only counting-allocator copies, loopback-only netns, counts only. 1000 correct local UDP answers; 1000 pending zero-timeout upstream polls with no reply or timeout."
+}
