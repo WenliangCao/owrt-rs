@@ -2,13 +2,26 @@
 //! The hosts/config generation is separate from dynamic DNS and DHCP records;
 //! reloading it cannot accidentally discard leases.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, TryReserveError};
 use std::io::Read;
 use std::net::IpAddr;
 
 /// Exact no-IDN check_name/canonicalise behavior. Preserve case, strip one
 /// trailing dot, allow printable ASCII (including internal empty labels).
 pub fn canonicalise(input: &[u8]) -> Option<Vec<u8>> {
+    try_copy(canonical_name(input)?).ok()
+}
+
+/// Hosts-file growth must follow C whine_malloc: allocation failure skips the
+/// affected record instead of invoking Rust's aborting allocation handler.
+pub fn try_copy<T: Copy>(input: &[T]) -> Result<Vec<T>, TryReserveError> {
+    let mut copy = Vec::new();
+    copy.try_reserve_exact(input.len())?;
+    copy.extend_from_slice(input);
+    Ok(copy)
+}
+
+fn canonical_name(input: &[u8]) -> Option<&[u8]> {
     let input = input.split(|&b| b == 0).next()?;
     if input.is_empty() {
         return None;
@@ -34,7 +47,7 @@ pub fn canonicalise(input: &[u8]) -> Option<Vec<u8>> {
             nonwhite |= byte != b' ';
         }
     }
-    (nonwhite && wire + label + 2 <= 255).then(|| input.to_vec())
+    (nonwhite && wire + label + 2 <= 255).then_some(input)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -84,7 +97,9 @@ impl Hosts {
 
     /// Keep the loader's actual file identity beside this immutable generation.
     pub fn set_source_name(&mut self, source: u32, name: Vec<u8>) {
-        self.sources.insert(source, name);
+        if self.sources.try_reserve(1).is_ok() {
+            self.sources.insert(source, name);
+        }
     }
 
     pub fn source_name(&self, source: u32) -> Option<&[u8]> {
@@ -121,30 +136,60 @@ impl Hosts {
         source: u32,
         configured: bool,
     ) -> bool {
-        // C duplicate detection calls cache_find_by_name, which performs its
-        // usual round-robin mutation even while bulk-loading hosts files.
-        if self
-            .lookup(&name, Some(address.is_ipv6()), false)
-            .iter()
-            .any(|host| host.address == address)
-        {
-            return false;
+        self.try_insert(name, address, ttl, source, configured)
+            .unwrap_or(false)
+    }
+
+    fn try_insert(
+        &mut self,
+        name: Vec<u8>,
+        address: IpAddr,
+        ttl: u32,
+        source: u32,
+        configured: bool,
+    ) -> Result<bool, TryReserveError> {
+        let mut key = try_copy(&name)?;
+        key.make_ascii_lowercase();
+        // Duplicate lookup rotates the same flags group as cache_find_by_name,
+        // but must not allocate a temporary result/positions Vec while loading.
+        if let Some(indices) = self.forward.get_mut(&key) {
+            let duplicate = indices
+                .iter()
+                .any(|&id| self.entries[id].address == address);
+            if !self.no_round_robin {
+                rotate_indices(indices, &self.entries, Some(address.is_ipv6()));
+            }
+            if duplicate {
+                return Ok(false);
+            }
         }
-        let key = name.to_ascii_lowercase();
-        // make_non_terminals deletes an empty ancestor when a real name takes
-        // its place. Deleting that later real entry does not restore it.
+        // Reserve all mandatory indexes before publishing any new entry. An
+        // unsuccessful reservation leaves existing entries and PTR ownership live.
+        self.entries.try_reserve(1)?;
+        self.reverse.try_reserve(1)?;
+        self.forward.try_reserve(1)?;
+        let mut fresh_indices = Vec::new();
+        if let Some(indices) = self.forward.get_mut(&key) {
+            indices.try_reserve(1)?;
+        } else {
+            fresh_indices.try_reserve(1)?;
+        }
+        let reverse = !self.reverse.contains_key(&address);
+        // C make_non_terminals is best-effort too; the real record survives an
+        // ancestor allocation failure.
         self.non_terminals.remove(&key);
-        let indices = self.forward.entry(key.clone()).or_default();
+        for (index, &byte) in key.iter().enumerate() {
+            let suffix = &key[index + 1..];
+            if byte == b'.' && !self.non_terminals.contains(suffix) {
+                if let Ok(ancestor) = try_copy(suffix) {
+                    if self.non_terminals.try_reserve(1).is_ok() {
+                        self.non_terminals.insert(ancestor);
+                    }
+                }
+            }
+        }
+        let indices = self.forward.entry(key).or_insert(fresh_indices);
         let id = self.entries.len();
-        let reverse =
-            if let std::collections::hash_map::Entry::Vacant(v) = self.reverse.entry(address) {
-                v.insert(id);
-                true
-            } else {
-                false
-            };
-        // cache_hash keeps reverse entries before non-reverse ones, and
-        // preserves insertion order for identical name/flag groups.
         let at = if reverse {
             indices
                 .iter()
@@ -154,10 +199,8 @@ impl Hosts {
             indices.len()
         };
         indices.insert(at, id);
-        for (index, &byte) in key.iter().enumerate() {
-            if byte == b'.' {
-                self.non_terminals.insert(key[index + 1..].to_vec());
-            }
+        if reverse {
+            self.reverse.insert(address, id);
         }
         self.entries.push(Host {
             name,
@@ -167,7 +210,37 @@ impl Hosts {
             configured,
             reverse,
         });
-        true
+        Ok(true)
+    }
+
+    /// Preserve both published owner views if a replacement snapshot cannot be
+    /// copied. In particular, do not use derived Clone after a fallible read.
+    pub fn try_clone(&self) -> Result<Self, TryReserveError> {
+        let mut copy = Self::new();
+        copy.no_round_robin = self.no_round_robin;
+        copy.entries.try_reserve_exact(self.entries.len())?;
+        copy.sources.try_reserve(self.sources.len())?;
+        copy.forward.try_reserve(self.forward.len())?;
+        copy.reverse.try_reserve(self.reverse.len())?;
+        copy.non_terminals.try_reserve(self.non_terminals.len())?;
+        for host in &self.entries {
+            copy.entries.push(Host {
+                name: try_copy(&host.name)?,
+                ..*host
+            });
+        }
+        for (&source, name) in &self.sources {
+            copy.sources.insert(source, try_copy(name)?);
+        }
+        for (name, indices) in &self.forward {
+            copy.forward.insert(try_copy(name)?, try_copy(indices)?);
+        }
+        copy.reverse
+            .extend(self.reverse.iter().map(|(&address, &id)| (address, id)));
+        for name in &self.non_terminals {
+            copy.non_terminals.insert(try_copy(name)?);
+        }
+        Ok(copy)
     }
 
     pub fn reverse(&self, address: IpAddr) -> Option<&Host> {
@@ -177,8 +250,14 @@ impl Hosts {
     /// cache_remove_uid removes this path's accepted entries, without reloading
     /// other paths or promoting their previously suppressed PTR ownership.
     pub fn remove_uid(&mut self, source: u32) -> usize {
+        self.try_remove_uid(source).unwrap_or(0)
+    }
+
+    pub fn try_remove_uid(&mut self, source: u32) -> Result<usize, TryReserveError> {
         let before = self.entries.len();
-        let mut relocated = vec![None; before];
+        let mut relocated = Vec::new();
+        relocated.try_reserve_exact(before)?;
+        relocated.resize(before, None);
         let mut old = 0;
         let mut new = 0;
         self.entries.retain(|entry| {
@@ -191,7 +270,14 @@ impl Hosts {
             keep
         });
         self.forward.retain(|_, indices| {
-            *indices = indices.iter().filter_map(|&id| relocated[id]).collect();
+            indices.retain_mut(|id| {
+                if let Some(next) = relocated[*id] {
+                    *id = next;
+                    true
+                } else {
+                    false
+                }
+            });
             !indices.is_empty()
         });
         self.reverse.retain(|_, id| {
@@ -204,7 +290,7 @@ impl Hosts {
         });
         // Fresh C non-terminals have their own zero UID; their ancestor names
         // are not reconstructed from remaining address records on removal.
-        before - new
+        Ok(before - new)
     }
 
     pub fn name_exists(&self, name: &[u8]) -> bool {
@@ -322,6 +408,25 @@ impl Hosts {
     }
 }
 
+// Rotate only the first matching address-family/reverse flags group.
+fn rotate_indices(indices: &mut [usize], entries: &[Host], ipv6: Option<bool>) {
+    let matches = |id: usize| ipv6.is_none_or(|v| entries[id].address.is_ipv6() == v);
+    let Some(first_pos) = indices.iter().position(|&id| matches(id)) else {
+        return;
+    };
+    let first = indices[first_pos];
+    let reverse = entries[first].reverse;
+    let mut previous = first_pos;
+    for pos in first_pos + 1..indices.len() {
+        let id = indices[pos];
+        if matches(id) && entries[id].reverse == reverse {
+            indices[previous] = id;
+            previous = pos;
+        }
+    }
+    indices[previous] = first;
+}
+
 /// cache.c gettok retains at most MAXDNAMESTR - 1 bytes and consumes the rest.
 /// Keeping token state, rather than a whole line, also bounds long comments and
 /// tokens in regular files, FIFOs and incremental hostsdir reads.
@@ -375,24 +480,33 @@ impl HostsParser {
                             self.address = std::str::from_utf8(value)
                                 .ok()
                                 .and_then(|value| value.parse::<IpAddr>().ok());
-                            self.suffix = self.address.and_then(&mut domain);
+                            self.suffix =
+                                expand.then(|| self.address.and_then(&mut domain)).flatten();
                             if self.address.is_none() {
                                 self.stats.bad_addresses += 1;
                                 invalid(self.line, true);
                             }
                         } else if let Some(address) = self.address {
-                            if let Some(name) = canonicalise(value) {
+                            if let Some(name) = canonical_name(value) {
                                 if expand && !value.contains(&b'.') {
                                     if let Some(suffix) = &self.suffix {
-                                        let mut expanded = name.clone();
-                                        expanded.push(b'.');
-                                        expanded.extend_from_slice(suffix);
-                                        self.stats.accepted += 1;
-                                        emit(expanded, address);
+                                        let mut expanded = Vec::new();
+                                        if expanded
+                                            .try_reserve_exact(name.len() + 1 + suffix.len())
+                                            .is_ok()
+                                        {
+                                            expanded.extend_from_slice(name);
+                                            expanded.push(b'.');
+                                            expanded.extend_from_slice(suffix);
+                                            self.stats.accepted += 1;
+                                            emit(expanded, address);
+                                        }
                                     }
                                 }
-                                self.stats.accepted += 1;
-                                emit(name, address);
+                                if let Ok(name) = try_copy(name) {
+                                    self.stats.accepted += 1;
+                                    emit(name, address);
+                                }
                             } else {
                                 self.stats.bad_names += 1;
                                 invalid(self.line, false);

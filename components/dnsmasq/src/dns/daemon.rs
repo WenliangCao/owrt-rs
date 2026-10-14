@@ -740,6 +740,12 @@ impl<R: Random> DnsDaemon<R> {
         self.local.hosts = hosts;
     }
 
+    /// Restore the other owner view after a failed hosts replacement. The
+    /// caller first drops its incomplete generation to release that memory.
+    pub fn try_clone_hosts_source(&self) -> Result<Hosts, std::collections::TryReserveError> {
+        self.local.hosts.try_clone()
+    }
+
     pub fn reload_hosts(&mut self, hosts: Hosts) {
         // cache_reload uses daemon->packet as its temporary reverse hash.
         self.invalidate_udp_resend();

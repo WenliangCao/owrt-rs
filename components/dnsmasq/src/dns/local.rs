@@ -49,10 +49,14 @@ pub fn configured_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
         for name in &record.names {
             let ttl = record.ttl.unwrap_or(local_ttl);
             if let Some(address) = record.address4 {
-                hosts.insert(name.clone(), IpAddr::V4(address), ttl, 1); // SRC_CONFIG
+                if let Ok(name) = crate::hosts::try_copy(name) {
+                    hosts.insert(name, IpAddr::V4(address), ttl, 1); // SRC_CONFIG
+                }
             }
             if let Some(address) = record.address6 {
-                hosts.insert(name.clone(), IpAddr::V6(address), ttl, 1);
+                if let Ok(name) = crate::hosts::try_copy(name) {
+                    hosts.insert(name, IpAddr::V6(address), ttl, 1);
+                }
             }
         }
     }

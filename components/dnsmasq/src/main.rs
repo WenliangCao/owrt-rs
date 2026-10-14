@@ -3178,12 +3178,9 @@ impl SinglePoll {
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
-            // This owner holds both views for the entire synchronous reload.
-            // Release the previous indexes before building the replacement:
-            // EVENT_INIT already has configured hosts in both views, and
-            // retaining those deep copies adds a configuration-sized peak.
+            // Keep the daemon's last usable view until publication, releasing
+            // the second old copy before reading the replacement.
             local.hosts = Hosts::new();
-            daemon.publish_hosts_source(Hosts::new());
             let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
                 #[cfg(target_os = "linux")]
                 if let Some(logger) = self.logger.as_mut() {
@@ -3194,7 +3191,19 @@ impl SinglePoll {
             });
             // cache.c:1644: cache_reload borrows the shared packet scratch.
             daemon.invalidate_udp_resend();
-            daemon.reload_hosts(hosts.clone());
+            let snapshot = match hosts.try_clone() {
+                Ok(snapshot) => snapshot,
+                Err(_) => {
+                    drop(hosts);
+                    if let Ok(previous) = daemon.try_clone_hosts_source() {
+                        local.hosts = previous;
+                    }
+                    // A failed reload is recoverable, not an owner-loop error:
+                    // returning Err here would stop the whole DNS/DHCP daemon.
+                    return Ok(());
+                }
+            };
+            daemon.reload_hosts(snapshot);
             local.hosts = hosts;
             local.leases = Arc::new(daemon.rebuild_lease_names(
                 &local.leases,
@@ -3663,16 +3672,30 @@ impl SinglePoll {
         {
             let mut parent = self.service.borrow_mut();
             let ParentDns { local, daemon, .. } = &mut *parent;
-            removed = local.hosts.remove_uid(source.uid);
-            local.hosts.set_source_name(
-                source.uid,
-                source.path.as_os_str().as_encoded_bytes().to_vec(),
-            );
+            // Work in the existing local view; the daemon retains the last
+            // published source until the fallible copy succeeds.
+            removed = match local.hosts.try_remove_uid(source.uid) {
+                Ok(removed) => removed,
+                Err(_) => return 0,
+            };
+            if let Ok(path) = dnsmasq_rs::hosts::try_copy(source.path.as_os_str().as_encoded_bytes()) {
+                local.hosts.set_source_name(source.uid, path);
+            }
             for (name, address) in records {
                 local.hosts.insert(name, address, ttl, source.uid);
             }
             if let Some(daemon) = daemon {
-                daemon.publish_hosts_source(local.hosts.clone());
+                let snapshot = match local.hosts.try_clone() {
+                    Ok(snapshot) => snapshot,
+                    Err(_) => {
+                        local.hosts = Hosts::new();
+                        if let Ok(previous) = daemon.try_clone_hosts_source() {
+                            local.hosts = previous;
+                        }
+                        return 0;
+                    }
+                };
+                daemon.publish_hosts_source(snapshot);
                 local.leases = Arc::new(daemon.rebuild_lease_names(
                     &local.leases,
                     &mut local.hosts,
@@ -6782,7 +6805,9 @@ fn read_hosts_with_notices(
                 return;
             }
         };
-        hosts.set_source_name(source, path.as_os_str().as_encoded_bytes().to_vec());
+        if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
+            hosts.set_source_name(source, path);
+        }
         let stats = hosts.read_from_with_diagnostics(
             file,
             source,
@@ -6793,7 +6818,7 @@ fn read_hosts_with_notices(
                     .domain_for_address(address)
                     .ok()
                     .flatten()
-                    .map(ToOwned::to_owned)
+                    .and_then(|name| dnsmasq_rs::hosts::try_copy(name).ok())
             },
             |line, address| {
                 let mut message = if address {

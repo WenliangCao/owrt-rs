@@ -24,7 +24,9 @@ pub struct HostsLoad {
 
 impl HostsLoad {
     pub fn apply(self, hosts: &mut Hosts) -> usize {
-        let removed = hosts.remove_uid(self.source.uid);
+        let Ok(removed) = hosts.try_remove_uid(self.source.uid) else {
+            return 0;
+        };
         for (name, address) in self.records {
             hosts.insert(name, address, self.ttl, self.source.uid);
         }
@@ -85,9 +87,13 @@ impl HostsRead {
                     .domain_for_address(address)
                     .ok()
                     .flatten()
-                    .map(ToOwned::to_owned)
+                    .and_then(|name| crate::hosts::try_copy(name).ok())
             },
-            |name, address| self.loaded.records.push((name, address)),
+            |name, address| {
+                if self.loaded.records.try_reserve(1).is_ok() {
+                    self.loaded.records.push((name, address));
+                }
+            },
             |line, address| {
                 if self
                     .loaded
@@ -95,6 +101,9 @@ impl HostsRead {
                     .last()
                     .is_none_or(|entry| entry.0 != line)
                 {
+                    if self.loaded.bad_lines.try_reserve(1).is_err() {
+                        return;
+                    }
                     self.loaded.bad_lines.push((line, 0, 0));
                 }
                 let entry = self.loaded.bad_lines.last_mut().unwrap();
@@ -113,8 +122,11 @@ impl HostsRead {
     /// this source read; the daemon keeps serving its other sources.
     pub fn step(&mut self) -> io::Result<bool> {
         if self.wait_readiness {
-            let mut fds = Vec::new();
-            self.append_poll_fds(&mut fds);
+            let mut fds = [PollFd {
+                fd: self.file.as_raw_fd(),
+                events: 1,
+                revents: 0,
+            }];
             if owrt_ubus::sys::poll_fds(&mut fds, 0)? == 0 {
                 return Ok(false);
             }
