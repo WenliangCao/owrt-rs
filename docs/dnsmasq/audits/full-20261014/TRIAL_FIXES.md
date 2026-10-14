@@ -60,3 +60,17 @@ sudo -n env PYTHONPATH="$TOOLS" sh "$TOOLS/run_isolated.sh" \
 ```
 
 原反例命令使用相同网络入口，把最后的 Python 程序换为 `/home/ubuntu/full-audit-20261014/private/trial_review.py --case rollback-killed --output "$OUT"`。该审计程序固定读取原脚本。完整已运行 argv 另保存在 `private/fix-*.command.json`；`fix-suite.json` 为七个原场景和两个额外中断场景的汇总。
+
+## FULL-TRIAL-2：照文档上传与调用
+
+独立 fresh 重放原文档路径：把原脚本作为文件上传到 `/tmp/dnsmasq-trial`，执行 start 后出现 `File exists`、`Not a directory`、`copied candidate hash mismatch`，退出 1。C 保持运行。证据：`baseline-path/result.json`。
+
+修复只改文档的上传与所有调用路径为 `/tmp/dnsmasq-trial.sh`，并明确 `chmod 755`，让独立 helper 可以再次执行脚本；`/tmp/dnsmasq-trial/` 保持为运行目录。本项不再改动产品脚本，FULL-TRIAL-1 的固定脚本哈希保持不变。
+
+`documented-path` 用例把候选和脚本实际复制到文档的 `/tmp` 路径，从 0644 脚本开始按文档 chmod/hash/start/status/confirm/rollback，start 使用文档的 `OpenWrt.lan 127.0.0.1 600` 原样参数。合成 fixture 在 `/etc/hosts` 额外提供 `OpenWrt.lan` 别名，保留真实 veth 客户端检查用的 `lifecycle.lan`。另试错误上传 hash，必须在切换前退出 1，并再次检查 C 的真实 DHCP/UDP/TCP DNS。
+
+- 修复脚本 + 修复文档路径：`fix-documented-path-2/result.json`，通过。
+- 原 `179eef…` 脚本 + 修复文档路径：`fix-path-original-script/result.json`，通过，证明路径修复独立成立。
+- 首次 `fix-documented-path/result.json` 的文档命令已完成，但新测试在额外的错误 hash 负控制中把 name 参数误改为零串，断言失败；已修正为 hash 参数并完整重跑。保留该失败证据，不计为产品失败或通过用例。
+
+复测使用前述命令，设置 `CASE=documented-path`。独立验证原脚本时将 `--trial` 换为上文原脚本绝对路径。

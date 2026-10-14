@@ -51,15 +51,20 @@ FULL-TRIAL-1 的当前修复另外覆盖真实脚本中的单次 SIGKILL：回�
    umask 077; sysupgrade -b /tmp/predeploy-backup.tar.gz
    ```
    拷回电脑，确认能解开、哈希已记录。同时在电脑上保存候选 ELF 和本脚本，并记下它们的 SHA-256。
-2. **上传与核对：** `scp` 候选 ELF 到路由器 `/tmp/dnsmasq-rs`，脚本到 `/tmp/dnsmasq-trial`，在路由器上 `sha256sum` 核对。
+2. **上传与核对：** `scp` 候选 ELF 到路由器 `/tmp/dnsmasq-rs`，脚本到 `/tmp/dnsmasq-trial.sh`。`/tmp/dnsmasq-trial/` 是脚本运行目录，不能用作上传文件名。在路由器上执行并与电脑记录核对：
+   ```sh
+   chmod 755 /tmp/dnsmasq-trial.sh
+   sha256sum /tmp/dnsmasq-rs /tmp/dnsmasq-trial.sh
+   ```
+   执行权限用于计时器和监护重新调用脚本。
 3. **启动（默认 10 分钟内必须确认）：**
    ```sh
-   sh /tmp/dnsmasq-trial start /tmp/dnsmasq-rs <候选SHA256> OpenWrt.lan 127.0.0.1 600
+   sh /tmp/dnsmasq-trial.sh start /tmp/dnsmasq-rs <候选SHA256> OpenWrt.lan 127.0.0.1 600
    ```
-4. **约 3 分钟观察窗口：** 手机或电脑重新连 Wi-Fi，确认拿到地址、能上网、能打开 LuCI；`sh /tmp/dnsmasq-trial status` 显示候选在运行；`logread | grep dnsmasq` 没有异常。
+4. **约 3 分钟观察窗口：** 手机或电脑重新连 Wi-Fi，确认拿到地址、能上网、能打开 LuCI；`sh /tmp/dnsmasq-trial.sh status` 显示候选在运行；`logread | grep dnsmasq` 没有异常。
 5. **决定：**
-   - 一切正常，想继续试：`sh /tmp/dnsmasq-trial confirm`（健康监护继续运行，直到重启或回退）；
-   - 有任何疑问：`sh /tmp/dnsmasq-trial rollback`。
+   - 一切正常，想继续试：`sh /tmp/dnsmasq-trial.sh confirm`（健康监护继续运行，直到重启或回退）；
+   - 有任何疑问：`sh /tmp/dnsmasq-trial.sh rollback`。
 6. **结束试运行：** `rollback` 或直接重启路由器，都会回到 C。
 
 这一步只是试运行：不修改安装包，不写闪存。正式替换（安装包、开机自启）另行决定。
