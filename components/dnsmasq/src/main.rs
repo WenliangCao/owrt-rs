@@ -2707,6 +2707,7 @@ impl TcpDnsWork {
         parent: &Rc<RefCell<ParentDns>>,
         query: Option<&[u8]>,
         no_cache: bool,
+        forward_name: Option<&dnsmasq_rs::dns::wire::Name>,
     ) -> Result<TcpServiceProgress, ()> {
         let now = self.accept_clock;
         let local = &self.service;
@@ -2774,6 +2775,7 @@ impl TcpDnsWork {
                 now,
                 &mut sink,
                 cached_name,
+                forward_name,
             )
         } else {
             self.forward
@@ -2828,8 +2830,8 @@ impl TcpDnsWork {
         });
         // Invalid questions miss both local and cache lookup, then reach the
         // existing TCP forwarder's REFUSED path rather than closing the stream.
-        let answer = match parsed {
-            Err(_) => None,
+        let lookup = match parsed {
+            Err(_) => Default::default(),
             Ok((header, question)) if self.cache_debug => {
                 let mut owner = parent.try_borrow_mut().map_err(|_| ())?;
                 let daemon = owner.daemon.as_mut().ok_or(())?;
@@ -2850,6 +2852,7 @@ impl TcpDnsWork {
             }
         };
         self.collect_local_query_events();
+        let answer = lookup.answer;
         let stale = matches!(answer, Some(QueryResult::Stale(_)));
         if let Some(QueryResult::Local(packet) | QueryResult::Cached(packet) | QueryResult::Stale(packet)) = answer {
             if stale {
@@ -2857,7 +2860,7 @@ impl TcpDnsWork {
             }
             self.queue_answer(parent, packet, false)?;
         } else {
-            match self.run_forward(parent, Some(&query), self.no_cache)? {
+            match self.run_forward(parent, Some(&query), self.no_cache, lookup.forward_name.as_ref())? {
                 TcpServiceProgress::Pending(wait) => {
                     self.phase = TcpClientPhase::Forwarding {
                         no_cache: self.no_cache,
@@ -2939,7 +2942,7 @@ impl TcpDnsWork {
                             // forward.c:2782-2784: background TCP refresh keeps
                             // its display ID after the client is closed.
                             self.query_context.client = None;
-                            match self.run_forward(parent, Some(&query), self.no_cache)? {
+                            match self.run_forward(parent, Some(&query), self.no_cache, None)? {
                                 TcpServiceProgress::Pending(wait) => {
                                     self.phase = TcpClientPhase::Forwarding {
                                         no_cache: self.no_cache,
@@ -2958,7 +2961,7 @@ impl TcpDnsWork {
                         return Ok(true);
                     }
                     let no_cache = *no_cache;
-                    match self.run_forward(parent, None, no_cache)? {
+                    match self.run_forward(parent, None, no_cache, None)? {
                         TcpServiceProgress::Pending(wait) => {
                             self.phase = TcpClientPhase::Forwarding { no_cache, wait };
                             return Ok(true);

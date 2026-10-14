@@ -18,6 +18,8 @@ pub struct CachedAnswer {
     pub packet: Option<Vec<u8>>,
     pub stale: bool,
     pub filtered: bool,
+    /// answer_request's name cursor after following a usable cached CNAME.
+    pub forward_name: Option<Name>,
 }
 
 #[derive(Debug)]
@@ -134,7 +136,7 @@ impl CacheContext<'_> {
         if super::local::interface_forward_name_parsed(&local.config, header, question).is_some()
             && !cache.has_nxdomain(&question.name, now)
         {
-            return Ok(CachedAnswer { packet: None, stale: false, filtered: false });
+            return Ok(CachedAnswer { packet: None, stale: false, filtered: false, forward_name: None });
         }
         // answer_request overwrites the Additional section with its own OPT.
         // Request signatures, OPT version/flags and opaque options do not
@@ -150,6 +152,7 @@ impl CacheContext<'_> {
             || header.flags & 0x8000 != 0
         {
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale: false,
@@ -195,6 +198,7 @@ impl CacheContext<'_> {
                 }
             }
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale,
@@ -265,6 +269,7 @@ impl CacheContext<'_> {
         let round_robin = !local.config.no_round_robin;
         if question.class != 1 {
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale,
@@ -296,6 +301,7 @@ impl CacheContext<'_> {
                 if !reverse.is_empty() {
                     if header.flags & 0x0100 == 0 || dnssec_requested {
                         return Ok(CachedAnswer {
+                            forward_name: None,
                             packet: None,
                             stale,
                             filtered: false,
@@ -378,6 +384,7 @@ impl CacheContext<'_> {
                 );
             }
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale,
@@ -424,6 +431,7 @@ impl CacheContext<'_> {
                 return Ok(finish_filtered_answer(writer, false)?);
             }
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale,
@@ -483,6 +491,7 @@ impl CacheContext<'_> {
         if question.rrtype == 5 {
             if header.flags & 0x0100 == 0 {
                 return Ok(CachedAnswer {
+                    forward_name: None,
                     filtered: false,
                     packet: None,
                     stale,
@@ -515,6 +524,7 @@ impl CacheContext<'_> {
                 }
             }
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale,
@@ -550,6 +560,7 @@ impl CacheContext<'_> {
         let mut writer = PacketWriter::new(header.id, (header.flags & 0x0110) | 0x8080, limit)?;
         writer.question(&question.name, question.rrtype, question.class)?;
         let mut written = false;
+        let mut forward_name = None;
         for id in ids {
             // answer_request follows the first CNAME before looking for the
             // requested type, even if the same batch also cached an owner A.
@@ -592,6 +603,7 @@ impl CacheContext<'_> {
                         let target = match target {
                             CnameTarget::Dynamic(target) => target,
                             CnameTarget::Local(target) => {
+                                forward_name = Some(target.name.clone());
                                 let Some(flags) = append_local_terminal(
                                     &mut writer,
                                     local,
@@ -605,6 +617,7 @@ impl CacheContext<'_> {
                                 )?
                                 else {
                                     return Ok(CachedAnswer {
+                                        forward_name,
                                         filtered: false,
                                         packet: None,
                                         stale,
@@ -616,6 +629,7 @@ impl CacheContext<'_> {
                         let Some(target_entry) = cache.get(target) else {
                             break;
                         };
+                        forward_name = Some(target_entry.record.name.clone());
                         if target_entry.record.kind == Kind::Cname {
                             current = target;
                             continue;
@@ -710,6 +724,7 @@ impl CacheContext<'_> {
                                 // bypasses the ordinary cached terminal and
                                 // lets the forwarder retry against upstream.
                                 return Ok(CachedAnswer {
+                                    forward_name,
                                     packet: None,
                                     stale,
                                     filtered: false,
@@ -746,6 +761,7 @@ impl CacheContext<'_> {
                                 return Ok(finish_filtered_answer(writer, stale)?);
                             }
                             return Ok(CachedAnswer {
+                                forward_name,
                                 packet: None,
                                 stale,
                                 filtered: false,
@@ -848,6 +864,7 @@ impl CacheContext<'_> {
                     }
                     if !complete {
                         return Ok(CachedAnswer {
+                            forward_name,
                             filtered: false,
                             packet: None,
                             stale,
@@ -897,7 +914,7 @@ impl CacheContext<'_> {
             return Ok(finish_filtered_answer(writer, stale)?);
         }
         Ok(CachedAnswer {
-            filtered: false,
+                forward_name,            filtered: false,
             packet: None,
             stale,
         })
@@ -1539,6 +1556,7 @@ fn finish_cached_answer_flags(
         header.write(&mut packet)?;
     }
     Ok(CachedAnswer {
+        forward_name: None,
         filtered: false,
         packet: Some(packet),
         stale,

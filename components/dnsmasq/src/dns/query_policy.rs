@@ -3,7 +3,7 @@
 use super::local::{arpa_address, known_forwarded_domain_with_leases, wire_to_dotted};
 use super::routing::RoutingTable;
 use super::service::{append_empty_opt, LocalDnsService};
-use super::wire::{find_pseudoheader, Header, PacketWriter, Question, WireError};
+use super::wire::{find_pseudoheader, Header, Name, PacketWriter, Question, WireError};
 use crate::config::dns::DnsConfig;
 
 #[derive(Clone, Copy)]
@@ -28,7 +28,7 @@ impl QueryPolicy {
         maximum: u16,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, WireError> {
-        self.reply_inner(query, routing, local, maximum, tcp, None)
+        self.reply_inner(query, routing, local, maximum, tcp, None, None)
     }
 
     pub fn reply_with_events(
@@ -40,7 +40,19 @@ impl QueryPolicy {
         tcp: bool,
         events: &mut Vec<crate::query_logging::QueryEvent>,
     ) -> Result<Option<Vec<u8>>, WireError> {
-        self.reply_inner(query, routing, local, maximum, tcp, Some(events))
+        self.reply_inner(query, routing, local, maximum, tcp, None, Some(events))
+    }
+
+    pub fn reply_for_name(
+        self,
+        query: &[u8],
+        routing: &RoutingTable,
+        local: Option<&LocalDnsService>,
+        maximum: u16,
+        name: Option<&Name>,
+        events: Option<&mut Vec<crate::query_logging::QueryEvent>>,
+    ) -> Result<Option<Vec<u8>>, WireError> {
+        self.reply_inner(query, routing, local, maximum, true, name, events)
     }
 
     fn reply_inner(
@@ -50,10 +62,12 @@ impl QueryPolicy {
         local: Option<&LocalDnsService>,
         maximum: u16,
         tcp: bool,
+        forward_name: Option<&Name>,
         events: Option<&mut Vec<crate::query_logging::QueryEvent>>,
     ) -> Result<Option<Vec<u8>>, WireError> {
         let question = Question::parse(query, 12)?;
-        let name = wire_to_dotted(&question.name);
+        let routing_name = forward_name.unwrap_or(&question.name);
+        let name = wire_to_dotted(routing_name);
         let private_reverse = self.bogus_priv
             && question.class == 1
             && matches!(question.qtype, 12 | 255)
@@ -61,12 +75,12 @@ impl QueryPolicy {
                 .as_deref()
                 .and_then(arpa_address)
                 .is_some_and(|address| !super::process::is_allowed_address(address, false))
-            && !routing.has_domain_server(&question.name);
+            && !routing.has_domain_server(routing_name);
         let dotless = self.domain_needed && question.class == 1
             && matches!(question.qtype, 1 | 28 | 255)
             && name.as_ref().is_some_and(|name| !name.is_empty() && !name.contains(&b'.'))
             // tcp_request tests EDE_NOT_READY before OPT_NODOTS_LOCAL.
-            && (!tcp || routing.select(&question.name, question.qtype, question.class, false).upstream_group().is_some());
+            && (!tcp || routing.select(routing_name, question.qtype, question.class, false).upstream_group().is_some());
         if !private_reverse && !dotless {
             return Ok(None);
         }
@@ -75,7 +89,7 @@ impl QueryPolicy {
                 known_forwarded_domain_with_leases(
                     &local.config,
                     &local.hosts,
-                    &question.name,
+                    routing_name,
                     &local.leases,
                     super::service::unix_now(),
                 )
@@ -86,7 +100,7 @@ impl QueryPolicy {
                 if let Some(address) = name.as_deref().and_then(arpa_address) {
                     events.push(QueryEvent::address(
                         log::CONFIG | log::REVERSE | log::NEGATIVE | log::NXDOMAIN,
-                        &question.name.dnsmasq_bytes(),
+                        &routing_name.dnsmasq_bytes(),
                         address,
                         None,
                     ));
@@ -100,7 +114,7 @@ impl QueryPolicy {
                 };
                 events.push(QueryEvent::label(
                     log::CONFIG | log::NEGATIVE | family | if known { 0 } else { log::NXDOMAIN },
-                    &question.name.dnsmasq_bytes(),
+                    &routing_name.dnsmasq_bytes(),
                     None,
                     0,
                 ));

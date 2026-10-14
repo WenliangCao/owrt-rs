@@ -77,7 +77,7 @@ fn shared_answer(daemon: &mut DnsDaemon, query: &[u8], now: i64, tcp: bool) -> O
     let question = super::super::forward::Question::parse_with_header(query, header).unwrap();
     DnsDaemon::<OsRandom>::answer_local_or_cached(
         daemon.cache.as_mut(), query, header, &question, &mut daemon.local, now, true, tcp,
-    ).unwrap().map(|answer| match answer {
+    ).unwrap().answer.map(|answer| match answer {
         QueryResult::Local(packet) | QueryResult::Cached(packet) | QueryResult::Stale(packet) => packet,
         _ => panic!("answer lookup cannot forward a query"),
     })
@@ -112,6 +112,41 @@ fn shared_lookup_checks_cached_terminal_before_local_forward_rules() {
             for tcp in [false, true] {
                 let response = shared_answer(&mut daemon, &packet("target.test", 28, 0x100).finish(), 141, tcp).unwrap();
                 assert_eq!(Header::parse(&response).unwrap().rcode(), 3);
+            }
+        }
+    }
+}
+
+#[test]
+fn shared_lookup_preserves_cname_cursor_for_tcp_forward_rules_only() {
+    for (directive, expected_types) in [
+        ("local=/target.test/", &[][..]),
+        ("address=/target.test/2001:db8::9", &[28][..]),
+    ] {
+        let mut daemon = daemon();
+        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        daemon.cache_reply_at(&chain_reply(1, false), 100);
+        for tcp in [false, true] {
+            let query = packet("alias.test", 28, 0x100).finish();
+            let header = Header::parse(&query).unwrap();
+            let question = super::super::forward::Question::parse_with_header(&query, header).unwrap();
+            let lookup = DnsDaemon::<OsRandom>::answer_local_or_cached(
+                daemon.cache.as_mut(), &query, header, &question, &mut daemon.local, 100, true, tcp,
+            ).unwrap();
+            if tcp {
+                assert_eq!(lookup.forward_name, Some(Name::from_ascii("target.test").unwrap()));
+                let Some(QueryResult::Local(response)) = lookup.answer else { panic!("TCP terminal rule missed"); };
+                let message = Message::parse(&response).unwrap();
+                assert_eq!(message.header.flags, if expected_types.is_empty() { 0x8180 } else { 0x8580 });
+                assert_eq!(super::super::forward::Question::parse(&response).unwrap().name, question.name);
+                assert_eq!(message.records(Section::Answer).map(|rr| rr.rrtype).collect::<Vec<_>>(), expected_types);
+                for rr in message.records(Section::Answer) {
+                    assert_eq!(rr.name().unwrap(), question.name);
+                    assert_eq!(rr.rdata, "2001:db8::9".parse::<std::net::Ipv6Addr>().unwrap().octets());
+                }
+            } else {
+                assert!(lookup.answer.is_none());
+                assert!(lookup.forward_name.is_none());
             }
         }
     }
@@ -409,8 +444,8 @@ fn shared_lookup_bypasses_only_dynamic_answers_when_not_cacheable() {
             let answer = daemon.current_answer_local_or_cached(
                 &query, header, &question, &mut local, 101, cacheable, tcp,
             ).unwrap();
-            assert_eq!(answer.is_some(), name == "local.test" || cacheable);
-            if let Some(QueryResult::Local(answer) | QueryResult::Cached(answer)) = answer {
+            assert_eq!(answer.answer.is_some(), name == "local.test" || cacheable);
+            if let Some(QueryResult::Local(answer) | QueryResult::Cached(answer)) = answer.answer {
                 let message = Message::parse(&answer).unwrap();
                 let address = message.records(Section::Answer).next().unwrap();
                 assert_eq!(address.rdata, if name == "local.test" { [192, 0, 2, 3] } else { [192, 0, 2, 4] });

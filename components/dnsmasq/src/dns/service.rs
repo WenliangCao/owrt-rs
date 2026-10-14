@@ -357,6 +357,33 @@ impl LocalDnsService {
         Ok(Some(answer))
     }
 
+    /// Forwarding rules select by the CNAME cursor, but make_local_answer
+    /// writes the original client question and literal-address owner.
+    #[allow(clippy::too_many_arguments)]
+    pub(super) fn lookup_forward_rule(
+        &mut self,
+        query: &[u8],
+        header: Header,
+        question: &super::forward::Question,
+        name: &super::wire::Name,
+        now: i64,
+        cache: Option<&mut Cache>,
+        tcp: bool,
+    ) -> Result<Option<super::local::LocalAnswer>, ServiceError> {
+        let terminal = super::forward::Question { name: name.clone(), ..question.clone() };
+        let Some(mut answer) = self.lookup_local_parsed(query, header, &terminal, now, cache, tcp)?
+            .filter(|answer| answer.forward_rule)
+        else {
+            return Ok(None);
+        };
+        // These answers contain only A/AAAA literals (owner pointer 12),
+        // or no RRs. No RDATA compression pointers need relocation.
+        let old_end = super::wire::skip_questions(&answer.packet).map_err(AnswerError::Wire)?;
+        let query_end = super::wire::skip_questions(query).map_err(AnswerError::Wire)?;
+        answer.packet.splice(12..old_end, query[12..query_end].iter().copied());
+        Ok(Some(answer))
+    }
+
     pub fn handle_tcp_frame(&mut self, frame: &[u8]) -> Result<Option<Vec<u8>>, ServiceError> {
         let mut framer = TcpFramer::new();
         let frames = framer.push(frame)?;

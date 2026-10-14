@@ -61,6 +61,20 @@ pub struct ClientRequest {
     pub interface: u32,
 }
 
+/// Shared local/cache lookup, with C's name cursor retained on a miss. UDP
+/// reparses the original question before forwarding; TCP uses this cursor.
+#[derive(Default)]
+pub struct LocalLookup {
+    pub answer: Option<QueryResult>,
+    pub forward_name: Option<Name>,
+}
+
+impl LocalLookup {
+    fn answered(answer: QueryResult) -> Self {
+        Self { answer: Some(answer), forward_name: None }
+    }
+}
+
 /// A response ready for the containing process to send on its client socket.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ClientResponse {
@@ -864,7 +878,7 @@ impl<R: Random> DnsDaemon<R> {
             unix_seconds(),
             true,
             false,
-        )? {
+        )?.answer {
             return Ok(answer);
         }
         if let Some(packet) = self.policy_reply(query, None)? {
@@ -951,7 +965,7 @@ impl<R: Random> DnsDaemon<R> {
             unix_seconds(),
             !metadata.flags.no_cache,
             false,
-        )? {
+        )?.answer {
             return Ok(answer);
         }
         if let Some(packet) = self.policy_reply(original, Some(local))? {
@@ -1596,6 +1610,7 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(CachedAnswer {
+                forward_name: None,
                 filtered: false,
                 packet: None,
                 stale: false,
@@ -1739,6 +1754,7 @@ impl<R: Random> DnsDaemon<R> {
             // existing query-error path send REFUSED instead of closing the
             // downstream connection on a cache lookup error.
             return Ok(super::cache_engine::CachedAnswer {
+                forward_name: None,
                 packet: None,
                 stale: false,
                 filtered: false,
@@ -1780,6 +1796,7 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<super::cache_engine::CachedAnswer, DaemonError> {
         let Some(cache) = self.cache.as_mut() else {
             return Ok(super::cache_engine::CachedAnswer {
+                forward_name: None,
                 packet: None,
                 stale: false,
                 filtered: false,
@@ -1808,7 +1825,8 @@ impl<R: Random> DnsDaemon<R> {
 
     /// Both packet owners use C's local/CNAME/cache order. A connection may
     /// supply its accepted cache view; UDP supplies the current generation.
-    /// The transport flag changes only the response envelope, not selection.
+    /// A miss retains C's transport-specific forwarding name without a second
+    /// cache lookup, rotation, or expiry pass.
     #[allow(clippy::too_many_arguments)]
     pub fn answer_local_or_cached(
         mut cache: Option<&mut Cache>,
@@ -1819,16 +1837,17 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         cacheable: bool,
         tcp: bool,
-    ) -> Result<Option<QueryResult>, DaemonError> {
+    ) -> Result<LocalLookup, DaemonError> {
         let local_answer = local.lookup_local_parsed(query, header, question, now, cache.as_deref_mut(), tcp);
         // A malformed TCP question must reach tcp_request's REFUSED path;
         // UDP admission instead drops it. Valid questions share this lookup.
         let local_answer = if tcp { local_answer.ok().flatten() } else { local_answer? };
         if local_answer.as_ref().is_some_and(|answer| !answer.forward_rule) {
-            return Ok(Some(QueryResult::Local(local.finish_local_answer(local_answer.unwrap()))));
+            return Ok(LocalLookup::answered(QueryResult::Local(local.finish_local_answer(local_answer.unwrap()))));
         }
+        let mut forward_name = None;
         if cacheable {
-            if let Some(cache) = cache {
+            if let Some(cache) = cache.as_deref_mut() {
                 let filtered_type = local.config.filter_rr.contains(&question.rrtype);
                 let maximum = local.edns_packet_max;
                 let limit = if tcp { 65536 } else { local.max_udp };
@@ -1837,15 +1856,28 @@ impl<R: Random> DnsDaemon<R> {
                     limit, maximum, tcp, filtered_type,
                 )?;
                 if let Some(packet) = answer.packet {
-                    return Ok(Some(if answer.stale {
+                    return Ok(LocalLookup::answered(if answer.stale {
                         QueryResult::Stale(packet)
                     } else {
                         QueryResult::Cached(packet)
                     }));
                 }
+                // receive_query restores the question before forward_query;
+                // tcp_request keeps answer_request's terminal name instead.
+                if tcp {
+                    forward_name = answer.forward_name;
+                }
             }
         }
-        Ok(local_answer.map(|answer| QueryResult::Local(local.finish_local_answer(answer))))
+        let local_answer = if let Some(name) = forward_name.as_ref() {
+            local.lookup_forward_rule(query, header, question, name, now, cache, tcp)?
+        } else {
+            local_answer
+        };
+        Ok(LocalLookup {
+            answer: local_answer.map(|answer| QueryResult::Local(local.finish_local_answer(answer))),
+            forward_name,
+        })
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1858,7 +1890,7 @@ impl<R: Random> DnsDaemon<R> {
         now: i64,
         cacheable: bool,
         tcp: bool,
-    ) -> Result<Option<QueryResult>, DaemonError> {
+    ) -> Result<LocalLookup, DaemonError> {
         Self::answer_local_or_cached(
             self.cache.as_mut(), query, header, question, local, now, cacheable, tcp,
         )
