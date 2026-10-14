@@ -7,20 +7,67 @@ ELF actually runs (by /proc exe hash) and that a real veth client still gets a
 DHCP lease and DNS answers. Never invoke this on OpenWrt.
 """
 import argparse
+import ctypes
 import json
 import os
 from pathlib import Path
 import shutil
 import signal
+import subprocess
+import sys
 import time
 
 from m2_lifecycle import Scenario
-from m2_rootfs import STOCK_SHA256, sha256
+from m2_rootfs import STOCK_SHA256, command, sha256
 from test_deploy_oracle import Deployment, host, wait
 
 CASES = ('confirm-rollback', 'deadline', 'crash', 'hang', 'watch-killed',
-         'partial-rollback', 'reload')
+         'partial-rollback', 'reload', 'rollback-killed',
+         'confirmed-rollback-killed', 'rollback-cleanup-killed', 'rollback-c-dns-loss')
 TRIAL = '/usr/sbin/dnsmasq-trial'
+
+
+def interrupt_rollback(pid, phase, ready, evidence):
+    """Observe unchanged shell syscalls and inject exactly one SIGKILL.
+
+    No product hooks or substituted commands: the parent is stopped between
+    syscalls so even the interval before the first unmount is observable.
+    """
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.ptrace.restype = ctypes.c_long
+
+    def ptrace(request, data=0):
+        result = libc.ptrace(request, pid, ctypes.c_void_p(0), ctypes.c_void_p(data))
+        if result == -1:
+            raise OSError(ctypes.get_errno(), 'ptrace')
+
+    ptrace(0x4206, 1)  # PTRACE_SEIZE, PTRACE_O_TRACESYSGOOD
+    ptrace(0x4207)  # PTRACE_INTERRUPT
+    os.waitpid(pid, 0)
+    Path(ready).touch()
+    deliver = 0
+    root = Path(f'/proc/{pid}/root/tmp/dnsmasq-trial')
+    while True:
+        ptrace(24, deliver)  # PTRACE_SYSCALL
+        _, status = os.waitpid(pid, 0)
+        assert os.WIFSTOPPED(status), status
+        stop = os.WSTOPSIG(status)
+        deliver = 0 if stop in (signal.SIGTRAP, signal.SIGTRAP | 0x80) else stop
+        if stop != signal.SIGTRAP | 0x80:
+            continue
+        mounted = ' /usr/sbin/dnsmasq ' in Path(f'/proc/{pid}/mounts').read_text()
+        helpers = sorted(path.name for path in root.glob('*.pid'))
+        reached = {
+            'requested': (root / 'rollback').exists() and mounted,
+            'unmounted': not mounted,
+            'helpers-cleared': not helpers,
+        }[phase]
+        if reached:
+            Path(evidence).write_text(json.dumps({'pid': pid, 'phase': phase,
+                'mounted': mounted, 'helper_files': helpers, 'signal': 'SIGKILL'}))
+            os.kill(pid, signal.SIGKILL)
+            os.waitpid(pid, 0)
+            return
 
 
 class Trial(Deployment):
@@ -75,6 +122,26 @@ class Trial(Deployment):
     def helper(self, name):
         return int(self.run('/bin/cat', f'/tmp/dnsmasq-trial/{name}.pid').stdout)
 
+    def kill_rollback(self, phase):
+        process = subprocess.Popen(command(self.root, '/bin/sh', '-c',
+            f'kill -STOP $$; exec {TRIAL} rollback interruption-test'),
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        ready, evidence = self.out / 'trace-ready', self.out / 'fault.json'
+        tracer = subprocess.Popen([sys.executable, __file__, '_trace',
+            str(process.pid), phase, str(ready), str(evidence)])
+        try:
+            wait(ready.exists, 'tracer attached', 5)
+            os.kill(process.pid, signal.SIGCONT)
+            assert tracer.wait(30) == 0
+            self.row['fault'] = json.loads(evidence.read_text())
+            self.row['rollback_exit'] = process.wait(2)
+            assert self.row['rollback_exit'] == -signal.SIGKILL
+        finally:
+            for child in (tracer, process):
+                if child.poll() is None:
+                    child.kill()
+                    child.wait(5)
+
     def execute(self):
         self.boot()
         case = self.args.case
@@ -120,6 +187,48 @@ class Trial(Deployment):
             assert self.one(self.rust), 'candidate should still run'
             self.trial('rollback')
             self.back_to_c('rollback_after_partial')
+        elif case in ('rollback-killed', 'confirmed-rollback-killed', 'rollback-cleanup-killed'):
+            self.start(seconds=25)
+            phase = 'requested'
+            if case == 'confirmed-rollback-killed':
+                self.trial('confirm')
+                phase = 'unmounted'
+            elif case == 'rollback-cleanup-killed':
+                phase = 'helpers-cleared'
+            self.kill_rollback(phase)
+            self.back_to_c('automatic_recovery', seconds=60)
+            wait(lambda: not list((self.root / 'tmp/dnsmasq-trial').glob('*.pid')),
+                 'helpers stopped after C health', 15)
+            self.row['steps']['helpers_cleared'] = True
+        elif case == 'rollback-c-dns-loss':
+            self.start()
+            rules = [['INPUT', '-d', '192.168.1.1', '-p', protocol,
+                      '--dport', '53', '-j', 'DROP'] for protocol in ('udp', 'tcp')]
+            for rule in rules:
+                host('iptables', '-I', *rule)
+            process = subprocess.Popen(command(self.root, TRIAL, 'rollback', 'dns-loss'),
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            try:
+                stdout, stderr = process.communicate(timeout=55)
+                self.row['unhealthy_rollback'] = {'exit': process.returncode,
+                    'stdout': stdout, 'stderr': stderr}
+                assert process.returncode == 1, 'unresponsive C reported healthy'
+                assert self.one(STOCK_SHA256), 'C identity should already match'
+                assert (self.root / 'tmp/dnsmasq-trial/rollback').exists()
+                for name in ('deadline', 'watch'):
+                    pid = self.helper(name)
+                    state = Path(f'/proc/{pid}/stat').read_text().split(') ', 1)[1].split()[0]
+                    assert state != 'Z', (name, pid, state)
+                self.row['steps']['owners_kept_for_unresponsive_c'] = True
+            finally:
+                for rule in rules:
+                    host('iptables', '-D', *rule)
+                if process.poll() is None:
+                    process.kill()
+                    process.wait(5)
+            self.back_to_c('dns_restored_automatic_recovery')
+            wait(lambda: not list((self.root / 'tmp/dnsmasq-trial').glob('*.pid')),
+                 'helpers stopped after restored C DNS', 15)
         elif case == 'reload':
             self.start()
             before = self.one(self.rust)
@@ -156,4 +265,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:2] == ['_trace']:
+        interrupt_rollback(int(sys.argv[2]), *sys.argv[3:])
+    else:
+        main()
