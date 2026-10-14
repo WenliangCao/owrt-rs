@@ -10,15 +10,15 @@ profile=$5
 rate=$6
 warm=$7
 seconds=$8
-case "$root:$side:$label" in /tmp/dnsmasq-perf-20261014:c:*|/tmp/dnsmasq-perf-20261014:rust:*) ;; *) exit 2;; esac
+case "$root:$side:$label" in /tmp/dnsmasq-perf-20261014-v3:c:*|/tmp/dnsmasq-perf-20261014-v3:rust:*) ;; *) exit 2;; esac
 case "$label" in *[!a-zA-Z0-9_-]*|'') exit 2;; esac
 [ ! -e "$root/STOP" ]
 [ "$(readlink /proc/self/ns/net)" != "$(readlink /proc/1/ns/net)" ]
 kill -0 "$(cat "$root/guard.pid")"
 out=$root/runs/$label
 mkdir "$out"
-daemon= upstream= observer= timer=
-daemon_start= upstream_start= observer_start= timer_start=
+daemon= upstream= observer= timer= client= client_timer=
+daemon_start= upstream_start= observer_start= timer_start= client_start= client_timer_start=
 starttime() { awk '{print $22}' "/proc/$1/stat" 2>/dev/null; }
 owned_signal() {
     target=$1 expected=$2 signal=$3
@@ -33,6 +33,11 @@ cleanup() {
         candidate=$(cat "$out/upstream.pid")
         if [ "$(awk '{print $4}' "/proc/$candidate/stat" 2>/dev/null)" = "$timer" ]; then upstream=$candidate; upstream_start=$(starttime "$upstream"); fi
     fi
+    if [ -z "$client" ] && [ -n "$client_timer" ] && [ "$(starttime "$client_timer")" = "$client_timer_start" ] && [ -f "$out/client.pid" ]; then
+        candidate=$(cat "$out/client.pid")
+        if [ "$(awk '{print $4}' "/proc/$candidate/stat" 2>/dev/null)" = "$client_timer" ]; then client=$candidate; client_start=$(starttime "$client"); fi
+    fi
+    owned_signal "$client" "$client_start" TERM
     owned_signal "$observer" "$observer_start" TERM
     owned_signal "$daemon" "$daemon_start" TERM
     owned_signal "$upstream" "$upstream_start" TERM
@@ -40,8 +45,10 @@ cleanup() {
     owned_signal "$observer" "$observer_start" KILL
     owned_signal "$daemon" "$daemon_start" KILL
     owned_signal "$upstream" "$upstream_start" KILL
+    owned_signal "$client" "$client_start" KILL
+    owned_signal "$client_timer" "$client_timer_start" TERM
     owned_signal "$timer" "$timer_start" TERM
-    for pid in $observer $daemon $upstream $timer; do wait "$pid" 2>/dev/null || :; done
+    for pid in $observer $daemon $upstream $timer $client_timer; do wait "$pid" 2>/dev/null || :; done
 }
 trap cleanup EXIT
 trap 'exit 143' TERM
@@ -51,6 +58,17 @@ date -u > "$out/start.txt"
 readlink /proc/self/ns/net > "$out/netns.txt"
 elf=$root/dnsmasq-$side
 sha256sum "$elf" > "$out/elf.sha256"
+sha256sum "$root/m6a_loadgen" "$root/m6a_upstream" "$root/device_perf_resource_probe" "$root/device_perf_lifecycle" "$root/device_perf_case.sh" > "$out/tools.sha256"
+case "$mode" in
+life-startup|life-hup|life-config)
+    # The lifecycle helper keeps every child inside this guarded process group.
+    # profile=non-marker hosts; rate=leases; warm=repeats; seconds=period ms.
+    /usr/bin/time -f '%U %S %e' -o "$out/client.time" "$root/device_perf_lifecycle" "${mode#life-}" "$elf" "$out" "$profile" "$warm" "$seconds" "$rate" > "$out/lifecycle.jsonl" 2> "$out/lifecycle.stderr"
+    date -u > "$out/end.txt"
+    printf 'complete\n' > "$out/COMPLETE"
+    exit 0
+    ;;
+esac
 cat > "$out/config" <<EOF
 no-hosts
 no-resolv
@@ -99,15 +117,13 @@ printf '%s\n' "$daemon" > "$out/actual.pid"
 sleep 1
 kill -0 "$daemon"
 sha256sum /proc/$daemon/exe > "$out/live.sha256"
+cat /proc/$daemon/maps > "$out/live.maps"
 readlink /proc/$daemon/ns/net > "$out/daemon.netns"
 # Seed the parent cache through UDP; TCP child-only warming is insufficient.
 if [ "$mode" != dhcp ] && [ "$profile" != miss ]; then
     "$root/m6a_loadgen" --mode udp --host 127.0.0.1 --port 15353 --clients 32 --duration-seconds 5 --warmup-seconds 0 --rate 200 --seed 0x293001 --name-prefix m6a.test --profile hit --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/prewarm" > "$out/prewarm.stdout" 2> "$out/prewarm.stderr"
 fi
-"$root/predeploy_resource_probe" monitor "$daemon" 1 > "$out/before.jsonl"
-"$root/predeploy_resource_probe" monitor "$daemon" "$((warm+seconds+5))" > "$out/resources.jsonl" 2> "$out/resources.stderr" &
-observer=$!
-observer_start=$(starttime "$observer")
+"$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/before.jsonl"
 clients=32
 [ "$mode" != tcp ] || clients=8
 extra=
@@ -116,18 +132,30 @@ if [ "$mode" = dhcp ]; then
     clients=150; port=67
     extra="--client-port 68 --interface lo --dhcp-first-address 127.0.0.10 --dhcp-renew-only"
 fi
-/usr/bin/time -f '%U %S %e' -o "$out/client.time" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.test --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr"
+/usr/bin/time -f '%U %S %e' -o "$out/client.time" /bin/sh -c 'echo $$ > "$1"; shift; exec "$@"' sh "$out/client.pid" "$root/m6a_loadgen" --mode "$mode" --host 127.0.0.1 --port "$port" --clients "$clients" --duration-seconds "$seconds" --warmup-seconds "$warm" --rate "$rate" --seed 0x293001 --name-prefix m6a.test --profile "$profile" --qtype aaaa30 --cache-names 800 --timeout-ms 1000 --output "$out/client" --epoch-file "$out/epoch" --epoch-output "$out/epoch.json" $extra > "$out/client.stdout" 2> "$out/client.stderr" &
+client_timer=$!
+client_timer_start=$(starttime "$client_timer")
+i=0
+while [ ! -f "$out/client.pid" ]; do [ "$i" -lt 5 ]; kill -0 "$client_timer"; sleep 1; i=$((i+1)); done
+client=$(cat "$out/client.pid")
+client_start=$(starttime "$client")
+# Known helper PIDs are sampled directly, separately from the service tree.
+"$root/device_perf_resource_probe" monitor "$daemon" "$((warm+seconds+5))" "$client" "$upstream" > "$out/resources.jsonl" 2> "$out/resources.stderr" &
+observer=$!
+observer_start=$(starttime "$observer")
+wait "$client_timer"
+client= client_timer=
 sleep 1
-"$root/predeploy_resource_probe" monitor "$daemon" 1 > "$out/after.jsonl"
+"$root/device_perf_resource_probe" monitor "$daemon" 1 > "$out/after.jsonl"
 cat /proc/$daemon/stat > "$out/final.stat"
-kill "$observer" 2>/dev/null || :
+owned_signal "$observer" "$observer_start" TERM
 wait "$observer" 2>/dev/null || :
 observer=
-kill "$upstream"
+owned_signal "$upstream" "$upstream_start" TERM
 wait "$timer"
 upstream= timer=
 if [ "$mode" = dhcp ]; then wc -l "$out/leases" > "$out/lease-count.txt"; fi
-kill "$daemon"
+owned_signal "$daemon" "$daemon_start" TERM
 wait "$daemon"
 daemon=
 date -u > "$out/end.txt"
