@@ -151,6 +151,11 @@ impl Hosts {
         &self.records.entries
     }
 
+    /// Dropping this owner cannot release records retained by a TCP snapshot.
+    pub fn has_shared_records(&self) -> bool {
+        matches!(&self.records, Snapshot::Shared(records) if Arc::strong_count(records) > 1)
+    }
+
     /// Like fork's copy-on-write view: snapshot both the accepted generation
     /// and its current round-robin order without copying any hosts records.
     pub fn tcp_snapshot(&mut self) -> Self {

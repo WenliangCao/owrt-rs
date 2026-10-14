@@ -323,3 +323,60 @@ fn consecutive_publication_and_restore_failures_leave_last_daemon_snapshot_intac
     let restored = daemon.try_clone().unwrap();
     assert_eq!(restored.entries(), daemon.entries());
 }
+
+#[test]
+fn retained_shared_hosts_restore_without_allocating_after_failed_publication() {
+    for incremental in [false, true] {
+        let mut local = Hosts::new();
+        local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
+        local.read(b"192.0.2.42 old.test\n192.0.2.43 old.test\n", 2, 37, false, |_| None);
+        local.set_source_name(2, b"/old-hosts".to_vec());
+        assert!(!local.has_shared_records());
+        let held = local.tcp_snapshot();
+        assert!(local.has_shared_records());
+        // The parent has private query order as well as shared records.
+        local.lookup(b"old.test", Some(false), false);
+        let expected = local.try_clone().unwrap();
+        let original_records = local.entries().as_ptr();
+        let previous = if incremental {
+            let working = local.try_clone().unwrap();
+            std::mem::replace(&mut local, working)
+        } else {
+            std::mem::take(&mut local)
+        };
+        if incremental {
+            assert_eq!(local.try_remove_uid(2).unwrap(), 2);
+        }
+        local.read(b"192.0.2.44 new.test\n", 2, 37, false, |_| None);
+        let ((failed_publication, restore_attempts), failed) = with_persistent_failure(0, || {
+            let failed_publication = local.try_clone().is_err();
+            let before = FAIL_REPEAT.with(Cell::get);
+            local = previous;
+            let after = FAIL_REPEAT.with(Cell::get);
+            (failed_publication, before - after)
+        });
+        assert!(failed && failed_publication);
+        assert_eq!(restore_attempts, 0, "restoring a retained owner cannot allocate");
+        assert_eq!(local.entries().as_ptr(), original_records);
+        assert_eq!(local.entries(), expected.entries());
+        assert_eq!(local.source_name(2), Some(b"/old-hosts".as_slice()));
+        assert_eq!(local.addresses(b"old.test").collect::<Vec<_>>(),
+            expected.addresses(b"old.test").collect::<Vec<_>>());
+        assert_eq!(local.addresses(b"ready.test").count(), 1);
+        assert_eq!(local.addresses(b"new.test").count(), 0);
+        let later = local.tcp_snapshot();
+        assert_eq!(later.entries().as_ptr(), original_records);
+        assert_eq!(held.addresses(b"old.test").count(), 2);
+        drop((held, later));
+        assert!(!local.has_shared_records(), "a sole Arc owner is exclusive");
+        // A later successful update publishes new data without altering the
+        // retained connection's accepted generation.
+        let held = local.tcp_snapshot();
+        local.try_remove_uid(2).unwrap();
+        local.read(b"192.0.2.44 new.test\n", 2, 37, false, |_| None);
+        assert_eq!(local.addresses(b"ready.test").count(), 1);
+        assert_eq!(local.addresses(b"new.test").count(), 1);
+        assert_eq!(local.addresses(b"old.test").count(), 0);
+        assert_eq!(held.addresses(b"old.test").count(), 2);
+    }
+}

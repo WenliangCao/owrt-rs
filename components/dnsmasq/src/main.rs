@@ -3184,9 +3184,16 @@ impl SinglePoll {
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
-            // Keep the daemon's last usable view until publication, releasing
-            // the second old copy before reading the replacement.
-            local.hosts = Hosts::new();
+            // Release an exclusive local copy before loading. A TCP snapshot
+            // already retains shared records, so keep that owner for an
+            // allocation-free restore instead of trying to make a third copy.
+            let previous = std::mem::take(&mut local.hosts);
+            let previous = if previous.has_shared_records() {
+                Some(previous)
+            } else {
+                drop(previous);
+                None
+            };
             self.hosts_view_valid = false;
             daemon.begin_hosts_reload();
             let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
@@ -3202,7 +3209,7 @@ impl SinglePoll {
                 // Restore from the published view before admitting more work;
                 // never format a completion notice while a failed load owns
                 // all available memory.
-                if let Ok(previous) = daemon.try_clone_hosts_source() {
+                if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
                     local.hosts = previous;
                     self.hosts_view_valid = true;
                 }
@@ -3212,7 +3219,7 @@ impl SinglePoll {
                 Ok(snapshot) => snapshot,
                 Err(_) => {
                     drop(hosts);
-                    if let Ok(previous) = daemon.try_clone_hosts_source() {
+                    if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
                         local.hosts = previous;
                         self.hosts_view_valid = true;
                     }
@@ -3221,6 +3228,7 @@ impl SinglePoll {
                     return Ok(());
                 }
             };
+            drop(previous);
             daemon.publish_hosts_source(snapshot);
             local.hosts = hosts;
             self.hosts_view_valid = true;
@@ -3700,11 +3708,23 @@ impl SinglePoll {
                 local.hosts = previous;
                 self.hosts_view_valid = true;
             }
-            // Work in the existing local view; the daemon retains the last
-            // published source until the fallible copy succeeds.
+            // Shared records already need a copy for mutation. Keep the
+            // original owner until publication so failure can restore it
+            // without allocating another copy beside the TCP snapshots.
+            let previous = if local.hosts.has_shared_records() {
+                let Ok(working) = local.hosts.try_clone() else { return 0; };
+                Some(std::mem::replace(&mut local.hosts, working))
+            } else {
+                None
+            };
             removed = match local.hosts.try_remove_uid(source.uid) {
                 Ok(removed) => removed,
-                Err(_) => return 0,
+                Err(_) => {
+                    if let Some(previous) = previous {
+                        local.hosts = previous;
+                    }
+                    return 0;
+                }
             };
             if let Ok(path) = dnsmasq_rs::hosts::try_copy(source.path.as_os_str().as_encoded_bytes()) {
                 local.hosts.set_source_name(source.uid, path);
@@ -3718,13 +3738,14 @@ impl SinglePoll {
                     Err(_) => {
                         local.hosts = Hosts::new();
                         self.hosts_view_valid = false;
-                        if let Ok(previous) = daemon.try_clone_hosts_source() {
+                        if let Some(previous) = previous.or_else(|| daemon.try_clone_hosts_source().ok()) {
                             local.hosts = previous;
                             self.hosts_view_valid = true;
                         }
                         return 0;
                     }
                 };
+                drop(previous);
                 daemon.publish_hosts_source(snapshot);
                 local.leases = Arc::new(daemon.rebuild_lease_names(
                     &local.leases,
