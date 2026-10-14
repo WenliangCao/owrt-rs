@@ -273,15 +273,20 @@ impl<'a> LocalAnswerer<'a> {
         {
             return Ok(None);
         }
-        if class_in {
+        // Lease expiry and the subsequent local lookup use the same original
+        // name. Retain that conversion; a configured CNAME still changes only
+        // the expiry traversal cursor, not the caller's question.
+        let dotted_name = if class_in {
             expire_lease_lookups(
                 self.config,
                 lease_names,
                 &question.name,
                 question.rrtype,
                 now,
-            );
-        }
+            )
+        } else {
+            None
+        };
         let leases = LeaseView {
             names: lease_names,
             synth: &self.config.synth_domains,
@@ -337,7 +342,7 @@ impl<'a> LocalAnswerer<'a> {
             // published DHCP A can coexist with an older negative marker.
             return Ok(None);
         } else if class_in {
-            if let Some(name) = wire_to_dotted(&question.name) {
+            if let Some(name) = dotted_name.or_else(|| wire_to_dotted(&question.name)) {
                 let (local_rows, local_owned, reverse_synthesized) = add_local_records_for_name(
                     self.config,
                     self.hosts,
@@ -805,19 +810,18 @@ fn expire_lease_lookups(
     query: &Name,
     qtype: u16,
     now: i64,
-) {
+) -> Option<Vec<u8>> {
     if leases.entries().is_empty() {
-        return;
+        return None;
     }
-    let Some(mut name) = wire_to_dotted(query) else {
-        return;
-    };
+    let query_name = wire_to_dotted(query)?;
+    let mut name = query_name.as_slice();
     for _ in 0..100 {
         if leases.has_expired_name(&name, now) {
             Arc::make_mut(leases).expire_name(&name, now);
         }
         if qtype == TYPE_CNAME {
-            return;
+            return Some(query_name);
         }
         let Some(cname) = config
             .records
@@ -827,7 +831,7 @@ fn expire_lease_lookups(
         else {
             break;
         };
-        name = cname.target.clone();
+        name = &cname.target;
     }
     if (qtype == TYPE_PTR || qtype == 255)
         && arpa_address(&name).is_some()
@@ -840,6 +844,7 @@ fn expire_lease_lookups(
     {
         Arc::make_mut(leases).expire_reverse(now);
     }
+    Some(query_name)
 }
 
 fn dotted_key(name: &[u8]) -> Vec<u8> {

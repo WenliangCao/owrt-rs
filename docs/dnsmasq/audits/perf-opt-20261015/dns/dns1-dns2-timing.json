@@ -1,0 +1,338 @@
+{
+  "scope": "Native diagnostic whole-process CPU/wall including fixture setup and priming; not device timing. Uninstrumented System allocator; no perf process in timed windows.",
+  "reservation": "root-20261015-dns-slot1-90s",
+  "cpu": 2,
+  "operations_per_window": 500000,
+  "rows": [
+    {
+      "scene": "hit",
+      "baseline": {
+        "median_ns": 720.44,
+        "min_ns": 717.644,
+        "max_ns": 727.88,
+        "values_ns": [
+          724.242,
+          720.44,
+          727.88,
+          717.644,
+          719.444
+        ]
+      },
+      "dns1": {
+        "median_ns": 692.09,
+        "min_ns": 689.046,
+        "max_ns": 694.7,
+        "values_ns": [
+          694.7,
+          692.09,
+          689.974,
+          689.046,
+          694.398
+        ],
+        "relative_change": -0.03935095219588036,
+        "relative_range_limit": 0.014207984009771791,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      },
+      "dns2": {
+        "median_ns": 680.988,
+        "min_ns": 678.7,
+        "max_ns": 687.632,
+        "values_ns": [
+          687.632,
+          681.93,
+          678.7,
+          680.988,
+          680.47
+        ],
+        "relative_change": -0.05476097940147684,
+        "relative_range_limit": 0.014207984009771791,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      }
+    },
+    {
+      "scene": "hit-upper",
+      "baseline": {
+        "median_ns": 750.318,
+        "min_ns": 747.298,
+        "max_ns": 761.75,
+        "values_ns": [
+          750.318,
+          761.75,
+          749.916,
+          747.298,
+          752.938
+        ]
+      },
+      "dns1": {
+        "median_ns": 723.988,
+        "min_ns": 719.134,
+        "max_ns": 728.19,
+        "values_ns": [
+          723.988,
+          727.342,
+          719.134,
+          721.114,
+          728.19
+        ],
+        "relative_change": -0.035091787748661174,
+        "relative_range_limit": 0.019261166598695485,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      },
+      "dns2": {
+        "median_ns": 711.904,
+        "min_ns": 709.56,
+        "max_ns": 712.86,
+        "values_ns": [
+          712.686,
+          711.186,
+          711.904,
+          709.56,
+          712.86
+        ],
+        "relative_change": -0.051196959155984545,
+        "relative_range_limit": 0.019261166598695485,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      }
+    },
+    {
+      "scene": "hit-leases",
+      "baseline": {
+        "median_ns": 895.192,
+        "min_ns": 894.058,
+        "max_ns": 898.774,
+        "values_ns": [
+          898.774,
+          894.382,
+          895.192,
+          897.284,
+          894.058
+        ]
+      },
+      "dns1": {
+        "median_ns": 866.896,
+        "min_ns": 865.086,
+        "max_ns": 869.476,
+        "values_ns": [
+          866.896,
+          869.264,
+          869.476,
+          865.91,
+          865.086
+        ],
+        "relative_change": -0.031608861562659185,
+        "relative_range_limit": 0.0052681435937765395,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      },
+      "dns2": {
+        "median_ns": 801.736,
+        "min_ns": 801.282,
+        "max_ns": 802.598,
+        "values_ns": [
+          802.598,
+          802.088,
+          801.282,
+          801.736,
+          801.604
+        ],
+        "relative_change": -0.10439771579728152,
+        "relative_range_limit": 0.0052681435937765395,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      }
+    },
+    {
+      "scene": "miss",
+      "baseline": {
+        "median_ns": 497.374,
+        "min_ns": 495.642,
+        "max_ns": 499.538,
+        "values_ns": [
+          497.512,
+          495.642,
+          497.374,
+          499.538,
+          496.744
+        ]
+      },
+      "dns1": {
+        "median_ns": 496.01,
+        "min_ns": 495.906,
+        "max_ns": 496.272,
+        "values_ns": [
+          495.934,
+          495.906,
+          496.01,
+          496.154,
+          496.272
+        ],
+        "relative_change": -0.0027424031010869765,
+        "relative_range_limit": 0.007833139649438882,
+        "faster_pairs": 4,
+        "exceeds_variation": false
+      },
+      "dns2": {
+        "median_ns": 496.486,
+        "min_ns": 495.378,
+        "max_ns": 500.03,
+        "values_ns": [
+          496.386,
+          495.378,
+          500.03,
+          496.69,
+          496.486
+        ],
+        "relative_change": -0.0017853767989481906,
+        "relative_range_limit": 0.00936985131504209,
+        "faster_pairs": 4,
+        "exceeds_variation": false
+      }
+    },
+    {
+      "scene": "miss-leases",
+      "baseline": {
+        "median_ns": 679.53,
+        "min_ns": 678.506,
+        "max_ns": 682.628,
+        "values_ns": [
+          682.628,
+          680.138,
+          679.53,
+          678.534,
+          678.506
+        ]
+      },
+      "dns1": {
+        "median_ns": 677.258,
+        "min_ns": 674.562,
+        "max_ns": 678.49,
+        "values_ns": [
+          675.23,
+          674.562,
+          677.44,
+          677.258,
+          678.49
+        ],
+        "relative_change": -0.003343487410415902,
+        "relative_range_limit": 0.006065957352876358,
+        "faster_pairs": 5,
+        "exceeds_variation": false
+      },
+      "dns2": {
+        "median_ns": 619.43,
+        "min_ns": 618.3,
+        "max_ns": 621.054,
+        "values_ns": [
+          618.3,
+          618.922,
+          620.13,
+          621.054,
+          619.43
+        ],
+        "relative_change": -0.0884434829955999,
+        "relative_range_limit": 0.006065957352876358,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      }
+    },
+    {
+      "scene": "host",
+      "baseline": {
+        "median_ns": 930.316,
+        "min_ns": 921.428,
+        "max_ns": 966.03,
+        "values_ns": [
+          966.03,
+          934.588,
+          921.428,
+          930.316,
+          926.082
+        ]
+      },
+      "dns1": {
+        "median_ns": 894.354,
+        "min_ns": 891.078,
+        "max_ns": 912.704,
+        "values_ns": [
+          900.306,
+          892.45,
+          912.704,
+          894.354,
+          891.078
+        ],
+        "relative_change": -0.03865568258527208,
+        "relative_range_limit": 0.047942849526397456,
+        "faster_pairs": 5,
+        "exceeds_variation": false
+      },
+      "dns2": {
+        "median_ns": 889.62,
+        "min_ns": 886.93,
+        "max_ns": 909.094,
+        "values_ns": [
+          909.094,
+          887.868,
+          886.93,
+          896.756,
+          889.62
+        ],
+        "relative_change": -0.04374427613843046,
+        "relative_range_limit": 0.047942849526397456,
+        "faster_pairs": 5,
+        "exceeds_variation": false
+      }
+    },
+    {
+      "scene": "rrset",
+      "baseline": {
+        "median_ns": 1773.968,
+        "min_ns": 1767.758,
+        "max_ns": 1816.488,
+        "values_ns": [
+          1773.628,
+          1781.354,
+          1773.968,
+          1816.488,
+          1767.758
+        ]
+      },
+      "dns1": {
+        "median_ns": 1535.856,
+        "min_ns": 1532.878,
+        "max_ns": 1542.764,
+        "values_ns": [
+          1535.856,
+          1542.764,
+          1534.446,
+          1538.572,
+          1532.878
+        ],
+        "relative_change": -0.13422564555843175,
+        "relative_range_limit": 0.027469492121616635,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      },
+      "dns2": {
+        "median_ns": 1503.654,
+        "min_ns": 1501.268,
+        "max_ns": 1508.362,
+        "values_ns": [
+          1503.068,
+          1503.654,
+          1508.164,
+          1508.362,
+          1501.268
+        ],
+        "relative_change": -0.152378171421356,
+        "relative_range_limit": 0.027469492121616635,
+        "faster_pairs": 5,
+        "exceeds_variation": true
+      }
+    }
+  ],
+  "qualification": "Native focused screen only; full device protocol and all correctness gates still pending."
+}
