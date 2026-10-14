@@ -1,0 +1,11 @@
+{
+  "valid": true,
+  "elapsed_seconds": 125.0,
+  "dns_samples": 48,
+  "dns_p95_ms": 0.753,
+  "dns_max_ms": 2.78,
+  "http_samples": 23,
+  "http_max_ms": 80.381,
+  "threshold_ms": 200,
+  "raw_sha256": "c5a1a911a8c23776f1c36e94a375cb9761eccca0aad5ca8582ebd5897b24e88a"
+}

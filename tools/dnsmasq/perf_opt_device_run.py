@@ -84,7 +84,15 @@ def archive_run(out, label):
         for member in tar.getmembers():
             if member.name.startswith('/') or '..' in Path(member.name).parts or not (member.isfile() or member.isdir()):
                 raise RuntimeError('unsafe archive entry')
-        tar.extractall(target, filter='data')
+        # The host's Python 3.9 predates tarfile extraction filters. Only copy
+        # validated regular files/directories, without archive ownership/modes.
+        for member in tar.getmembers():
+            path = target / member.name
+            if member.isdir():
+                path.mkdir(parents=True, exist_ok=True)
+            else:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(tar.extractfile(member).read())
     hashes = {}
     for line in manifest.splitlines():
         digest, name = line.split('  ', 1)
@@ -179,6 +187,7 @@ def main():
     parser.add_argument('--rust-hash', default=PRODUCTION)
     parser.add_argument('--scenes', nargs='*')
     parser.add_argument('--health-baseline', required=True, type=Path)
+    parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
     health = json.loads(args.health_baseline.read_text())
     assert health['valid'] and health['elapsed_seconds'] >= 120
@@ -189,19 +198,37 @@ def main():
     selected = [s for s in SCENES if not args.scenes or s[0] in args.scenes]
     if args.scenes and len(selected) != len(args.scenes):
         raise ValueError('unknown or duplicate scene')
-    args.out.mkdir(parents=True, exist_ok=False)
+    args.out.mkdir(parents=True, exist_ok=args.resume)
     identity = production_identity()
-    write(args.out / 'identity.json', {'production_pid_start':identity, 'production_sha256':PRODUCTION,
+    run_identity = {'production_pid_start':identity, 'production_sha256':PRODUCTION,
           'comparison':{'c':args.c_hash, 'rust':args.rust_hash}, 'controller_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-          'scenes':selected, 'threshold_ms':threshold, 'health_baseline_sha256':hashlib.sha256(args.health_baseline.read_bytes()).hexdigest()})
+          'scenes':selected, 'threshold_ms':threshold, 'health_baseline_sha256':hashlib.sha256(args.health_baseline.read_bytes()).hexdigest()}
+    results = []
+    if args.resume:
+        previous = json.loads((args.out / 'identity.json').read_text())
+        for key in ('production_pid_start', 'comparison', 'threshold_ms', 'health_baseline_sha256'):
+            if previous[key] != run_identity[key]:
+                raise RuntimeError('resume identity differs: ' + key)
+        results = json.loads((args.out / 'progress.json').read_text())
+        for row in results:
+            archive = json.loads((args.out / (row['label'] + '.archive.json')).read_text())
+            for name, digest in archive['files'].items():
+                if hashlib.sha256((args.out / 'runs' / row['label'] / name).read_bytes()).hexdigest() != digest:
+                    raise RuntimeError('resume evidence hash mismatch')
+        write(args.out / ('resume-' + str(time.time_ns()) + '.json'), run_identity)
+    else:
+        write(args.out / 'identity.json', run_identity)
+    completed = {row['label'] for row in results}
     finished, failed = threading.Event(), threading.Event()
     monitor = threading.Thread(target=external_health, args=(args.out, finished, failed), daemon=True)
     monitor.start()
     guard = None
     label = guard_label = None
-    results = []
     try:
         for scene in selected:
+            expected_labels = {f'{args.prefix}-{scene[0]}-r{n}-{s}' for n in range(1,6) for s in ('c','rust')}
+            if expected_labels <= completed:
+                continue
             guard_label = f'{args.prefix}-{scene[0]}-guard'
             guard = guard_start(identity[0], guard_label, threshold)
             for round_number in range(1, 6):
@@ -209,6 +236,8 @@ def main():
                     if failed.is_set() or production_identity() != identity:
                         raise RuntimeError('health or production identity changed')
                     label = f'{args.prefix}-{scene[0]}-r{round_number}-{side}'
+                    if label in completed:
+                        continue
                     argv = [side, label, *map(str, scene[1:])]
                     command = 'setsid /bin/sh ' + ROOT + '/group.sh ' + shlex.join(argv)
                     with (args.out / (label + '.controller.log')).open('wb') as log:
