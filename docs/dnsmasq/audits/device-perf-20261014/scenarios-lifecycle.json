@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "status": "frozen_before_device_lifecycle_and_dhcp_pairs",
+  "date": "2026-10-14",
+  "protocol": "docs/dnsmasq/audits/device-perf-20261014/protocol.md",
+  "authorization": "Temporary isolated measurement only; production dnsmasq remains running and unchanged.",
+  "environment": "Xiaomi AX3000T physical router, fresh loopback-only network namespace for each case",
+  "observed_scale": {
+    "source": "root read-only tally of /etc/hosts plus /tmp/hosts/* and lease file",
+    "address_lines": 6,
+    "host_names": 8,
+    "leases": 6,
+    "real_identifiers_included": false
+  },
+  "identities": {
+    "reference_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "candidate_elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "lifecycle_helper_sha256": "0046530f5e227b089c377818eb77e4565e399137ff507c5fad3ebabd0e868349",
+    "lifecycle_source_sha256": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+    "netns_source_sha256": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4"
+  },
+  "pair_order": [
+    [
+      "C",
+      "Rust"
+    ],
+    [
+      "Rust",
+      "C"
+    ],
+    [
+      "C",
+      "Rust"
+    ],
+    [
+      "Rust",
+      "C"
+    ],
+    [
+      "C",
+      "Rust"
+    ]
+  ],
+  "lifecycle": {
+    "repetitions_per_side_per_round": 20,
+    "minimum_period_ms": 1000,
+    "dns_probe_interval_ms": 1,
+    "scenes": [
+      {
+        "name": "startup-actual-scale",
+        "mode": "startup",
+        "hosts_total": 8,
+        "helper_host_count_argument": 7,
+        "initial_leases": 6
+      },
+      {
+        "name": "config-restart-actual-scale",
+        "mode": "config",
+        "hosts_total": 8,
+        "helper_host_count_argument": 7,
+        "initial_leases": 6
+      },
+      {
+        "name": "hosts-hup-actual-scale",
+        "mode": "hup",
+        "hosts_total": 8,
+        "helper_host_count_argument": 7,
+        "initial_leases": 6
+      },
+      {
+        "name": "hosts-hup-1000",
+        "mode": "hup",
+        "hosts_total": 1000,
+        "helper_host_count_argument": 999,
+        "initial_leases": 150
+      }
+    ],
+    "host_fixture": "One synthetic IPv4 A name per line; final line is a changing marker. The small fixture matches observed name count, not the original address-family/alias topology.",
+    "marker_generations": {
+      "initial_address": "192.0.2.10",
+      "measured_address_last_octets": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "scope": "20 deterministic complete file generations per round; ordinary body stays fixed, marker changes each time to reject stale visibility."
+    },
+    "protocol_refinement": "The general protocol mentions alternating two complete hosts versions. This concrete pre-run manifest uses 20 deterministic marker generations with identical ordinary records, preserving the complete-file replacement and freshness check.",
+    "leases": "Private prefilled finite leases with 12-hour expiry, loaded by the test daemon; synthetic MACs and loopback addresses only.",
+    "timing_boundaries": {
+      "startup": "Immediately before fork/exec to first correct marker answer; previous iteration shutdown and file preparation are outside latency.",
+      "hup": "Immediately before signalling own child SIGHUP to first correct new marker answer; file preparation/rename is outside latency, daemon file reads are inside.",
+      "config": "Immediately before terminating own old child through wait, new fork/exec and first correct answer from the changed primary config; not SIGHUP config re-read."
+    },
+    "cpu_boundaries": {
+      "per_sample_hup": "Parent utime+stime+cutime+cstime difference between immediately before preparation and after new marker visibility. Includes tiny file preparation/controller interval while daemon is alive; not preparation controller CPU.",
+      "per_sample_startup_and_config": "New daemon parent plus waited-child ticks through first correct answer. Config excludes previous daemon shutdown CPU.",
+      "whole_round": "RUSAGE_CHILDREN after all owned children reaped; includes initial readiness, gaps, old/new daemon shutdown. Label whole-round rather than signal-only CPU."
+    },
+    "resource_boundary": "RSS components, FD and thread count are sampled at readiness, not guaranteed instantaneous peaks.",
+    "expected_operations_per_side_per_scene": 100,
+    "quantization": "One-ms DNS observation interval plus scheduling. Sub-resolution latency differences and CPU below tick precision do not establish faster/slower."
+  },
+  "dhcp": {
+    "mode": "dhcp",
+    "dhcp_renew_only": true,
+    "clients": 150,
+    "rate_operations_per_second": 100,
+    "warmup_seconds": 5,
+    "measurement_seconds": 20,
+    "lease_seconds": 43200,
+    "ports": {
+      "server": 67,
+      "client": 68,
+      "namespace": "fresh loopback-only, no links to production network"
+    },
+    "server_address": "127.0.0.1",
+    "synthetic_address_range": [
+      "127.0.0.10",
+      "127.0.0.159"
+    ],
+    "mac_mapping": "02:00:00:6a:00:00 through 02:00:00:6a:00:95 map to the 150 addresses; synthetic static DHCP mappings, not real clients.",
+    "no_ping": true,
+    "private_leasefile": true,
+    "production_ubus": false,
+    "production_dhcp_script": false,
+    "expected_per_side_per_round": {
+      "warmup_dora": 150,
+      "warmup_renew": 350,
+      "measurement_renew": 2000,
+      "measurement_dora": 0,
+      "final_leases": 150,
+      "release": 0
+    },
+    "measurement_admission": "All 150 clients must have completed DORA before the measurement epoch or the tool fails; no DORA may enter measured renewal counts.",
+    "dora_metric": "Separate .dhcp-dora.jsonl contains each first DISCOVER send through final ACK. 150 latency samples per round; offered 100 operations/s is not maximum throughput.",
+    "renew_metric": "Scheduled and actual send to ACK latencies for the 2000 measured REQUEST/ACK operations; retain all errors, skips and timeouts.",
+    "cpu_boundary": "Use the actual captured resource endpoints. If they span warmup plus measurement, label CPU as 150 DORA + 2350 renew combined and divide by all 2500 successful operations, never only 2000 renew. Separate DORA CPU is not isolated by this run. Only an exact measured-epoch endpoint delta may be labelled pure renewal CPU.",
+    "setup_cpu_limitation": "Warmup contains 150 DORA and then 350 renewals; whole-warmup CPU is not DORA-only CPU.",
+    "cleanup": "Keep private 150 leases for evidence, then terminate only the owned test daemon/process group; no packets or releases are sent into the production network."
+  },
+  "safety_scope": {
+    "production_dnsmasq_signalled": false,
+    "real_configuration_modified": false,
+    "real_dhcp_helper_executed": false,
+    "real_ubus_name_registered": false,
+    "writes": "Owned temporary /tmp tree only",
+    "controller": "Root alone operates the router; the independent guard may stop the owned process group on health or deadline failure."
+  },
+  "limitations": [
+    "Loopback excludes Wi-Fi, Ethernet, switch, and physical client scheduling costs.",
+    "Static synthetic DHCP mapping with no-ping excludes address conflict probing and dynamic allocation search.",
+    "No production DHCP script or ubus publication costs; these numbers do not measure complete integration overhead.",
+    "Initial configuration and fixture file writing are not included in lifecycle latency.",
+    "No capacity saturation, long-term retention, or production reload is attempted.",
+    "PSS and USS unavailable on this kernel; RSS and RssAnon must not be relabelled private memory."
+  ]
+}
