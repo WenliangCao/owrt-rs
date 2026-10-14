@@ -1,0 +1,170 @@
+{
+  "product_commit": "b99eae7e54c1d3922368513714da2eaef09cef58",
+  "rust_sha256": "edf0f62ca08946cd35aa5b48255575546baaec53d3273723fb25550eb14e5fac",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "cases": {
+    "warm": {
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "observations": 20,
+      "raw_differences": [],
+      "relative_orders_matched": null,
+      "sides": [
+        {
+          "side": "c",
+          "healthy": true,
+          "peak_bytes": 16510976,
+          "pss_kib": {
+            "startup": 7240,
+            "seed_held": 7352,
+            "parent_udp_warmed": 12232,
+            "new_tcp_1": 12350,
+            "new_tcp_10": 13426,
+            "new_tcp_19": 14531,
+            "new_tcp_20": 9664
+          },
+          "twenty_clients_extra_pss_kib": -2568
+        },
+        {
+          "side": "rust",
+          "healthy": true,
+          "peak_bytes": 28577792,
+          "pss_kib": {
+            "startup": 24136,
+            "seed_held": 24152,
+            "parent_udp_warmed": 27372,
+            "new_tcp_1": 27516,
+            "new_tcp_10": 28156,
+            "new_tcp_19": 28800,
+            "new_tcp_20": 28852
+          },
+          "twenty_clients_extra_pss_kib": 1480
+        }
+      ]
+    },
+    "repeated-original": {
+      "driver_sha256": "30f7e009761ac96991269823651b17d05aeadcf8d6a798defb6a9318d00aaa8b",
+      "observations": 6020,
+      "raw_differences": [],
+      "relative_orders_matched": null,
+      "sides": [
+        {
+          "side": "c",
+          "healthy": true,
+          "peak_bytes": 16842752,
+          "pss_kib": {
+            "startup": 6860,
+            "seed_held": 7041,
+            "parent_udp_warmed": 11917,
+            "new_tcp_1": 12071,
+            "new_tcp_10": 13221,
+            "new_tcp_19": 14309,
+            "new_tcp_20": 9443,
+            "rolling_start": 7053,
+            "rolling_end": 6750
+          },
+          "twenty_clients_extra_pss_kib": -2474
+        },
+        {
+          "side": "rust",
+          "healthy": true,
+          "peak_bytes": 28487680,
+          "pss_kib": {
+            "startup": 24212,
+            "seed_held": 24228,
+            "parent_udp_warmed": 27448,
+            "new_tcp_1": 27592,
+            "new_tcp_10": 28232,
+            "new_tcp_19": 28876,
+            "new_tcp_20": 28928,
+            "rolling_start": 27652,
+            "rolling_end": 27652
+          },
+          "twenty_clients_extra_pss_kib": 1480
+        }
+      ]
+    },
+    "unique": {
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "observations": 6020,
+      "raw_differences": [
+        "rolling-parent-500",
+        "rolling-new-500",
+        "rolling-old-500"
+      ],
+      "relative_orders_matched": true,
+      "sides": [
+        {
+          "side": "c",
+          "healthy": true,
+          "peak_bytes": 16547840,
+          "pss_kib": {
+            "startup": 6764,
+            "seed_held": 6883,
+            "parent_udp_warmed": 11614,
+            "new_tcp_1": 11794,
+            "new_tcp_10": 13034,
+            "new_tcp_19": 14189,
+            "new_tcp_20": 9322,
+            "rolling_start": 6746,
+            "rolling_end": 6816
+          },
+          "twenty_clients_extra_pss_kib": -2292
+        },
+        {
+          "side": "rust",
+          "healthy": true,
+          "peak_bytes": 36511744,
+          "pss_kib": {
+            "startup": 32092,
+            "seed_held": 32108,
+            "parent_udp_warmed": 35328,
+            "new_tcp_1": 35476,
+            "new_tcp_10": 36116,
+            "new_tcp_19": 36752,
+            "new_tcp_20": 36804,
+            "rolling_start": 35528,
+            "rolling_end": 35528
+          },
+          "twenty_clients_extra_pss_kib": 1476
+        }
+      ]
+    }
+  },
+  "retained_negative_controls": {
+    "old_fixed_rust_identical": true,
+    "fixed_vs_c_differences": 188,
+    "old_vs_c_differences": 191
+  },
+  "unique_controls": {
+    "fixed-cgroup64-60k-rolling-unique": {
+      "c_raw_differences": [
+        "rolling-parent-500",
+        "rolling-new-500",
+        "rolling-old-500"
+      ],
+      "rust_raw_differences": []
+    },
+    "final-cgroup64-60k-rolling-unique": {
+      "c_raw_differences": [],
+      "rust_raw_differences": []
+    },
+    "relative-cgroup64-60k-rolling-unique-repeat": {
+      "c_raw_differences": [
+        "rolling-parent-500",
+        "rolling-new-500",
+        "rolling-old-500"
+      ],
+      "rust_raw_differences": []
+    }
+  },
+  "inputs_sha256": {
+    "private/f10-rotation-b99e/oracle/rotation-b99e-warm/result.json": "d0fd56403857fb9bd2b8a8b3e5cb3bd2015e3db48494352daaee429678e5384e",
+    "private/f10-rotation-b99e/oracle/rotation-b99e-repeated-original/result.json": "7c39b622ef38600cd6d14e293cd37904aac2e179d6d590e7e180f0359c7965d3",
+    "private/f10-rotation-b99e/oracle/rotation-b99e-unique/result.json": "054219e8a5d363f083481678b2b3e7ccc42613f2f93329a9cb9dfd76859bce2d",
+    "/Users/USER/Developer/owrt-dnsmasq-full-rotation/private/rotation-finalize/oracle/private/fixed-cgroup64-60k-rolling/result.json": "06fa1491b67d4d3cc4eb074ebfb3ac1d52c8787ad9dc933dc0a33b1eb1c2e600",
+    "/Users/USER/Developer/owrt-dnsmasq-full-rotation/private/rotation-finalize/oracle/private/old-60k-rolling/result.json": "2391105d55fd6168a59725807a1cc9c9e6dda87d9e7f4496ee10b89c14e65083",
+    "/Users/USER/Developer/owrt-dnsmasq-full-rotation/private/rotation-finalize/oracle/private/fixed-cgroup64-60k-rolling-unique/result.json": "2a0a6fbabd77daa6cc7eabdce06bdd4c931d3e4ca383430f3f1b3d6c4095ad7d",
+    "/Users/USER/Developer/owrt-dnsmasq-full-rotation/private/rotation-finalize/oracle/private/final-cgroup64-60k-rolling-unique/result.json": "20bd50a7116a8176321b937cffb82e99c07318289571663b534cb8f70a50770f",
+    "/Users/USER/Developer/owrt-dnsmasq-full-rotation/private/rotation-finalize/oracle/private/relative-cgroup64-60k-rolling-unique-repeat/result.json": "b237e6277670d16342decae3fb18c8b79748f32e6484362d390f7b8e3837ae5a"
+  }
+}
