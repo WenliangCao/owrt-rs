@@ -45,7 +45,7 @@ struct counters {
   uint64_t send_lag_count, send_lag_sum_ns, send_lag_max_ns;
 };
 struct client {
-  int fd; bool busy, measured; uint64_t seq, sent_at, deadline;
+  int fd; bool busy, measured, leased; uint64_t seq, sent_at, deadline;
   uint64_t scheduled_at, send_lag_ns;
   unsigned phase;
   uint16_t id, qtype; uint8_t kind, dhcp_stage;
@@ -57,14 +57,16 @@ struct options {
   const char *mode, *host, *prefix, *output, *profile, *qtype, *interface, *epoch_output, *epoch_file;
   unsigned clients, port, client_port, cache_names, timeout_ms;
   double duration, warmup, rate, saturation; uint64_t seed; uint32_t dhcp_first;
+  bool dhcp_renew_only;
 };
 static struct options opt = {"udp", "127.0.0.1", "m6a.test", NULL, "hit",
-  "a", "lo", NULL, NULL, 20, 15353, 68, 4096, 1000, 120, 30, 0, 0, 1, 0};
+  "a", "lo", NULL, NULL, 20, 15353, 68, 4096, 1000, 120, 30, 0, 0, 1, 0, false};
 static struct client clients[MAX_CLIENTS];
 static struct counters counts[3];
 static struct sockaddr_in destination;
-static FILE *latencies, *send_lags, *wire_samples; static bool output_failed; static uint64_t sequence;
+static FILE *latencies, *send_lags, *wire_samples, *dhcp_dora; static bool output_failed; static uint64_t sequence;
 static uint64_t tcp_connections, tcp_reconnections, tcp_idle_connection_errors;
+static bool renew_setup_failed;
 static volatile sig_atomic_t stopping;
 static uint64_t warmup_start, measure_start, measure_end, saturation_start, run_end;
 static unsigned sample_counts[3][4][3];
@@ -298,8 +300,9 @@ static void start_request(struct client *c,uint64_t scheduled,unsigned phase) {
   c->sent_at=now_ns(); c->deadline=c->sent_at+(uint64_t)opt.timeout_ms*1000000;
   c->busy=true; c->tx_off=c->rx_len=0;
   if (!strcmp(opt.mode,"dhcp")) {
-    c->kind=2; c->qtype=1; c->dhcp_stage=0; v->sent++;
-    if (!send_dhcp(c,1)) completion(c,TRANSPORT,now_ns());
+    c->kind=2; c->qtype=1; c->dhcp_stage=opt.dhcp_renew_only&&c->leased?2:0; v->sent++;
+    if (c->dhcp_stage==2) actual_send_at(c,now_ns());
+    if (!send_dhcp(c,c->dhcp_stage==2?3:1)) completion(c,TRANSPORT,now_ns());
     return;
   }
   choose_dns(c); v->sent++;
@@ -390,11 +393,20 @@ static void receive_dhcp(void) {
       c->dhcp_stage=1;
       if (!send_dhcp(c,3)) completion(c,TRANSPORT,now_ns());
     } else if (c->dhcp_stage==1) {
-      counts[c->phase].dora_correct++; c->dhcp_stage=2;
-      c->xid=(uint32_t)(++sequence);
+      counts[c->phase].dora_correct++; c->leased=true;
+      if (opt.dhcp_renew_only) {
+        uint64_t ack_at=now_ns();
+        fprintf(dhcp_dora,"{\"client\":%u,\"sent_ns\":%"PRIu64",\"ack_ns\":%"PRIu64
+          ",\"latency_ns\":%"PRIu64"}\n",(unsigned)(c-clients),c->sent_at,ack_at,ack_at-c->sent_at);
+        if (ferror(dhcp_dora)) output_failed=true;
+        completion(c,CORRECT,ack_at);continue;
+      }
+      c->dhcp_stage=2;c->xid=(uint32_t)(++sequence);
       if (!send_dhcp(c,3)) completion(c,TRANSPORT,now_ns());
     } else {
-      counts[c->phase].renew_correct++; c->dhcp_stage=3;
+      counts[c->phase].renew_correct++;
+      if (opt.dhcp_renew_only) {completion(c,CORRECT,now_ns());continue;}
+      c->dhcp_stage=3;
       c->xid=(uint32_t)(++sequence);
       if (send_dhcp(c,7)) { counts[c->phase].release_sent++;completion(c,CORRECT,now_ns()); }
       else completion(c,TRANSPORT,now_ns());
@@ -434,7 +446,7 @@ static void usage(void) {
     " --name-prefix DOMAIN --profile hit|miss|mixed --qtype a|aaaa|aaaa30|txt|cname|mix\n"
     " --cache-names N --timeout-ms N --saturation-seconds N --output PREFIX\n"
     " --epoch-output JSON_PATH --epoch-file INTEGER_PATH\n"
-    " DHCP: --client-port 68 --interface lo --dhcp-first-address IPv4\n");
+    " DHCP: --client-port 68 --interface lo --dhcp-first-address IPv4 --dhcp-renew-only\n");
 }
 static uint64_t number(const char *text) {
   char *end=NULL; errno=0; unsigned long long result=strtoull(text,&end,0);
@@ -454,7 +466,7 @@ int main(int argc,char **argv) {
     {"profile",1,0,'f'},{"cache-names",1,0,'a'},{"timeout-ms",1,0,'t'},
     {"qtype",1,0,'q'},{"client-port",1,0,'P'},{"interface",1,0,'i'},
     {"dhcp-first-address",1,0,'A'},{"epoch-output",1,0,'E'},{"epoch-file",1,0,'F'},
-    {"saturation-seconds",1,0,'S'},{"help",0,0,'H'},{0,0,0,0}};
+    {"saturation-seconds",1,0,'S'},{"dhcp-renew-only",0,0,'R'},{"help",0,0,'H'},{0,0,0,0}};
   int option;
   while ((option=getopt_long(argc,argv,"",options,NULL))!=-1) {
     switch (option) {
@@ -462,6 +474,7 @@ int main(int argc,char **argv) {
       case 'p':opt.port=(unsigned)number(optarg);break;case 'c':opt.clients=(unsigned)number(optarg);break;
       case 'd':opt.duration=decimal(optarg);break;case 'w':opt.warmup=decimal(optarg);break;
       case 'r':opt.rate=decimal(optarg);break;case 's':opt.seed=number(optarg);break;
+      case 'R':opt.dhcp_renew_only=true;break;
       case 'n':opt.prefix=optarg;break;case 'o':opt.output=optarg;break;case 'f':opt.profile=optarg;break;
       case 'a':opt.cache_names=(unsigned)number(optarg);break;case 't':opt.timeout_ms=(unsigned)number(optarg);break;
       case 'q':opt.qtype=optarg;break;case 'P':opt.client_port=(unsigned)number(optarg);break;
@@ -476,6 +489,7 @@ int main(int argc,char **argv) {
       !opt.port || opt.port>65535 || !opt.client_port || opt.client_port>65535 ||
       !opt.cache_names || opt.cache_names>65536 || !opt.timeout_ms || opt.timeout_ms>60000 ||
       !opt.duration || opt.saturation>=opt.duration || strlen(opt.prefix)>200 ||
+      (opt.dhcp_renew_only && (strcmp(opt.mode,"dhcp") || !opt.warmup)) ||
       (strcmp(opt.mode,"udp")&&strcmp(opt.mode,"tcp")&&strcmp(opt.mode,"dhcp")) ||
       (strcmp(opt.profile,"hit")&&strcmp(opt.profile,"miss")&&strcmp(opt.profile,"mixed")) ||
       (strcmp(opt.qtype,"a")&&strcmp(opt.qtype,"aaaa")&&strcmp(opt.qtype,"aaaa30")&&strcmp(opt.qtype,"txt")&&strcmp(opt.qtype,"cname")&&strcmp(opt.qtype,"mix")) ||
@@ -491,6 +505,10 @@ int main(int argc,char **argv) {
   if (setvbuf(send_lags,NULL,_IOFBF,1024*1024)) { perror("setvbuf");return 2; }
   if (snprintf(path,sizeof(path),"%s.wire-samples.jsonl",opt.output)>=(int)sizeof(path)) return 2;
   wire_samples=fopen(path,"wx");if (!wire_samples) { perror(path);return 2; }
+  if (opt.dhcp_renew_only) {
+    if (snprintf(path,sizeof(path),"%s.dhcp-dora.jsonl",opt.output)>=(int)sizeof(path)) return 2;
+    dhcp_dora=fopen(path,"wx");if (!dhcp_dora) {perror(path);return 2;}
+  }
   signal(SIGTERM,stop_signal);signal(SIGINT,stop_signal);signal(SIGPIPE,SIG_IGN);
   for (unsigned i=0;i<opt.clients;i++) clients[i].fd=-1;
   bool dhcp=!strcmp(opt.mode,"dhcp");
@@ -519,6 +537,10 @@ int main(int argc,char **argv) {
   while (!stopping) {
     uint64_t time=now_ns();
     if (!transition && time>=measure_start) {
+      if (opt.dhcp_renew_only) {
+        for (unsigned i=0;i<opt.clients;i++) if (!clients[i].leased) renew_setup_failed=true;
+        if (renew_setup_failed) {stopping=1;break;}
+      }
       transition=true;
       next=time;
     }
@@ -583,6 +605,7 @@ int main(int argc,char **argv) {
   if (fclose(latencies)) output_failed=true;
   if (fclose(send_lags)) output_failed=true;
   if (fclose(wire_samples)) output_failed=true;
+  if (dhcp_dora && fclose(dhcp_dora)) output_failed=true;
   if (snprintf(path,sizeof(path),"%s.json",opt.output)>=(int)sizeof(path)) return 2;
   FILE *json=fopen(path,"wx");if (!json) { perror(path);return 2; }
   fprintf(json,"{\n\"schema\":1,\"mode\":\"%s\",\"host\":\"%s\",\"port\":%u,\"clients\":%u,\n"
@@ -593,11 +616,14 @@ int main(int argc,char **argv) {
     opt.mode,opt.host,opt.port,opt.clients,opt.profile,opt.qtype,opt.prefix,opt.seed,opt.rate,
     opt.warmup,opt.duration,opt.saturation,opt.timeout_ms,warmup_start,measure_start,measure_end,run_end,
     stopping?"true":"false",output_failed?"true":"false",tcp_connections,tcp_reconnections,tcp_idle_connection_errors);
+  unsigned leased_clients=0;for(unsigned i=0;i<opt.clients;i++) if(clients[i].leased)leased_clients++;
   struct counters measured=aggregate(&counts[1],&counts[2]);
   print_counters(json,&counts[0]);fputs(",\n\"measurement\":",json);print_counters(json,&measured);
   fputs(",\n\"steady\":",json);print_counters(json,&counts[1]);
   fputs(",\n\"saturation\":",json);print_counters(json,&counts[2]);
   fprintf(json,",\n\"saturation_start_ns\":%" PRIu64,saturation_start);
+  fprintf(json,",\n\"dhcp_renew_only\":%s,\"renew_setup_failed\":%s,\"leased_clients_final\":%u",
+    opt.dhcp_renew_only?"true":"false",renew_setup_failed?"true":"false",leased_clients);
   fputs(",\n\"latency_record_bytes\":32,\"latency_byte_order\":\"little\",\"send_lag_record_bytes\":16\n}\n",json);
   bool json_failed=ferror(json)!=0;if (fclose(json)) json_failed=true;
   return stopping||output_failed||json_failed?2:0;
