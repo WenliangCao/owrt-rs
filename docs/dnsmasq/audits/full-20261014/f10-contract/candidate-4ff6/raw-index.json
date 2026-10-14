@@ -1,0 +1,418 @@
+{
+  "candidate-4ff6/hostsdir-transitions/daemon.log": {
+    "sha256": "bf46f5607dee82bc7b595fbede76cc6cf00f9fc9e0ff1da110ac32ea86c68be8",
+    "bytes": 46757
+  },
+  "candidate-4ff6/hostsdir-transitions/process-identity.json": {
+    "sha256": "394284565ce3968339ddbc9cfa5da6ef8029c0e179347244615ff31541916320",
+    "bytes": 1834
+  },
+  "candidate-4ff6/hostsdir-transitions/result.json": {
+    "sha256": "2f2fe7077298f4ebef411b8d79966a9a0eff35cc94e2eb35ff4eadcaa0f1a30b",
+    "bytes": 225763
+  },
+  "candidate-4ff6/hostsdir-transitions/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "30700548ac096c441e44c613d34181101bdc315abfb324ad4ba402757c2d325f",
+    "bytes": 7520
+  },
+  "candidate-4ff6/ipv6-repeated-ptr/process-identity.json": {
+    "sha256": "180babc60d9694c08191659f7501f5a60fe44065f0fbb5ef3f6b00de3fd27281",
+    "bytes": 1777
+  },
+  "candidate-4ff6/ipv6-repeated-ptr/result.json": {
+    "sha256": "cbe7363da91a9ffd97bd0ed85d90f4992bc6ab8411e1ea5a66960879e0714837",
+    "bytes": 38236
+  },
+  "candidate-4ff6/ipv6-repeated-ptr/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/ipv6-three-duplicate/daemon.log": {
+    "sha256": "7f3bf20d8b90904b207223228492750b45ef5d6cd25c6aa20199738147add762",
+    "bytes": 23382
+  },
+  "candidate-4ff6/ipv6-three-duplicate/process-identity.json": {
+    "sha256": "df167a5d3c818351d2cba79817061364495a8bb3475697e26023c1fc47e86006",
+    "bytes": 1783
+  },
+  "candidate-4ff6/ipv6-three-duplicate/result.json": {
+    "sha256": "fe8e594296627478a97ecffd3ffd6d74a70d55a05fea3966280a09bc7bf61f7e",
+    "bytes": 119557
+  },
+  "candidate-4ff6/ipv6-three-duplicate/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/leases-dhcp/daemon.log": {
+    "sha256": "c3bd71af46d71ff35debf5254f5d83e5b8507315b0f4630883843d965ec18bdd",
+    "bytes": 9834
+  },
+  "candidate-4ff6/leases-dhcp/process-identity.json": {
+    "sha256": "c80863d3ac437c107665169f932c0534af2fc13aa1fb845ba3af0cdb62cc20a3",
+    "bytes": 2009
+  },
+  "candidate-4ff6/leases-dhcp/result.json": {
+    "sha256": "0d948c9895ca863b82988c107a002dee4646761ded8a9ba5a47137c31a30cc80",
+    "bytes": 52002
+  },
+  "candidate-4ff6/leases-dhcp/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/mixed-sources/daemon.log": {
+    "sha256": "687631f11c1fe79c3a9ac689e62e742f17567a53c0f6f5c06cd9c728a3add7ec",
+    "bytes": 6478
+  },
+  "candidate-4ff6/mixed-sources/process-identity.json": {
+    "sha256": "cff5037cb5880ca6b96956e486ee6c2c463d54eea19b3f64a64e003a56ed4474",
+    "bytes": 1876
+  },
+  "candidate-4ff6/mixed-sources/result.json": {
+    "sha256": "a2b40fb1b7ac28b2f4b7a847e5465746d0e58bc99165b6813a23adcd7a104e63",
+    "bytes": 31268
+  },
+  "candidate-4ff6/mixed-sources/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/no-round-robin/daemon.log": {
+    "sha256": "895a97e51faccfdec5f0fd14efff6ba36daf9c766f3f2f62a29b7807491a5ff7",
+    "bytes": 22368
+  },
+  "candidate-4ff6/no-round-robin/process-identity.json": {
+    "sha256": "c3fa9e7cd8f7524863e78e6d969e784281939c7feeba2ebc507c48730aa5f5d3",
+    "bytes": 1788
+  },
+  "candidate-4ff6/no-round-robin/result.json": {
+    "sha256": "f83e79610f01f776e4dbe6259b26a924e85b3c3905ad29865ec2b2079939f14c",
+    "bytes": 119557
+  },
+  "candidate-4ff6/no-round-robin/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/ptr-truncation/daemon.log": {
+    "sha256": "5d79807e680923a4c439905859d4e5fabb1594a546eef90427c934acc43d880f",
+    "bytes": 4670
+  },
+  "candidate-4ff6/ptr-truncation/process-identity.json": {
+    "sha256": "1097c45aba992acfb07f5c4d9ba7118c6e1e1b01076a87b9ecac52d3bc2a32c6",
+    "bytes": 1771
+  },
+  "candidate-4ff6/ptr-truncation/result.json": {
+    "sha256": "1942d632199901a624a6a445a47d1970a11a615eb663ce2c3c9db3c4d55cd91f",
+    "bytes": 12721
+  },
+  "candidate-4ff6/ptr-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/result.json": {
+    "sha256": "ef25a3b5d9681087529f4135cbae69bf82e49020b34e481f40334254addb972a",
+    "bytes": 1061826
+  },
+  "candidate-4ff6/six-addn/daemon.log": {
+    "sha256": "fede67377c0ab4c3ebe623b6aa17b1f773386b7a15886bfe838e6901e8d86832",
+    "bytes": 6087
+  },
+  "candidate-4ff6/six-addn/process-identity.json": {
+    "sha256": "f0f36fe5521950ba69a5aae019e94c0aaec69abc6f34850078bfc524ea596176",
+    "bytes": 1759
+  },
+  "candidate-4ff6/six-addn/result.json": {
+    "sha256": "f9dc060b3f3797c59cc06fe0cfa735bcd60e705a1af4623e352e70b0eebd675b",
+    "bytes": 31140
+  },
+  "candidate-4ff6/six-addn/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/six-default/daemon.log": {
+    "sha256": "8685836490aa059b9cf8de2ebafba253638937550cb14692be7da9a5d34a8683",
+    "bytes": 5695
+  },
+  "candidate-4ff6/six-default/process-identity.json": {
+    "sha256": "7f91e33f4e92595bec7cb0a49b501b9e62774cc5de12b98f3bf82e609128881f",
+    "bytes": 1719
+  },
+  "candidate-4ff6/six-default/result.json": {
+    "sha256": "94b0e2b9bc82e66b9c3163ed20a88abe7b4ca3d3f4a43ad8c9980059efff426f",
+    "bytes": 31081
+  },
+  "candidate-4ff6/six-default/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/six-host-record/daemon.log": {
+    "sha256": "2e4c0ce912ea7bf18b8ac8b18ab61ccdda0a39dc17ef0ae625dd26e44af62ba6",
+    "bytes": 5491
+  },
+  "candidate-4ff6/six-host-record/process-identity.json": {
+    "sha256": "402c2f589065b57d833b87e5d32a1f344b46a0c0a3dea98d1c79b01c6afc5346",
+    "bytes": 1926
+  },
+  "candidate-4ff6/six-host-record/result.json": {
+    "sha256": "a0658760c1329e062b07d373a80f32f9e4aa5c1cf7a193e4eb739c084e83c496",
+    "bytes": 31204
+  },
+  "candidate-4ff6/six-host-record/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/six-hostsdir-initial/daemon.log": {
+    "sha256": "2ef5439441a828e5ca172cd3a75c6ed2955f049054159ea6c4f48cf93d57dd14",
+    "bytes": 7159
+  },
+  "candidate-4ff6/six-hostsdir-initial/process-identity.json": {
+    "sha256": "fba3339c514eac6cd8f4f109f5159b690c200fe3bdb6bd8e0b45e696f14ffd85",
+    "bytes": 1834
+  },
+  "candidate-4ff6/six-hostsdir-initial/result.json": {
+    "sha256": "6a42b8aa404e928d65eff1d1764060ebb5311d1c6e3c8b8ced08701e3034121d",
+    "bytes": 31198
+  },
+  "candidate-4ff6/six-hostsdir-initial/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/split-addn-bulk/daemon.log": {
+    "sha256": "2e048575437c133b4601cc758ae1db2ddda1e1b0d1029c5314219a2170f277b3",
+    "bytes": 5843
+  },
+  "candidate-4ff6/split-addn-bulk/process-identity.json": {
+    "sha256": "0cac04d5ddff8442b8f20a3c59b9d8785886da15fab6a6859031925b16430867",
+    "bytes": 1861
+  },
+  "candidate-4ff6/split-addn-bulk/result.json": {
+    "sha256": "c075b30243c9c98bb34cf7063acad092788c17fc3340b84bd0138f16309faf25",
+    "bytes": 29088
+  },
+  "candidate-4ff6/split-addn-bulk/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/stage/rootfs-identity.json": {
+    "sha256": "43e580c981a8137a8e881592051cc2b9ed4e3064352de84cd00cc6d2dd556dd2",
+    "bytes": 46016
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/hostsdir-transitions/daemon.log": {
+    "sha256": "bf46f5607dee82bc7b595fbede76cc6cf00f9fc9e0ff1da110ac32ea86c68be8",
+    "bytes": 46757
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/tail": {
+    "sha256": "ecf07e855c2513a9735fa7098856a7f802899c60e84f6ad47184e3b513d74c66",
+    "bytes": 62
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "30700548ac096c441e44c613d34181101bdc315abfb324ad4ba402757c2d325f",
+    "bytes": 7520
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/hosts": {
+    "sha256": "62e03ca98e1421189cc3aea96e60aa52f78aabfdb85dbec1c4c5b1eb65efd164",
+    "bytes": 124
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/daemon.log": {
+    "sha256": "7f3bf20d8b90904b207223228492750b45ef5d6cd25c6aa20199738147add762",
+    "bytes": 23382
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/leases-dhcp/daemon.log": {
+    "sha256": "c3bd71af46d71ff35debf5254f5d83e5b8507315b0f4630883843d965ec18bdd",
+    "bytes": 9834
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/leases-dhcp/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/leases-dhcp/leases": {
+    "sha256": "09b99e3b6e30d211d03449c8a75a3f6025703de23a7e4717c614df0e0147d8fb",
+    "bytes": 90
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/mixed-sources/addn": {
+    "sha256": "c201f0a99915335e158c203ab2d8511804f0a1cbf4d4ed892bb6913937b72f8f",
+    "bytes": 38
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/mixed-sources/daemon.log": {
+    "sha256": "687631f11c1fe79c3a9ac689e62e742f17567a53c0f6f5c06cd9c728a3add7ec",
+    "bytes": 6478
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/mixed-sources/hostsdir/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/no-round-robin/daemon.log": {
+    "sha256": "895a97e51faccfdec5f0fd14efff6ba36daf9c766f3f2f62a29b7807491a5ff7",
+    "bytes": 22368
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/no-round-robin/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/ptr-truncation/daemon.log": {
+    "sha256": "5d79807e680923a4c439905859d4e5fabb1594a546eef90427c934acc43d880f",
+    "bytes": 4670
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/ptr-truncation/hosts": {
+    "sha256": "5345ca6c98b0791f9867e1e244bd8f7c103d87b671a8972ca1bb5c0d3413b10a",
+    "bytes": 846
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/six-addn/daemon.log": {
+    "sha256": "fede67377c0ab4c3ebe623b6aa17b1f773386b7a15886bfe838e6901e8d86832",
+    "bytes": 6087
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/six-addn/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/six-default/daemon.log": {
+    "sha256": "8685836490aa059b9cf8de2ebafba253638937550cb14692be7da9a5d34a8683",
+    "bytes": 5695
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/six-host-record/daemon.log": {
+    "sha256": "2e4c0ce912ea7bf18b8ac8b18ab61ccdda0a39dc17ef0ae625dd26e44af62ba6",
+    "bytes": 5491
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/daemon.log": {
+    "sha256": "2ef5439441a828e5ca172cd3a75c6ed2955f049054159ea6c4f48cf93d57dd14",
+    "bytes": 7159
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/hostsdir/first": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/split-addn-bulk/daemon.log": {
+    "sha256": "2e048575437c133b4601cc758ae1db2ddda1e1b0d1029c5314219a2170f277b3",
+    "bytes": 5843
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/split-addn-bulk/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/split-addn-bulk/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/udp-truncation/daemon.log": {
+    "sha256": "c2c24f21bc3980b4989b97d08e17a3a4eb7fbfc6ab8ba9cbc4e2c241a56d3c37",
+    "bytes": 20071
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/m2/udp-truncation/hosts": {
+    "sha256": "76f03f9321cd5629d200f054e54d50b03025e90d20557d6f32e6479c23b56459",
+    "bytes": 999
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+    "bytes": 2114016
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "candidate-4ff6/stage/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "candidate-4ff6/udp-truncation/daemon.log": {
+    "sha256": "c2c24f21bc3980b4989b97d08e17a3a4eb7fbfc6ab8ba9cbc4e2c241a56d3c37",
+    "bytes": 20071
+  },
+  "candidate-4ff6/udp-truncation/process-identity.json": {
+    "sha256": "46d4861973f26c451ca073bab2155525ff3dffd9571e239ef4d49327cf747e51",
+    "bytes": 1771
+  },
+  "candidate-4ff6/udp-truncation/result.json": {
+    "sha256": "a2b61770f06998b3fb5f90d4469982335c6e70d95810fabfc68a21ab1a001cdc",
+    "bytes": 40661
+  },
+  "candidate-4ff6/udp-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "candidate-4ff6.command.json": {
+    "sha256": "62e69c3915999306d005b4ec0f4f51a4342b61a7805e07a7b43d82263e0e7a6b",
+    "bytes": 913
+  },
+  "candidate-4ff6.identity.json": {
+    "sha256": "a795aa71e377caae052af9127ab45f713989389565025bcd5851727c7671c201",
+    "bytes": 1271
+  },
+  "candidate-4ff6.log": {
+    "sha256": "216c11d0bc7c1d79384f6c686116f9e12fc3844b228745c641243adb4e113689",
+    "bytes": 335
+  },
+  "candidate-4ff6.receipt.json": {
+    "sha256": "d012409dceb4389d93bfe2e745c46320c552d9a35d2a139e0004d30561bd8dd9",
+    "bytes": 218
+  },
+  "candidate-4ff6.summary.json": {
+    "sha256": "8bca44bdd3aa885f29f34f82068338d44143a73e5254f16269a9d450382e4ef5",
+    "bytes": 107952
+  },
+  "derive_candidate_4ff6.py": {
+    "sha256": "e4c6f95c304d7f17112b9a3174261ee32b10fa3da580dc926b5cd105bf72064f",
+    "bytes": 3378
+  },
+  "run_candidate_4ff6.py": {
+    "sha256": "1948e85b25a6c3a8cb4bd24f308d1b8f3810e22740d9123ddf1e0c94d3a9c9a3",
+    "bytes": 2488
+  },
+  "tools-4ff6/__pycache__/f10_contract_check.cpython-312.pyc": {
+    "sha256": "050b546a8df9ca9b9278eb18b3f5f1ec4ed71df778f6cf874397a4df9bed38ed",
+    "bytes": 15741
+  },
+  "tools-4ff6/audit_20261011_dhcp.py": {
+    "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+    "bytes": 10332
+  },
+  "tools-4ff6/dns_service_probe.py": {
+    "sha256": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+    "bytes": 11417
+  },
+  "tools-4ff6/f10_contract_check.py": {
+    "sha256": "f0a06e3790bfa4371f861dc68f8afbdc30190770652d9cc8a93bf279f735deec",
+    "bytes": 11364
+  },
+  "tools-4ff6/f10_contract_probe.py": {
+    "sha256": "debcd90c767a9b8378142d8742aa7373183e297bcc29c0efc6185cc8ca7d3e36",
+    "bytes": 19863
+  },
+  "tools-4ff6/m2_rootfs.py": {
+    "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+    "bytes": 15493
+  },
+  "tools-4ff6/observed-ptr-order-manifest.json": {
+    "sha256": "4b47dfb2dea0d87f288fc53a96a472611f217a5d64ef396dc95d51160780b22e",
+    "bytes": 87563
+  },
+  "tools-4ff6/run_isolated.sh": {
+    "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "bytes": 399
+  }
+}
