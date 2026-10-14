@@ -1,0 +1,1406 @@
+{
+  "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+  "rust_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "driver_sha256": "a0fd9f5a57188e6459d7e1707e78df59034ac1d647eced953216440581037ade",
+  "assembler_sha256": "6c6c09a5a54ada93233d465d0dbf1f8eeed733715ac5522cc43bbeee5d1de770",
+  "census_wrapper_sha256": "cfa0b912752a3d4cb480103a2e592e0ea1b2316ad6a6a7affc8b5d21cefd9da0",
+  "evidence_archive_sha256": "9cf0b4fdfd74e6cbb2f528dae6ae4f131a8461a1192cf6e237a0c466cf2ca588",
+  "oracle_evidence_root": "/dev/shm/full-merge-final-reload-20261014/private",
+  "local_evidence_archive": "private/full-audit-20261014/resume/f7/final-reload/evidence.tar.gz",
+  "case_count": 6,
+  "rust_case_count": 3,
+  "independently_redecoded_dns_replies": 667,
+  "independently_redecoded_census_pairs": 28000,
+  "verdict": "passed for three selected final SDK reload boundaries; TCP cgroup resource gates recorded separately by another auditor",
+  "cases": [
+    {
+      "side": "c",
+      "initial_rows": 2000,
+      "new_rows": 6000,
+      "headroom_kib": 1024,
+      "held_tcp": false,
+      "cache_expiry": false,
+      "reload_trigger": "hostsdir-close-write",
+      "passed": true,
+      "pressure_udp_dhcp_healthy": true,
+      "pressure_tcp_healthy": true,
+      "release_udp_tcp_dhcp_healthy": true,
+      "recovery_udp_tcp_dhcp_healthy": true,
+      "hup_cache_purged": null,
+      "held_tcp_snapshot_stable": null,
+      "rust_atomic_samples": null,
+      "rust_tcp_atomic_samples": null,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 0,
+      "initial_memory": {
+        "VmPeak": 1560,
+        "VmSize": 1556,
+        "VmRSS": 1328
+      },
+      "limit_bytes": 2641920,
+      "batch": "census",
+      "evidence": "census/shared-c-initial2000-extra1024-repeat1",
+      "result_sha256": "f32971b35f643c11e48d603f5393a01a428fbe05627d2c70b66ca843c09f893e",
+      "process_identity_sha256": "e1e2e4fd8794133408ea37e32829cbbd414bd5901a380fc976f321159632a296",
+      "trace_sha256": "49a885b542a83f0f2bddf3729f9d6b1b9159caa7783fcd4aa09a6e448911dbba",
+      "pressure": [
+        {
+          "generation": 0,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 0,
+            "enomem_after_source_eof": 0
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test",
+                  "new003000.test",
+                  "new005999.test"
+                ]
+              },
+              "complete_sample_generation": "new"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test",
+                  "new003000.test",
+                  "new005999.test"
+                ]
+              },
+              "complete_sample_generation": "new"
+            }
+          },
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        },
+        {
+          "generation": 1,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 0,
+            "enomem_after_source_eof": 0
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test",
+                  "next1003000.test",
+                  "next1005999.test"
+                ]
+              },
+              "complete_sample_generation": "next1"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test",
+                  "next1003000.test",
+                  "next1005999.test"
+                ]
+              },
+              "complete_sample_generation": "next1"
+            }
+          },
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        }
+      ],
+      "after_release_no_trigger": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test",
+                "next1003000.test",
+                "next1005999.test"
+              ]
+            },
+            "complete_sample_generation": "next1"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test",
+                "next1003000.test",
+                "next1005999.test"
+              ]
+            },
+            "complete_sample_generation": "next1"
+          }
+        },
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "recovered": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          }
+        },
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "dns_probe_errors": [],
+      "full_census": {
+        "transport": "udp",
+        "trigger_sent": false,
+        "groups": {
+          "old": {
+            "queried": 2000,
+            "present": 0,
+            "absent": 2000,
+            "unexpected": [],
+            "errors": [],
+            "present_ranges": [],
+            "absent_ranges": [
+              [
+                0,
+                1999
+              ]
+            ]
+          },
+          "new": {
+            "queried": 6000,
+            "present": 0,
+            "absent": 6000,
+            "unexpected": [],
+            "errors": [],
+            "present_ranges": [],
+            "absent_ranges": [
+              [
+                0,
+                5999
+              ]
+            ]
+          },
+          "next1": {
+            "queried": 6000,
+            "present": 6000,
+            "absent": 0,
+            "unexpected": [],
+            "errors": [],
+            "present_ranges": [
+              [
+                0,
+                5999
+              ]
+            ],
+            "absent_ranges": []
+          }
+        },
+        "packets_sha256": "5b3a203555d4bd976f0cb19b159a56b8181b9602276facf37395cdc0e425cf8b",
+        "wrapper_sha256": "cfa0b912752a3d4cb480103a2e592e0ea1b2316ad6a6a7affc8b5d21cefd9da0",
+        "base_driver_sha256": "a0fd9f5a57188e6459d7e1707e78df59034ac1d647eced953216440581037ade"
+      },
+      "independently_redecoded_census_pairs": 14000
+    },
+    {
+      "side": "rust",
+      "initial_rows": 2000,
+      "new_rows": 6000,
+      "headroom_kib": 1024,
+      "held_tcp": false,
+      "cache_expiry": false,
+      "reload_trigger": "hostsdir-close-write",
+      "passed": true,
+      "pressure_udp_dhcp_healthy": true,
+      "pressure_tcp_healthy": true,
+      "release_udp_tcp_dhcp_healthy": true,
+      "recovery_udp_tcp_dhcp_healthy": true,
+      "hup_cache_purged": null,
+      "held_tcp_snapshot_stable": null,
+      "rust_atomic_samples": true,
+      "rust_tcp_atomic_samples": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 2,
+      "initial_memory": {
+        "VmPeak": 3624,
+        "VmSize": 3624,
+        "VmRSS": 3328
+      },
+      "limit_bytes": 4759552,
+      "batch": "census",
+      "evidence": "census/shared-rust-initial2000-extra1024-repeat1",
+      "result_sha256": "6a5043a49aae0b925b2a8dfdc20689a481aaef1fa32e2bb8265102ae2f8b2505",
+      "process_identity_sha256": "5370414563311353049b9e479b9c0f604e1ffd435cce05a7129d16e7ded9b31e",
+      "trace_sha256": "b46fe64ffee0e69dae84c52150157eb898c4d5442ca9cae91fb40778d227c8b7",
+      "pressure": [
+        {
+          "generation": 0,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 1,
+            "enomem_after_source_eof": 1
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": []
+              },
+              "complete_sample_generation": "old"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": []
+              },
+              "complete_sample_generation": "old"
+            }
+          },
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        },
+        {
+          "generation": 1,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 1,
+            "enomem_after_source_eof": 1
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": [],
+                "next1": []
+              },
+              "complete_sample_generation": "old"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": [],
+                "next1": []
+              },
+              "complete_sample_generation": "old"
+            }
+          },
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        }
+      ],
+      "after_release_no_trigger": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [
+                "old000000.test",
+                "old001999.test"
+              ],
+              "new": [],
+              "next1": []
+            },
+            "complete_sample_generation": "old"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [
+                "old000000.test",
+                "old001999.test"
+              ],
+              "new": [],
+              "next1": []
+            },
+            "complete_sample_generation": "old"
+          }
+        },
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "recovered": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          }
+        },
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "dns_probe_errors": [],
+      "full_census": {
+        "transport": "udp",
+        "trigger_sent": false,
+        "groups": {
+          "old": {
+            "queried": 2000,
+            "present": 2000,
+            "absent": 0,
+            "unexpected": [],
+            "errors": [],
+            "present_ranges": [
+              [
+                0,
+                1999
+              ]
+            ],
+            "absent_ranges": []
+          },
+          "new": {
+            "queried": 6000,
+            "present": 0,
+            "absent": 6000,
+            "unexpected": [],
+            "errors": [],
+            "present_ranges": [],
+            "absent_ranges": [
+              [
+                0,
+                5999
+              ]
+            ]
+          },
+          "next1": {
+            "queried": 6000,
+            "present": 0,
+            "absent": 6000,
+            "unexpected": [],
+            "errors": [],
+            "present_ranges": [],
+            "absent_ranges": [
+              [
+                0,
+                5999
+              ]
+            ]
+          }
+        },
+        "packets_sha256": "01154d86d29d32a17c3cb89912d053508cf75c6f207f631cd70470a8347e938b",
+        "wrapper_sha256": "cfa0b912752a3d4cb480103a2e592e0ea1b2316ad6a6a7affc8b5d21cefd9da0",
+        "base_driver_sha256": "a0fd9f5a57188e6459d7e1707e78df59034ac1d647eced953216440581037ade"
+      },
+      "independently_redecoded_census_pairs": 14000
+    },
+    {
+      "side": "c",
+      "initial_rows": 2000,
+      "new_rows": 6000,
+      "headroom_kib": null,
+      "held_tcp": true,
+      "cache_expiry": false,
+      "reload_trigger": "hostsdir-close-write",
+      "passed": true,
+      "pressure_udp_dhcp_healthy": true,
+      "pressure_tcp_healthy": true,
+      "release_udp_tcp_dhcp_healthy": true,
+      "recovery_udp_tcp_dhcp_healthy": true,
+      "hup_cache_purged": null,
+      "held_tcp_snapshot_stable": true,
+      "rust_atomic_samples": null,
+      "rust_tcp_atomic_samples": null,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 0,
+      "initial_memory": {
+        "VmPeak": 1560,
+        "VmSize": 1556,
+        "VmRSS": 1332
+      },
+      "limit_bytes": null,
+      "batch": "control",
+      "evidence": "control/shared-c-initial2000-extranone-repeat1",
+      "result_sha256": "a633e5a0d0d5b2e9f293c009fe4108a38d4c990fc3fd7d845516bef835889966",
+      "process_identity_sha256": "06000a12dae7114f67a66918e0a9cb329577bf5c69de15f642618ef836bfa8f5",
+      "trace_sha256": "59b94f114870a1e5bba9e7da33085810bdd2794f85c9f63b77d26f209cd4c700",
+      "pressure": [
+        {
+          "generation": 0,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 0,
+            "enomem_after_source_eof": 0
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test",
+                  "new003000.test",
+                  "new005999.test"
+                ]
+              },
+              "complete_sample_generation": "new"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test",
+                  "new003000.test",
+                  "new005999.test"
+                ]
+              },
+              "complete_sample_generation": "new"
+            }
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        },
+        {
+          "generation": 1,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 0,
+            "enomem_after_source_eof": 0
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test",
+                  "next1003000.test",
+                  "next1005999.test"
+                ]
+              },
+              "complete_sample_generation": "next1"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test",
+                  "next1003000.test",
+                  "next1005999.test"
+                ]
+              },
+              "complete_sample_generation": "next1"
+            }
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        }
+      ],
+      "after_release_no_trigger": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test",
+                "next1003000.test",
+                "next1005999.test"
+              ]
+            },
+            "complete_sample_generation": "next1"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test",
+                "next1003000.test",
+                "next1005999.test"
+              ]
+            },
+            "complete_sample_generation": "next1"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "recovered": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "dns_probe_errors": []
+    },
+    {
+      "side": "rust",
+      "initial_rows": 2000,
+      "new_rows": 6000,
+      "headroom_kib": null,
+      "held_tcp": true,
+      "cache_expiry": false,
+      "reload_trigger": "hostsdir-close-write",
+      "passed": true,
+      "pressure_udp_dhcp_healthy": true,
+      "pressure_tcp_healthy": true,
+      "release_udp_tcp_dhcp_healthy": true,
+      "recovery_udp_tcp_dhcp_healthy": true,
+      "hup_cache_purged": null,
+      "held_tcp_snapshot_stable": true,
+      "rust_atomic_samples": true,
+      "rust_tcp_atomic_samples": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 0,
+      "initial_memory": {
+        "VmPeak": 3624,
+        "VmSize": 3624,
+        "VmRSS": 3328
+      },
+      "limit_bytes": null,
+      "batch": "control",
+      "evidence": "control/shared-rust-initial2000-extranone-repeat1",
+      "result_sha256": "adcc0bf713af81a8fd6a65b165534f10f876ebe6bec850e9ef39b20a7b0fd370",
+      "process_identity_sha256": "a32352ac89735ab41059a388094dbf34e67aa5c1338adb6bb203e9178d7423ca",
+      "trace_sha256": "a785c336e8de9a64ecf0822f40732a788d574f5ee55f494d2bede9f217f7f0a5",
+      "pressure": [
+        {
+          "generation": 0,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 0,
+            "enomem_after_source_eof": 0
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test",
+                  "new003000.test",
+                  "new005999.test"
+                ]
+              },
+              "complete_sample_generation": "new"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test",
+                  "new003000.test",
+                  "new005999.test"
+                ]
+              },
+              "complete_sample_generation": "new"
+            }
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        },
+        {
+          "generation": 1,
+          "source_trace": {
+            "source_eof_count": 1,
+            "enomem_count": 0,
+            "enomem_after_source_eof": 0
+          },
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test",
+                  "next1003000.test",
+                  "next1005999.test"
+                ]
+              },
+              "complete_sample_generation": "next1"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test",
+                  "next1003000.test",
+                  "next1005999.test"
+                ]
+              },
+              "complete_sample_generation": "next1"
+            }
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        }
+      ],
+      "after_release_no_trigger": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test",
+                "next1003000.test",
+                "next1005999.test"
+              ]
+            },
+            "complete_sample_generation": "next1"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test",
+                "next1003000.test",
+                "next1005999.test"
+              ]
+            },
+            "complete_sample_generation": "next1"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "recovered": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "dns_probe_errors": []
+    },
+    {
+      "side": "c",
+      "initial_rows": 2000,
+      "new_rows": 30000,
+      "headroom_kib": 1024,
+      "held_tcp": true,
+      "cache_expiry": true,
+      "reload_trigger": "SIGHUP",
+      "passed": true,
+      "pressure_udp_dhcp_healthy": true,
+      "pressure_tcp_healthy": false,
+      "release_udp_tcp_dhcp_healthy": true,
+      "recovery_udp_tcp_dhcp_healthy": true,
+      "hup_cache_purged": true,
+      "held_tcp_snapshot_stable": true,
+      "rust_atomic_samples": null,
+      "rust_tcp_atomic_samples": null,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 36205,
+      "initial_memory": {
+        "VmPeak": 1560,
+        "VmSize": 1560,
+        "VmRSS": 1324
+      },
+      "limit_bytes": 2646016,
+      "batch": "hup",
+      "evidence": "hup/shared-c-initial2000-extra1024-repeat1",
+      "result_sha256": "6f4874e51c6872dfc24d3948d0501468d63874b51083a92723d9d979fc27b870",
+      "process_identity_sha256": "394d305ce939ab00297a1bf170c9c5ba9ce861f9557b352b35fda787d12a156c",
+      "trace_sha256": "8b3278c4e1340666c97319180ddef3bf342b1752aeded297ee8053ed85e62215",
+      "pressure": [
+        {
+          "generation": 0,
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [
+                  "new000000.test"
+                ]
+              },
+              "complete_sample_generation": null
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": []
+              },
+              "complete_sample_generation": null
+            }
+          },
+          "hup_cache_purged": {
+            "udp": true,
+            "tcp": false
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": false,
+              "lease.test": false
+            }
+          }
+        },
+        {
+          "generation": 1,
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": [
+                  "next1000000.test"
+                ]
+              },
+              "complete_sample_generation": null
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [],
+                "new": [],
+                "next1": []
+              },
+              "complete_sample_generation": null
+            }
+          },
+          "hup_cache_purged": {
+            "udp": true,
+            "tcp": false
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": false,
+              "lease.test": false
+            }
+          }
+        }
+      ],
+      "after_release_no_trigger": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test"
+              ]
+            },
+            "complete_sample_generation": null
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [
+                "next1000000.test"
+              ]
+            },
+            "complete_sample_generation": null
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "recovered": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "dns_probe_errors": [
+        {
+          "name": "ready.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "old000000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "old001999.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "new000000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "new015000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "new029999.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "lease.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "dynamic.expiry.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "hup0.expiry.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "ready.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "old000000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "old001999.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "new000000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "new015000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "new029999.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "next1000000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "next1015000.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "next1029999.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "lease.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "dynamic.expiry.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        },
+        {
+          "name": "hup1.expiry.test",
+          "transport": "tcp",
+          "error": "ConnectionError('short TCP frame')"
+        }
+      ]
+    },
+    {
+      "side": "rust",
+      "initial_rows": 2000,
+      "new_rows": 30000,
+      "headroom_kib": 1024,
+      "held_tcp": true,
+      "cache_expiry": true,
+      "reload_trigger": "SIGHUP",
+      "passed": true,
+      "pressure_udp_dhcp_healthy": true,
+      "pressure_tcp_healthy": true,
+      "release_udp_tcp_dhcp_healthy": true,
+      "recovery_udp_tcp_dhcp_healthy": true,
+      "hup_cache_purged": true,
+      "held_tcp_snapshot_stable": true,
+      "rust_atomic_samples": true,
+      "rust_tcp_atomic_samples": true,
+      "exit_before_stop": null,
+      "exit": 0,
+      "enomem_count": 2,
+      "initial_memory": {
+        "VmPeak": 3636,
+        "VmSize": 3636,
+        "VmRSS": 3348
+      },
+      "limit_bytes": 4771840,
+      "batch": "hup",
+      "evidence": "hup/shared-rust-initial2000-extra1024-repeat1",
+      "result_sha256": "36bab31038a881d897b3865f822f2b9baf6a9ed20251b18e708c2639cccf4868",
+      "process_identity_sha256": "2682ab356d8e8d4408a7f0ba1c19cc4017428e375a8b1934299ab0a55d659aeb",
+      "trace_sha256": "897cc99116fee5e34cded0f8f3600c1a4b6ab1df7c45ddd3ba646ff945c8e4b1",
+      "pressure": [
+        {
+          "generation": 0,
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": []
+              },
+              "complete_sample_generation": "old"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": []
+              },
+              "complete_sample_generation": "old"
+            }
+          },
+          "hup_cache_purged": {
+            "udp": true,
+            "tcp": true
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        },
+        {
+          "generation": 1,
+          "hosts_samples": {
+            "udp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": [],
+                "next1": []
+              },
+              "complete_sample_generation": "old"
+            },
+            "tcp": {
+              "present_samples": {
+                "old": [
+                  "old000000.test",
+                  "old001999.test"
+                ],
+                "new": [],
+                "next1": []
+              },
+              "complete_sample_generation": "old"
+            }
+          },
+          "hup_cache_purged": {
+            "udp": true,
+            "tcp": true
+          },
+          "held_tcp_snapshot_stable": true,
+          "dhcp_ack": true,
+          "configured_lease_dns": {
+            "udp": {
+              "ready.test": true,
+              "lease.test": true
+            },
+            "tcp": {
+              "ready.test": true,
+              "lease.test": true
+            }
+          }
+        }
+      ],
+      "after_release_no_trigger": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [
+                "old000000.test",
+                "old001999.test"
+              ],
+              "new": [],
+              "next1": []
+            },
+            "complete_sample_generation": "old"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [
+                "old000000.test",
+                "old001999.test"
+              ],
+              "new": [],
+              "next1": []
+            },
+            "complete_sample_generation": "old"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "recovered": {
+        "hosts_samples": {
+          "udp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          },
+          "tcp": {
+            "present_samples": {
+              "old": [],
+              "new": [],
+              "next1": [],
+              "recovered": [
+                "recovered.test"
+              ]
+            },
+            "complete_sample_generation": "recovered"
+          }
+        },
+        "held_tcp_snapshot_stable": true,
+        "dhcp_ack": true,
+        "configured_lease_dns": {
+          "udp": {
+            "ready.test": true,
+            "lease.test": true
+          },
+          "tcp": {
+            "ready.test": true,
+            "lease.test": true
+          }
+        }
+      },
+      "dns_probe_errors": []
+    }
+  ]
+}
