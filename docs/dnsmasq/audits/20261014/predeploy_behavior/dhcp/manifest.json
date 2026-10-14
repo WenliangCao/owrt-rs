@@ -1,0 +1,14 @@
+{
+  "tool_path": "tools/dnsmasq/predeploy_audit_dhcp.py",
+  "tool_sha256": "ef4a31403cba99da4c395d29e7dd54bc9b064f684ff85b476ae4ad3d3c8ddcd9",
+  "derived_file_sha256": {
+    "takeover.json": "deafd979f351ad66a46f10b4a44bf4e1a9f3dfba708b701305d1fc19fa67a27c",
+    "expiry.json": "7253fb98fc285995c43c6136c58735da59f1f70331e1ebbc9fcfa035d2a51e0c",
+    "concurrent.json": "7a81c6c695c644e32c12eec0b9da900af616232a376cb28cb00195456f709ed9",
+    "lifecycle.json": "203775d066d37fdf23e77669f71510e60c332574270745045999bc94a65a4a58",
+    "names.json": "7dfa7a2a633c148c0bfc40e533087e971138d179a13fecf7314882c89461e05b",
+    "runtime-inputs.json": "ad11c81dc1ac89b390efb5229f1bcd3c1a1d3a56fb8aa2fe29044d8b36bd8e2a"
+  },
+  "product_code_changed": false,
+  "physical_router_accessed": false
+}

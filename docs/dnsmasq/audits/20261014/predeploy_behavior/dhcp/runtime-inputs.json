@@ -1,0 +1,32 @@
+{
+  "inherited_from_exact_image": [
+    {
+      "path": "/etc/passwd",
+      "image_exists": true,
+      "runtime_exists": true,
+      "bytes_equal": true,
+      "sha256": "341cd968137702a34a30768909e35489e48249ebd7ec0dd0841dd4323bf37ecc"
+    },
+    {
+      "path": "/etc/group",
+      "image_exists": true,
+      "runtime_exists": true,
+      "bytes_equal": true,
+      "sha256": "3c38383528b304d1ba11a1d5cd56556fefdd6f1ea0928a0d9996c6f9596c57f9"
+    },
+    {
+      "path": "/etc/hosts",
+      "image_exists": true,
+      "runtime_exists": true,
+      "bytes_equal": true,
+      "sha256": "c1a978d90673437b35fa9494e0a54294062c152bb653d490b718052ab88447fd"
+    },
+    {
+      "path": "/etc/ethers",
+      "image_exists": true,
+      "runtime_exists": true,
+      "bytes_equal": true,
+      "sha256": "56bda09b0aa3d1e88107bfa8a1c6e4449d5c1f47245dc1c4037ff9b5db163b7c"
+    }
+  ]
+}

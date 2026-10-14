@@ -1,0 +1,110 @@
+{
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+  "source_sha": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "input_sha256": {
+    "c": "d3031b22211fb65206f80e03bd001b5e70a84e36a8a6f19766dad06d6bee0c2b",
+    "rust": "54cd48f9083f1d27074bb93bd8a8428cf0bed9267a742d2db2115ae034b434c2"
+  },
+  "phases": [
+    {
+      "name": "initial",
+      "c_dhcp": 24,
+      "rust_dhcp": 24,
+      "c_dns": 48,
+      "rust_dns": 48,
+      "c_leases": 12,
+      "rust_leases": 12,
+      "renewal_jitter_pairs": 0,
+      "wire_pairs": 24,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    },
+    {
+      "name": "lifecycle",
+      "c_dhcp": 10,
+      "rust_dhcp": 10,
+      "c_dns": 51,
+      "rust_dns": 51,
+      "c_leases": 12,
+      "rust_leases": 12,
+      "renewal_jitter_pairs": 5,
+      "wire_pairs": 10,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    },
+    {
+      "name": "release",
+      "c_dhcp": 0,
+      "rust_dhcp": 0,
+      "c_dns": 51,
+      "rust_dns": 51,
+      "c_leases": 11,
+      "rust_leases": 11,
+      "renewal_jitter_pairs": 0,
+      "wire_pairs": 0,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    },
+    {
+      "name": "hup",
+      "c_dhcp": 11,
+      "rust_dhcp": 11,
+      "c_dns": 51,
+      "rust_dns": 51,
+      "c_leases": 11,
+      "rust_leases": 11,
+      "renewal_jitter_pairs": 11,
+      "wire_pairs": 11,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    },
+    {
+      "name": "restart",
+      "c_dhcp": 11,
+      "rust_dhcp": 11,
+      "c_dns": 51,
+      "rust_dns": 51,
+      "c_leases": 11,
+      "rust_leases": 11,
+      "renewal_jitter_pairs": 11,
+      "wire_pairs": 11,
+      "max_expiry_difference_seconds": 1,
+      "differences": []
+    },
+    {
+      "name": "crash-restart",
+      "c_dhcp": 11,
+      "rust_dhcp": 11,
+      "c_dns": 51,
+      "rust_dns": 51,
+      "c_leases": 11,
+      "rust_leases": 11,
+      "renewal_jitter_pairs": 11,
+      "wire_pairs": 11,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    }
+  ],
+  "differences": [],
+  "harness_errors": [],
+  "normalization": [
+    "DHCP responses matched by transaction label; option order preserved",
+    "Full DHCP payload compared after masking validated renewal timer bytes only",
+    "Renew/rebind random T1/T2 compared by exact C shared-jitter rule",
+    "Lease relative-expiry differences bounded to five seconds"
+  ],
+  "exit_codes": {
+    "c": [
+      0,
+      -9,
+      0
+    ],
+    "rust": [
+      0,
+      -9,
+      0
+    ]
+  }
+}

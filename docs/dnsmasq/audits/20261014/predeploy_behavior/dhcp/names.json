@@ -1,0 +1,54 @@
+{
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+  "source_sha": "58365e8c8ebe1805573baa02543baf1c9d45be68",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "input_sha256": {
+    "c": "7f5265cfec7924a3046a529aebfda455e99f23bcd98122f1a74ff84489dd6a90",
+    "rust": "60742b84f2e3472f2c626b4b2aa6cc39712e9a0fa6b2c40a0be3965174113066"
+  },
+  "phases": [
+    {
+      "name": "initial",
+      "c_dhcp": 24,
+      "rust_dhcp": 24,
+      "c_dns": 48,
+      "rust_dns": 48,
+      "c_leases": 12,
+      "rust_leases": 12,
+      "renewal_jitter_pairs": 0,
+      "wire_pairs": 24,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    },
+    {
+      "name": "names",
+      "c_dhcp": 5,
+      "rust_dhcp": 5,
+      "c_dns": 63,
+      "rust_dns": 63,
+      "c_leases": 12,
+      "rust_leases": 12,
+      "renewal_jitter_pairs": 5,
+      "wire_pairs": 5,
+      "max_expiry_difference_seconds": 0,
+      "differences": []
+    }
+  ],
+  "differences": [],
+  "harness_errors": [],
+  "normalization": [
+    "DHCP responses matched by transaction label; option order preserved",
+    "Full DHCP payload compared after masking validated renewal timer bytes only",
+    "Renew/rebind random T1/T2 compared by exact C shared-jitter rule",
+    "Lease relative-expiry differences bounded to five seconds"
+  ],
+  "exit_codes": {
+    "c": [
+      0
+    ],
+    "rust": [
+      0
+    ]
+  }
+}
