@@ -6,8 +6,8 @@ set -eu
 base=/usr/libexec/owrt-stock
 manifest=/usr/share/owrt-control-plane/stock.sha256
 test -r /proc/self/mountinfo
-test "$(wc -l < "$manifest")" -eq 9
-test "$(awk '{print $2}' "$manifest" | sort -u | wc -l)" -eq 9
+test "$(wc -l < "$manifest")" -eq 12
+test "$(awk 'NF != 2 { exit 1 } {print $2}' "$manifest" | sort -u | wc -l)" -eq 12
 sha256sum -c "$manifest" >/dev/null
 
 # Refuse a layered installation: replacing a mounted executable would not
@@ -15,7 +15,7 @@ sha256sum -c "$manifest" >/dev/null
 while read -r hash source; do
     target=${source#"$base"}
     case "$target" in
-        /sbin/procd|/sbin/ubusd|/sbin/netifd|/sbin/rpcd|/sbin/logd|/sbin/uci|/sbin/fw4|/sbin/reload_config|/usr/sbin/uhttpd) ;;
+        /sbin/procd|/sbin/ubusd|/sbin/netifd|/sbin/rpcd|/sbin/logd|/sbin/uci|/sbin/fw4|/sbin/reload_config|/usr/sbin/uhttpd|/usr/sbin/dnsmasq|/etc/init.d/dnsmasq|/usr/share/acl.d/dnsmasq_acl.json) ;;
         *) echo "invalid recovery path: $source" >&2; exit 1 ;;
     esac
     if awk -v target="$target" '$5 == target { found = 1 } END { exit !found }' /proc/self/mountinfo; then
@@ -37,7 +37,10 @@ while read -r hash source; do
     target=${source#"$base"}
     cp -p "$source" "$target.owrt-recovery-new"
     cmp -s "$source" "$target.owrt-recovery-new"
-    test -x "$target.owrt-recovery-new"
+    case "$target" in
+        /usr/share/acl.d/dnsmasq_acl.json) test -r "$target.owrt-recovery-new" ;;
+        *) test -x "$target.owrt-recovery-new" ;;
+    esac
 done < "$manifest"
 sync
 while read -r hash source; do
@@ -46,4 +49,4 @@ while read -r hash source; do
     cmp -s "$source" "$target"
 done < "$manifest"
 sync
-echo 'All nine C originals staged. Reboot to activate the complete C stack.'
+echo 'All ten C programs and the original dnsmasq init/ACL staged. Reboot to activate the complete C stack.'

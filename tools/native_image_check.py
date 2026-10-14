@@ -38,6 +38,10 @@ class Check:
         self.out = out
         out.mkdir(parents=True, exist_ok=False)
         self.manifest = json.loads((source / "usr/share/owrt-control-plane/release.json").read_text())
+        assert self.manifest["deployment_layout"] == "native-ten"
+        assert len(self.manifest["components"]) == 10
+        assert {c["path"] for c in self.manifest["integration_files"].values()} == {
+            "/etc/init.d/dnsmasq", "/usr/share/acl.d/dnsmasq_acl.json"}
         self.results = {}
 
     def copy(self, name):
@@ -57,6 +61,12 @@ class Check:
     def identities(self, root, mode="rust"):
         for c in self.manifest["components"].values():
             assert sha(root / c["path"].lstrip("/")) == c[mode + "_sha256"], c["path"]
+        for c in self.manifest["integration_files"].values():
+            path = root / c["path"].lstrip("/")
+            key = "stock_sha256" if mode == "stock" else "replacement_sha256"
+            assert sha(path) == c[key], c["path"]
+            original = self.source / c["recovery_path"].lstrip("/")
+            assert path.stat().st_mode & 0o7777 == original.stat().st_mode & 0o7777, c["path"]
 
     def passed(self, name):
         self.results[name] = True
@@ -119,19 +129,29 @@ if /etc/init.d/cron enabled; then exit 1; fi
 
     def recovery(self):
         root = self.copy("recovery")
-        original = root / "usr/libexec/owrt-stock/sbin/netifd"
-        good = original.read_bytes()
-        original.write_bytes(good + b"corrupt")
-        self.shell("recovery-corrupt", root, "/usr/sbin/owrt-recover-c\n", success=False)
-        self.identities(root)
-        self.passed("corrupt_recovery_rejected_before_any_replacement")
-        original.write_bytes(good)
+        for name, relative in (
+                ("netifd", "sbin/netifd"), ("dnsmasq", "usr/sbin/dnsmasq"),
+                ("dnsmasq-init", "etc/init.d/dnsmasq"),
+                ("dnsmasq-acl", "usr/share/acl.d/dnsmasq_acl.json")):
+            original = root / "usr/libexec/owrt-stock" / relative
+            good = original.read_bytes()
+            original.write_bytes(good + b"corrupt")
+            self.shell("recovery-corrupt-" + name, root, "/usr/sbin/owrt-recover-c\n", success=False)
+            self.identities(root)
+            original.write_bytes(good)
+        self.passed("corrupt_program_init_or_ACL_rejected_before_any_replacement")
         self.shell("recovery-mounted", root, '''
 mount -o bind /sbin/uci /sbin/uci
 /usr/sbin/owrt-recover-c
 ''', success=False)
         self.identities(root)
         self.passed("mounted_target_rejected_before_any_replacement")
+        self.shell("recovery-mounted-init", root, '''
+mount -o bind /etc/init.d/dnsmasq /etc/init.d/dnsmasq
+/usr/sbin/owrt-recover-c
+''', success=False)
+        self.identities(root)
+        self.passed("mounted_dnsmasq_integration_target_rejected")
         self.shell("recovery-stage", root, "/usr/sbin/owrt-recover-c\n")
         self.identities(root, "stock")
         assert not list(root.rglob("*.owrt-recovery-new"))
@@ -139,7 +159,7 @@ mount -o bind /sbin/uci /sbin/uci
         self.identities(root, "stock")
         for path in (self.source / "etc/config").iterdir():
             assert path.read_bytes() == (root / "etc/config" / path.name).read_bytes()
-        self.passed("all_nine_C_staged_idempotently_with_configuration_unchanged")
+        self.passed("all_ten_C_and_dnsmasq_init_ACL_staged_idempotently_with_configuration_unchanged")
 
     def package_reinstall(self, apk_dir):
         root = self.copy("package-reinstall")
@@ -152,7 +172,7 @@ mount -o bind /sbin/uci /sbin/uci
             for name, info in self.manifest["stock_packages"].items())
         # fix --reinstall may return success after skipping an unavailable
         # installed APK identity. Explicit payloads and missing-file repair
-        # prove that all eight fixtures were actually extracted.
+        # prove that every original owner fixture was actually extracted.
         file_lists = {}
         for name in self.manifest["stock_packages"]:
             path = root / "lib/apk/packages" / (name + ".list")
@@ -160,7 +180,8 @@ mount -o bind /sbin/uci /sbin/uci
             path.unlink()
         ownership = "\n".join(
             f"apk info --who-owns {c['path']} | grep -Fx '{c['path']} is owned by owrt-control-plane-{self.manifest['version']}'"
-            for c in self.manifest["components"].values()) + "\n"
+            for c in [*self.manifest["components"].values(),
+                      *self.manifest["integration_files"].values()]) + "\n"
         self.shell("package-stock-reinstall", root, f'''
 apk --no-scripts --no-network --allow-untrusted --repositories-file /dev/null add --force-reinstall {owner_apks}
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
@@ -169,7 +190,7 @@ sha256sum -c /usr/share/owrt-control-plane/rust.sha256
         for path, expected in file_lists.items():
             assert path.read_bytes() == expected, path
         self.identities(root)
-        self.passed("stock_package_reinstall_preserves_nine_Rust_files")
+        self.passed("stock_package_reinstall_preserves_ten_Rust_files_and_dnsmasq_integration")
         recovery = root / "usr/libexec/owrt-stock/sbin/procd"
         recovery.unlink()
         self.shell("package-native-reinstall", root, f'''
