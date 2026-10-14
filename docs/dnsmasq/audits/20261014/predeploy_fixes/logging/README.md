@@ -34,5 +34,13 @@ reader，其 Rust 期望已同步修改为等待外部 SIGKILL；仍单独断言
 服务可用。C 在启动阶段阻塞的 FIFO/主 stderr 情形仍保留原来的 exit 5
 边界，未把它改写为与 Rust 相同。测试工具的 SIGKILL 不能解释为 procd 行为。
 
+最终验证使用 SDK02 APK payload 中的实际 ELF，源码提交
+`807db8a15e43452414acc048874bf04a4c639bd9`，ELF SHA-256
+`0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728`。
+上述三场景的 C/Rust **6 组全部通过**；完整 `m5_logging.py` 的全部 34 scopes、
+**329 个成对场景全部通过**，两个 driver 均 exit 0。没有跳过永不恢复 reader
+的测试；两个 TFTP timeout 配置也实际等待了 C/Rust 的重试期限。既有工具的
+26 包 C TCP OPT 缺陷分类仍保留，未被解释为本次新差异或字节完全相同。
+
 派生结果及原始证据路径、摘要见 [summary.json](summary.json)。原始日志、
 镜像 overlay 与 ELF 均仅保存在 Oracle 的 `private/`。
