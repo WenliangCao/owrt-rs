@@ -36,7 +36,7 @@ No candidate is qualified yet; full correctness and timing are pending.
 | L01 | Borrow UDP receive bytes until asynchronous retention is needed | screened in: actual owner local-answer path 11 → 10 allocations/query, 566 → 538 allocated bytes for 28-byte query; 1000 correct responses each |
 | L02 | Send TCP header + existing packet via vectored I/O | screened in: one framing allocation and payload copy removed; 32/1232/65535-byte instructions −37.3%/−45.2%/−49.6% in isolated framing loop |
 | L03 | Complete TCP input need not round-trip through retained fragment buffer | screened in provisionally: complete 32/1232/65535-byte instructions −20.6%/−25.3%/−48.6%; small fragmented input +2.1–3.7% (10–18 instructions/frame), retain as explicit control |
-| L04 | Reuse upstream poll interest vectors | inspect/profile after L01–L03; no timer/readiness shortcut |
+| L04 | Reuse upstream poll interest vectors | screened in: actual pending upstream poll 2 → 0 allocations/poll, 16 → 0 newly allocated bytes with one socket, after warmup |
 | L05 | Startup/config stop-start overhead | trace lifecycle before any change |
 
 L01 uses `Cow<[u8]>`; pending interface admission still owns its original copy,
@@ -48,6 +48,15 @@ without recursively receiving packets; no consumer can reuse that scratch in
 the synchronous call. Upstream forwarding still takes its required ownership.
 Oracle native diagnostic builds are private copies with a counting allocator;
 they are never timing or product artifacts.
+
+L04 preserves every poll, timer pass, EINTR retry, socket-readiness mapping and
+failure cleanup. Only the two scratch Vec capacities survive the call. They
+retain 16 bytes per maximum observed socket (8-byte token + 8-byte pollfd),
+plus 48 inline bytes in the resolver; `reserve_exact` avoids growth beyond the
+observed interest count. The actual pending-poll probe measured 2000 → 0
+allocations / 16000 → 0 newly allocated bytes over 1000 calls. Data and exact
+source/diagnostic identities are in `owner-screen.json`. Local upstream tests:
+35 passed. Full correctness and end-to-end timing remain pending.
 
 Historical fixed UDP budget 1, opt-s, CPU-specific codegen and special owner
 gates are rejected as starting points: `PERF_RESEARCH_UDP_DHCP_RELOAD.md` records
