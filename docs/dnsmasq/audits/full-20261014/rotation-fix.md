@@ -123,6 +123,11 @@ unresolved; repeated-address reverse ownership is a hypothesis, not a finding.
 The unique-address relative-order controls above and the existing family/HUP
 snapshot case pass. The old and fixed raw failing controls remain available.
 
+Follow-up [repeated-address diagnosis](repeated-order.md) now identifies this as
+a pre-existing C compatibility gap: all 188 differences involve names whose
+exact-C records have mixed `F_REVERSE` flags. The pagination fix does not cause
+the gap, but unchanged Rust output does not waive the compatibility requirement.
+
 ## Direct commands on Oracle
 
 Each output directory must be fresh. The committed driver is

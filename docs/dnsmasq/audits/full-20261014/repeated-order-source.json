@@ -1,0 +1,11 @@
+{
+  "reference_source": "/home/ubuntu/dnsmasq-rewrite-20260929/reference/dnsmasq-2.93",
+  "files_sha256": {
+    "src/cache.c": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "src/dnsmasq.c": "d4bb7cde522376200a0293427b0812625ebc457f10dc9d3e2bef243ccba8ccd1",
+    "src/config.h": "dacbe1f8d0e03d93e53a81901956b07ab7a5059d1e5db3225150a9688a1122da",
+    "src/dns-protocol.h": "4c6ed1c818c6a9b00bcdc1193bd364129780a3ef2b88c29475ee7bd6f6a826fe"
+  },
+  "remaining_processes": [],
+  "remaining_host_mounts": []
+}

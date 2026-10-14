@@ -1,0 +1,483 @@
+{
+  "scope": "Exact-image diagnostic evidence; no product or router changes",
+  "original_rolling": {
+    "observations_per_side": 6020,
+    "old_fixed_rust_identical": true,
+    "fixed_vs_c_differences": 188,
+    "old_vs_c_differences": 191,
+    "c_vs_c_differing_labels": [
+      "rolling-parent-500",
+      "rolling-new-500",
+      "rolling-old-500"
+    ],
+    "fixed_difference_groups": {
+      "rolling-new": 136,
+      "rolling-parent": 26,
+      "rolling-old": 26
+    }
+  },
+  "diagnostics": {
+    "repeated": {
+      "driver_sha256": "886e043efe09d10871b8020ca673a02631ecbd15eac65e4cd55b06f3288ae9ae",
+      "names": 30000,
+      "unique_addresses": false,
+      "old_fixed_rust_warmup_and_probes_identical": true,
+      "runs": [
+        {
+          "label": "c-first",
+          "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "constant",
+            "host000314.test": "constant",
+            "host000375.test": "constant",
+            "host000499.test": "constant",
+            "host000500.test": "alternating",
+            "host001935.test": "constant",
+            "host001999.test": "constant"
+          }
+        },
+        {
+          "label": "old-rust",
+          "binary_sha256": "e2b075617d39cafa7d9443abfabbd18f9d2602dc0b535eed6393ac62ee9bbf77",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          }
+        },
+        {
+          "label": "fixed-rust",
+          "binary_sha256": "0b3bba7b38c6baf4f6ff363ac715717042ea709e37171698cadc879254769aab",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          }
+        },
+        {
+          "label": "c-repeat",
+          "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "constant",
+            "host000314.test": "constant",
+            "host000375.test": "constant",
+            "host000499.test": "constant",
+            "host000500.test": "alternating",
+            "host001935.test": "constant",
+            "host001999.test": "constant"
+          }
+        }
+      ]
+    },
+    "repeated-dump": {
+      "driver_sha256": "457ad51fbac84e5e28fcf191601c15f44c9dae80cf07d4ba338c2ff238dfa94c",
+      "names": 30000,
+      "unique_addresses": false,
+      "old_fixed_rust_warmup_and_probes_identical": true,
+      "runs": [
+        {
+          "label": "c-first",
+          "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "constant",
+            "host000314.test": "constant",
+            "host000375.test": "constant",
+            "host000499.test": "constant",
+            "host000500.test": "alternating",
+            "host001935.test": "constant",
+            "host001999.test": "constant"
+          },
+          "reverse_model_matched_records": 60000,
+          "mixed_reverse_names": 835,
+          "probe_reverse_flags": {
+            "host000000.test": {
+              "192.0.3.1": true,
+              "192.0.2.1": true
+            },
+            "host000063.test": {
+              "192.0.3.64": true,
+              "192.0.2.64": true
+            },
+            "host000249.test": {
+              "192.0.3.250": true,
+              "192.0.2.250": true
+            },
+            "host000250.test": {
+              "192.0.3.1": true,
+              "192.0.2.1": true
+            },
+            "host000312.test": {
+              "192.0.3.63": true,
+              "192.0.2.63": true
+            },
+            "host000313.test": {
+              "192.0.3.64": true,
+              "192.0.2.64": false
+            },
+            "host000314.test": {
+              "192.0.3.65": true,
+              "192.0.2.65": false
+            },
+            "host000375.test": {
+              "192.0.3.126": true,
+              "192.0.2.126": false
+            },
+            "host000499.test": {
+              "192.0.2.250": true,
+              "192.0.3.250": false
+            },
+            "host000500.test": {
+              "192.0.2.1": true,
+              "192.0.3.1": true
+            },
+            "host001935.test": {
+              "192.0.3.186": true,
+              "192.0.2.186": false
+            },
+            "host001999.test": {
+              "192.0.2.250": true,
+              "192.0.3.250": false
+            }
+          },
+          "original_differences_on_mixed_reverse_names": 188
+        },
+        {
+          "label": "old-rust",
+          "binary_sha256": "e2b075617d39cafa7d9443abfabbd18f9d2602dc0b535eed6393ac62ee9bbf77",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          }
+        },
+        {
+          "label": "fixed-rust",
+          "binary_sha256": "0b3bba7b38c6baf4f6ff363ac715717042ea709e37171698cadc879254769aab",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          }
+        },
+        {
+          "label": "c-repeat",
+          "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "constant",
+            "host000314.test": "constant",
+            "host000375.test": "constant",
+            "host000499.test": "constant",
+            "host000500.test": "alternating",
+            "host001935.test": "constant",
+            "host001999.test": "constant"
+          },
+          "reverse_model_matched_records": 60000,
+          "mixed_reverse_names": 835,
+          "probe_reverse_flags": {
+            "host000000.test": {
+              "192.0.3.1": true,
+              "192.0.2.1": true
+            },
+            "host000063.test": {
+              "192.0.3.64": true,
+              "192.0.2.64": true
+            },
+            "host000249.test": {
+              "192.0.3.250": true,
+              "192.0.2.250": true
+            },
+            "host000250.test": {
+              "192.0.3.1": true,
+              "192.0.2.1": true
+            },
+            "host000312.test": {
+              "192.0.3.63": true,
+              "192.0.2.63": true
+            },
+            "host000313.test": {
+              "192.0.3.64": true,
+              "192.0.2.64": false
+            },
+            "host000314.test": {
+              "192.0.3.65": true,
+              "192.0.2.65": false
+            },
+            "host000375.test": {
+              "192.0.3.126": true,
+              "192.0.2.126": false
+            },
+            "host000499.test": {
+              "192.0.2.250": true,
+              "192.0.3.250": false
+            },
+            "host000500.test": {
+              "192.0.3.1": true,
+              "192.0.2.1": true
+            },
+            "host001935.test": {
+              "192.0.3.186": true,
+              "192.0.2.186": false
+            },
+            "host001999.test": {
+              "192.0.2.250": true,
+              "192.0.3.250": false
+            }
+          },
+          "original_differences_on_mixed_reverse_names": 188
+        }
+      ]
+    },
+    "unique-dump": {
+      "driver_sha256": "457ad51fbac84e5e28fcf191601c15f44c9dae80cf07d4ba338c2ff238dfa94c",
+      "names": 30000,
+      "unique_addresses": true,
+      "old_fixed_rust_warmup_and_probes_identical": true,
+      "runs": [
+        {
+          "label": "c-first",
+          "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          },
+          "reverse_model_matched_records": 60000,
+          "mixed_reverse_names": 0,
+          "probe_reverse_flags": {
+            "host000000.test": {
+              "10.2.0.0": true,
+              "10.1.0.0": true
+            },
+            "host000063.test": {
+              "10.2.0.63": true,
+              "10.1.0.63": true
+            },
+            "host000249.test": {
+              "10.2.0.249": true,
+              "10.1.0.249": true
+            },
+            "host000250.test": {
+              "10.2.0.250": true,
+              "10.1.0.250": true
+            },
+            "host000312.test": {
+              "10.2.1.56": true,
+              "10.1.1.56": true
+            },
+            "host000313.test": {
+              "10.2.1.57": true,
+              "10.1.1.57": true
+            },
+            "host000314.test": {
+              "10.2.1.58": true,
+              "10.1.1.58": true
+            },
+            "host000375.test": {
+              "10.2.1.119": true,
+              "10.1.1.119": true
+            },
+            "host000499.test": {
+              "10.2.1.243": true,
+              "10.1.1.243": true
+            },
+            "host000500.test": {
+              "10.2.1.244": true,
+              "10.1.1.244": true
+            },
+            "host001935.test": {
+              "10.2.7.143": true,
+              "10.1.7.143": true
+            },
+            "host001999.test": {
+              "10.2.7.207": true,
+              "10.1.7.207": true
+            }
+          }
+        },
+        {
+          "label": "old-rust",
+          "binary_sha256": "e2b075617d39cafa7d9443abfabbd18f9d2602dc0b535eed6393ac62ee9bbf77",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          }
+        },
+        {
+          "label": "fixed-rust",
+          "binary_sha256": "0b3bba7b38c6baf4f6ff363ac715717042ea709e37171698cadc879254769aab",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          }
+        },
+        {
+          "label": "c-repeat",
+          "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "probes": {
+            "host000000.test": "alternating",
+            "host000063.test": "alternating",
+            "host000249.test": "alternating",
+            "host000250.test": "alternating",
+            "host000312.test": "alternating",
+            "host000313.test": "alternating",
+            "host000314.test": "alternating",
+            "host000375.test": "alternating",
+            "host000499.test": "alternating",
+            "host000500.test": "alternating",
+            "host001935.test": "alternating",
+            "host001999.test": "alternating"
+          },
+          "reverse_model_matched_records": 60000,
+          "mixed_reverse_names": 0,
+          "probe_reverse_flags": {
+            "host000000.test": {
+              "10.2.0.0": true,
+              "10.1.0.0": true
+            },
+            "host000063.test": {
+              "10.2.0.63": true,
+              "10.1.0.63": true
+            },
+            "host000249.test": {
+              "10.2.0.249": true,
+              "10.1.0.249": true
+            },
+            "host000250.test": {
+              "10.2.0.250": true,
+              "10.1.0.250": true
+            },
+            "host000312.test": {
+              "10.2.1.56": true,
+              "10.1.1.56": true
+            },
+            "host000313.test": {
+              "10.2.1.57": true,
+              "10.1.1.57": true
+            },
+            "host000314.test": {
+              "10.2.1.58": true,
+              "10.1.1.58": true
+            },
+            "host000375.test": {
+              "10.2.1.119": true,
+              "10.1.1.119": true
+            },
+            "host000499.test": {
+              "10.2.1.243": true,
+              "10.1.1.243": true
+            },
+            "host000500.test": {
+              "10.1.1.244": true,
+              "10.2.1.244": true
+            },
+            "host001935.test": {
+              "10.2.7.143": true,
+              "10.1.7.143": true
+            },
+            "host001999.test": {
+              "10.2.7.207": true,
+              "10.1.7.207": true
+            }
+          }
+        }
+      ]
+    }
+  },
+  "inputs_sha256": {
+    "private/rotation-finalize/oracle/private/fixed-cgroup64-60k-rolling/result.json": "06fa1491b67d4d3cc4eb074ebfb3ac1d52c8787ad9dc933dc0a33b1eb1c2e600",
+    "private/rotation-finalize/oracle/private/old-60k-rolling/result.json": "2391105d55fd6168a59725807a1cc9c9e6dda87d9e7f4496ee10b89c14e65083",
+    "private/rotation-followup/oracle/private/repeated/result.json": "79a19d7e7f7123d20eb22a81750df181459abaad5d307ab206488982963b2ee2",
+    "private/rotation-followup/oracle/private/repeated-dump/result.json": "fbdc477875cbe6c5096bc367ba6488db92b2c21d6305263d0ecc2f33d6a38946",
+    "private/rotation-followup/oracle/private/repeated-dump/c-first/daemon.log": "c86909d9cfa32ebb502e0f7252e2841aee70680458fbb3d5d37dfa5fd277f184",
+    "private/rotation-followup/oracle/private/repeated-dump/c-repeat/daemon.log": "06c1dca3dcbeea85c6d61cc1de8590e9f7f0abd5007ba73578ad9d34792b3b0d",
+    "private/rotation-followup/oracle/private/unique-dump/result.json": "262d4da3fe67af686e69fcb5b6599013cd2d8019e9a48c4cee10efa2e0aafcd5",
+    "private/rotation-followup/oracle/private/unique-dump/c-first/daemon.log": "ea9bd4b0680a8e032daffdbb2a66f3aee866f221c4b40bfe2784aafd7c54ff3b",
+    "private/rotation-followup/oracle/private/unique-dump/c-repeat/daemon.log": "42cdd01438447d31a2195b435f3fa17affc82ec4b020b0fc75c1c84029f56949"
+  },
+  "analyzer_sha256": "54462413696d9de99a12a24668dca17174b89b7cd40ded96e3c1ba8189409c50"
+}
