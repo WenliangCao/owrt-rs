@@ -4,7 +4,8 @@ Branch `perf/dnsmasq-loop-20261015`, starts at `51b03959`. Freeze acknowledged:
 `d358c3a0`; never accesses the router. Oracle root is
 `/home/ubuntu/dnsmasq-perf-20261015/loop`. Raw artifacts stay in `private`.
 
-Current best: unchanged v0.2.0 source. No candidate is qualified yet.
+Current screened direction: TCP vectored answers + direct complete-frame input.
+No candidate is qualified yet; full correctness and timing are pending.
 
 ## Interface and compatibility audit
 
@@ -33,8 +34,8 @@ Current best: unchanged v0.2.0 source. No candidate is qualified yet.
 | ID | Hypothesis | Screen / status |
 | --- | --- | --- |
 | L01 | Borrow UDP receive bytes until asynchronous retention is needed | planned; allocation/copy count first |
-| L02 | Send TCP header + existing packet via vectored I/O | exact-source standalone allocation/instruction probe prepared |
-| L03 | Complete TCP input need not round-trip through retained fragment buffer | same probe, fragmentation controls included |
+| L02 | Send TCP header + existing packet via vectored I/O | screened in: one framing allocation and payload copy removed; 32/1232/65535-byte instructions −37.3%/−45.2%/−49.6% in isolated framing loop |
+| L03 | Complete TCP input need not round-trip through retained fragment buffer | screened in provisionally: complete 32/1232/65535-byte instructions −20.6%/−25.3%/−48.6%; small fragmented input +2.1–3.7% (10–18 instructions/frame), retain as explicit control |
 | L04 | Reuse upstream poll interest vectors | inspect/profile after L01–L03; no timer/readiness shortcut |
 | L05 | Startup/config stop-start overhead | trace lifecycle before any change |
 
@@ -43,6 +44,19 @@ gates are rejected as starting points: `PERF_RESEARCH_UDP_DHCP_RELOAD.md` record
 insufficient cross-scene benefit, including a saturation regression for budget
 1. These are not newly measured rejections.
 
-Next: capture framing baseline, implement independent candidates, compare
-untimed allocation/copy and PMU instructions/cycles, request root scheduling
-before any timing. Independent correctness review precedes eligibility.
+Framing data: `transport-screen.json`. Each PMU screen executes 100,000 frames,
+pinned to Oracle CPU 2. Uninstrumented source-extracted functions use rustc
+1.98.1 `-O`; allocation probe is a separate ELF. These are mechanism screens,
+not daemon end-to-end performance or device claims. Source complete-frame
+copy bytes go from `2 * payload + 2` to `payload`; output framing copy goes
+from `payload + 2` to zero. The answer payload's existing allocation remains.
+The outbound inline prefix adds at most one word to an active TCP frame while
+removing a second live payload allocation. No receive limit changed.
+
+Local targeted service tests: 14 passed, including all split boundaries and
+short writes through prefix/payload, maximum 65,535-byte payload, malformed
+length controls. Full Linux/allocator/C gates remain pending.
+
+Next: UDP borrowed input and upstream fd-buffer counts; request root timing
+slot for all screened transport changes together. Independent correctness
+review precedes eligibility.

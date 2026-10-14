@@ -1,0 +1,639 @@
+{
+  "scope": "Oracle ARM64 native source-extracted functions, rustc 1.98.1 -O; perf stat counts only, no elapsed-time claim; cycles diagnostic and not accepted timing",
+  "allocation_baseline": [
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        32000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 1,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        32000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 2,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        32000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 17,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        32000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        1232000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 1,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        1232000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 2,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        1232000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 17,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        1232000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        65535000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 1,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        65535000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 2,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        65535000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 17,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        65535000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "send",
+      "length": 32,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        2000,
+        0,
+        66000
+      ],
+      "sent_bytes": 34000
+    },
+    {
+      "mode": "send",
+      "length": 1232,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        2000,
+        0,
+        2466000
+      ],
+      "sent_bytes": 1234000
+    },
+    {
+      "mode": "send",
+      "length": 65535,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        2000,
+        0,
+        131072000
+      ],
+      "sent_bytes": 65537000
+    }
+  ],
+  "allocation_candidate": [
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        32000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 1,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        1,
+        32042
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 2,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        1,
+        32042
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 32,
+      "split": 17,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        2,
+        32059
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        1232000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 1,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        1,
+        1233242
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 2,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        1,
+        1233242
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 1232,
+      "split": 17,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        2,
+        1233259
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        65535000
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 1,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        1,
+        65600545
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 2,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        1,
+        65600545
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "receive",
+      "length": 65535,
+      "split": 17,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1001,
+        2,
+        65600562
+      ],
+      "sent_bytes": 0
+    },
+    {
+      "mode": "send",
+      "length": 32,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        32000
+      ],
+      "sent_bytes": 34000
+    },
+    {
+      "mode": "send",
+      "length": 1232,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        1232000
+      ],
+      "sent_bytes": 1234000
+    },
+    {
+      "mode": "send",
+      "length": 65535,
+      "split": 0,
+      "iterations": 1000,
+      "alloc_realloc_bytes": [
+        1000,
+        0,
+        65535000
+      ],
+      "sent_bytes": 65537000
+    }
+  ],
+  "pmu": [
+    {
+      "mode": "send",
+      "payload_bytes": 32,
+      "split": 0,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 45571633,
+        "cycles": 16555790
+      },
+      "candidate": {
+        "instructions": 28597260,
+        "cycles": 13674981
+      },
+      "delta_percent": {
+        "instructions": -37.2476733497788,
+        "cycles": -17.400613320173786
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 32,
+      "split": 0,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 39443853,
+        "cycles": 14655551
+      },
+      "candidate": {
+        "instructions": 31327582,
+        "cycles": 14031982
+      },
+      "delta_percent": {
+        "instructions": -20.57677022576877,
+        "cycles": -4.254831496952926
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 32,
+      "split": 1,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 49210874,
+        "cycles": 17335326
+      },
+      "candidate": {
+        "instructions": 50245842,
+        "cycles": 17868644
+      },
+      "delta_percent": {
+        "instructions": 2.1031286703016017,
+        "cycles": 3.0764809384028924
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 32,
+      "split": 2,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 47072677,
+        "cycles": 16783263
+      },
+      "candidate": {
+        "instructions": 48617315,
+        "cycles": 17052298
+      },
+      "delta_percent": {
+        "instructions": 3.281389753975539,
+        "cycles": 1.6029957940836725
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 32,
+      "split": 17,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 49358482,
+        "cycles": 17405218
+      },
+      "candidate": {
+        "instructions": 51202181,
+        "cycles": 17799536
+      },
+      "delta_percent": {
+        "instructions": 3.7353235458092104,
+        "cycles": 2.2655160079006142
+      }
+    },
+    {
+      "mode": "send",
+      "payload_bytes": 1232,
+      "split": 0,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 119559583,
+        "cycles": 41712788
+      },
+      "candidate": {
+        "instructions": 65475467,
+        "cycles": 24116156
+      },
+      "delta_percent": {
+        "instructions": -45.236119634174365,
+        "cycles": -42.18522147212984
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 1232,
+      "split": 0,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 92517958,
+        "cycles": 36494208
+      },
+      "candidate": {
+        "instructions": 69116198,
+        "cycles": 26224112
+      },
+      "delta_percent": {
+        "instructions": -25.294289352992415,
+        "cycles": -28.141714981182766
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 1232,
+      "split": 1,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 102173815,
+        "cycles": 38962417
+      },
+      "candidate": {
+        "instructions": 103233126,
+        "cycles": 38772908
+      },
+      "delta_percent": {
+        "instructions": 1.0367734629464609,
+        "cycles": -0.4863892299084016
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 1232,
+      "split": 2,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 100071851,
+        "cycles": 38848006
+      },
+      "candidate": {
+        "instructions": 101758441,
+        "cycles": 38727175
+      },
+      "delta_percent": {
+        "instructions": 1.6853790383071887,
+        "cycles": -0.3110352690946394
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 1232,
+      "split": 17,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 101548765,
+        "cycles": 38762098
+      },
+      "candidate": {
+        "instructions": 103448651,
+        "cycles": 38824189
+      },
+      "delta_percent": {
+        "instructions": 1.8709100007272328,
+        "cycles": 0.1601848279729312
+      }
+    },
+    {
+      "mode": "send",
+      "payload_bytes": 65535,
+      "split": 0,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 1734005785,
+        "cycles": 994643584
+      },
+      "candidate": {
+        "instructions": 874394159,
+        "cycles": 472888940
+      },
+      "delta_percent": {
+        "instructions": -49.57374614525868,
+        "cycles": -52.456442930214486
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 65535,
+      "split": 0,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 1705098888,
+        "cycles": 995542351
+      },
+      "candidate": {
+        "instructions": 877071769,
+        "cycles": 481964458
+      },
+      "delta_percent": {
+        "instructions": -48.56182388173605,
+        "cycles": -51.58774937943349
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 65535,
+      "split": 1,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 1714459770,
+        "cycles": 999149581
+      },
+      "candidate": {
+        "instructions": 1713062454,
+        "cycles": 989251337
+      },
+      "delta_percent": {
+        "instructions": -0.0815018249159638,
+        "cycles": -0.9906668819390729
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 65535,
+      "split": 2,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 1712497163,
+        "cycles": 1000457283
+      },
+      "candidate": {
+        "instructions": 1711300035,
+        "cycles": 989462867
+      },
+      "delta_percent": {
+        "instructions": -0.069905400479775,
+        "cycles": -1.0989390738434968
+      }
+    },
+    {
+      "mode": "receive",
+      "payload_bytes": 65535,
+      "split": 17,
+      "iterations": 100000,
+      "baseline": {
+        "instructions": 1715043001,
+        "cycles": 997267945
+      },
+      "candidate": {
+        "instructions": 1713755271,
+        "cycles": 983538783
+      },
+      "delta_percent": {
+        "instructions": -0.07508441474931571,
+        "cycles": -1.3766773582600256
+      }
+    }
+  ]
+}

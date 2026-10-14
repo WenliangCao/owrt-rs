@@ -34,7 +34,9 @@ use dnsmasq_rs::dns::filewatch::{NetworkEvents, RouteWatch, WatchError};
 use dnsmasq_rs::dns::forward::SocketToken;
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::dns::lease_names::{LeasePolicy, PublicationWarning};
-use dnsmasq_rs::dns::service::{encode_tcp_frame, LocalDnsService, TcpFramer};
+use dnsmasq_rs::dns::service::{LocalDnsService, TcpFramer, TcpWriteFrame};
+#[cfg(test)]
+use dnsmasq_rs::dns::service::encode_tcp_frame;
 use dnsmasq_rs::dns::tcp_service::{TcpDnsService, TcpServiceProgress, TcpWait};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::helper::{Config as HelperConfig, Helper, LeaseDelivery};
@@ -2711,7 +2713,7 @@ enum TcpClientPhase {
     Reading,
     WaitingMac { query: Vec<u8> },
     Forwarding { no_cache: bool, wait: TcpWait },
-    Writing { frame: Vec<u8>, offset: usize },
+    Writing { frame: TcpWriteFrame, offset: usize },
 }
 
 impl TcpDnsWork {
@@ -2748,7 +2750,7 @@ impl TcpDnsWork {
         _insert_cache: bool,
     ) -> Result<(), ()> {
         self.phase = TcpClientPhase::Writing {
-            frame: encode_tcp_frame(&packet).map_err(|_| ())?,
+            frame: TcpWriteFrame::new(packet).map_err(|_| ())?,
             offset: 0,
         };
         Ok(())
@@ -2969,7 +2971,7 @@ impl TcpDnsWork {
                     if !writable {
                         return Ok(true);
                     }
-                    match self.stream.as_mut().ok_or(())?.write(&frame[*offset..]) {
+                    match frame.write_from(self.stream.as_mut().ok_or(())?, *offset) {
                         Ok(0) => return Ok(false),
                         Ok(count) => *offset += count,
                         Err(error)
@@ -2982,7 +2984,7 @@ impl TcpDnsWork {
                         }
                         Err(_) => return Ok(false),
                     }
-                    if *offset == frame.len() {
+                    if *offset == frame.wire_len() {
                         if self.queries == 100 {
                             return Ok(false);
                         }
@@ -8150,7 +8152,10 @@ mod tests {
         let mut peer = add_test_tcp(&mut owner);
         peer.write_all(b"not-yet-readable").unwrap();
         let client = owner.clients[0].dns_work.as_mut().unwrap();
-        client.phase = TcpClientPhase::Writing { frame: b"answer".to_vec(), offset: 0 };
+        // Model a prefix already sent, leaving the same six answer bytes.
+        client.phase = TcpClientPhase::Writing {
+            frame: TcpWriteFrame::new(b"answer".to_vec()).unwrap(), offset: 2,
+        };
         assert!(client.step(&owner.service, &mut |_, _| ClientMacLookup::Ready(None),
             false, true, false).unwrap());
         let mut answer = [0; 6];
@@ -8522,7 +8527,7 @@ mod tests {
             work.cache_view = Some(dnsmasq_rs::dns::cache::Cache::new(4096, Default::default()));
             work.stale_query = Some(query.clone());
             work.phase = TcpClientPhase::Writing {
-                frame: encode_tcp_frame(&query).unwrap(), offset: 0,
+                frame: TcpWriteFrame::new(query.clone()).unwrap(), offset: 0,
             };
             work.queries = 1;
             // File/FIFO logging has exactly one buffer, matching C. Keep the
