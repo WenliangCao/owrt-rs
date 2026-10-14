@@ -1,0 +1,74 @@
+{
+  "scope": "Oracle native AArch64 production-API instrumented microbenchmark; not daemon/device performance",
+  "source_baseline": "ac5954a2",
+  "source_candidate": "c5b461e8",
+  "compiler": "rustc 1.98.1",
+  "affinity_cpu": 3,
+  "timing_reserved_exclusively": true,
+  "probe_flags": [
+    "-O",
+    "-C panic=abort",
+    "-C lto",
+    "--edition=2021"
+  ],
+  "raw_sha256": "152a3a692e471a738150dbb6217a1348bd18d3f3acf99193782cb306e818369a",
+  "probe_sha256": {
+    "baseline": "ba1f5d92956edf48d6b067516ace153b592832b51d758351ff7756c8a18cc713",
+    "candidate": "4fd88c9a5a8fc8baf8bd5dae61a3fa81c13fcc85639b75828617f37433c7936e"
+  },
+  "summary": [
+    {
+      "records": 6,
+      "median_seconds": {
+        "baseline": 3.543095655,
+        "candidate": 1.914505371
+      },
+      "ranges": {
+        "baseline": [
+          3.539678306,
+          3.547648813
+        ],
+        "candidate": [
+          1.912706516,
+          1.916371586
+        ]
+      },
+      "relative_delta": -0.45965179678447043,
+      "maximum_relative_range": 0.002249588432294249,
+      "candidate_faster_pairs": 5,
+      "discernible": true
+    },
+    {
+      "records": 150,
+      "median_seconds": {
+        "baseline": 3.378304411,
+        "candidate": 1.798920615
+      },
+      "ranges": {
+        "baseline": [
+          3.374836182,
+          3.392478489
+        ],
+        "candidate": [
+          1.796935599,
+          1.806303436
+        ]
+      },
+      "relative_delta": -0.4675078393934584,
+      "maximum_relative_range": 0.005222237209457921,
+      "candidate_faster_pairs": 5,
+      "discernible": true
+    }
+  ],
+  "pmu_150_leases_10000_iterations": {
+    "counter_repetitions": 5,
+    "instructions_user": {
+      "baseline": 4180126703,
+      "candidate": 2222502690
+    },
+    "cycles_user": {
+      "baseline": 1262003688,
+      "candidate": 672029066
+    }
+  }
+}
