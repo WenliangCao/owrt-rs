@@ -23,10 +23,14 @@ FILLER = b"predeploy-shutdown-fixture"
 TAIL = "exiting on receipt of SIGTERM"
 
 
-def drain(endpoint, packets):
+def drain(endpoint, packets, limit=None):
+    received = 0
     while True:
+        if limit is not None and received >= limit:
+            return
         try:
             packets.append(endpoint.recv(65535).decode(errors="backslashreplace"))
+            received += 1
         except BlockingIOError:
             return
 
@@ -83,11 +87,13 @@ def run(args, side, scenario):
             if scenario == "audit-overflow":
                 answers = [safe_dns()["ok"] for _ in range(300)]
                 result["queries"] = {"sent": 300, "answered": sum(answers)}
-                drain(endpoint, packets)
+                # Bound each partial drain: draining until EAGAIN races the
+                # service refilling the kernel queue and can empty it entirely.
+                drain(endpoint, packets, 11)
                 result["first_drain_records"] = len(packets)
                 result["recovered"] = safe_dns()["ok"]
                 time.sleep(.2)
-                drain(endpoint, packets)
+                drain(endpoint, packets, 11)
             else:
                 # Ensure startup and readiness logs drained before saturation.
                 end = time.monotonic() + .2
@@ -129,6 +135,9 @@ def run(args, side, scenario):
                                                      for packet in packets[result["records_before_term"]:])
             result["answer_records_after_term"] = sum("config ready.test is 192.0.2.41" in packet
                                                       for packet in packets[result["records_before_term"]:])
+            result["tail_messages"] = [packet.split(": ", 1)[1]
+                                       for packet in packets[result["records_before_term"]:]
+                                       if packet != FILLER.decode() and ": " in packet]
             if not result["alive_before_release"]:
                 result["failures"].append("exited while connected logger was still blocked")
             if result["exit"] != 0:
@@ -141,6 +150,9 @@ def run(args, side, scenario):
             if scenario == "tail-drain" and any(result[key] != 1 for key in (
                     "shutdown_records", "query_records_after_term", "answer_records_after_term")):
                 result["failures"].append("queued query/answer/shutdown records were not preserved exactly once")
+            if scenario == "tail-drain" and result["tail_messages"] != [
+                    "query[A] ready.test from 127.0.0.1", "config ready.test is 192.0.2.41", TAIL]:
+                result["failures"].append("queued tail record content/order changed")
         except Exception as error:
             result["failures"].append(repr(error))
         finally:
