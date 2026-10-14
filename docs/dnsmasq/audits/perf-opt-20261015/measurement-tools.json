@@ -1,0 +1,59 @@
+{
+  "device_perf_guard": {
+    "sha256": "5dc9932990759009b780f0d70c9cfef5517e235be9b6db2fce4840c8b02632f6",
+    "bytes": 561456
+  },
+  "device_perf_lifecycle": {
+    "sha256": "f2d4404377fb6acb6a4ad6538e830c4ccfcf3a89f1dc7263709a0b4d1ce95945",
+    "bytes": 635928
+  },
+  "device_perf_netns": {
+    "sha256": "b9d17e0e068ec59c01c259c5efdf5c26589414988af17e807ae4535a4f3986b0",
+    "bytes": 348152
+  },
+  "device_perf_resource_probe": {
+    "sha256": "ac7ae7eeaeb28b226e621faf8eb1ab261a0648fa43bf971892871f7cac7baa5f",
+    "bytes": 544576
+  },
+  "dnsmasq-c": {
+    "sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "bytes": 269305
+  },
+  "dnsmasq-v020": {
+    "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "bytes": 2124571
+  },
+  "m6a_loadgen": {
+    "sha256": "b5ac83a15590818079bb22d59be663265a38bc41452e7ae29a85624adda293bd",
+    "bytes": 544680
+  },
+  "m6a_upstream": {
+    "sha256": "01c25e6a2f48a5c933555334c4d1f58489c083d19fd5f1ca8542b1a93b597b68",
+    "bytes": 449464
+  },
+  "nice10": {
+    "sha256": "62fb71e0c4cd4961862b99612d5bc4b155806d5ba32535d56d037165695b2aac",
+    "bytes": 162800
+  },
+  "source_sha256": {
+    "tools/dnsmasq/m6a_loadgen.c": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4",
+    "tools/dnsmasq/m6a_upstream.c": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee",
+    "tools/dnsmasq/device_perf_guard.c": "81d7cd6cfa2cf16c8d769d75eff114489e19c8980f770176002343a329607e7a",
+    "tools/dnsmasq/device_perf_netns.c": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4",
+    "tools/dnsmasq/device_perf_lifecycle.c": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+    "tools/dnsmasq/device_perf_resource_probe.c": "3ff3c4aa5e7a0fbea7c2c51c69c504c3c42066d4839eee716a1e76dd84b803ea"
+  },
+  "calibration": {
+    "passed": true,
+    "cases": 5,
+    "scope": "same-source SDK tool calibration on Oracle"
+  },
+  "flags": [
+    "-O2",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-static"
+  ]
+}
