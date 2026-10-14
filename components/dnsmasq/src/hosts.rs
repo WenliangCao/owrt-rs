@@ -124,7 +124,338 @@ struct HostsRecords {
     sources: HashMap<u32, Vec<u8>>,
     forward: HashMap<Vec<u8>, Vec<usize>>,
     reverse: HashMap<IpAddr, usize>,
+    // Most addresses have one owner. Allocate another list only when C's
+    // bulk reverse chain gives the same address additional F_REVERSE records.
+    reverse_extra: HashMap<IpAddr, Vec<usize>>,
+    name_hash_capacity: usize,
     non_terminals: HashSet<Vec<u8>>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum BulkLink {
+    Host(usize),
+    Lease(usize),
+    End,
+}
+
+#[derive(Clone)]
+struct BulkLease {
+    address: IpAddr,
+    reverse: bool,
+    immortal: bool,
+    next: BulkLink,
+}
+
+fn name_hash_size(capacity: usize) -> usize {
+    let mut size = 64usize;
+    while size < capacity / 10 {
+        size *= 2;
+    }
+    size
+}
+
+/// cache.c's per-process typestr mixer, also used by the dynamic cache.
+/// Pointer bytes differ across executables/ASLR; do not hardcode an Oracle seed.
+pub(crate) fn name_hash_bucket(name: &[u8], capacity: usize) -> usize {
+    let mut mixer = [0u8; 64];
+    for (index, label) in [b"A\0".as_slice(), b"NS\0", b"MD\0", b"MF\0"]
+        .iter()
+        .enumerate()
+    {
+        mixer[index * 16..index * 16 + 4].copy_from_slice(&((index + 1) as u32).to_le_bytes());
+        mixer[index * 16 + 8..index * 16 + 16]
+            .copy_from_slice(&(label.as_ptr() as u64).to_le_bytes());
+    }
+    let mut value = 0o17465u32;
+    for byte in name {
+        let byte = byte.to_ascii_lowercase();
+        value = value.rotate_left(7).wrapping_add(u32::from(
+            mixer[(value.wrapping_add(u32::from(byte)) & 63) as usize] ^ byte,
+        ));
+    }
+    ((value ^ (value >> 16)) as usize) & (name_hash_size(capacity) - 1)
+}
+
+/// cache_reload borrows one packet buffer for an address hash spanning all
+/// bulk inputs. Its links are also overwritten by duplicate-name lookup.
+/// This state belongs to the loader, never to a published TCP snapshot.
+#[derive(Clone)]
+struct BulkReverse {
+    buckets: Vec<BulkLink>,
+    next: Vec<BulkLink>,
+    leases: Vec<BulkLease>,
+    // Only names with a retained DHCP entry need a mixed lookup list.
+    lease_names: HashMap<Vec<u8>, Vec<BulkLink>>,
+    name_count: usize,
+    rehash_checkpoint: usize,
+}
+
+impl BulkReverse {
+    fn new(packet_size: usize, cache_size: usize) -> Result<Self, TryReserveError> {
+        let count = (packet_size / std::mem::size_of::<usize>()).max(1);
+        let mut buckets = Vec::new();
+        buckets.try_reserve_exact(count)?;
+        buckets.resize(count, BulkLink::End);
+        Ok(Self {
+            buckets,
+            next: Vec::new(),
+            leases: Vec::new(),
+            lease_names: HashMap::new(),
+            name_count: cache_size,
+            rehash_checkpoint: cache_size,
+        })
+    }
+
+    fn try_clone(&self) -> Result<Self, TryReserveError> {
+        let mut lease_names = HashMap::new();
+        lease_names.try_reserve(self.lease_names.len())?;
+        for (name, ids) in &self.lease_names {
+            lease_names.insert(try_copy(name)?, try_copy(ids)?);
+        }
+        let mut leases = Vec::new();
+        leases.try_reserve_exact(self.leases.len())?;
+        leases.extend(self.leases.iter().cloned());
+        Ok(Self {
+            buckets: try_copy(&self.buckets)?,
+            next: try_copy(&self.next)?,
+            leases,
+            lease_names,
+            name_count: self.name_count,
+            rehash_checkpoint: self.rehash_checkpoint,
+        })
+    }
+
+    fn bucket(&self, address: IpAddr) -> usize {
+        let hash = |bytes: &[u8]| {
+            bytes.iter().fold(0, |value, byte| {
+                (value * 2 + usize::from(*byte)) % self.buckets.len()
+            })
+        };
+        match address {
+            IpAddr::V4(address) => hash(&address.octets()),
+            IpAddr::V6(address) => hash(&address.octets()),
+        }
+    }
+
+    fn flags(link: BulkLink, entries: &[Host], leases: &[BulkLease]) -> (bool, bool) {
+        match link {
+            BulkLink::Host(id) => (entries[id].reverse, true),
+            BulkLink::Lease(id) => (leases[id].reverse, leases[id].immortal),
+            BulkLink::End => unreachable!(),
+        }
+    }
+
+    fn address(link: BulkLink, entries: &[Host], leases: &[BulkLease]) -> IpAddr {
+        match link {
+            BulkLink::Host(id) => entries[id].address,
+            BulkLink::Lease(id) => leases[id].address,
+            BulkLink::End => unreachable!(),
+        }
+    }
+
+    fn set_next(next: &mut [BulkLink], leases: &mut [BulkLease], from: BulkLink, to: BulkLink) {
+        match from {
+            BulkLink::Host(id) => next[id] = to,
+            BulkLink::Lease(id) => leases[id].next = to,
+            BulkLink::End => (),
+        }
+    }
+
+    fn next_link(&self, link: BulkLink) -> BulkLink {
+        match link {
+            BulkLink::Host(id) => self.next[id],
+            BulkLink::Lease(id) => self.leases[id].next,
+            BulkLink::End => BulkLink::End,
+        }
+    }
+
+    fn insert_at(
+        order: &[BulkLink],
+        flags: (bool, bool),
+        entries: &[Host],
+        leases: &[BulkLease],
+    ) -> usize {
+        let mut at = 0;
+        if !flags.0 {
+            while at < order.len() && Self::flags(order[at], entries, leases).0 {
+                at += 1;
+            }
+            if flags.1 {
+                while at < order.len() && !Self::flags(order[at], entries, leases).1 {
+                    at += 1;
+                }
+            }
+        }
+        while at < order.len() && Self::flags(order[at], entries, leases) == flags {
+            at += 1;
+        }
+        at
+    }
+
+    fn add_lease(
+        &mut self,
+        name: &[u8],
+        address: IpAddr,
+        reverse: bool,
+        immortal: bool,
+    ) -> Result<(), TryReserveError> {
+        assert!(
+            self.next.is_empty(),
+            "retained leases must precede configured records"
+        );
+        let mut key = try_copy(name)?;
+        key.make_ascii_lowercase();
+        self.leases.try_reserve(1)?;
+        self.lease_names.try_reserve(1)?;
+        let mut fresh = Vec::new();
+        if let Some(order) = self.lease_names.get_mut(&key) {
+            order.try_reserve(1)?;
+        } else {
+            fresh.try_reserve(1)?;
+        }
+        let id = self.leases.len();
+        let order = self.lease_names.entry(key).or_insert(fresh);
+        let at = Self::insert_at(order, (reverse, immortal), &[], &self.leases);
+        order.insert(at, BulkLink::Lease(id));
+        self.leases.push(BulkLease {
+            address,
+            reverse,
+            immortal,
+            next: BulkLink::End,
+        });
+        Ok(())
+    }
+
+    /// Returns true when it also applied the mixed host/DHCP rotation.
+    fn lookup_name(
+        &mut self,
+        key: &[u8],
+        indices: &mut [usize],
+        entries: &[Host],
+        ipv6: bool,
+        no_rr: bool,
+    ) -> bool {
+        let mut previous = BulkLink::End;
+        if let Some(order) = self.lease_names.get_mut(key) {
+            for &link in order.iter() {
+                if Self::address(link, entries, &self.leases).is_ipv6() == ipv6 {
+                    Self::set_next(&mut self.next, &mut self.leases, previous, link);
+                    previous = link;
+                }
+            }
+            Self::set_next(&mut self.next, &mut self.leases, previous, BulkLink::End);
+            if !no_rr {
+                if let Some(first) = order
+                    .iter()
+                    .position(|&link| Self::address(link, entries, &self.leases).is_ipv6() == ipv6)
+                {
+                    let first_link = order[first];
+                    let flags = Self::flags(first_link, entries, &self.leases);
+                    let mut previous = first;
+                    for pos in first + 1..order.len() {
+                        let link = order[pos];
+                        if Self::address(link, entries, &self.leases).is_ipv6() == ipv6
+                            && Self::flags(link, entries, &self.leases) == flags
+                        {
+                            order[previous] = link;
+                            previous = pos;
+                        }
+                    }
+                    order[previous] = first_link;
+                }
+            }
+            for (target, id) in indices.iter_mut().zip(order.iter().filter_map(|link| {
+                if let BulkLink::Host(id) = link {
+                    Some(*id)
+                } else {
+                    None
+                }
+            })) {
+                *target = id;
+            }
+            true
+        } else {
+            for &id in indices.iter() {
+                if entries[id].address.is_ipv6() == ipv6 {
+                    let link = BulkLink::Host(id);
+                    Self::set_next(&mut self.next, &mut self.leases, previous, link);
+                    previous = link;
+                }
+            }
+            Self::set_next(&mut self.next, &mut self.leases, previous, BulkLink::End);
+            false
+        }
+    }
+
+    fn contains(&self, address: IpAddr, entries: &[Host]) -> bool {
+        let mut id = self.buckets[self.bucket(address)];
+        while id != BulkLink::End {
+            if Self::address(id, entries, &self.leases) == address {
+                return true;
+            }
+            id = self.next_link(id);
+        }
+        false
+    }
+
+    fn push(&mut self, key: &[u8], address: IpAddr, reverse: bool, entries: &[Host]) {
+        let bucket = self.bucket(address);
+        let id = self.next.len();
+        if let Some(order) = self.lease_names.get_mut(key) {
+            let at = Self::insert_at(order, (reverse, true), entries, &self.leases);
+            order.insert(at, BulkLink::Host(id));
+        }
+        self.next.push(if reverse {
+            self.buckets[bucket]
+        } else {
+            BulkLink::End
+        });
+        if reverse {
+            self.buckets[bucket] = BulkLink::Host(id);
+        }
+    }
+
+    fn try_remap(&self, relocated: &[Option<usize>]) -> Result<Self, TryReserveError> {
+        let remap = |mut link: BulkLink| {
+            while let BulkLink::Host(id) = link {
+                if let Some(new) = relocated[id] {
+                    return BulkLink::Host(new);
+                }
+                link = self.next[id];
+            }
+            link
+        };
+        let mut next = Vec::new();
+        next.try_reserve_exact(relocated.iter().filter(|id| id.is_some()).count())?;
+        for (old, new) in relocated.iter().enumerate() {
+            if new.is_some() {
+                next.push(remap(self.next[old]));
+            }
+        }
+        let mut buckets = Vec::new();
+        buckets.try_reserve_exact(self.buckets.len())?;
+        buckets.extend(self.buckets.iter().map(|&id| remap(id)));
+        let mut result = self.try_clone()?;
+        result.buckets = buckets;
+        result.next = next;
+        for lease in &mut result.leases {
+            lease.next = remap(lease.next);
+        }
+        for order in result.lease_names.values_mut() {
+            order.retain_mut(|link| match *link {
+                BulkLink::Host(id) => {
+                    if let Some(new) = relocated[id] {
+                        *link = BulkLink::Host(new);
+                        true
+                    } else {
+                        false
+                    }
+                }
+                _ => true,
+            });
+        }
+        Ok(result)
+    }
 }
 
 // Stable entry IDs partition query order into bounded copy-on-write pages.
@@ -183,6 +514,7 @@ pub struct Hosts {
     records: Snapshot<HostsRecords>,
     rotations: RotationPages,
     no_round_robin: bool,
+    bulk: Option<BulkReverse>,
 }
 
 impl Hosts {
@@ -199,6 +531,99 @@ impl Hosts {
         &self.records.entries
     }
 
+    /// Start before configured records. packet_size is the entire C packet
+    /// buffer, max(edns_packet_max, 512) + MAXDNAME + RRFIXEDSZ.
+    pub fn begin_bulk(
+        &mut self,
+        packet_size: usize,
+        cache_size: usize,
+        minimum_hash_capacity: usize,
+    ) -> Result<(), TryReserveError> {
+        assert!(
+            self.is_empty(),
+            "bulk loading must start with a fresh generation"
+        );
+        let bulk = BulkReverse::new(packet_size, cache_size)?;
+        self.set_name_hash_capacity(cache_size.max(minimum_hash_capacity))?;
+        self.bulk = Some(bulk);
+        Ok(())
+    }
+
+    pub fn finish_bulk(&mut self) {
+        self.bulk = None;
+    }
+
+    /// Retained DHCP cache entries can appear in duplicate-name lookup while
+    /// the static generation loads. They are never static published answers.
+    pub fn add_bulk_lease(
+        &mut self,
+        name: &[u8],
+        address: IpAddr,
+        reverse: bool,
+        immortal: bool,
+    ) -> Result<(), TryReserveError> {
+        self.bulk
+            .as_mut()
+            .expect("begin_bulk must precede retained leases")
+            .add_lease(name, address, reverse, immortal)
+    }
+
+    /// Retain C's largest name-hash table across reloads. Rehashing traverses
+    /// old buckets in order and prepends reverse records to their new bucket.
+    fn set_name_hash_capacity(&mut self, capacity: usize) -> Result<(), TryReserveError> {
+        if name_hash_size(capacity) <= name_hash_size(self.records.name_hash_capacity) {
+            return Ok(());
+        }
+        let mut order = Vec::new();
+        order.try_reserve_exact(
+            self.records
+                .reverse_extra
+                .values()
+                .map(|ids| ids.len() + 1)
+                .max()
+                .unwrap_or(0),
+        )?;
+        let records = self.writable_records()?;
+        for (address, extra) in &mut records.reverse_extra {
+            order.clear();
+            order.push((records.reverse[address], 0));
+            order.extend(extra.iter().enumerate().map(|(rank, &id)| (id, rank + 1)));
+            order.sort_unstable_by_key(|&(id, rank)| {
+                (
+                    name_hash_bucket(&records.entries[id].name, capacity),
+                    std::cmp::Reverse(rank),
+                )
+            });
+            *records.reverse.get_mut(address).unwrap() = order[0].0;
+            for (target, &(id, _)) in extra.iter_mut().zip(&order[1..]) {
+                *target = id;
+            }
+        }
+        records.name_hash_capacity = capacity;
+        Ok(())
+    }
+
+    pub fn name_hash_capacity(&self) -> usize {
+        self.records.name_hash_capacity
+    }
+
+    fn advance_bulk_names(
+        &mut self,
+        accepted: usize,
+        file_end: bool,
+    ) -> Result<(), TryReserveError> {
+        let Some(bulk) = &mut self.bulk else {
+            return Ok(());
+        };
+        bulk.name_count = bulk.name_count.saturating_add(accepted);
+        let count = bulk.name_count;
+        if file_end || count - bulk.rehash_checkpoint > 1000 {
+            self.set_name_hash_capacity(count)?;
+            self.bulk.as_mut().unwrap().rehash_checkpoint = count;
+        }
+        Ok(())
+    }
+
     /// Dropping this owner cannot release records retained by a TCP snapshot.
     pub fn has_shared_records(&self) -> bool {
         matches!(&self.records, Snapshot::Shared(records) if Arc::strong_count(records) > 1)
@@ -211,6 +636,7 @@ impl Hosts {
             records: self.records.snapshot(),
             rotations: self.rotations.snapshot(),
             no_round_robin: self.no_round_robin,
+            bulk: None,
         }
     }
 
@@ -225,12 +651,18 @@ impl Hosts {
 
     /// Keep the loader's actual file identity beside this immutable generation.
     pub fn set_source_name(&mut self, source: u32, name: Vec<u8>) {
-        let Ok(records) = self.writable_records() else {
-            return;
-        };
-        if records.sources.try_reserve(1).is_ok() {
-            records.sources.insert(source, name);
-        }
+        let _ = self.set_source_name_checked(source, name);
+    }
+
+    pub fn set_source_name_checked(
+        &mut self,
+        source: u32,
+        name: Vec<u8>,
+    ) -> Result<(), TryReserveError> {
+        let records = self.writable_records()?;
+        records.sources.try_reserve(1)?;
+        records.sources.insert(source, name);
+        Ok(())
     }
 
     pub fn source_name(&self, source: u32) -> Option<&[u8]> {
@@ -268,6 +700,33 @@ impl Hosts {
         self.insert_with_origin(name, address, ttl, source, source == 1)
     }
 
+    /// Fallible configured-record ingestion, including best-effort ancestor
+    /// metadata: an incomplete replacement must not be published.
+    pub fn insert_checked(
+        &mut self,
+        name: Vec<u8>,
+        address: IpAddr,
+        ttl: u32,
+        source: u32,
+    ) -> Result<bool, ()> {
+        let mut allocation_failed = false;
+        let inserted = self
+            .try_insert(
+                name,
+                address,
+                ttl,
+                source,
+                source == 1,
+                &mut allocation_failed,
+            )
+            .map_err(|_| ())?;
+        if allocation_failed {
+            Err(())
+        } else {
+            Ok(inserted)
+        }
+    }
+
     fn insert_with_origin(
         &mut self,
         name: Vec<u8>,
@@ -300,24 +759,42 @@ impl Hosts {
         let mut key = try_copy(&name)?;
         key.make_ascii_lowercase();
         let no_round_robin = self.no_round_robin;
-        let records = self.writable_records()?;
+        self.writable_records()?;
+        let records = self.records.get_mut().unwrap();
+        let bulk = &mut self.bulk;
         // Duplicate lookup rotates the same flags group as cache_find_by_name,
         // but must not allocate a temporary result/positions Vec while loading.
         if let Some(indices) = records.forward.get_mut(&key) {
+            let mixed_rotation = bulk.as_mut().is_some_and(|bulk| {
+                bulk.lookup_name(
+                    &key,
+                    indices,
+                    &records.entries,
+                    address.is_ipv6(),
+                    no_round_robin,
+                )
+            });
             let duplicate = indices
                 .iter()
                 .any(|&id| records.entries[id].address == address);
-            if !no_round_robin {
+            if !no_round_robin && !mixed_rotation {
                 rotate_indices(indices, &records.entries, Some(address.is_ipv6()));
             }
             if duplicate {
                 return Ok(false);
             }
+        } else if let Some(bulk) = bulk {
+            bulk.lookup_name(
+                &key,
+                &mut [],
+                &records.entries,
+                address.is_ipv6(),
+                no_round_robin,
+            );
         }
         // Reserve all mandatory indexes before publishing any new entry. An
         // unsuccessful reservation leaves existing entries and PTR ownership live.
         records.entries.try_reserve(1)?;
-        records.reverse.try_reserve(1)?;
         records.forward.try_reserve(1)?;
         let mut fresh_indices = Vec::new();
         if let Some(indices) = records.forward.get_mut(&key) {
@@ -325,7 +802,29 @@ impl Hosts {
         } else {
             fresh_indices.try_reserve(1)?;
         }
-        let reverse = !records.reverse.contains_key(&address);
+        let reverse = match bulk {
+            Some(bulk) => {
+                bulk.next.try_reserve(1)?;
+                if let Some(order) = bulk.lease_names.get_mut(&key) {
+                    order.try_reserve(1)?;
+                }
+                !bulk.contains(address, &records.entries)
+            }
+            None => !records.reverse.contains_key(&address),
+        };
+        let mut fresh_reverse = Vec::new();
+        if reverse {
+            if records.reverse.contains_key(&address) {
+                if let Some(extra) = records.reverse_extra.get_mut(&address) {
+                    extra.try_reserve(1)?;
+                } else {
+                    records.reverse_extra.try_reserve(1)?;
+                    fresh_reverse.try_reserve(1)?;
+                }
+            } else {
+                records.reverse.try_reserve(1)?;
+            }
+        }
         // C make_non_terminals is best-effort too; the real record survives an
         // ancestor allocation failure. A replacement reader still needs the
         // failure signal so it can release this incomplete generation.
@@ -345,6 +844,9 @@ impl Hosts {
                 }
             }
         }
+        if let Some(bulk) = bulk {
+            bulk.push(&key, address, reverse, &records.entries);
+        }
         let indices = records.forward.entry(key).or_insert(fresh_indices);
         let id = records.entries.len();
         let at = if reverse {
@@ -357,7 +859,26 @@ impl Hosts {
         };
         indices.insert(at, id);
         if reverse {
-            records.reverse.insert(address, id);
+            if let Some(first) = records.reverse.get_mut(&address) {
+                let capacity = records.name_hash_capacity;
+                let bucket = name_hash_bucket(&name, capacity);
+                let extra = records
+                    .reverse_extra
+                    .entry(address)
+                    .or_insert(fresh_reverse);
+                // Two owners cannot share the same name/address (deduplicated
+                // above), so a new matching bucket entry precedes its peers.
+                if name_hash_bucket(&records.entries[*first].name, capacity) >= bucket {
+                    extra.insert(0, std::mem::replace(first, id));
+                } else {
+                    let at = extra.partition_point(|&old| {
+                        name_hash_bucket(&records.entries[old].name, capacity) < bucket
+                    });
+                    extra.insert(at, id);
+                }
+            } else {
+                records.reverse.insert(address, id);
+            }
         }
         records.entries.push(Host {
             name,
@@ -375,10 +896,13 @@ impl Hosts {
     pub fn try_clone(&self) -> Result<Self, TryReserveError> {
         let mut copy = HostsRecords::default();
         let records = &self.records;
+        copy.name_hash_capacity = records.name_hash_capacity;
         copy.entries.try_reserve_exact(records.entries.len())?;
         copy.sources.try_reserve(records.sources.len())?;
         copy.forward.try_reserve(records.forward.len())?;
         copy.reverse.try_reserve(records.reverse.len())?;
+        copy.reverse_extra
+            .try_reserve(records.reverse_extra.len())?;
         copy.non_terminals
             .try_reserve(records.non_terminals.len())?;
         for host in &records.entries {
@@ -396,6 +920,9 @@ impl Hosts {
         }
         copy.reverse
             .extend(records.reverse.iter().map(|(&address, &id)| (address, id)));
+        for (&address, ids) in &records.reverse_extra {
+            copy.reverse_extra.insert(address, try_copy(ids)?);
+        }
         for name in &records.non_terminals {
             copy.non_terminals.insert(try_copy(name)?);
         }
@@ -403,6 +930,7 @@ impl Hosts {
             records: Snapshot::Owned(copy),
             rotations: RotationPages::default(),
             no_round_robin: self.no_round_robin,
+            bulk: self.bulk.as_ref().map(BulkReverse::try_clone).transpose()?,
         })
     }
 
@@ -425,19 +953,40 @@ impl Hosts {
         for (name, address) in records {
             let mut allocation_failed = false;
             replacement
-                .try_insert(name, address, ttl, source, source == 1, &mut allocation_failed)
+                .try_insert(
+                    name,
+                    address,
+                    ttl,
+                    source,
+                    source == 1,
+                    &mut allocation_failed,
+                )
                 .map_err(|_| ())?;
             if allocation_failed {
                 return Err(());
             }
+            replacement.advance_bulk_names(1, false).map_err(|_| ())?;
         }
+        replacement.advance_bulk_names(0, true).map_err(|_| ())?;
         Ok((replacement, removed))
     }
 
     pub fn reverse(&self, address: IpAddr) -> Option<&Host> {
+        self.reverse_all(address).next()
+    }
+
+    pub fn reverse_all(&self, address: IpAddr) -> impl Iterator<Item = &Host> {
         self.records
             .reverse
             .get(&address)
+            .into_iter()
+            .chain(
+                self.records
+                    .reverse_extra
+                    .get(&address)
+                    .into_iter()
+                    .flatten(),
+            )
             .map(|&id| &self.records.entries[id])
     }
 
@@ -449,21 +998,32 @@ impl Hosts {
 
     pub fn try_remove_uid(&mut self, source: u32) -> Result<usize, TryReserveError> {
         let before = self.records.entries.len();
+        if !self
+            .records
+            .entries
+            .iter()
+            .any(|entry| entry.source == source)
+        {
+            return Ok(0);
+        }
         let mut relocated = Vec::new();
         relocated.try_reserve_exact(before)?;
-        relocated.resize(before, None);
-        let records = self.writable_records()?;
-        let mut old = 0;
         let mut new = 0;
-        records.entries.retain(|entry| {
-            let keep = entry.source != source;
-            if keep {
-                relocated[old] = Some(new);
+        for entry in &self.records.entries {
+            relocated.push(if entry.source == source {
+                None
+            } else {
                 new += 1;
-            }
-            old += 1;
-            keep
-        });
+                Some(new - 1)
+            });
+        }
+        let bulk = self
+            .bulk
+            .as_ref()
+            .map(|bulk| bulk.try_remap(&relocated))
+            .transpose()?;
+        let records = self.writable_records()?;
+        records.entries.retain(|entry| entry.source != source);
         records.forward.retain(|_, indices| {
             indices.retain_mut(|id| {
                 if let Some(next) = relocated[*id] {
@@ -475,17 +1035,37 @@ impl Hosts {
             });
             !indices.is_empty()
         });
-        records.reverse.retain(|_, id| {
+        for extra in records.reverse_extra.values_mut() {
+            extra.retain_mut(|id| {
+                if let Some(next) = relocated[*id] {
+                    *id = next;
+                    true
+                } else {
+                    false
+                }
+            });
+        }
+        records.reverse.retain(|address, id| {
             if let Some(next) = relocated[*id] {
                 *id = next;
+                true
+            } else if let Some(extra) = records
+                .reverse_extra
+                .get_mut(address)
+                .filter(|ids| !ids.is_empty())
+            {
+                *id = extra.remove(0);
                 true
             } else {
                 false
             }
         });
+        records.reverse_extra.retain(|_, ids| !ids.is_empty());
         // Fresh C non-terminals have their own zero UID; their ancestor names
         // are not reconstructed from remaining address records on removal.
-        Ok(before - new)
+        let removed = before - records.entries.len();
+        self.bulk = bulk;
+        Ok(removed)
     }
 
     pub fn name_exists(&self, name: &[u8]) -> bool {
@@ -610,24 +1190,38 @@ impl Hosts {
         let mut inserted = 0;
         let mut allocation_failed = false;
         let mut buffer = [0; 8192];
+        let mut line_names = 0;
         let mut consume = |parser: &mut HostsParser, bytes: &[u8]| {
-            parser.feed(
-                bytes,
-                expand,
-                &mut domain,
-                |name, address| match self.try_insert(
-                    name,
-                    address,
-                    ttl,
-                    source,
-                    false,
-                    &mut allocation_failed,
-                ) {
-                    Ok(added) => inserted += usize::from(added),
-                    Err(_) => allocation_failed = true,
-                },
-                &mut invalid,
-            );
+            for line in bytes.split_inclusive(|&byte| byte == b'\n') {
+                let before = parser.stats.accepted;
+                parser.feed(
+                    line,
+                    expand,
+                    &mut domain,
+                    |name, address| match self.try_insert(
+                        name,
+                        address,
+                        ttl,
+                        source,
+                        false,
+                        &mut allocation_failed,
+                    ) {
+                        Ok(added) => inserted += usize::from(added),
+                        Err(_) => allocation_failed = true,
+                    },
+                    &mut invalid,
+                );
+                line_names += parser.stats.accepted - before;
+                if line.last() == Some(&b'\n') {
+                    if self.advance_bulk_names(line_names, false).is_err() {
+                        allocation_failed = true;
+                    }
+                    line_names = 0;
+                }
+                if allocation_failed || parser.allocation_failed {
+                    break;
+                }
+            }
             allocation_failed || parser.allocation_failed
         };
         let mut failed = false;
@@ -642,6 +1236,9 @@ impl Hosts {
         }
         if !failed {
             failed = consume(&mut parser, b"\n");
+        }
+        if !failed {
+            failed = self.advance_bulk_names(0, true).is_err();
         }
         let mut stats = parser.stats;
         stats.inserted = inserted;
@@ -798,6 +1395,212 @@ pub fn visit_hosts(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";
+
+    fn bulk_fixture(retained_lease: Option<bool>) -> Hosts {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(1497, 1000, 1000).unwrap();
+        if let Some(immortal) = retained_lease {
+            hosts
+                .add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, immortal)
+                .unwrap();
+        }
+        assert!(
+            !hosts
+                .read(REPEATED_ADDRESS_FIXTURE, 2, 37, false, |_| None)
+                .allocation_failed
+        );
+        hosts
+    }
+
+    fn reverse_names(hosts: &Hosts, address: &str) -> Vec<Vec<u8>> {
+        let mut names = hosts
+            .reverse_all(address.parse().unwrap())
+            .map(|host| host.name.clone())
+            .collect::<Vec<_>>();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn bulk_reverse_link_reuse_preserves_multiple_ptr_owners_and_mixed_rotation() {
+        let mut hosts = bulk_fixture(None);
+        assert_eq!(
+            reverse_names(&hosts, "192.0.2.1"),
+            [b"x.test".to_vec(), b"y.test".to_vec()]
+        );
+        assert_eq!(reverse_names(&hosts, "192.0.2.2"), [b"old.test".to_vec()]);
+        let expected = hosts
+            .addresses(b"y.test")
+            .map(|host| host.address)
+            .collect::<Vec<_>>();
+        for _ in 0..4 {
+            assert_eq!(
+                hosts
+                    .lookup(b"y.test", Some(false), false)
+                    .iter()
+                    .map(|host| host.address)
+                    .collect::<Vec<_>>(),
+                expected
+            );
+        }
+        hosts.finish_bulk();
+        hosts
+            .insert_checked(b"later.test".to_vec(), "192.0.2.1".parse().unwrap(), 37, 3)
+            .unwrap();
+        assert!(!hosts.addresses(b"later.test").next().unwrap().reverse);
+        assert_eq!(reverse_names(&hosts, "192.0.2.1").len(), 2);
+    }
+
+    #[test]
+    fn retained_finite_and_immortal_lease_links_follow_exact_c_counterexample() {
+        let finite = bulk_fixture(Some(false));
+        let immortal = bulk_fixture(Some(true));
+        assert_eq!(reverse_names(&finite, "192.0.2.1"), [b"x.test".to_vec()]);
+        assert_eq!(
+            reverse_names(&immortal, "192.0.2.1"),
+            [b"x.test".to_vec(), b"y.test".to_vec()]
+        );
+        assert_eq!(finite.entries().len(), 6);
+        assert_eq!(immortal.entries().len(), 6);
+        assert!(finite.entries().iter().all(|entry| entry.name != b"a.test"
+            || entry.address != "192.0.2.1".parse::<IpAddr>().unwrap()));
+    }
+
+    #[test]
+    fn bulk_three_address_duplicate_and_no_round_robin_keep_reverse_groups() {
+        for no_rr in [false, true] {
+            let mut hosts = bulk_fixture(None);
+            hosts.set_round_robin(!no_rr);
+            let before = hosts.len();
+            assert!(
+                !hosts
+                    .insert_checked(b"a.test".to_vec(), "192.0.3.185".parse().unwrap(), 37, 2)
+                    .unwrap()
+            );
+            assert_eq!(hosts.len(), before);
+            hosts
+                .insert_checked(b"y.test".to_vec(), "192.0.3.184".parse().unwrap(), 37, 2)
+                .unwrap();
+            let first = hosts
+                .lookup(b"y.test", Some(false), false)
+                .into_iter()
+                .map(|host| (host.address, host.reverse))
+                .collect::<Vec<_>>();
+            let second = hosts
+                .lookup(b"y.test", Some(false), false)
+                .into_iter()
+                .map(|host| (host.address, host.reverse))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                first
+                    .iter()
+                    .map(|(_, reverse)| *reverse)
+                    .collect::<Vec<_>>(),
+                [true, true, false]
+            );
+            if no_rr {
+                assert_eq!(first, second);
+            } else {
+                assert_eq!(second, [first[1], first[0], first[2]]);
+            }
+        }
+    }
+
+    #[test]
+    fn bulk_ipv6_links_and_multiple_files_share_one_address_hash() {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(1497, 1000, 1000).unwrap();
+        hosts.read(
+            b"::2 old.test\n::1 x.test\n::bc a.test\n",
+            2,
+            37,
+            false,
+            |_| None,
+        );
+        hosts.read(
+            b"::bb a.test\n::1 y.test\n::2 y.test\n",
+            3,
+            37,
+            false,
+            |_| None,
+        );
+        assert_eq!(
+            reverse_names(&hosts, "::1"),
+            [b"x.test".to_vec(), b"y.test".to_vec()]
+        );
+        assert_eq!(reverse_names(&hosts, "::2"), [b"old.test".to_vec()]);
+        hosts.try_remove_uid(2).unwrap();
+        assert_eq!(reverse_names(&hosts, "::1"), [b"y.test".to_vec()]);
+        assert!(hosts.reverse_all("::2".parse().unwrap()).next().is_none());
+        assert!(hosts.bulk.as_ref().unwrap().next.len() == hosts.len());
+        let copied = hosts.try_clone().unwrap();
+        assert_eq!(copied.entries(), hosts.entries());
+        assert_eq!(reverse_names(&copied, "::1"), [b"y.test".to_vec()]);
+    }
+
+    #[test]
+    fn bulk_large_repeated_fixture_matches_exact_c_reverse_flag_counts() {
+        let mut hosts = Hosts::new();
+        hosts.begin_bulk(1497, 1000, 1000).unwrap();
+        hosts
+            .insert_checked(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 0, 1)
+            .unwrap();
+        let mut input = String::new();
+        use std::fmt::Write;
+        for i in 0..30000 {
+            for family in [2, 3] {
+                writeln!(&mut input, "192.0.{family}.{} host{i:06}.test", i % 250 + 1).unwrap();
+            }
+        }
+        let stats = hosts.read(input.as_bytes(), 2, 0, false, |_| None);
+        assert_eq!(stats.accepted, 60000);
+        assert!(!stats.allocation_failed);
+        assert_eq!(
+            hosts
+                .records
+                .forward
+                .values()
+                .filter(|ids| {
+                    ids.len() == 2
+                        && hosts.entries()[ids[0]].reverse != hosts.entries()[ids[1]].reverse
+                })
+                .count(),
+            835
+        );
+        assert_eq!(hosts.records.reverse_extra.len(), 374);
+        assert_eq!(hosts.bulk.as_ref().unwrap().name_count, 61000);
+        let mut snapshot = hosts.tcp_snapshot();
+        assert!(snapshot.bulk.is_none());
+        assert_eq!(
+            snapshot
+                .lookup(b"host000313.test", Some(false), false)
+                .iter()
+                .map(|host| host.reverse)
+                .collect::<Vec<_>>(),
+            [true, false]
+        );
+    }
+
+    #[test]
+    fn repeated_small_hup_keeps_hash_size_without_accumulating_old_name_count() {
+        let mut large = Hosts::new();
+        large.begin_bulk(1497, 1000, 1000).unwrap();
+        let input = "192.0.2.1 duplicate.test\n".repeat(3000);
+        large.read(input.as_bytes(), 2, 37, false, |_| None);
+        assert_eq!(large.len(), 1);
+        assert_eq!(large.bulk.as_ref().unwrap().name_count, 4000);
+        let capacity = large.name_hash_capacity();
+        assert_eq!(name_hash_size(capacity), 512);
+        for _ in 0..20 {
+            let mut next = Hosts::new();
+            next.begin_bulk(1497, 1000, capacity).unwrap();
+            next.read(REPEATED_ADDRESS_FIXTURE, 2, 37, false, |_| None);
+            assert_eq!(next.bulk.as_ref().unwrap().name_count, 1006);
+            assert_eq!(next.name_hash_capacity(), capacity);
+        }
+    }
 
     fn paired_hosts(count: usize) -> Hosts {
         let mut hosts = Hosts::new();

@@ -1384,27 +1384,7 @@ fn reverse_key(address: IpAddr) -> (Kind, Vec<u8>) {
 /// typestr. Pointer bytes vary with the executable and ASLR; preserve its
 /// mixing algorithm and bucket/chain invariant using this executable's rows.
 fn reverse_bucket(name: &Name, capacity: usize) -> usize {
-    let mut size = 64usize;
-    while size < capacity / 10 {
-        size *= 2;
-    }
-    let mut mixer = [0u8; 64];
-    for (index, label) in [b"A\0".as_slice(), b"NS\0", b"MD\0", b"MF\0"]
-        .iter()
-        .enumerate()
-    {
-        mixer[index * 16..index * 16 + 4].copy_from_slice(&((index + 1) as u32).to_le_bytes());
-        mixer[index * 16 + 8..index * 16 + 16]
-            .copy_from_slice(&(label.as_ptr() as u64).to_le_bytes());
-    }
-    let mut value = 0o17465u32;
-    for byte in name.dnsmasq_bytes() {
-        let byte = byte.to_ascii_lowercase();
-        value = value.rotate_left(7).wrapping_add(u32::from(
-            mixer[(value.wrapping_add(u32::from(byte)) & 63) as usize] ^ byte,
-        ));
-    }
-    ((value ^ (value >> 16)) as usize) & (size - 1)
+    crate::hosts::name_hash_bucket(&name.dnsmasq_bytes(), capacity)
 }
 
 fn reverse_name(address: IpAddr) -> Name {
