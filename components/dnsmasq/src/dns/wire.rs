@@ -703,7 +703,13 @@ impl PacketWriter {
         if name_offset >= 0x4000 || usize::from(name_offset) >= self.packet.len() {
             return Err(WireError::InvalidName);
         }
-        validate_name(&self.packet, name_offset.into(), 0)?;
+        // question() writes a validated Name at HEADER_LEN before any records,
+        // and this writer only appends afterwards. Reusing that owner cannot
+        // introduce a new pointer/label error. Arbitrary offsets still need
+        // full validation, including CNAME targets and interior label bytes.
+        if usize::from(name_offset) != HEADER_LEN || self.header.questions == 0 {
+            validate_name(&self.packet, name_offset.into(), 0)?;
+        }
         self.append_record(
             section,
             &(0xc000 | name_offset).to_be_bytes(),

@@ -83,3 +83,17 @@ while retaining bounded scratch for ordinary local/lease lookups. This is an
 attribution experiment; no explanation is asserted before remeasurement.
 The DNS-3 result is preserved intact. Root is notified to freeze A without
 this direction if the extra investigation would delay the full gate.
+
+
+Root froze candidate A at `70390467`, excluding DNS-3 after its CNAME auxiliary
+regression. DNS-3a has no fresh timing yet. DNS-4 reuses the writer-owned first
+question's already-validated name, keeping arbitrary-offset validation, but
+has only 24 wire-unit passes and **no screen/timing eligibility** yet. Do not
+merge these later commits into A.
+
+Priority now moves to an independent cache-clear worktree based on `70390467`:
+`/Users/USER/Developer/owrt-perf-cache-20261015`, branch
+`perf/dnsmasq-cache-20261015`. Shared initial empty blocks were rejected because
+they would move new infallible COW allocation from startup into first query.
+Instead, first screen one `Arc::make_mut` per existing block in `Cache::clear`,
+not once per slot; representation, allocation order and limits stay intact.

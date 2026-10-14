@@ -330,6 +330,28 @@ fn writer_matches_independent_response() {
 }
 
 #[test]
+fn compressed_owner_offsets_keep_question_and_interior_validation() {
+    let mut writer = PacketWriter::new(7, 0x8180, 512).unwrap();
+    assert_eq!(
+        writer.record_at(Section::Answer, 12, 1, 1, 60, &[192, 0, 2, 7]),
+        Err(WireError::InvalidName)
+    );
+    let first = writer.question(&Name::from_ascii("www.example").unwrap(), 1, 1).unwrap();
+    let second = writer.question(&Name::from_ascii("other.example").unwrap(), 1, 1).unwrap();
+    assert_eq!(
+        writer.record_at(Section::Answer, first as u16 + 1, 1, 1, 60, &[192, 0, 2, 7]),
+        Err(WireError::LabelType)
+    );
+    for offset in [first, second] {
+        writer.record_at(Section::Answer, offset as u16, 1, 1, 60, &[192, 0, 2, 7]).unwrap();
+    }
+    let packet = writer.finish();
+    let message = Message::parse(&packet).unwrap();
+    let names: Vec<_> = message.records(Section::Answer).map(|record| record.name().unwrap()).collect();
+    assert_eq!(names, [Name::from_ascii("www.example").unwrap(), Name::from_ascii("other.example").unwrap()]);
+}
+
+#[test]
 fn writer_full_record_append_is_atomic_and_sticky() {
     let mut writer = PacketWriter::new(0x1234, 0x8180, A_RESPONSE.len() - 1).unwrap();
     writer
