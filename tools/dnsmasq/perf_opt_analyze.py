@@ -32,6 +32,12 @@ def cpu_ticks(process):
 
 def traffic(folder, row):
     load = json.loads((folder/'client.json').read_text())
+    for phase, seconds in (('warmup',5), ('measurement',20)):
+        counts=load[phase]
+        expected=load['rate']*seconds
+        if row['valid']:
+            assert all(counts[k]==expected for k in ('scheduled','sent','correct'))
+            assert not any(counts[k] for k in ('timeout','wrong','transport_error','scheduled_skipped'))
     if (folder/'prewarm.json').exists():
         prewarm=json.loads((folder/'prewarm.json').read_text())
         counts=prewarm['measurement']
@@ -55,6 +61,7 @@ def traffic(folder, row):
     assert all(a[k]>=b[k] for k in keys)
     ticks = cpu_ticks(a)-cpu_ticks(b)
     hz = before['clock_ticks_per_second']
+    assert hz==after['clock_ticks_per_second']==100
     completed = load['warmup']['correct']+load['measurement']['correct']
     epochs = json.loads((folder/'epoch.json').read_text())
     resources = json_lines(folder/'resources.jsonl')
@@ -88,6 +95,8 @@ def traffic(folder, row):
     if (folder/'client.dhcp-dora.jsonl').exists():
         dora = json_lines(folder/'client.dhcp-dora.jsonl')
         result['dora'] = dora
+        result['dora_latency_ms'] = quantiles([(v['ack_ns']-v['sent_ns'])/1e6 for v in dora])
+        assert len(dora)==load['clients']==load['warmup']['dora_correct']
     return result
 
 
@@ -156,6 +165,14 @@ def main():
         for key in ('p50','p95'):
             result[key+'_ms']=compare([r['latency_ms'][key] for r in a],[r['latency_ms'][key] for r in b],resolution=1 if life else 0)
         result['cpu_us']=compare([r['cpu_us_per_operation'] for r in a],[r['cpu_us_per_operation'] for r in b],cpu=([r['cpu_ticks'] for r in a],[r['cpu_ticks'] for r in b]))
+        if scene in ('dhcp', 'dhcp-home6'):
+            result['dora_all_min_max_ms']={
+                'left':[min(r['dora_latency_ms']['min'] for r in a),max(r['dora_latency_ms']['max'] for r in a)],
+                'right':[min(r['dora_latency_ms']['min'] for r in b),max(r['dora_latency_ms']['max'] for r in b)]}
+            for key in ('p50','p95'):
+                left,right=[r['dora_latency_ms'][key] for r in a],[r['dora_latency_ms'][key] for r in b]
+                result['dora_'+key+'_ms']=(compare(left,right) if scene=='dhcp' else
+                    {'left':spread(left),'right':spread(right),'ranked':False,'reason':'only 6 DORA samples per round; descriptive only'})
         for key in ('rss_median_kib','rss_peak_kib','anon_peak_kib','file_peak_kib','shmem_peak_kib','tree_fd_peak','parent_fd_peak'):
             result[key]={'left':spread([r[key] for r in a]),'right':spread([r[key] for r in b])}
         comparisons[scene]=result
