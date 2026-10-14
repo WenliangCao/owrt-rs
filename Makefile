@@ -66,6 +66,7 @@ check-harnesses:
 	@python3 tools/test_r85_procd_busy_gate.py
 	@python3 tools/test_stack_manifest.py
 	@python3 tools/test_native_release_prepare.py
+	@python3 tools/test_native_image.py
 
 # The load generator must reject failed requests and count every operation.
 # Full namespace/rollback gates additionally run on the image's build host.
@@ -97,4 +98,5 @@ image:
 ci-image:
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_image.sh work
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_core.sh work
+	OPENWRT_VERSION=$(VERSION) python3 tools/ci_build_dnsmasq.py work
 	OPENWRT_VERSION=$(VERSION) sh tools/ci_integrate_image.sh work

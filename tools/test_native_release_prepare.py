@@ -30,6 +30,7 @@ class ReleaseTests(unittest.TestCase):
         firmware = b"synthetic firmware fixture\n"
         (self.canonical / "fixture.bin").write_bytes(firmware)
         components = json.loads((REPO / "packaging/image/native-25.12.5.json").read_text())["components"]
+        components.pop("dnsmasq", None)  # This helper retains the historical Rust9 tag contract.
         for value in components.values():
             value.update(rust_sha256="0"*64, rust_bytes=1,
                          recovery_path="/usr/libexec/owrt-stock"+value["path"])

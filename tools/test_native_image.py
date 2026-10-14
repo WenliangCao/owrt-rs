@@ -110,14 +110,14 @@ class NativeDnsmasqTests(unittest.TestCase):
                 ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"])
 
     def test_ten_component_inventory_does_not_change_original_nine(self):
-        import subprocess
-        old = json.loads(subprocess.check_output(["git", "show", "v0.1.1:packaging/image/native-25.12.5.json"], cwd=REPO))
-        self.assertEqual(set(SPEC["components"]), set(old["components"]) | {"dnsmasq"})
-        for name, item in old["components"].items():
-            self.assertEqual(SPEC["components"][name], item)
-        self.assertEqual(SPEC["stock_image"], old["stock_image"])
-        self.assertEqual(SPEC["luci_source"], old["luci_source"])
-        self.assertEqual(SPEC["translations"], old["translations"])
+        # Canonical digest of these four fields at v0.1.1. No historical Git
+        # objects are required in Actions' shallow checkout.
+        previous = {key: copy.deepcopy(SPEC[key]) for key in
+                    ("components", "stock_image", "luci_source", "translations")}
+        previous["components"].pop("dnsmasq")
+        self.assertEqual(len(previous["components"]), 9)
+        digest = hashlib.sha256(json.dumps(previous, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        self.assertEqual(digest, "bac71f5c50f91dce84dcf7652cb353f1c5d92852118a13c7b5df24eb1e07d496")
 
 
 if __name__ == "__main__":
