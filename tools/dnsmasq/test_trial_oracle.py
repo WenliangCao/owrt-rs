@@ -23,7 +23,7 @@ from test_deploy_oracle import Deployment, host, wait
 
 CASES = ('confirm-rollback', 'deadline', 'crash', 'hang', 'watch-killed',
          'partial-rollback', 'reload', 'rollback-killed',
-         'confirmed-rollback-killed', 'rollback-cleanup-killed', 'rollback-c-dns-loss')
+         'confirmed-rollback-killed', 'rollback-cleanup-killed', 'rollback-c-dns-loss', 'documented-path')
 TRIAL = '/usr/sbin/dnsmasq-trial'
 
 
@@ -143,8 +143,13 @@ class Trial(Deployment):
                     child.wait(5)
 
     def execute(self):
-        self.boot()
         case = self.args.case
+        if case == 'documented-path':
+            # Match the runbook's example name while retaining the fixture's
+            # lifecycle.lan answer for the independent DHCP/DNS client.
+            with (self.root / 'etc/hosts').open('a') as hosts:
+                hosts.write('192.168.1.1 OpenWrt.lan\n')
+        self.boot()
         if case == 'confirm-rollback':
             self.start()
             self.trial('confirm')
@@ -229,6 +234,34 @@ class Trial(Deployment):
             self.back_to_c('dns_restored_automatic_recovery')
             wait(lambda: not list((self.root / 'tmp/dnsmasq-trial').glob('*.pid')),
                  'helpers stopped after restored C DNS', 15)
+        elif case == 'documented-path':
+            script, candidate = '/tmp/dnsmasq-trial.sh', '/tmp/dnsmasq-rs'
+            shutil.copy2(self.args.trial, self.root / script.lstrip('/'))
+            shutil.copy2(self.args.rust_binary, self.root / candidate.lstrip('/'))
+            (self.root / script.lstrip('/')).chmod(0o644)
+            self.run('/bin/chmod', '755', script)
+            hashes = self.run('/usr/bin/sha256sum', candidate, script).stdout
+            assert self.rust in hashes and self.row['trial_sha256'] in hashes
+            self.row['uploaded_hashes'] = hashes
+            argv = ['/bin/sh', script, 'start', candidate, self.rust,
+                    'OpenWrt.lan', '127.0.0.1', '600']
+            self.row['documented_start_argv'] = argv
+            self.run(*argv)
+            self.row['steps']['candidate'] = wait(lambda: self.one(self.rust), 'candidate running')
+            self.row['steps']['candidate_client'] = wait(self.client, 'candidate client')
+            assert 'trial active:' in self.run('/bin/sh', script, 'status').stdout
+            self.run('/bin/sh', script, 'confirm')
+            time.sleep(6)
+            assert self.one(self.rust), 'confirmed candidate replaced'
+            self.run('/bin/sh', script, 'rollback')
+            self.back_to_c('documented_rollback')
+            # Adjacent failure boundary: a bad upload identity still fails
+            # before mounts/helpers and leaves the exact C serving clients.
+            argv[4] = '0' * 64
+            rejected = self.run(*argv, check=False)
+            assert rejected.returncode == 1 and 'candidate hash mismatch' in rejected.stdout
+            self.row['steps']['bad_upload_hash_rejected'] = True
+            self.back_to_c('bad_upload_preserved_c')
         elif case == 'reload':
             self.start()
             before = self.one(self.rust)
