@@ -105,9 +105,9 @@
     }
   },
   "dnsmasq_build": {
-    "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
-    "source_digest": "3c9a37d5e5f5db8b2f1c098abba3144b0eb04b312539ca0b1a6177d5bfa8214c",
-    "reference_elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "source_commit": "5c1a2f48f4274c6b91ad39d927accd41f20f08c8",
+    "source_digest": "10f7c0b1ae1e5e4459a4937d3a9049b9e708ffe9d8040b6144da093ac50d9ed0",
+    "reference_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
     "reference_elf_bytes": 2124571,
     "elf_max_bytes": 2200000,
     "apk_max_bytes": 1200000,

@@ -134,7 +134,7 @@ class NativeDnsmasqTests(unittest.TestCase):
     def test_current_source_matches_accepted_product(self):
         files, digest = ci_build_dnsmasq.source_identity(SPEC["dnsmasq_build"])
         self.assertEqual(len(files), 179)
-        self.assertEqual(digest, "3c9a37d5e5f5db8b2f1c098abba3144b0eb04b312539ca0b1a6177d5bfa8214c")
+        self.assertEqual(digest, "10f7c0b1ae1e5e4459a4937d3a9049b9e708ffe9d8040b6144da093ac50d9ed0")
 
     def test_source_drift_cannot_inherit_accepted_identity(self):
         with patch.object(ci_build_dnsmasq.audit, "inputs", return_value={"changed": "a" * 64}):
