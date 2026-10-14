@@ -1,0 +1,1225 @@
+{
+  "schema": 1,
+  "purpose": "Independent later-clock calibration followed by retrospective event correlation; not historical syscall evidence",
+  "limitations": [
+    "Dmesg is not assumed a priori to equal CLOCK_MONOTONIC_RAW; new observed send failures check that relationship empirically.",
+    "Clock reads are sequential and unbracketed, so residuals are observations, not rigorous timestamp uncertainty bounds.",
+    "Affine clock-rate extrapolation backwards cannot exclude historical NTP frequency changes; small residuals are correlation, not a causal proof.",
+    "Kernel warnings lack PID/query identity and can be rate limited; unmatched warnings need not belong to this test.",
+    "The 17 old C errors lack captured packets and must not be reclassified as REFUSED."
+  ],
+  "input_sha256": {
+    "old_kernel": "8a936070576ce204e18d86ad7e1c7845e5038ad795b29b9971e348a99e13174a",
+    "observer": [
+      "633680140afed152bbc41522d9d5a1f0dfcee14946b145941246bd7f6a8cb983"
+    ],
+    "new_kernel": "4300f38e1c387a7826a799aaa935604b99dead8bbf9170bdbffb03daeb3c272b",
+    "validation_observer": [
+      "f26f200b294b7d0317b764017a38a2e8c5fdce985bffba76568d228f6ca3f08e"
+    ]
+  },
+  "calibration": {
+    "method": "Endpoint affine RAW(MONOTONIC), calibrated only on later independent observer clocks; no fitting to historical DNS/kernel errors",
+    "first_clock_record": {
+      "event": "attached",
+      "pid": 18723,
+      "starttime_ticks": 43735213,
+      "seconds": 170,
+      "realtime_ns": 1791975050779243573,
+      "monotonic_ns": 437358849739650,
+      "monotonic_raw_ns": 437250441260446,
+      "boottime_ns": 437358849740112
+    },
+    "last_clock_record": {
+      "event": "complete",
+      "network_entries": 247833,
+      "failures": 6,
+      "realtime_ns": 1791975220779351661,
+      "monotonic_ns": 437528849848046,
+      "monotonic_raw_ns": 437420399120764,
+      "boottime_ns": 437528849848507
+    },
+    "span_seconds": 170.000108396,
+    "raw_per_monotonic_second": 0.9997514820525786,
+    "relative_rate_ppm": -248.51794742142275,
+    "internal_raw_residual_ms": {
+      "n": 8,
+      "min": -0.000265125,
+      "median": -0.00010825,
+      "max": 0.0,
+      "mean": -0.0001041171875
+    },
+    "secondary_OLS_raw_per_monotonic_second": 0.9997514814756489,
+    "boottime_minus_monotonic_ms": {
+      "n": 8,
+      "min": 0.000231,
+      "median": 0.000462,
+      "max": 0.000924,
+      "mean": 0.000577125
+    }
+  },
+  "historical_kernel_warning_count": 91,
+  "windows": [
+    {
+      "window": "main-run/08-busy-C",
+      "implementation": "C",
+      "latencies_sha256": "e488661f473a0efdec339f3957b6e6229ce43ac0d1c651ff0f7e127f39649ed1",
+      "wire_samples_sha256": "0568bad46f3ad8a125d39df709623502fa3cd0b36542c8484cc747b141a2ba6c",
+      "wrong_completions": 17,
+      "captured_refused": 0,
+      "unrecorded_error_packets": 17,
+      "one_to_one_counts_by_tolerance_ms": {
+        "10": 17,
+        "25": 17,
+        "50": 17,
+        "100": 17
+      },
+      "closest_event_residual_ms": {
+        "n": 17,
+        "min": -4.2209321875,
+        "median": -4.1482848125,
+        "max": -2.7459278125,
+        "mean": -4.007876014705882
+      },
+      "events": [
+        {
+          "sequence": 4295023904,
+          "send_monotonic_ns": 433265813920841,
+          "completion_monotonic_ns": 433265820587110,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433158429299110,
+          "closest_kernel_index": 0,
+          "closest_kernel_ns": 433158433429000,
+          "completion_minus_closest_kernel_ms": -4.12989025,
+          "second_closest_distance_ms": 7653.75989025,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.002329375
+        },
+        {
+          "sequence": 4295031479,
+          "send_monotonic_ns": 433273465440901,
+          "completion_monotonic_ns": 433273472080164,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433166078890630,
+          "closest_kernel_index": 1,
+          "closest_kernel_ns": 433166083059000,
+          "completion_minus_closest_kernel_ms": -4.168369625,
+          "second_closest_distance_ms": 5137.524369625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.002325
+        },
+        {
+          "sequence": 4295036558,
+          "send_monotonic_ns": 433278597795308,
+          "completion_monotonic_ns": 433278606787694,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433171212322093,
+          "closest_kernel_index": 2,
+          "closest_kernel_ns": 433171216415000,
+          "completion_minus_closest_kernel_ms": -4.092906625,
+          "second_closest_distance_ms": 3153.562906625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0023220625
+        },
+        {
+          "sequence": 4295039679,
+          "send_monotonic_ns": 433281750294427,
+          "completion_monotonic_ns": 433281756912531,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433174361664068,
+          "closest_kernel_index": 3,
+          "closest_kernel_ns": 433174365885000,
+          "completion_minus_closest_kernel_ms": -4.2209321875,
+          "second_closest_distance_ms": 403.0769321875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00232025
+        },
+        {
+          "sequence": 4295040074,
+          "send_monotonic_ns": 433282149274662,
+          "completion_monotonic_ns": 433282155913463,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433174760565841,
+          "closest_kernel_index": 4,
+          "closest_kernel_ns": 433174764741000,
+          "completion_minus_closest_kernel_ms": -4.1751590625,
+          "second_closest_distance_ms": 394.6808409375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00232
+        },
+        {
+          "sequence": 4295040599,
+          "send_monotonic_ns": 433282679595489,
+          "completion_monotonic_ns": 433282686669167,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433175291189643,
+          "closest_kernel_index": 5,
+          "closest_kernel_ns": 433175294974000,
+          "completion_minus_closest_kernel_ms": -3.784357375,
+          "second_closest_distance_ms": 526.448642625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0023196875
+        },
+        {
+          "sequence": 4295043084,
+          "send_monotonic_ns": 433285189678811,
+          "completion_monotonic_ns": 433285196294607,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433177800191396,
+          "closest_kernel_index": 6,
+          "closest_kernel_ns": 433177804374000,
+          "completion_minus_closest_kernel_ms": -4.1826043125,
+          "second_closest_distance_ms": 221.3386043125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0023181875
+        },
+        {
+          "sequence": 4295043299,
+          "send_monotonic_ns": 433285406857472,
+          "completion_monotonic_ns": 433285413499659,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433178017342468,
+          "closest_kernel_index": 7,
+          "closest_kernel_ns": 433178021530000,
+          "completion_minus_closest_kernel_ms": -4.1875316875,
+          "second_closest_distance_ms": 212.9684683125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0023180625
+        },
+        {
+          "sequence": 4295050694,
+          "send_monotonic_ns": 433292876547182,
+          "completion_monotonic_ns": 433292883487827,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433185485474210,
+          "closest_kernel_index": 8,
+          "closest_kernel_ns": 433185489349000,
+          "completion_minus_closest_kernel_ms": -3.8747898125,
+          "second_closest_distance_ms": 1341.9407898125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00231375
+        },
+        {
+          "sequence": 4295052019,
+          "send_monotonic_ns": 433294214938218,
+          "completion_monotonic_ns": 433294221557630,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433186823211479,
+          "closest_kernel_index": 9,
+          "closest_kernel_ns": 433186827415000,
+          "completion_minus_closest_kernel_ms": -4.2035211875,
+          "second_closest_distance_ms": 1333.8624788125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.002313
+        },
+        {
+          "sequence": 4295055989,
+          "send_monotonic_ns": 433298225031836,
+          "completion_monotonic_ns": 433298231665482,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433190832322747,
+          "closest_kernel_index": 10,
+          "closest_kernel_ns": 433190836511000,
+          "completion_minus_closest_kernel_ms": -4.1882529375,
+          "second_closest_distance_ms": 2761.0822529375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0023106875
+        },
+        {
+          "sequence": 4295058719,
+          "send_monotonic_ns": 433300982614575,
+          "completion_monotonic_ns": 433300989284768,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433193589256715,
+          "closest_kernel_index": 11,
+          "closest_kernel_ns": 433193593405000,
+          "completion_minus_closest_kernel_ms": -4.1482848125,
+          "second_closest_distance_ms": 2752.7457151875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0023090625
+        },
+        {
+          "sequence": 4295067209,
+          "send_monotonic_ns": 433309558364208,
+          "completion_monotonic_ns": 433309565082645,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433202162923352,
+          "closest_kernel_index": 12,
+          "closest_kernel_ns": 433202167028000,
+          "completion_minus_closest_kernel_ms": -4.1046475,
+          "second_closest_distance_ms": 3871.8466475,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.002304125
+        },
+        {
+          "sequence": 4295071039,
+          "send_monotonic_ns": 433313427057893,
+          "completion_monotonic_ns": 433313434213437,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433206031092596,
+          "closest_kernel_index": 13,
+          "closest_kernel_ns": 433206034770000,
+          "completion_minus_closest_kernel_ms": -3.6774039375,
+          "second_closest_distance_ms": 1563.8734039375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.002301875
+        },
+        {
+          "sequence": 4295072584,
+          "send_monotonic_ns": 433314987656761,
+          "completion_monotonic_ns": 433314994378198,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433207590869628,
+          "closest_kernel_index": 14,
+          "closest_kernel_ns": 433207594966000,
+          "completion_minus_closest_kernel_ms": -4.096371875,
+          "second_closest_distance_ms": 1556.099628125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.002301
+        },
+        {
+          "sequence": 4295097478,
+          "send_monotonic_ns": 433340150294635,
+          "completion_monotonic_ns": 433340157033000,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433232747271059,
+          "closest_kernel_index": 15,
+          "closest_kernel_ns": 433232751424000,
+          "completion_minus_closest_kernel_ms": -4.15294125,
+          "second_closest_distance_ms": 4489.67094125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0022865
+        },
+        {
+          "sequence": 4295101919,
+          "send_monotonic_ns": 433344636181627,
+          "completion_monotonic_ns": 433344645073372,
+          "response_rcode_if_captured": null,
+          "predicted_kernel_ns": 433237234196072,
+          "closest_kernel_index": 16,
+          "closest_kernel_ns": 433237236942000,
+          "completion_minus_closest_kernel_ms": -2.7459278125,
+          "second_closest_distance_ms": 581.4729278125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0022839375
+        }
+      ]
+    },
+    {
+      "window": "capture-run/02-busy-R",
+      "implementation": "R_old",
+      "latencies_sha256": "f2cb264989ff3d39730be445257cbb0d10380cd3b341898384b68fa3399c95bb",
+      "wire_samples_sha256": "79c26b492d97cfec83a25358a805568ea77fdd5d6f536e452b97dfb7669ffa1b",
+      "wrong_completions": 13,
+      "captured_refused": 13,
+      "unrecorded_error_packets": 0,
+      "one_to_one_counts_by_tolerance_ms": {
+        "10": 13,
+        "25": 13,
+        "50": 13,
+        "100": 13
+      },
+      "closest_event_residual_ms": {
+        "n": 13,
+        "min": -4.493449875,
+        "median": -4.3724934375,
+        "max": -1.896105625,
+        "mean": -4.142152105769231
+      },
+      "events": [
+        {
+          "sequence": 4295024444,
+          "send_monotonic_ns": 434192264849100,
+          "completion_monotonic_ns": 434192271812444,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434084650284687,
+          "closest_kernel_index": 27,
+          "closest_kernel_ns": 434084654706000,
+          "completion_minus_closest_kernel_ms": -4.4213131875,
+          "second_closest_distance_ms": 1655.3993131875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001794875
+        },
+        {
+          "sequence": 4295026079,
+          "send_monotonic_ns": 434193916336846,
+          "completion_monotonic_ns": 434193923128689,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434086301190550,
+          "closest_kernel_index": 28,
+          "closest_kernel_ns": 434086305684000,
+          "completion_minus_closest_kernel_ms": -4.493449875,
+          "second_closest_distance_ms": 1646.484550125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017939375
+        },
+        {
+          "sequence": 4295029714,
+          "send_monotonic_ns": 434197588048749,
+          "completion_monotonic_ns": 434197594930154,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434089972079507,
+          "closest_kernel_index": 29,
+          "closest_kernel_ns": 434089976452000,
+          "completion_minus_closest_kernel_ms": -4.3724934375,
+          "second_closest_distance_ms": 3666.3955065625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017918125
+        },
+        {
+          "sequence": 4295040999,
+          "send_monotonic_ns": 434208987047332,
+          "completion_monotonic_ns": 434208994166334,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434101368482772,
+          "closest_kernel_index": 35,
+          "closest_kernel_ns": 434101372788000,
+          "completion_minus_closest_kernel_ms": -4.30522825,
+          "second_closest_distance_ms": 2986.33177175,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00178525
+        },
+        {
+          "sequence": 4295063089,
+          "send_monotonic_ns": 434231300170981,
+          "completion_monotonic_ns": 434231307133867,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434123675905132,
+          "closest_kernel_index": 36,
+          "closest_kernel_ns": 434123680220000,
+          "completion_minus_closest_kernel_ms": -4.314868125,
+          "second_closest_distance_ms": 3328.594868125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001772375
+        },
+        {
+          "sequence": 4295067889,
+          "send_monotonic_ns": 434236148653542,
+          "completion_monotonic_ns": 434236155431228,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434128522997604,
+          "closest_kernel_index": 38,
+          "closest_kernel_ns": 434128527468000,
+          "completion_minus_closest_kernel_ms": -4.4703960625,
+          "second_closest_distance_ms": 191.3353960625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017695625
+        },
+        {
+          "sequence": 4295068074,
+          "send_monotonic_ns": 434236335531417,
+          "completion_monotonic_ns": 434236342598251,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434128710118113,
+          "closest_kernel_index": 39,
+          "closest_kernel_ns": 434128714333000,
+          "completion_minus_closest_kernel_ms": -4.2148874375,
+          "second_closest_distance_ms": 182.6501125625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017695
+        },
+        {
+          "sequence": 4295069074,
+          "send_monotonic_ns": 434237345622470,
+          "completion_monotonic_ns": 434237352482176,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434129719751063,
+          "closest_kernel_index": 40,
+          "closest_kernel_ns": 434129724139000,
+          "completion_minus_closest_kernel_ms": -4.3879366875,
+          "second_closest_distance_ms": 1004.2239366875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001768875
+        },
+        {
+          "sequence": 4295070064,
+          "send_monotonic_ns": 434238345639940,
+          "completion_monotonic_ns": 434238352531116,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434130719551473,
+          "closest_kernel_index": 41,
+          "closest_kernel_ns": 434130723975000,
+          "completion_minus_closest_kernel_ms": -4.4235268125,
+          "second_closest_distance_ms": 995.4124731875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017683125
+        },
+        {
+          "sequence": 4295073318,
+          "send_monotonic_ns": 434241632495083,
+          "completion_monotonic_ns": 434241639280232,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434134005483773,
+          "closest_kernel_index": 42,
+          "closest_kernel_ns": 434134009945000,
+          "completion_minus_closest_kernel_ms": -4.4612269375,
+          "second_closest_distance_ms": 3281.5087730625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001766375
+        },
+        {
+          "sequence": 4295076564,
+          "send_monotonic_ns": 434244911283602,
+          "completion_monotonic_ns": 434244918190474,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434137283579147,
+          "closest_kernel_index": 43,
+          "closest_kernel_ns": 434137287951000,
+          "completion_minus_closest_kernel_ms": -4.371853,
+          "second_closest_distance_ms": 3273.634147,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017645625
+        },
+        {
+          "sequence": 4295083779,
+          "send_monotonic_ns": 434252199224716,
+          "completion_monotonic_ns": 434252206859000,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434144570436308,
+          "closest_kernel_index": 44,
+          "closest_kernel_ns": 434144574151000,
+          "completion_minus_closest_kernel_ms": -3.7146919375,
+          "second_closest_distance_ms": 7282.4853080625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0017603125
+        },
+        {
+          "sequence": 4295099278,
+          "send_monotonic_ns": 434267897531997,
+          "completion_monotonic_ns": 434267907140388,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434160266815894,
+          "closest_kernel_index": 45,
+          "closest_kernel_ns": 434160268712000,
+          "completion_minus_closest_kernel_ms": -1.896105625,
+          "second_closest_distance_ms": 15692.664894375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00175125
+        }
+      ]
+    },
+    {
+      "window": "retention-run/01-busy-R",
+      "implementation": "R_old",
+      "latencies_sha256": "4628e79c2e18f6bb10611c400d151483f3af417acabd4091a5a1b6c54b71e879",
+      "wire_samples_sha256": "bf565c7f3b50171e36f62c48d9a162b26726286539b5e90fe0249810fe30e29d",
+      "wrong_completions": 1,
+      "captured_refused": 1,
+      "unrecorded_error_packets": 0,
+      "one_to_one_counts_by_tolerance_ms": {
+        "10": 1,
+        "25": 1,
+        "50": 1,
+        "100": 1
+      },
+      "closest_event_residual_ms": {
+        "n": 1,
+        "min": -4.020673875,
+        "median": -4.020673875,
+        "max": -4.020673875,
+        "mean": -4.020673875
+      },
+      "events": [
+        {
+          "sequence": 4295103739,
+          "send_monotonic_ns": 434568206908931,
+          "completion_monotonic_ns": 434568214156503,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434460499200326,
+          "closest_kernel_index": 46,
+          "closest_kernel_ns": 434460503221000,
+          "completion_minus_closest_kernel_ms": -4.020673875,
+          "second_closest_distance_ms": 108685.721673875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001578
+        }
+      ]
+    },
+    {
+      "window": "retention-run/02-busy-R",
+      "implementation": "R_old",
+      "latencies_sha256": "edeec52c57e58c3cff8c4e11163d5730088dc97ddfcbf768cf0b1111bed5b182",
+      "wire_samples_sha256": "bc43a4e215e0df03d8f1962b3a5f6bfb3038a731b1eddd07d9f0c1f3a7c92114",
+      "wrong_completions": 14,
+      "captured_refused": 14,
+      "unrecorded_error_packets": 0,
+      "one_to_one_counts_by_tolerance_ms": {
+        "10": 14,
+        "25": 14,
+        "50": 14,
+        "100": 14
+      },
+      "closest_event_residual_ms": {
+        "n": 14,
+        "min": -4.4164168125,
+        "median": -4.2769428125,
+        "max": -3.5023821875,
+        "mean": -4.191994379464286
+      },
+      "events": [
+        {
+          "sequence": 8589995159,
+          "send_monotonic_ns": 434676915721054,
+          "completion_monotonic_ns": 434676922591686,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434569180619512,
+          "closest_kernel_index": 47,
+          "closest_kernel_ns": 434569184922000,
+          "completion_minus_closest_kernel_ms": -4.3024880625,
+          "second_closest_distance_ms": 3073.2084880625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0015153125
+        },
+        {
+          "sequence": 8589998198,
+          "send_monotonic_ns": 434679985410179,
+          "completion_monotonic_ns": 434679992192405,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434572249457380,
+          "closest_kernel_index": 48,
+          "closest_kernel_ns": 434572253828000,
+          "completion_minus_closest_kernel_ms": -4.3706199375,
+          "second_closest_distance_ms": 3064.5353800625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0015135
+        },
+        {
+          "sequence": 8590007638,
+          "send_monotonic_ns": 434689520767090,
+          "completion_monotonic_ns": 434689527519308,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434581782414583,
+          "closest_kernel_index": 49,
+          "closest_kernel_ns": 434581786831000,
+          "completion_minus_closest_kernel_ms": -4.4164168125,
+          "second_closest_distance_ms": 2040.5284168125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001508
+        },
+        {
+          "sequence": 8590009654,
+          "send_monotonic_ns": 434691557133352,
+          "completion_monotonic_ns": 434691565051706,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434583819440618,
+          "closest_kernel_index": 50,
+          "closest_kernel_ns": 434583822943000,
+          "completion_minus_closest_kernel_ms": -3.5023821875,
+          "second_closest_distance_ms": 2032.6096178125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001506875
+        },
+        {
+          "sequence": 8590017934,
+          "send_monotonic_ns": 434699920769663,
+          "completion_monotonic_ns": 434699927682152,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434592179992800,
+          "closest_kernel_index": 51,
+          "closest_kernel_ns": 434592184247000,
+          "completion_minus_closest_kernel_ms": -4.2541999375,
+          "second_closest_distance_ms": 1417.5791999375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0015020625
+        },
+        {
+          "sequence": 8590023604,
+          "send_monotonic_ns": 434705648055709,
+          "completion_monotonic_ns": 434705654909414,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434597905796743,
+          "closest_kernel_index": 53,
+          "closest_kernel_ns": 434597910154000,
+          "completion_minus_closest_kernel_ms": -4.3572566875,
+          "second_closest_distance_ms": 4239.5982566875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014986875
+        },
+        {
+          "sequence": 8590027798,
+          "send_monotonic_ns": 434709884401075,
+          "completion_monotonic_ns": 434709891240007,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434602141074532,
+          "closest_kernel_index": 54,
+          "closest_kernel_ns": 434602145395000,
+          "completion_minus_closest_kernel_ms": -4.320467875,
+          "second_closest_distance_ms": 1484.865467875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00149625
+        },
+        {
+          "sequence": 8590029264,
+          "send_monotonic_ns": 434711365228005,
+          "completion_monotonic_ns": 434711372198431,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434603621664911,
+          "closest_kernel_index": 55,
+          "closest_kernel_ns": 434603625940000,
+          "completion_minus_closest_kernel_ms": -4.275088625,
+          "second_closest_distance_ms": 1476.269911375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014954375
+        },
+        {
+          "sequence": 8590041038,
+          "send_monotonic_ns": 434723258139258,
+          "completion_monotonic_ns": 434723265311734,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434615511822562,
+          "closest_kernel_index": 56,
+          "closest_kernel_ns": 434615515809000,
+          "completion_minus_closest_kernel_ms": -3.9864376875,
+          "second_closest_distance_ms": 3009.4834376875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014885
+        },
+        {
+          "sequence": 8590044014,
+          "send_monotonic_ns": 434726264222471,
+          "completion_monotonic_ns": 434726271605000,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434618517368710,
+          "closest_kernel_index": 57,
+          "closest_kernel_ns": 434618521306000,
+          "completion_minus_closest_kernel_ms": -3.9372895625,
+          "second_closest_distance_ms": 402.6182895625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014868125
+        },
+        {
+          "sequence": 8590044409,
+          "send_monotonic_ns": 434726663186548,
+          "completion_monotonic_ns": 434726670157282,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434618915821945,
+          "closest_kernel_index": 58,
+          "closest_kernel_ns": 434618919987000,
+          "completion_minus_closest_kernel_ms": -4.1650549375,
+          "second_closest_distance_ms": 394.5159450625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014865625
+        },
+        {
+          "sequence": 8590068249,
+          "send_monotonic_ns": 434750744044382,
+          "completion_monotonic_ns": 434750750887392,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434642990567561,
+          "closest_kernel_index": 59,
+          "closest_kernel_ns": 434642994941000,
+          "completion_minus_closest_kernel_ms": -4.3734385625,
+          "second_closest_distance_ms": 519.3024385625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014726875
+        },
+        {
+          "sequence": 8590068759,
+          "send_monotonic_ns": 434751259153114,
+          "completion_monotonic_ns": 434751266039058,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434643505591203,
+          "closest_kernel_index": 60,
+          "closest_kernel_ns": 434643509870000,
+          "completion_minus_closest_kernel_ms": -4.278797,
+          "second_closest_distance_ms": 510.650203,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001472375
+        },
+        {
+          "sequence": 8590069359,
+          "send_monotonic_ns": 434751865216007,
+          "completion_monotonic_ns": 434751872246525,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434644111648017,
+          "closest_kernel_index": 61,
+          "closest_kernel_ns": 434644115796000,
+          "completion_minus_closest_kernel_ms": -4.1479834375,
+          "second_closest_distance_ms": 601.7780165625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014720625
+        }
+      ]
+    },
+    {
+      "window": "retention-run/03-busy-R",
+      "implementation": "R_old",
+      "latencies_sha256": "d5299b7efb060c5057b61f6527de0b699c812c3972c46c0b8a0f5919309c517f",
+      "wire_samples_sha256": "a661f5aa70849179f517dbe247bb5720cbe18acd7e0355eac21673ebf7fd6fa3",
+      "wrong_completions": 23,
+      "captured_refused": 23,
+      "unrecorded_error_packets": 0,
+      "one_to_one_counts_by_tolerance_ms": {
+        "10": 23,
+        "25": 23,
+        "50": 23,
+        "100": 23
+      },
+      "closest_event_residual_ms": {
+        "n": 23,
+        "min": -4.3889321875,
+        "median": -4.211552,
+        "max": 3.373171375,
+        "mean": -3.874548421195652
+      },
+      "events": [
+        {
+          "sequence": 12884948818,
+          "send_monotonic_ns": 434848525212994,
+          "completion_monotonic_ns": 434848532513810,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434740747893490,
+          "closest_kernel_index": 62,
+          "closest_kernel_ns": 434740751719000,
+          "completion_minus_closest_kernel_ms": -3.8255096875,
+          "second_closest_distance_ms": 984.3345096875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014163125
+        },
+        {
+          "sequence": 12884949789,
+          "send_monotonic_ns": 434849505966916,
+          "completion_monotonic_ns": 434849513053448,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434741728189447,
+          "closest_kernel_index": 63,
+          "closest_kernel_ns": 434741732228000,
+          "completion_minus_closest_kernel_ms": -4.038553375,
+          "second_closest_distance_ms": 976.470446625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00141575
+        },
+        {
+          "sequence": 12884968138,
+          "send_monotonic_ns": 434868040318004,
+          "completion_monotonic_ns": 434868047501868,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434760258031724,
+          "closest_kernel_index": 68,
+          "closest_kernel_ns": 434760261986000,
+          "completion_minus_closest_kernel_ms": -3.9542764375,
+          "second_closest_distance_ms": 3901.9502764375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001405
+        },
+        {
+          "sequence": 12884971998,
+          "send_monotonic_ns": 434871939299243,
+          "completion_monotonic_ns": 434871946117170,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434764155678150,
+          "closest_kernel_index": 69,
+          "closest_kernel_ns": 434764159982000,
+          "completion_minus_closest_kernel_ms": -4.3038503125,
+          "second_closest_distance_ms": 520.9588503125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.00140275
+        },
+        {
+          "sequence": 12884972514,
+          "send_monotonic_ns": 434872460507486,
+          "completion_monotonic_ns": 434872470579530,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434764680010171,
+          "closest_kernel_index": 70,
+          "closest_kernel_ns": 434764676637000,
+          "completion_minus_closest_kernel_ms": 3.373171375,
+          "second_closest_distance_ms": 3.755828625,
+          "candidate_kernel_events_within_10ms": 2,
+          "endpoint_minus_OLS_prediction_ms": -0.0014025
+        },
+        {
+          "sequence": 12884974719,
+          "send_monotonic_ns": 434874687788885,
+          "completion_monotonic_ns": 434874694971210,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434766903849050,
+          "closest_kernel_index": 72,
+          "closest_kernel_ns": 434766907790000,
+          "completion_minus_closest_kernel_ms": -3.940949875,
+          "second_closest_distance_ms": 2220.083050125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0014011875
+        },
+        {
+          "sequence": 12884977729,
+          "send_monotonic_ns": 434877728244371,
+          "completion_monotonic_ns": 434877735349292,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434769943471544,
+          "closest_kernel_index": 73,
+          "closest_kernel_ns": 434769947559000,
+          "completion_minus_closest_kernel_ms": -4.087456375,
+          "second_closest_distance_ms": 2690.147456375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013994375
+        },
+        {
+          "sequence": 12884980389,
+          "send_monotonic_ns": 434880415056057,
+          "completion_monotonic_ns": 434880422035639,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434772629490201,
+          "closest_kernel_index": 74,
+          "closest_kernel_ns": 434772633619000,
+          "completion_minus_closest_kernel_ms": -4.1287991875,
+          "second_closest_distance_ms": 1473.5237991875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001397875
+        },
+        {
+          "sequence": 12884981844,
+          "send_monotonic_ns": 434881884762426,
+          "completion_monotonic_ns": 434881891714155,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434774098803475,
+          "closest_kernel_index": 75,
+          "closest_kernel_ns": 434774103014000,
+          "completion_minus_closest_kernel_ms": -4.210524625,
+          "second_closest_distance_ms": 367.731524625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001397
+        },
+        {
+          "sequence": 12884982204,
+          "send_monotonic_ns": 434882248391093,
+          "completion_monotonic_ns": 434882255264418,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434774462263390,
+          "closest_kernel_index": 76,
+          "closest_kernel_ns": 434774466535000,
+          "completion_minus_closest_kernel_ms": -4.2716104375,
+          "second_closest_distance_ms": 359.2493895625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013968125
+        },
+        {
+          "sequence": 12884991484,
+          "send_monotonic_ns": 434891622127460,
+          "completion_monotonic_ns": 434891628883679,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434783833553138,
+          "closest_kernel_index": 77,
+          "closest_kernel_ns": 434783837940000,
+          "completion_minus_closest_kernel_ms": -4.3868620625,
+          "second_closest_distance_ms": 1913.0018620625,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013914375
+        },
+        {
+          "sequence": 12884993374,
+          "send_monotonic_ns": 434893531227645,
+          "completion_monotonic_ns": 434893537976247,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434785742171262,
+          "closest_kernel_index": 78,
+          "closest_kernel_ns": 434785746555000,
+          "completion_minus_closest_kernel_ms": -4.3837378125,
+          "second_closest_distance_ms": 817.2907378125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013903125
+        },
+        {
+          "sequence": 12884994179,
+          "send_monotonic_ns": 434894344356489,
+          "completion_monotonic_ns": 434894351114785,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434786555107721,
+          "closest_kernel_index": 79,
+          "closest_kernel_ns": 434786559462000,
+          "completion_minus_closest_kernel_ms": -4.3542793125,
+          "second_closest_distance_ms": 808.5527206875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013898125
+        },
+        {
+          "sequence": 12884999098,
+          "send_monotonic_ns": 434899313036294,
+          "completion_monotonic_ns": 434899319958323,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434791522716412,
+          "closest_kernel_index": 81,
+          "closest_kernel_ns": 434791526915000,
+          "completion_minus_closest_kernel_ms": -4.198588125,
+          "second_closest_distance_ms": 1418.088411875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001387
+        },
+        {
+          "sequence": 12885002178,
+          "send_monotonic_ns": 434902424148037,
+          "completion_monotonic_ns": 434902431001203,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434794632986142,
+          "closest_kernel_index": 82,
+          "closest_kernel_ns": 434794637247000,
+          "completion_minus_closest_kernel_ms": -4.260858125,
+          "second_closest_distance_ms": 1323.117858125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013851875
+        },
+        {
+          "sequence": 12885003484,
+          "send_monotonic_ns": 434903743338739,
+          "completion_monotonic_ns": 434903750261307,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434795951918386,
+          "closest_kernel_index": 83,
+          "closest_kernel_ns": 434795956104000,
+          "completion_minus_closest_kernel_ms": -4.1856139375,
+          "second_closest_distance_ms": 463.6946139375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013844375
+        },
+        {
+          "sequence": 12885003939,
+          "send_monotonic_ns": 434904202940889,
+          "completion_monotonic_ns": 434904209694415,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434796411237317,
+          "closest_kernel_index": 84,
+          "closest_kernel_ns": 434796415613000,
+          "completion_minus_closest_kernel_ms": -4.3756833125,
+          "second_closest_distance_ms": 455.1333166875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013841875
+        },
+        {
+          "sequence": 12885005974,
+          "send_monotonic_ns": 434906258490341,
+          "completion_monotonic_ns": 434906265455150,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434798466487158,
+          "closest_kernel_index": 85,
+          "closest_kernel_ns": 434798470624000,
+          "completion_minus_closest_kernel_ms": -4.13684175,
+          "second_closest_distance_ms": 1549.21884175,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001383
+        },
+        {
+          "sequence": 12885007504,
+          "send_monotonic_ns": 434907803944391,
+          "completion_monotonic_ns": 434907810721230,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434800011369212,
+          "closest_kernel_index": 86,
+          "closest_kernel_ns": 434800015706000,
+          "completion_minus_closest_kernel_ms": -4.3367880625,
+          "second_closest_distance_ms": 1540.7452119375,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013820625
+        },
+        {
+          "sequence": 12885009064,
+          "send_monotonic_ns": 434909379718367,
+          "completion_monotonic_ns": 434909386676636,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434801586932965,
+          "closest_kernel_index": 87,
+          "closest_kernel_ns": 434801591224000,
+          "completion_minus_closest_kernel_ms": -4.2910353125,
+          "second_closest_distance_ms": 1571.2269646875,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013811875
+        },
+        {
+          "sequence": 12885011689,
+          "send_monotonic_ns": 434912031222648,
+          "completion_monotonic_ns": 434912037965632,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434804237563068,
+          "closest_kernel_index": 88,
+          "closest_kernel_ns": 434804241952000,
+          "completion_minus_closest_kernel_ms": -4.3889321875,
+          "second_closest_distance_ms": 2646.3390678125,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001379625
+        },
+        {
+          "sequence": 12885035358,
+          "send_monotonic_ns": 434935939298683,
+          "completion_monotonic_ns": 434935946180702,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434828139836517,
+          "closest_kernel_index": 89,
+          "closest_kernel_ns": 434828144052000,
+          "completion_minus_closest_kernel_ms": -4.21548275,
+          "second_closest_distance_ms": 3857.81748275,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.001365875
+        },
+        {
+          "sequence": 12885039174,
+          "send_monotonic_ns": 434939793846384,
+          "completion_monotonic_ns": 434939800744561,
+          "response_rcode_if_captured": 5,
+          "predicted_kernel_ns": 434831993442448,
+          "closest_kernel_index": 90,
+          "closest_kernel_ns": 434831997654000,
+          "completion_minus_closest_kernel_ms": -4.211552,
+          "second_closest_distance_ms": 3849.390448,
+          "candidate_kernel_events_within_10ms": 1,
+          "endpoint_minus_OLS_prediction_ms": -0.0013635625
+        }
+      ]
+    }
+  ],
+  "historical_total": {
+    "wrong_completions": 68,
+    "captured_refused": 51,
+    "distinct_nearest_kernel_events": 68,
+    "events_with_multiple_kernel_candidates_within_10ms": 1,
+    "closest_event_residual_ms": {
+      "n": 68,
+      "min": -4.493449875,
+      "median": -4.20702290625,
+      "max": 3.373171375,
+      "mean": -4.026545272058823
+    },
+    "endpoint_minus_OLS_prediction_ms": {
+      "n": 68,
+      "min": -0.002329375,
+      "median": -0.0015074375,
+      "max": -0.0013635625,
+      "mean": -0.0017183676470588236
+    },
+    "backwards_extrapolation_seconds": {
+      "n": 68,
+      "min": 2419.048995089,
+      "median": 2668.3034541429997,
+      "max": 4093.02915254,
+      "mean": 3033.932890707059
+    },
+    "one_to_one_counts_by_tolerance_ms": {
+      "10": 68,
+      "25": 68,
+      "50": 68,
+      "100": 68
+    },
+    "fixed_time_shift_negative_controls": [
+      {
+        "shift_seconds": -5,
+        "counts_by_tolerance_ms": {
+          "10": 0,
+          "25": 0,
+          "50": 3,
+          "100": 3
+        }
+      },
+      {
+        "shift_seconds": -1,
+        "counts_by_tolerance_ms": {
+          "10": 2,
+          "25": 3,
+          "50": 3,
+          "100": 4
+        }
+      },
+      {
+        "shift_seconds": -0.5,
+        "counts_by_tolerance_ms": {
+          "10": 0,
+          "25": 2,
+          "50": 4,
+          "100": 4
+        }
+      },
+      {
+        "shift_seconds": 0.5,
+        "counts_by_tolerance_ms": {
+          "10": 0,
+          "25": 2,
+          "50": 4,
+          "100": 7
+        }
+      },
+      {
+        "shift_seconds": 1,
+        "counts_by_tolerance_ms": {
+          "10": 1,
+          "25": 3,
+          "50": 3,
+          "100": 4
+        }
+      },
+      {
+        "shift_seconds": 5,
+        "counts_by_tolerance_ms": {
+          "10": 0,
+          "25": 0,
+          "50": 2,
+          "100": 4
+        }
+      }
+    ]
+  },
+  "new_EPERM_kernel_clock_check": {
+    "observed_EPERM_sends": 6,
+    "raw_minus_nearest_kernel_ms": {
+      "n": 6,
+      "min": -4.214469,
+      "median": -4.183737499999999,
+      "max": -3.978392,
+      "mean": -4.151494166666667
+    },
+    "one_to_one_counts_by_tolerance_ms": {
+      "10": 6,
+      "25": 6,
+      "50": 6,
+      "100": 6
+    }
+  },
+  "contemporaneous_offset_sensitivity": {
+    "method": "Add median current EPERM warning-minus-RAW offset; never fitted to historical errors. Not a rigorous clock bound.",
+    "kernel_minus_raw_offset_ms": 4.1837375,
+    "old_closest_event_residual_ms": {
+      "n": 68,
+      "min": -0.309712375,
+      "median": -0.02328540625,
+      "max": 2.287631875,
+      "mean": 0.052353992647058825
+    },
+    "one_to_one_counts_by_tolerance_ms": {
+      "10": 68,
+      "25": 68,
+      "50": 68,
+      "100": 68
+    }
+  },
+  "external_clock_validation": [
+    {
+      "source_sha256": "f26f200b294b7d0317b764017a38a2e8c5fdce985bffba76568d228f6ca3f08e",
+      "clock_samples": 17,
+      "method": "Held-out clock samples; original R-only endpoint model unchanged",
+      "raw_residual_against_R_only_model_ms": {
+        "n": 17,
+        "min": 5.9125e-05,
+        "median": 0.0010905625,
+        "max": 0.00149625,
+        "mean": 0.0009040919117647059
+      },
+      "elapsed_from_R_calibration_start_seconds": {
+        "n": 17,
+        "min": 182.256185424,
+        "median": 311.029075117,
+        "max": 352.256290381,
+        "mean": 294.96066023570586
+      },
+      "observed_EPERM_sends": 15,
+      "raw_minus_nearest_kernel_ms": {
+        "n": 15,
+        "min": -4.251612,
+        "median": -4.176919,
+        "max": -3.907765,
+        "mean": -4.122176933333333
+      },
+      "one_to_one_counts_by_tolerance_ms": {
+        "10": 15,
+        "25": 15,
+        "50": 15,
+        "100": 15
+      }
+    }
+  ]
+}

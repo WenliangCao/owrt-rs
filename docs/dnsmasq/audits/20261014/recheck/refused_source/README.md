@@ -72,3 +72,10 @@ Oracle 控制证明：错误 ROOT 在附着前被拒绝；独占合成进程的 
 **判断界线：** EDE23 能把错误定位到 socket / send 层；它本身不能区分 conntrack、内存、
 路由或 FD 故障。若真机实际失败 `sendto` errno、对应报文、同窗 conntrack drop 与内核日志
 能对应上，再结合这里相同错误的 exact C / Rust 对照，才能判断那批拒答是不是与 C 一致。
+
+## 原审计时钟关联补充
+
+原审计 51 个 Rust REFUSED 与 17 个 C 回答校验失败的独立钟差校准、完整配对、
+歧义和固定平移负控制见 [historical-clock.md](historical-clock.md)。该部分使用后来独立
+采集的 R 时钟模型，C 窗口作外部验证，不利用旧错误反向拟合模型；历史结论限于强时间
+关联，直接 errno 与包级因果链由总报告的新配对诊断提供。
