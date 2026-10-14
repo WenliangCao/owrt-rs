@@ -28,7 +28,9 @@ def main():
     p.add_argument('--cargo',type=Path,required=True)
     p.add_argument('--expected-baseline-sha')
     a=p.parse_args()
-    source,sdk,out,cargo=map(lambda x:audit.safe_path(x.resolve()),(a.source,a.sdk,a.out,a.cargo))
+    source,sdk,out=map(lambda x:audit.safe_path(x.resolve()),(a.source,a.sdk,a.out))
+    # rustup dispatches by argv[0]; resolving cargo's symlink selects rustup.
+    cargo=audit.safe_path(a.cargo.absolute())
     assert 'private' in out.parts and not out.exists()
     out.mkdir(parents=True)
     report={'source':str(source),'source_commit':a.commit,'features':'','opt_level':'3','status':'building',
