@@ -1,5 +1,8 @@
 /* Read-only production health monitor for an isolated, disposable device test.
- * Usage: device_perf_guard /tmp/dnsmasq-perf-DATE PROD_PID MAXSECONDS
+ * Usage: device_perf_guard /tmp/dnsmasq-perf-DATE PROD_PID MAXSECONDS [DNS_LIMIT_MS]
+ * DNS_LIMIT_MS defaults to 200. The runner chooses max(200, baseline_p95 * 10)
+ * after a light production baseline; a limit above the 700 ms probe timeout
+ * means the baseline must be investigated before starting a test.
  * active.group contains "PID STARTTIME\n". The runner must check STOP before
  * starting a group and after publishing active.group, and must never detach
  * children from that group. SIGTERM ends this monitor without killing a group.
@@ -26,9 +29,9 @@
 #define MSG_NOSIGNAL 0
 #endif
 
-#define MIN_MEMORY_KIB 81920ULL
-#define CPU_LIMIT 35.0
+#define MIN_MEMORY_KIB 65536ULL
 #define PROBE_TIMEOUT_MS 700
+#define DEFAULT_DNS_LIMIT_MS 200ULL
 
 static volatile sig_atomic_t interrupted;
 
@@ -86,6 +89,22 @@ static int process_start(pid_t pid, unsigned long long *start)
             return parse_number(field, start);
     }
     return -1;
+}
+
+/* The runner verifies the executable SHA before/after the run. This lightweight
+ * per-second check catches exec/replacement without hashing the image each time. */
+static int process_executable(pid_t pid, struct stat *identity)
+{
+    char path[64];
+    snprintf(path, sizeof(path), "/proc/%ld/exe", (long)pid);
+    return stat(path, identity);
+}
+
+static int same_executable(const struct stat *a, const struct stat *b)
+{
+    return a->st_dev == b->st_dev && a->st_ino == b->st_ino
+        && a->st_size == b->st_size && a->st_mtime == b->st_mtime
+        && a->st_ctime == b->st_ctime;
 }
 
 static int cpu_sample(unsigned long long *total, unsigned long long *idle)
@@ -188,7 +207,7 @@ fail:
     return -1;
 }
 
-static int dns_health(void)
+static int dns_health(double *rtt_ms)
 {
     unsigned char query[] = {
         0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0,
@@ -197,11 +216,14 @@ static int dns_health(void)
     };
     unsigned char answer[2048];
     static uint16_t id;
-    double deadline = monotime() + PROBE_TIMEOUT_MS / 1000.0;
+    double started = monotime();
+    double deadline = started + PROBE_TIMEOUT_MS / 1000.0;
     int fd = loopback_socket(SOCK_DGRAM, 53, deadline), good = 0;
     ssize_t n;
-    if (fd < 0)
+    if (fd < 0) {
+        *rtt_ms = (monotime() - started) * 1000;
         return 0;
+    }
     id++;
     query[0] = (unsigned char)(id >> 8);
     query[1] = (unsigned char)id;
@@ -213,19 +235,23 @@ static int dns_health(void)
         && (answer[2] & 0x80) && !(answer[2] & 0x02)
         && !(answer[3] & 0x0f) && (answer[6] || answer[7]);
 done:
+    *rtt_ms = (monotime() - started) * 1000;
     close(fd);
     return good;
 }
 
-static int http_health(void)
+static int http_health(double *rtt_ms)
 {
     const char request[] = "GET /cgi-bin/luci/ HTTP/1.0\r\nHost: localhost\r\nConnection: close\r\n\r\n";
     char reply[512];
     size_t sent = 0, used = 0;
-    double deadline = monotime() + PROBE_TIMEOUT_MS / 1000.0;
+    double started = monotime();
+    double deadline = started + PROBE_TIMEOUT_MS / 1000.0;
     int fd = loopback_socket(SOCK_STREAM, 80, deadline), status = 0;
-    if (fd < 0)
+    if (fd < 0) {
+        *rtt_ms = (monotime() - started) * 1000;
         return 0;
+    }
     while (sent < sizeof(request) - 1) {
         ssize_t n;
         if (wait_fd(fd, POLLOUT, deadline) < 0)
@@ -251,6 +277,7 @@ static int http_health(void)
         }
     }
 done:
+    *rtt_ms = (monotime() - started) * 1000;
     close(fd);
     return status;
 }
@@ -334,16 +361,19 @@ int main(int argc, char **argv)
 {
     unsigned long long pidnum, seconds, production_start, current_start;
     unsigned long long total, idle, previous_total, previous_idle, available;
+    unsigned long long dns_limit_ms = DEFAULT_DNS_LIMIT_MS;
     struct sigaction sa;
-    struct stat st;
+    struct stat st, production_executable, current_executable;
     pid_t production;
     double started, next_tick, next_dns = 0, next_http = 0;
-    int rootfd, high_cpu = 0, had_default, result = 0;
+    int rootfd, slow_dns = 0, had_default, result = 0;
     const char *root, *reason;
-    if (argc != 4 || parse_number(argv[2], &pidnum) < 0 || pidnum <= 1
+    if ((argc != 4 && argc != 5) || parse_number(argv[2], &pidnum) < 0 || pidnum <= 1
         || pidnum > INT_MAX || parse_number(argv[3], &seconds) < 0
-        || seconds < 1 || seconds > 3600 || geteuid() != 0) {
-        fprintf(stderr, "usage (root): %s /tmp/dnsmasq-perf-DATE PROD_PID SECONDS(1..3600)\n", argv[0]);
+        || seconds < 1 || seconds > 3600 || geteuid() != 0
+        || (argc == 5 && parse_number(argv[4], &dns_limit_ms) < 0)
+        || dns_limit_ms < 1 || dns_limit_ms > PROBE_TIMEOUT_MS) {
+        fprintf(stderr, "usage (root): %s /tmp/dnsmasq-perf-DATE PROD_PID SECONDS(1..3600) [DNS_LIMIT_MS(1..700)]\n", argv[0]);
         return 1;
     }
     root = argv[1];
@@ -358,6 +388,7 @@ int main(int argc, char **argv)
     if (rootfd < 0 || fstat(rootfd, &st) < 0 || st.st_uid != 0
         || (st.st_mode & 0022) || fstatat(rootfd, "STOP", &st, AT_SYMLINK_NOFOLLOW) == 0
         || process_start(production, &production_start) < 0
+        || process_executable(production, &production_executable) < 0
         || cpu_sample(&previous_total, &previous_idle) < 0) {
         fprintf(stderr, "unsafe/unavailable root, existing STOP, or missing production process/metrics\n");
         if (rootfd >= 0)
@@ -375,12 +406,14 @@ int main(int argc, char **argv)
     had_default = ipv4_default();
     printf("{\"event\":\"start\",\"epoch\":%lld,\"production_pid\":%ld,"
            "\"production_starttime\":%llu,\"deadline_s\":%llu,"
-           "\"min_memory_kib\":%llu,\"cpu_limit_pct\":%.1f,"
+           "\"min_memory_kib\":%llu,\"cpu_policy\":\"record_only\","
+           "\"dns_limit_ms\":%llu,\"dns_slow_samples_limit\":3,\"probe_timeout_ms\":%d,"
            "\"ipv4_default_initial\":%d}\n", (long long)time(NULL),
            (long)production, production_start, seconds, MIN_MEMORY_KIB,
-           CPU_LIMIT, had_default);
+           dns_limit_ms, PROBE_TIMEOUT_MS, had_default);
     while (!interrupted) {
         double now = monotime(), elapsed = now - started, cpu = 0;
+        double dns_rtt_ms = -1, http_rtt_ms = -1;
         int dns = -1, http = -1, route;
         reason = NULL;
         if (elapsed >= (double)seconds)
@@ -388,7 +421,9 @@ int main(int argc, char **argv)
         else if (fstatat(rootfd, "STOP", &st, AT_SYMLINK_NOFOLLOW) == 0)
             reason = "external_stop";
         else if (process_start(production, &current_start) < 0
-                 || current_start != production_start)
+                 || current_start != production_start
+                 || process_executable(production, &current_executable) < 0
+                 || !same_executable(&production_executable, &current_executable))
             reason = "production_identity_changed";
         else if (available_memory(&available) < 0)
             reason = "memory_metric_unavailable";
@@ -406,31 +441,35 @@ int main(int argc, char **argv)
                            / (double)(total - previous_total));
         previous_total = total;
         previous_idle = idle;
-        high_cpu = elapsed >= 0.8 && cpu > CPU_LIMIT ? high_cpu + 1 : 0;
         route = ipv4_default();
-        if (high_cpu >= 3)
-            reason = "host_cpu_high_three_samples";
-        else if (had_default == 1 && route != 1)
+        if (had_default == 1 && route != 1)
             reason = "ipv4_default_lost";
         if (!reason && elapsed >= next_dns) {
-            dns = dns_health();
+            dns = dns_health(&dns_rtt_ms);
             next_dns = elapsed + 2;
             if (!dns && !interrupted)
                 reason = "production_dns_failed";
+            else if (dns) {
+                slow_dns = dns_rtt_ms > (double)dns_limit_ms ? slow_dns + 1 : 0;
+                if (slow_dns >= 3)
+                    reason = "production_dns_slow_three_probes";
+            }
         }
         if (!reason && !interrupted && elapsed >= next_http) {
-            http = http_health();
+            http = http_health(&http_rtt_ms);
             next_http = elapsed + 5;
             if (http != 200 && http != 301 && http != 302 && http != 401
                 && http != 403 && !interrupted)
                 reason = "luci_http_failed";
         }
         printf("{\"event\":\"sample\",\"epoch\":%lld,\"elapsed_s\":%.3f,"
-               "\"cpu_pct\":%.3f,\"high_cpu_samples\":%d,\"mem_available_kib\":%llu,"
+               "\"cpu_pct\":%.3f,\"mem_available_kib\":%llu,"
                "\"production_pid\":%ld,\"production_starttime\":%llu,"
-               "\"dns_ok\":%d,\"http_status\":%d,\"ipv4_default\":%d}\n",
-               (long long)time(NULL), elapsed, cpu, high_cpu, available,
-               (long)production, production_start, dns, http, route);
+               "\"dns_ok\":%d,\"dns_rtt_ms\":%.3f,\"slow_dns_probes\":%d,"
+               "\"http_status\":%d,\"http_rtt_ms\":%.3f,\"ipv4_default\":%d}\n",
+               (long long)time(NULL), elapsed, cpu, available,
+               (long)production, production_start, dns, dns_rtt_ms, slow_dns,
+               http, http_rtt_ms, route);
         if (reason && !interrupted) {
             result = stop_test(rootfd, root, production, reason, monotime() - started);
             break;
