@@ -154,15 +154,35 @@ for name in ubusd netifd rpcd logd uhttpd; do
     case "$pid" in ''|*[!0-9]*) exit 1;; esac
     printf '%s %s\n' "$name" "$(sha256sum /proc/$pid/exe | awk '{print $1}')" >> /tmp/out/daemons.sha256
 done
+expected_dnsmasq=$(awk '$2 == "/usr/sbin/dnsmasq" { print $1 }' /usr/share/owrt-control-plane/rust.sha256)
+test "${#expected_dnsmasq}" -eq 64
+matches=0
 for process in /proc/[0-9]*; do
-    exe=$(readlink "$process/exe" 2>/dev/null) || continue
-    case "$exe" in
-        /usr/sbin/dnsmasq)
-            printf 'dnsmasq %s\n' "$(sha256sum "$process/exe" | awk '{print $1}')" >> /tmp/out/daemons.sha256
-            tr '\0' ' ' < "$process/cmdline" > /tmp/out/dnsmasq-cmdline.txt
-            ;;
-    esac
+    # A jailed executable may have a different d_path in the observer's
+    # mount namespace. Match actual open executable bytes, never its name.
+    actual=$(sha256sum "$process/exe" 2>> /tmp/out/runtime-scan-errors.txt) || continue
+    actual=${actual%% *}
+    exe=$(readlink "$process/exe" 2>> /tmp/out/runtime-scan-errors.txt) || continue
+    printf '%s\t%s\t%s\n' "${process#/proc/}" "$actual" "$exe" >> /tmp/out/runtime-inventory.tsv
+    [ "$actual" = "$expected_dnsmasq" ] || continue
+    matches=$((matches + 1))
+    test "$matches" -eq 1
+    printf '%s\n' "${process#/proc/}" > /tmp/out/dnsmasq-runtime.pid
+    printf '%s\n' "$exe" > /tmp/out/dnsmasq-runtime.exe
+    cat "$process/stat" > /tmp/out/dnsmasq-runtime-stat-before.txt
+    cat "$process/status" > /tmp/out/dnsmasq-runtime-status.txt
+    cat "$process/cmdline" > /tmp/out/dnsmasq-runtime-cmdline.bin
+    actual=$(sha256sum "$process/exe")
+    actual=${actual%% *}
+    test "$actual" = "$expected_dnsmasq"
+    cat "$process/stat" > /tmp/out/dnsmasq-runtime-stat-after.txt
+    printf 'dnsmasq %s\n' "$actual" >> /tmp/out/daemons.sha256
+    parent=$(awk '$1 == "PPid:" { print $2 }' /tmp/out/dnsmasq-runtime-status.txt)
+    sha256sum "/proc/$parent/exe" > /tmp/out/dnsmasq-parent.sha256
+    readlink "/proc/$parent/exe" > /tmp/out/dnsmasq-parent.exe
+    cat "/proc/$parent/cmdline" > /tmp/out/dnsmasq-parent-cmdline.bin
 done
+test "$matches" -eq 1
 if awk '$5 == "/sbin/uci" || $5 == "/sbin/reload_config" || $5 == "/sbin/fw4" { found=1 } END {exit !found}' /proc/self/mountinfo; then exit 1; fi
 if [ -f /root/owrt-native-trial/armed ]; then
     kill -0 "$(cat /tmp/owrt-native-guard-lock/pid)"
@@ -237,6 +257,20 @@ services=json.loads((out/'services.json').read_text())
 for name,path in [('log','/sbin/logd'),('rpcd','/sbin/rpcd'),('uhttpd','/usr/sbin/uhttpd'),('network','/sbin/netifd'),('dnsmasq','/usr/sbin/dnsmasq')]:
     instances=services[name]['instances']
     assert any(i['running'] and i['command'][0]==path for i in instances.values()),name
+instance=services['dnsmasq']['instances']['native']
+status=dict(line.split(':',1) for line in (out/'dnsmasq-runtime-status.txt').read_text().splitlines() if ':' in line)
+assert int(status['PPid'])==instance['pid'],'actual dnsmasq is not the supervised ujail child'
+assert (out/'dnsmasq-parent.sha256').read_text().split()[0]==hashlib.sha256((root/'sbin/ujail').read_bytes()).hexdigest()
+cmdline=(out/'dnsmasq-runtime-cmdline.bin').read_bytes().rstrip(b'\0').split(b'\0')
+assert [value.decode() for value in cmdline]==instance['command'],'actual dnsmasq argv differs from init submission'
+before=(out/'dnsmasq-runtime-stat-before.txt').read_text().rsplit(')',1)[1].split()
+after=(out/'dnsmasq-runtime-stat-after.txt').read_text().rsplit(')',1)[1].split()
+assert before[19]==after[19],'dnsmasq PID was replaced during identity capture'
+runtime={'pid':int((out/'dnsmasq-runtime.pid').read_text()),
+         'exe':(out/'dnsmasq-runtime.exe').read_text().strip(),'cmdline':[v.decode() for v in cmdline],
+         'sha256':actual['dnsmasq'],'start_ticks':int(before[19]),'parent_pid':instance['pid'],
+         'parent_exe':(out/'dnsmasq-parent.exe').read_text().strip(),
+         'parent_sha256':(out/'dnsmasq-parent.sha256').read_text().split()[0]}
 mounts=json.loads((out/'mounts.json').read_text())['result']
 assert not any(m['mount'] in {item['path'] for item in manifest['components'].values()} for m in mounts)
 client=json.loads((out/'client-result.json').read_text())
@@ -253,7 +287,7 @@ result={'pid1_and_six_daemon_identities':True,'standard_service_paths':True,
         'no_executable_bind_mounts':True,'PID1_reboot_exits_namespace':True,
         'exact_dnsmasq_init_and_ACL':True,'veth_client_DHCP_OFFER_ACK_and_options':True,
         'veth_client_DNS_UDP_and_TCP':True,'actual_DHCP_lease_matches_client':True,
-        'dnsmasq_ubus_metrics':True,'client':client,
+        'dnsmasq_ubus_metrics':True,'client':client,'dnsmasq_runtime':runtime,
         'IPv6_and_odhcpd_scope':'not exercised by this fixture; required in physical acceptance',
         'physical_hardware_tested':False}
 if (root/'root/owrt-native-trial/armed').exists():
