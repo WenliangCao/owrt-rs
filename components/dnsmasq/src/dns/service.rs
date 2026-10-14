@@ -164,7 +164,7 @@ impl From<io::Error> for ServiceError {
 /// `hosts` is a complete generation seeded with `local::configured_hosts`
 /// before the caller reads hosts files; constructors never replay that load.
 pub struct LocalDnsService {
-    pub config: DnsConfig,
+    pub config: Arc<DnsConfig>,
     pub hosts: Hosts,
     /// A completed publication. Existing TCP children retain their snapshot.
     pub leases: Arc<LeaseNames>,
@@ -180,7 +180,7 @@ pub struct LocalDnsService {
 }
 
 impl LocalDnsService {
-    pub fn new(config: DnsConfig, hosts: Hosts, local_ttl: u32, max_udp: usize) -> Self {
+    pub fn new(config: impl Into<Arc<DnsConfig>>, hosts: Hosts, local_ttl: u32, max_udp: usize) -> Self {
         Self::new_with_limits(
             config,
             hosts,
@@ -191,14 +191,14 @@ impl LocalDnsService {
     }
 
     pub fn new_with_limits(
-        config: DnsConfig,
+        config: impl Into<Arc<DnsConfig>>,
         hosts: Hosts,
         local_ttl: u32,
         receive_limit: usize,
         edns_packet_max: u16,
     ) -> Self {
         Self {
-            config,
+            config: config.into(),
             hosts,
             leases: Arc::new(LeaseNames::default()),
             interfaces: Arc::new(super::interface_records::InterfaceRecords::default()),
@@ -208,6 +208,17 @@ impl LocalDnsService {
             local_network: None,
             query_logging: false,
             query_events: Vec::new(),
+        }
+    }
+
+    /// Interface enumeration also runs before TCP accepts. Preserve the shared
+    /// configuration generation when its derived domains have not changed.
+    pub fn publish_domain_interfaces(
+        &mut self,
+        domains: Arc<crate::config::domains::DomainInterfaces>,
+    ) {
+        if self.config.domain_interfaces != domains {
+            Arc::make_mut(&mut self.config).domain_interfaces = domains;
         }
     }
 
@@ -487,6 +498,25 @@ mod tests {
         packet.extend_from_slice(&1u16.to_be_bytes());
         packet.extend_from_slice(&1u16.to_be_bytes());
         packet
+    }
+
+    #[test]
+    fn tcp_config_snapshot_shares_direct_records_until_a_real_domain_change() {
+        use crate::config::domains::{DomainAddress, DomainInterfaces};
+        let mut config = DnsConfig::default();
+        config.apply(&lex_line(b"host-record=direct.test,192.0.2.8").unwrap().unwrap()).unwrap();
+        let hosts = super::super::local::configured_hosts(&config, 37);
+        let mut parent = LocalDnsService::new(config, hosts, 37, 1232);
+        let child = LocalDnsService::new(Arc::clone(&parent.config), parent.hosts.tcp_snapshot(), 37, 1232);
+        parent.publish_domain_interfaces(Arc::new(DomainInterfaces::default()));
+        assert!(Arc::ptr_eq(&parent.config, &child.config));
+        assert_eq!(parent.config.host_records.as_ptr(), child.config.host_records.as_ptr());
+        parent.publish_domain_interfaces(Arc::new(DomainInterfaces { addresses: vec![DomainAddress {
+            label: b"eth0".to_vec(), address: "192.0.2.1".parse().unwrap(), prefix: 24,
+        }] }));
+        assert!(!Arc::ptr_eq(&parent.config, &child.config));
+        assert!(child.config.domain_interfaces.addresses.is_empty());
+        assert_eq!(parent.config.domain_interfaces.addresses.len(), 1);
     }
 
     #[test]
