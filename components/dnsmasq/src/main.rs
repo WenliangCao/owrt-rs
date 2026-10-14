@@ -2707,7 +2707,7 @@ impl TcpDnsWork {
         parent: &Rc<RefCell<ParentDns>>,
         query: Option<&[u8]>,
         no_cache: bool,
-        forward_name: Option<&dnsmasq_rs::dns::wire::Name>,
+        forward_name: Option<&dnsmasq_rs::dns::daemon::ForwardName>,
     ) -> Result<TcpServiceProgress, ()> {
         let now = self.accept_clock;
         let local = &self.service;

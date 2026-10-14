@@ -290,7 +290,7 @@ impl TcpDnsService {
         now: i64,
         cache: &mut TcpCacheSink<'_>,
         cached_name: bool,
-        forward_name: Option<&Name>,
+        forward_name: Option<&super::daemon::ForwardName>,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         self.start_with_cache_sink(
             query, local, deadline, Some(cache), no_cache, Some(now), cached_name, forward_name,
@@ -324,13 +324,13 @@ impl TcpDnsService {
         no_cache: bool,
         now: Option<i64>,
         cached_name: bool,
-        forward_name: Option<&Name>,
+        forward_name: Option<&super::daemon::ForwardName>,
     ) -> Result<TcpServiceProgress, TcpServiceError> {
         if self.pending_query.is_some() {
             return Err(TcpServiceError::Transport(TcpError::Busy));
         }
         self.pending_bogus = None;
-        let group = match self.prepare(query, Some(local), forward_name)? {
+        let group = match self.prepare(query, Some(local), forward_name, cached_name)? {
             PreparedQuery::Answer(packet) => {
                 return Ok(TcpServiceProgress::Complete(packet, false))
             }
@@ -419,7 +419,8 @@ impl TcpDnsService {
         &mut self,
         query: &[u8],
         local: Option<&LocalDnsService>,
-        forward_name: Option<&Name>,
+        forward_name: Option<&super::daemon::ForwardName>,
+        cached_name: bool,
     ) -> Result<PreparedQuery, TcpServiceError> {
         let header = Header::parse(query)?;
         if header.flags & 0x8000 != 0 {
@@ -447,8 +448,10 @@ impl TcpDnsService {
             }
             return Ok(PreparedQuery::Answer(reply));
         }
-        let policy_reply = self.query_policy.reply_for_name(
-            query, &self.routing, local, self.edns_packet_max, forward_name,
+        let policy_reply = self.query_policy.reply_with_cache(
+            query, &self.routing, local, self.edns_packet_max, true,
+            forward_name.map(|cursor| &cursor.name),
+            forward_name.map_or(cached_name, |cursor| cursor.cached),
             self.query_logging.then_some(&mut self.query_events),
         );
         if let Some(packet) = policy_reply? {
@@ -457,7 +460,7 @@ impl TcpDnsService {
         let question = Question::parse(query, 12)?;
         let route = self
             .routing
-            .select(forward_name.unwrap_or(&question.name), question.qtype, question.class, false);
+            .select(forward_name.map_or(&question.name, |cursor| &cursor.name), question.qtype, question.class, false);
         let Some(group) = route.upstream_group() else {
             return match route.reason {
                 RouteReason::NoMatchingRule => {
@@ -484,7 +487,7 @@ impl TcpDnsService {
         stopped: &dyn Fn() -> bool,
     ) -> Result<(Vec<u8>, bool), TcpServiceError> {
         self.pending_bogus = None;
-        let group = match self.prepare(query, local, None)? {
+        let group = match self.prepare(query, local, None, false)? {
             PreparedQuery::Answer(packet) => return Ok((packet, false)),
             PreparedQuery::Forward(group) => group,
         };

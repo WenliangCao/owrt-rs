@@ -45,8 +45,10 @@ def response(packet, host, kind, action, tcp):
     elif host.startswith('truncated.') and not tcp:
         flags |= 0x200
         answers = 0
-    elif host.startswith(('local-chain.', 'local-chain-invalid.')):
+    elif host.startswith(('local-chain.', 'local-chain-invalid.', 'local-chain-dotless.')):
         target = 'audit-terminal.lan'
+        if host.startswith('local-chain-dotless.'):
+            target = 'auditdotless'
         if host.startswith('local-chain-invalid.'):
             target = 'audit-terminal.invalid'
         elif '.outage.' in host:
@@ -338,6 +340,16 @@ def audit(args):
                     break
             except OSError:
                 time.sleep(.03)
+        if args.dotless_cache_only:
+            change('dotless-before')
+            case('dotless-before', host='auditdotless', type=28, tcp=True)
+            change('dotless-cname')
+            case('dotless-cname', host='local-chain-dotless.audit.example', pipeline=True,
+                 sequence=[['local-chain-dotless.audit.example', kind] for kind in (1, 28)])
+            case('dotless-direct-udp', host='auditdotless', type=28)
+            case('dotless-direct-tcp', host='auditdotless', type=28, tcp=True)
+            result['upstream'] = [json.loads(line) for line in (args.out / 'upstream/queries.jsonl').read_text().splitlines()]
+            return 0
         if args.local_cache_only:
             # Isolate terminal visibility from later alias AAAA/TXT/ANY replies.
             for warm_tcp, alias, terminal in (
@@ -536,6 +548,7 @@ def main():
     parser.add_argument('--image-elf', action='store_true')
     parser.add_argument('--saturation', action='store_true', help='also exercise default forwarding-table capacity during an upstream outage')
     parser.add_argument('--focused', action='store_true', help='TCP same-session local CNAME terminal and upstream close/error cases')
+    parser.add_argument('--dotless-cache-only', action='store_true', help='cached CNAME cursor reaches domain-needed terminal')
     parser.add_argument('--local-cache-only', action='store_true', help='isolate cached local terminals after only one A warmup over each transport')
     parser.add_argument('--public-cache-only', action='store_true', help='one TCP CNAME warmup, then direct terminal A after upstream loss')
     parser.add_argument('--reference-build', type=Path)

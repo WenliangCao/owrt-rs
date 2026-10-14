@@ -66,7 +66,15 @@ pub struct ClientRequest {
 #[derive(Default)]
 pub struct LocalLookup {
     pub answer: Option<QueryResult>,
-    pub forward_name: Option<Name>,
+    pub forward_name: Option<ForwardName>,
+}
+
+/// Read-only cache existence accompanies the cursor for domain-needed policy.
+/// It must come from the same current/connection cache view as the traversal.
+#[derive(Debug, PartialEq, Eq)]
+pub struct ForwardName {
+    pub name: Name,
+    pub cached: bool,
 }
 
 impl LocalLookup {
@@ -410,24 +418,14 @@ impl<R: Random> DnsDaemon<R> {
     ) -> Result<Option<Vec<u8>>, WireError> {
         let local = external.unwrap_or(&self.local);
         let mut events = Vec::new();
-        let reply = if self.query_logging.enabled {
-            self.query_policy.reply_with_events(
-                query,
-                &self.routing,
-                Some(local),
-                self.edns_packet_max,
-                false,
-                &mut events,
-            )
-        } else {
-            self.query_policy.reply(
-                query,
-                &self.routing,
-                Some(local),
-                self.edns_packet_max,
-                false,
-            )
-        };
+        let question = super::forward::Question::parse(query)?;
+        let cached_name = self.cache.as_ref().is_some_and(|cache| {
+            cache.contains_forward_name(&question.name, unix_seconds())
+        });
+        let reply = self.query_policy.reply_with_cache(
+            query, &self.routing, Some(local), self.edns_packet_max, false,
+            None, cached_name, self.query_logging.enabled.then_some(&mut events),
+        );
         self.query_events
             .extend(events.into_iter().map(|event| (self.query_context, event)));
         reply
@@ -1870,10 +1868,14 @@ impl<R: Random> DnsDaemon<R> {
             }
         }
         let local_answer = if let Some(name) = forward_name.as_ref() {
-            local.lookup_forward_rule(query, header, question, name, now, cache, tcp)?
+            local.lookup_forward_rule(query, header, question, name, now, cache.as_deref_mut(), tcp)?
         } else {
             local_answer
         };
+        let forward_name = forward_name.map(|name| ForwardName {
+            cached: cache.as_deref().is_some_and(|cache| cache.contains_forward_name(&name, now)),
+            name,
+        });
         Ok(LocalLookup {
             answer: local_answer.map(|answer| QueryResult::Local(local.finish_local_answer(answer))),
             forward_name,

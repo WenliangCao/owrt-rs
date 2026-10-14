@@ -134,7 +134,7 @@ fn shared_lookup_preserves_cname_cursor_for_tcp_forward_rules_only() {
                 daemon.cache.as_mut(), &query, header, &question, &mut daemon.local, 100, true, tcp,
             ).unwrap();
             if tcp {
-                assert_eq!(lookup.forward_name, Some(Name::from_ascii("target.test").unwrap()));
+                assert_eq!(lookup.forward_name, Some(ForwardName { name: Name::from_ascii("target.test").unwrap(), cached: true }));
                 let Some(QueryResult::Local(response)) = lookup.answer else { panic!("TCP terminal rule missed"); };
                 let message = Message::parse(&response).unwrap();
                 assert_eq!(message.header.flags, if expected_types.is_empty() { 0x8180 } else { 0x8580 });

@@ -20,6 +20,7 @@ impl QueryPolicy {
         }
     }
 
+    #[cfg(test)]
     pub fn reply(
         self,
         query: &[u8],
@@ -28,34 +29,10 @@ impl QueryPolicy {
         maximum: u16,
         tcp: bool,
     ) -> Result<Option<Vec<u8>>, WireError> {
-        self.reply_inner(query, routing, local, maximum, tcp, None, None)
+        self.reply_with_cache(query, routing, local, maximum, tcp, None, false, None)
     }
 
-    pub fn reply_with_events(
-        self,
-        query: &[u8],
-        routing: &RoutingTable,
-        local: Option<&LocalDnsService>,
-        maximum: u16,
-        tcp: bool,
-        events: &mut Vec<crate::query_logging::QueryEvent>,
-    ) -> Result<Option<Vec<u8>>, WireError> {
-        self.reply_inner(query, routing, local, maximum, tcp, None, Some(events))
-    }
-
-    pub fn reply_for_name(
-        self,
-        query: &[u8],
-        routing: &RoutingTable,
-        local: Option<&LocalDnsService>,
-        maximum: u16,
-        name: Option<&Name>,
-        events: Option<&mut Vec<crate::query_logging::QueryEvent>>,
-    ) -> Result<Option<Vec<u8>>, WireError> {
-        self.reply_inner(query, routing, local, maximum, true, name, events)
-    }
-
-    fn reply_inner(
+    pub fn reply_with_cache(
         self,
         query: &[u8],
         routing: &RoutingTable,
@@ -63,6 +40,7 @@ impl QueryPolicy {
         maximum: u16,
         tcp: bool,
         forward_name: Option<&Name>,
+        cached_name: bool,
         events: Option<&mut Vec<crate::query_logging::QueryEvent>>,
     ) -> Result<Option<Vec<u8>>, WireError> {
         let question = Question::parse(query, 12)?;
@@ -85,7 +63,7 @@ impl QueryPolicy {
             return Ok(None);
         }
         let known = !private_reverse
-            && local.is_some_and(|local| {
+            && (cached_name || local.is_some_and(|local| {
                 known_forwarded_domain_with_leases(
                     &local.config,
                     &local.hosts,
@@ -93,7 +71,7 @@ impl QueryPolicy {
                     &local.leases,
                     super::service::unix_now(),
                 )
-            });
+            }));
         if let Some(events) = events {
             use crate::query_logging::{self as log, QueryEvent};
             if private_reverse {
@@ -186,6 +164,25 @@ mod tests {
             .record(Section::Additional, &Name::root(), 41, 1232, 0x8000, &[])
             .unwrap();
         writer.finish()
+    }
+
+    #[test]
+    fn dotless_known_cache_uses_selected_cursor_and_retains_client_question() {
+        let (policy, routing, local) = setup(&[b"domain-needed"]);
+        let cursor = Name::from_ascii("terminal").unwrap();
+        for tcp in [false, true] {
+            for cached_name in [false, true] {
+                for alias in [false, true] {
+                    let query = query(if alias { "alias.test" } else { "terminal" }, 28, 1);
+                    let packet = policy.reply_with_cache(
+                        &query, &routing, Some(&local), 1232, tcp,
+                        alias.then_some(&cursor), cached_name, None,
+                    ).unwrap().unwrap();
+                    assert_eq!(Header::parse(&packet).unwrap().rcode(), if cached_name { 0 } else { 3 });
+                    assert_eq!(Question::parse(&packet, 12).unwrap(), Question::parse(&query, 12).unwrap());
+                }
+            }
+        }
     }
 
     #[test]
