@@ -75,3 +75,18 @@ Deterministic screen: write calls 192 → 96 for 6 leases; 4665 → 2400 for 150
 Output lengths and rolling hashes are identical (336 bytes /
 18024159028762036603; 8592 bytes / 931816954775507130). Allocation counts unchanged.
 Pending Oracle instruction counts; not yet a fully qualified candidate.
+
+Oracle native AArch64 release PMU, 150 leases × 10,000 serializations, five
+counter runs pinned CPU 3: instructions 4,180,126,703 → 2,222,502,690 (−46.83%);
+user cycles 1,262,003,688 → 672,029,066 (−46.75%; reported counter variation
+0.09% / 0.15%). Same probe, byte/hash sink, source API and compiler flags on both
+sides. This is an instrumented mechanism screen, not daemon wall-time or device
+performance. D1 advances to complete timing/correctness screening.
+
+## D2 — borrow canonical lease lookup keys
+
+`LeaseNames` lookup/expiry/existence methods now borrow already-lowercase names
+and allocate only when a key contains uppercase bytes. Case-insensitive lookup
+and expiry behavior are unchanged. 9 existing lease-name unit tests pass.
+150 lowercase lookups: 150 allocations / 3000 bytes → 0 / 0. Coordinate with DNS
+agent's `local.rs` work to avoid counting the same removed copies twice.

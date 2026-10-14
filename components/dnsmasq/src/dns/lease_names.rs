@@ -9,6 +9,7 @@ use super::cache::StalePolicy;
 use crate::config::records::Cname;
 use crate::dhcp::persistence::DnsLeaseRecord;
 use crate::hosts::Hosts;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 
@@ -235,7 +236,7 @@ impl LeaseNames {
     /// an IPv4 lease alone must not synthesize an AAAA NODATA response.
     pub fn lookup(&self, name: &[u8], now: i64) -> impl Iterator<Item = &LeaseName> {
         (!self.forward.is_empty())
-            .then(|| self.forward.get(&name.to_ascii_lowercase()))
+            .then(|| self.forward.get(name_key(name).as_ref()))
             .flatten()
             .into_iter()
             .flatten()
@@ -250,7 +251,7 @@ impl LeaseNames {
     /// an actual lookup (or publication) has removed it.
     pub(crate) fn active_lookup(&self, name: &[u8]) -> impl Iterator<Item = &LeaseName> {
         self.forward
-            .get(&name.to_ascii_lowercase())
+            .get(name_key(name).as_ref())
             .into_iter()
             .flatten()
             .filter_map(|&id| self.active[id].then_some(&self.entries[id]))
@@ -265,10 +266,11 @@ impl LeaseNames {
     /// check_for_local_domain / upstream NXDOMAIN conversion only. A live
     /// non-terminal is not a locally answerable empty RRset.
     pub fn name_exists(&self, name: &[u8], now: i64) -> bool {
-        self.lookup(name, now).next().is_some()
+        let key = name_key(name);
+        self.lookup(&key, now).next().is_some()
             || self
                 .non_terminals
-                .get(&name.to_ascii_lowercase())
+                .get(key.as_ref())
                 .is_some_and(|&expiry| self.policy.live(expiry, now))
     }
 
@@ -276,19 +278,19 @@ impl LeaseNames {
     /// generation shared with a TCP child. Presence checks intentionally do
     /// not call this: cache_find_non_terminal does not remove expired data.
     pub(crate) fn has_expired_name(&self, name: &[u8], now: i64) -> bool {
-        let key = name.to_ascii_lowercase();
-        self.forward.get(&key).is_some_and(|ids| {
+        let key = name_key(name);
+        self.forward.get(key.as_ref()).is_some_and(|ids| {
             ids.iter()
                 .any(|&id| self.active[id] && !self.policy.live(self.entries[id].expires, now))
         }) || self
             .non_terminals
-            .get(&key)
+            .get(key.as_ref())
             .is_some_and(|&expiry| !self.policy.live(expiry, now))
     }
 
     pub(crate) fn expire_name(&mut self, name: &[u8], now: i64) {
-        let key = name.to_ascii_lowercase();
-        if let Some(ids) = self.forward.get(&key) {
+        let key = name_key(name);
+        if let Some(ids) = self.forward.get(key.as_ref()) {
             for &id in ids {
                 if !self.policy.live(self.entries[id].expires, now) {
                     self.active[id] = false;
@@ -297,10 +299,10 @@ impl LeaseNames {
         }
         if self
             .non_terminals
-            .get(&key)
+            .get(key.as_ref())
             .is_some_and(|&expiry| !self.policy.live(expiry, now))
         {
-            self.non_terminals.remove(&key);
+            self.non_terminals.remove(key.as_ref());
         }
     }
 
@@ -444,6 +446,14 @@ impl LeaseNames {
                     .or_insert(expires);
             }
         }
+    }
+}
+
+fn name_key(name: &[u8]) -> Cow<'_, [u8]> {
+    if name.iter().any(u8::is_ascii_uppercase) {
+        Cow::Owned(name.to_ascii_lowercase())
+    } else {
+        Cow::Borrowed(name)
     }
 }
 
