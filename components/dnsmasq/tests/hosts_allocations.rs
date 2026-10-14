@@ -748,3 +748,67 @@ fn failed_query_page_copy_keeps_the_shared_chain_and_complete_answer() {
         assert_eq!(answer(&mut parent), expected, "the TCP child cannot change its parent's chain");
     }
 }
+
+#[test]
+fn incremental_retained_lease_ownership_is_atomic_at_every_allocation_failure() {
+    use dnsmasq_rs::dhcp::persistence::DnsLeaseRecord;
+    use dnsmasq_rs::dns::lease_names::{LeaseNames, LeasePolicy};
+    use std::net::IpAddr;
+    for expires in [None, Some(3600)] {
+        for shared in [false, true] {
+            for persistent in [false, true] {
+                let mut local = Hosts::new();
+                local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
+                let leases = LeaseNames::build(&[DnsLeaseRecord {
+                    name: b"lease.test", address: "192.0.2.1".parse().unwrap(), expires,
+                }], &mut local, &[], LeasePolicy::default(), &mut ());
+                let held = shared.then(|| local.tcp_snapshot());
+                let pointer = local.entries().as_ptr();
+                let mut completed = false;
+                for failure in 0..512 {
+                    let records = vec![
+                        (b"lease.test".to_vec(), "192.0.2.1".parse().unwrap()),
+                        (b"alias.test".to_vec(), "192.0.2.1".parse().unwrap()),
+                    ];
+                    let action = || {
+                        let (mut replacement, removed) = local.try_replace_source_with_leases(
+                            2, b"/hostsdir/hosts", records, 37,
+                            leases.active_entries().map(|lease| (
+                                lease.name.as_slice(), IpAddr::V4(lease.address),
+                                lease.reverse, lease.expires.is_none(),
+                            )),
+                        )?;
+                        replacement.finish_bulk();
+                        let published = replacement.try_clone().map_err(|_| ())?;
+                        Ok::<_, ()>((replacement, published, removed))
+                    };
+                    let (result, failed) = if persistent {
+                        with_persistent_failure(failure, action)
+                    } else {
+                        with_failure(failure, action)
+                    };
+                    assert_eq!(result.is_err(), failed,
+                        "allocation {failure}, expires={expires:?}, shared={shared}, persistent={persistent}");
+                    assert_eq!(local.entries().as_ptr(), pointer);
+                    assert_eq!(local.len(), 1);
+                    assert_eq!(leases.lookup(b"lease.test", 0).count(), 1);
+                    if let Some(held) = &held { assert_eq!(held.entries(), local.entries()); }
+                    if let Ok((replacement, published, removed)) = result {
+                        assert_eq!(removed, 0);
+                        let expected = if expires.is_none() {
+                            vec![b"alias.test".to_vec(), b"lease.test".to_vec()]
+                        } else {
+                            vec![b"lease.test".to_vec()]
+                        };
+                        assert_eq!(ptr_names(&replacement, "192.0.2.1"), expected);
+                        assert_eq!(ptr_names(&published, "192.0.2.1"), expected);
+                        assert_eq!(replacement.len(), 3);
+                        completed = true;
+                        break;
+                    }
+                }
+                assert!(completed);
+            }
+        }
+    }
+}

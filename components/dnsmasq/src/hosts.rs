@@ -503,12 +503,24 @@ impl HashOrder {
         leases: &[BulkLease],
         capacity: usize,
     ) -> Result<(usize, usize, usize), TryReserveError> {
+        let id = self.next.len;
+        self.prepare_insert_at(id, host, entries, leases, capacity)
+    }
+
+    fn prepare_insert_at(
+        &mut self,
+        id: usize,
+        host: HashRecord<'_>,
+        entries: &[Host],
+        leases: &[BulkLease],
+        capacity: usize,
+    ) -> Result<(usize, usize, usize), TryReserveError> {
         let bucket = name_hash_bucket(host.name, capacity);
         if self.heads.len == 0 {
             self.heads.resize(name_hash_size(capacity))?;
         }
-        let id = self.next.len;
-        self.next.resize(id + 1)?;
+        let old_len = self.next.len;
+        self.next.resize(old_len.max(id + 1))?;
         let mut previous = CHAIN_END;
         let mut current = self.heads.get(bucket);
         if !host.reverse {
@@ -543,7 +555,7 @@ impl HashOrder {
             Ok::<(), TryReserveError>(())
         })();
         if let Err(error) = prepared {
-            self.next.len = id;
+            self.next.len = old_len;
             return Err(error);
         }
         Ok((bucket, previous, current))
@@ -665,6 +677,27 @@ impl HashOrder {
             position += 1;
         }
         self.replace_bucket(bucket, &ids)
+    }
+
+    fn with_lease_prefix(&self, count: usize) -> Result<Self, TryReserveError> {
+        let mut result = Self {
+            heads: LinkPages::with_len(self.heads.len)?,
+            next: LinkPages::with_len(self.next.len + count)?,
+        };
+        let shift = |id| {
+            if id == CHAIN_END {
+                CHAIN_END
+            } else {
+                id + count
+            }
+        };
+        for bucket in 0..self.heads.len {
+            result.heads.set(bucket, shift(self.heads.get(bucket)));
+        }
+        for id in 0..self.next.len {
+            result.next.set(id + count, shift(self.next.get(id)));
+        }
+        Ok(result)
     }
 
     fn remapped(
@@ -1207,7 +1240,69 @@ impl Hosts {
         records: Vec<(Vec<u8>, IpAddr)>,
         ttl: u32,
     ) -> Result<(Self, usize), ()> {
+        self.try_replace_source_with_leases(
+            source,
+            source_name,
+            records,
+            ttl,
+            std::iter::empty::<(&[u8], IpAddr, bool, bool)>(),
+        )
+    }
+
+    /// Incremental reads see currently published DHCP reverse records until
+    /// the entire source is read and lease DNS is republished. Build that
+    /// bounded mixed view once; an existing pending view already has it.
+    pub fn try_replace_source_with_leases<'a>(
+        &self,
+        source: u32,
+        source_name: &[u8],
+        records: Vec<(Vec<u8>, IpAddr)>,
+        ttl: u32,
+        leases: impl IntoIterator<Item = (&'a [u8], IpAddr, bool, bool)>,
+    ) -> Result<(Self, usize), ()> {
         let mut replacement = self.try_clone().map_err(|_| ())?;
+        if replacement.bulk.is_none() {
+            let mut retained = Vec::new();
+            for (name, address, reverse, immortal) in leases {
+                let name = try_copy(name).map_err(|_| ())?;
+                retained.try_reserve(1).map_err(|_| ())?;
+                retained.push(BulkLease {
+                    name,
+                    address,
+                    reverse,
+                    immortal,
+                    next: BulkLink::End,
+                });
+            }
+            if !retained.is_empty() {
+                let mut order = replacement
+                    .order
+                    .with_lease_prefix(retained.len())
+                    .map_err(|_| ())?;
+                for id in 0..retained.len() {
+                    let record = hash_record(id, &replacement.records.entries, &retained);
+                    let plan = order
+                        .prepare_insert_at(
+                            id,
+                            record,
+                            &replacement.records.entries,
+                            &retained,
+                            replacement.records.name_hash_capacity,
+                        )
+                        .map_err(|_| ())?;
+                    order.commit_insert(id, plan);
+                }
+                replacement.order = order;
+                replacement.bulk = Some(BulkReverse {
+                    active: false,
+                    buckets: Vec::new(),
+                    next: Vec::new(),
+                    leases: retained,
+                    name_count: 0,
+                    rehash_checkpoint: 0,
+                });
+            }
+        }
         let removed = replacement.try_remove_uid(source).map_err(|_| ())?;
         let name = try_copy(source_name).map_err(|_| ())?;
         let owned = replacement.records.get_mut().unwrap();
@@ -1741,6 +1836,61 @@ mod tests {
         assert_eq!(hosts.order.next.len, hosts.len());
         let mut child = hosts.tcp_snapshot();
         assert_eq!(child.lookup(b"same.test", Some(false), false).len(), 1);
+    }
+
+    #[test]
+    fn incremental_file_keeps_dhcp_first_record_until_all_aliases_are_read() {
+        let address = "192.0.2.1".parse().unwrap();
+        let mut published = Hosts::new();
+        published.begin_bulk(1497, 1000, 1000).unwrap();
+        published
+            .insert_checked(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 0, 1)
+            .unwrap();
+        published.finish_bulk();
+        let held = published.tcp_snapshot();
+        for immortal in [false, true] {
+            let input = vec![
+                (b"lease.test".to_vec(), address),
+                (b"alias.test".to_vec(), address),
+            ];
+            let (mut replacement, removed) = published
+                .try_replace_source_with_leases(
+                    2,
+                    b"/hostsdir/new",
+                    input,
+                    37,
+                    [(b"lease.test".as_slice(), address, true, immortal)],
+                )
+                .unwrap();
+            assert_eq!(removed, 0);
+            assert!(!replacement.bulk.as_ref().unwrap().active);
+            replacement.finish_bulk();
+            let names = reverse_names(&replacement, "192.0.2.1");
+            if immortal {
+                assert_eq!(names, [b"alias.test".to_vec(), b"lease.test".to_vec()]);
+            } else {
+                assert_eq!(names, [b"lease.test".to_vec()]);
+            }
+            assert_eq!(replacement.len(), 3);
+            assert_eq!(published.len(), 1);
+            assert_eq!(held.len(), 1);
+            assert!(held.reverse(address).is_none());
+        }
+    }
+
+    #[test]
+    fn incremental_without_leases_does_not_create_a_pending_loader_view() {
+        let original = Hosts::new();
+        let (replacement, _) = original
+            .try_replace_source(
+                2,
+                b"/hostsdir/new",
+                vec![(b"one.test".to_vec(), "192.0.2.1".parse().unwrap())],
+                37,
+            )
+            .unwrap();
+        assert!(replacement.bulk.is_none());
+        assert_eq!(replacement.len(), 1);
     }
 
     const REPEATED_ADDRESS_FIXTURE: &[u8] = b"192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n";

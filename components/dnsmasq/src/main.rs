@@ -3824,11 +3824,16 @@ impl SinglePoll {
             // Keep both published owners intact until assembly and the second
             // publication copy succeed. Failed insertions must abandon the
             // entire replacement, not silently publish its accepted prefix.
-            let Ok((mut hosts, source_removed)) = parent.provider_hosts().try_replace_source(
+            let retained_leases = parent.local.leases.active_entries().map(|lease| (
+                lease.name.as_slice(), IpAddr::V4(lease.address),
+                lease.reverse, lease.expires.is_none(),
+            ));
+            let Ok((mut hosts, source_removed)) = parent.provider_hosts().try_replace_source_with_leases(
                 source.uid,
                 source.path.as_os_str().as_encoded_bytes(),
                 records,
                 ttl,
+                retained_leases,
             ) else { return 0; };
             removed = source_removed;
             if parent.daemon.is_some() {
