@@ -1,0 +1,107 @@
+{
+  "scope": "Oracle standalone Linux loopback mechanism screen with fixed sender in same process; PMU instructions/cycles only, not daemon elapsed time or device performance; 16-packet budget is unchanged",
+  "source_sha256": "56d3703b09d12596ef1be9655b314a392722bc7e1c15cea2f1149028feb5fa71",
+  "original_pmu_source_sha256": "eb127890cfed308ea5ce3515137744c65f0b41b7c215617ff4346b91d7f8dfc8",
+  "elf_sha256": {
+    "batch-receive-screen": "b168c5cfbc18b537655a78695100ade79c478acec4a18982314f9c1a0a579e20",
+    "batch-receive-screen-fault": "5140c612af4fcd28b975470583f58e6af4f7b49065fd11592ac854482e885ec2"
+  },
+  "runs": [
+    {
+      "method": "recvmsg",
+      "iterations": 50000,
+      "burst": 1,
+      "packets": 50000,
+      "receive_and_error_syscalls": 100000,
+      "would_block": 50000,
+      "pmu": {
+        "instructions": 937922430,
+        "cycles": 480065173
+      }
+    },
+    {
+      "method": "recvmmsg",
+      "iterations": 50000,
+      "burst": 1,
+      "packets": 50000,
+      "receive_and_error_syscalls": 50000,
+      "would_block": 0,
+      "pmu": {
+        "instructions": 897056088,
+        "cycles": 461428340
+      }
+    },
+    {
+      "method": "checked",
+      "iterations": 50000,
+      "burst": 1,
+      "packets": 50000,
+      "receive_and_error_syscalls": 100000,
+      "would_block": 0,
+      "pmu": {
+        "instructions": 971398013,
+        "cycles": 521333487
+      }
+    },
+    {
+      "method": "recvmsg",
+      "iterations": 50000,
+      "burst": 16,
+      "packets": 800000,
+      "receive_and_error_syscalls": 800000,
+      "would_block": 0,
+      "pmu": {
+        "instructions": 13464054848,
+        "cycles": 6125013486
+      }
+    },
+    {
+      "method": "recvmmsg",
+      "iterations": 50000,
+      "burst": 16,
+      "packets": 800000,
+      "receive_and_error_syscalls": 50000,
+      "would_block": 0,
+      "pmu": {
+        "instructions": 12799975694,
+        "cycles": 5770723285
+      }
+    },
+    {
+      "method": "checked",
+      "iterations": 50000,
+      "burst": 16,
+      "packets": 800000,
+      "receive_and_error_syscalls": 50000,
+      "would_block": 0,
+      "pmu": {
+        "instructions": 12791828405,
+        "cycles": 5770091154
+      }
+    }
+  ],
+  "constructed_error_probe": {
+    "method": "fault",
+    "received": 1,
+    "returned_errno": 0,
+    "deferred_socket_error": 14
+  },
+  "constructed_error_scope": "Second mmsghdr has an intentionally invalid iovec pointer. It establishes return-value ambiguity only; Rust never supplies this pointer and this does not estimate natural EFAULT incidence.",
+  "external_count_check": {
+    "iterations": 1000,
+    "burst": 1,
+    "recvmsg": {
+      "recvmsg": 2000,
+      "errors": 1000
+    },
+    "recvmmsg": {
+      "recvmmsg": 1000
+    },
+    "checked": {
+      "recvmmsg": 1000,
+      "getsockopt": 1000
+    }
+  },
+  "decision": "Reject unchecked recvmmsg replacement: later receive errors are deferred and may be lost, unlike current immediate invalidation boundary. SO_ERROR-screen variant removes syscall reduction and adds instructions in single-packet screen. No product edit or full timing.",
+  "reference": "https://man7.org/linux/man-pages/man2/recvmmsg.2.html"
+}
