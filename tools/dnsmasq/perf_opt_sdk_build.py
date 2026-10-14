@@ -91,9 +91,21 @@ def main():
                             cache=audit.safe_path(a.cargo_target.resolve())
                             assert 'private' in cache.parts and not cache.is_relative_to(build)
                             cache.mkdir(parents=True,exist_ok=True)
-                            (build/'dnsmasq/target').symlink_to(cache,target_is_directory=True)
+                            target=build/'dnsmasq/target'
+                            if target.exists():
+                                assert target.is_symlink() and target.resolve()==cache
+                            else:
+                                target.symlink_to(cache,target_is_directory=True)
                             audit.run([str(cargo),'clean','--manifest-path',str(build/'dnsmasq/Cargo.toml'),
                                        '-p','dnsmasq-rs','--release','--target','aarch64-unknown-linux-musl'],out/'invalidate-product.log',env=env)
+                            # SDK stamps do not know that Cargo's product was
+                            # invalidated. Rebuild this owned package, retaining
+                            # only the external dependency compilation cache.
+                            for stamp in ('.built','.built_check'):
+                                (build/stamp).unlink(missing_ok=True)
+                            if (build/'.pkgdir').exists():
+                                assert not (build/'.pkgdir').is_symlink()
+                                shutil.rmtree(build/'.pkgdir')
                             report['shared_cargo_target']=str(cache)
         packages=list(output.rglob('dnsmasq-*.apk'))
         assert len(packages)==1
