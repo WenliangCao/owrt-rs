@@ -91,7 +91,7 @@ fn held_hosts_fifo_keeps_init_finish_blocked_without_spinning_or_losing_dns() {
     let mut owner = owner(config.clone());
     owner.step_dns_files(); // The same Init cache barrier has not finished yet.
     owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 },
-        &config, 37).unwrap());
+        37).unwrap());
     let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&path).unwrap();
     writer.write_all(b"192.0.2.42 ready.test\n").unwrap();
     owner.step_dns_files(); // Clears the cached runnable flag behind this FIFO.
@@ -156,7 +156,7 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     let fifo = root.join("held");
     assert!(std::process::Command::new("mkfifo").arg(&fifo).status().unwrap().success());
     owner.hosts_read = Some(HostsRead::open(HostSource { path: fifo.clone(), uid: 1 },
-        &config, 37).unwrap());
+        37).unwrap());
     let mut writer = std::fs::OpenOptions::new().write(true).custom_flags(0o4000).open(&fifo).unwrap();
     writer.write_all(b"192.0.2.42 ready.test\n").unwrap();
     owner.step_hosts_files();
@@ -206,4 +206,30 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     super::tests::finish_test_helper(owner.helper.as_mut().unwrap());
     drop(owner);
     std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn hostsdir_update_restores_invalid_owner_view_before_replacing_another_source() {
+    let mut owner = owner(config());
+    let retained = HostSource { path: PathBuf::from("/retained"), uid: 10 };
+    let changed = HostSource { path: PathBuf::from("/changed"), uid: 11 };
+    owner.publish_hosts_source(&retained, vec![(b"retained.test".to_vec(),
+        "192.0.2.41".parse().unwrap())], 37);
+    owner.publish_hosts_source(&changed, vec![(b"old.test".to_vec(),
+        "192.0.2.42".parse().unwrap())], 37);
+    // State after both publication-copy and restore-copy allocation failures.
+    // The daemon still owns the last successfully published two-source view.
+    owner.service.borrow_mut().local.hosts = Hosts::new();
+    owner.hosts_view_valid = false;
+    assert_eq!(owner.publish_hosts_source(&changed, vec![(b"new.test".to_vec(),
+        "192.0.2.43".parse().unwrap())], 37), 1);
+    assert!(owner.hosts_view_valid);
+    let parent = owner.service.borrow();
+    let snapshot = parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap();
+    for hosts in [&parent.local.hosts, &snapshot] {
+        assert_eq!(hosts.len(), 2);
+        assert_eq!(hosts.addresses(b"retained.test").count(), 1);
+        assert_eq!(hosts.addresses(b"new.test").count(), 1);
+        assert_eq!(hosts.addresses(b"old.test").count(), 0);
+    }
 }

@@ -2203,6 +2203,8 @@ struct SinglePoll {
     pending_edns_udp: Vec<PendingEdnsUdp>,
     edns_udp_runnable: bool,
     service: Rc<RefCell<ParentDns>>,
+    /// False only when a failed publication also could not restore this view.
+    hosts_view_valid: bool,
     parent_events: Rc<RefCell<ParentEvents>>,
     interfaces: Rc<RefCell<Vec<DnsInterface>>>,
     config: DnsConfig,
@@ -3075,6 +3077,7 @@ impl SinglePoll {
             pending_edns_udp: Vec::new(),
             edns_udp_runnable: false,
             service,
+            hosts_view_valid: true,
             parent_events,
             interfaces,
             config,
@@ -3184,6 +3187,7 @@ impl SinglePoll {
             // Keep the daemon's last usable view until publication, releasing
             // the second old copy before reading the replacement.
             local.hosts = Hosts::new();
+            self.hosts_view_valid = false;
             let hosts = read_hosts_with_notices(&self.config, local_ttl, |notice| {
                 #[cfg(target_os = "linux")]
                 if let Some(logger) = self.logger.as_mut() {
@@ -3200,6 +3204,7 @@ impl SinglePoll {
                     drop(hosts);
                     if let Ok(previous) = daemon.try_clone_hosts_source() {
                         local.hosts = previous;
+                        self.hosts_view_valid = true;
                     }
                     // A failed reload is recoverable, not an owner-loop error:
                     // returning Err here would stop the whole DNS/DHCP daemon.
@@ -3208,6 +3213,7 @@ impl SinglePoll {
             };
             daemon.reload_hosts(snapshot);
             local.hosts = hosts;
+            self.hosts_view_valid = true;
             local.leases = Arc::new(daemon.rebuild_lease_names(
                 &local.leases,
                 &mut local.hosts,
@@ -3675,6 +3681,15 @@ impl SinglePoll {
         {
             let mut parent = self.service.borrow_mut();
             let ParentDns { local, daemon, .. } = &mut *parent;
+            // A previous double allocation failure may have left only the
+            // daemon view usable. Restore it before applying an incremental
+            // source change, so unrelated published sources cannot be lost.
+            if !self.hosts_view_valid {
+                let Some(daemon) = daemon.as_ref() else { return 0; };
+                let Ok(previous) = daemon.try_clone_hosts_source() else { return 0; };
+                local.hosts = previous;
+                self.hosts_view_valid = true;
+            }
             // Work in the existing local view; the daemon retains the last
             // published source until the fallible copy succeeds.
             removed = match local.hosts.try_remove_uid(source.uid) {
@@ -3692,8 +3707,10 @@ impl SinglePoll {
                     Ok(snapshot) => snapshot,
                     Err(_) => {
                         local.hosts = Hosts::new();
+                        self.hosts_view_valid = false;
                         if let Ok(previous) = daemon.try_clone_hosts_source() {
                             local.hosts = previous;
+                            self.hosts_view_valid = true;
                         }
                         return 0;
                     }
@@ -3726,7 +3743,7 @@ impl SinglePoll {
     fn step_hosts_files(&mut self) {
         use dnsmasq_rs::logging::Priority;
         if let Some(reader) = &mut self.hosts_read {
-            if !reader.step().unwrap_or(true) {
+            if !reader.step(&self.config).unwrap_or(true) {
                 return;
             }
             let Some(reader) = self.hosts_read.take() else {
@@ -3806,7 +3823,6 @@ impl SinglePoll {
             } else {
                 match dnsmasq_rs::dns::hostsdir::HostsRead::open(
                     change.source.clone(),
-                    &self.config,
                     ttl,
                 ) {
                     Ok(reader) => self.hosts_read = Some(reader),
@@ -6832,20 +6848,18 @@ fn read_hosts_with_notices(
                     .and_then(|name| dnsmasq_rs::hosts::try_copy(name).ok())
             },
             |line, address| {
-                let mut message = if address {
-                    b"bad address at ".to_vec()
-                } else {
-                    b"bad name at ".to_vec()
-                };
-                message.extend_from_slice(path.as_os_str().as_encoded_bytes());
-                message.extend_from_slice(format!(" line {line}").as_bytes());
+                let prefix: &[u8] = if address { b"bad address at " } else { b"bad name at " };
+                let Ok(mut message) = dnsmasq_rs::hosts::try_copy(prefix) else { return; };
+                let path = path.as_os_str().as_encoded_bytes();
+                if message.try_reserve(path.len() + 32).is_err() { return; }
+                message.extend_from_slice(path);
+                let _ = write!(message, " line {line}");
                 report(HostsReadNotice::Error(message));
             },
         );
-        report(HostsReadNotice::Complete {
-            path: path.as_os_str().as_encoded_bytes().to_vec(),
-            names: stats.accepted,
-        });
+        if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
+            report(HostsReadNotice::Complete { path, names: stats.accepted });
+        }
     }
     let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
@@ -7234,7 +7248,7 @@ mod tests {
         config.bind_dynamic = true;
         let mut owner = test_owner(config.clone(), None);
         owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
-        owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 }, &config, 37).unwrap());
+        owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 }, 37).unwrap());
         assert!(!owner.dns_file_work_runnable());
         owner.apply_network_events(NetworkEvents { address: true, ..Default::default() });
         assert!(owner.interface_refresh.requested);
@@ -7734,7 +7748,7 @@ mod tests {
         owner.dns_files.as_mut().unwrap().request(ReloadReason::Signal);
         owner.files_runnable = true; // stale previous result is also suppressed
         owner.hosts_read = Some(HostsRead::open(HostSource { path: path.clone(), uid: 1 },
-            &config, 37).unwrap());
+            37).unwrap());
         assert!(!owner.hosts_read.as_ref().unwrap().runnable());
         assert!(!owner.dns_file_work_runnable(), "DNS cannot busy-poll ahead of hosts publication");
         owner.step_dns_files();

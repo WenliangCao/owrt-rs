@@ -6,13 +6,20 @@ use std::cell::Cell;
 
 thread_local! {
     static FAIL_AFTER: Cell<Option<usize>> = const { Cell::new(None) };
+    static FAIL_REPEAT: Cell<usize> = const { Cell::new(1) };
 }
 struct FailOne;
 fn fail_now() -> bool {
     FAIL_AFTER
         .try_with(|remaining| match remaining.get() {
             Some(0) => {
-                remaining.set(None);
+                FAIL_REPEAT.with(|count| {
+                    if count.get() <= 1 {
+                        remaining.set(None);
+                    } else {
+                        count.set(count.get() - 1);
+                    }
+                });
                 true
             }
             Some(n) => {
@@ -157,14 +164,15 @@ fn staged_hosts_records_and_diagnostics_tolerate_failed_growth() {
         b"192.0.2.1 first.test second.test\nbad ignored\n192.0.2.2 \xff third.test\n",
     )
     .unwrap();
+    let config = DnsConfig::default();
     let mut exercised = 0;
     for failure in 0..100 {
         let source = HostSource {
             path: path.clone(),
             uid: 2,
         };
-        let mut reader = HostsRead::open(source, &DnsConfig::default(), 20).unwrap();
-        let (_, failed) = with_failure(failure, || while !reader.step().unwrap() {});
+        let mut reader = HostsRead::open(source, 20).unwrap();
+        let (_, failed) = with_failure(failure, || while !reader.step(&config).unwrap() {});
         let loaded = reader.finish();
         let incomplete = loaded.allocation_failed;
         if incomplete {
@@ -192,4 +200,30 @@ fn staged_hosts_records_and_diagnostics_tolerate_failed_growth() {
     }
     assert!(exercised > 3);
     std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn consecutive_publication_and_restore_failures_leave_last_daemon_snapshot_intact() {
+    let mut daemon = Hosts::new();
+    daemon.read(
+        b"192.0.2.41 retained.test\n192.0.2.42 old.test\n",
+        2,
+        37,
+        false,
+        |_| None,
+    );
+    let mut replacement = Hosts::new();
+    replacement.read(b"192.0.2.43 new.test\n", 3, 37, false, |_| None);
+    FAIL_REPEAT.with(|count| count.set(2));
+    FAIL_AFTER.with(|remaining| remaining.set(Some(0)));
+    let publication = replacement.try_clone();
+    drop(replacement);
+    let restoration = daemon.try_clone();
+    FAIL_AFTER.with(|remaining| remaining.set(None));
+    FAIL_REPEAT.with(|count| count.set(1));
+    assert!(publication.is_err());
+    assert!(restoration.is_err());
+    assert_eq!(daemon.len(), 2);
+    let restored = daemon.try_clone().unwrap();
+    assert_eq!(restored.entries(), daemon.entries());
 }

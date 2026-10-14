@@ -42,13 +42,12 @@ impl HostsLoad {
 pub struct HostsRead {
     file: File,
     wait_readiness: bool,
-    config: DnsConfig,
     loaded: HostsLoad,
     parser: HostsParser,
 }
 
 impl HostsRead {
-    pub fn open(source: HostSource, config: &DnsConfig, ttl: u32) -> io::Result<Self> {
+    pub fn open(source: HostSource, ttl: u32) -> io::Result<Self> {
         let file = OpenOptions::new()
             .read(true)
             .custom_flags(0o4000 | 0o2000000)
@@ -57,7 +56,6 @@ impl HostsRead {
         Ok(Self {
             file,
             wait_readiness,
-            config: config.clone(),
             loaded: HostsLoad {
                 source,
                 records: Vec::new(),
@@ -84,14 +82,14 @@ impl HostsRead {
         !self.wait_readiness
     }
 
-    fn consume(&mut self, bytes: &[u8]) {
+    fn consume(&mut self, bytes: &[u8], config: &DnsConfig) {
         let mut allocation_failed = false;
         let mut diagnostics_failed = false;
         self.parser.feed(
             bytes,
-            self.config.expand_hosts,
+            config.expand_hosts,
             |address| {
-                self.config
+                config
                     .domain_for_address(address)
                     .ok()
                     .flatten()
@@ -139,7 +137,7 @@ impl HostsRead {
     /// EOF and read errors complete the received prefix, including a partial
     /// last line, as read_hostsfile/gettok does. Only open errors are fatal to
     /// this source read; the daemon keeps serving its other sources.
-    pub fn step(&mut self) -> io::Result<bool> {
+    pub fn step(&mut self, config: &DnsConfig) -> io::Result<bool> {
         if self.wait_readiness {
             let mut fds = [PollFd {
                 fd: self.file.as_raw_fd(),
@@ -163,12 +161,12 @@ impl HostsRead {
             }
             Err(_) => 0,
         };
-        self.consume(&bytes[..length]);
+        self.consume(&bytes[..length], config);
         if self.loaded.allocation_failed {
             return Ok(true);
         }
         if length == 0 {
-            self.consume(b"\n");
+            self.consume(b"\n", config);
             Ok(true)
         } else {
             Ok(false)
@@ -191,9 +189,9 @@ mod tests {
         let path = directory.join("hosts");
         std::fs::write(&path, b"192.0.2.7 one.test one.test\n192.0.2.8 two.test").unwrap();
         let source = HostSource { path, uid: 100 };
-        let mut reader = HostsRead::open(source, &DnsConfig::default(), 77).unwrap();
-        assert!(!reader.step().unwrap());
-        assert!(reader.step().unwrap());
+        let mut reader = HostsRead::open(source, 77).unwrap();
+        assert!(!reader.step(&DnsConfig::default()).unwrap());
+        assert!(reader.step(&DnsConfig::default()).unwrap());
         let loaded = reader.finish();
         assert_eq!(
             loaded
