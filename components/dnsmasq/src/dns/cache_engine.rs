@@ -641,7 +641,14 @@ impl CacheContext<'_> {
                             && target_entry.record.negative)
                             .then_some(target);
                         stale |= nx_target.is_some_and(|id| {
-                            cache.get(id).is_some_and(|entry| entry.is_stale(now))
+                            // C re-looks up the terminal name before observing
+                            // NXDOMAIN staleness. A retained CNAME handle can
+                            // still point at a negative entry whose finite
+                            // retention just ended; that entry contributes no
+                            // stale bit. Keep the later lookup's pruning/LRU
+                            // effects in their existing order.
+                            cache.is_valid(id, now)
+                                && cache.get(id).is_some_and(|entry| entry.is_stale(now))
                         });
                         if question.rrtype == 12 {
                             if let Some(address) =
