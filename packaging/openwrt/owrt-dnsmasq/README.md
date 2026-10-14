@@ -1,6 +1,6 @@
 # owrt-dnsmasq
 
-This is the M4 replacement recipe for the AX3000T `dnsmasq` package.
+This is the replacement recipe for the AX3000T `dnsmasq` package.
 It keeps the package identity `dnsmasq` at version 2.93-r4, provides
 `dnsmasq-any`. Same-name replacement uses APK version ordering. Mutual
 exclusion with the stock DHCPv6/full variants needs a solver test with their
@@ -18,6 +18,11 @@ the original stock package also changes this tracked-file set and activates C.
 Reinstalling identical bytes is idempotent; no extra post-install restart runs.
 Package acceptance checks the live `/proc/PID/exe` identity and client answers,
 not just the installed version or executable on disk.
+
+The package also binds only the dedicated ubus socket directory read-only into
+the jail and authorizes the two exact dnsmasq objects. This lets a running
+daemon reconnect after the bus replaces its socket. An ELF-only temporary trial
+retains stock init/ACL files and does not exercise these package fixes.
 
 A failed APK transaction is not a completed rollback. A surviving daemon can
 still answer while the package database or files are incomplete. Keep the
