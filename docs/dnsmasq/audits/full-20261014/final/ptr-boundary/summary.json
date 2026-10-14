@@ -1,0 +1,495 @@
+{
+  "status": "known_compatibility_difference_reproduced",
+  "finding": "F10",
+  "scope": "Six-line static hosts fixture, exact-image C vs old Rust vs frozen 19bd final Rust; isolated Oracle, no product/router/main mutation.",
+  "created_utc": "2026-10-14T13:57:00Z",
+  "fixture": "192.0.2.2 old.test\n192.0.2.1 x.test\n192.0.3.186 a.test\n192.0.3.185 a.test\n192.0.2.1 y.test\n192.0.2.2 y.test\n",
+  "fixture_sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+  "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "identities": {
+    "created_utc": "2026-10-14T13:57:00Z",
+    "tools": {
+      "run_isolated.sh": {
+        "origin": "/dev/shm/full-final-tcp-20261014/private/tools/run_isolated.sh",
+        "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311"
+      },
+      "m2_rootfs.py": {
+        "origin": "/dev/shm/full-final-tcp-20261014/private/tools/m2_rootfs.py",
+        "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3"
+      },
+      "dns_service_probe.py": {
+        "origin": "/dev/shm/full-final-tcp-20261014/private/tools/dns_service_probe.py",
+        "sha256": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2"
+      },
+      "elf_cost.py": {
+        "origin": "/dev/shm/full-final-tcp-20261014/private/tools/elf_cost.py",
+        "sha256": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7"
+      },
+      "probe.py": {
+        "sha256": "20a90e9b585eb5dee18a870afaced5e20b34885f9e1cf65e0364c1edde189bb2"
+      }
+    },
+    "runner_sha256": "5fbb3b4282078049098c1263c54cd16183b4bb62784ef24495e5599a8ceb557c",
+    "old_elf": {
+      "origin": "/dev/shm/full-integrated-fix-20261014/private/release/dnsmasq-rs",
+      "sha256": "e2b075617d39cafa7d9443abfabbd18f9d2602dc0b535eed6393ac62ee9bbf77"
+    },
+    "final_elf": {
+      "origin": "/dev/shm/full-integrated-fix-20261014/private/release-final/dnsmasq-rs",
+      "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed"
+    }
+  },
+  "results": [
+    {
+      "label": "c-first",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "observations": 28,
+      "ptr_ip1": {
+        "observations": 8,
+        "order": [
+          "y.test",
+          "x.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ],
+        "truncated": false
+      },
+      "ptr_ip2_control": {
+        "observations": 8,
+        "order": [
+          "old.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ]
+      },
+      "forward_y": {
+        "observations": 12,
+        "rrset": [
+          "192.0.2.1",
+          "192.0.2.2"
+        ],
+        "udp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ]
+        ],
+        "tcp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ]
+        ]
+      },
+      "healthy_after": true,
+      "exit": 0
+    },
+    {
+      "label": "old-rust",
+      "elf_sha256": "e2b075617d39cafa7d9443abfabbd18f9d2602dc0b535eed6393ac62ee9bbf77",
+      "observations": 28,
+      "ptr_ip1": {
+        "observations": 8,
+        "order": [
+          "x.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ],
+        "truncated": false
+      },
+      "ptr_ip2_control": {
+        "observations": 8,
+        "order": [
+          "old.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ]
+      },
+      "forward_y": {
+        "observations": 12,
+        "rrset": [
+          "192.0.2.1",
+          "192.0.2.2"
+        ],
+        "udp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ]
+        ],
+        "tcp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ]
+        ]
+      },
+      "healthy_after": true,
+      "exit": 0
+    },
+    {
+      "label": "final-rust",
+      "elf_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "observations": 28,
+      "ptr_ip1": {
+        "observations": 8,
+        "order": [
+          "x.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ],
+        "truncated": false
+      },
+      "ptr_ip2_control": {
+        "observations": 8,
+        "order": [
+          "old.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ]
+      },
+      "forward_y": {
+        "observations": 12,
+        "rrset": [
+          "192.0.2.1",
+          "192.0.2.2"
+        ],
+        "udp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ]
+        ],
+        "tcp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.2",
+            "192.0.2.1"
+          ]
+        ]
+      },
+      "healthy_after": true,
+      "exit": 0
+    },
+    {
+      "label": "c-repeat",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "observations": 28,
+      "ptr_ip1": {
+        "observations": 8,
+        "order": [
+          "y.test",
+          "x.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ],
+        "truncated": false
+      },
+      "ptr_ip2_control": {
+        "observations": 8,
+        "order": [
+          "old.test"
+        ],
+        "transports": [
+          "udp",
+          "tcp"
+        ]
+      },
+      "forward_y": {
+        "observations": 12,
+        "rrset": [
+          "192.0.2.1",
+          "192.0.2.2"
+        ],
+        "udp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ]
+        ],
+        "tcp_orders": [
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          [
+            "192.0.2.1",
+            "192.0.2.2"
+          ]
+        ]
+      },
+      "healthy_after": true,
+      "exit": 0
+    }
+  ],
+  "c_repeat_exact_observations_equal": true,
+  "old_final_exact_observations_equal": true,
+  "c_dump_flags": [
+    {
+      "name": "y.test",
+      "address": "192.0.2.1",
+      "flags": "4FRI",
+      "reverse": true
+    },
+    {
+      "name": "y.test",
+      "address": "192.0.2.2",
+      "flags": "4F I",
+      "reverse": false
+    },
+    {
+      "name": "old.test",
+      "address": "192.0.2.2",
+      "flags": "4FRI",
+      "reverse": true
+    },
+    {
+      "name": "ready.test",
+      "address": "192.0.2.41",
+      "flags": "4FRI",
+      "reverse": true
+    },
+    {
+      "name": "x.test",
+      "address": "192.0.2.1",
+      "flags": "4FRI",
+      "reverse": true
+    },
+    {
+      "name": "a.test",
+      "address": "192.0.3.186",
+      "flags": "4FRI",
+      "reverse": true
+    },
+    {
+      "name": "a.test",
+      "address": "192.0.3.185",
+      "flags": "4FRI",
+      "reverse": true
+    }
+  ],
+  "conclusion": {
+    "ptr_missing_from_both_rust_versions": {
+      "address": "192.0.2.1",
+      "target": "y.test",
+      "observations_per_rust": 8,
+      "transports": [
+        "udp",
+        "tcp"
+      ]
+    },
+    "forward_a_rrset_correct": true,
+    "forward_a_order": "C constant; both Rust builds alternate",
+    "udp_truncation_or_transport_failure": false,
+    "all_rcode": 0,
+    "all_daemons_healthy": true,
+    "introduced_by_final_19bd_candidate": false,
+    "limits": "The old ELF and final ELF match exactly here. This does not by itself establish the original introducing source commit, behavior for AAAA, HUP, incremental hostsdir, or all large fixture PTR addresses."
+  },
+  "source_review": {
+    "cache_c_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "facts": [
+      "cache_reload creates one temporary rhash across config records, hosts files and initial hostsdir files.",
+      "Duplicate name lookup rewrites matching entries next links before add_hosts_entry scans those same links for reverse ownership.",
+      "Incremental hostsdir uses cache_find_by_addr with no temporary rhash, after removing the changed source UID.",
+      "cache_find_by_addr enumerates every matching F_REVERSE entry; rfc1035 emits each as a PTR answer.",
+      "Precise PTR order follows the C global name hash table and its growth/order, not first insertion order alone."
+    ],
+    "tradeoff": "Retaining F10 leaves a measured conditional missing PTR alias plus forward ordering difference; forward A membership and service health remain correct in this fixture. Full emulation needs explicit bulk state and multiple reverse answers, with further PTR ordering/lifecycle and memory validation. A first-owner map plus adjusted flags alone cannot close it."
+  },
+  "raw_evidence": {
+    "oracle_directory": "/dev/shm/full-f10-ptr-20261014/private",
+    "local_archive": "private/f10-ptr-20261014/raw-evidence.tar.gz",
+    "archive_sha256": "3fe812173d508f1e8397ff45a59a9015f290a19b7536bae638195921f14677f8",
+    "archive_bytes": 4879743,
+    "result_sha256": "d180aba35bc59537330a085f6a220ef06d908ae9d6a65912a1dd70c905cc0477",
+    "c_first_log_sha256": "0f883269db0bfb71ff5400c47f04b69064daa47e648fc6dd550e9719ef98be96",
+    "command": [
+      "env",
+      "PYTHONPATH=/dev/shm/full-f10-ptr-20261014/private/tools",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "sh",
+      "/dev/shm/full-f10-ptr-20261014/private/tools/run_isolated.sh",
+      "python3",
+      "/dev/shm/full-f10-ptr-20261014/private/tools/probe.py",
+      "--image-root",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--old-rust",
+      "/dev/shm/full-f10-ptr-20261014/private/bin/old-rust",
+      "--final-rust",
+      "/dev/shm/full-f10-ptr-20261014/private/bin/final-rust",
+      "--output",
+      "/dev/shm/full-f10-ptr-20261014/private/probe"
+    ]
+  }
+}
