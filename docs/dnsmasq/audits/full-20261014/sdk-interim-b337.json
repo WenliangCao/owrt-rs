@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "scope": "Interim b337 source build only; retired before runtime qualification due F10 followup; no recompile or acceptance transfer.",
+  "status": "source-built-and-measured-interim",
+  "source_commit": "b337c8509e549398116a0a9c7929f38b7fe32148",
+  "source_digest": "e380eca59fe2a67bf7918d0f368e220ae17e26c94760846d16dad26ac5129362",
+  "original_manifest_error_preserved": "FileNotFoundError(2, 'No such file or directory')",
+  "original_manifest_sha256": "dc2137b72ebe8f1839ac381ec0726afbd82e004d23fccc1c430f84f001658c13",
+  "compile_and_package_exit": 0,
+  "sdk_recipe_restored": true,
+  "sdk_tools_unchanged": true,
+  "source_unchanged": true,
+  "artifact": {
+    "name": "dnsmasq-2.93-r4.apk",
+    "path": "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/dnsmasq-2.93-r4.apk",
+    "sha256": "e1396ffe181cd665c8546e8d1f49b902217416a9f1872c8ed1f3ab58bbb29c43",
+    "size": 1151608
+  },
+  "elf": {
+    "path": "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/payload/usr/sbin/dnsmasq",
+    "sha256": "5a1dc3053f889c3657ef73d2d92c5c9b70162636e2c7ea4c97a8cd8e12750846",
+    "size": 2120475,
+    "source_commit": "b337c8509e549398116a0a9c7929f38b7fe32148"
+  },
+  "postprocess": {
+    "mode": "SDK RSTRIP/sstrip",
+    "input_path": "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/package-build/.pkgdir/dnsmasq/usr/sbin/dnsmasq",
+    "input_sha256": "5e14950c7ae6776e95d231a6e572b3b20a678d69006e6b4a0b16405580ec9fa3",
+    "input_bytes": 2122208,
+    "output_sha256": "5a1dc3053f889c3657ef73d2d92c5c9b70162636e2c7ea4c97a8cd8e12750846",
+    "output_bytes": 2120475,
+    "basis": "SDK package-pack.mk installs into .pkgdir, copies it into ipkg, then runs RSTRIP. CONFIG_AUTOREMOVE retains .pkgdir but removes Cargo target."
+  },
+  "runtime_qualification": "not-run; obsolete source",
+  "budget": {
+    "schema": 1,
+    "elf_max_bytes": 1000000,
+    "apk_max_bytes": 700000,
+    "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43"
+  },
+  "init": {
+    "path": "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/payload/etc/init.d/dnsmasq",
+    "sha256": "70fb3c6bd057c6981503138b91292182f07c9a0d5aa1aaf0454c34af4ca746f0"
+  },
+  "acl": {
+    "path": "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/payload/usr/share/acl.d/dnsmasq_acl.json",
+    "sha256": "8bedbcdd3018c17f272f0d3ecf9573aa6f05253806cb8812ebf92e9b87ac6020"
+  },
+  "budget_checks": {
+    "apk": false,
+    "elf": false
+  },
+  "failure_boundary": "size-target",
+  "historical_size_gate": {
+    "passed": false,
+    "error": "APK size 1151608 exceeds target 700000 bytes; ELF size 2120475 exceeds target 1000000 bytes"
+  },
+  "archive": {
+    "path": "private/final-sdk-b337c850-20261014/interim-evidence.tar.gz",
+    "sha256": "0c45affb93b6b372cb412f0274fa5d3a435fcac40706e65b286dab03a6852145",
+    "bytes": 10759251
+  },
+  "sdk": {
+    "path": "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+    "archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+    "tool_map_sha256": "6a62863276cd35df8574f46f4162d71b82b0c35ef47ea869988036b2a584d53e"
+  },
+  "git_archive_files": {
+    "count": 659,
+    "manifest_sha256": "ce6cab159020a659a4f1d8cd50e469e701ce70f479f8c9cf5d74561e0170dcf8",
+    "differences": []
+  },
+  "commands": [
+    {
+      "argv": [
+        "/home/ubuntu/.cargo/bin/cargo",
+        "--version"
+      ],
+      "start": 1791990411.844788,
+      "end": 1791990412.014041,
+      "exit": 0,
+      "log": "cargo-version.log"
+    },
+    {
+      "argv": [
+        "/home/ubuntu/.cargo/bin/rustc",
+        "-Vv"
+      ],
+      "start": 1791990412.0146847,
+      "end": 1791990412.3855534,
+      "exit": 0,
+      "log": "rustc-version.log"
+    },
+    {
+      "argv": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc",
+        "--version"
+      ],
+      "start": 1791990412.3861995,
+      "end": 1791990412.5066905,
+      "exit": 0,
+      "log": "target-cc-version.log"
+    },
+    {
+      "argv": [
+        "make",
+        "package/owrt-dnsmasq/prepare",
+        "V=s",
+        "-j1",
+        "V1_PACKAGE_RELEASE=4",
+        "OWRT_COMPONENTS_SOURCE=/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/source/components",
+        "OWRT_DNSMASQ_BUILD_DIR=/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/package-build",
+        "OWRT_DNSMASQ_OUTPUT_DIR=/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/sdk-output",
+        "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+        "V1_CARGO_HOME=/home/ubuntu/.cargo",
+        "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+      ],
+      "start": 1791990412.5144222,
+      "end": 1791990422.3827064,
+      "exit": 0,
+      "log": "prepare.log"
+    },
+    {
+      "argv": [
+        "make",
+        "package/owrt-dnsmasq/compile",
+        "V=s",
+        "-j1",
+        "V1_PACKAGE_RELEASE=4",
+        "OWRT_COMPONENTS_SOURCE=/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/source/components",
+        "OWRT_DNSMASQ_BUILD_DIR=/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/package-build",
+        "OWRT_DNSMASQ_OUTPUT_DIR=/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/sdk-output",
+        "V1_CARGO=/home/ubuntu/.cargo/bin/cargo",
+        "V1_CARGO_HOME=/home/ubuntu/.cargo",
+        "V1_RUSTUP_HOME=/home/ubuntu/.rustup"
+      ],
+      "start": 1791990422.3915284,
+      "end": 1791990502.3608742,
+      "exit": 0,
+      "log": "compile.log"
+    },
+    {
+      "argv": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/apk",
+        "extract",
+        "--allow-untrusted",
+        "--no-network",
+        "--no-chown",
+        "--destination",
+        "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/payload",
+        "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/dnsmasq-2.93-r4.apk"
+      ],
+      "start": 1791990502.4688003,
+      "end": 1791990502.6299279,
+      "exit": 0,
+      "log": "extract.log"
+    },
+    {
+      "argv": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-readelf",
+        "-W",
+        "-h",
+        "-l",
+        "-d",
+        "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/payload/usr/sbin/dnsmasq"
+      ],
+      "start": 1791990502.6356974,
+      "end": 1791990502.6908014,
+      "exit": 0,
+      "log": "elf-readelf.log"
+    },
+    {
+      "argv": [
+        "/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/apk",
+        "adbdump",
+        "/dev/shm/full-merge-sdk-b337c850-20261014/source/private/sdk-source-build/dnsmasq-2.93-r4.apk"
+      ],
+      "start": 1791990502.6933143,
+      "end": 1791990502.8336377,
+      "exit": 0,
+      "log": "apk-metadata.log"
+    }
+  ]
+}
