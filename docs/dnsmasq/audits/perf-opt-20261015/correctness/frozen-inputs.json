@@ -1,0 +1,2789 @@
+{
+  "schema": 1,
+  "frozen_source_commit": "51b039597af13f9c9cf07c9f80e388e25cd8ae5d",
+  "policy": "Existing expectations, fixtures, comparisons, allocation-failure handling and PTR qualifiers are immutable. Candidate-specific paths, full commit and binary SHA are run inputs, not expectation changes.",
+  "c_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "deployed_v020_elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+  "f10_reference_sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+  "f10_approved_manifest_sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+  "canonical_families": {
+    "count": 44,
+    "steps": 68,
+    "ids": [
+      "m5_option_matrix",
+      "m5_option_matrix_next",
+      "m5_option_matrix_third",
+      "m5_option_matrix_tag_if",
+      "m5_option_matrix_dhcp",
+      "m5_option_matrix_dhcp_v4",
+      "m5_option_matrix_lease_names",
+      "m5_local_records",
+      "m5_boot",
+      "m5_helper",
+      "m5_rr_filter",
+      "m5_config_inputs",
+      "m5_lease_recovery",
+      "m5_listeners",
+      "m5_tftp",
+      "m5_dump",
+      "m5_script_arp",
+      "dhcp-proxy",
+      "bridge-interface",
+      "shared-network",
+      "dhcp-reply-delay",
+      "m5_relay",
+      "m5_pxe",
+      "m5_leasequery",
+      "dhcp-tags-options",
+      "dhcp-identities",
+      "dhcp-range",
+      "dhcp-files",
+      "loop-detect",
+      "logging-all-scopes",
+      "cli-test",
+      "cli-log-malloc",
+      "m5_edns",
+      "m5_dns_cache",
+      "m5_dns_endpoints",
+      "m5_interface_records",
+      "dns-files",
+      "tftp-errors",
+      "filterwin2k",
+      "helper-shutdown",
+      "ubus-ordinary",
+      "logging-dhcp-companion",
+      "dhcp-device-binding",
+      "query-id-wrap-source-controls"
+    ],
+    "runner": "tools/dnsmasq/audit_20261011_families.py",
+    "only_omitted_step": "m5_dns_endpoints-local-archive-gate",
+    "endpoint_semantic_rows": 190
+  },
+  "ignored_tests": [
+    {
+      "file": "components/dnsmasq/src/interfaces_ipv4.rs",
+      "test": "isolated_fresh_snapshot_and_primary_address_need_no_spare_descriptor",
+      "reason": "requires a private Linux network namespace and process file limit"
+    },
+    {
+      "file": "components/dnsmasq/src/net.rs",
+      "test": "tcp_pktoptions_identifies_loopback_for_both_families",
+      "reason": "requires Linux isolated network namespace; run with run_isolated.sh"
+    },
+    {
+      "file": "components/dnsmasq/src/net.rs",
+      "test": "udp_source_and_truncation",
+      "reason": "requires Linux isolated network namespace; run with run_isolated.sh"
+    },
+    {
+      "file": "components/dnsmasq/src/tftp_listener.rs",
+      "test": "port_range_upper_bound_exhaustion_and_zero_start",
+      "reason": "requires tools/dnsmasq/run_isolated.sh network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/tftp_listener.rs",
+      "test": "dedicated_tid_idle_tick_and_cleanup_on_ipv4_and_ipv6",
+      "reason": "requires tools/dnsmasq/run_isolated.sh network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/tftp_listener.rs",
+      "test": "integrated_dual_stack_shares_capacity_and_pending_mac_does_not_block",
+      "reason": "requires tools/dnsmasq/run_isolated.sh network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/interfaces.rs",
+      "test": "isolated_loopback_snapshot_matches_kernel_configuration",
+      "reason": "requires a private Linux network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/main_tftp_admission_tests.rs",
+      "test": "tftp_live_name_rejects_old_ipv6_name_after_the_shared_collector",
+      "reason": "requires run_isolated.sh network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/main_tftp_admission_tests.rs",
+      "test": "tftp_label_exception_resumes_the_original_rrq_without_another_packet",
+      "reason": "requires run_isolated.sh network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/main_tftp_admission_tests.rs",
+      "test": "tftp_static_ipv4_keeps_its_cached_owner_and_dedicated_keeps_its_live_name",
+      "reason": "requires run_isolated.sh network namespace"
+    },
+    {
+      "file": "components/dnsmasq/src/config/records.rs",
+      "test": "local_record_acceptance_matches_c",
+      "reason": "requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build"
+    },
+    {
+      "file": "components/dnsmasq/src/config/dns.rs",
+      "test": "dns_config_acceptance_matches_c",
+      "reason": "requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build"
+    },
+    {
+      "file": "components/dnsmasq/src/config/mod.rs",
+      "test": "scalar_config_acceptance_matches_c",
+      "reason": "requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build"
+    },
+    {
+      "file": "components/dnsmasq/src/config/loader.rs",
+      "test": "cli_include_acceptance_matches_c",
+      "reason": "requires DNSMASQ_C_REFERENCE pointing to exact C 2.93 build"
+    },
+    {
+      "file": "components/dnsmasq/src/dhcp/service.rs",
+      "test": "device_binding_linux_sockets_retry_and_relay_gate",
+      "reason": "requires an isolated Linux network namespace with CAP_NET_ADMIN"
+    },
+    {
+      "file": "components/dnsmasq/src/dhcp/service.rs",
+      "test": "socket_listener_processes_local_ack_and_replies_to_peer",
+      "reason": "requires Linux isolated loopback; run with run_isolated.sh"
+    },
+    {
+      "file": "components/dnsmasq/src/dhcp/service.rs",
+      "test": "receive_once_admits_loopback_pktinfo_and_preserves_addresses",
+      "reason": "requires Linux isolated loopback; run with run_isolated.sh"
+    },
+    {
+      "file": "components/dnsmasq/src/dhcp/service.rs",
+      "test": "receive_once_rejects_ipv6_for_dhcpv4",
+      "reason": "requires Linux isolated loopback; run with run_isolated.sh"
+    },
+    {
+      "file": "components/dnsmasq/src/dhcp/service.rs",
+      "test": "poll_once_is_nonblocking_and_stop_aware",
+      "reason": "requires Linux isolated loopback; run with run_isolated.sh"
+    },
+    {
+      "file": "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs",
+      "test": "exact_c_lease_cache_driver",
+      "reason": "requires DNSMASQ_LEASE_CACHE_CONFIG and DNSMASQ_LEASE_CACHE_INPUT from lease_insert_diff.py"
+    },
+    {
+      "file": "components/dnsmasq/src/dns/cache_transfer_tests.rs",
+      "test": "exact_c_transfer_probe",
+      "reason": null
+    },
+    {
+      "file": "components/dnsmasq/src/dns/daemon_cache_tests.rs",
+      "test": "exact_c_oracle_driver",
+      "reason": "requires DNSMASQ_CACHE_ORACLE_INPUT from cache_answer_diff.py"
+    },
+    {
+      "file": "components/dnsmasq/src/dns/daemon_stale_tests.rs",
+      "test": "exact_c_stale_driver",
+      "reason": "requires DNSMASQ_STALE_CONFIG/INPUT and the exact C baseline"
+    }
+  ],
+  "files": {
+    ".github/workflows/ci.yml": {
+      "sha256": "0e576738c9642a2111892584c40983d5cab6efd474143dd8994f326fd3496d94",
+      "bytes": 2421
+    },
+    "components/dnsmasq/Cargo.lock": {
+      "sha256": "f414678b0ec026bcd72b2dbd8ac3aaeff887451d66de4e042cbe0b73785e7f52",
+      "bytes": 237
+    },
+    "components/dnsmasq/Cargo.toml": {
+      "sha256": "3a1d9f10f9eeeeafaf1825dc949f3e6f081f7a654221a0a84c7a7a94741681ca",
+      "bytes": 461
+    },
+    "components/dnsmasq/src/bin/dhcp_event_order_probe.rs": {
+      "sha256": "4d26c4837353910a0cf9b4b49ec9cfa4c17a16e7e7f78bb21ecffd0bc3320e4a",
+      "bytes": 318
+    },
+    "components/dnsmasq/src/bin/dhcp_events_probe.rs": {
+      "sha256": "9fb950f0cda0c885c9bb28334e17bb0ab350d93dccef14d24e9067f41b83374a",
+      "bytes": 328
+    },
+    "components/dnsmasq/src/bin/dhcp_message_metrics_probe.rs": {
+      "sha256": "1f343f2362da7f11d72d88ed1ac966c9c83f399ce7550b3eab0f1ccf4bc1f969",
+      "bytes": 146
+    },
+    "components/dnsmasq/src/bin/dhcp_reply_probe.rs": {
+      "sha256": "98dcc9408815f2ab627574dd7c9f273ab6e035b6c46288705f18fadff0133f2c",
+      "bytes": 3533
+    },
+    "components/dnsmasq/src/bin/lease_names_probe.rs": {
+      "sha256": "f9390b3fe82b2084e895db9e1ba5593b1e405f57a42666242d483a34324e0283",
+      "bytes": 112
+    },
+    "components/dnsmasq/src/bin/local_answer_probe.rs": {
+      "sha256": "d19c50dfa413727847313673ec2531479060b654ee884af58a3d38e736b947b4",
+      "bytes": 202
+    },
+    "components/dnsmasq/src/bin/udp_query_probe.rs": {
+      "sha256": "1cd1bbe1a215baa09c9219c601cfc07c9dcfd2dd86c52a60d4a97b224b00697b",
+      "bytes": 116
+    },
+    "components/dnsmasq/src/config/auth.rs": {
+      "sha256": "54109ec33076d81b5238677a9c010d16ca9469fea3dbe95ad0eec40afb64b095",
+      "bytes": 3602
+    },
+    "components/dnsmasq/src/config/dhcp.rs": {
+      "sha256": "6c55ccb39c1c4d956917d841cdfa6e720b89144db24948107d8b4a1bcd89355e",
+      "bytes": 45935
+    },
+    "components/dnsmasq/src/config/dhcp_device.rs": {
+      "sha256": "573d0dd2d5c23b487329c715c110fee7d5203d56bdf58cffc3ae8378158230fe",
+      "bytes": 3247
+    },
+    "components/dnsmasq/src/config/dhcp_host.rs": {
+      "sha256": "e5ba5431a13affbb48e682e3440b1035437982b4883560b674a0252194a79536",
+      "bytes": 10387
+    },
+    "components/dnsmasq/src/config/dhcp_host_files.rs": {
+      "sha256": "0f7aaa398acb3aa98c44c220358a1596d6364a7dac4832fd03f7e04cab631ab4",
+      "bytes": 13804
+    },
+    "components/dnsmasq/src/config/dhcp_network.rs": {
+      "sha256": "d12e0117b13cfb4919950b6c607502cd943d0dd68bba422f4e1415ad5c9cdecb",
+      "bytes": 11863
+    },
+    "components/dnsmasq/src/config/dhcp_options.rs": {
+      "sha256": "3db989f55496d2ae1272145d4c509aba1179a138db9eb7003347168cb6af6c45",
+      "bytes": 33937
+    },
+    "components/dnsmasq/src/config/dhcp_pxe.rs": {
+      "sha256": "c1cfa6d0d45269b53723fedffcecdc1e9883e4d15d29ccf49f93dcfbedbde67b",
+      "bytes": 8906
+    },
+    "components/dnsmasq/src/config/dhcp_relay.rs": {
+      "sha256": "38891c5d050a72acc9d5e8f5b982d6703e11ac26eb3c81a767f27890fdd34368",
+      "bytes": 6124
+    },
+    "components/dnsmasq/src/config/dhcp_tags.rs": {
+      "sha256": "af148ae32c55863b563e7ddc2afcfb77fc94104653407e5a99e685f2f45b866b",
+      "bytes": 14209
+    },
+    "components/dnsmasq/src/config/dns.rs": {
+      "sha256": "14b89061c3acd0270cf4fd4d3ce3e84d8fd33f3d32d7df5252125d808b7a688f",
+      "bytes": 52408
+    },
+    "components/dnsmasq/src/config/dns_endpoints.rs": {
+      "sha256": "a4d061184a441f35512a8afe1a036dae311fb1a7c612fd67650335cdae7c5806",
+      "bytes": 9733
+    },
+    "components/dnsmasq/src/config/dns_lookup.rs": {
+      "sha256": "afe00f3d0efdc57a3710d6f4644cdc3ff0db072d2cf1e92efaed4d78c928d450",
+      "bytes": 10826
+    },
+    "components/dnsmasq/src/config/domains.rs": {
+      "sha256": "f8b298c63ed92a0cbff844859a707458bfc3247fc477e6dd906962e751e5e6c7",
+      "bytes": 7698
+    },
+    "components/dnsmasq/src/config/dump.rs": {
+      "sha256": "dc6cd827fd0d3a958f4b9e6655a68edd3ebca3c7eadcb6b608384fcef8eed081",
+      "bytes": 3899
+    },
+    "components/dnsmasq/src/config/edns.rs": {
+      "sha256": "4f35260bf48cf361da35dfb197b68d611560106a39c0acd8988cd52f94e3cf14",
+      "bytes": 8821
+    },
+    "components/dnsmasq/src/config/ethers.rs": {
+      "sha256": "a58cbed430228b1a0abd98ab120e5867aba8387f475463f03d56d9e99adeaaee",
+      "bytes": 19380
+    },
+    "components/dnsmasq/src/config/interface_records.rs": {
+      "sha256": "a983ea953d7bf22490f50acc5a8e362d6f93c9f63ecbaf5b6b2759e293a71bd9",
+      "bytes": 4735
+    },
+    "components/dnsmasq/src/config/loader.rs": {
+      "sha256": "bc88f9aa003432e2972f7cb492431161bfb0dd89c799d0dfedfb905716e86395",
+      "bytes": 32492
+    },
+    "components/dnsmasq/src/config/logging.rs": {
+      "sha256": "6503db9d5925761df96b956dab6672bcdb39bf232f11c986970468bb26ff981d",
+      "bytes": 6629
+    },
+    "components/dnsmasq/src/config/mod.rs": {
+      "sha256": "1b3f751e0074e1f22c4cdfb713c0b028c75f571e39af0eaf44de1b10d8ce54c0",
+      "bytes": 16594
+    },
+    "components/dnsmasq/src/config/options.rs": {
+      "sha256": "40cb983503eede7840b8125414798a56cae81614a930c4e041a575ecd668cdfb",
+      "bytes": 28896
+    },
+    "components/dnsmasq/src/config/records.rs": {
+      "sha256": "638dc9cfab40a17ef3f9f518aa0257d7bf7d995b0ddad8078e525891a5ad0795",
+      "bytes": 28802
+    },
+    "components/dnsmasq/src/config/rrtypes.rs": {
+      "sha256": "7bb3070d1100a1f42b3933837ef099d7476f7ad548fdf15d744561e273cb3c1d",
+      "bytes": 2870
+    },
+    "components/dnsmasq/src/config/scalar.rs": {
+      "sha256": "6b2aa5f389f6558893b12e8bf3717c10d3ea28b71ce33cac06978ddccb4dc60a",
+      "bytes": 13018
+    },
+    "components/dnsmasq/src/config/script_arp.rs": {
+      "sha256": "ac01a84b32de86dd7136d7c08612d6419bb484a140beb573d740b7c19ad08c30",
+      "bytes": 541
+    },
+    "components/dnsmasq/src/config/state_probe.rs": {
+      "sha256": "50eb02410e62b96bd0d5ba193a6fbe1165a09d1e767fdc3e1993efe57390d832",
+      "bytes": 4477
+    },
+    "components/dnsmasq/src/config/synth_domain.rs": {
+      "sha256": "e9711d525323832ccdf1ebf4d6a24b7818a555e459d20f044675cf0e23a27d3f",
+      "bytes": 13267
+    },
+    "components/dnsmasq/src/config/tftp.rs": {
+      "sha256": "1552ca002df7aa3c313c79e863e01f9deb3540f5b8fb1816d714dc63b0de078a",
+      "bytes": 19711
+    },
+    "components/dnsmasq/src/config/ubus.rs": {
+      "sha256": "36f3878accd923989f9f1b0c76bc8edf7f43e21c2b9ad2fc1a95fb9319d6f038",
+      "bytes": 1538
+    },
+    "components/dnsmasq/src/dhcp/allocation.rs": {
+      "sha256": "705360c84b87531c52859608d45220689cd5fb9d7463c7a5ee8042d9baa6225a",
+      "bytes": 9678
+    },
+    "components/dnsmasq/src/dhcp/context.rs": {
+      "sha256": "0c47e67c969750e3a886b40f3728e2537e4263209dce5f9915b1399dd979cea7",
+      "bytes": 18459
+    },
+    "components/dnsmasq/src/dhcp/daemon.rs": {
+      "sha256": "a81c10e1b8a08aff9b2903d67a84e5167d8b994c0fae3a4b99ee4e159169517d",
+      "bytes": 170267
+    },
+    "components/dnsmasq/src/dhcp/files_runtime.rs": {
+      "sha256": "37a54f0f9246018d31d0d48bb82ea5be53a62a25ff75294802e768934b6a97d1",
+      "bytes": 31931
+    },
+    "components/dnsmasq/src/dhcp/filewatch.rs": {
+      "sha256": "259ad0297d6ad7bdff0fa03d853ce67a9530f66092fa712e0ecc6367e8430f43",
+      "bytes": 9000
+    },
+    "components/dnsmasq/src/dhcp/interface_admission.rs": {
+      "sha256": "3f993ae940a388c51ba1604f9e4e87f485fca3571dfa8b95fceb135397a59a0c",
+      "bytes": 8612
+    },
+    "components/dnsmasq/src/dhcp/lease.rs": {
+      "sha256": "3fff1428fccbcc37068a46a2d422e92a846f8817737d2509b25c5dc589ad20a9",
+      "bytes": 52650
+    },
+    "components/dnsmasq/src/dhcp/lease_file.rs": {
+      "sha256": "d55bcfd324b33baa9c3b3afbee3ab17c9e5ffb78cdfc8deeec9a34ab22d94452",
+      "bytes": 17091
+    },
+    "components/dnsmasq/src/dhcp/lease_query.rs": {
+      "sha256": "49b61937ada15eb123bc60976962c4ea5572d83b5b38359fedd147abdb7b46b4",
+      "bytes": 25892
+    },
+    "components/dnsmasq/src/dhcp/logging.rs": {
+      "sha256": "8a31edc1ce63d9afa04884f8a48eb0d5ba8aa72c34d67d18bb4113ff1082894c",
+      "bytes": 12848
+    },
+    "components/dnsmasq/src/dhcp/message_counters.rs": {
+      "sha256": "e8a0beab47e9a42d028d17802a68cb45081c98a90710f526da7c2250fea8af01",
+      "bytes": 1172
+    },
+    "components/dnsmasq/src/dhcp/mod.rs": {
+      "sha256": "bb3afc35be2d6e00e858a878ab895fc49d127a76c65c1028586356a740ee25e4",
+      "bytes": 1324
+    },
+    "components/dnsmasq/src/dhcp/packet.rs": {
+      "sha256": "1bc6b2e1fc2b5983d735489c6ced6adee86a9b4507480ab9fce96abca870d58c",
+      "bytes": 27691
+    },
+    "components/dnsmasq/src/dhcp/persistence.rs": {
+      "sha256": "84d2f7795b3dd8a5f15efc1cd06966635bf84d42b17a115099913be495af6809",
+      "bytes": 15206
+    },
+    "components/dnsmasq/src/dhcp/probe.rs": {
+      "sha256": "f4bf28dc9f2c72541ba8e41c6147a19b71eecbb74cd18df717ef4a88dd7d5fe3",
+      "bytes": 20410
+    },
+    "components/dnsmasq/src/dhcp/pxe.rs": {
+      "sha256": "64a8985add2f0821c04a7aea5b36cf355441d73bdf5a978c28311fa801926ca8",
+      "bytes": 22028
+    },
+    "components/dnsmasq/src/dhcp/relay.rs": {
+      "sha256": "ef2390bd92ae6fdbe1b21c2a6572af5d684698664e2c7ca3e9a1ebdeebcaa20a",
+      "bytes": 27775
+    },
+    "components/dnsmasq/src/dhcp/reply.rs": {
+      "sha256": "8ec058f44ce63a2b8fa3817fa3bce54163f11471e0ef7a5f72e5ae5b16725562",
+      "bytes": 50115
+    },
+    "components/dnsmasq/src/dhcp/reply_delay.rs": {
+      "sha256": "85d53a4540b9301ccf663b9dda9fadedfc2175dda1b3e547cd81c7160442175a",
+      "bytes": 2374
+    },
+    "components/dnsmasq/src/dhcp/request.rs": {
+      "sha256": "c414cc72cdc60955de2ced43ee54fae515d9e5afbdf8303fecaf5256bc37651f",
+      "bytes": 6243
+    },
+    "components/dnsmasq/src/dhcp/runtime.rs": {
+      "sha256": "b6a67f67a7f0bcece233ebbc2e80096ccdaba0bbe6de00173c9273259f38996d",
+      "bytes": 111482
+    },
+    "components/dnsmasq/src/dhcp/service.rs": {
+      "sha256": "a2e113af5f6a583814ddfcdbade36d100364c62f4caf4fe8ddbb21064759bda0",
+      "bytes": 51366
+    },
+    "components/dnsmasq/src/dhcp/state.rs": {
+      "sha256": "da5ded923bef0616e23701cb54391bc5f3aa690679721b7daa4360e11d4461d2",
+      "bytes": 44021
+    },
+    "components/dnsmasq/src/dns/cache.rs": {
+      "sha256": "d8f065390aac0c63d681f15387de1d4924170173f9d04061bd5c609eb319ca59",
+      "bytes": 51616
+    },
+    "components/dnsmasq/src/dns/cache_engine.rs": {
+      "sha256": "dcd91648e1c61ac3738ffda98a21e7544fcce0e4fc42abb0970d6ad311141767",
+      "bytes": 110645
+    },
+    "components/dnsmasq/src/dns/cache_name_index.rs": {
+      "sha256": "ab3025c70ea991341fd6ce7cc8f2a0f3cd5b5d8b44235c856ae8699f75096d63",
+      "bytes": 5318
+    },
+    "components/dnsmasq/src/dns/cache_reply.rs": {
+      "sha256": "1f09b55dc2f4e3e4b7eebe6aa80ae3a4f32b0e19334fbb91df367b9730f6beae",
+      "bytes": 5158
+    },
+    "components/dnsmasq/src/dns/cache_reply_tests.rs": {
+      "sha256": "37f27bf522c6c05024b02d75f0816d9e3342d8795f4644ac6789c443b934d311",
+      "bytes": 5942
+    },
+    "components/dnsmasq/src/dns/cache_tests.rs": {
+      "sha256": "1fb7a672ca501ef8e8493b287461cd22799737a6f026f032d1c68088dba8fc5e",
+      "bytes": 44556
+    },
+    "components/dnsmasq/src/dns/cache_transfer_tests.rs": {
+      "sha256": "79051d1ca2612695c596fddbac1ae65063373b03b514d9ef819832b1acae9d48",
+      "bytes": 14473
+    },
+    "components/dnsmasq/src/dns/daemon.rs": {
+      "sha256": "ff84cd3c3baeee93c66ad67a43107c985409530000799fca1e5122a5232131bc",
+      "bytes": 111794
+    },
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": {
+      "sha256": "a872bfacb072e46deb6c43e6e1e483c8f4602302d68acf327d0c460cf5f4be57",
+      "bytes": 42365
+    },
+    "components/dnsmasq/src/dns/daemon_dump.rs": {
+      "sha256": "39f77f25aeb26fc3efcc67de0de2e83b9dd94262115ab1f1fd1051ad2d92fe45",
+      "bytes": 11331
+    },
+    "components/dnsmasq/src/dns/daemon_lease_cache_tests.rs": {
+      "sha256": "2beb9c8555d168a4ee64ba0c40c31499b7f9638140c8ebc51fbac217c47d9b26",
+      "bytes": 6674
+    },
+    "components/dnsmasq/src/dns/daemon_policy_tests.rs": {
+      "sha256": "7d021ce94da3a70b02ca7bac46c312541ebe968e7e61e882a2f4cf11867d33bd",
+      "bytes": 10400
+    },
+    "components/dnsmasq/src/dns/daemon_poll_tests.rs": {
+      "sha256": "38c3c2e1a0dbade38eb22bceb5202f28c4b5279e3588ca5b0234e72b72c3e09e",
+      "bytes": 15277
+    },
+    "components/dnsmasq/src/dns/daemon_route_resend_tests.rs": {
+      "sha256": "7990b46c1bf9481b1e4aa7247217d738cfb5be7cdeec8557eab6b7a5d8e78bba",
+      "bytes": 4373
+    },
+    "components/dnsmasq/src/dns/daemon_stale_tests.rs": {
+      "sha256": "c3c772459ea70b40ad2b7357b1dfa8cc0278d018128f5be16ffcdb34aff851d8",
+      "bytes": 5447
+    },
+    "components/dnsmasq/src/dns/doctor.rs": {
+      "sha256": "19a85b10556766b0881b853a51c08fefc12057c7e2c77648713288da8350b8b4",
+      "bytes": 10766
+    },
+    "components/dnsmasq/src/dns/edns_policy.rs": {
+      "sha256": "f6a2e24ed00c5a0aba731c2a9c535bdb70d077a9be7c78e496fb25a8d0aff739",
+      "bytes": 19975
+    },
+    "components/dnsmasq/src/dns/files.rs": {
+      "sha256": "119f3b3e5e8c7976bd7c5446143c7853faa7a8f44f59349a2f9b18b4d08d022a",
+      "bytes": 15216
+    },
+    "components/dnsmasq/src/dns/files_runtime.rs": {
+      "sha256": "86a7b7f19788626fbcfe9dcc3a1f7420caddcf29dcacf36ca07ad2a071741e18",
+      "bytes": 43696
+    },
+    "components/dnsmasq/src/dns/filewatch.rs": {
+      "sha256": "50766a78aeb9e440991b26741c8026ff05c709c809244cbe9f325d5a18d7f3f3",
+      "bytes": 20831
+    },
+    "components/dnsmasq/src/dns/forward.rs": {
+      "sha256": "f4cc418c81da14ab526d379ac5a5975057f0fe29f22c057d47d55756879611f5",
+      "bytes": 28886
+    },
+    "components/dnsmasq/src/dns/forward_service.rs": {
+      "sha256": "2115b3fb09f97f0c8bd2ff6c9359d082e54012e2b792406fe75a649b1770e810",
+      "bytes": 32718
+    },
+    "components/dnsmasq/src/dns/forward_tests.rs": {
+      "sha256": "73f235a6e6357f0698c0c8ec25d1bfbcda0ea37f54b53381c775005761b027ee",
+      "bytes": 17124
+    },
+    "components/dnsmasq/src/dns/hostsdir.rs": {
+      "sha256": "a1e41c5ac7228a97af35a924e34f2b12e1ea9763bc4c18dea85f8728eaa419b6",
+      "bytes": 8847
+    },
+    "components/dnsmasq/src/dns/hostsdir_runtime.rs": {
+      "sha256": "f712e392ae4b5700e8caad05994aaf16b76fcd28253a339d57a1f38eadc0972f",
+      "bytes": 9464
+    },
+    "components/dnsmasq/src/dns/interface_collect.rs": {
+      "sha256": "a633968f5dc3cec82ff977ad73ec5d3ef3b10fce34c1253ae1ea8c5eafe1286f",
+      "bytes": 15708
+    },
+    "components/dnsmasq/src/dns/interface_records.rs": {
+      "sha256": "04a6a18dfa5b503d9465d1ec4012451818f9c5f91bb59217f828a99fe7c58ea3",
+      "bytes": 10712
+    },
+    "components/dnsmasq/src/dns/lease_names.rs": {
+      "sha256": "88a71195aa8f6e6426b83b1a18320771ca594459532da4b3caa26c32a0cd39e2",
+      "bytes": 27144
+    },
+    "components/dnsmasq/src/dns/local.rs": {
+      "sha256": "52f9c01c7eb5f32ec8f405fb7287246363b7aa6080499a75f8fe01652b0ad4a2",
+      "bytes": 113086
+    },
+    "components/dnsmasq/src/dns/local_negative_tests.rs": {
+      "sha256": "a0ad32a1bc9d8f69ad98d7681ee6d1ddb1b2dd0eb179323a70ae450af81ab549",
+      "bytes": 14515
+    },
+    "components/dnsmasq/src/dns/loop_detect.rs": {
+      "sha256": "25cb0883b4fdab3ae363880c98e7a6e30a0861de366b6d78d82957285dc40db4",
+      "bytes": 6281
+    },
+    "components/dnsmasq/src/dns/mod.rs": {
+      "sha256": "2fecc11545e5e14be739c6b893f06060ddfa178dc81a2d7287f28762a8923cc0",
+      "bytes": 663
+    },
+    "components/dnsmasq/src/dns/process.rs": {
+      "sha256": "97d3fc635594ecebdbb171f46671d7d585fcedfc84d00ca0b4db6c1a7623c3a7",
+      "bytes": 34522
+    },
+    "components/dnsmasq/src/dns/query_policy.rs": {
+      "sha256": "98f45166e678c2b09c2bb9c9d128947867ce1afb2b19ff85a775f1ac65b1e180",
+      "bytes": 9722
+    },
+    "components/dnsmasq/src/dns/reply.rs": {
+      "sha256": "da3e159aa6ca781c6451ad0e42a65148577b6779098985775464e53e147bc898",
+      "bytes": 21432
+    },
+    "components/dnsmasq/src/dns/routing.rs": {
+      "sha256": "621535122d1571c31671c1a57c9658ca9b059ba88d3a73c59c55f9a9e8a816eb",
+      "bytes": 34094
+    },
+    "components/dnsmasq/src/dns/service.rs": {
+      "sha256": "02f937171b806f043ff09f7afc46ab3d006fcb570e18be012006d905c140c40f",
+      "bytes": 31250
+    },
+    "components/dnsmasq/src/dns/source_sockets.rs": {
+      "sha256": "03baf34d0df5a0b71c2ad08762cf1c550960d5f65b1f604887c8f5a6b9558da8",
+      "bytes": 14500
+    },
+    "components/dnsmasq/src/dns/tcp_connect.rs": {
+      "sha256": "d91499e1c2ce6fbc0b6038bfebe302fde98f3ebb7dc0739f2bb7f577191b5308",
+      "bytes": 5194
+    },
+    "components/dnsmasq/src/dns/tcp_exchange.rs": {
+      "sha256": "732c3c8c234011416de2a46df4127da69eada4171e54e9422aba0e5ca1da0c23",
+      "bytes": 10365
+    },
+    "components/dnsmasq/src/dns/tcp_service.rs": {
+      "sha256": "0697ea70bf0abcea5586138994f10ed6e95267f4c60852b94eacb2c7c7ffa287",
+      "bytes": 36664
+    },
+    "components/dnsmasq/src/dns/tcp_upstream.rs": {
+      "sha256": "8595b71b84082a22cc32f41025074ae39c497e5c3fbff06fa70c4d15ee851065",
+      "bytes": 10813
+    },
+    "components/dnsmasq/src/dns/tcp_upstream_tests.rs": {
+      "sha256": "edf92efa30c2c6b5cb4f12a20b2ea65e0a7db38edb35a8e65305ef94d433e7ca",
+      "bytes": 13754
+    },
+    "components/dnsmasq/src/dns/udp_query.rs": {
+      "sha256": "a87dfb66240f7e04b96554b7ab27df60adff031288b692015e34613175c6f188",
+      "bytes": 7021
+    },
+    "components/dnsmasq/src/dns/upstream.rs": {
+      "sha256": "479e4d90b91dc85111b72a1ac221ad26e25b7b9e16686441fbfec7f53a826b07",
+      "bytes": 132014
+    },
+    "components/dnsmasq/src/dns/upstream_owner_wake_tests.rs": {
+      "sha256": "6e829e871556802b9364336e02f675c891754ccef3173a0ed3f68899e66ffd0b",
+      "bytes": 11245
+    },
+    "components/dnsmasq/src/dns/upstream_route_resend_tests.rs": {
+      "sha256": "22c82e8290873dfe753269cc5a6e14099babaddf0573873bfc316d32c55767d6",
+      "bytes": 11778
+    },
+    "components/dnsmasq/src/dns/wire.rs": {
+      "sha256": "e5f923be00b56d1993203ed12afc37b383eb10732c18c0079e6c4a3cd4968321",
+      "bytes": 23726
+    },
+    "components/dnsmasq/src/dns/wire_tests.rs": {
+      "sha256": "2b1afb11d2e519d4b975bbda7c2218c0892c9a2ee6f083cea393fcb20bcea8a8",
+      "bytes": 12200
+    },
+    "components/dnsmasq/src/dump.rs": {
+      "sha256": "8343bea2ca070ddade1c29a58fc3da52f33a7366cb39c693228a3656721c5fc3",
+      "bytes": 14860
+    },
+    "components/dnsmasq/src/helper/packet.rs": {
+      "sha256": "50d10ea430daaa10a0fc865c892bb898f13fa4614d90b8eddcfbda752724f02f",
+      "bytes": 4031
+    },
+    "components/dnsmasq/src/helper/process.rs": {
+      "sha256": "c79b0ab716fc1faa8777f0bf8cab83915aa7035fcb660fe89235f0f711c8ae73",
+      "bytes": 46665
+    },
+    "components/dnsmasq/src/helper/wire.rs": {
+      "sha256": "be985aeed10c230b61cbcb00cd8e320626abe4164cb8762511835f227990adba",
+      "bytes": 14314
+    },
+    "components/dnsmasq/src/helper.rs": {
+      "sha256": "3a5778db6b48cf31fe8e049283379b09c98fa26200fb89a8c35adf2f5cb2173d",
+      "bytes": 22361
+    },
+    "components/dnsmasq/src/hosts.rs": {
+      "sha256": "9dd9f31a19a2c4cccdc7a14996e52edb6146b5125905d0b23263bf7aaa55c428",
+      "bytes": 90476
+    },
+    "components/dnsmasq/src/interfaces.rs": {
+      "sha256": "1c9906bf2673252462d613fe81219366f0f9be317373a71d45daa4fb4051b9c7",
+      "bytes": 13065
+    },
+    "components/dnsmasq/src/interfaces_broadcast.rs": {
+      "sha256": "461c8b4b89f75004a092b17c85ab98879ce07e5bce2f53c5b30b2c99fc24bfdb",
+      "bytes": 8876
+    },
+    "components/dnsmasq/src/interfaces_ipv4.rs": {
+      "sha256": "68992d21ab763c94ebb0aa6ee62a6f67ec9a240db4cf646febc3425fad41107d",
+      "bytes": 27754
+    },
+    "components/dnsmasq/src/lib.rs": {
+      "sha256": "88741ca0088926a36740f0a54394457cab53beddbeab0f6c164e5ecea99a5e9b",
+      "bytes": 1009
+    },
+    "components/dnsmasq/src/listeners.rs": {
+      "sha256": "b3ad164d2836c83be31c22da848e6c2ba576dd376fa7ddd904888b80f5333c8f",
+      "bytes": 29738
+    },
+    "components/dnsmasq/src/logging/address.rs": {
+      "sha256": "fc4c6458b00f0ced561cea91935f32062ecb3b4cb17f2a59c706daac7544b558",
+      "bytes": 2452
+    },
+    "components/dnsmasq/src/logging/query.rs": {
+      "sha256": "b0422065660b03190f6597c9614103d6fe6b2b86e23642432959346285a01b99",
+      "bytes": 19389
+    },
+    "components/dnsmasq/src/logging/startup.rs": {
+      "sha256": "bac5619389108bf806a9335a2c8f72178adde1f7fd26647e932c167f1ecb03f1",
+      "bytes": 9424
+    },
+    "components/dnsmasq/src/logging.rs": {
+      "sha256": "fbec75c225bba53f9f9890cbb937b6011365cb7c88a7dca3775ab7e284417d8d",
+      "bytes": 39974
+    },
+    "components/dnsmasq/src/main.rs": {
+      "sha256": "59bc447f2d9aac2536816b305895151bb3e05d7924c163e7b66fb151623ac46c",
+      "bytes": 377396
+    },
+    "components/dnsmasq/src/main_hosts_initial_hup_tests.rs": {
+      "sha256": "d5a8b904f813f8200ff75b2c6f90d6998f5fe4619dbc6e874bdf917517ac3458",
+      "bytes": 5793
+    },
+    "components/dnsmasq/src/main_hostsdir_init_tests.rs": {
+      "sha256": "20cdc42cd3dd773663f9f2665609da6c46664b815e0d120dd812432a5c4c602e",
+      "bytes": 24650
+    },
+    "components/dnsmasq/src/main_neighbor_tail_tests.rs": {
+      "sha256": "1e4cced84f5e596336e4e1f5be48b7d5709ebe4e5fcff1b6137567ad0ca46f80",
+      "bytes": 8372
+    },
+    "components/dnsmasq/src/main_newaddress_tests.rs": {
+      "sha256": "744455a88c43d3d4bd300f1e3c4115247b5da6531d80ca2804d47fd1892e80ef",
+      "bytes": 6645
+    },
+    "components/dnsmasq/src/main_route_resend_tests.rs": {
+      "sha256": "0d2ae1f0392bae65118cc1e93b4e67e6144b25a0eedb1343ec65145906252797",
+      "bytes": 10960
+    },
+    "components/dnsmasq/src/main_stale_refresh_log_tests.rs": {
+      "sha256": "375d96a42c4512da8e6d73bf9eba4638b8377b97ecdc9071d206509ae11d9b8d",
+      "bytes": 5475
+    },
+    "components/dnsmasq/src/main_tcp_import_local_tests.rs": {
+      "sha256": "8511314064504634367b57a4b353270f384fec0aa5423c8b620063f413c97e3d",
+      "bytes": 4308
+    },
+    "components/dnsmasq/src/main_tftp_admission_tests.rs": {
+      "sha256": "9e637ed167957c32ac72a39877cc11970222125e20c1ab7623747929a4b34fa0",
+      "bytes": 5476
+    },
+    "components/dnsmasq/src/main_udp_acl_tests.rs": {
+      "sha256": "0b0a2ad4450e520285d430e3a9156c7dc3bae0b690c11fc6bd0a9a95c24cb0a9",
+      "bytes": 8595
+    },
+    "components/dnsmasq/src/metrics.rs": {
+      "sha256": "e1fe02c7c9ad31d39cb31434f0936b6f0ac0c6085c1f185ac1bdeeb5f9cc0172",
+      "bytes": 3639
+    },
+    "components/dnsmasq/src/neighbors.rs": {
+      "sha256": "69b716b0a01857f18d09ee818055d30e043ebba86169f393efa3aaf6cdce3108",
+      "bytes": 34108
+    },
+    "components/dnsmasq/src/net.rs": {
+      "sha256": "a635712f6825778df81706769d718b28c719eb958ab3ff4b87433f9db81420b1",
+      "bytes": 33747
+    },
+    "components/dnsmasq/src/sorting.rs": {
+      "sha256": "4d7ee2eb9cceb659495f46bf2dbb4221a438ce7fa8b82d2eafeb923b353a1ee6",
+      "bytes": 4528
+    },
+    "components/dnsmasq/src/startup/cli.rs": {
+      "sha256": "74cb7a008e65ae20be77658550efe8decf5acb0d7da2ce26a82f73315edc0c61",
+      "bytes": 21673
+    },
+    "components/dnsmasq/src/startup/daemonize.rs": {
+      "sha256": "e96be759daecc2d365d2f979dc937179f93e1c1336b7ea733a55496819886ddd",
+      "bytes": 11261
+    },
+    "components/dnsmasq/src/startup/lease_init.rs": {
+      "sha256": "5f6df75c7ccbcb47cb068a9594239de3953c07ac92a944709f6d486f066f4a13",
+      "bytes": 5738
+    },
+    "components/dnsmasq/src/startup.rs": {
+      "sha256": "73c590949c513051384bb80c50af78dec0eb884dfdbf91f924b0432b171f8841",
+      "bytes": 19985
+    },
+    "components/dnsmasq/src/startup_relro.rs": {
+      "sha256": "5045a20238d01abf553bb8bd7ac133071f41137f44bed44278f416c8a0255c60",
+      "bytes": 3995
+    },
+    "components/dnsmasq/src/tftp.rs": {
+      "sha256": "ca0be916eaa907addd20f17084cbe349d6f4163e6bf669967cbbf11b0c14f28c",
+      "bytes": 19137
+    },
+    "components/dnsmasq/src/tftp_listener.rs": {
+      "sha256": "d90096c637cf5cf887bb500f2ec257d0d86f3b3cecf18fc649601bddec843f01",
+      "bytes": 44556
+    },
+    "components/dnsmasq/src/tftp_policy.rs": {
+      "sha256": "1e46c34cfe454fd85579b3ce5ce413a8ed4dbd9c91b0899e583d64f4c77f4ca2",
+      "bytes": 10145
+    },
+    "components/dnsmasq/src/tftp_runtime.rs": {
+      "sha256": "6a68a3d392e7ed8fd2a5a37773c424cd38acb5fee06d075076f01bd507eb86de",
+      "bytes": 64123
+    },
+    "components/dnsmasq/src/tftp_service.rs": {
+      "sha256": "1d4b94bfc0a845ceda528bbf1c10fa264be602e4f9012a6cf3aac445d9acb357",
+      "bytes": 11335
+    },
+    "components/dnsmasq/src/ubus_service.rs": {
+      "sha256": "88e4fb537f324a93254db190e2adca0a04ff1994a1299f972e87b78083133fd5",
+      "bytes": 18081
+    },
+    "components/dnsmasq/tests/hosts_allocations.rs": {
+      "sha256": "fbb94749d9b6e50f467d0bd4a352aebf4dab227bf3cf00f16c4b230eb6298db4",
+      "bytes": 36395
+    },
+    "components/ubus/src/blob.rs": {
+      "sha256": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+      "bytes": 20141
+    },
+    "components/ubus/src/conn.rs": {
+      "sha256": "1595f5619c7f2ecd1d3894dbe1d595f63d6019f374e7dd86187daf07d878af20",
+      "bytes": 106229
+    },
+    "components/ubus/src/connect.rs": {
+      "sha256": "7c568f49fdad2bc6ea4b0aa57c2a957d6f71896a3efeec0e45192acf86848999",
+      "bytes": 13925
+    },
+    "components/ubus/src/convert.rs": {
+      "sha256": "3cf3ca60d1e673d368d18ef2b80336929865dd4fd7f01e7b8aba1d30faf0f83a",
+      "bytes": 8116
+    },
+    "components/ubus/src/digest.rs": {
+      "sha256": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+      "bytes": 3233
+    },
+    "components/ubus/src/json.rs": {
+      "sha256": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
+      "bytes": 23422
+    },
+    "components/ubus/src/lib.rs": {
+      "sha256": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf",
+      "bytes": 682
+    },
+    "components/ubus/src/msg.rs": {
+      "sha256": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+      "bytes": 4372
+    },
+    "components/ubus/src/readiness.rs": {
+      "sha256": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+      "bytes": 11671
+    },
+    "components/ubus/src/sys.rs": {
+      "sha256": "cf163c665374d34e1b950eaaff410f01aef4a0da131f5a74a77ccb9fd14fbd9d",
+      "bytes": 20162
+    },
+    "docs/dnsmasq/audits/full-20261014/f10-contract/qualifier/approved/manifest.json": {
+      "sha256": "57da7fe59de8de504cb77f5982b8e15a3d599a083b1387e1a7451936f64a8f78",
+      "bytes": 161883
+    },
+    "docs/dnsmasq/audits/tcp-upstream-20261014/summary.json": {
+      "sha256": "8d07ca0b3008da5141386398d4739ae871b4fbe7496516e8ed862b4d40b0fa00",
+      "bytes": 43988
+    },
+    "rust-toolchain.toml": {
+      "sha256": "a5dab70a04165f8f83dd2db42a57347c61bc4f5285efa92be2b90362d835e50a",
+      "bytes": 507
+    },
+    "tools/dnsmasq/actual_config_e2e.py": {
+      "sha256": "72d6eb8382c8c56cc550833d79cbd37fc98a558a82a0412ca56082fa30d5cd67",
+      "bytes": 16174
+    },
+    "tools/dnsmasq/actual_config_network.py": {
+      "sha256": "c2c94c0264f7622953014402d1be02cc501bbd87dac122cbc2ff9bbc22c5ef17",
+      "bytes": 4725
+    },
+    "tools/dnsmasq/actual_config_rootfs.py": {
+      "sha256": "4ed8ae1420497dd6826ec06295e746fc4dc0af4c3cdd6b8168ca9a1ebe7fd2dc",
+      "bytes": 1996
+    },
+    "tools/dnsmasq/analyze_device_perf_oracle.py": {
+      "sha256": "391e0d0bebc0c69ca417c285d2a32436517becd2c00b4e7cea4997421aaec899",
+      "bytes": 13577
+    },
+    "tools/dnsmasq/audit_20261011_config.py": {
+      "sha256": "fcf7cdaf10546bf86755e67026395cd0fdb0d1dc619b0cc1592ee943ae535beb",
+      "bytes": 7116
+    },
+    "tools/dnsmasq/audit_20261011_dhcp.py": {
+      "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+      "bytes": 10332
+    },
+    "tools/dnsmasq/audit_20261011_dns.py": {
+      "sha256": "985034c1163e96059609d3a9a4d6d7fac75e4d9a03504f6b17946ee77c9aeffb",
+      "bytes": 14762
+    },
+    "tools/dnsmasq/audit_20261011_families.py": {
+      "sha256": "802f441a9c416ec4ae2960806ccb4f2f09f2926c987e6136bbc94118c369a860",
+      "bytes": 12953
+    },
+    "tools/dnsmasq/audit_20261011_hosts_memory.py": {
+      "sha256": "7aa6494b2266059e4750d6978ab4727786b0a33ae7b9574eb1d1dcc2b4c33971",
+      "bytes": 6182
+    },
+    "tools/dnsmasq/audit_20261011_pie.py": {
+      "sha256": "45e4afc7d40723d1c9493b3d028c977a21765b3aa0f9ffac09f02d71eebc2804",
+      "bytes": 5270
+    },
+    "tools/dnsmasq/audit_20261011_pie_cost.py": {
+      "sha256": "0afb0f58dea50496a617b45f196a833fd33b5f2b8dd1109a83a011b2102fd4db",
+      "bytes": 14643
+    },
+    "tools/dnsmasq/audit_20261011_pie_reload_confirmation.py": {
+      "sha256": "ec1aeedd9b97df3bf4ed3b28e46c86709d6eed33ae62f15f336c626e3c79c4b6",
+      "bytes": 11195
+    },
+    "tools/dnsmasq/audit_20261011_runtime_signals.py": {
+      "sha256": "249ae045f047063c9751376c7534ea20db3922b295eca209b8805b877d658337",
+      "bytes": 12826
+    },
+    "tools/dnsmasq/audit_20261011_static_pie.py": {
+      "sha256": "d2bc8272acb03a8f522579be7982775025824391251d7faf919589767c80dd14",
+      "bytes": 6000
+    },
+    "tools/dnsmasq/audit_20261011_tftp.py": {
+      "sha256": "9ff27c4301df483787b3ef391eea542141b544bc01f56e8f6a86511f853b4321",
+      "bytes": 12698
+    },
+    "tools/dnsmasq/audit_fix_20261011_dhcp_helper.py": {
+      "sha256": "80a0e830aee96da9025015ce150d0ad00204a4c9bca2b8ea158407037ff8fdc7",
+      "bytes": 10970
+    },
+    "tools/dnsmasq/audit_fix_20261011_hosts.py": {
+      "sha256": "dfef669d85cbd182b8d7e781ebd71493e8ad84b110a1c8fa0cc00f8ef508f67b",
+      "bytes": 9778
+    },
+    "tools/dnsmasq/audit_fix_20261011_hosts_startup.py": {
+      "sha256": "7832606f2bb487389d147bf928a39fd8e65835f185ca8abe40e6df6afa05b112",
+      "bytes": 8229
+    },
+    "tools/dnsmasq/audit_fix_20261011_hosts_startup_dhcp.py": {
+      "sha256": "25e942514032a900a54a116a99afdfba0e14f60d36d7d1657368d8570f8bfebd",
+      "bytes": 7348
+    },
+    "tools/dnsmasq/audit_integration_bus.py": {
+      "sha256": "b67acdcbf6e8cf5c8506324f83dde356bdffe5e9134cd64896a298f564484ec9",
+      "bytes": 9630
+    },
+    "tools/dnsmasq/audit_integration_identity.py": {
+      "sha256": "74b7c4aca6dd34e0260c8c2945c6459cf39a6364cb563e90d0000a2b17a812d6",
+      "bytes": 5344
+    },
+    "tools/dnsmasq/audit_integration_package.py": {
+      "sha256": "4fe3a590d07f687babc8fa847c764fd7e654f4a12ef242c16e6318071fccc6e0",
+      "bytes": 6709
+    },
+    "tools/dnsmasq/audit_integration_resources.py": {
+      "sha256": "df8ba4b90e7d2879701acd082de0953b86bc47e56113fdf4695eb2890c511361",
+      "bytes": 7598
+    },
+    "tools/dnsmasq/audit_integration_service.py": {
+      "sha256": "678d0034c03e72593efcb8bd3aa527cad42785196668768446fc8f7f2d288f35",
+      "bytes": 8771
+    },
+    "tools/dnsmasq/bootp_service_diff.py": {
+      "sha256": "23ebff535a3520ee6141802b36906ef674ae871c7aba14049d8ce1250bef8269",
+      "bytes": 13276
+    },
+    "tools/dnsmasq/bootp_vendor_diff.py": {
+      "sha256": "854b3059b9b12fe59a852bbf8a36d157c57080f0bf02d6f3ade569d1d7ef1121",
+      "bytes": 11772
+    },
+    "tools/dnsmasq/build_deploy_probe.sh": {
+      "sha256": "08478502247f6dac6d13e8962637022300173497b919c595925e2e77ea0b24fc",
+      "bytes": 1814
+    },
+    "tools/dnsmasq/build_dyn1.py": {
+      "sha256": "53df39558748af6c4d49f039ab191c9443ee689f70c64eb7f0aab8e3561b5cac",
+      "bytes": 6192
+    },
+    "tools/dnsmasq/build_package.py": {
+      "sha256": "f280b97d7ca572b8311e2cd9564ffb7e641cc1e98c0fc1ac69622bc47f819310",
+      "bytes": 29079
+    },
+    "tools/dnsmasq/build_package.sh": {
+      "sha256": "d71d477606d13515f95d3eacc0d4fdef56ae9be9ae86dd6b021822abdeee97c2",
+      "bytes": 284
+    },
+    "tools/dnsmasq/build_reference.sh": {
+      "sha256": "3044f4c84b0ea70cf8553c0dc5208ccbd6e3b9fa9a541197f28fccb0f5a3f138",
+      "bytes": 1582
+    },
+    "tools/dnsmasq/c_primitive_receipt.py": {
+      "sha256": "dbe3b40ac6de966a7c53980ff40c2da46ae7f7fa9a2c3d821bee039ae42e32a0",
+      "bytes": 10712
+    },
+    "tools/dnsmasq/cache_answer_diff.py": {
+      "sha256": "11c0b93f275e071beeff904bd8101405cd3cf5eb76685cbe26c2e20add267549",
+      "bytes": 14450
+    },
+    "tools/dnsmasq/cache_answer_driver.c": {
+      "sha256": "2066f1d536b2e25a8bc9659819c8d932bf51192a04b0cb844595fe08a9e980f8",
+      "bytes": 3198
+    },
+    "tools/dnsmasq/cache_clipped_diff.py": {
+      "sha256": "3307caa06f7730aa45cbd472ce7f72259e069566ede4df71291590e74028411b",
+      "bytes": 8100
+    },
+    "tools/dnsmasq/cache_clipped_service_diff.py": {
+      "sha256": "a00511e33c568f8e43c68da2df12ae817ab2859f7581782baea6813d419d5a0f",
+      "bytes": 9136
+    },
+    "tools/dnsmasq/cache_edns_diff.py": {
+      "sha256": "d7fb110ff1106731ed59d8338e11957b06316a744637a96da42241535f9928ec",
+      "bytes": 11117
+    },
+    "tools/dnsmasq/cache_expiry_baseline.py": {
+      "sha256": "c8fe7e8824ba2a17433ceef24edf698acfb12e0dbf64065fdf77aa3ee77513c2",
+      "bytes": 11503
+    },
+    "tools/dnsmasq/cache_expiry_screen.py": {
+      "sha256": "28662eb0b2a6f9ae2215b64fcc71dde9e40c9e3663e399714f9d53c4b5b85c00",
+      "bytes": 18611
+    },
+    "tools/dnsmasq/cache_expiry_screen.rs": {
+      "sha256": "a0fa9c10011ff6d3d097d940f050a33b5b1aa0b10e9ec1f9bfcf23e50af57f60",
+      "bytes": 12114
+    },
+    "tools/dnsmasq/cache_full_resource.py": {
+      "sha256": "95f1e991f80201271ac40c1cea586c9f01ca9fb3a08d13042b59164ffda95d26",
+      "bytes": 21089
+    },
+    "tools/dnsmasq/cache_metrics_diff.py": {
+      "sha256": "f560089cfc3fd6b6b78ad3376ec7bf60113211d9152bf4255134342d5e0210aa",
+      "bytes": 7353
+    },
+    "tools/dnsmasq/cache_metrics_driver.c": {
+      "sha256": "8063b9afa4c4512418158a1d272616cbeeb14205a389dc638932f35933cf37a0",
+      "bytes": 3263
+    },
+    "tools/dnsmasq/cache_metrics_probe.rs": {
+      "sha256": "40c69f6e466e14cde9eb87f084c55e1de05d717767efcd511c157aec7020a4b2",
+      "bytes": 5090
+    },
+    "tools/dnsmasq/cache_name_presence_diff.py": {
+      "sha256": "c63a56f8d68c945ea0a2205ddedd9685cded21e989ad4298e81b5b9a9ee1a251",
+      "bytes": 8027
+    },
+    "tools/dnsmasq/cache_partial_eof_driver.c": {
+      "sha256": "94588a0e49a987430f934ffcf3643bcbcc4399623a77517dee6aba6bf1f83cc7",
+      "bytes": 6662
+    },
+    "tools/dnsmasq/cache_partial_eof_oracle.py": {
+      "sha256": "b95ca6262c2d08f7e954961f7fecf335ef612fd0756312ebbb2459572c386297",
+      "bytes": 10506
+    },
+    "tools/dnsmasq/cache_partial_eof_rust_diff.py": {
+      "sha256": "ea2d2a32d814349bcbf8cde1dde162aa28d11b9be14537653ed5ec77705e4f01",
+      "bytes": 9825
+    },
+    "tools/dnsmasq/cache_policy_service_diff.py": {
+      "sha256": "dfa8de929f3ef89109989924d1830eb45c79ec06ca89bfb3a21f91698fd6fdbb",
+      "bytes": 9363
+    },
+    "tools/dnsmasq/cache_policy_transaction_diff.py": {
+      "sha256": "edfc2e33a8ae958c88e0c909dcf7e55bf507ee31d8e93d3b58613ceea2f9aa65",
+      "bytes": 15084
+    },
+    "tools/dnsmasq/cache_reverse_order_driver.c": {
+      "sha256": "d94b7b204d7e91197d2dd064fb2021c877599b65fef8f9a56d3f1758f4cd7544",
+      "bytes": 7487
+    },
+    "tools/dnsmasq/cache_reverse_order_oracle.py": {
+      "sha256": "54071f778999a29f4a6aeca575e42497c817e66886787ece594bacef00756fdd",
+      "bytes": 16850
+    },
+    "tools/dnsmasq/cache_reverse_order_recheck.py": {
+      "sha256": "316da3bb8dfb8d04a1f844a9257c485a42a17268afc19e05a47eca57bd8c8029",
+      "bytes": 3584
+    },
+    "tools/dnsmasq/cache_reverse_transfer_cases.py": {
+      "sha256": "50be7e7aef5745972df5d5096526eaa69b8ef7f682ee9318afd4d321dbd850bc",
+      "bytes": 3680
+    },
+    "tools/dnsmasq/cache_reverse_transfer_driver.c": {
+      "sha256": "3360c37032f61933ac7b6516ec60374eea2973aeb2b37582b0e67e64651601e0",
+      "bytes": 5068
+    },
+    "tools/dnsmasq/cache_reverse_transfer_oracle.py": {
+      "sha256": "07131c8183e7a4e1a52ee48ab477dbecc2fcc05c2b937133bbbdd6f18cc2973d",
+      "bytes": 18360
+    },
+    "tools/dnsmasq/cache_reverse_transfer_probe.rs": {
+      "sha256": "e1a9dd7243f1b05e3e695c3e7c6fbc0bba8db2c622c754211740f5a066c13e57",
+      "bytes": 8537
+    },
+    "tools/dnsmasq/cache_reverse_transfer_rust.py": {
+      "sha256": "766aed3eee7898bec976909a5169dfe23cdd44aeaee838e2fa140a91707d4076",
+      "bytes": 8637
+    },
+    "tools/dnsmasq/cache_transfer_allocation.py": {
+      "sha256": "73799baf193aadf7cfe184f15aa8e1c0712c94eb054f0824fc15ecaafb10b3fc",
+      "bytes": 5643
+    },
+    "tools/dnsmasq/cache_transfer_diff.py": {
+      "sha256": "e7e7770d38fc8392d07039231d3ff43b7c35abb02247988941170b37d2d43848",
+      "bytes": 14456
+    },
+    "tools/dnsmasq/cache_transfer_driver.c": {
+      "sha256": "578e5db1b31e262de14f02af1ebb26c79e0f9bb70099858f0868924698e20d2d",
+      "bytes": 6861
+    },
+    "tools/dnsmasq/cache_transfer_rust_diff.py": {
+      "sha256": "6e0abfb57cb7c8e2931cd235c55173b60525c276a1f8fea3abc1bb14acdcf891",
+      "bytes": 8312
+    },
+    "tools/dnsmasq/cache_uninit_probe.py": {
+      "sha256": "5a571c31a49163e6c8324f95a633bb890020b8096ed29ee3992cc13d2b51895d",
+      "bytes": 4846
+    },
+    "tools/dnsmasq/check_full_audit_dns.py": {
+      "sha256": "f92f1d3bbf3cde2a3ed8b1b65b2ca832fcf111d87dc23b004bd9cae137624020",
+      "bytes": 6541
+    },
+    "tools/dnsmasq/check_rootfs_overlay.py": {
+      "sha256": "04b4468dda011eed687bbeda50f51b537cd3c4811d4e8d723b9080169cd0a7f6",
+      "bytes": 4846
+    },
+    "tools/dnsmasq/config_startup_exit_diff.py": {
+      "sha256": "f592f5d78cb8d9be2c3051f4c2bb71a6081be26aac497583a46088a9997e55b0",
+      "bytes": 4982
+    },
+    "tools/dnsmasq/contract_inventory.py": {
+      "sha256": "edd6a92c3902f71fe3b4211433f9eac4c1270143ce8ce0c607e31bde5daf9985",
+      "bytes": 15917
+    },
+    "tools/dnsmasq/daily_usage.py": {
+      "sha256": "43d98668b08175ecb6662b177ed66d68b54bb2eed8637591434856e72cf636f6",
+      "bytes": 7985
+    },
+    "tools/dnsmasq/daily_usage_probe.c": {
+      "sha256": "90ab0df8706dc8bd43c53853e07cb3c2825b2cc88c8ae880d654827ba64dbe2a",
+      "bytes": 7908
+    },
+    "tools/dnsmasq/deploy/dnsmasq-deploy": {
+      "sha256": "83e8f1a3312e7583b319fc179af6795efae7354ffad5093ad881bd4639f6aef1",
+      "bytes": 22090
+    },
+    "tools/dnsmasq/deploy/dnsmasq-deploy-lock-init": {
+      "sha256": "4947f6dab222031a9169fe9cd777e0408f00f6842e5d98d92af64118cdb28ad7",
+      "bytes": 205
+    },
+    "tools/dnsmasq/deploy/dnsmasq-trial": {
+      "sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+      "bytes": 5982
+    },
+    "tools/dnsmasq/deploy_probe.c": {
+      "sha256": "75d150ff323208a2b1a60c18a09423fd6b046efe653134bce01be1fe20de30bc",
+      "bytes": 10577
+    },
+    "tools/dnsmasq/device_perf_case.sh": {
+      "sha256": "ea03817cd9381ce2f4a919b59b4b5c8456ab06e559a9de4d70ee3c383f88738f",
+      "bytes": 7570
+    },
+    "tools/dnsmasq/device_perf_guard.c": {
+      "sha256": "81d7cd6cfa2cf16c8d769d75eff114489e19c8980f770176002343a329607e7a",
+      "bytes": 17280
+    },
+    "tools/dnsmasq/device_perf_lifecycle.c": {
+      "sha256": "91d55183b1be257c2c87bd2618b6da9a4e72a7ce996f509dd7645f0c41378be4",
+      "bytes": 14544
+    },
+    "tools/dnsmasq/device_perf_netns.c": {
+      "sha256": "9d61cf294038710f8492a2fc9266997c8d66ade5f4def17e6163f2d6795654d4",
+      "bytes": 2424
+    },
+    "tools/dnsmasq/device_perf_oracle_supplement.py": {
+      "sha256": "7b01a6ba9382045fbefa13c1553f4ad9e19a2925b50c96e3e1602c0ffa767985",
+      "bytes": 11327
+    },
+    "tools/dnsmasq/device_perf_resource_probe.c": {
+      "sha256": "3ff3c4aa5e7a0fbea7c2c51c69c504c3c42066d4839eee716a1e76dd84b803ea",
+      "bytes": 12299
+    },
+    "tools/dnsmasq/dhcp_actual_tags_diff.py": {
+      "sha256": "4d61fe5b47a07f98f0a518af43ef0a12adaa56493962f1cee2f0f182e6973414",
+      "bytes": 6921
+    },
+    "tools/dnsmasq/dhcp_arp_diff.py": {
+      "sha256": "b7881aa90b06da95f2adceb1636d0580013cb0300befb7c9550fa7ec4ad92226",
+      "bytes": 8751
+    },
+    "tools/dnsmasq/dhcp_arp_linux.py": {
+      "sha256": "434e1851c0abb6a31869a8fc9bb7eaf47ace876c8ae8d7494788f426f471fc50",
+      "bytes": 8553
+    },
+    "tools/dnsmasq/dhcp_arp_probe.rs": {
+      "sha256": "895da24965bf6bce6d5103fe4bbf41b5b9282764c1f51fe99a0fcb12a0654393",
+      "bytes": 6742
+    },
+    "tools/dnsmasq/dhcp_boot_hosts_diff.py": {
+      "sha256": "a69c982900e709bafd95597b454c7aef536f47a8a99dda5e5b6817e7de6eb9df",
+      "bytes": 10077
+    },
+    "tools/dnsmasq/dhcp_boot_options_diff.py": {
+      "sha256": "15ec2281a73488cb934513fb0cf62661b17ae10c7954fb1d3e7519ae262d5e02",
+      "bytes": 7120
+    },
+    "tools/dnsmasq/dhcp_boot_service_diff.py": {
+      "sha256": "e6bd3a233f62f9dc120f7aecb523437ebab41fb19a39cf1eecb0fa0efd7dc847",
+      "bytes": 9944
+    },
+    "tools/dnsmasq/dhcp_config_diff.py": {
+      "sha256": "8a6043dcb7b4983a3bd483c71e4be82e99dc8843efbd799be0a90d10918f75c4",
+      "bytes": 13738
+    },
+    "tools/dnsmasq/dhcp_context_diff.py": {
+      "sha256": "f9a4f41771b8bebe568eecb11c8ab71e5fc4e5f34b00b35ddc71119dfb2c9115",
+      "bytes": 15775
+    },
+    "tools/dnsmasq/dhcp_daemon_smoke.py": {
+      "sha256": "9c276bf13970b6531a640a86defb384bbcce652d1693b52c475f3da21e61f97f",
+      "bytes": 7983
+    },
+    "tools/dnsmasq/dhcp_destination_diff.py": {
+      "sha256": "e0238a06076096bb2bc77a96a8c0cc5ab28938d4f140a59b1954142cf6aab012",
+      "bytes": 8314
+    },
+    "tools/dnsmasq/dhcp_destination_probe.rs": {
+      "sha256": "4700ae3bb8867644f65b5986e40f313e3b9c70f975a3fc66e0648abedc675c19",
+      "bytes": 2624
+    },
+    "tools/dnsmasq/dhcp_differential.py": {
+      "sha256": "c9f9663a4d271529de8020105a6910b1beacdc8e95e6740e690e1d363607b158",
+      "bytes": 26773
+    },
+    "tools/dnsmasq/dhcp_dns_diff.py": {
+      "sha256": "de48a307723122ebb122701dc18a265a08077905805585df71a581ae6b77d9fe",
+      "bytes": 11271
+    },
+    "tools/dnsmasq/dhcp_ethers_diff.py": {
+      "sha256": "f5e389e57e840d902de1eff2e620620a303cdfd66995ff5e8f9a3600b6a5637b",
+      "bytes": 6289
+    },
+    "tools/dnsmasq/dhcp_ethers_hosts_diff.py": {
+      "sha256": "b1bf09551db84824899823cfad0efeca6157764bb6f1ded67371153f87ee4430",
+      "bytes": 7866
+    },
+    "tools/dnsmasq/dhcp_event_order_check.py": {
+      "sha256": "596bc12f317412af8f610d9c82816ac9c44fd396d1eb6454f670c25050ced5f5",
+      "bytes": 2245
+    },
+    "tools/dnsmasq/dhcp_event_order_probe.rs": {
+      "sha256": "bec1f055168c9c30c011af14b80587115b75ee543131c076e814834a77c0244c",
+      "bytes": 5672
+    },
+    "tools/dnsmasq/dhcp_events_diff.py": {
+      "sha256": "c8b536811a018e68861350027ca3d5a9c0cd480dbf0fac7bfcab1202b5a91102",
+      "bytes": 6484
+    },
+    "tools/dnsmasq/dhcp_events_driver.c": {
+      "sha256": "e518590741c5f61f589ac70dbd2e135a571e1857d26a42a7558ba023db7e993f",
+      "bytes": 817
+    },
+    "tools/dnsmasq/dhcp_events_probe.rs": {
+      "sha256": "a7e3e03663fe05d7b4e169d291a5b3eb06c0ef4a3f110dc7d6466ff8905cca8e",
+      "bytes": 3030
+    },
+    "tools/dnsmasq/dhcp_fqdn_domain_diff.py": {
+      "sha256": "7e8fad998f501e2af4e494f1e552a30f5ec4ca96227273da0d5448cd5eae6738",
+      "bytes": 4066
+    },
+    "tools/dnsmasq/dhcp_fqdn_restore_service.py": {
+      "sha256": "6f6ca1a093e8209a1d040cd18a857ac01f4b7c555c4925e627d174d20507707a",
+      "bytes": 15869
+    },
+    "tools/dnsmasq/dhcp_host_address_diff.py": {
+      "sha256": "59d85be2f9d7578cbd597b24660ec5c7d53ceed8bea6eeddc7d6aeeaad322179",
+      "bytes": 13629
+    },
+    "tools/dnsmasq/dhcp_host_config_diff.py": {
+      "sha256": "3a70e99ebbc7a35fa0b4208406376f2e7ea041172071e08c8040488fe36df571",
+      "bytes": 11348
+    },
+    "tools/dnsmasq/dhcp_host_lifecycle.py": {
+      "sha256": "4e1c3363253864ba8de7a5758a01c1b8f0c5cf2006684695f0d61f03caab63fa",
+      "bytes": 12860
+    },
+    "tools/dnsmasq/dhcp_host_reload_lifecycle.py": {
+      "sha256": "94f973d9832d09d56ca1dd784ccec047a158972859d42056c29028cc701c4839",
+      "bytes": 7322
+    },
+    "tools/dnsmasq/dhcp_hostfile_boundary.py": {
+      "sha256": "538207ec127a4dc737c22cbb83cfbc66c5708da1efbaa598b10cc8444c5bfa2c",
+      "bytes": 4603
+    },
+    "tools/dnsmasq/dhcp_hostsfile_diff.py": {
+      "sha256": "70aea5200b820fd537519f754eeeade5b11e29ea8a8b7273b92b502a423a7878",
+      "bytes": 10909
+    },
+    "tools/dnsmasq/dhcp_icmp_diff.py": {
+      "sha256": "27a9d141b74f0cab5798b1087645e8d8d8fc3059189e0cbda5c9c78a0dd00bc9",
+      "bytes": 11108
+    },
+    "tools/dnsmasq/dhcp_icmp_linux.py": {
+      "sha256": "735d89154d761d84b53605785d6c019d291028522b93ad68df767bdcdcebfab2",
+      "bytes": 7374
+    },
+    "tools/dnsmasq/dhcp_icmp_probe.rs": {
+      "sha256": "dbb650fb565205bcddef3de6b2fac7e63e3114787c796dc50ad5e0880702ea99",
+      "bytes": 3985
+    },
+    "tools/dnsmasq/dhcp_lease_lifecycle.py": {
+      "sha256": "30f418c1d943ca1d833618c65e41d230bdd9850c441303134e9c52bf75115710",
+      "bytes": 14225
+    },
+    "tools/dnsmasq/dhcp_listener_smoke.sh": {
+      "sha256": "d2fd291ea2097322c704cb3dbb4bb7cbb2ded6b1bdef0508619a273ea3792ad5",
+      "bytes": 684
+    },
+    "tools/dnsmasq/dhcp_message_metrics_diff.py": {
+      "sha256": "863593a8b6b91c06ddb14b83ed2689517188fa8b6b78975b5975c81ded7d59e7",
+      "bytes": 13018
+    },
+    "tools/dnsmasq/dhcp_message_metrics_driver.c": {
+      "sha256": "3e53af6c2df15bad8f0f50db088163256a9a7e58812e1ccdb588effc3857409c",
+      "bytes": 4016
+    },
+    "tools/dnsmasq/dhcp_message_metrics_probe.rs": {
+      "sha256": "b02f53ad84372296c7332c2c85648c5ba33db4f7bdd3b6579ea0c822eb954766",
+      "bytes": 7640
+    },
+    "tools/dnsmasq/dhcp_negative_cache_diff.py": {
+      "sha256": "a35318a14a15641631785b96e9e7fa4d494d0d6e04091520e85ba584fc5f2450",
+      "bytes": 14808
+    },
+    "tools/dnsmasq/dhcp_negative_cursor_diff.py": {
+      "sha256": "e4134100ae96c8a3124798eeaa319938fd9818786ab5ad62d8350e8963e8cde0",
+      "bytes": 6917
+    },
+    "tools/dnsmasq/dhcp_negative_soa_boundaries.py": {
+      "sha256": "31641ce8e1a55ea0c46df9280207bfb33a8a1cd6645d22a98f01f0601f1b64a7",
+      "bytes": 6755
+    },
+    "tools/dnsmasq/dhcp_options_service_diff.py": {
+      "sha256": "c1c1605c4e12c93e3a5042b25fc9be28c9c762a6fec466846a791b0e52af4b92",
+      "bytes": 9589
+    },
+    "tools/dnsmasq/dhcp_persistence_diff.py": {
+      "sha256": "25c72d76fe3c51f5ac1c43c83fd519338a3fa33e4c0c950ce18ccd98f622100c",
+      "bytes": 10245
+    },
+    "tools/dnsmasq/dhcp_persistence_probe.rs": {
+      "sha256": "040b851a739285cb7e6b3a8be4da28331e8f72e4a9b09b5ffdd6435b3f8bafc8",
+      "bytes": 6165
+    },
+    "tools/dnsmasq/dhcp_probe.rs": {
+      "sha256": "b2b21fdf3b217f59db11b891721e34a43d8754c67a35c658bf251c631ea1a4b2",
+      "bytes": 15558
+    },
+    "tools/dnsmasq/dhcp_reply_diff.py": {
+      "sha256": "d369bde6d5da7ec9ac658c92a5745d406f045c8ac49e8d081d6dd400aeffd491",
+      "bytes": 16100
+    },
+    "tools/dnsmasq/dhcp_restore_fqdn_diff.py": {
+      "sha256": "cbc299a319567941fba58ec37be15574f2488cfda1a6f76cefcb215c7104bc9e",
+      "bytes": 6049
+    },
+    "tools/dnsmasq/dhcp_reverse_lifecycle_diff.py": {
+      "sha256": "b482323c782cc1dfa52406377e47be00a02a254239623f101e15d2a5968cea6c",
+      "bytes": 13859
+    },
+    "tools/dnsmasq/dhcp_reverse_name_diff.py": {
+      "sha256": "205591fd7f78023ff935cd84805002746b07cc1e2adb3c3b95c1d254bac06231",
+      "bytes": 4136
+    },
+    "tools/dnsmasq/dhcp_state_differential.py": {
+      "sha256": "3a948c75a30b6d99d803f9632c7cdc962db112ba1801b92a3e7146079fa77d2e",
+      "bytes": 12850
+    },
+    "tools/dnsmasq/dhcp_state_probe.rs": {
+      "sha256": "88a1c4b3245cfdda973585e19b7fd30047ec1058cbff4de5e2948e4fbe650e63",
+      "bytes": 9239
+    },
+    "tools/dnsmasq/dns_actual_policy_diff.py": {
+      "sha256": "5c10c581432b63289c6fcce85c3d02ef1bf1eedb007e76fd52b7162f2c59a0a2",
+      "bytes": 7294
+    },
+    "tools/dnsmasq/dns_address_config_diff.py": {
+      "sha256": "e29a604470cf0790d62bffead059450072b13c608ec09e8560056fcb2083d2b5",
+      "bytes": 6156
+    },
+    "tools/dnsmasq/dns_alias_config_diff.py": {
+      "sha256": "fc05f9b82e99986aedc36e342c839c72a47f595d7ee66abb1305395c4bce4457",
+      "bytes": 12814
+    },
+    "tools/dnsmasq/dns_alias_service_diff.py": {
+      "sha256": "2740635b7dff5a15d3783ea2e03bfe13b62c8c074d03b159ef350f9120c4a89e",
+      "bytes": 19609
+    },
+    "tools/dnsmasq/dns_bogus_cache_diff.py": {
+      "sha256": "9f885db8003b5560d7a8fda506a7ad73c55d3d0b014abd2598bd64b9f345f1d6",
+      "bytes": 10576
+    },
+    "tools/dnsmasq/dns_c_cost.py": {
+      "sha256": "78bc4fe9a77a6f4c1ddc9cc00c0e57f46710a958376200ac51fa74ad2be7a86d",
+      "bytes": 47932
+    },
+    "tools/dnsmasq/dns_c_cost_audit.py": {
+      "sha256": "963252de1d0793d0d6d5e3b6f1aceeca4e6da2b6342df0f94e7a645284e9b2d9",
+      "bytes": 13638
+    },
+    "tools/dnsmasq/dns_cache_diff.py": {
+      "sha256": "6b8f5a729a3b8c22bcba7f02f45519b5a664683e3189c2661c55855e1495a3b4",
+      "bytes": 21027
+    },
+    "tools/dnsmasq/dns_cache_rr_diff.py": {
+      "sha256": "172561b2bea3e0b85a9bf05bbf1c663feaade545944887dd56c6706df295d90d",
+      "bytes": 18917
+    },
+    "tools/dnsmasq/dns_cache_rr_zero_diff.py": {
+      "sha256": "caad10ce0eb4eea6642b30727f5f1d59db6d058d38eacbabeff743709c975d69",
+      "bytes": 4516
+    },
+    "tools/dnsmasq/dns_cd_prefix_diff.py": {
+      "sha256": "7179d7661adfe9c55dc4de8b5b09d4f131ede673a7b7468857bb8243c9ca9bb9",
+      "bytes": 15048
+    },
+    "tools/dnsmasq/dns_do_cache_diff.py": {
+      "sha256": "a45cf8e2895c25193a7959f52205ed0ac1aae865e12e5bc4ef82265d27a167c4",
+      "bytes": 15103
+    },
+    "tools/dnsmasq/dns_do_cross_type_pressure_diff.py": {
+      "sha256": "12b983d90e49791df4e908df9b5bea601d784face6597f1939646c77efa700de",
+      "bytes": 10833
+    },
+    "tools/dnsmasq/dns_do_lookup_pressure_diff.py": {
+      "sha256": "3d2fd04aca8c52147ac40dc6903720d7cad01ea1523abb622ccb85e3ac34753d",
+      "bytes": 10800
+    },
+    "tools/dnsmasq/dns_do_soa_pressure_diff.py": {
+      "sha256": "cd0e07de387f983f8f8d0bf1d73a9440b7ee105369d5a095838bf1ac7465335d",
+      "bytes": 11247
+    },
+    "tools/dnsmasq/dns_edns_coalescing_diff.py": {
+      "sha256": "7c7b0b0305094adb4ed38e913fad94ecefbce87ee63ce79383f00c408c2d7f8a",
+      "bytes": 6675
+    },
+    "tools/dnsmasq/dns_forward_diff.py": {
+      "sha256": "bac139c6e770de336719fb721f875fd0fa3c54ffe86bf754d5590b29ad6d9ef9",
+      "bytes": 22799
+    },
+    "tools/dnsmasq/dns_forward_service_diff.py": {
+      "sha256": "0eaa6ae89a40bb1ad39236f2a4b0a7248ebd16cb7742f1eb6595b00ee7227f11",
+      "bytes": 8690
+    },
+    "tools/dnsmasq/dns_generic_malformed_diff.py": {
+      "sha256": "ac1dc882c46d822e3172fa786b04e668dc69198fd92d8baa539622ac04d9279c",
+      "bytes": 15419
+    },
+    "tools/dnsmasq/dns_hosts_generation_diff.py": {
+      "sha256": "e6024f68833c79d60c3eda6c61d28213c1b7c295db23eca48fbd5b60e308872e",
+      "bytes": 15694
+    },
+    "tools/dnsmasq/dns_hosts_generation_oracle.py": {
+      "sha256": "34130d862e2a06ad1938e79e4aa7866ce41fa23073940f7de41178f0636497c2",
+      "bytes": 4661
+    },
+    "tools/dnsmasq/dns_listener_lifecycle_diff.py": {
+      "sha256": "fe7e041b8f6ecbc82eea6148218f4a9c91f9c99526db76fbb640011909613f9b",
+      "bytes": 8217
+    },
+    "tools/dnsmasq/dns_listener_policy_diff.py": {
+      "sha256": "0b4dcbfca6edf80aa99fb7773af6b8b8983aaecbe03e16790dd7c4c7095749e9",
+      "bytes": 10848
+    },
+    "tools/dnsmasq/dns_local_service_probe.py": {
+      "sha256": "30a5cd8faadf8aa467d3e867b52a52907afd111f9b7ce952811788d587883098",
+      "bytes": 6441
+    },
+    "tools/dnsmasq/dns_local_udp_diff.py": {
+      "sha256": "9a4a03dda713dcd0b1130519bc3a41045bb2e3c247c3c68186af67d6a53381ed",
+      "bytes": 8444
+    },
+    "tools/dnsmasq/dns_process_diff.py": {
+      "sha256": "4abab5733a6e8db837551b94d0bdbcd384da12822cb5771e1e64f443243832dc",
+      "bytes": 7852
+    },
+    "tools/dnsmasq/dns_reload_diff.py": {
+      "sha256": "4158678550ee7d88884d0af191a17e3b34d3c2464690484ef79b7b5dd5c2cb14",
+      "bytes": 12892
+    },
+    "tools/dnsmasq/dns_reply_diff.py": {
+      "sha256": "b8db53b309b96dd3732353cb8fe6997bc066de623f8d88296d8e84e92567385d",
+      "bytes": 18602
+    },
+    "tools/dnsmasq/dns_retry_failure_diff.py": {
+      "sha256": "7321b08fd72c08aba87c4933589e16346dd49c6d53229dc3931d641c2ffdc799",
+      "bytes": 17177
+    },
+    "tools/dnsmasq/dns_reverse_cache_diff.py": {
+      "sha256": "c4c47d9e2854d1949487b1ac6efc8886bcdb03b2686eeea12b050f6954dc17cf",
+      "bytes": 20012
+    },
+    "tools/dnsmasq/dns_reverse_lease_diff.py": {
+      "sha256": "76e97c4dedc1026411e80ef985764050d8f0808c20f10588a5582530251146ee",
+      "bytes": 22898
+    },
+    "tools/dnsmasq/dns_reverse_local_addon.py": {
+      "sha256": "42bf3d66bb6ade586cfe37277f251889c178ab6e252240f0eaf493db584e8eb0",
+      "bytes": 18944
+    },
+    "tools/dnsmasq/dns_send_retry_diff.py": {
+      "sha256": "122fb8847c864e5476b91b1eecc57a75d6ea26dc5e0bbf072d272ce84bebdd7b",
+      "bytes": 8619
+    },
+    "tools/dnsmasq/dns_service_probe.py": {
+      "sha256": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+      "bytes": 11417
+    },
+    "tools/dnsmasq/dns_shared_state_diff.py": {
+      "sha256": "706d9de1eb97b9a6bf2839a6cd9fc3cffa2d4a3ea0ebb068f16308d668326e39",
+      "bytes": 9135
+    },
+    "tools/dnsmasq/dns_signal_smoke.py": {
+      "sha256": "84dae2d3fdae2333edee5a9ee8357fc50460d4c38f931310bd8d6dfc0b7ba2ba",
+      "bytes": 7526
+    },
+    "tools/dnsmasq/dns_stale_refresh_diff.py": {
+      "sha256": "4cfe0b53b8b443afd6ed6f6ebdfaca8928ae08006d00ea882ae6fbb99d13da11",
+      "bytes": 13451
+    },
+    "tools/dnsmasq/dns_start_failure_diff.py": {
+      "sha256": "f56c9435c57b72ed8aac1936363f69ff8cedf610a94a83eccbb40f6c5a11de28",
+      "bytes": 15226
+    },
+    "tools/dnsmasq/dns_tcp_accept_failure_diff.py": {
+      "sha256": "a08cfe8c247d7dcc978f0cf579a6a9631457c86dc311ff3834159ceeb6e96e54",
+      "bytes": 11975
+    },
+    "tools/dnsmasq/dns_tcp_cache_diff.py": {
+      "sha256": "00331e3ac704ad604a057e00dccda3f4f2806b88acaad5cea7e3303a8e6e65a3",
+      "bytes": 13243
+    },
+    "tools/dnsmasq/dns_tcp_capacity_diff.py": {
+      "sha256": "13293710fc4d30dd729a5f5a2e6e98bf6a743b8e199ea2549b1136ace9b2094d",
+      "bytes": 12334
+    },
+    "tools/dnsmasq/dns_tcp_daemon_diff.py": {
+      "sha256": "eaaa2dcbdef682dceccc34521a07c2a0f6465ceb0b40119665a1e26e9363779c",
+      "bytes": 10002
+    },
+    "tools/dnsmasq/dns_tcp_ingress_diff.py": {
+      "sha256": "7e824b8ce8a633266a9cb5698b4a5029b131e8dee47061f8d0a2c926db02e54a",
+      "bytes": 12801
+    },
+    "tools/dnsmasq/dns_tcp_reload_diff.py": {
+      "sha256": "d060a82af36ec7d6bf6c297a1a5fc66fe310e6b5d4905ee976b9c12c81f0712a",
+      "bytes": 8050
+    },
+    "tools/dnsmasq/dns_tcp_writeback_diff.py": {
+      "sha256": "755cc342b4e53fe6477e3f54d87ad20c84e547ffa8aeb99a26726d2e1dff6fef",
+      "bytes": 14970
+    },
+    "tools/dnsmasq/dns_udp_admission_diff.py": {
+      "sha256": "629a0a009db7d576bcf3811e0c2ce47b81080c5636a69c7b23df377c4bd1732e",
+      "bytes": 17166
+    },
+    "tools/dnsmasq/dns_udp_admission_helper_diff.py": {
+      "sha256": "e5b1c7b8d293b73e49efbe73b472aa3fdf2796c3b22010a1d5c81d1ec17a1606",
+      "bytes": 2413
+    },
+    "tools/dnsmasq/dns_udp_deadline_diff.py": {
+      "sha256": "905a25fe1f0a3152ecc47d028a07c85ef9b12cfd8178cae2c5ad539646886ff3",
+      "bytes": 12078
+    },
+    "tools/dnsmasq/dns_udp_duplicate_limit_reference.py": {
+      "sha256": "6c06f3487d83caf2ea3924523b13923bbf8f91df2b40514d989d4bae699cdc71",
+      "bytes": 5486
+    },
+    "tools/dnsmasq/dns_udp_duplicate_policy_diff.py": {
+      "sha256": "2661b9e1ed048208ec95ad2f9dcae126afa4a919fe1d1d3b3e84d3b97fec9c20",
+      "bytes": 6211
+    },
+    "tools/dnsmasq/dns_udp_icmp_recovery.py": {
+      "sha256": "28c7896e5c20ac11d0558ff0a53b5966d488c6953e9cd8dd885b23d660d6bba3",
+      "bytes": 18564
+    },
+    "tools/dnsmasq/dns_udp_policy_diff.py": {
+      "sha256": "aacc10c4e2c45a31be541a7380cfa077b5dee44e7fedd747e91707e3e38c8ee3",
+      "bytes": 8194
+    },
+    "tools/dnsmasq/dns_udp_refusal_diff.py": {
+      "sha256": "fd9c6be5c48104115103c4f0a0311e091c59e88916e7c93258f58dacca7ef901",
+      "bytes": 12813
+    },
+    "tools/dnsmasq/dns_upstream_probe.py": {
+      "sha256": "c898506e1b81bc9cddab6ec07787ea02414a06f248335f5b55b90b96e6b815fb",
+      "bytes": 2358
+    },
+    "tools/dnsmasq/dns_upstream_size_diff.py": {
+      "sha256": "3fb4034c9ab8214721d89c97651a16fd278a10f2cb29cba2b4b090950954b8cb",
+      "bytes": 14076
+    },
+    "tools/dnsmasq/dns_wire_diff.py": {
+      "sha256": "996c9ddf57df2062905de10f616b0785f175ef82a62d8dc194b95c92965fc6e1",
+      "bytes": 20281
+    },
+    "tools/dnsmasq/doctor_packet_diff.py": {
+      "sha256": "37ab71636a0006367471189c1ef87e84e848e00d8a70a7ad402e54fd1a43b359",
+      "bytes": 9274
+    },
+    "tools/dnsmasq/doctor_packet_driver.c": {
+      "sha256": "987be08a5ffc89648f5ca084aa5d8aa9c218887496a4f26d467831017a0fa7fb",
+      "bytes": 4796
+    },
+    "tools/dnsmasq/doctor_packet_probe.rs": {
+      "sha256": "b9515044d51b5e22be2f60340188c8d1707b2857a7d5b7b9e1682152b18da2b9",
+      "bytes": 2199
+    },
+    "tools/dnsmasq/elf_cost.py": {
+      "sha256": "b1bac8630aa13586cc7e39a0a2887e7a91454c8abfc5c5a0c3675d0e528807d7",
+      "bytes": 4657
+    },
+    "tools/dnsmasq/elf_link_map_report.py": {
+      "sha256": "4eeedd7e1a191d885ff2dc684b242a04990a90c03ed7fbca7f77dcbf55f86578",
+      "bytes": 4542
+    },
+    "tools/dnsmasq/elf_size_report.py": {
+      "sha256": "5c4dc05481433e421f5ff0c38f100471f435d92cee01c0a5909ee4a2e86fc9a7",
+      "bytes": 14113
+    },
+    "tools/dnsmasq/f10_contract_check.py": {
+      "sha256": "fecf70b5730f1dc7f76d710fe50d611f5f18a1a7adf3767c5e5bf235a3774c62",
+      "bytes": 16851
+    },
+    "tools/dnsmasq/f10_contract_probe.py": {
+      "sha256": "debcd90c767a9b8378142d8742aa7373183e297bcc29c0efc6185cc8ca7d3e36",
+      "bytes": 19863
+    },
+    "tools/dnsmasq/f10_ptr_query_order.py": {
+      "sha256": "6b578569f5485a3d780ab3d7b10a5a99a185d00b6f4f8853c17971697c7d3565",
+      "bytes": 8066
+    },
+    "tools/dnsmasq/full_r2_hosts_recovery.py": {
+      "sha256": "a0fd9f5a57188e6459d7e1707e78df59034ac1d647eced953216440581037ade",
+      "bytes": 27305
+    },
+    "tools/dnsmasq/hosts_generation_inventory.c": {
+      "sha256": "4cca35173d5964b1137bd940b28cdc43f11b6a1d19db5c11ed034e74b67d2cca",
+      "bytes": 1110
+    },
+    "tools/dnsmasq/hosts_line_boundary_probe.rs": {
+      "sha256": "8ed39194fc917c5e046406efd11626cf9e242761f4c25d3aeca5d2f01cce34d5",
+      "bytes": 2698
+    },
+    "tools/dnsmasq/hosts_oracle.py": {
+      "sha256": "860f094f2c53fa59e411b87e8c7c72ccecce94fe670970849fac81c58d7624ac",
+      "bytes": 3749
+    },
+    "tools/dnsmasq/hosts_rotation_alloc.rs": {
+      "sha256": "ad518b384bea614596a9821df8d99a4dffd0d2b5d5d04bcd1f38ed27f58387b4",
+      "bytes": 5372
+    },
+    "tools/dnsmasq/hosts_rotation_memory.py": {
+      "sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "bytes": 12577
+    },
+    "tools/dnsmasq/lease_cache_collisions.py": {
+      "sha256": "d22dd1a8df8fcaf956b9cb57a1c80338db7e6a95e00d71e38d9aa015805d1b03",
+      "bytes": 3931
+    },
+    "tools/dnsmasq/lease_cache_diff.py": {
+      "sha256": "15409b1e2b68cb95a0a73189b6f0d7e0bda478e1cdf82663cd8b1003ab44a526",
+      "bytes": 8350
+    },
+    "tools/dnsmasq/lease_cache_driver.c": {
+      "sha256": "5e166e5704ae7b551092cfbeaf4297a13c0a8f112a0929146c9b78aa9efdec84",
+      "bytes": 6088
+    },
+    "tools/dnsmasq/lease_cache_probe.rs": {
+      "sha256": "ed74138bc69b92fe5bae5eae053da58b42406ae267d51c5d64d25e77adadc5d4",
+      "bytes": 3983
+    },
+    "tools/dnsmasq/lease_cache_reachability.py": {
+      "sha256": "6d9ddefd38cd328281a2fcab3f4f7fbd3a569d6385f216d51f4f7520ef69b334",
+      "bytes": 6395
+    },
+    "tools/dnsmasq/lease_clock_diff.py": {
+      "sha256": "ca54694dbd8e49a582d98e5ed6b730dc53005dffd549ef00c6b9ef7ebff117aa",
+      "bytes": 6837
+    },
+    "tools/dnsmasq/lease_clock_driver.c": {
+      "sha256": "211e2fb70e8f75a45e6ea480cd9477f3f50492082b48786ea7b91eb984b3f1af",
+      "bytes": 163
+    },
+    "tools/dnsmasq/lease_insert_diff.py": {
+      "sha256": "66f30aaa7a2b64b343a5e53694a684129064e4f34f0a13f9871ef5a351ad705d",
+      "bytes": 19309
+    },
+    "tools/dnsmasq/lease_metrics_diff.py": {
+      "sha256": "e52a323908e54544ab9ef4a60a2ef695a5ae30bc1135cbaadf68c4e25a1f60e8",
+      "bytes": 7664
+    },
+    "tools/dnsmasq/lease_metrics_driver.c": {
+      "sha256": "35c71788443c2a6c8e021106953d74720068788046caa30af85f6a20a795e9b8",
+      "bytes": 3351
+    },
+    "tools/dnsmasq/lease_metrics_probe.rs": {
+      "sha256": "301461b39c1e8ba747f30c13f6448fec61ee4c626cb2658b9974bc9f86a58f3a",
+      "bytes": 2842
+    },
+    "tools/dnsmasq/lease_names_diff.py": {
+      "sha256": "89826cb67aa777272bca0569d242a9732ae715eacdc748467a77c5fefeb27d68",
+      "bytes": 12648
+    },
+    "tools/dnsmasq/lease_names_driver.c": {
+      "sha256": "c14781b13d4fe07a045f834934e636c02fa90eae7196da20b755f68e360421fe",
+      "bytes": 4723
+    },
+    "tools/dnsmasq/lease_names_probe.rs": {
+      "sha256": "1d71e3f53655e677683cb58deca098f94aa7dcbe86d8d531285c5bfbddbece95",
+      "bytes": 6509
+    },
+    "tools/dnsmasq/local_answer_diff.py": {
+      "sha256": "6a96baaedf535ad0d84c08c1752f06729b5dfda16d75a66dcfd786ac8c9986bc",
+      "bytes": 22797
+    },
+    "tools/dnsmasq/local_answer_driver.c": {
+      "sha256": "cc6a66d9467ede21665945efde1c728a1642ad396f0c7464c0a094199dd526e3",
+      "bytes": 4589
+    },
+    "tools/dnsmasq/local_answer_probe.rs": {
+      "sha256": "170476a41574590dd9e5795866d03dce3e7e8f7190368e35ef718d68939b9c29",
+      "bytes": 3554
+    },
+    "tools/dnsmasq/local_answer_recheck.py": {
+      "sha256": "d0410bdd4b82b60e659e920526bd545ccc3597a15f8607653bb94452d97c8395",
+      "bytes": 4817
+    },
+    "tools/dnsmasq/logging_id_wrap.c": {
+      "sha256": "64ab86dcd621b31c44c6a2dca2d7fb494b1b60cd482a2fd9e81a45cf0c1cf783",
+      "bytes": 567
+    },
+    "tools/dnsmasq/m2_dhcp_scenarios.py": {
+      "sha256": "902cdc2221a87e8fdbb9fb791c81624a551d0fb3535e44b28715322043126b57",
+      "bytes": 36293
+    },
+    "tools/dnsmasq/m2_dhcp_suite.py": {
+      "sha256": "1c40e75a5d641e80ac9e708c3a33fc32cec5ef01f98927e9550f4016a5d47c16",
+      "bytes": 3197
+    },
+    "tools/dnsmasq/m2_dns_diff.py": {
+      "sha256": "0d6650fecf04e5410ef6d7a9417f6b18567c92f81e6cd1a5808a590834f776e8",
+      "bytes": 13785
+    },
+    "tools/dnsmasq/m2_dns_replay.py": {
+      "sha256": "f461280bb9b9c3fe7e12199cad604cf2cc1c0a2345034dd4e4d467f6cf65d7e9",
+      "bytes": 2721
+    },
+    "tools/dnsmasq/m2_dns_support.py": {
+      "sha256": "cc32b54abea607ae17b22502e18dc53dcb1c908b43c19e9cd9baba17268f3f6a",
+      "bytes": 17570
+    },
+    "tools/dnsmasq/m2_lifecycle.py": {
+      "sha256": "103af1794c0c50f297410dc332a053a540a74579e077b9192bee4fc2b6c2c2a6",
+      "bytes": 26448
+    },
+    "tools/dnsmasq/m2_rootfs.py": {
+      "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+      "bytes": 15493
+    },
+    "tools/dnsmasq/m2_rootfs_image.py": {
+      "sha256": "f427d8cdec4df3a2578ee719631c0c2709a669b8809ec1cbf5f36f5000a7d6a5",
+      "bytes": 2651
+    },
+    "tools/dnsmasq/m2_upstream_profiles.py": {
+      "sha256": "fcb02a3a90c8a980b74269d7aceb873a3db6df313ae08e7693f446313a65b8bd",
+      "bytes": 345
+    },
+    "tools/dnsmasq/m3_pressure_exact.py": {
+      "sha256": "5d26b7d6d6b05097af6af43953f557cf81d7982ebf2eda1dbbe2fe9a5ac87f74",
+      "bytes": 5834
+    },
+    "tools/dnsmasq/m3_pressure_probe.py": {
+      "sha256": "c4e10cc192762d7c4d896c222571c258b9ebe2697ebb1ccef4fd07f781a616bb",
+      "bytes": 11372
+    },
+    "tools/dnsmasq/m3_soak.py": {
+      "sha256": "8ece6074d7544f118c8f4bd15e1741d988c0b8e71133257c3e1e73ecf9e4d7b7",
+      "bytes": 51620
+    },
+    "tools/dnsmasq/m4_package_lifecycle.py": {
+      "sha256": "382b652f5070c2e9cdd8cfc90072fccf7d43a54a9dcaef8ce2ce39d1f898cba5",
+      "bytes": 39437
+    },
+    "tools/dnsmasq/m5_boot.py": {
+      "sha256": "c812d901ceb0170c9b3a82124bbe86472a5e85a38d50c47a11e6a2f7b07492a4",
+      "bytes": 6262
+    },
+    "tools/dnsmasq/m5_cli_final.json": {
+      "sha256": "28229f05023e92c549cc13de054434d244d698f7b0421cae0d50aa8792a8e4d5",
+      "bytes": 68318
+    },
+    "tools/dnsmasq/m5_cli_final.py": {
+      "sha256": "432e9e3fdfbc22de1d2c539b1f82e72e90f0a9f8cb04e837a6d0049df5c3f476",
+      "bytes": 17563
+    },
+    "tools/dnsmasq/m5_config_inputs.json": {
+      "sha256": "4c67c1d49c70fce0bbff9fc9c77bd60e04073a738a27ecf83f1c6879a99ddf98",
+      "bytes": 57750
+    },
+    "tools/dnsmasq/m5_config_inputs.py": {
+      "sha256": "59fd9910d14c9125aeb946b9db23bc36bf062198a3acb8680afafb564064e68a",
+      "bytes": 21501
+    },
+    "tools/dnsmasq/m5_device_binding.json": {
+      "sha256": "a75e04208e9f47dd7ab5eccbd533257ab4c67e5d891438934a86d375e3a049fe",
+      "bytes": 8440
+    },
+    "tools/dnsmasq/m5_device_binding.py": {
+      "sha256": "051bf6a4a61dae571ba992060575b3b4b1b7272b7b83c6507951f47744e1bf88",
+      "bytes": 21628
+    },
+    "tools/dnsmasq/m5_dhcp_files.json": {
+      "sha256": "d2cdd49f598ea5ad0b62df4fe047df3550a88a46a5e348dbe15e641ac6683719",
+      "bytes": 19384
+    },
+    "tools/dnsmasq/m5_dhcp_files.py": {
+      "sha256": "3909c02766c6c5bc205f5f1a77852dbea71e80c8876ffa0062290b1c052f8bc8",
+      "bytes": 74003
+    },
+    "tools/dnsmasq/m5_dhcp_network.json": {
+      "sha256": "b5d87000d16235a1da210b707b2dd495f71810e84f71f30ffc644e002f15e853",
+      "bytes": 5946
+    },
+    "tools/dnsmasq/m5_dhcp_network.py": {
+      "sha256": "92fd62721f3dc5783fc3bc5b23d453e791be65f6af9862170ea14230c4eacc44",
+      "bytes": 34690
+    },
+    "tools/dnsmasq/m5_dhcp_range.py": {
+      "sha256": "cf0e64320c0856f202de114a2242854c8eeffe008c42716641878ab25dbbfa88",
+      "bytes": 68337
+    },
+    "tools/dnsmasq/m5_dhcp_range_checklist.json": {
+      "sha256": "1c8397af10edba3a609b4b4ca3c6e3645672382e94d5bb7c286bf91cd8c4a850",
+      "bytes": 35368
+    },
+    "tools/dnsmasq/m5_dhcp_tags_options.py": {
+      "sha256": "e408db677e1911fa2cfa9cd7d98b8b4da84e316a38b4cd9ee1c8c0c9075971f9",
+      "bytes": 67645
+    },
+    "tools/dnsmasq/m5_dns_cache.json": {
+      "sha256": "3e4973239e423f6f68bcd306a53e39a2e06b887a71da1a486aa6ba9c2ab9e359",
+      "bytes": 33760
+    },
+    "tools/dnsmasq/m5_dns_cache.py": {
+      "sha256": "75e0f13cf03338f2653facd8471fadf48a49107c5bd261218d204fb32e2d7f80",
+      "bytes": 108604
+    },
+    "tools/dnsmasq/m5_dns_cache_qualify.py": {
+      "sha256": "94db3f424deedcdcd8d7c99d94d15cce14276afd1eee39281490b32ba561deed",
+      "bytes": 5533
+    },
+    "tools/dnsmasq/m5_dns_endpoints.json": {
+      "sha256": "b29b6badc86bfe90e135762e3b55ded884e98827a833575f49c2ef1b5b593972",
+      "bytes": 24306
+    },
+    "tools/dnsmasq/m5_dns_endpoints.py": {
+      "sha256": "b2afd42bdb95e40a305e7f6dfce1ad93ef46476631a9b74b5b5052969e87890b",
+      "bytes": 91081
+    },
+    "tools/dnsmasq/m5_dns_endpoints_requirements.json": {
+      "sha256": "5deba784117834a9bc362745b2034fc8d2b3869622ea31569c3be0978559355a",
+      "bytes": 108491
+    },
+    "tools/dnsmasq/m5_dns_files.py": {
+      "sha256": "e9bbb7b994dbcd035e86a817f4bc2038affdfba4950cbc62187eafa41278ceec",
+      "bytes": 100596
+    },
+    "tools/dnsmasq/m5_dns_files_requirements.json": {
+      "sha256": "5d42c7ad349a664622d41dbee650fc168a3c36faafa08ac85abd1326818db719",
+      "bytes": 59944
+    },
+    "tools/dnsmasq/m5_dump.json": {
+      "sha256": "d9100d47835b361d677b9489f4a6243ea675c1ea27e07d17227170a19c7280e1",
+      "bytes": 8646
+    },
+    "tools/dnsmasq/m5_dump.py": {
+      "sha256": "88a05d297d5b6b23b5214a6dc031a0b275908a625e433a9c585e788e4fa56f5b",
+      "bytes": 46355
+    },
+    "tools/dnsmasq/m5_edns.json": {
+      "sha256": "41ba8c39ea346d2e4e5f01f92ce7a602f0fecfea18373c5aa8bc0fa66de1a058",
+      "bytes": 15346
+    },
+    "tools/dnsmasq/m5_edns.py": {
+      "sha256": "b30fb544849f7fcb230121c47605a7ed572ae09aa7372a0e759238bb9fda5e50",
+      "bytes": 52562
+    },
+    "tools/dnsmasq/m5_edns_netlink.py": {
+      "sha256": "e7b728ea57ec6a75cce5260e16173c5b1fad4631ea1298b902d4d6d062a62350",
+      "bytes": 8233
+    },
+    "tools/dnsmasq/m5_filterwin2k.json": {
+      "sha256": "5827a517c9fd211e0998a7bb7ffb424f4de5e22f66c5c570c2f3d48dd51625aa",
+      "bytes": 22389
+    },
+    "tools/dnsmasq/m5_final_archive_gate.py": {
+      "sha256": "924f99da8cba7dbd2617c93eeb3b586a6729304373bacba95e3a7c6b10d3fbb4",
+      "bytes": 3745
+    },
+    "tools/dnsmasq/m5_final_assets.json": {
+      "sha256": "0dd9c05a71455457a15e9d87ec277426d290d81115ab2c864270a1a4171f8d4b",
+      "bytes": 3751
+    },
+    "tools/dnsmasq/m5_final_budget.json": {
+      "sha256": "e63d182761eaa4b115bf67e7e16ce5afaa70a56de09992accef7c32d92280b43",
+      "bytes": 256
+    },
+    "tools/dnsmasq/m5_final_families.draft.json": {
+      "sha256": "2289c79a327fd2703ad7fbe696f7b0cdd20a850dd442822fc55f1a3421c0d23a",
+      "bytes": 186178
+    },
+    "tools/dnsmasq/m5_final_inputs.example.json": {
+      "sha256": "32bb7e9c9a7525d6ec060ed72c7237efcefc76e58e4c1d2961fb4206b897f049",
+      "bytes": 2927
+    },
+    "tools/dnsmasq/m5_final_validation.py": {
+      "sha256": "6d38bd20f5d59da9665c569d003c1d4b4b69ff1117f64467a8a59fa8c62b4542",
+      "bytes": 58720
+    },
+    "tools/dnsmasq/m5_fixture_revision.py": {
+      "sha256": "45346c86884b0526011950bd6e174aaffeebd6b7664b349ca2b63bc2cce64781",
+      "bytes": 15740
+    },
+    "tools/dnsmasq/m5_helper.py": {
+      "sha256": "1a8724cb5b9d60176254b636d248c7db8ffbab968b1b957f0431d16d88502c7c",
+      "bytes": 39905
+    },
+    "tools/dnsmasq/m5_interface_records.json": {
+      "sha256": "34b66403dbd8227676c2429834ad0aa008744b24edfab470a3d54473e33f07df",
+      "bytes": 159163
+    },
+    "tools/dnsmasq/m5_interface_records.py": {
+      "sha256": "3b10d153b6dd063dab0e69d8c62fe68abe3b1ef01d5382da6a1c3f4d64c614e2",
+      "bytes": 150309
+    },
+    "tools/dnsmasq/m5_interface_records_qualify.py": {
+      "sha256": "b385bec57c29a3bbd93968961eb7545d41d9ad65a357868445ead0eac2d80006",
+      "bytes": 5144
+    },
+    "tools/dnsmasq/m5_lease_recovery.json": {
+      "sha256": "cb706a0a34eb980a85ef6461b95c3a2585713edfc8881839f0728a4cf3d1729d",
+      "bytes": 15313
+    },
+    "tools/dnsmasq/m5_lease_recovery.py": {
+      "sha256": "d853d726a3003da10349e0180a1115ffef88d28103bf0bfd623b36afc6bb6189",
+      "bytes": 39772
+    },
+    "tools/dnsmasq/m5_leasequery.py": {
+      "sha256": "5467a36abf6d8acbd567db8c7030a2cd29210a336efd8b83aaeee7a04c6101f1",
+      "bytes": 33252
+    },
+    "tools/dnsmasq/m5_listeners.json": {
+      "sha256": "a96b72643f3b784ddca171a3d682543e818e033c1eb462a8eb549b3419a65f88",
+      "bytes": 130368
+    },
+    "tools/dnsmasq/m5_listeners.py": {
+      "sha256": "ff420cd1c61351893b0c9fb730ab2672e5a6c9f126673bdc2e69bf4d72c39709",
+      "bytes": 54685
+    },
+    "tools/dnsmasq/m5_local_records.py": {
+      "sha256": "f006e668faeae2c25e0be82633be82830ae38f331b0485946dd5a86ab69ad9d9",
+      "bytes": 24060
+    },
+    "tools/dnsmasq/m5_logging.py": {
+      "sha256": "bfdd4f89e342ec335b20d0da770b6be42239c754402c4531d22b27b7c766e138",
+      "bytes": 201109
+    },
+    "tools/dnsmasq/m5_logging_dhcp.py": {
+      "sha256": "c52db8b33e06d5659c556caeac77cd65f2edd77298bef511b4efd266990bfe56",
+      "bytes": 17006
+    },
+    "tools/dnsmasq/m5_logging_hooks.md": {
+      "sha256": "42da47ee23d58e11c895a04556e6fbb6bf92a16f39e603ae9fcf5856bed9d1c1",
+      "bytes": 5575
+    },
+    "tools/dnsmasq/m5_logging_id_wrap.py": {
+      "sha256": "7411991479caae488601bd80453b5264a7d6e7132157ffe7a489cdc3d0a6f46d",
+      "bytes": 3101
+    },
+    "tools/dnsmasq/m5_logging_requirements.json": {
+      "sha256": "732d72afb17b11e228de8be5cf964ed8b13739e1df6f6908880f3e848cde8e63",
+      "bytes": 102587
+    },
+    "tools/dnsmasq/m5_loop_detect.json": {
+      "sha256": "6a4b4dc57987c32a48fa796f069a37620da67b28726b47ec747f7e3ab2d9eebd",
+      "bytes": 6598
+    },
+    "tools/dnsmasq/m5_loop_detect.py": {
+      "sha256": "606691044bd273872ba8e5f3ff05865c75aa9756a702addbfb9f89c637a26b23",
+      "bytes": 43799
+    },
+    "tools/dnsmasq/m5_option_matrix.json": {
+      "sha256": "19b1d10c7614c1343477847d7bc8e596c4647c188782ba1ca71d4ac9ed4c1896",
+      "bytes": 58325
+    },
+    "tools/dnsmasq/m5_option_matrix.py": {
+      "sha256": "ee409adef06e87e2979d77038285da81e3952289e9f749e31caecbe697d20fcf",
+      "bytes": 38623
+    },
+    "tools/dnsmasq/m5_option_matrix_admission_timing.json": {
+      "sha256": "e0117c3f02fcbadba004bea1bb0fabf071b6c271b43bf738c5b4e7eaa4772e5f",
+      "bytes": 3330
+    },
+    "tools/dnsmasq/m5_option_matrix_archive.py": {
+      "sha256": "70f2ad81b495d6cd9459c7211a3e3d5b23193b3d4e075198a4b018aaceabb107",
+      "bytes": 8408
+    },
+    "tools/dnsmasq/m5_option_matrix_dhcp.json": {
+      "sha256": "117bba018b12ea82e05723fcafd722f4bf43c0b64130390c38ea8a9b57aea9ac",
+      "bytes": 79450
+    },
+    "tools/dnsmasq/m5_option_matrix_dhcp.py": {
+      "sha256": "d0fa8e84bac8b638940f2944e445d7b41ebb9766fabf756d79517e52e1b6c5eb",
+      "bytes": 27942
+    },
+    "tools/dnsmasq/m5_option_matrix_dhcp_v4.json": {
+      "sha256": "5050a4d3bb94975f9a33802776b1eff0a838e8a712be488d2467c9ff9bf610dc",
+      "bytes": 23883
+    },
+    "tools/dnsmasq/m5_option_matrix_lease_names.json": {
+      "sha256": "21aa42e12e11e8f25dabf22e20cb63e9fc06ec8bfbbfe6e4e04b182ff05038dd",
+      "bytes": 103802
+    },
+    "tools/dnsmasq/m5_option_matrix_next.json": {
+      "sha256": "282411076a2a0ab34deaea94b01f9f33193f4a221f041402a792dbf6c862cd53",
+      "bytes": 180700
+    },
+    "tools/dnsmasq/m5_option_matrix_probes.py": {
+      "sha256": "74098a24dd561cb141fbe37a0c53ba776040aa44f8a5f0963075de588328ebb8",
+      "bytes": 33638
+    },
+    "tools/dnsmasq/m5_option_matrix_tag_if.json": {
+      "sha256": "8aa0f4b02575ae2175db16b4086252563b9642f5943803bed5864160da0b9a20",
+      "bytes": 52296
+    },
+    "tools/dnsmasq/m5_option_matrix_third.json": {
+      "sha256": "d587c61bfcc7edd08ea6d83d98a87eee6c602dbb4a6b93751ac450dd8d1d104e",
+      "bytes": 244098
+    },
+    "tools/dnsmasq/m5_pxe.py": {
+      "sha256": "4ffb9f842080bdb34b3e0406302ccda24a3c3e725438d340dcf12adab0485e3d",
+      "bytes": 72800
+    },
+    "tools/dnsmasq/m5_relay.py": {
+      "sha256": "de7ad186c7e71f7f74faa6b1e31ba5bcf5ca119ef3e8ff3857eeb4608755de28",
+      "bytes": 51240
+    },
+    "tools/dnsmasq/m5_relay_trace.py": {
+      "sha256": "0457711e9c8a3f77a509496aa2640504decd957fa0a5720249578f089c9858bf",
+      "bytes": 5788
+    },
+    "tools/dnsmasq/m5_rr_filter.py": {
+      "sha256": "d1a34d8d0d4bdfe1a3622798eb2f8e3783b4b16e6fafd99c0e95afbfc3b92f2d",
+      "bytes": 16867
+    },
+    "tools/dnsmasq/m5_script_arp.json": {
+      "sha256": "87a2884f6344e7986e90bfc987020c2360c121ec5ad0f2cb59770d2c38e4d3c5",
+      "bytes": 9949
+    },
+    "tools/dnsmasq/m5_script_arp.py": {
+      "sha256": "7ac44733337fb68e9540000c946fa5d0ab4b59303fcb761ae94b36501094d1c4",
+      "bytes": 76214
+    },
+    "tools/dnsmasq/m5_tftp.py": {
+      "sha256": "fa1e4ce3333f9c692836ecd28ec2e57ff4a383ef758b3849af9c97fd737c9080",
+      "bytes": 39789
+    },
+    "tools/dnsmasq/m5_tftp_allocation.py": {
+      "sha256": "1c781b66f91625a5515985b0631b65fff6fb6e159bc49c9c3cdf9477f2029fb8",
+      "bytes": 8523
+    },
+    "tools/dnsmasq/m5_tftp_errors.json": {
+      "sha256": "375832cad267d23b1ddb71b65c3397842af8cec9a0623e5f6b2bfb5d6c44b130",
+      "bytes": 9940
+    },
+    "tools/dnsmasq/m5_tftp_errors.py": {
+      "sha256": "8d4a736a3d106ab65c92787552a6995c8b8719af2b83a9676040f72961dad12a",
+      "bytes": 29967
+    },
+    "tools/dnsmasq/m6_memory_layout.py": {
+      "sha256": "0abd09674bb2c4a03813aaa29f92783b2aec0bfe0b2ab5a470efecace9c045e0",
+      "bytes": 11274
+    },
+    "tools/dnsmasq/m6a_analyze.py": {
+      "sha256": "0a160d3028a6a91fc74137b4596cd3044185c1df60e13d593abc5c5bb9382409",
+      "bytes": 39173
+    },
+    "tools/dnsmasq/m6a_archive_watch.py": {
+      "sha256": "065038b35e9ba81789a8449f8bc5e5a4d4d222542a47881fba77ab8fa229738c",
+      "bytes": 4836
+    },
+    "tools/dnsmasq/m6a_loadgen.c": {
+      "sha256": "f932f729166f9e9f8dfc75c062d123b4d80de41f38b7261276c764c7ac0ee4c4",
+      "bytes": 33530
+    },
+    "tools/dnsmasq/m6a_suite.py": {
+      "sha256": "9c20f0bd24854fc901a10236ed6c256a2df2ce6fdcf4458b5455099641565b66",
+      "bytes": 26898
+    },
+    "tools/dnsmasq/m6a_upstream.c": {
+      "sha256": "09fd1d28603053bb3255f288d3ffeee84da4da6aca348711f9d0e2e9a94968ee",
+      "bytes": 11411
+    },
+    "tools/dnsmasq/m6a_window.py": {
+      "sha256": "94823ed60d1787cbbe01ad3fa0a0a810e46576c91f1b659e7da952a8d72fd3d1",
+      "bytes": 74049
+    },
+    "tools/dnsmasq/m6b_interface_acl.py": {
+      "sha256": "0e54dd7995b5fa007cafa8950c10a0cd7f13888d9a83820c26ad0b064bff75a5",
+      "bytes": 18365
+    },
+    "tools/dnsmasq/m6b_interface_idle.py": {
+      "sha256": "fca8b6bc05e02c1e130ca66226c7fef137388adff45e97e346af2f7ab69e5af4",
+      "bytes": 8511
+    },
+    "tools/dnsmasq/m6b_intermediate.py": {
+      "sha256": "f99cbabea9eee50655bf692c62592c72cf63987abb51e82112506e4225f2cb0e",
+      "bytes": 9419
+    },
+    "tools/dnsmasq/m6b_netlink_membership_fault.py": {
+      "sha256": "59f3a4f3aff3267dadec3acfed06f6bc8f454b6df40662c3919ab12d2233b86c",
+      "bytes": 15464
+    },
+    "tools/dnsmasq/m6b_old_loop_analyze.py": {
+      "sha256": "53c6d1af6a36d55fb40373966f1fa85f15d6c4bb876d31344220a650d88bb141",
+      "bytes": 5911
+    },
+    "tools/dnsmasq/m6b_perf_guard.final.json": {
+      "sha256": "c074047addae2f6cf9f714b38ca9d06871b308ad7995569f56a25898dd82ad28",
+      "bytes": 4193
+    },
+    "tools/dnsmasq/m6b_perf_guard.py": {
+      "sha256": "f960506d3e3279cf069615ad95e1bf36ffc6912239d5e6216dc5d8bbabc7c060",
+      "bytes": 14555
+    },
+    "tools/dnsmasq/m6b_perf_guard_inputs.example.json": {
+      "sha256": "a0736084e51547a181f330ce4618d2292d1341a4273e94a5c4e5bc6f29420b0b",
+      "bytes": 320
+    },
+    "tools/dnsmasq/m6b_primitive_assets.py": {
+      "sha256": "3df30d4c67a34b67e0bfb7760f7aef95ec21e8be8053274baff8e7a08b3c486e",
+      "bytes": 15179
+    },
+    "tools/dnsmasq/m6b_reload_same_wake.py": {
+      "sha256": "d2a977bcd2595922f1098aa9b937b09451ab488b9e09c495d305869fc4333912",
+      "bytes": 11232
+    },
+    "tools/dnsmasq/m6b_resource_companion.py": {
+      "sha256": "0e3bd355f49f83395f681112a2e87329591385189b9bb1d65b63bcf62f34c109",
+      "bytes": 14444
+    },
+    "tools/dnsmasq/m6b_resource_main.rs": {
+      "sha256": "130103f3ffc68901207db5c027b7256540aee09371809b001a98b6d53a2878e7",
+      "bytes": 6847
+    },
+    "tools/dnsmasq/m6b_resource_meter.rs": {
+      "sha256": "7a645fe664d92d85fce2355b26821dcf8dd5480c69880fb51401274017761603",
+      "bytes": 11712
+    },
+    "tools/dnsmasq/m6b_resource_roots.rs": {
+      "sha256": "34be8bb63f8a2d4702b60f35e9a766e9c4da5b3701bf8a1c3d96c1f6ed953fcd",
+      "bytes": 11588
+    },
+    "tools/dnsmasq/m6b_reverse_order_c.py": {
+      "sha256": "81ef0838b0d6527cb0323e9e936d13bef3c49d2bc711922417dd959187b865c8",
+      "bytes": 11306
+    },
+    "tools/dnsmasq/m6b_reverse_order_rust.rs": {
+      "sha256": "a99d12d53603fb88909006a58143a8d1652e1a237744b7fb8d15ffc87e367a97",
+      "bytes": 3548
+    },
+    "tools/dnsmasq/m6b_reverse_order_sidecar.py": {
+      "sha256": "34e0d1c0dc4204ce732adc4263ec4a540488765dd3933b7eaa8e86a28d512952",
+      "bytes": 22308
+    },
+    "tools/dnsmasq/m6b_route_resend.py": {
+      "sha256": "660774e392aff75cbdc057e65dac176643710f179e2549f3b015b0dffbfef134",
+      "bytes": 52042
+    },
+    "tools/dnsmasq/m6b_tcp_a_guards.py": {
+      "sha256": "c0cf9c7859f52fb43d3c0a08e747c96827046af8b1a07522d6991534e92a49ed",
+      "bytes": 14263
+    },
+    "tools/dnsmasq/m6b_tcp_a_layout.py": {
+      "sha256": "57765f8dad9ed12acb8c995926cdc0633e9f35edd17d3b22578b6aab29ed5206",
+      "bytes": 26879
+    },
+    "tools/dnsmasq/m6b_tcp_accept_snapshot.py": {
+      "sha256": "391dbf76cfd86413117c2d0b47e5f330de6e7b817549d4112c983c19497e15a5",
+      "bytes": 25257
+    },
+    "tools/dnsmasq/m6b_tcp_cpu_gate.py": {
+      "sha256": "6fd0f2f8f75c0320e8c31018dc442df3c2ca5cd2d72a51168f7d6a76ead91049",
+      "bytes": 34474
+    },
+    "tools/dnsmasq/m6b_tcp_cpu_run.py": {
+      "sha256": "c68092561031f767b973d945136309f6075b6afadae793b290f96fbf2019b0f8",
+      "bytes": 20801
+    },
+    "tools/dnsmasq/m6b_tcp_interleaved.py": {
+      "sha256": "547d2491d153f6065cf188776f4ca8f4dcecf69a4a5515a5748549e73d047929",
+      "bytes": 41755
+    },
+    "tools/dnsmasq/m6b_tcp_internal.py": {
+      "sha256": "e454c091eb674b042835c0f827d07664fd7138779bb35e9475794e89c201736c",
+      "bytes": 54771
+    },
+    "tools/dnsmasq/m6b_tcp_lease_import_regression.py": {
+      "sha256": "7292335ecb60fd7817b3c03f8de6bb401919b765338a33c02f2a4a512e6bcfaa",
+      "bytes": 7587
+    },
+    "tools/dnsmasq/m6b_tcp_log_lifetime.py": {
+      "sha256": "1b89d47c4955c5ec2576a352f9715a821c341a4d0230924a204ff670a30305a1",
+      "bytes": 31439
+    },
+    "tools/dnsmasq/m6b_tcp_pressure.py": {
+      "sha256": "97b32afb8f9df7c268d8c8043b325f199e7aac2dc29c4867ec76341d55a67c86",
+      "bytes": 43900
+    },
+    "tools/dnsmasq/net_abi.c": {
+      "sha256": "e4344fc6283c7a4d41e96a0ee1d36618b1464d478b9257280aa85779f47ca464",
+      "bytes": 1982
+    },
+    "tools/dnsmasq/oracle_build.sh": {
+      "sha256": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+      "bytes": 13925
+    },
+    "tools/dnsmasq/package_activation_network.py": {
+      "sha256": "176845ed5a3b6f098bddb0cd5d536a82a476e8ee389fc3ca0118887632353a8c",
+      "bytes": 8078
+    },
+    "tools/dnsmasq/perf_link_map_profile.py": {
+      "sha256": "9177e984db19d039bc424230d0f23cb1bdc23b525a2f2a359ab6e3a2c519d87d",
+      "bytes": 10666
+    },
+    "tools/dnsmasq/port_zero_dhcp_diff.py": {
+      "sha256": "944d38bb5d081726169d4984f146540a9e44fce207998b7fadb41334c4ee1e8f",
+      "bytes": 14066
+    },
+    "tools/dnsmasq/port_zero_tftp_diff.py": {
+      "sha256": "e78125fd8b560938448f52e74405598765c9e20f5323ec0ca2a6d69600228bfa",
+      "bytes": 4782
+    },
+    "tools/dnsmasq/predeploy_audit_dhcp.py": {
+      "sha256": "ef4a31403cba99da4c395d29e7dd54bc9b064f684ff85b476ae4ad3d3c8ddcd9",
+      "bytes": 28750
+    },
+    "tools/dnsmasq/predeploy_audit_dns.py": {
+      "sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480",
+      "bytes": 32454
+    },
+    "tools/dnsmasq/predeploy_audit_reload.py": {
+      "sha256": "486b7b99aa9ff84253026d8b901cb098ecff249089b95cfa27fcf59222f2c999",
+      "bytes": 22001
+    },
+    "tools/dnsmasq/predeploy_audit_robustness.py": {
+      "sha256": "75340c0b7f94a9c39753a67d80df31854791e895c3cfe021f31be7470ed7a7f0",
+      "bytes": 13128
+    },
+    "tools/dnsmasq/predeploy_cname_rule_boundary.py": {
+      "sha256": "89e95b559e4646bcad3577478f10d31d8c637ff154cb1e751713812fe900d9ee",
+      "bytes": 6352
+    },
+    "tools/dnsmasq/predeploy_fix_dns_check.py": {
+      "sha256": "0a741caf3eeb1d97b5e399b0c65d1d407b3652b9dad039b3ffa14a69dd18781b",
+      "bytes": 9295
+    },
+    "tools/dnsmasq/predeploy_hosts_generation.py": {
+      "sha256": "8a8a40a753f57a4476360f9dc1aa9128a4149b7300761255caf78e02f0009e4a",
+      "bytes": 1068
+    },
+    "tools/dnsmasq/predeploy_hosts_pressure.py": {
+      "sha256": "c92cc4615378eab1f47d0478702516369bdbe6d3e490757f7b7d9d3b6f116361",
+      "bytes": 8396
+    },
+    "tools/dnsmasq/predeploy_logging_shutdown.py": {
+      "sha256": "8253df7c77f14aa467da8f548a4b8b9448ba153ed07f30f345c74220bd8c4097",
+      "bytes": 9845
+    },
+    "tools/dnsmasq/predeploy_loopback_bind.c": {
+      "sha256": "f41b15785435773ccaa57c5d84b52d387ee19349ba83e49d534c5c48a800e009",
+      "bytes": 9975
+    },
+    "tools/dnsmasq/predeploy_resource_analyze.py": {
+      "sha256": "52a6a3710a323c11b47fa2157a3aa43f6055d3f21334f1f6d4e287093376f82c",
+      "bytes": 24144
+    },
+    "tools/dnsmasq/predeploy_resource_prepare.py": {
+      "sha256": "6e3c67d177e34b255fc84510cc244ce8362d420160f9608e4dc0e0c9c1744154",
+      "bytes": 8031
+    },
+    "tools/dnsmasq/predeploy_resource_probe.c": {
+      "sha256": "129e38a02b15e91fa0d1be6e170a429c161918c13c1ce2af65c371ceee171978",
+      "bytes": 10439
+    },
+    "tools/dnsmasq/predeploy_resource_retention.py": {
+      "sha256": "d9c62deb2efb701e7a25da4a0f8a77ab921053ed4efbaf24d3917565ff35e684",
+      "bytes": 6888
+    },
+    "tools/dnsmasq/predeploy_resource_retention.sh": {
+      "sha256": "712ac6e6b161800e5edf7b98a8b0c8497bdf1c720717c9a6e4938b20737e5d4b",
+      "bytes": 7785
+    },
+    "tools/dnsmasq/predeploy_resource_window.sh": {
+      "sha256": "2a0e7eef9e4ac1c1462b8aef94851c06a24ab559e4ed1a305d03f17edfda4c5d",
+      "bytes": 5067
+    },
+    "tools/dnsmasq/predeploy_resources.py": {
+      "sha256": "65849af164d2a7be2645d695ffdd0eecaea31eaaaeb3ef07cd3ec98304ae3c7b",
+      "bytes": 13646
+    },
+    "tools/dnsmasq/prepare_reference.py": {
+      "sha256": "ccb40805d085a704db2a9a82cd7862577d7c0beec0fbdc1065b5051423327652",
+      "bytes": 3821
+    },
+    "tools/dnsmasq/recheck_clock_correlation.py": {
+      "sha256": "04376a47607e46dfd5f1a814b9dd16caf2bafb73cd4e2a9dcf9c2fdf7a2dc6ae",
+      "bytes": 11869
+    },
+    "tools/dnsmasq/recheck_deploy_oracle.py": {
+      "sha256": "89cfbfc489b2023b46e98a2570299a181e35b04d2a9a00a3ba99dddd9c19cbc8",
+      "bytes": 12912
+    },
+    "tools/dnsmasq/recheck_dns_local_cache.py": {
+      "sha256": "0db8ad71ab66898bc3441093a68d662cabe98d5c1721d80bc5a1b3ba6fd48dd2",
+      "bytes": 12425
+    },
+    "tools/dnsmasq/recheck_hosts_limits.py": {
+      "sha256": "a80098a56218072e5377d66cce5ecdb0b0e3bf5f77d3d16e44d43a2c98edc625",
+      "bytes": 6061
+    },
+    "tools/dnsmasq/recheck_pressure_analyze.py": {
+      "sha256": "fa6e9694d81c8d4ccf30aaff8e4357a2f3fa0cef667cc61da239ff87d5554759",
+      "bytes": 7687
+    },
+    "tools/dnsmasq/recheck_resource_edns.py": {
+      "sha256": "49e5b73d73c3669defb940e8f0c206e22bc4f79a22244b52f6ebc53565855d79",
+      "bytes": 1143
+    },
+    "tools/dnsmasq/recheck_resource_watch.py": {
+      "sha256": "11fbe4afdf3cd4d4893beaaff31310fe97966ab9f96eb995e4b2ed877ab8054b",
+      "bytes": 5185
+    },
+    "tools/dnsmasq/recheck_send_error_injection.py": {
+      "sha256": "bdf3e12d5d221e4803c7aa43890fefbef1af81ff2b02767f9c8053ef01753a85",
+      "bytes": 4629
+    },
+    "tools/dnsmasq/recheck_syscall_observer.c": {
+      "sha256": "74f4879b9cdc1b9603d92edaa509a3bbee57b6ced19446f7fa055349defdc814",
+      "bytes": 7017
+    },
+    "tools/dnsmasq/reverse_cache_c_gate.py": {
+      "sha256": "fd4dcdab4f4ca005411915a5e02f602b72f2c9f3e947ca58eaec36d8c5714d0b",
+      "bytes": 22205
+    },
+    "tools/dnsmasq/reverse_cache_driver.c": {
+      "sha256": "18a004b826b119cb160bbec182cbffee9c545f5f6b9fff9d6a46fe8c1f88b298",
+      "bytes": 4880
+    },
+    "tools/dnsmasq/reverse_cache_probe.rs": {
+      "sha256": "c07122be0d059e1e9c2d7a8f8344e4d14611192bff06f70527fc2c903efd32fd",
+      "bytes": 3616
+    },
+    "tools/dnsmasq/reverse_cache_rust_gate.py": {
+      "sha256": "1aa96c03de23770157fa0a88230f8c700fcfa10862efdb59146a2fe81971175a",
+      "bytes": 11523
+    },
+    "tools/dnsmasq/reverse_cache_state_probe.rs": {
+      "sha256": "5ef1378274af7d61fac45a88d4df4d22f77b7be9d563e73a19c667b54b2de711",
+      "bytes": 1725
+    },
+    "tools/dnsmasq/reverse_name_expiry_gate.py": {
+      "sha256": "c52d0d212a138bb411ff6154855bd8465ddb619e153538c6532f4b108f27a260",
+      "bytes": 9729
+    },
+    "tools/dnsmasq/run_isolated.sh": {
+      "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+      "bytes": 399
+    },
+    "tools/dnsmasq/rust_lib_probe.py": {
+      "sha256": "87fe2a6f3ab0573870f3abe5780ac77aff894276505e0b71e387ca08273b8a6b",
+      "bytes": 6303
+    },
+    "tools/dnsmasq/stale_metadata_diff.py": {
+      "sha256": "abfb7aa54e7411b18bd04fc16263c33d2a660875eb58f40b3f25a1ff7777209b",
+      "bytes": 11644
+    },
+    "tools/dnsmasq/stale_metadata_oracle.py": {
+      "sha256": "b3a3eeb0e61506b16cf43aec618bf6ed8d32dcf9d9a7f38a12bebf70f9aa5373",
+      "bytes": 12765
+    },
+    "tools/dnsmasq/startup_identity_diff.py": {
+      "sha256": "8f073578a28c10a5869f682c12147561454a66ba38dcca0cd9fc069723f529a0",
+      "bytes": 5863
+    },
+    "tools/dnsmasq/startup_privilege_diff.py": {
+      "sha256": "b375c54e145dfc92d7285d704a46c4a27f24cbb8d2eb491f284530da9f8d2471",
+      "bytes": 12294
+    },
+    "tools/dnsmasq/tcp_caller_diff.py": {
+      "sha256": "7fd7966e4dde292276b50c58fea4dcd7c6b8e7260fddb61dadc685e16ff835aa",
+      "bytes": 14462
+    },
+    "tools/dnsmasq/tcp_caller_driver.c": {
+      "sha256": "1e366cefe31dc436793299ba5f8209ecdca58bdde380ec979933e7b9b39b0619",
+      "bytes": 3341
+    },
+    "tools/dnsmasq/tcp_caller_session_scope.py": {
+      "sha256": "97127d349066ffdb593b31dd7e4e6754a18069ef2163867e749741790a051123",
+      "bytes": 4247
+    },
+    "tools/dnsmasq/tcp_cd_policy_oracle.py": {
+      "sha256": "2b5f8b1d3b462585e131eec1755890429f2f935b6e797784c5b24d32a8f16c65",
+      "bytes": 21068
+    },
+    "tools/dnsmasq/tcp_connect_probe.py": {
+      "sha256": "38894bac3a45e5c4352f187b249b6f4f8ae39b2d5eaaed8f68fbb60f01968e6b",
+      "bytes": 3650
+    },
+    "tools/dnsmasq/tcp_connect_probe.rs": {
+      "sha256": "628055f33290ea6fa7a4bfc9f7eada6262a29d0141c115f76c88404be63bbd62",
+      "bytes": 3221
+    },
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.py": {
+      "sha256": "762eb3a3171045fbba652151b4daff6800d5d779d63689e55e891ca68906ae3e",
+      "bytes": 21882
+    },
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.rs": {
+      "sha256": "7844d55e956d3a1d7b757574c47474a7ead6512e9fb0649b588fc10bad7a1af1",
+      "bytes": 6599
+    },
+    "tools/dnsmasq/tcp_snapshot_chunk_screen.slots.rs": {
+      "sha256": "3a8e5cacda6ab4c4570c9691a34f998a48f885d1d5697c441e3caa81ce4fd233",
+      "bytes": 1941
+    },
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.payload.rs": {
+      "sha256": "dbeb70156053ffba4963b28b5dc0502e38360f99a82d2bce6549eaac2741fe90",
+      "bytes": 3403
+    },
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.py": {
+      "sha256": "3f2ae4a2c96bd54553fb0bc89b26e3ce8a30360231a87eb32eaca87a08c4d945",
+      "bytes": 25813
+    },
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.rdata.rs": {
+      "sha256": "62182ec2d9f55663593d954217d459ca3629e70e48953013b598fa3c13053ea3",
+      "bytes": 1008
+    },
+    "tools/dnsmasq/tcp_snapshot_inline16_screen.rs": {
+      "sha256": "60c3da6edddfe534c34b5f005f887a1df4b2366d761fbced14376e591a797db2",
+      "bytes": 6834
+    },
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.checks.rs": {
+      "sha256": "26eaa866a09ef99f3b1699925ade92813ba0cbd47ddf86c9fbb265fe5ce79392",
+      "bytes": 2718
+    },
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.index.rs": {
+      "sha256": "0782108ea2cd3a6885522dfa707b7f9941100068a94b27ae2f64346d9210a93d",
+      "bytes": 2038
+    },
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.payload.rs": {
+      "sha256": "1cf79332efa95b18cddb822ca19f755d558c3bca6bceb54739040ea8462c162d",
+      "bytes": 554
+    },
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.py": {
+      "sha256": "3a947480e7fd61e3006547c2718b5ae5a2c2055ecdb6c6ef3de6a5a23611644d",
+      "bytes": 26609
+    },
+    "tools/dnsmasq/tcp_snapshot_one_index_screen.rs": {
+      "sha256": "d5bdea6173a906f39d59bb5f3efd84a00448f33d9fe2a2571dd07d5bdc3a7e3f",
+      "bytes": 6696
+    },
+    "tools/dnsmasq/tcp_snapshot_screen.py": {
+      "sha256": "375c56835a293f3ef969caed1168d4297dfe75c45aca55acfd5a18a3d8bbf819",
+      "bytes": 23757
+    },
+    "tools/dnsmasq/tcp_snapshot_screen.rs": {
+      "sha256": "59909dd61eae492e8d95472e8ceea71f91e03977b3ff61657d2a743e74fc3dfc",
+      "bytes": 6857
+    },
+    "tools/dnsmasq/tcp_stale_oracle.py": {
+      "sha256": "034c2b9fd79be61c14e17f02307d273debf9a0b99dd1d8bf1aa5fa8a9f9d6b8b",
+      "bytes": 22473
+    },
+    "tools/dnsmasq/tcp_upstream_diff.py": {
+      "sha256": "5bcc08daece9bccb6d9fe86e11b5a6d1e8b0ffecc6884362ec7b1a34725409d8",
+      "bytes": 14372
+    },
+    "tools/dnsmasq/tcp_upstream_oracle.c": {
+      "sha256": "bf04423ce8d41cf692a3f99f89e018a46ea2d943fe186d8d06faac0a5425b773",
+      "bytes": 2524
+    },
+    "tools/dnsmasq/tcp_upstream_parity.py": {
+      "sha256": "c91e182bfdf3ed21c3fd2b43eef02247657a6302e3b605f2bf0d15c7baf23ebf",
+      "bytes": 34122
+    },
+    "tools/dnsmasq/tcp_upstream_probe.rs": {
+      "sha256": "f61fef4b8ef4e600ef5b20adbc89d428051109955c162b757ae0b28c00c28c18",
+      "bytes": 1791
+    },
+    "tools/dnsmasq/tcp_writeback_subscriber.c": {
+      "sha256": "a48d507c5f216adc300ebc6852768b043d564d98a7f0aab7b6ccd9602af3bc2f",
+      "bytes": 3235
+    },
+    "tools/dnsmasq/test_build_package.py": {
+      "sha256": "817095309c77d56af86e1f0179e477869c7039283a1ae0e6809f77805145ed96",
+      "bytes": 28761
+    },
+    "tools/dnsmasq/test_cache_full_resource.py": {
+      "sha256": "07c08d5cbba0d824e7b68a009551bb9afed7156ca5288395a7e261a03820f477",
+      "bytes": 4395
+    },
+    "tools/dnsmasq/test_config_startup_exit_diff.py": {
+      "sha256": "55b280a8a24f421c3b8eb6860dbbbfc8f3e301fa877e0d9391b54bb0ee543d8c",
+      "bytes": 1716
+    },
+    "tools/dnsmasq/test_daily_usage.py": {
+      "sha256": "a9b80673b4a2e92c115739797aec5e93470a90e3d80647588746b3dc08f441c0",
+      "bytes": 3760
+    },
+    "tools/dnsmasq/test_deploy_oracle.py": {
+      "sha256": "c34923681930edabb78be34c44644fb388e4ee50e454d369fff202f2d262bef7",
+      "bytes": 34224
+    },
+    "tools/dnsmasq/test_device_perf_tools.py": {
+      "sha256": "ba08753c5dff7c27a2fc32fd0bbbae8fe052ec22ca6ed71d2c11a146e139ff9b",
+      "bytes": 4890
+    },
+    "tools/dnsmasq/test_dhcp_helper_timers.py": {
+      "sha256": "4bb6045c0e804d1d8680cb66d2d3a9df3e7deaf77d00e6baaca4912bcb700960",
+      "bytes": 5409
+    },
+    "tools/dnsmasq/test_elf_size_report.py": {
+      "sha256": "f28b2c3d216889fb5d045a1f9b169f48cc63ac31a820a724557bb2941a7e778b",
+      "bytes": 6355
+    },
+    "tools/dnsmasq/test_f10_contract_check.py": {
+      "sha256": "85a3d7907b2fea2731fd17a06ce43af894bed00640475382c4ff6c72ba52adfd",
+      "bytes": 18581
+    },
+    "tools/dnsmasq/test_icmp_service.py": {
+      "sha256": "03cb01bbcb970d003ab44f78bc6167e3db9a7568598fd89beaed5c3e21862b42",
+      "bytes": 17661
+    },
+    "tools/dnsmasq/test_icmp_service_checks.py": {
+      "sha256": "6771764e57e5346612bbe902b523be250d5c47945bece20a4021673682a7ae87",
+      "bytes": 2334
+    },
+    "tools/dnsmasq/test_m2_dhcp_scenarios.py": {
+      "sha256": "0c9f31109a93e560781a987a37277b1be020495a2fcf2faf495e6d6d4c6d9890",
+      "bytes": 1294
+    },
+    "tools/dnsmasq/test_m2_dhcp_suite.py": {
+      "sha256": "79f012f480909bb5ca43150a8bcc7ea5afa7bdb89aa02370814adb89704ea6ac",
+      "bytes": 1519
+    },
+    "tools/dnsmasq/test_m2_dns_diff.py": {
+      "sha256": "0cb01e85e618efb4ac81713498b13d0359ed361178e64644f18384b88fbf1d04",
+      "bytes": 1489
+    },
+    "tools/dnsmasq/test_m2_lifecycle.py": {
+      "sha256": "1eef99ba4636ee53ba14dcb9a61fbe49135ec643b1546c06d6fbf67123f6a337",
+      "bytes": 1067
+    },
+    "tools/dnsmasq/test_m3_soak.py": {
+      "sha256": "c00eed5872ae85693310a89aa2dfedaf3a5df83504c0e4b8c210d624f5c4cdad",
+      "bytes": 6402
+    },
+    "tools/dnsmasq/test_m5_cache_clock_phase.py": {
+      "sha256": "532290265503733a83f3c942b825c2eefcbae5459056a0d9270fc2aaefe5550f",
+      "bytes": 2376
+    },
+    "tools/dnsmasq/test_m5_dhcp_inform_clock.py": {
+      "sha256": "26dbfe97fd18edcba474b8583a24a4c4021cd814e2c9f70a53bb071452b00811",
+      "bytes": 3254
+    },
+    "tools/dnsmasq/test_m5_exclusive_window.py": {
+      "sha256": "8763e81cf1cf94e66ef899b1264ba6227c51f244481013467128392587255da2",
+      "bytes": 4503
+    },
+    "tools/dnsmasq/test_m5_final_archive_gate.py": {
+      "sha256": "f271843c018d2d67c7b0c1be3e01a6cf1ddc417800cd8c3603e371a428e397d8",
+      "bytes": 1944
+    },
+    "tools/dnsmasq/test_m5_final_validation.py": {
+      "sha256": "6e40ffca1891b0b9b5d977c7dd20ed2bf86b4244065d86c53cfca6e3d393453f",
+      "bytes": 27131
+    },
+    "tools/dnsmasq/test_m5_fixture_revision.py": {
+      "sha256": "e446285c10dc0c33328794f79a9aca5d9d845e103b456b6cb5d6210c04824a6f",
+      "bytes": 23701
+    },
+    "tools/dnsmasq/test_m5_hosts_large_progress.py": {
+      "sha256": "f8c31f50a14843acb89e698540dbcc21e3e8c545412790031744a7ad868be1d4",
+      "bytes": 3391
+    },
+    "tools/dnsmasq/test_m5_interface_count_stop.py": {
+      "sha256": "4c533766c99e35c511bdffaa0a2a91c9f29d5c4fa45a9c15454a84554641c0a5",
+      "bytes": 13474
+    },
+    "tools/dnsmasq/test_m5_job_cleanup.py": {
+      "sha256": "b3cbe743b73971cb48829048b839b287136584c99aa31ccf5e9d146a863263e7",
+      "bytes": 4212
+    },
+    "tools/dnsmasq/test_m5_logging_fastretry.py": {
+      "sha256": "ddfc9ddb5df79d155ae26d86fcba1ef177365bb5c106121d1799624a09fd0070",
+      "bytes": 4776
+    },
+    "tools/dnsmasq/test_m5_logging_query_phase.py": {
+      "sha256": "ebda75c23ad126a0bd066898b6be0d26ebc3900877d75291a3b75e248d9192b6",
+      "bytes": 3197
+    },
+    "tools/dnsmasq/test_m5_logging_startup_pipe.py": {
+      "sha256": "64983918b365c1d7390747d952082ad9aa15ed8b6d53b5858279de941ca7539e",
+      "bytes": 3476
+    },
+    "tools/dnsmasq/test_m5_pxe_kernel_witness.py": {
+      "sha256": "32764ed80ba8aa337babfa5c0852718abb94fffce9b7338096b73b038ce4e482",
+      "bytes": 4725
+    },
+    "tools/dnsmasq/test_m5_script_arp_fd.py": {
+      "sha256": "7936affa38d91de023dd185474717f9cf22ef29f420571d906da38ab5b4320b5",
+      "bytes": 6784
+    },
+    "tools/dnsmasq/test_m6a_analyze.py": {
+      "sha256": "f9291d379c020d743777963fa6b9e7d2562e200a5c391419c3fdfce2f4e880fd",
+      "bytes": 12235
+    },
+    "tools/dnsmasq/test_m6a_suite.py": {
+      "sha256": "814f984f772dc311cc29086a2e3baa68ae8ddf103db8f27b0d2704c360747e0b",
+      "bytes": 16057
+    },
+    "tools/dnsmasq/test_m6a_window.py": {
+      "sha256": "e83b8aafcf5e330b02f868875152e850e0a8929e982dd7d835fc1e75474d2c86",
+      "bytes": 13233
+    },
+    "tools/dnsmasq/test_m6b_final_batch.py": {
+      "sha256": "804e2355be6d9986baeda445a1be32122877fb892152df4e22598d01f4ecfd1a",
+      "bytes": 9113
+    },
+    "tools/dnsmasq/test_m6b_interface_idle.py": {
+      "sha256": "599e5eb56d747939890eec007d9a80fc3b5badad09a58136a7ba3edccd22c61a",
+      "bytes": 1929
+    },
+    "tools/dnsmasq/test_m6b_netlink_membership_fault.py": {
+      "sha256": "3b84e911446920d279e139b349e80ec2cc583bffadffe40d9a145d2b3b53895a",
+      "bytes": 5158
+    },
+    "tools/dnsmasq/test_m6b_package_upgrade.py": {
+      "sha256": "ba98b7843fdef62c2f6a1955185fd17e0a88db153c0286986de79b8add3826e7",
+      "bytes": 10660
+    },
+    "tools/dnsmasq/test_m6b_perf_guard.py": {
+      "sha256": "2f789466fa6ef7ec3c119cadd50a5982a51f9a9329fd8fdfea01d5e24fd36fbd",
+      "bytes": 13651
+    },
+    "tools/dnsmasq/test_m6b_resource_companion.py": {
+      "sha256": "a251750ccd8bcdf01b62363a29c4469bfc88cd75a966c8bfee0b9c2f7da55238",
+      "bytes": 2613
+    },
+    "tools/dnsmasq/test_m6b_route_resend.py": {
+      "sha256": "f61f7f076247eb031a542c5d2a018eeae305e28067ab3532b9ad3a8b7888b758",
+      "bytes": 31073
+    },
+    "tools/dnsmasq/test_m6b_tcp_accept_snapshot.py": {
+      "sha256": "b377e781f51117421c958ff3ae93c96e54fb84418391e982859c8dd4f907d077",
+      "bytes": 10872
+    },
+    "tools/dnsmasq/test_m6b_tcp_cpu_gate.py": {
+      "sha256": "3bd4296c7baabdfb2acfe671294536d93355c911061e125dc257d35971daa1d1",
+      "bytes": 25934
+    },
+    "tools/dnsmasq/test_m6b_tcp_cpu_run.py": {
+      "sha256": "0d181ed0bb74a9fa2f3bd75863cd9a0e16832c66234b38aea34afab29a4dee3a",
+      "bytes": 18958
+    },
+    "tools/dnsmasq/test_m6b_tcp_interleaved.py": {
+      "sha256": "b146918a7d7012a6f5dd586e1f04a9bd9a95f3f97c0ad9589bc3038643244341",
+      "bytes": 8357
+    },
+    "tools/dnsmasq/test_m6b_tcp_internal.py": {
+      "sha256": "2043ff84f52fa9e9c8d78ab1faefdcdc336ec1655b7249067e5023f5a93eacc0",
+      "bytes": 20615
+    },
+    "tools/dnsmasq/test_m6b_tcp_lease_import_regression.py": {
+      "sha256": "51bbca1e95196d6320f450e1b5c04c67410ce032957868d81be6db0be9513746",
+      "bytes": 3238
+    },
+    "tools/dnsmasq/test_m6b_tcp_log_lifetime.py": {
+      "sha256": "746a39ec1989a160235033f87662d62d87bef795dcf0f703bc75f4d00a839109",
+      "bytes": 8487
+    },
+    "tools/dnsmasq/test_m6b_tcp_pressure.py": {
+      "sha256": "c84985d49d235a6e0eba1db221dcc7d905a47ce0e3f68521c58d0f8691f0823c",
+      "bytes": 8081
+    },
+    "tools/dnsmasq/test_m6b_trace_scope.py": {
+      "sha256": "5e0bae873774bcb40ea96c350c16d3e387254e95fa740443aa79720c3d296047",
+      "bytes": 9727
+    },
+    "tools/dnsmasq/test_perf_link_map_profile.py": {
+      "sha256": "ecd47f8ff5cce63f6d02220b18e0ea3249663be739f1771cda74e326eb3ad63e",
+      "bytes": 4201
+    },
+    "tools/dnsmasq/test_single_poll_service.py": {
+      "sha256": "9e7eef28fd17d61590528fcf8e0ec5aa1394454a217cf39b8a8c435ad91e3851",
+      "bytes": 18012
+    },
+    "tools/dnsmasq/test_tcp_upstream_parity.py": {
+      "sha256": "1e19df29e0bd4446d6e68303dd19a5926caf99c548e68d91915d1bb2d0fa707c",
+      "bytes": 4233
+    },
+    "tools/dnsmasq/test_trial_oracle.py": {
+      "sha256": "f3ce62bceb4d80bbb8061de7fb2e9c9c3dd14d2a401ad5ad7bd8838c6cc560cd",
+      "bytes": 14567
+    },
+    "tools/dnsmasq/test_ubus_recovery.py": {
+      "sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "bytes": 21656
+    },
+    "tools/dnsmasq/test_unix_socket_path.py": {
+      "sha256": "80e1ec180e711b57e4f60bc4337e2c934f1284a9d20e6ecc2cd2cf00ad3a6597",
+      "bytes": 2502
+    },
+    "tools/dnsmasq/tftp_benchmark.py": {
+      "sha256": "ba1d1677575594319909a1d4401a4aeff7fc200cdfa63ff911cfa4db579e2a3e",
+      "bytes": 7029
+    },
+    "tools/dnsmasq/tftp_config_diff.py": {
+      "sha256": "caa3971b45414248af27ea6e54e31a48d34d66c1b204a82c7049e6ae5882999e",
+      "bytes": 8479
+    },
+    "tools/dnsmasq/tftp_identity_diff.py": {
+      "sha256": "f1c40ff2918709a3c9fe238702dd36a93fa35a1900562430a9abd954543ce5ff",
+      "bytes": 6839
+    },
+    "tools/dnsmasq/tftp_listener_diff.py": {
+      "sha256": "21bf9998606ff7da9c46a8a2a7c87af6fbd3bc79716569af8ae86817b6bbaf88",
+      "bytes": 28487
+    },
+    "tools/dnsmasq/tftp_listener_probe.rs": {
+      "sha256": "fbee06374351d79b26a93befd5da2d554518ad0032f613dacb0c314b70dcc66a",
+      "bytes": 2134
+    },
+    "tools/dnsmasq/tftp_oracle.py": {
+      "sha256": "91f37c305e5812de325232e182b0fd82570746ad605bf09f2fc486169cdc0d29",
+      "bytes": 7189
+    },
+    "tools/dnsmasq/tftp_service_diff.py": {
+      "sha256": "436b71fb902cca3e3a8133d714dbaf1169f4f4182384e0f54d4216c9725a3a3b",
+      "bytes": 9474
+    },
+    "tools/dnsmasq/ubus_config_diff.py": {
+      "sha256": "43b72079e97a249435e39968edb79b7d685f75698ad515cf5756cc7590681521",
+      "bytes": 5865
+    },
+    "tools/dnsmasq/ubus_contract_client.c": {
+      "sha256": "007792f12929ba95a041460a760e0ca43273394c53721427fe8b3862b5ac9da5",
+      "bytes": 7430
+    },
+    "tools/dnsmasq/ubus_contract_diff.py": {
+      "sha256": "0fcc8f6354dcc633022a6e108d37ce4b639de3bcc1c91cdf49e932175cf66743",
+      "bytes": 22483
+    },
+    "tools/dnsmasq/ubus_daemon_diff.py": {
+      "sha256": "858adf692f28317479d7b0b425f86114df2b0479bf0cc1608c25111cb9cc50ab",
+      "bytes": 50963
+    },
+    "tools/dnsmasq/ubus_doctor_diff.py": {
+      "sha256": "6ac288a4e7f103a0c17b65dccd5a29191b68a575b4686e70ba5846d6d9cfd611",
+      "bytes": 13044
+    },
+    "tools/dnsmasq/ubus_library_diff.py": {
+      "sha256": "fe83bdd087a76af33d67714f3c4f373adf340c8751a3c8b74e4698a720da0e7b",
+      "bytes": 10111
+    },
+    "tools/dnsmasq/ubus_name_diff.py": {
+      "sha256": "000b77c87cc12bf730ca01a2283241ccd0fee1589f93b86ac6484166814bd964",
+      "bytes": 4301
+    },
+    "tools/dnsmasq/ubus_order_diff.py": {
+      "sha256": "55418b1ef4eb038bcd3c7d84a6f697cedccc6f974afa7b3c9577589074cdde86",
+      "bytes": 4918
+    },
+    "tools/dnsmasq/ubus_publish_probe.rs": {
+      "sha256": "ac8c3ec3875445eb2ff9274e7c6453dc9fb322df402007a0ce46367db836f052",
+      "bytes": 745
+    },
+    "tools/dnsmasq/ubus_service_probe.rs": {
+      "sha256": "86f970812c5705de81aa1da113a05fea6994041834ac5cffffb9c24bd6e562aa",
+      "bytes": 7124
+    },
+    "tools/dnsmasq/udp_query_probe.rs": {
+      "sha256": "56c15b6198fa41540989f91abf238f354353cd8317733b23a9b7cf21135e13ea",
+      "bytes": 1161
+    },
+    "tools/dnsmasq/verify_reference.py": {
+      "sha256": "c91bd6cf13b6e0b68c92877e563d6fdcacafbffb7f4ec53491ca666f2313a667",
+      "bytes": 6558
+    }
+  }
+}
