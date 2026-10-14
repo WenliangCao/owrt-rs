@@ -1,11 +1,13 @@
 {
   "schema": 1,
-  "status": "historical thresholds corrected; final SDK measured delta and engineering acceptance pending",
+  "status": "Accepted for main merge by exact-artifact engineering size judgment; no deployment approval.",
   "legacy_targets": {
     "elf_bytes": 1000000,
     "apk_bytes": 700000,
     "current_unconditional_hard_gate": false,
-    "reason": "M5 ELF and APK sizes were explicitly accepted later; do not infer unlimited future growth."
+    "reason": "M5 ELF and APK sizes were explicitly accepted later; do not infer unlimited future growth.",
+    "elf_origin": "Explicit user numeric target during M4, superseded by later artifact acceptance.",
+    "apk_origin": "Pre-build package-tool ceiling; no direct user numeric instruction located in the inspected messages, and the later actual M5 APK was explicitly accepted."
   },
   "authorizations": [
     {
@@ -337,14 +339,472 @@
     "headers_padding_delta": 1454
   },
   "final_sdk": {
-    "status": "pending",
+    "status": "built-and-independently-verified",
     "owner": "repo_handoff",
-    "source_commit": null,
-    "elf_sha256": null,
-    "elf_bytes": null,
-    "apk_sha256": null,
-    "apk_bytes": null,
-    "budget_decision": null
+    "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+    "elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "elf_bytes": 2124571,
+    "apk_sha256": "880050e82f81ad3dff27dac9716f15f7e167346750a4c8c197e9fe8ce6001742",
+    "apk_bytes": 1154800,
+    "build_manifest_sha256": "25940d91f2a1fcb3c8d608d3e93727ff3161b7a86950e5d8544167529a1d7f15",
+    "build_driver_sha256": "69cfc780953b61c1391dae061f5460680294153fc6107f1240f6db920f7be0ba",
+    "source_digest": "3c9a37d5e5f5db8b2f1c098abba3144b0eb04b312539ca0b1a6177d5bfa8214c",
+    "source_archive_files_verified_against_git": 660,
+    "actual_sdk_source_files_verified_against_git": 179,
+    "sdk_files_rehashed": 106,
+    "sdk_archive_sha256": "ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+    "restored_recipe_files": 2,
+    "independent_payload_files": 16,
+    "compile_and_package_exit": 0,
+    "build_mode": "compile-and-package",
+    "package_metadata": {
+      "name": "dnsmasq",
+      "version": "2.93-r4",
+      "arch": "aarch64_cortex-a53",
+      "provides": [
+        "dnsmasq-any"
+      ],
+      "replacement": "same package name dnsmasq, newer release 2.93-r4",
+      "variant_exclusion": "requires lifecycle solver tests with stock variant APKs",
+      "depends": [
+        "libc",
+        "libubus20251202"
+      ]
+    },
+    "postprocess": {
+      "mode": "SDK RSTRIP/sstrip from unchanged recipe",
+      "input_basis": "SDK package-pack.mk installs into .pkgdir, copies to ipkg, then RSTRIP; AUTOREMOVE retains .pkgdir",
+      "input_path": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/sdk-source-build/package-build/.pkgdir/dnsmasq/usr/sbin/dnsmasq",
+      "input_sha256": "56bdfd13b8e3ec24aaea410f045fb1eb77fba3a0fcfeec040f9b59d6394b39c4",
+      "input_bytes": 2126304,
+      "output_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "output_bytes": 2124571,
+      "strip_log_lines": [
+        "export CROSS=\"aarch64-openwrt-linux-musl-\"   ; NM=\"aarch64-openwrt-linux-musl-nm\" STRIP=\"/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/sstrip -z\" STRIP_KMOD=\"/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/scripts/strip-kmod.sh\" PATCHELF=\"/home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/host/bin/patchelf\" /home/ubuntu/dnsmasq-fix4-repair-20261013/private/sdk-isolated/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/scripts/rstrip.sh /dev/shm/full-merge-sdk-b5872820-20261014/source/private/sdk-source-build/package-build/ipkg-aarch64_cortex-a53/dnsmasq",
+        "rstrip.sh: /dev/shm/full-merge-sdk-b5872820-20261014/source/private/sdk-source-build/package-build/ipkg-aarch64_cortex-a53/dnsmasq/usr/sbin/dnsmasq: executable"
+      ]
+    },
+    "sections": {
+      "pre_strip_sha256": "56bdfd13b8e3ec24aaea410f045fb1eb77fba3a0fcfeec040f9b59d6394b39c4",
+      "pre_strip_bytes": 2126304,
+      "packaged_elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "packaged_elf_bytes": 2124571,
+      "strip_saved_bytes": 1733,
+      "pre_strip_sections": [
+        {
+          "name": ".hash",
+          "type": 5,
+          "offset": 456,
+          "size": 20,
+          "file_bytes": 20,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".gnu.hash",
+          "type": 1879048182,
+          "offset": 480,
+          "size": 28,
+          "file_bytes": 28,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".dynsym",
+          "type": 11,
+          "offset": 512,
+          "size": 72,
+          "file_bytes": 72,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".dynstr",
+          "type": 3,
+          "offset": 584,
+          "size": 1,
+          "file_bytes": 1,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".rela.dyn",
+          "type": 4,
+          "offset": 592,
+          "size": 52872,
+          "file_bytes": 52872,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".init",
+          "type": 1,
+          "offset": 53464,
+          "size": 16,
+          "file_bytes": 16,
+          "alloc": true,
+          "write": false,
+          "execute": true,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "offset": 53488,
+          "size": 1807860,
+          "file_bytes": 1807860,
+          "alloc": true,
+          "write": false,
+          "execute": true,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".fini",
+          "type": 1,
+          "offset": 1861348,
+          "size": 16,
+          "file_bytes": 16,
+          "alloc": true,
+          "write": false,
+          "execute": true,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "offset": 1861376,
+          "size": 91788,
+          "file_bytes": 91788,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".eh_frame_hdr",
+          "type": 1,
+          "offset": 1953164,
+          "size": 18732,
+          "file_bytes": 18732,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".eh_frame",
+          "type": 1,
+          "offset": 1971896,
+          "size": 96120,
+          "file_bytes": 96120,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".gcc_except_table",
+          "type": 1,
+          "offset": 2068016,
+          "size": 5640,
+          "file_bytes": 5640,
+          "alloc": true,
+          "write": false,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".tbss",
+          "type": 8,
+          "offset": 2076152,
+          "size": 48,
+          "file_bytes": 0,
+          "alloc": true,
+          "write": true,
+          "execute": false
+        },
+        {
+          "name": ".init_array",
+          "type": 14,
+          "offset": 2076152,
+          "size": 24,
+          "file_bytes": 24,
+          "alloc": true,
+          "write": true,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".fini_array",
+          "type": 15,
+          "offset": 2076176,
+          "size": 8,
+          "file_bytes": 8,
+          "alloc": true,
+          "write": true,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".data.rel.ro",
+          "type": 1,
+          "offset": 2076184,
+          "size": 44936,
+          "file_bytes": 44936,
+          "alloc": true,
+          "write": true,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".dynamic",
+          "type": 6,
+          "offset": 2121120,
+          "size": 384,
+          "file_bytes": 384,
+          "alloc": true,
+          "write": true,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".got",
+          "type": 1,
+          "offset": 2121504,
+          "size": 224,
+          "file_bytes": 224,
+          "alloc": true,
+          "write": true,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "offset": 2121728,
+          "size": 2848,
+          "file_bytes": 2848,
+          "alloc": true,
+          "write": true,
+          "execute": false,
+          "post_strip_alloc_content_equal": true
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "offset": 2124576,
+          "size": 4464,
+          "file_bytes": 0,
+          "alloc": true,
+          "write": true,
+          "execute": false
+        },
+        {
+          "name": ".comment",
+          "type": 1,
+          "offset": 2124576,
+          "size": 61,
+          "file_bytes": 61,
+          "alloc": false,
+          "write": false,
+          "execute": false
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "offset": 2124637,
+          "size": 192,
+          "file_bytes": 192,
+          "alloc": false,
+          "write": false,
+          "execute": false
+        }
+      ],
+      "headers_padding_and_gaps_bytes": 4462,
+      "common_prefix_changed_byte_offsets": [
+        40,
+        41,
+        42,
+        60,
+        62,
+        152
+      ],
+      "program_headers_equal": false,
+      "alloc_section_contents_equal_with_zero_tail": true,
+      "post_strip_section_header_count": 0,
+      "pre_strip_delta_from_m5": {
+        ".bss": 0,
+        ".comment": 0,
+        ".data": 8,
+        ".data.rel.ro": 2016,
+        ".dynamic": 384,
+        ".dynstr": 1,
+        ".dynsym": 72,
+        ".eh_frame": 4688,
+        ".eh_frame_hdr": 976,
+        ".fini": 0,
+        ".fini_array": 0,
+        ".gcc_except_table": -84,
+        ".gnu.hash": 28,
+        ".got": 0,
+        ".hash": 20,
+        ".init": 0,
+        ".init_array": 0,
+        ".rela.dyn": 52872,
+        ".rodata": 1744,
+        ".shstrtab": 45,
+        ".tbss": 0,
+        ".text": 132688
+      },
+      "pre_strip_delta_from_340": {
+        ".bss": 0,
+        ".comment": 0,
+        ".data": 0,
+        ".data.rel.ro": 696,
+        ".dynamic": 0,
+        ".dynstr": 0,
+        ".dynsym": 0,
+        ".eh_frame": 1320,
+        ".eh_frame_hdr": 256,
+        ".fini": 0,
+        ".fini_array": 0,
+        ".gcc_except_table": 0,
+        ".gnu.hash": 0,
+        ".got": 0,
+        ".hash": 0,
+        ".init": 0,
+        ".init_array": 0,
+        ".rela.dyn": 696,
+        ".rodata": 304,
+        ".shstrtab": 0,
+        ".tbss": 0,
+        ".text": 33456
+      },
+      "size_comparisons": {
+        "vs_accepted_m5_elf": {
+          "delta_bytes": 195315,
+          "delta_percent": 10.123850852349303
+        },
+        "vs_340_elf": {
+          "delta_bytes": 35131,
+          "delta_percent": 1.6813595987441587
+        },
+        "vs_accepted_m5_apk": {
+          "delta_bytes": 89729,
+          "delta_percent": 8.424696569524471
+        },
+        "vs_stock_c_elf": {
+          "delta_bytes": 1855266,
+          "ratio": 7.889088579862981
+        },
+        "vs_stock_c_apk": {
+          "delta_bytes": 999677,
+          "ratio": 7.444415077067875
+        }
+      }
+    },
+    "historical_size_gate": {
+      "passed": false,
+      "error": "APK size 1154800 exceeds target 700000 bytes; ELF size 2124571 exceeds target 1000000 bytes"
+    },
+    "historical_budget_checks": {
+      "apk": false,
+      "elf": false
+    },
+    "measurement_wrapper_status": "built-and-measured-runtime-pending",
+    "qualification_kind": "same-artifact independent identity and engineering size review; not a rebuild",
+    "budget_decision": {
+      "kind": "engineering-judgment-for-exact-artifacts",
+      "decision": "accepted-for-main-merge",
+      "authority": [
+        "2026-10-06 M5 ELF and APK size acceptance",
+        "2026-10-11 authority to judge reasonable PIE size/performance cost",
+        "2026-10-14 user authorization to fix known bugs and merge when ready"
+      ],
+      "rationale": [
+        "M5 actual ELF/APK sizes were explicitly accepted; current payload adds 195315 bytes (10.123850852349303%) and APK adds 89729 bytes (8.424696569524471%).",
+        "Against 340ed at the same pre-strip boundary the final ELF adds 36864 bytes, with no profile, allocator, dependency or feature-reduction tradeoff.",
+        "Additional PTR correctness, bounded TCP ownership, allocation-failure recovery, automatic package activation and UBus recovery provide concrete correctness and availability benefit.",
+        "Final exact ELF passed paired 64 MiB process-tree resource gates: memory.peak 26759168 bytes warmed and 49471488 bytes during HUP, with zero OOM events.",
+        "Historical 54.6 MiB overlay-free observation explains why this is not an observed capacity failure; current deployment preflight remains required. File bytes are not added to RSS/PSS.",
+        "Identity changes invalidate this decision. It is engineering judgment under the recorded authority, not a new numeric global budget, user exact-artifact waiver or physical deployment approval."
+      ],
+      "decided_at": "2026-10-14T15:29:29Z",
+      "applies_only_to_exact_identities": true,
+      "decision_owner": "root independent audit/integration owner"
+    },
+    "local_evidence": "private/full-audit-20261014/resume/f7/b587-evidence.tar.gz",
+    "local_evidence_sha256": "53a313ef0c82cc5391f9470d4fd366a2bbc0a75e9dfe96cdcaa410193b29ff3f",
+    "independent_extract_setup_failure": {
+      "first_attempt_exit": 99,
+      "reason": "destination directory missing; no payload files extracted",
+      "retry_exit": 0
+    },
+    "interim_rejected_freeze": "b337c8509e549398116a0a9c7929f38b7fe32148; not qualified or reused as final",
+    "qualification_evidence": {
+      "independent_identity_and_size": "this report; 660 archive inputs/179 SDK inputs/106 SDK files/16 independently extracted payload files",
+      "reload": "final-sdk-resource-review.json; 3 paired cases, 6 processes, 667 redecoded DNS replies and 28000 census pairs",
+      "tcp_cgroup": {
+        "report": "final-sdk-memory-review.json",
+        "cases": 2,
+        "limit_bytes": 67108864,
+        "warmed_memory_peak_bytes": 26759168,
+        "hup_memory_peak_bytes": 49471488,
+        "oom_events": 0
+      },
+      "package": {
+        "report": "sdk-final-b587.json",
+        "lifecycle_stages": 14,
+        "activation_stages_per_procd": 8,
+        "procd_implementations": [
+          "stock",
+          "rust"
+        ]
+      },
+      "stack_and_ubus": {
+        "report": "final-sdk-stack-ubus-review.json",
+        "stack": 23,
+        "helper": 5,
+        "ubus_recovery_scenarios": 3
+      },
+      "root_protocol": {
+        "reported_by": "root independent audit",
+        "observations": 368,
+        "strict": 366,
+        "documented_c_invalid_compression": 2,
+        "cache_cases": 110,
+        "cache_observations": 337,
+        "upstream_observations": 150,
+        "negative_controls": 452
+      },
+      "f10": {
+        "report": "f10-contract/qualifier/approved/sdk-final-recheck.json",
+        "cases": 13,
+        "dns_observations": 704,
+        "unqualified_failures": 0,
+        "source_bound_initial_order_only": 28,
+        "observed_c_order_only": 16,
+        "content_forward_tc_remain_strict": true
+      },
+      "trial": "passed on final exact ELF per root final runtime review; separate receipt retained by root",
+      "combined_unit_tests_at_budget_decision": "compilation/execution still pending; not counted as passed here",
+      "receipt_sha256": {
+        "sdk-final-b587.json": "293d56036b9b1904d7c24c0b77c6c8eb791ba93715d95711fbd0af1a74adf406",
+        "final-sdk-memory-review.json": "b7d4953ba404f5299250c7895d7560d580bec99445f57acc44c9c0805a538b33",
+        "final-sdk-stack-ubus-review.json": "f92ef3df3783d986c7302df0e0b58ea4f1152f8b305aa32a00580f047af632d3",
+        "f10-contract/qualifier/approved/sdk-final-recheck.json": "59524687e485e38c5696d3032d7529c4c004dcb6d301f4ce99167957700b02df"
+      }
+    }
   },
   "release_constraints": {
     "opt_level": 3,
