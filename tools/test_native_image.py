@@ -11,6 +11,8 @@ from unittest.mock import patch
 import ci_build_dnsmasq
 import native_apk_fixtures
 import native_image
+import native_image_check
+import native_package_reinstall_selftest
 
 
 REPO = Path(__file__).resolve().parent.parent
@@ -19,6 +21,22 @@ FILES = REPO / "packaging/openwrt/owrt-dnsmasq/files"
 
 
 class NativeDnsmasqTests(unittest.TestCase):
+    def test_reinstall_negative_controls_still_find_tmpfs_fixture_commands(self):
+        # Exercise the actual negative-control selector for both transaction
+        # stages. Adding a global APK option must not bypass the no-op test.
+        for stage in ("stock", "native"):
+            check = object.__new__(native_package_reinstall_selftest.SkipReinstall)
+            check.stage, check.skipped = stage, 0
+            script = ("apk --no-scripts --no-network --allow-untrusted --force-non-repository "
+                      "--repositories-file /dev/null add --force-reinstall /tmp/native-apks/fixture.apk\n"
+                      "sha256sum -c /usr/share/owrt-control-plane/rust.sha256\n")
+            with patch.object(native_image_check.Check, "shell") as shell:
+                check.shell(f"package-{stage}-reinstall", Path("/unused"), script)
+                rewritten = shell.call_args.args[2]
+                self.assertEqual(check.skipped, 1)
+                self.assertNotIn("add --force-reinstall", rewritten)
+                self.assertIn("sha256sum -c", rewritten)
+
     def test_prepare_rejects_unprivileged_before_reading_or_mutating_files(self):
         with patch.object(native_image.os, "geteuid", return_value=1000), \
                 patch.object(native_image, "read", side_effect=AssertionError("read before privilege gate")), \

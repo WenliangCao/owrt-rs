@@ -184,6 +184,9 @@ mount -o bind /etc/init.d/dnsmasq /etc/init.d/dnsmasq
         # fix --reinstall may return success after skipping an unavailable
         # installed APK identity. Explicit payloads and missing-file repair
         # prove that every original owner fixture was actually extracted.
+        # These disposable roots may live on tmpfs. APK's non-repository
+        # persistence refusal does not apply to this no-reboot fixture; allow
+        # only that condition, without changing ownership or integrity checks.
         file_lists = {}
         for name in self.manifest["stock_packages"]:
             path = root / "lib/apk/packages" / (name + ".list")
@@ -194,7 +197,7 @@ mount -o bind /etc/init.d/dnsmasq /etc/init.d/dnsmasq
             for c in [*self.manifest["components"].values(),
                       *self.manifest["integration_files"].values()]) + "\n"
         self.shell("package-stock-reinstall", root, f'''
-apk --no-scripts --no-network --allow-untrusted --repositories-file /dev/null add --force-reinstall {owner_apks}
+apk --no-scripts --no-network --allow-untrusted --force-non-repository --repositories-file /dev/null add --force-reinstall {owner_apks}
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
 ''' + ownership)
         assert "APK unavailable" not in (self.out / "package-stock-reinstall.log").read_text()
@@ -205,7 +208,7 @@ sha256sum -c /usr/share/owrt-control-plane/rust.sha256
         recovery = root / "usr/libexec/owrt-stock/sbin/procd"
         recovery.unlink()
         self.shell("package-native-reinstall", root, f'''
-apk --no-scripts --no-network --allow-untrusted --repositories-file /dev/null add --force-reinstall /tmp/native-apks/owrt-control-plane-{self.manifest['version']}.apk
+apk --no-scripts --no-network --allow-untrusted --force-non-repository --repositories-file /dev/null add --force-reinstall /tmp/native-apks/owrt-control-plane-{self.manifest['version']}.apk
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
 sha256sum -c /usr/share/owrt-control-plane/stock.sha256
 ''' + ownership)
