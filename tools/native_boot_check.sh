@@ -193,9 +193,9 @@ container=1 timeout -s KILL 120 unshare --mount --net --pid --uts --ipc --fork -
     mount --make-rprivate /
     # Exact ujail marks its current / MS_PRIVATE before pivot_root. A plain
     # chroot directory is not a mountpoint and fails EINVAL before dnsmasq
-    # executes; reproduce the real router root's mount boundary privately.
+    # executes; reproduce the real router root mount boundary privately.
     mount --bind "$root" "$root"
-    awk -v root="$root" '\''$5 == root { print }'\'' /proc/self/mountinfo > "$root/tmp/out/fixture-root-mount.txt"
+    awk -v root="$root" "\$5 == root { print }" /proc/self/mountinfo > "$root/tmp/out/fixture-root-mount.txt"
     test -s "$root/tmp/out/fixture-root-mount.txt"
     mount -t proc proc /proc
     mount --bind /proc "$root/proc"
