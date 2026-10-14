@@ -5,6 +5,8 @@ Exact image C runs using the image's musl loader. This exercises complete
 transfers, negotiation, retry, parsing/error boundaries and single-port mode;
 it is not a performance, exhaustive fault-injection or router qualification.
 Raw files, wire and logs stay under --out private/. --report is derived data.
+Reports identify tested bytes by SHA-256; source revision attribution belongs
+in a separately verified build receipt.
 """
 import argparse
 import hashlib
@@ -235,7 +237,6 @@ def main():
     assert sha(stock) == STOCK_SHA256
     c = [str(image / 'lib/ld-musl-aarch64.so.1'), '--library-path', f'{image}/lib:{image}/usr/lib', str(stock)]
     report = {'scope': 'isolated exact-image ELF/loader service comparison; synthetic loopback v4/v6',
-              'source_commit': '3e7df6c1cc45b74f0430e5460379713900172cb4',
               'c_sha256': sha(stock), 'rust_sha256': sha(args.rust), 'tool_sha256': sha(__file__), 'cases': []}
     for case in cases():
         rows = {side: execute(binary, case, out / f'{case["name"]}-{side}')
