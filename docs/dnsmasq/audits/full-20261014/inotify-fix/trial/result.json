@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "case": "confirmed-rollback-killed",
+  "checks": {
+    "one_requested_case_only": true,
+    "raw_result_passed": true,
+    "runner_exit_zero": true,
+    "candidate_input_matches": true,
+    "candidate_running_elf_matches": true,
+    "stock_initial_elf_matches": true,
+    "stock_recovery_elf_matches": true,
+    "trial_script_matches_preflight": true,
+    "tools_match_source_commit": true,
+    "pre_post_identities_unchanged": true,
+    "fault_after_unmount": true,
+    "actual_sigkill": true,
+    "automatic_helpers_cleared": true,
+    "all_dhcp_and_dns_clients_healthy": true,
+    "raw_result_receipt_hash_matches": true,
+    "cleanup_complete": true
+  },
+  "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+  "source_path": "/dev/shm/full-inotify-fix-20261014/private/source",
+  "candidate_path": "/dev/shm/full-inotify-fix-20261014/private/release-final/dnsmasq-rs",
+  "candidate_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+  "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+  "trial_harness_sha256": "f3ce62bceb4d80bbb8061de7fb2e9c9c3dd14d2a401ad5ad7bd8838c6cc560cd",
+  "source_tools_verification": {
+    "source_commit": "340ed73e83e58ba845e0a645eb21e9ead0d0f108",
+    "files_checked": 463,
+    "all_match": true
+  },
+  "case_count": 1,
+  "client_check_count": 3,
+  "client_checks": {
+    "stock_client": true,
+    "candidate_client": true,
+    "automatic_recovery_client": true
+  },
+  "fault": {
+    "pid": 514,
+    "phase": "unmounted",
+    "mounted": false,
+    "helper_files": [
+      "watch.pid"
+    ],
+    "signal": "SIGKILL"
+  },
+  "rollback_exit": -9,
+  "started_at": "2026-10-14T13:54:07.516788+00:00",
+  "finished_at": "2026-10-14T13:54:22.358222+00:00",
+  "elapsed_seconds": 14.841,
+  "error": null,
+  "runner_error": null,
+  "cleanup": {
+    "fixture_processes_remaining": [],
+    "fixture_mounts_in_host_namespace": [],
+    "clean": true,
+    "recorded_at": "2026-10-14T13:55:07.593663+00:00"
+  },
+  "raw_root": "/dev/shm/full-inotify-trial-20261014/private",
+  "argv_receipt": "/dev/shm/full-inotify-trial-20261014/private/trial-confirmed-rollback-killed.command.json",
+  "result_sha256": "a65db5583503a595abe17d2d723ce442e82197741f11186deacea520da2ae367",
+  "physical_router_accessed": false,
+  "scope": "One requested recovery case only; exact-image Oracle fixture; isolated network, mount and PID namespaces.",
+  "tools_unchanged_from_19bd6162": true,
+  "raw_backup": {
+    "path": "/Users/USER/Developer/owrt-dnsmasq-full-inotify/private/inotify-trial-20261014/evidence.tar.gz",
+    "sha256": "db2238ac2711c458d865f4c94223b392eaca8804f6c97375622a9207462ebc3b",
+    "bytes": 1226939,
+    "indexed_regular_files_verified": 38,
+    "all_indexed_files_match_archive": true
+  }
+}
