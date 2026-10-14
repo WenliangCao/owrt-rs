@@ -78,6 +78,7 @@ def summarize(run):
     health = [state['baseline'], state['final_health']]
     for entry in state['windows']:
         folder = run / entry['name']
+        health.append(load(run / (entry['name'] + '-before.json')))
         health.extend(entry['health'])
         window = {'name': entry['name'], 'implementation': entry['implementation'],
                   'socket_isolation': entry['socket_proof'], 'modes': {}, 'errors': [],

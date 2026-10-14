@@ -1,0 +1,116 @@
+{
+  "review_start_commit": "aa8f12dbe514acab3feb979e86bd6a7accb15cd1",
+  "final_product_source": "807db8a15e43452414acc048874bf04a4c639bd9",
+  "files": [
+    {
+      "path": "tools/dnsmasq/predeploy_resources.py",
+      "bytes": 13646,
+      "sha256": "65849af164d2a7be2645d695ffdd0eecaea31eaaaeb3ef07cd3ec98304ae3c7b"
+    },
+    {
+      "path": "tools/dnsmasq/predeploy_resource_window.sh",
+      "bytes": 5067,
+      "sha256": "2a0e7eef9e4ac1c1462b8aef94851c06a24ab559e4ed1a305d03f17edfda4c5d"
+    },
+    {
+      "path": "tools/dnsmasq/recheck_resource_edns.py",
+      "bytes": 1143,
+      "sha256": "49e5b73d73c3669defb940e8f0c206e22bc4f79a22244b52f6ebc53565855d79"
+    },
+    {
+      "path": "tools/dnsmasq/recheck_resource_watch.py",
+      "bytes": 5185,
+      "sha256": "11fbe4afdf3cd4d4893beaaff31310fe97966ab9f96eb995e4b2ed877ab8054b"
+    },
+    {
+      "path": "tools/dnsmasq/recheck_pressure_analyze.py",
+      "bytes": 7687,
+      "sha256": "fa6e9694d81c8d4ccf30aaff8e4357a2f3fa0cef667cc61da239ff87d5554759"
+    },
+    {
+      "path": "tools/dnsmasq/recheck_syscall_observer.c",
+      "bytes": 7017,
+      "sha256": "74f4879b9cdc1b9603d92edaa509a3bbee57b6ced19446f7fa055349defdc814"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/dnsmasq-final",
+      "bytes": 2071323,
+      "sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/observer",
+      "bytes": 711264,
+      "sha256": "45ca888d3b6dce3b1c02a799330249bc42330471e72b265315e160585952d0b9"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/edns-helpers/upstream.c",
+      "bytes": 9664,
+      "sha256": "dfc7836fd30cfd57c52e8c3452b7b7a33f982ab5971a24d591c252f2f77c4050"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/edns-helpers/loadgen",
+      "bytes": 132544,
+      "sha256": "ea359521bdd2fe30329ce9ba886357f61692bf11c72e1dda800cb5a12e5aeaa9"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/edns-helpers/bind",
+      "bytes": 67104,
+      "sha256": "a4275ff33886e724cd3261451d53059d0dfcc620a504d8658d7f46c111a22b23"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/edns-helpers/probe",
+      "bytes": 543480,
+      "sha256": "e86e541ac2b519928c97cbb76036068b5e458beb05b54445139425aca0740783"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/edns-helpers/loadgen.c",
+      "bytes": 32363,
+      "sha256": "f9f4b06bfc8cd31cf3bf9fb529bdca061e9abeac530e322c6a1c9f09027a14a4"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-recheck-20261014/edns-helpers/upstream",
+      "bytes": 452440,
+      "sha256": "e1c9b7e01cf00b1426ed058ec8470b23b84d6e2e7df58f2922d30a573c708d66"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-resources-20261014/build/dnsmasq-rs",
+      "bytes": 2056672,
+      "sha256": "d17a392c8d009c342518fe86d4d1f4c34c32082dd23a2599549a89fce042470e"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-resources-20261014/evidence/capture-helpers/bind",
+      "bytes": 67104,
+      "sha256": "a4275ff33886e724cd3261451d53059d0dfcc620a504d8658d7f46c111a22b23"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-resources-20261014/evidence/capture-helpers/probe",
+      "bytes": 543480,
+      "sha256": "e86e541ac2b519928c97cbb76036068b5e458beb05b54445139425aca0740783"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-resources-20261014/evidence/capture-helpers/upstream",
+      "bytes": 452440,
+      "sha256": "e1c9b7e01cf00b1426ed058ec8470b23b84d6e2e7df58f2922d30a573c708d66"
+    },
+    {
+      "path": "private/dnsmasq-predeploy-resources-20261014/evidence/capture-helpers/loadgen",
+      "bytes": 544600,
+      "sha256": "2dcf151fc2a1fb115958de6b0902ec82b52a36626cffa5a9cc3686d881098712"
+    }
+  ],
+  "diagnostic_build": {
+    "compiler": "matching OpenWrt SDK GCC 14.3.0",
+    "loadgen_flags": [
+      "-std=c11",
+      "-O2",
+      "-static",
+      "-s",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-lm"
+    ],
+    "only_query_change": "empty EDNS0 OPT, UDP size 1232, DO off",
+    "original_helpers_unchanged": true
+  }
+}

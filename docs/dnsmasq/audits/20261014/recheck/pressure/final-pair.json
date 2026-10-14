@@ -707,7 +707,7 @@
     "test_ports_bound": 0
   },
   "health": {
-    "checks": 20,
+    "checks": 22,
     "all_ok": true,
     "min_mem_available_kib": 105696,
     "production_identity_unchanged": true

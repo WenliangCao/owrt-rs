@@ -1,0 +1,27 @@
+{
+  "verified_private_evidence_entries": 70,
+  "hash_errors": [],
+  "run_cleanup": [
+    {
+      "root_removed": true,
+      "test_processes_remaining": 0,
+      "test_ports_bound": 0
+    },
+    {
+      "root_removed": true,
+      "test_processes_remaining": 0,
+      "test_ports_bound": 0
+    },
+    {
+      "root_removed": true,
+      "test_processes_remaining": 0,
+      "test_ports_bound": 0
+    }
+  ],
+  "late_readonly_conntrack_observation": {
+    "test_port_loopback_entries": "0",
+    "global_count": 98,
+    "global_table_was_not_flushed": true
+  },
+  "product_and_deploy_diff_empty": true
+}
