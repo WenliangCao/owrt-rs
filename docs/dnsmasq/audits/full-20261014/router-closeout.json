@@ -1,0 +1,22 @@
+{
+  "config_backup_sha256": "7fa606784bcc8e8454506d5bc75d6663d3d9bf1825c446eeda7e6e222d83a183",
+  "config_entries_before": 261,
+  "config_entries_after": 261,
+  "content_mode_owner_symlink_changes": [],
+  "sysupgrade_backup_list_missing": [],
+  "dnsmasq_before_pid": 2812,
+  "dnsmasq_after_pid": 2812,
+  "dnsmasq_running_elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "visible_and_rom_elf_match": true,
+  "stack_files_and_live_process_hashes_unchanged": true,
+  "mounts_unchanged": true,
+  "router_actions": "read-only backup, identity and service state inspection, low-rate DNS queries; no service change, package install, flash write, signal, or new mount",
+  "physical_dhcp_reconnect_test": false,
+  "state": "original C service retained throughout; no restoration mutation required",
+  "private_evidence": {
+    "before.txt": "f2cdd8c790cc0be441446bb97809b16231ada692579cfda6c6fc68a1c8433619",
+    "after.txt": "b4dc6be46f53e4cfdace5f638021ef0d7ba4da2b0fd67b0a51086fbda878ab23",
+    "stack-hashes-before.txt": "00d6f43ba8709d53c498594be91f0482ed825967dd7ed93bb6fb3cc13c711bed",
+    "stack-hashes-after.txt": "00d6f43ba8709d53c498594be91f0482ed825967dd7ed93bb6fb3cc13c711bed"
+  }
+}

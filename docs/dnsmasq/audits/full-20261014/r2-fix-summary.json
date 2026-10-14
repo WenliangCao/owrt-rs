@@ -1,0 +1,1057 @@
+{
+  "reviewed_commit": "68f96cf3fb6e0b17f4fc6a9df768c85d1d79a954",
+  "rust_sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490",
+  "main_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "status": "original_abort_repaired_but_failed_HUP_cache_purge_fails; successor_98bc6b58_static_reviewed_pending_artifact",
+  "build": {
+    "source": "/dev/shm/full-r2-fix-20261014/private/source-fixed",
+    "kind": "release",
+    "cargo_target_dir": "/dev/shm/full-r2-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-r2-fix-20261014/private/source-fixed=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2081248,
+        "sha256": "b65c06c561a9a852ec42222a5a31be493c742f14d8bc454dbeab22542b26b490"
+      }
+    ]
+  },
+  "source_verification": {
+    "source": "/dev/shm/full-r2-fix-20261014/private/source-fixed",
+    "commit": "68f96cf3fb6e0b17f4fc6a9df768c85d1d79a954",
+    "files": 173,
+    "mismatch": [
+      "rust-toolchain.toml"
+    ]
+  },
+  "source_verification_note": "All 172 component/linker inputs match commit; rust-toolchain.toml absent from supplied source snapshot. Build script selects +1.98.1 explicitly.",
+  "cases": {
+    "original-adjacent-68f.json": [
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 25800,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 30,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "old000000.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.1"
+              }
+            ],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 512,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 22836,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 512,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 117,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "old000000.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.1"
+              }
+            ],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 18036,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 15,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "old000000.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.1"
+              }
+            ],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      }
+    ],
+    "invalid-diagnostics-68f.json": [
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 14468,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          },
+          "old000000.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          },
+          "new029999.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 256,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 88,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "old000000.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.1"
+              }
+            ],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "c",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 12161,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          },
+          "old000000.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          },
+          "new029999.test": {
+            "ok": false,
+            "rcode": null,
+            "records": [],
+            "error": "TimeoutError('timed out')"
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      },
+      {
+        "side": "rust",
+        "initial_rows": 2000,
+        "headroom_kib": 1024,
+        "pressure_exit": null,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 37,
+        "pressure_udp": {
+          "ready.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "ready.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.41"
+              }
+            ],
+            "error": null
+          },
+          "old000000.test": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "old000000.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.1"
+              }
+            ],
+            "error": null
+          },
+          "new029999.test": {
+            "ok": true,
+            "rcode": 5,
+            "records": [],
+            "error": null
+          }
+        },
+        "after_hup": {
+          "udp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          },
+          "tcp": {
+            "ok": true,
+            "rcode": 0,
+            "records": [
+              {
+                "section": "answer",
+                "name": "recovered.test",
+                "type": 1,
+                "class": 1,
+                "ttl": 0,
+                "data": "192.0.2.44"
+              }
+            ],
+            "error": null
+          }
+        },
+        "error": null
+      }
+    ],
+    "cache-held-68f.json": [
+      {
+        "side": "c",
+        "passed": true,
+        "hup_cache_purged": true,
+        "held_tcp_snapshot_stable": true,
+        "pressure_tcp_healthy": false,
+        "exit": 0,
+        "hup_udp_reply": {
+          "id": 29714,
+          "flags": 33152,
+          "questions": [
+            [
+              "hup0.expiry.test",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "hup0.expiry.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 60,
+              "data": "198.51.100.13"
+            }
+          ]
+        }
+      },
+      {
+        "side": "rust",
+        "passed": false,
+        "hup_cache_purged": false,
+        "held_tcp_snapshot_stable": true,
+        "pressure_tcp_healthy": true,
+        "exit": 0,
+        "hup_udp_reply": {
+          "id": 29714,
+          "flags": 33152,
+          "questions": [
+            [
+              "hup0.expiry.test",
+              1,
+              1
+            ]
+          ],
+          "records": [
+            {
+              "section": "answer",
+              "name": "hup0.expiry.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 58,
+              "data": "198.51.100.12"
+            }
+          ]
+        }
+      }
+    ],
+    "full-generation-68f.json": [
+      {
+        "side": "c",
+        "initial_memory": {
+          "VmPeak": 1560,
+          "VmSize": 1556,
+          "VmRSS": 1240
+        },
+        "limit": 2641920,
+        "pressure_exit": null,
+        "pressure_samples": {
+          "ready.test": [
+            "192.0.2.41"
+          ],
+          "preold.test": [],
+          "prenew.test": [],
+          "postold.test": [],
+          "postnew.test": [
+            "192.0.2.48"
+          ],
+          "old000000.test": [],
+          "old001999.test": [],
+          "new000000.test": [
+            "192.0.2.1"
+          ],
+          "new029999.test": []
+        },
+        "scans": {
+          "old": {
+            "checked": 2000,
+            "present": 0,
+            "wrong_address": 0,
+            "wire_sha256": "be763115bd9c14ce6bbe088997da4e848c9a57a3cde7395e4c559615950e3142"
+          },
+          "new": {
+            "checked": 30000,
+            "present": 11913,
+            "wrong_address": 0,
+            "wire_sha256": "afa5bf7bee154158bb63fb1ef746ced71bde92ff8cdf252f9a19b34f1ceae84b"
+          }
+        },
+        "after_scan": {
+          "preold.test": [],
+          "prenew.test": [],
+          "postold.test": [],
+          "postnew.test": [
+            "192.0.2.48"
+          ]
+        },
+        "recovered": {
+          "ready.test": [
+            "192.0.2.41"
+          ],
+          "prerecovered.test": [
+            "192.0.2.49"
+          ],
+          "recovered.test": [
+            "192.0.2.44"
+          ],
+          "postrecovered.test": [
+            "192.0.2.50"
+          ],
+          "preold.test": [],
+          "postold.test": [],
+          "old000000.test": [],
+          "new000000.test": []
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "error": null
+      },
+      {
+        "side": "rust",
+        "initial_memory": {
+          "VmPeak": 3436,
+          "VmSize": 3436,
+          "VmRSS": 3024
+        },
+        "limit": 4567040,
+        "pressure_exit": null,
+        "pressure_samples": {
+          "ready.test": [
+            "192.0.2.41"
+          ],
+          "preold.test": [
+            "192.0.2.45"
+          ],
+          "prenew.test": [],
+          "postold.test": [
+            "192.0.2.46"
+          ],
+          "postnew.test": [],
+          "old000000.test": [
+            "192.0.2.1"
+          ],
+          "old001999.test": [
+            "192.0.2.250"
+          ],
+          "new000000.test": [],
+          "new029999.test": []
+        },
+        "scans": {
+          "old": {
+            "checked": 2000,
+            "present": 2000,
+            "wrong_address": 0,
+            "wire_sha256": "051834bce5a4c7de5c288c4e28a75ff6585acd8c21ffe1f33d3d992c48420236"
+          },
+          "new": {
+            "checked": 30000,
+            "present": 0,
+            "wrong_address": 0,
+            "wire_sha256": "f5d3b295e374e56197f06db5104a008e2c0e809735ee8df614a152da42fa76a6"
+          }
+        },
+        "after_scan": {
+          "preold.test": [
+            "192.0.2.45"
+          ],
+          "prenew.test": [],
+          "postold.test": [
+            "192.0.2.46"
+          ],
+          "postnew.test": []
+        },
+        "recovered": {
+          "ready.test": [
+            "192.0.2.41"
+          ],
+          "prerecovered.test": [
+            "192.0.2.49"
+          ],
+          "recovered.test": [
+            "192.0.2.44"
+          ],
+          "postrecovered.test": [
+            "192.0.2.50"
+          ],
+          "preold.test": [],
+          "postold.test": [],
+          "old000000.test": [],
+          "new000000.test": []
+        },
+        "exit_before_stop": null,
+        "exit": 0,
+        "error": null
+      }
+    ]
+  },
+  "raw_evidence": {
+    "original-adjacent-68f.json": {
+      "local_private_path": "private/full-audit-20261014/r2-fix-review/original-adjacent-68f.json",
+      "sha256": "e732f9bf7d5a4609b7425279281f36660e4da17d8e2e3671f6c5bb0e3faa1945"
+    },
+    "cache-held-68f.json": {
+      "local_private_path": "private/full-audit-20261014/r2-fix-review/cache-held-68f.json",
+      "sha256": "dae5d51700eefd186d6aa6fe5558c4aa94a29b69d2402fe30f3644d35d8d297c"
+    },
+    "invalid-diagnostics-68f.json": {
+      "local_private_path": "private/full-audit-20261014/r2-fix-review/invalid-diagnostics-68f.json",
+      "sha256": "17db839c4d9ac67d8680599d1b7eef551f73c29b8f679168f2e4721876bd46dc"
+    },
+    "full-generation-68f.json": {
+      "local_private_path": "private/full-audit-20261014/r2-fix-review/full-generation-68f.json",
+      "sha256": "8280fb09aa6e39102b7eadf19bebc93b0a95ddedb311340c51cec022cc834ff3"
+    }
+  },
+  "domain_failure_primitive": {
+    "source_commit": "68f96cf3",
+    "source_file": "components/dnsmasq/src/hosts.rs",
+    "probe": "private/full-audit-20261014/r2-fix-review/domain-failure-probe.rs",
+    "observation": "unreported failure=0 entries=1 names=[\"short\"]\n",
+    "scope": "Source-bound musl primitive with one injected allocation failure. Not a shipped-daemon reproduction; suffix callback matches main semantics. Existing boundary, not introduced by patch."
+  },
+  "diagnostic_logs": [
+    {
+      "case": "rust-initial2000-extra1024",
+      "read_lines": [
+        "59]: read /m2/hosts - 2000 names",
+        "59]: read /m2/hosts - 1 names"
+      ],
+      "bad_addresses": 6196,
+      "bytes": 397700
+    },
+    {
+      "case": "c-initial2000-extra1024",
+      "read_lines": [
+        "42]: read /m2/hosts - 2000 names",
+        "42]: read /m2/hosts - 17839 names",
+        "42]: read /m2/hosts - 1 names"
+      ],
+      "bad_addresses": 30000,
+      "bytes": 2638195
+    },
+    {
+      "case": "rust-initial2000-extra256",
+      "read_lines": [
+        "29]: read /m2/hosts - 2000 names",
+        "29]: read /m2/hosts - 1 names"
+      ],
+      "bad_addresses": 3177,
+      "bytes": 203287
+    },
+    {
+      "case": "c-initial2000-extra256",
+      "read_lines": [
+        "12]: read /m2/hosts - 2000 names",
+        "12]: read /m2/hosts - 15532 names",
+        "12]: read /m2/hosts - 1 names"
+      ],
+      "bad_addresses": 30000,
+      "bytes": 2798630
+    }
+  ],
+  "raw_archive": {
+    "local": "private/full-audit-20261014/r2-fix-review/r2-independent-68f.tar.gz",
+    "oracle": "/home/ubuntu/full-audit-20261014/private/r2-independent-68f.tar.gz",
+    "sha256": "a5c3912b0fa3f17e01023f63ece73dfb1e8dccb2b08994a1ec4c05bbc6a63ffe",
+    "scope": "Probe outputs/source/logs/wire data, excluding image overlay stages and primitive executable. Original overlay evidence remains task-owned on Oracle."
+  },
+  "independent_tests": {
+    "independent-lib-68f.log": {
+      "summary": [
+        "test result: ok. 784 passed; 0 failed; 20 ignored; 0 measured; 0 filtered out; finished in 3.96s"
+      ],
+      "sha256": "444777c35f95c8451cfb076b070aba532f19abe9aadd18a18cdf9111549b3f74"
+    },
+    "independent-bin-68f.log": {
+      "summary": [
+        "test result: ok. 78 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.10s"
+      ],
+      "sha256": "90ead17d6fef351714d6cac93506504981d9b7d7cb5fa5d73bb7671524194ab8"
+    }
+  }
+}

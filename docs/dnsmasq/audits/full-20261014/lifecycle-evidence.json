@@ -1,0 +1,131 @@
+{
+  "commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "rust_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+  "exact_image_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "scope": "fresh frozen-main lifecycle tests; no router access; no product changes",
+  "archive": "private/full-audit-20261014/lifecycle/oracle-evidence.tar.gz",
+  "archive_sha256": "ef8e299b4db9706171221aa0dd39c2e55eb5d9c43c0006bdab2a8509ca37f9ea",
+  "original_audit_rechecks": {
+    "A01": {
+      "signal_processes": 16,
+      "dump_processes": 4,
+      "alarm_maintenance_processes": 4,
+      "errors": []
+    },
+    "A02_A03_A04_A09": {
+      "paired_cases": 9,
+      "matched": 9,
+      "failures": []
+    },
+    "A05": {
+      "paired_directives": 12,
+      "failures": []
+    }
+  },
+  "cli": {
+    "ordinary_option_count": 169,
+    "paired_cases": 345,
+    "qualified": true,
+    "failures": []
+  },
+  "hup_and_usr2_actual_effects": {
+    "processes": 4,
+    "passed": true
+  },
+  "identity": {
+    "paired_cases": 6,
+    "failures": []
+  },
+  "privileges": {
+    "paired_cases": 7,
+    "errors": [],
+    "negative_controls": [
+      {
+        "mutation": "missing-case",
+        "exit": 1,
+        "detected": true
+      },
+      {
+        "mutation": "changed-dns-flags",
+        "exit": 1,
+        "detected": true
+      },
+      {
+        "mutation": "wrong-worker-capability",
+        "exit": 1,
+        "detected": true
+      },
+      {
+        "mutation": "wrong-pid",
+        "exit": 1,
+        "detected": true
+      }
+    ]
+  },
+  "daemon_lifecycle": {
+    "paired_cases": 33,
+    "case_ids": [
+      "daemon-default-stderr",
+      "daemon-default-syslog",
+      "daemon-relative-paths",
+      "foreground-relative-paths",
+      "debug-relative-paths",
+      "debug-foreground-precedence",
+      "debug-keeps-configured-nobody-identity",
+      "foreground-drops-nobody-identity",
+      "nonroot-pid-open-failure-ignored",
+      "pid-symlink-target-preserved",
+      "debug-sigint-pid",
+      "daemon-log-open-failure",
+      "daemon-log-failure-parent-facility",
+      "daemon-pid-open-failure",
+      "helper-startup-tftp-default",
+      "helper-startup-dhcp-default",
+      "log-path-opaque-failure-default",
+      "startup-unknown-user-default",
+      "startup-unknown-group-default",
+      "startup-tftp-root-missing-default",
+      "helper-startup-tftp-foreground",
+      "helper-startup-dhcp-foreground",
+      "log-path-opaque-failure-foreground",
+      "startup-unknown-user-foreground",
+      "startup-unknown-group-foreground",
+      "startup-tftp-root-missing-foreground",
+      "helper-startup-tftp-debug",
+      "helper-startup-dhcp-debug",
+      "log-path-opaque-failure-debug",
+      "startup-unknown-user-debug",
+      "startup-unknown-group-debug",
+      "startup-tftp-root-missing-debug",
+      "daemon-runtime-servers-file-failure"
+    ],
+    "failures": [],
+    "checker_negative_control_count": 49,
+    "checker_negative_controls_all_passed": true
+  },
+  "config_exit": {
+    "paired_cases": 5,
+    "failures": [],
+    "negative_controls": {
+      "missing-execution": true,
+      "changed-exit-status": true
+    }
+  },
+  "receipts": {
+    "logging.json": "270dc2913fe8aa5a01615251598785143ebb9c80f82bfad7ab7c69a16d4d7eef",
+    "signals.py": "9f0373451113002bd04c7d648227b7b967bee3b3d362897f7190d5e41d0cbaea",
+    "cli.json": "ff256ff37830c95c9597a0c9d0ae0a7c4eebe7fce7b96322b95cb360195e9998",
+    "a05.json": "6e7348f4638ccb105c9bd5036270a1817be5d269095d99eefca59735238fb066",
+    "identity.json": "96d5518e909265aa0a69fca4bc902f6a9b38b4d6a4538d6354fb93b690df02a8",
+    "config-exit.json": "a9769ae870d2390f7f3e491c4af8a0f7601f61be2eb9f13595e134fb54e64568",
+    "dhcp-original.json": "d7d9a478d80f7c23d8531382e67ca60b87cea2844953656df3cbe95115347811",
+    "privilege.json": "c4f849d2061a6a02142e15a97e9daad7099dd2050e62db9e0c9dadb6a4ac43cf",
+    "signals.json": "7fde59351db3959d396f30af7b905a10b7467a1e8345f689d05a428bd59ed924",
+    "identity.py": "8954284e1358a87c662496bdfb60f4c0cb9268edad5e8f67c1ed3e518df03c01"
+  },
+  "cleanup": {
+    "task_processes_remaining": false,
+    "unrelated_active_m2_process_left_intact": true,
+    "router_access": false
+  }
+}

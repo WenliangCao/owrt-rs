@@ -1,0 +1,2868 @@
+{
+  "schema": 1,
+  "reviewed_commit": "22fe5dd9a6539ef7381b0bab43b39786b0bceae7",
+  "product_commits": [
+    "936514cdfce83408c4ad9b331178c69baf873f8c",
+    "22fe5dd9a6539ef7381b0bab43b39786b0bceae7"
+  ],
+  "baseline_commit": "e9d89b17d72a58b723cce88038ceaa1be58d7f8c",
+  "scope": "Independent Oracle replays; exact stock image C versus supplied candidate ELF with independently verified frozen-source map. No product edits, no router access.",
+  "verdict": "Original single-address case and normal snapshots fixed; full resource closure rejected because copy of global rotation order still amplifies per-client memory.",
+  "identity": {
+    "source_commit": "22fe5dd9a6539ef7381b0bab43b39786b0bceae7",
+    "verified_source_files": 171,
+    "source_map_sha256": "bab146ab41cce370f0be10db02a90ed9832306c5ba7436c96566a802bcbd9604",
+    "candidate_sha256": "0ac4ad216c071ae708af52f5d4d4cd6e4c2130b451655033efc463888bff0834",
+    "candidate_bytes": 2089440,
+    "builder_manifest": {
+      "source": "/dev/shm/full-tcp-fix-20261014/source",
+      "kind": "release",
+      "cargo_target_dir": "/dev/shm/full-tcp-fix-20261014/target",
+      "opt_level": "3",
+      "features": "",
+      "rustflags": "--remap-path-prefix=/dev/shm/full-tcp-fix-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+      "artifacts": [
+        {
+          "path": "dnsmasq-rs",
+          "bytes": 2089440,
+          "sha256": "0ac4ad216c071ae708af52f5d4d4cd6e4c2130b451655033efc463888bff0834"
+        }
+      ]
+    }
+  },
+  "pss": [
+    {
+      "side": "c",
+      "hosts": 50000,
+      "samples": [
+        {
+          "connections": 0,
+          "pss_kib": 6244
+        },
+        {
+          "connections": 1,
+          "pss_kib": 6364
+        },
+        {
+          "connections": 10,
+          "pss_kib": 7471
+        },
+        {
+          "connections": 20,
+          "pss_kib": 8718
+        }
+      ],
+      "increase_kib": 2474,
+      "exit": 0
+    },
+    {
+      "side": "rust",
+      "hosts": 50000,
+      "samples": [
+        {
+          "connections": 0,
+          "pss_kib": 24048
+        },
+        {
+          "connections": 1,
+          "pss_kib": 24064
+        },
+        {
+          "connections": 10,
+          "pss_kib": 24280
+        },
+        {
+          "connections": 20,
+          "pss_kib": 24512
+        }
+      ],
+      "increase_kib": 464,
+      "exit": 0
+    }
+  ],
+  "cgroups": {
+    "cgroup": [
+      {
+        "side": "c",
+        "budget_bytes": 67108864,
+        "ready": {
+          "memory.current": "5836800",
+          "memory.peak": "5844992",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12"
+        },
+        "after_warming": null,
+        "warmed_parent_names": null,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "6361088",
+            "peak": "6361088"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "6623232",
+            "peak": "6623232"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "6623232",
+            "peak": "6623232"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "6885376",
+            "peak": "6885376"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "6823936",
+            "peak": "7147520"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "7348224",
+            "peak": "7348224"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "7610368",
+            "peak": "7610368"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "7872512",
+            "peak": "7872512"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "8134656",
+            "peak": "8134656"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "8396800",
+            "peak": "8396800"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "8658944",
+            "peak": "8658944"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "8921088",
+            "peak": "8921088"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "9183232",
+            "peak": "9183232"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "9445376",
+            "peak": "9445376"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "9707520",
+            "peak": "9707520"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "9707520",
+            "peak": "9707520"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "9969664",
+            "peak": "9969664"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "10231808",
+            "peak": "10231808"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "10493952",
+            "peak": "10493952"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "10756096",
+            "peak": "10756096"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "10756096",
+          "memory.peak": "10756096",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      },
+      {
+        "side": "rust",
+        "budget_bytes": 67108864,
+        "ready": {
+          "memory.current": "23351296",
+          "memory.peak": "23351296",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "after_warming": null,
+        "warmed_parent_names": null,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "23351296",
+            "peak": "23351296"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "23351296",
+            "peak": "23351296"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "23347200",
+            "peak": "23351296"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "23347200",
+            "peak": "23351296"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "23609344",
+            "peak": "23609344"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "23609344",
+            "peak": "23609344"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "23609344",
+            "peak": "23609344"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "23601152",
+            "peak": "23609344"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23609344"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23609344"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23609344"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23609344"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23609344"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "23818240",
+          "memory.peak": "23846912",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      }
+    ],
+    "hup-cgroup": [
+      {
+        "side": "c",
+        "budget_bytes": 67108864,
+        "ready": {
+          "memory.current": "5832704",
+          "memory.peak": "5832704",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12"
+        },
+        "after_warming": null,
+        "warmed_parent_names": null,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "6094848",
+            "peak": "6094848"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "6356992",
+            "peak": "6356992"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "6156288",
+            "peak": "6619136"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "6680576",
+            "peak": "6680576"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "6680576",
+            "peak": "6680576"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "7204864",
+            "peak": "7204864"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "7204864",
+            "peak": "7204864"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "7729152",
+            "peak": "7729152"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "7729152",
+            "peak": "7729152"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "8253440",
+            "peak": "8253440"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "8253440",
+            "peak": "8253440"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "8253440",
+            "peak": "8253440"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "8515584",
+            "peak": "8515584"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "9039872",
+            "peak": "9039872"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "9027584",
+            "peak": "9039872"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "9551872",
+            "peak": "9551872"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "9551872",
+            "peak": "9551872"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "10076160",
+            "peak": "10076160"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "10076160",
+            "peak": "10076160"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "10076160",
+            "peak": "10076160"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "15638528",
+          "memory.peak": "15638528",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42"
+        },
+        "hup": {
+          "old_answers": [
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201"
+          ],
+          "new_answers": [
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202"
+          ]
+        },
+        "cgroup_removed": true
+      },
+      {
+        "side": "rust",
+        "budget_bytes": 67108864,
+        "ready": {
+          "memory.current": "23351296",
+          "memory.peak": "23351296",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "52"
+        },
+        "after_warming": null,
+        "warmed_parent_names": null,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "23351296",
+            "peak": "23351296"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "23351296",
+            "peak": "23351296"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "23351296",
+            "peak": "23351296"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "23351296",
+            "peak": "23351296"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "23613440",
+            "peak": "23613440"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "23613440",
+            "peak": "23613440"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "23601152",
+            "peak": "23613440"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "23601152",
+            "peak": "23613440"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23613440"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23613440"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23613440"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "23584768",
+            "peak": "23613440"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "23846912",
+            "peak": "23846912"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "23818240",
+            "peak": "23846912"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "36200448",
+          "memory.peak": "46518272",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "52"
+        },
+        "hup": {
+          "old_answers": [
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201"
+          ],
+          "new_answers": [
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202"
+          ]
+        },
+        "cgroup_removed": true
+      }
+    ],
+    "rotations64": [
+      {
+        "side": "c",
+        "budget_bytes": 67108864,
+        "ready": {
+          "memory.current": "5836800",
+          "memory.peak": "5836800",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12"
+        },
+        "after_warming": {
+          "memory.current": "10293248",
+          "memory.peak": "10293248",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13"
+        },
+        "warmed_parent_names": 25000,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "10293248",
+            "peak": "10293248"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "10555392",
+            "peak": "10555392"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "10817536",
+            "peak": "10817536"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "11341824",
+            "peak": "11341824"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "11341824",
+            "peak": "11341824"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "11603968",
+            "peak": "11603968"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "11603968",
+            "peak": "11603968"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "12124160",
+            "peak": "12124160"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "12124160",
+            "peak": "12124160"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "12648448",
+            "peak": "12648448"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "12648448",
+            "peak": "12648448"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "13172736",
+            "peak": "13172736"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "13172736",
+            "peak": "13172736"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "13697024",
+            "peak": "13697024"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "13697024",
+            "peak": "13697024"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "13959168",
+            "peak": "13959168"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "14221312",
+            "peak": "14221312"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "14483456",
+            "peak": "14483456"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "14745600",
+            "peak": "14745600"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "15007744",
+            "peak": "15007744"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "15007744",
+          "memory.peak": "15007744",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      },
+      {
+        "side": "rust",
+        "budget_bytes": 67108864,
+        "ready": {
+          "memory.current": "16990208",
+          "memory.peak": "16990208",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "after_warming": {
+          "memory.current": "19066880",
+          "memory.peak": "19349504",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "warmed_parent_names": 25000,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "19066880",
+            "peak": "19349504"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "21164032",
+            "peak": "21164032"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "22994944",
+            "peak": "22994944"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "25055232",
+            "peak": "25092096"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "26882048",
+            "peak": "26882048"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "28979200",
+            "peak": "28979200"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "30814208",
+            "peak": "30814208"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "32911360",
+            "peak": "32911360"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "34992128",
+            "peak": "34992128"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "36577280",
+            "peak": "36827136"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "38674432",
+            "peak": "38674432"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "40771584",
+            "peak": "40771584"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "42749952",
+            "peak": "42868736"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "44253184",
+            "peak": "44584960"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "46350336",
+            "peak": "46350336"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "48447488",
+            "peak": "48447488"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "50253824",
+            "peak": "50253824"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "52350976",
+            "peak": "52350976"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "54185984",
+            "peak": "54185984"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "56283136",
+            "peak": "56283136"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "56283136",
+          "memory.peak": "56283136",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      }
+    ],
+    "rotations32": [
+      {
+        "side": "c",
+        "budget_bytes": 33554432,
+        "ready": {
+          "memory.current": "5963776",
+          "memory.peak": "5963776",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12"
+        },
+        "after_warming": {
+          "memory.current": "10268672",
+          "memory.peak": "10268672",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13"
+        },
+        "warmed_parent_names": 25000,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "10268672",
+            "peak": "10268672"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "10530816",
+            "peak": "10530816"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "10792960",
+            "peak": "10792960"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "10981376",
+            "peak": "11055104"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "10981376",
+            "peak": "11055104"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "11505664",
+            "peak": "11505664"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "11767808",
+            "peak": "11767808"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "11730944",
+            "peak": "11767808"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "12255232",
+            "peak": "12255232"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "12517376",
+            "peak": "12517376"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "12779520",
+            "peak": "12779520"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "13041664",
+            "peak": "13041664"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "13303808",
+            "peak": "13303808"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "13303808",
+            "peak": "13303808"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "13553664",
+            "peak": "13565952"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "13553664",
+            "peak": "13565952"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "14077952",
+            "peak": "14077952"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "14340096",
+            "peak": "14340096"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "14602240",
+            "peak": "14602240"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "14602240",
+            "peak": "14602240"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "14602240",
+          "memory.peak": "14602240",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      },
+      {
+        "side": "rust",
+        "budget_bytes": 33554432,
+        "ready": {
+          "memory.current": "16834560",
+          "memory.peak": "16834560",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "after_warming": {
+          "memory.current": "19230720",
+          "memory.peak": "19431424",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "warmed_parent_names": 25000,
+        "attempted_connections": 9,
+        "successful_connections": 8,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "19230720",
+            "peak": "19431424"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "20709376",
+            "peak": "21065728"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "22802432",
+            "peak": "22802432"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "24903680",
+            "peak": "25161728"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "26992640",
+            "peak": "26992640"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "28827648",
+            "peak": "28827648"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "30420992",
+            "peak": "30924800"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "32518144",
+            "peak": "32518144"
+          },
+          {
+            "n": 9,
+            "ok": false,
+            "exit": -9,
+            "current": "176128",
+            "peak": "33554432"
+          }
+        ],
+        "udp_after": false,
+        "exit_before_cleanup": -9,
+        "final_cgroup": {
+          "memory.current": "176128",
+          "memory.peak": "33554432",
+          "memory.events": "low 0\nhigh 0\nmax 35\noom 1\noom_kill 1\noom_group_kill 0",
+          "cgroup.procs": ""
+        },
+        "hup": null,
+        "cgroup_removed": true
+      }
+    ],
+    "rotations-no-rr32": [
+      {
+        "side": "c",
+        "budget_bytes": 33554432,
+        "ready": {
+          "memory.current": "5836800",
+          "memory.peak": "5836800",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12"
+        },
+        "after_warming": {
+          "memory.current": "10235904",
+          "memory.peak": "10235904",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13"
+        },
+        "warmed_parent_names": 25000,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "10235904",
+            "peak": "10235904"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "10493952",
+            "peak": "10498048"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "10493952",
+            "peak": "10498048"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "11018240",
+            "peak": "11018240"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "11280384",
+            "peak": "11280384"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "11542528",
+            "peak": "11542528"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "11542528",
+            "peak": "11542528"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "12066816",
+            "peak": "12066816"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "12324864",
+            "peak": "12328960"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "12587008",
+            "peak": "12587008"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "12849152",
+            "peak": "12849152"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "13111296",
+            "peak": "13111296"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "13111296",
+            "peak": "13111296"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "13635584",
+            "peak": "13635584"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "13635584",
+            "peak": "13635584"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "14147584",
+            "peak": "14147584"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "14143488",
+            "peak": "14147584"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "14401536",
+            "peak": "14401536"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "14663680",
+            "peak": "14663680"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "14925824",
+            "peak": "14925824"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "14925824",
+          "memory.peak": "14925824",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      },
+      {
+        "side": "rust",
+        "budget_bytes": 33554432,
+        "ready": {
+          "memory.current": "17281024",
+          "memory.peak": "17281024",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "after_warming": {
+          "memory.current": "17276928",
+          "memory.peak": "17281024",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "warmed_parent_names": 25000,
+        "attempted_connections": 20,
+        "successful_connections": 20,
+        "connection_samples": [
+          {
+            "n": 1,
+            "ok": true,
+            "exit": null,
+            "current": "17039360",
+            "peak": "17281024"
+          },
+          {
+            "n": 2,
+            "ok": true,
+            "exit": null,
+            "current": "17301504",
+            "peak": "17301504"
+          },
+          {
+            "n": 3,
+            "ok": true,
+            "exit": null,
+            "current": "17100800",
+            "peak": "17301504"
+          },
+          {
+            "n": 4,
+            "ok": true,
+            "exit": null,
+            "current": "17100800",
+            "peak": "17301504"
+          },
+          {
+            "n": 5,
+            "ok": true,
+            "exit": null,
+            "current": "17092608",
+            "peak": "17301504"
+          },
+          {
+            "n": 6,
+            "ok": true,
+            "exit": null,
+            "current": "17092608",
+            "peak": "17301504"
+          },
+          {
+            "n": 7,
+            "ok": true,
+            "exit": null,
+            "current": "17092608",
+            "peak": "17301504"
+          },
+          {
+            "n": 8,
+            "ok": true,
+            "exit": null,
+            "current": "17092608",
+            "peak": "17301504"
+          },
+          {
+            "n": 9,
+            "ok": true,
+            "exit": null,
+            "current": "17338368",
+            "peak": "17354752"
+          },
+          {
+            "n": 10,
+            "ok": true,
+            "exit": null,
+            "current": "17338368",
+            "peak": "17354752"
+          },
+          {
+            "n": 11,
+            "ok": true,
+            "exit": null,
+            "current": "17338368",
+            "peak": "17354752"
+          },
+          {
+            "n": 12,
+            "ok": true,
+            "exit": null,
+            "current": "17338368",
+            "peak": "17354752"
+          },
+          {
+            "n": 13,
+            "ok": true,
+            "exit": null,
+            "current": "17338368",
+            "peak": "17354752"
+          },
+          {
+            "n": 14,
+            "ok": true,
+            "exit": null,
+            "current": "17600512",
+            "peak": "17600512"
+          },
+          {
+            "n": 15,
+            "ok": true,
+            "exit": null,
+            "current": "17600512",
+            "peak": "17600512"
+          },
+          {
+            "n": 16,
+            "ok": true,
+            "exit": null,
+            "current": "17600512",
+            "peak": "17600512"
+          },
+          {
+            "n": 17,
+            "ok": true,
+            "exit": null,
+            "current": "17334272",
+            "peak": "17600512"
+          },
+          {
+            "n": 18,
+            "ok": true,
+            "exit": null,
+            "current": "17596416",
+            "peak": "17600512"
+          },
+          {
+            "n": 19,
+            "ok": true,
+            "exit": null,
+            "current": "17858560",
+            "peak": "17858560"
+          },
+          {
+            "n": 20,
+            "ok": true,
+            "exit": null,
+            "current": "17620992",
+            "peak": "17858560"
+          }
+        ],
+        "udp_after": true,
+        "exit_before_cleanup": null,
+        "final_cgroup": {
+          "memory.current": "17620992",
+          "memory.peak": "17858560",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "cgroup.procs": "42"
+        },
+        "hup": null,
+        "cgroup_removed": true
+      }
+    ]
+  },
+  "snapshots": {
+    "paired_observations": 98,
+    "exact_wire_and_semantics_equal": true,
+    "scope": [
+      "A",
+      "AAAA",
+      "ANY",
+      "PTR4",
+      "PTR6",
+      "per-session round-robin",
+      "accepted-before-HUP versus accepted-after-HUP",
+      "hostsdir replacement",
+      "hostsdir deletion"
+    ],
+    "raw_sha256": "30afe28d97edcdb2040bf95afe4eb642cdd5df25f804330aa8e2efda696a2a74"
+  },
+  "leases": {
+    "candidate_sha256": "0ac4ad216c071ae708af52f5d4d4cd6e4c2130b451655033efc463888bff0834",
+    "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+    "cases": [
+      {
+        "case": "tcp-parent-lease-added",
+        "observations": 5,
+        "dns_semantics_exact_equal": true,
+        "upstream_counts": [
+          2,
+          2
+        ],
+        "c_witnesses": [
+          {
+            "label": "add",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          }
+        ],
+        "rust_witnesses": [
+          {
+            "label": "add",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          }
+        ],
+        "dns": [
+          {
+            "label": "accepted-health",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "health.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 46
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "health.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "health.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.99"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 62
+            }
+          },
+          {
+            "label": "parent-new",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "192.0.2.42"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "child-new",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "new-child-leaseold.cache.test",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "192.0.2.42"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "new-child-leasenew.cache.test",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leasenew.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          }
+        ]
+      },
+      {
+        "case": "tcp-parent-lease-renamed",
+        "observations": 7,
+        "dns_semantics_exact_equal": true,
+        "upstream_counts": [
+          2,
+          2
+        ],
+        "c_witnesses": [
+          {
+            "label": "seed",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          },
+          {
+            "label": "rename",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          }
+        ],
+        "rust_witnesses": [
+          {
+            "label": "seed",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          },
+          {
+            "label": "rename",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          }
+        ],
+        "dns": [
+          {
+            "label": "accepted-health",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "health.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 46
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "health.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "health.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.99"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 62
+            }
+          },
+          {
+            "label": "parent-old",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "parent-renamed",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leasenew.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "192.0.2.42"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "child-old",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "192.0.2.42"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "child-renamed",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leasenew.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "new-child-leaseold.cache.test",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "new-child-leasenew.cache.test",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leasenew.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "192.0.2.42"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          }
+        ]
+      },
+      {
+        "case": "tcp-parent-lease-released",
+        "observations": 5,
+        "dns_semantics_exact_equal": true,
+        "upstream_counts": [
+          2,
+          2
+        ],
+        "c_witnesses": [
+          {
+            "label": "seed",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          },
+          {
+            "label": "release",
+            "message": null,
+            "address": null,
+            "lease_seconds": null,
+            "sent_release": true
+          }
+        ],
+        "rust_witnesses": [
+          {
+            "label": "seed",
+            "message": 5,
+            "address": "192.0.2.42",
+            "lease_seconds": 120,
+            "sent_release": null
+          },
+          {
+            "label": "release",
+            "message": null,
+            "address": null,
+            "lease_seconds": null,
+            "sent_release": true
+          }
+        ],
+        "dns": [
+          {
+            "label": "accepted-health",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "health.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 46
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "health.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "health.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.99"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 62
+            }
+          },
+          {
+            "label": "parent-released",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "child-old",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 34176,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "192.0.2.42"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "new-child-leaseold.cache.test",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leaseold.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leaseold.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          },
+          {
+            "label": "new-child-leasenew.cache.test",
+            "query": {
+              "id": 0,
+              "flags": 256,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 48
+            },
+            "reply": {
+              "id": 0,
+              "flags": 33152,
+              "questions": [
+                [
+                  "leasenew.cache.test",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "leasenew.cache.test",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 600,
+                  "data": "198.51.100.7"
+                },
+                {
+                  "section": "additional",
+                  "name": "",
+                  "type": 41,
+                  "class": 1232,
+                  "ttl": 0,
+                  "data": ""
+                }
+              ],
+              "bytes": 64
+            }
+          }
+        ]
+      }
+    ],
+    "all_semantic_equal": true,
+    "comparison": "Exact normalized query/reply including flags, TTL, record order and bytes; omit only local observation timing fields. Raw timing retained in both run result.json."
+  },
+  "raw": {
+    "pss.json": "f2a778c3aa1dcff5e8a95a88cca566068ac20cc92d9a039ffa138d92230ed177",
+    "cgroup.json": "1de29f17a4b9534fa6bcf690c098b6dfc9d9c6b9b6817a67b644ce02440790b2",
+    "hup-cgroup.json": "7a690895a6833e7b3a9902178e8f9a0bd352a662aefebe10fda37ce7d7241278",
+    "rotations64.json": "4d6cf438ae3acdfe0705a6962c104b8dec25fcf18b2e1c6316275ace1a880fdb",
+    "rotations32.json": "b462de9e5c55cbecdfc67aed39136f6d715631010a0eb2e3e5fd8ca2b7736ef1",
+    "rotations-no-rr32.json": "28330c9d734769b1afa01a91cec1efc4ec602cb0f9b898dbafedbcee78b2a8d7",
+    "snapshot.json": "30afe28d97edcdb2040bf95afe4eb642cdd5df25f804330aa8e2efda696a2a74",
+    "leases-comparison.json": "737508e1fa813e54bbf1fe37963b543a89b049b0550845a6a71354d08a1ce6f3"
+  },
+  "source_name": "936514cd removed source 0 fallback, but 22fe5dd9 restores exactly /etc/hosts fallback and adds assertion; no residual source_name regression in reviewed candidate.",
+  "closeout": {
+    "remaining_owned_processes": [],
+    "remaining_owned_host_mounts": [],
+    "router_accessed": false
+  }
+}
