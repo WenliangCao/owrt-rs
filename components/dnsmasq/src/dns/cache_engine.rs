@@ -1790,18 +1790,21 @@ fn append_local_terminal(
                     .iter()
                     .find(|(start, end, _)| (*start..*end).contains(&scratch))
                     .and_then(|(start, _, copied)| u16::try_from(copied + scratch - start).ok())
-            });
+            })
+            // A pointer holds 14 bits; a later name falls back to full form.
+            .filter(|offset| *offset < 0x4000);
             let start = writer.position();
-            let result = match pointer {
-                Some(offset) => writer.record_at(
-                    section,
-                    offset,
-                    record.rrtype,
-                    record.class,
-                    record.ttl,
-                    data,
-                ),
-                None => writer.record(section, &owner, record.rrtype, record.class, record.ttl, data),
+            // record_at validates before appending, so an unusable pointer
+            // falls back to the full owner instead of dropping the answer.
+            let mut pointer = pointer;
+            let result = match pointer.map(|offset| {
+                writer.record_at(section, offset, record.rrtype, record.class, record.ttl, data)
+            }) {
+                Some(Err(WireError::InvalidName)) | None => {
+                    pointer = None;
+                    writer.record(section, &owner, record.rrtype, record.class, record.ttl, data)
+                }
+                Some(result) => result,
             };
             match result {
                 Ok(()) => {}

@@ -185,6 +185,31 @@ fn cached_cname_raw_cname_terminals_keep_c_owner_layout() {
 }
 
 #[test]
+fn cached_cname_terminal_owner_past_pointer_range_uses_full_name() {
+    // A large TCP answer can place the MX target beyond 0x3fff, where a
+    // compression pointer cannot reach; C still returns a complete answer.
+    let mut daemon = daemon();
+    let mut directives = vec![
+        "host-record=example,192.0.2.20".to_string(),
+        "mx-host=target.test,example,10".to_string(),
+    ];
+    directives.extend((0..60).map(|i| format!("txt-record=target.test,{i:03}{}", "x".repeat(252))));
+    directives.push(format!("txt-record=target.test,{}", "z".repeat(220)));
+    for directive in &directives {
+        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+    }
+    daemon.local.hosts = super::super::local::configured_hosts(&daemon.local.config, 0);
+    daemon.cache_reply_at(&chain_reply(1, false), 100);
+    let answer = shared_answer(&mut daemon, &packet("alias.test", 255, 0x100).finish(), 101, true)
+        .expect("the large local terminal still answers over TCP");
+    assert!(answer.len() > 0x4000);
+    let message = Message::parse(&answer).unwrap();
+    let additional: Vec<_> = message.records(Section::Additional).collect();
+    assert_eq!(additional.len(), 1);
+    assert_eq!(additional[0].name().unwrap(), Name::from_ascii("example").unwrap());
+}
+
+#[test]
 fn reply_known_name_uses_live_cache_or_connection_snapshot() {
     let mut daemon = daemon();
     let forward = super::super::tcp_service::TcpDnsService::new(&daemon.local.config, &[], 1232).unwrap();
