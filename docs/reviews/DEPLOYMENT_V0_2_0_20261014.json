@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "status": "ubus_test_fixed_final_ci_artifact_identity_pending_hardware_pending",
+  "status": "final_ci_artifact_verified_tag_published_release_and_hardware_pending",
   "build": {
-    "source_commit": "21e14a95408deaf557b1011a6e4ec705a892e58a",
-    "canonical_run": 38626686143,
+    "source_commit": "ded73bae75f44269c93366593481d866a2e68e35",
+    "canonical_run": 38636115402,
     "image": {
       "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
       "size": 13639968,
-      "sha256": "2d7f0dec811a671f7ddc08eb51fc45e3fb3bb9ed14c9253cc577d7ee9620f138"
+      "sha256": "2f8083e44a548802de1738ecd8ef5231f74fda950a0a69a44f0e10e2e1d30ffd"
     },
     "unified_package": "owrt-control-plane 0.2.0-r1",
     "downloaded_files_checksums_verified": 35,
@@ -18,7 +18,7 @@
       "stock_service_scripts_except_qualified_dnsmasq": true,
       "qualified_dnsmasq_init_and_acl": true,
       "dnsmasq_source_recipe_identical": true,
-      "dnsmasq_reference_elf_identical": false,
+      "dnsmasq_reference_elf_identical": true,
       "stock_config_defaults": true,
       "unchanged_execution_files": 864,
       "stock_package_versions_unchanged": 159,
@@ -30,7 +30,24 @@
       "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
       "bytes": 2124571
     },
-    "identity_role": "historical_candidate_not_yet_final_release"
+    "identity_role": "final_canonical_release_candidate",
+    "unified_package_sha256": "3aee6b9a40ea75f428413abc02dfce9a6d0e661bf2a82adad342c96efef581ae",
+    "manifest_sha256": "ce81033b19ee6b43df8ca44da8270dbc3f6a8f43f3777563f33c1c3d1f6695e3",
+    "github_artifact": {
+      "id": 11928625736,
+      "name": "owrt-image-25.12.5-ded73bae75f44269c93366593481d866a2e68e35",
+      "archive_bytes": 19486153,
+      "api_archive_sha256": "fd915de3a4f2be42a99db96041c718bbb119a03b510cbd5dfb52dca7ae5dab1e"
+    },
+    "prior_candidate_identity_comparison": {
+      "components": true,
+      "integration_files": true,
+      "stock_manifest_sha256": true,
+      "kernel_sha256": true,
+      "stock_packages": true,
+      "stock_image": true,
+      "translations": true
+    }
   },
   "dnsmasq_build_identity": {
     "reference_elf": {
@@ -48,7 +65,10 @@
     "different_LOAD_bytes": 992248,
     "different_bytes_outside_LOAD": 0,
     "difference_root_cause_proven": false,
-    "prior_reference_performance_transfers_to_candidate": false
+    "prior_reference_performance_transfers_to_candidate": false,
+    "source_digest_role": "historical_21e14a95_candidate_inputs_compared_with_b587",
+    "final_source_digest": "10f7c0b1ae1e5e4459a4937d3a9049b9e708ffe9d8040b6144da093ac50d9ed0",
+    "final_canonical_reference_elf_identical": true
   },
   "nine_components": [
     {
@@ -161,10 +181,23 @@
       "physical_flash_tested": false,
       "physical_reboot_tested": false,
       "stage2_executed": false,
-      "archive_sha256": "db11ed1ae9db770cf3182f0731575a7866d739cb674a917efb31dc124c07adf5"
+      "archive_sha256": "db11ed1ae9db770cf3182f0731575a7866d739cb674a917efb31dc124c07adf5",
+      "role": "historical_only_no_automatic_guard_will_be_installed"
     },
-    "native_image_check": "pending",
-    "native_boot_check": "pending"
+    "native_image_check": {
+      "status": "passed_on_prior_candidate",
+      "migration_and_recovery_checks_passed": 7,
+      "reinstall_and_metadata_checks_passed": 3,
+      "negative_controls_rejected": 8
+    },
+    "native_boot_check": {
+      "status": "passed_on_prior_candidate",
+      "dnsmasq_actual_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "IPv6_and_odhcpd_exercised": false,
+      "physical_hardware_tested": false
+    },
+    "source_commit": "21e14a95408deaf557b1011a6e4ec705a892e58a",
+    "final_candidate_scope": "Existing finite evidence retained. Final component/init/ACL, recovery manifest and kernel identities match prior candidate; no new final-image Oracle runtime tests."
   },
   "daily_usage": {
     "protocol_seconds": 600,
@@ -325,24 +358,118 @@
     "offline-recovery/recovery-evidence.tar.gz": "db11ed1ae9db770cf3182f0731575a7866d739cb674a917efb31dc124c07adf5",
     "offline-protocol/summary.json": "efe87f4cbea3ae80906499c970334d3ef988ceafdcc146b09b403f12a7b1f11b",
     "build-identity-review/final-build-identity-summary.json": "e788c7ac7d55e4093d144a7440ec072dc1d18c5a21d299b2db404179508dae41",
-    "ci-38626686143/manifest.json": "6bf28c12dd68ad481f1173719f15f1040114e17a88aaafb91398c6308581b80c"
+    "ci-38626686143/manifest.json": "6bf28c12dd68ad481f1173719f15f1040114e17a88aaafb91398c6308581b80c",
+    "final-ci-identity.json": "96ddd5a8c2298ea22e244c8ea022d2db9393ea1ca116247e6e9104441d085473",
+    "tag-publication.json": "202def0c31b52baf50748a6c6caf82d1a7e955362500aae92eb84e346baaafa9",
+    "ci-38636115402/manifest.json": "ce81033b19ee6b43df8ca44da8270dbc3f6a8f43f3777563f33c1c3d1f6695e3",
+    "ci-38636115402/SHA256SUMS": "67569d7df7298afa3da473ab828572457d53d691eeeda875872b2a123f898490",
+    "offline-native-archive/results/native-image-check/result.json": "7f547f2c83891914632230b78aa9d95ce56afc3343f95e0e91b016716f4781b2",
+    "offline-native-archive/results/native-reinstall-and-metadata/result.json": "e7180d647519dbb71e78e5218188d142165f8f53b7f8a208c021a18d5362174f",
+    "offline-native-archive/results/package-reinstall-check/result.json": "a56e15a3641473fa8aeac031d901e5f629132ba0d2cb2d2bceb856a1955ef61b",
+    "offline-native-boot/result.json": "ab9fef97fe67992969d8215f54890c39d73a3e0faedd1f0528432fc3009f2c52",
+    "redundant-tag-run.json": "e41b011b2c453ddb2b3931467aaa2656e08e0361332da554f151a8d06414536d"
   },
   "release_blocker": {
     "original_host_tests_run": 38626687422,
     "test_only_fix_commit": "5c1a2f48f4274c6b91ad39d927accd41f20f08c8",
     "workflow_fix_commit": "ded73bae",
-    "corrected_ci_status": "namespace_environment_issues_recorded_no_scope_expansion",
-    "final_image_identity": "pending",
-    "tag_created": false,
+    "corrected_ci_status": "success",
+    "final_image_identity": "verified",
+    "tag_created": true,
     "corrected_ubus_suite_passed": 70,
     "corrected_ubus_suite_failed": 0,
     "final_image_run": 38636115402,
-    "final_image_source_prefix": "ded73bae"
+    "final_image_source_prefix": "ded73bae",
+    "corrected_host_ci_run": 38636080350,
+    "corrected_host_ci_commit": "ded73bae75f44269c93366593481d866a2e68e35"
   },
   "recovery_mode": {
     "selected_by_user": "manual_v0.1.1_sysupgrade_or_failsafe",
     "automatic_guard_installation": false,
     "additional_oracle_validation": false,
     "existing_guard_evidence_role": "historical_only"
+  },
+  "preflash_backup": {
+    "fresh_archive_members": 46,
+    "live_files_matching": 45,
+    "archive_sha256": "b0a1012161b8e70498f4fc002b981b48573358a2014bb25145dcf4535888cc9b",
+    "bytes": 9665,
+    "automatic_guard": false,
+    "v011_rollback_image_rehashed": true,
+    "refreshed_at_utc": "2026-10-14T21:08:54Z"
+  },
+  "historical_candidate_build": {
+    "source_commit": "21e14a95408deaf557b1011a6e4ec705a892e58a",
+    "canonical_run": 38626686143,
+    "image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 13639968,
+      "sha256": "2d7f0dec811a671f7ddc08eb51fc45e3fb3bb9ed14c9253cc577d7ee9620f138"
+    },
+    "unified_package": "owrt-control-plane 0.2.0-r1",
+    "downloaded_files_checksums_verified": 35,
+    "ci_validation": {
+      "ten_native_paths": true,
+      "package_ownership": true,
+      "stock_recovery_hashes": true,
+      "stock_service_scripts_except_qualified_dnsmasq": true,
+      "qualified_dnsmasq_init_and_acl": true,
+      "dnsmasq_source_recipe_identical": true,
+      "dnsmasq_reference_elf_identical": false,
+      "stock_config_defaults": true,
+      "unchanged_execution_files": 864,
+      "stock_package_versions_unchanged": 159,
+      "production_Chinese_catalogs_identical": 4,
+      "physical_boot_tested": false
+    },
+    "dnsmasq_elf": {
+      "path": "/usr/sbin/dnsmasq",
+      "sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+      "bytes": 2124571
+    },
+    "identity_role": "historical_candidate_not_yet_final_release"
+  },
+  "tag_publication": {
+    "source_commit": "ded73bae75f44269c93366593481d866a2e68e35",
+    "at": "2026-10-14T21:09:13.650328+00:00",
+    "workflow_before": "active",
+    "disabled": "disabled_manually",
+    "tag_pushed": true,
+    "workflow_after": "active",
+    "finished_at": "2026-10-14T21:09:17.618457+00:00",
+    "delayed_tag_run": {
+      "run": 38638003434,
+      "head_sha": "ded73bae75f44269c93366593481d866a2e68e35",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "completed_at": "2026-10-14T21:10:51Z",
+      "native_image_integration": "skipped",
+      "artifact_upload": "skipped",
+      "release_creation": "skipped",
+      "used_for_release": false
+    }
+  },
+  "release_assets": {
+    "count": 13,
+    "layout": "original CI image and five APKs, four original identity manifests, original CI-SHA256SUMS, RELEASE_NOTES.md, outer SHA256SUMS",
+    "ci_checksum_entries": 35,
+    "build_logs": "retained in Actions artifact",
+    "prerelease": true,
+    "latest": false,
+    "public_download_verification": "pending"
+  },
+  "preflash_health": {
+    "running_release": "v0.1.1",
+    "dnsmasq": "stock C",
+    "mac_dns_udp_unbound": "timeout",
+    "mac_dns_udp_source_bound": "timeout",
+    "mac_dns_tcp": "passed",
+    "mac_wifi_bound_ipv4_https": "passed",
+    "mac_wifi_bound_ipv6_https": "passed",
+    "router_local_dns_udp": "passed",
+    "existing_device_health": "passed",
+    "diagnosis": "pending",
+    "flashed": false,
+    "prior_600s_observation_rewritten": false
   }
 }

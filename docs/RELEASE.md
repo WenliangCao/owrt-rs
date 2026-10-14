@@ -58,10 +58,14 @@ gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.
 
 本次使用通用 **`v0.2.0`** 标签，采用 v0.1.1 已用过的“正式 CI 产物先完成核验，再发布同一字节”路径：
 
-1. 提交审阅后的代码与公开文档，确认 main 不包含用户未提交的 `docs/prompts/`、私有备份或镜像，推送 main。以该精确提交执行 `workflow_dispatch`，完成正式 CI 构建，核对已完成的有限离线证据。此前阻断发布的 ubus 生命周期测试已修复、70 项通过；其余 CI namespace 环境问题单列记录，不为本次继续扩大验证。
+1. 提交审阅后的代码与公开文档，确认 main 不包含用户未提交的 `docs/prompts/`、私有备份或镜像，推送 main。以该精确提交执行 `workflow_dispatch`，完成正式 CI 构建，核对已完成的有限离线证据。此前阻断发布的 ubus 生命周期测试已修复、70 项通过；`ded73bae` 对应完整 host CI `38636080350` 已成功，原 namespace 环境问题与修正记录保留，不为本次继续扩大验证。
 2. 下载并逐项核验该 run 的原始资产，固定构建提交、run ID、manifest 与 SHA256。失败先修复并在新提交重新构建，不能提前占用不可移动的正式标签。
-3. 记录 `release-image` 原启用状态，确认没有 active run，再仅为推送标签的短窗口暂时停用该 workflow。创建 annotated `v0.2.0`，直接指向已通过的实际 CI 构建提交，推送标签；无论后续动作成功或失败，都在 `finally` 清理中恢复原 workflow 状态并核验。这样避免标签推送触发第二次构建，不能借此更换构建输入或资产。
+3. 记录 `release-image` 原启用状态，确认没有 active run，再仅为推送标签的短窗口暂时停用该 workflow。创建 annotated `v0.2.0`，直接指向已通过的实际 CI 构建提交，推送标签；无论后续动作成功或失败，都在 `finally` 清理中恢复原 workflow 状态并核验。短窗口停用不能保证阻止 GitHub 延迟处理标签事件；恢复后须检查并取消多余 tag run，核验其未上传资产或创建 Release，不能借此更换构建输入或资产。
 4. 创建 `v0.2.0` GitHub Release，保持 **prerelease、`latest=false`**，上传已通过的同一批 CI 字节；可按约定改显示文件名，但须重核内容哈希及校验和。下载公开附件再核验，然后使用其中同一个镜像部署。不得替换为本机构建，也不得因后续文档提交移动标签。
+
+本次最终构建是 [run 38636115402](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/38636115402)，提交 `ded73bae75f44269c93366593481d866a2e68e35`；35 项 CI 校验和已全部通过。发布保持镜像与五个 APK、四份身份清单的原始字节；CI 原 `SHA256SUMS` 改名为 `CI-SHA256SUMS`，补充 `RELEASE_NOTES.md` 和覆盖发布附件的外层 `SHA256SUMS`，共 13 个附件。构建日志保留在 Actions artifact。完整身份与当前真机状态见[部署记录](reviews/DEPLOYMENT_V0_2_0_20261014.md)，后续文档提交不改变标签目标。
+
+本次恢复 workflow 后 GitHub 延迟触发了 [tag run 38638003434](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/38638003434)，已于 21:10:51 UTC 完成取消；正式整合、上传 artifact 和创建 Release 均跳过，继续使用已核验的 run `38636115402`。
 
 临时关闭只影响发布触发入口，不改变产物身份；记录关闭前后的状态与时间，恢复后再次确认没有误触发的构建。直接推送其他 `v*` 标签的默认 Actions 行为仍是自动构建并创建 **prerelease、非 Latest** 候选，不代表真机资格。本次说明列明新增 dnsmasq-rs、真实性能差异、已知边界以及真机验收尚未完成。
 
