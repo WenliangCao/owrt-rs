@@ -508,33 +508,43 @@ fn tcp_snapshot_drops_bulk_state_while_parent_keeps_cross_source_links() {
 
 #[test]
 fn fallible_bulk_copy_preserves_the_loading_owners_links() {
-    for persistent in [false, true] {
-        let mut loading = Hosts::new();
-        loading.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
-        loading.read(BULK_PREFIX, 2, 37, false, |_| None);
-        let pointer = loading.entries().as_ptr();
-        let mut completed = false;
-        for failure in 0..256 {
-            let (result, failed) = if persistent {
-                with_persistent_failure(failure, || loading.try_clone())
-            } else {
-                with_failure(failure, || loading.try_clone())
-            };
-            assert_eq!(result.is_err(), failed);
-            assert_eq!(loading.entries().as_ptr(), pointer);
-            assert_eq!(loading.len(), 4);
-            if let Ok(mut copy) = result {
-                assert!(!copy.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
-                copy.finish_bulk();
-                assert_eq!(ptr_names(&copy, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
-                completed = true;
-                break;
+    for retained_lease in [false, true] {
+        for persistent in [false, true] {
+            let mut loading = Hosts::new();
+            loading.begin_bulk(BULK_PACKET_BYTES, 1000, 1000).unwrap();
+            if retained_lease {
+                loading.add_bulk_lease(b"a.test", "192.0.2.1".parse().unwrap(), true, false).unwrap();
             }
+            let expected = if retained_lease {
+                vec![b"x.test".to_vec()]
+            } else {
+                vec![b"x.test".to_vec(), b"y.test".to_vec()]
+            };
+            loading.read(BULK_PREFIX, 2, 37, false, |_| None);
+            let pointer = loading.entries().as_ptr();
+            let mut completed = false;
+            for failure in 0..256 {
+                let (result, failed) = if persistent {
+                    with_persistent_failure(failure, || loading.try_clone())
+                } else {
+                    with_failure(failure, || loading.try_clone())
+                };
+                assert_eq!(result.is_err(), failed);
+                assert_eq!(loading.entries().as_ptr(), pointer);
+                assert_eq!(loading.len(), 4);
+                if let Ok(mut copy) = result {
+                    assert!(!copy.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
+                    copy.finish_bulk();
+                    assert_eq!(ptr_names(&copy, "192.0.2.1"), expected);
+                    completed = true;
+                    break;
+                }
+            }
+            assert!(completed);
+            assert!(!loading.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
+            loading.finish_bulk();
+            assert_eq!(ptr_names(&loading, "192.0.2.1"), expected);
         }
-        assert!(completed);
-        assert!(!loading.read(BULK_SUFFIX, 3, 37, false, |_| None).allocation_failed);
-        loading.finish_bulk();
-        assert_eq!(ptr_names(&loading, "192.0.2.1"), [b"x.test".to_vec(), b"y.test".to_vec()]);
     }
 }
 
