@@ -1,0 +1,15 @@
+{
+  "case": "documented-path",
+  "candidate_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+  "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "trial_sha256": "179eefcf190a95984109cad53d08c3de02c633672e8bf46ae65e3a50c2c7ab21",
+  "passed": true,
+  "rc": 1,
+  "stdout": "dnsmasq-trial: copied candidate hash mismatch\n",
+  "stderr": "mkdir: can't create directory '/tmp/dnsmasq-trial': File exists\ncp: can't stat '/tmp/dnsmasq-trial/dnsmasq': Not a directory\n",
+  "c_still_running": true,
+  "raw_evidence": {
+    "oracle_path": "/home/ubuntu/full-audit-20261014/private/trial-path/result.json",
+    "sha256": "5f28be93fc4665e92e768856f510ea451b5e01fa691f5263c066c46a09ea1a16"
+  }
+}

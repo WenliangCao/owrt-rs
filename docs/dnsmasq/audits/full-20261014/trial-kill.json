@@ -1,0 +1,44 @@
+{
+  "case": "rollback-killed",
+  "candidate_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+  "stock_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "trial_sha256": "179eefcf190a95984109cad53d08c3de02c633672e8bf46ae65e3a50c2c7ab21",
+  "passed": true,
+  "fault": {
+    "pid": 508,
+    "syscall": null,
+    "pidfiles_absent": true
+  },
+  "rollback_exit": -9,
+  "after_deadline": {
+    "candidate": [
+      {
+        "pid": 468,
+        "sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+        "exe": "/home/ubuntu/full-audit-20261014/private/trial-kill/fixture/rootfs/usr/sbin/dnsmasq",
+        "start_ticks": "170512533",
+        "cmdline": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.m2 -k -x /var/run/dnsmasq/dnsmasq.m2.pid ",
+        "root": "/home/ubuntu/full-audit-20261014/private/trial-kill/fixture/rootfs"
+      }
+    ],
+    "c": [],
+    "helper_files": [],
+    "mounted": true
+  },
+  "manual_recovery_client": {
+    "dhcp_offer": true,
+    "dhcp_ack": true,
+    "address": "192.168.1.101",
+    "server": "192.168.1.1",
+    "dns_option": "192.168.1.1",
+    "router_option": "192.168.1.1",
+    "dns": {
+      "udp": true,
+      "tcp": true
+    }
+  },
+  "raw_evidence": {
+    "oracle_path": "/home/ubuntu/full-audit-20261014/private/trial-kill/result.json",
+    "sha256": "0778519c9f994d3239df96da9c09bc45c29c6d591776c1b013d8f0d76282858b"
+  }
+}
