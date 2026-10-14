@@ -1,0 +1,137 @@
+{
+  "status": "proposed-needs-root-and-independent-review",
+  "proposal_id": "same-name-incremental-infinite-static-ptr-order",
+  "exact_c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "source": {
+    "openwrt_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "path": "dnsmasq-2.93/src/cache.c",
+    "sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "line_evidence": {
+      "typestr_pointer_mixer": "38-47",
+      "hash_bucket": "295-309",
+      "cache_find_by_addr": "1262-1320"
+    },
+    "inference": "The name hash includes typestr pointer bytes. Live static reverse entries are emitted by increasing bucket then current hash_next order. This query updates the temporary next enumeration links, not hash_next; without a mutation between PTR requests each process must retain one complete order track."
+  },
+  "fixture": {
+    "hosts_bytes": "192.0.2.1 lease.test alias.test\n",
+    "hosts_sha256": "cd599923355380845cddcb31413fed4307458ff17988437fd540df8ceb930f90",
+    "initial_hostsdir": "empty",
+    "lease_short_name": "lease",
+    "domain": "test",
+    "lease_address": "192.0.2.1",
+    "lease_expiry": "zero/infinite",
+    "config_cache_size": 1000,
+    "config_edns_packet_max": 1232,
+    "config_local_ttl": 37,
+    "reload_trigger": "hostsdir-close-write only; no HUP"
+  },
+  "state": "After the whole incremental source and final provider DNS publication are visible; alias.test A is healthy; no later A/ANY query, reload, lease change or expiration between PTR observations.",
+  "query": {
+    "name": "1.2.0.192.in-addr.arpa",
+    "type": 12,
+    "class": 1,
+    "transports": [
+      "udp",
+      "tcp"
+    ],
+    "sequence": [
+      "udp1",
+      "udp2",
+      "udp3",
+      "tcp1",
+      "tcp2",
+      "tcp3"
+    ]
+  },
+  "exact_requirements": {
+    "rcode": 0,
+    "flags": 34176,
+    "answer_count": 2,
+    "record_tuples": [
+      [
+        "1.2.0.192.in-addr.arpa",
+        12,
+        1,
+        37,
+        "alias.test"
+      ],
+      [
+        "1.2.0.192.in-addr.arpa",
+        12,
+        1,
+        37,
+        "lease.test"
+      ]
+    ],
+    "no_duplicate_or_missing_records": true,
+    "same_full_order_across_all_six_observations": true
+  },
+  "proposed_exception": {
+    "only_field": "relative ordered answer position of these two PTR targets",
+    "allowed_full_tracks": [
+      [
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ],
+        [
+          "alias.test",
+          "lease.test"
+        ]
+      ],
+      [
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ],
+        [
+          "lease.test",
+          "alias.test"
+        ]
+      ]
+    ],
+    "per_query_permutation_selection": false
+  },
+  "excluded": [
+    "finite lease: one lease.test PTR, no order exception",
+    "any other query name/type",
+    "any other hosts or lease fixture",
+    "query-dependent order changes within one run",
+    "missing/extra/duplicate records or different TTL/class/flags",
+    "other reload/publication states"
+  ],
+  "evidence_status": "Exact C original infinite run has alias,lease on UDP/TCP; ce04 has lease,alias on UDP/TCP with equal complete record tuples. Versioned six-observation Rust track will run against the next frozen candidate; no new C seed search requested."
+}

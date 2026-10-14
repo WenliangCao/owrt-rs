@@ -169,6 +169,28 @@ suppressing the alias's reverse flag. The existing static-only incremental check
 does not retain that distinction. The [derived candidate results](candidate-4ff6-summary.json)
 bind this counterexample and the finite positive control; 4ff6 does not close it.
 
+## Candidate ce04 scoped replay
+
+Source `ce04a28dcc757544d1c49f8a5ff2d92cb1ad7dfb`, ELF
+`/dev/shm/full-f10-product-20261014/private/release-ce04/dnsmasq-rs`, SHA-256
+`2e64dc09e52c50f740c994cbd224953b57f3fbe77970fd8af4b72963f9ab5404`.
+The original three HUP cases preserve their observed C-compatible states.
+The two incremental controls now have complete owner sets: infinite returns both
+`lease.test` and `alias.test`, finite returns only `lease.test`, over UDP and TCP.
+All five runs remain healthy, with exact PTR multiplicity, TTL 37, IN class,
+NOERROR and no truncation. The [scoped results](candidate-ce04-summary.json) retain
+those checks separately from ordered-wire qualification.
+
+The infinite incremental Rust order is `lease.test,alias.test`; the exact-C
+control has `alias.test,lease.test`. This is not recorded as full wire equivalence.
+The [source-bound proposal](incremental-ptr-order-proposal.json) is pending root
+and independent review. It applies only to this exact fixture/query/state and
+requires one stable complete order across the entire UDP/TCP track; it cannot
+select a different permutation per request, discard an owner, or relax any record
+field. A versioned `inotify_same_name_track.py` driver adds three consecutive UDP
+and three consecutive TCP PTR observations for the next frozen candidate; this
+section does not claim that future replay has already run.
+
 ## Evidence and reproduction
 
 The [derived results](derived.json) bind each result to its SHA-256 and retain the
@@ -200,3 +222,4 @@ daemon logs, process identities and diagnostic drivers, excluding staged rootfs:
 | cross-alias-c-repeats-evidence.tar.gz | e36fe97ff5c4ecbe519ccdfbe472e40cc92a7d7de1a7b7f2083aa34a67a59d20 |
 | inotify-lease-control-evidence.tar.gz | a4185edd62acaf5b137b89ac674f5815d36e06131f0822075ba9c1ca395708af |
 | candidate-4ff6-evidence.tar.gz | 41ce0d97a1995a0d13c6e2e4225bce025a9a63d7d447c5ec925ee5f4a38970b6 |
+| candidate-ce04-evidence.tar.gz | b8c9be8bbdbfd4c4859099504ca45eb16c689c83622e50abdbe54cdd1683b02e |
