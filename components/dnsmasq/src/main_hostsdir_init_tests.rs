@@ -374,7 +374,7 @@ fn hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names() {
             lease_file: Some(leases_path.as_os_str().as_encoded_bytes().to_vec()),
             option_files: if slow_options { vec![options_path.as_os_str().as_encoded_bytes().to_vec()] } else { Vec::new() },
             ..Default::default()
-        }, Vec::new(), 0, || false).unwrap();
+        }, Vec::new(), 53, || false).unwrap();
         provider.set_dns_config(&config).unwrap();
         let parent = Rc::clone(&owner.service);
         provider.set_reverse_host_lookup(move |address| {
