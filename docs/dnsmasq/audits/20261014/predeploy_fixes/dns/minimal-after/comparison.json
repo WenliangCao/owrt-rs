@@ -1,0 +1,282 @@
+{
+  "scope": "Actual captured configuration, exact image C ELF and frozen Rust release; isolated oracle network/mount/PID namespaces",
+  "comparison": "Ignore elapsed time only; keep DNS IDs, flags, questions, ordered records, TTLs, error category/text and daemon liveness",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "config_identity_equal": true,
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+  "executed_tool_sha256": {
+    "c": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480",
+    "rust": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+  },
+  "source_result_sha256": {
+    "c": "65e5d8fefd85ab11e6dd5f97b8cad9e142934f91f39c7e8be13943e4a8d01d19",
+    "rust": "e91792885cd63a39140ea4b009875cdc88e9f4a44168cef52e85545631f78f4a"
+  },
+  "cases": [
+    {
+      "label": "tcp-warm-before-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "0a3b6bf49e67f8377002261980dcd499bb40bb175e9641a058a06db597ee0059",
+      "rust_semantics_sha256": "0a3b6bf49e67f8377002261980dcd499bb40bb175e9641a058a06db597ee0059"
+    },
+    {
+      "label": "tcp-warm-before-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "c018b0d8f2a9d552b0785d5b755402b1d7c82edbb99c0ffa8a46d08b51fa9005",
+      "rust_semantics_sha256": "c018b0d8f2a9d552b0785d5b755402b1d7c82edbb99c0ffa8a46d08b51fa9005"
+    },
+    {
+      "label": "tcp-warm",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "cb4a87453c1972142d9c95b7ba96e383dcbe7c68ccf95fea8306ff57c9243429",
+      "rust_semantics_sha256": "cb4a87453c1972142d9c95b7ba96e383dcbe7c68ccf95fea8306ff57c9243429"
+    },
+    {
+      "label": "tcp-warm-terminal-udp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "ef1ce547fcacc954182179ef1bb8c9ef643a3bf41de0e962b70fd3db23714225",
+      "rust_semantics_sha256": "ef1ce547fcacc954182179ef1bb8c9ef643a3bf41de0e962b70fd3db23714225"
+    },
+    {
+      "label": "tcp-warm-terminal-udp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "834d68962de6a7572d2dbbd222fedbae9ccc1a91cc446cf03f260a54df5a06e3",
+      "rust_semantics_sha256": "834d68962de6a7572d2dbbd222fedbae9ccc1a91cc446cf03f260a54df5a06e3"
+    },
+    {
+      "label": "tcp-warm-terminal-tcp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "ed6b6e19b0b33952d25d8cbea9a2b2952c99cd4d7c612547cea0daf4846d1b71",
+      "rust_semantics_sha256": "ed6b6e19b0b33952d25d8cbea9a2b2952c99cd4d7c612547cea0daf4846d1b71"
+    },
+    {
+      "label": "tcp-warm-terminal-tcp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "aeb4c5e0e8005d813be7a0ac09614673d86334a24371926f684b5de995c5b58a",
+      "rust_semantics_sha256": "aeb4c5e0e8005d813be7a0ac09614673d86334a24371926f684b5de995c5b58a"
+    },
+    {
+      "label": "udp-warm-before-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "72ee3c5138c5e697cb0cc0b733677c464626bb2d16fe886857421267f9761d35",
+      "rust_semantics_sha256": "72ee3c5138c5e697cb0cc0b733677c464626bb2d16fe886857421267f9761d35"
+    },
+    {
+      "label": "udp-warm-before-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "9f1d8034a9df9dab0996882ee77b7fd89bb7459a40105b14d5c3a1fa0de45e33",
+      "rust_semantics_sha256": "9f1d8034a9df9dab0996882ee77b7fd89bb7459a40105b14d5c3a1fa0de45e33"
+    },
+    {
+      "label": "udp-warm",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c0c729a2565e60bfb38469ecaf045748fb9882d9d529071ed96290f100265e3d",
+      "rust_semantics_sha256": "c0c729a2565e60bfb38469ecaf045748fb9882d9d529071ed96290f100265e3d"
+    },
+    {
+      "label": "udp-warm-terminal-udp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "f3940218099a1c5cf0fc08831c81a7b5ec1fa30f7dc17e9dd54f580e9d037a7e",
+      "rust_semantics_sha256": "f3940218099a1c5cf0fc08831c81a7b5ec1fa30f7dc17e9dd54f580e9d037a7e"
+    },
+    {
+      "label": "udp-warm-terminal-udp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "8abc5f51a3f9e300897f1a008b99670318dea648e25eaaedc1273955f285e6a0",
+      "rust_semantics_sha256": "8abc5f51a3f9e300897f1a008b99670318dea648e25eaaedc1273955f285e6a0"
+    },
+    {
+      "label": "udp-warm-terminal-tcp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "49c5daf220efec58a514e7d3e95619966659070ae2fcaafb4753a1f33170b314",
+      "rust_semantics_sha256": "49c5daf220efec58a514e7d3e95619966659070ae2fcaafb4753a1f33170b314"
+    },
+    {
+      "label": "udp-warm-terminal-tcp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "b51276a4e1e8088f64b57e3d6ca501c083437daaf4d7d30c180cb7badc1e1705",
+      "rust_semantics_sha256": "b51276a4e1e8088f64b57e3d6ca501c083437daaf4d7d30c180cb7badc1e1705"
+    }
+  ],
+  "upstream": {
+    "c": {
+      "requests": 5,
+      "by_stage": {
+        "tcp-warm": 1,
+        "udp-warm": 4
+      }
+    },
+    "rust": {
+      "requests": 5,
+      "by_stage": {
+        "tcp-warm": 1,
+        "udp-warm": 4
+      }
+    },
+    "endpoint_query_counts_equal": true,
+    "c_only_counts": [],
+    "rust_only_counts": []
+  },
+  "harness_errors": {
+    "c": [],
+    "rust": []
+  },
+  "process_exits": {
+    "c": [
+      0,
+      0
+    ],
+    "rust": [
+      0,
+      0
+    ]
+  },
+  "ubus_checks": {
+    "c": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ],
+    "rust": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ]
+  },
+  "totals": {
+    "scenarios": 14,
+    "exchanges_each": 14,
+    "client_semantic_mismatches": 0
+  }
+}

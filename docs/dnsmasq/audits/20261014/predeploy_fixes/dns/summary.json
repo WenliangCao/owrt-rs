@@ -1,0 +1,209 @@
+{
+  "collector_sha256": "45a1e7a346c541998454aaccec020de92dcb1cd50c2481ca2d09602300f3c446",
+  "comparisons": {
+    "dotless-after": {
+      "client_semantic_mismatches": 0,
+      "exchanges_each": 8,
+      "harness_errors": {
+        "c": [],
+        "rust": []
+      },
+      "process_exits": {
+        "c": [
+          0,
+          0
+        ],
+        "rust": [
+          0,
+          0
+        ]
+      },
+      "scenarios": 7,
+      "upstream_requests": {
+        "c": 2,
+        "rust": 2
+      }
+    },
+    "dotless-before": {
+      "client_semantic_mismatches": 5,
+      "exchanges_each": 8,
+      "harness_errors": {
+        "c": [],
+        "rust": []
+      },
+      "process_exits": {
+        "c": [
+          0,
+          0
+        ],
+        "rust": [
+          0,
+          0
+        ]
+      },
+      "scenarios": 7,
+      "upstream_requests": {
+        "c": 2,
+        "rust": 3
+      }
+    },
+    "minimal-after": {
+      "client_semantic_mismatches": 0,
+      "exchanges_each": 14,
+      "harness_errors": {
+        "c": [],
+        "rust": []
+      },
+      "process_exits": {
+        "c": [
+          0,
+          0
+        ],
+        "rust": [
+          0,
+          0
+        ]
+      },
+      "scenarios": 14,
+      "upstream_requests": {
+        "c": 5,
+        "rust": 5
+      }
+    },
+    "minimal-before": {
+      "client_semantic_mismatches": 8,
+      "exchanges_each": 14,
+      "harness_errors": {
+        "c": [],
+        "rust": []
+      },
+      "process_exits": {
+        "c": [
+          0,
+          0
+        ],
+        "rust": [
+          0,
+          0
+        ]
+      },
+      "scenarios": 14,
+      "upstream_requests": {
+        "c": 5,
+        "rust": 5
+      }
+    }
+  },
+  "literal_boundary": {
+    "final": [
+      {
+        "all_fields_except_rr_order_equal": true,
+        "literal_count": 2332,
+        "ordered_semantics_equal": false,
+        "raw_bytes_equal": false
+      },
+      {
+        "all_fields_except_rr_order_equal": true,
+        "literal_count": 2333,
+        "ordered_semantics_equal": true,
+        "raw_bytes_equal": true
+      }
+    ],
+    "ordering_scope": "Pre-existing same-domain literal RR ordering difference, independently reproduced by querying the owner directly in the original audited Rust ELF; not ignored for ordered equality.",
+    "original-direct-control": [
+      {
+        "all_fields_except_rr_order_equal": true,
+        "literal_count": 2332,
+        "ordered_semantics_equal": false,
+        "raw_bytes_equal": false
+      },
+      {
+        "all_fields_except_rr_order_equal": true,
+        "literal_count": 2333,
+        "ordered_semantics_equal": false,
+        "raw_bytes_equal": false
+      }
+    ],
+    "sdk01_overflow_control": {
+      "daemon_alive": true,
+      "error": "ConnectionError: short TCP frame",
+      "literal_count": 2333,
+      "process_exit": 0,
+      "query_bytes": 217,
+      "upstream_queries": [
+        [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+          1,
+          1
+        ]
+      ]
+    }
+  },
+  "sources": {
+    "c-dotless-final-01": {
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "result_sha256": "c24e179f611d8afef6b8a862b08ddd3f61320807616f3ffdc48ba6bd3db937ed",
+      "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+    },
+    "c-dotless-sdk02": {
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "result_sha256": "a3671eac3133a5ade0e28ad451c1ce45b8f053fc894a9912a2b9a01459cc42eb",
+      "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+    },
+    "c-minimal-before-02": {
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "result_sha256": "db0bcc07dd3669a2df3ad77eabb1ead2b40a445b922e0526dfec5e2af352e020",
+      "tool_sha256": "d419b9509286e3fb17fa742793dc18b9a05ec6688c0be2885739579acfb3267c"
+    },
+    "c-minimal-sdk02": {
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "result_sha256": "65e5d8fefd85ab11e6dd5f97b8cad9e142934f91f39c7e8be13943e4a8d01d19",
+      "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+    },
+    "c-rule-boundary-sdk02": {
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "result_sha256": "da1b9ee484cc2d0bbf4f9b7f96ec5b08d9e77880d83663c8861f2c56148fd67b",
+      "tool_sha256": "1fd8234a3924ac94a8db22380d45812c5fc4040c34363a579ffe857f9f468460"
+    },
+    "c-rule-direct-control": {
+      "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "result_sha256": "00435a790062662972d35e3a2841212be7dee14bf7281e7e5ef5ca2a552a7463",
+      "tool_sha256": "89e95b559e4646bcad3577478f10d31d8c637ff154cb1e751713812fe900d9ee"
+    },
+    "rust-dotless-original-02": {
+      "binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+      "result_sha256": "10531d20cddaa0c82ac2dd130facdf3cd9ef525ccf6018e0b27c0b5737cbf063",
+      "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+    },
+    "rust-dotless-sdk02": {
+      "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "result_sha256": "1e413e07386c5c08b09aaa8bd42db2d007b1ea2bf0740d4f95f408e25aadd2ae",
+      "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+    },
+    "rust-minimal-before-02": {
+      "binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+      "result_sha256": "155e789b92cfece54296857bec53c95f597bebef0798749a15f6357c573c1ba8",
+      "tool_sha256": "d419b9509286e3fb17fa742793dc18b9a05ec6688c0be2885739579acfb3267c"
+    },
+    "rust-minimal-sdk02": {
+      "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "result_sha256": "e91792885cd63a39140ea4b009875cdc88e9f4a44168cef52e85545631f78f4a",
+      "tool_sha256": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+    },
+    "rust-rule-boundary-intermediate-01": {
+      "binary_sha256": "0e1f8217a04c9e23208c22304cd461357339a56570faf07b51bc72e259ce0492",
+      "result_sha256": "392bf7930f59f863b705e355ce63c96dc16148dd5723bdee6e4c022299df8676",
+      "tool_sha256": "1fd8234a3924ac94a8db22380d45812c5fc4040c34363a579ffe857f9f468460"
+    },
+    "rust-rule-boundary-sdk02": {
+      "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+      "result_sha256": "2c72d954e9a98a0516fc91b6a9232a84f2fc2f01fe08d9670f50e22c933c6f63",
+      "tool_sha256": "1fd8234a3924ac94a8db22380d45812c5fc4040c34363a579ffe857f9f468460"
+    },
+    "rust-rule-direct-original": {
+      "binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+      "result_sha256": "cf653bb65456d2bdff7adb90cfc7dba836e52931e9f436c2c210a4ba7e3a82d1",
+      "tool_sha256": "89e95b559e4646bcad3577478f10d31d8c637ff154cb1e751713812fe900d9ee"
+    }
+  }
+}

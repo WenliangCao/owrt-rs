@@ -1,0 +1,2529 @@
+{
+  "dotless-after": {
+    "c": [
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-before"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20736,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotless",
+                  "name": "local-chain-dotless.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          },
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20737,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-cname"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.direct.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain-dotless.direct.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotlessdirect",
+                  "name": "local-chain-dotless.direct.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotlessdirect",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-tcp"
+      }
+    ],
+    "rust": [
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-before"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20736,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotless",
+                  "name": "local-chain-dotless.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          },
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20737,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-cname"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.direct.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain-dotless.direct.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotlessdirect",
+                  "name": "local-chain-dotless.direct.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotlessdirect",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-tcp"
+      }
+    ]
+  },
+  "dotless-before": {
+    "c": [
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-before"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20736,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotless",
+                  "name": "local-chain-dotless.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          },
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20737,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-cname"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.direct.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain-dotless.direct.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotlessdirect",
+                  "name": "local-chain-dotless.direct.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotlessdirect",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-tcp"
+      }
+    ],
+    "rust": [
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-before"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20736,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotless",
+                  "name": "local-chain-dotless.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          },
+          {
+            "host": "local-chain-dotless.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 20737,
+              "questions": [
+                [
+                  "local-chain-dotless.audit.example",
+                  28,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotless",
+                  "name": "local-chain-dotless.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "2001:4860:4860::8844",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 28
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-cname"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "2001:4860:4860::8844",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 28
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotless",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotless",
+                  28,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "2001:4860:4860::8844",
+                  "name": "auditdotless",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 28
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain-dotless.direct.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain-dotless.direct.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "auditdotlessdirect",
+                  "name": "local-chain-dotless.direct.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "auditdotlessdirect",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "auditdotlessdirect",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "auditdotlessdirect",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "dotless-direct-only-tcp"
+      }
+    ]
+  },
+  "minimal-after": {
+    "c": [
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-terminal.lan",
+                  "name": "local-chain.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.udp.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-udp-terminal.lan",
+                  "name": "local-chain.udp.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-28"
+      }
+    ],
+    "rust": [
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-terminal.lan",
+                  "name": "local-chain.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.udp.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-udp-terminal.lan",
+                  "name": "local-chain.udp.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-28"
+      }
+    ]
+  },
+  "minimal-before": {
+    "c": [
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-terminal.lan",
+                  "name": "local-chain.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.udp.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-udp-terminal.lan",
+                  "name": "local-chain.udp.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-28"
+      }
+    ],
+    "rust": [
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-terminal.lan",
+                  "name": "local-chain.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "tcp-warm-terminal-tcp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-udp"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-before-tcp"
+      },
+      {
+        "clients": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "ipv6": false,
+            "response": {
+              "flags": 33152,
+              "id": 16640,
+              "questions": [
+                [
+                  "local-chain.udp.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "class": 1,
+                  "data": "audit-udp-terminal.lan",
+                  "name": "local-chain.udp.audit.example",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 5
+                },
+                {
+                  "class": 1,
+                  "data": "8.8.4.4",
+                  "name": "audit-udp-terminal.lan",
+                  "section": "answer",
+                  "ttl": 120,
+                  "type": 1
+                }
+              ]
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": false,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-udp-28"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  1,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 1
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-1"
+      },
+      {
+        "clients": [
+          {
+            "host": "audit-udp-terminal.lan",
+            "ipv6": false,
+            "response": {
+              "flags": 33155,
+              "id": 16640,
+              "questions": [
+                [
+                  "audit-udp-terminal.lan",
+                  28,
+                  1
+                ]
+              ],
+              "records": []
+            },
+            "tcp": true,
+            "type": 28
+          }
+        ],
+        "daemon_alive": true,
+        "label": "udp-warm-terminal-tcp-28"
+      }
+    ]
+  }
+}

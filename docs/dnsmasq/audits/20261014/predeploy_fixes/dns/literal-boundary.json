@@ -1,0 +1,303 @@
+{
+  "final": [
+    {
+      "all_fields_except_rr_order_equal": true,
+      "c": {
+        "answer_count": 2332,
+        "daemon_alive": true,
+        "flags": 34176,
+        "literal_count": 2332,
+        "process_exit": 0,
+        "query_bytes": 217,
+        "question": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "69ecaa2e2f65580b12b159c20fd2d0fcc7c19fa5625e3342704c1d8a24c27e09",
+        "response_bytes": 65513,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "c_first_three_addresses": [
+        "2001:db8::91b",
+        "2001:db8::91c",
+        "2001:db8::919"
+      ],
+      "literal_count": 2332,
+      "ordered_semantics_equal": false,
+      "raw_bytes_equal": false,
+      "rust": {
+        "answer_count": 2332,
+        "daemon_alive": true,
+        "flags": 34176,
+        "literal_count": 2332,
+        "process_exit": 0,
+        "query_bytes": 217,
+        "question": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "aa717aaa7f4583958fc7da433a5961c3432c9b22fe6369e87c8b528d8717c737",
+        "response_bytes": 65513,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "rust_first_three_addresses": [
+        "2001:db8::91c",
+        "2001:db8::91b",
+        "2001:db8::91a"
+      ]
+    },
+    {
+      "all_fields_except_rr_order_equal": true,
+      "c": {
+        "answer_count": 0,
+        "daemon_alive": true,
+        "flags": 34688,
+        "literal_count": 2333,
+        "process_exit": 0,
+        "query_bytes": 217,
+        "question": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "8405bfb112d092a5a092bb12e097114e0cda225fb22887d4c29abef06ad10910",
+        "response_bytes": 217,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "c_first_three_addresses": [],
+      "literal_count": 2333,
+      "ordered_semantics_equal": true,
+      "raw_bytes_equal": true,
+      "rust": {
+        "answer_count": 0,
+        "daemon_alive": true,
+        "flags": 34688,
+        "literal_count": 2333,
+        "process_exit": 0,
+        "query_bytes": 217,
+        "question": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "8405bfb112d092a5a092bb12e097114e0cda225fb22887d4c29abef06ad10910",
+        "response_bytes": 217,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "rust_first_three_addresses": []
+    }
+  ],
+  "original-direct-control": [
+    {
+      "all_fields_except_rr_order_equal": true,
+      "c": {
+        "answer_count": 2332,
+        "daemon_alive": true,
+        "flags": 34176,
+        "literal_count": 2332,
+        "process_exit": 0,
+        "query_bytes": 19,
+        "question": [
+          [
+            "t",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "be8469159da27d90d626d0d6e7d00564e963828ecb7d209b5f4cc6b12939ace5",
+        "response_bytes": 65315,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "c_first_three_addresses": [
+        "2001:db8::91b",
+        "2001:db8::91c",
+        "2001:db8::919"
+      ],
+      "literal_count": 2332,
+      "ordered_semantics_equal": false,
+      "raw_bytes_equal": false,
+      "rust": {
+        "answer_count": 2332,
+        "daemon_alive": true,
+        "flags": 34176,
+        "literal_count": 2332,
+        "process_exit": 0,
+        "query_bytes": 19,
+        "question": [
+          [
+            "t",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "7a80f80675fb8923cc5253227c0ea29af763b3f76bb21586f96fb2cd08a84a3b",
+        "response_bytes": 65315,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "rust_first_three_addresses": [
+        "2001:db8::91c",
+        "2001:db8::91b",
+        "2001:db8::91a"
+      ]
+    },
+    {
+      "all_fields_except_rr_order_equal": true,
+      "c": {
+        "answer_count": 2333,
+        "daemon_alive": true,
+        "flags": 34176,
+        "literal_count": 2333,
+        "process_exit": 0,
+        "query_bytes": 19,
+        "question": [
+          [
+            "t",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "84848d74d3a95e488334fe8ae77ff76b7a607aa362c80b1193dda7797d1d7750",
+        "response_bytes": 65343,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "c_first_three_addresses": [
+        "2001:db8::91c",
+        "2001:db8::91d",
+        "2001:db8::91a"
+      ],
+      "literal_count": 2333,
+      "ordered_semantics_equal": false,
+      "raw_bytes_equal": false,
+      "rust": {
+        "answer_count": 2333,
+        "daemon_alive": true,
+        "flags": 34176,
+        "literal_count": 2333,
+        "process_exit": 0,
+        "query_bytes": 19,
+        "question": [
+          [
+            "t",
+            28,
+            1
+          ]
+        ],
+        "reply_sha256": "3a78068e179a9730528b601a120975c6b59cd26c823d14b9ce22a417b739a50f",
+        "response_bytes": 65343,
+        "upstream_queries": [
+          [
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+            1,
+            1
+          ]
+        ],
+        "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+      },
+      "rust_first_three_addresses": [
+        "2001:db8::91d",
+        "2001:db8::91c",
+        "2001:db8::91b"
+      ]
+    }
+  ],
+  "sdk01_negative_control": [
+    {
+      "answer_count": 2332,
+      "daemon_alive": true,
+      "flags": 34176,
+      "literal_count": 2332,
+      "process_exit": 0,
+      "query_bytes": 217,
+      "question": [
+        [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+          28,
+          1
+        ]
+      ],
+      "reply_sha256": "aa717aaa7f4583958fc7da433a5961c3432c9b22fe6369e87c8b528d8717c737",
+      "response_bytes": 65513,
+      "upstream_queries": [
+        [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+          1,
+          1
+        ]
+      ],
+      "warm_sha256": "e18dd976abeb79391d99c4deaaadff066dc4a9eda1ac1a45126ecbd988b2a443"
+    },
+    {
+      "daemon_alive": true,
+      "error": "ConnectionError: short TCP frame",
+      "literal_count": 2333,
+      "process_exit": 0,
+      "query_bytes": 217,
+      "upstream_queries": [
+        [
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.example",
+          1,
+          1
+        ]
+      ]
+    }
+  ]
+}

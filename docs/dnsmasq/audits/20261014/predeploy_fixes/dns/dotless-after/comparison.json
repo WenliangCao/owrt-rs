@@ -1,0 +1,184 @@
+{
+  "scope": "Actual captured configuration, exact image C ELF and frozen Rust release; isolated oracle network/mount/PID namespaces",
+  "comparison": "Ignore elapsed time only; keep DNS IDs, flags, questions, ordered records, TTLs, error category/text and daemon liveness",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "config_identity_equal": true,
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+  "executed_tool_sha256": {
+    "c": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480",
+    "rust": "95b12f86147254b5080bfaf08534bd2321c61ac74c0d0bba06407dd6a901a480"
+  },
+  "source_result_sha256": {
+    "c": "a3671eac3133a5ade0e28ad451c1ce45b8f053fc894a9912a2b9a01459cc42eb",
+    "rust": "1e413e07386c5c08b09aaa8bd42db2d007b1ea2bf0740d4f95f408e25aadd2ae"
+  },
+  "cases": [
+    {
+      "label": "dotless-before",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "d4c5e59641ffaf217e0485a70a3dc6d2cb7af41fde2ad04c915f1181cc8edbd8",
+      "rust_semantics_sha256": "d4c5e59641ffaf217e0485a70a3dc6d2cb7af41fde2ad04c915f1181cc8edbd8"
+    },
+    {
+      "label": "dotless-cname",
+      "clients_each": 2,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 2
+      },
+      "rust_status": {
+        "rcode=0": 2
+      },
+      "c_semantics_sha256": "33af480ce06c01f6f0c83e742e61e78c7642be7b5c30ea390454851812a7b05c",
+      "rust_semantics_sha256": "33af480ce06c01f6f0c83e742e61e78c7642be7b5c30ea390454851812a7b05c"
+    },
+    {
+      "label": "dotless-direct-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "481d5c81dcd15277a5b0938a70bdcd45fad19c5ffdb32aa5f83efe89e28309b5",
+      "rust_semantics_sha256": "481d5c81dcd15277a5b0938a70bdcd45fad19c5ffdb32aa5f83efe89e28309b5"
+    },
+    {
+      "label": "dotless-direct-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "ef50ca6f22de03c72ec3098e4575f112b6571e9fd3a65efff2fc8a2682a382e4",
+      "rust_semantics_sha256": "ef50ca6f22de03c72ec3098e4575f112b6571e9fd3a65efff2fc8a2682a382e4"
+    },
+    {
+      "label": "dotless-direct-only-warm",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "d7d507778f484071b8c5e20072ef25b1d4835a36ee497179ab16832c76e21f5a",
+      "rust_semantics_sha256": "d7d507778f484071b8c5e20072ef25b1d4835a36ee497179ab16832c76e21f5a"
+    },
+    {
+      "label": "dotless-direct-only-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "7344aab691f63f67c2f555de1e9f5c9b2221845a1e71dfb3332ca141e09e8eba",
+      "rust_semantics_sha256": "7344aab691f63f67c2f555de1e9f5c9b2221845a1e71dfb3332ca141e09e8eba"
+    },
+    {
+      "label": "dotless-direct-only-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "669f2e2c8c6dbf55468cdc7860b22160d9c3fc1839956b88dd99d7368e58506a",
+      "rust_semantics_sha256": "669f2e2c8c6dbf55468cdc7860b22160d9c3fc1839956b88dd99d7368e58506a"
+    }
+  ],
+  "upstream": {
+    "c": {
+      "requests": 2,
+      "by_stage": {
+        "dotless-cname": 1,
+        "dotless-direct-only": 1
+      }
+    },
+    "rust": {
+      "requests": 2,
+      "by_stage": {
+        "dotless-cname": 1,
+        "dotless-direct-only": 1
+      }
+    },
+    "endpoint_query_counts_equal": true,
+    "c_only_counts": [],
+    "rust_only_counts": []
+  },
+  "harness_errors": {
+    "c": [],
+    "rust": []
+  },
+  "process_exits": {
+    "c": [
+      0,
+      0
+    ],
+    "rust": [
+      0,
+      0
+    ]
+  },
+  "ubus_checks": {
+    "c": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ],
+    "rust": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ]
+  },
+  "totals": {
+    "scenarios": 7,
+    "exchanges_each": 8,
+    "client_semantic_mismatches": 0
+  }
+}

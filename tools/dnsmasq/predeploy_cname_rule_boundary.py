@@ -35,6 +35,8 @@ def run(args):
     host = '.'.join(['a' * 63, 'b' * 63, 'c' * 63, 'example'])
     query = request(host, 28, 0x7311)
     fit_count = (65535 - len(query)) // 28
+    if args.direct_only:
+        query = request('t', 28, 0x7311)
     rows = []
     for count in (fit_count, fit_count + 1):
         folder = args.out / str(count)
@@ -118,7 +120,7 @@ def run(args):
     result = {'binary_sha256': digest(args.binary.read_bytes()),
               'tool_sha256': digest(Path(__file__).read_bytes()),
               'scope': 'Synthetic config; exact TCP literal envelope; isolated loopback namespace',
-              'cases': rows}
+              'direct_only': args.direct_only, 'cases': rows}
     (args.out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
 
 
@@ -127,6 +129,7 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--image-root', type=Path, required=True)
     parser.add_argument('--image-elf', action='store_true')
+    parser.add_argument('--direct-only', action='store_true', help='query literal owner directly to isolate pre-existing record ordering')
     parser.add_argument('--out', type=Path, required=True)
     run(parser.parse_args())
 
