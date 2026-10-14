@@ -15,14 +15,14 @@ pub fn image_prefix_length(bytes: &[u8]) -> Result<i32, super::Error> {
         .map(|value| value as i32)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DomainAddress {
     pub label: Vec<u8>,
     pub address: IpAddr,
     pub prefix: u8,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct DomainInterfaces {
     pub addresses: Vec<DomainAddress>,
 }

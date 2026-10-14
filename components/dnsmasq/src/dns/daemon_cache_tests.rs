@@ -87,7 +87,7 @@ fn shared_answer(daemon: &mut DnsDaemon, query: &[u8], now: i64, tcp: bool) -> O
 fn shared_lookup_checks_cached_terminal_before_local_forward_rules() {
     for directive in ["local=/test/", "address=/test/203.0.113.9"] {
         let mut daemon = daemon();
-        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        std::sync::Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
         daemon.cache_reply_at(&chain_reply(1, false), 100);
         let target = Name::from_ascii("target.test").unwrap();
         assert!(daemon.cache.as_ref().unwrap().contains_forward_name(&target, 100));
@@ -124,7 +124,7 @@ fn shared_lookup_preserves_cname_cursor_for_tcp_forward_rules_only() {
         ("address=/target.test/2001:db8::9", &[28][..]),
     ] {
         let mut daemon = daemon();
-        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        std::sync::Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
         daemon.cache_reply_at(&chain_reply(1, false), 100);
         for tcp in [false, true] {
             let query = packet("alias.test", 28, 0x100).finish();
@@ -165,7 +165,7 @@ fn shared_lookup_keeps_udp_tcp_cname_local_cache_order_and_rd_do_gates() {
             "dns-rr=target.test,65401,abcd",
             "host-record=mail.test,192.0.2.80",
         ] {
-            daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+            std::sync::Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
         }
         daemon.local.hosts = super::super::local::configured_hosts(&daemon.local.config, 0);
         daemon.cache_reply_at(&chain_reply(1, negative), 100);
@@ -203,7 +203,7 @@ fn cached_cname_raw_terminal_copies_rdata_pointers_opaquely() {
     for data in ["c00c", "c02b"] {
         let mut daemon = daemon();
         let directive = format!("dns-rr=target.test,2,{data}");
-        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        std::sync::Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
         daemon.cache_reply_at(&chain_reply(1, false), 100);
         let query = packet("alias.test", 2, 0x100).finish();
         let udp = shared_answer(&mut daemon, &query, 101, false);
@@ -226,7 +226,7 @@ fn cached_cname_raw_cname_terminals_keep_c_owner_layout() {
         let mut daemon = daemon();
         for directive in [format!("dns-rr=target.test,5,{pointer}")].into_iter()
             .chain(std::iter::repeat_n("dns-rr=target.test,5,056f74686572047465737400".into(), 3)) {
-            daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+            std::sync::Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
         }
         daemon.cache_reply_at(&chain_reply(1, false), 100);
         daemon
@@ -265,7 +265,7 @@ fn cached_cname_terminal_owner_past_pointer_range_uses_full_name() {
     directives.extend((0..60).map(|i| format!("txt-record=target.test,{i:03}{}", "x".repeat(252))));
     directives.push(format!("txt-record=target.test,{}", "z".repeat(220)));
     for directive in &directives {
-        daemon.local.config.apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
+        std::sync::Arc::make_mut(&mut daemon.local.config).apply(&crate::config::lex_line(directive.as_bytes()).unwrap().unwrap()).unwrap();
     }
     daemon.local.hosts = super::super::local::configured_hosts(&daemon.local.config, 0);
     daemon.cache_reply_at(&chain_reply(1, false), 100);
@@ -306,8 +306,8 @@ fn reply_known_name_uses_live_cache_or_connection_snapshot() {
 #[test]
 fn cached_cname_local_terminal_uses_the_current_query_network() {
     let mut daemon = daemon();
-    daemon.local.config.localise_queries = true;
-    daemon.local.config.no_round_robin = true;
+    std::sync::Arc::make_mut(&mut daemon.local.config).localise_queries = true;
+    std::sync::Arc::make_mut(&mut daemon.local.config).no_round_robin = true;
     for address in ["192.0.2.1", "198.51.100.3"] {
         daemon
             .local
@@ -344,11 +344,8 @@ fn cached_cname_precedes_alias_local_txt_with_the_cache_expiry_policy() {
     ] {
         let mut daemon = daemon();
         daemon.enable_cache(32, 0, 0, stale);
-        daemon.local.config.cache_rr.push(16);
-        daemon
-            .local
-            .config
-            .records
+        std::sync::Arc::make_mut(&mut daemon.local.config).cache_rr.push(16);
+        std::sync::Arc::make_mut(&mut daemon.local.config).records
             .txt
             .push(crate::config::records::RawRecord {
                 name: b"alias.test".to_vec(),
@@ -482,11 +479,8 @@ fn cached_cname_dynamic_terminal_uses_configured_txt_mx_srv_before_cached_type()
         ),
     ] {
         let mut daemon = daemon();
-        daemon.local.config.cache_rr.push(qtype);
-        daemon
-            .local
-            .config
-            .apply(
+        std::sync::Arc::make_mut(&mut daemon.local.config).cache_rr.push(qtype);
+        std::sync::Arc::make_mut(&mut daemon.local.config).apply(
                 &crate::config::lex_line(directive.as_bytes())
                     .unwrap()
                     .unwrap(),
@@ -565,10 +559,7 @@ fn cached_cname_dynamic_terminal_uses_configured_txt_mx_srv_before_cached_type()
 #[test]
 fn configured_cname_terminal_keeps_negative_soa_before_mail_additional() {
     let mut daemon = daemon();
-    daemon
-        .local
-        .config
-        .apply(
+    std::sync::Arc::make_mut(&mut daemon.local.config).apply(
             &crate::config::lex_line(b"mx-host=target.test,mail.test,10")
                 .unwrap()
                 .unwrap(),
@@ -939,7 +930,7 @@ fn long_cached_chain_reuses_names_to_preserve_c_truncation_boundary() {
 fn address_cache_preserves_configured_rotation() {
     for no_round_robin in [false, true] {
         let mut daemon = daemon();
-        daemon.local.config.no_round_robin = no_round_robin;
+        std::sync::Arc::make_mut(&mut daemon.local.config).no_round_robin = no_round_robin;
         let mut reply = packet("Service.Test", 1, 0x8180);
         for last in [1, 2] {
             reply

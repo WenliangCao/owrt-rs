@@ -682,9 +682,9 @@ impl<R: Random> DnsDaemon<R> {
         self.upstream
             .replace_server_groups(routing.dispatcher_groups(), &removed);
         self.routing = routing;
-        self.local.config = self.server_sources.effective_config(&self.local.config);
+        self.local.config = self.server_sources.effective_config(&self.local.config).into();
         if !excluded.is_empty() {
-            self.local.config.rules = self
+            std::sync::Arc::make_mut(&mut self.local.config).rules = self
                 .server_sources
                 .rules()
                 .iter()
@@ -814,7 +814,7 @@ impl<R: Random> DnsDaemon<R> {
         &mut self,
         domains: std::sync::Arc<crate::config::domains::DomainInterfaces>,
     ) {
-        self.local.config.domain_interfaces = domains;
+        self.local.publish_domain_interfaces(domains);
     }
 
     #[cfg(target_os = "linux")]

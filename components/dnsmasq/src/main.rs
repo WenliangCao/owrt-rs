@@ -1251,7 +1251,7 @@ fn run_inner(
                 &interface_snapshot.borrow_mut(),
                 runtime.scalar.dns_port,
             ))?;
-            parent.local.config = daemon.local_config().clone();
+            parent.local.config = daemon.local_config().clone().into();
         }
     }
     #[cfg(target_os = "linux")]
@@ -3579,7 +3579,7 @@ impl SinglePoll {
             if let Some(daemon) = &mut parent.daemon {
                 match daemon.replace_server_source(update.source, update.rows, &addresses) {
                     Ok(()) => {
-                        parent.local.config = daemon.local_config().clone();
+                        parent.local.config = daemon.local_config().clone().into();
                         self.full_reload_pending |= update.full_reload;
                     }
                     Err(error) => eprintln!("dnsmasq-rs: {error}"),
@@ -4616,7 +4616,7 @@ impl SinglePoll {
         {
             let mut parent = self.service.borrow_mut();
             parent.local.interfaces = Arc::clone(&records);
-            parent.local.config.domain_interfaces = Arc::clone(&domains);
+            parent.local.publish_domain_interfaces(Arc::clone(&domains));
             if let Some(daemon) = &mut parent.daemon {
                 daemon.publish_domain_interfaces(domains);
                 daemon.refresh_source_interface_indices();
@@ -4852,8 +4852,8 @@ impl SinglePoll {
             let ParentDns { local, daemon, .. } = &mut *parent;
             if let Some(daemon) = daemon {
                 if daemon.detect_loop(&query).unwrap_or(false) {
-                    local.config = daemon.local_config().clone();
-                    self.config = local.config.clone();
+                    local.config = daemon.local_config().clone().into();
+                    self.config = (*local.config).clone();
                     return true;
                 }
             }
@@ -5419,7 +5419,7 @@ impl SinglePoll {
         };
         let mut snapshot = LocalDnsService::new_with_limits(
             parent.local.config.clone(),
-            parent.local.hosts.clone(),
+            parent.local.hosts.tcp_snapshot(),
             parent.local.local_ttl,
             parent.local.max_udp,
             parent.local.edns_packet_max,
