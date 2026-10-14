@@ -72,3 +72,14 @@ by the independent reviewer. The original `wire_to_dotted` API shares the same
 label conversion logic and still allocates when a caller needs owned bytes.
 Configured CNAME traversal borrows immutable targets and copies only its final
 owned terminal result. No retained Name/cache/snapshot layout was changed.
+
+
+DNS-3 isolated follow-up (`dns3-timing.json`) found useful 2.81–3.68% ordinary
+hit/miss/host improvements beyond microbench variation, but the auxiliary
+400-configured-CNAME fixture regressed 2.43%, 5/5 pairs. It remains outside
+the frozen device scenes, yet this regression disqualifies an unconditional
+adoption claim. DNS-3a restores the configured-CNAME owned cursor unchanged,
+while retaining bounded scratch for ordinary local/lease lookups. This is an
+attribution experiment; no explanation is asserted before remeasurement.
+The DNS-3 result is preserved intact. Root is notified to freeze A without
+this direction if the extra investigation would delay the full gate.

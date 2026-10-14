@@ -1,0 +1,340 @@
+{
+  "source_commit": "b0b9ab77",
+  "scope": "Focused native GNU System-allocator microbenchmark; fixed CPU2 root quiet reservation, five alternating pairs, no perf/allocator instrumentation. Includes common process fixture setup. Not device timing or complete correctness.",
+  "rows": [
+    {
+      "scene": "hit",
+      "dns2": {
+        "median_ns": 685.068,
+        "min_ns": 679.558,
+        "max_ns": 687.246,
+        "values_ns": [
+          686.966,
+          685.068,
+          679.558,
+          679.718,
+          687.246
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 663.926,
+        "min_ns": 663.406,
+        "max_ns": 664.748,
+        "values_ns": [
+          663.406,
+          664.748,
+          663.926,
+          663.84,
+          664.486
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.030861169986045045,
+      "relative_range_limit": 0.01122224363128914,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "hit-upper",
+      "dns2": {
+        "median_ns": 717.658,
+        "min_ns": 717.484,
+        "max_ns": 717.852,
+        "values_ns": [
+          717.658,
+          717.846,
+          717.6,
+          717.484,
+          717.852
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 694.016,
+        "min_ns": 693.066,
+        "max_ns": 697.538,
+        "values_ns": [
+          694.084,
+          697.538,
+          694.016,
+          693.136,
+          693.066
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.03294326824197602,
+      "relative_range_limit": 0.0064436554776834834,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "hit-leases",
+      "dns2": {
+        "median_ns": 809.79,
+        "min_ns": 807.212,
+        "max_ns": 814.554,
+        "values_ns": [
+          814.554,
+          809.148,
+          807.212,
+          811.166,
+          809.79
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 781.682,
+        "min_ns": 778.826,
+        "max_ns": 784.662,
+        "values_ns": [
+          778.826,
+          784.662,
+          780.71,
+          781.682,
+          782.344
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.0347102335173316,
+      "relative_range_limit": 0.009066548117413137,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "miss",
+      "dns2": {
+        "median_ns": 498.302,
+        "min_ns": 497.692,
+        "max_ns": 499.12,
+        "values_ns": [
+          499.12,
+          498.084,
+          498.302,
+          497.692,
+          498.864
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 479.946,
+        "min_ns": 478.434,
+        "max_ns": 483.68,
+        "values_ns": [
+          478.434,
+          478.568,
+          479.946,
+          483.68,
+          481.02
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.036837098787482314,
+      "relative_range_limit": 0.010930396336254455,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "miss-leases",
+      "dns2": {
+        "median_ns": 620.766,
+        "min_ns": 618.144,
+        "max_ns": 624.108,
+        "values_ns": [
+          620.766,
+          618.144,
+          620.522,
+          624.108,
+          621.844
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 602.818,
+        "min_ns": 600.376,
+        "max_ns": 606.092,
+        "values_ns": [
+          600.376,
+          606.092,
+          603.584,
+          602.818,
+          600.41
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.028912665964308526,
+      "relative_range_limit": 0.009607484946018213,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "host",
+      "dns2": {
+        "median_ns": 893.082,
+        "min_ns": 887.936,
+        "max_ns": 894.622,
+        "values_ns": [
+          890.04,
+          887.936,
+          893.082,
+          894.26,
+          894.622
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 868.016,
+        "min_ns": 862.554,
+        "max_ns": 883.282,
+        "values_ns": [
+          862.554,
+          874.078,
+          868.016,
+          863.692,
+          883.282
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.028066851644081958,
+      "relative_range_limit": 0.023879744152181602,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "rrset",
+      "dns2": {
+        "median_ns": 1509.58,
+        "min_ns": 1503.182,
+        "max_ns": 1523.014,
+        "values_ns": [
+          1509.692,
+          1509.58,
+          1508.032,
+          1503.182,
+          1523.014
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 1501.808,
+        "min_ns": 1501.322,
+        "max_ns": 1503.168,
+        "values_ns": [
+          1501.322,
+          1502.96,
+          1503.168,
+          1501.808,
+          1501.714
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.005148451887279859,
+      "relative_range_limit": 0.013137428953748646,
+      "faster_pairs": 5,
+      "exceeds_variation": false
+    },
+    {
+      "scene": "cname",
+      "dns2": {
+        "median_ns": 1284.064,
+        "min_ns": 1282.79,
+        "max_ns": 1296.052,
+        "values_ns": [
+          1283.188,
+          1286.804,
+          1296.052,
+          1284.064,
+          1282.79
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 1273.068,
+        "min_ns": 1272.262,
+        "max_ns": 1274.428,
+        "values_ns": [
+          1273.068,
+          1273.064,
+          1274.428,
+          1273.712,
+          1272.262
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.00856343609041299,
+      "relative_range_limit": 0.010328145637600573,
+      "faster_pairs": 5,
+      "exceeds_variation": false
+    },
+    {
+      "scene": "cname-leases",
+      "dns2": {
+        "median_ns": 1569.064,
+        "min_ns": 1561.12,
+        "max_ns": 1570.394,
+        "values_ns": [
+          1570.148,
+          1570.394,
+          1567.156,
+          1569.064,
+          1561.12
+        ],
+        "operations_per_window": 500000
+      },
+      "dns3": {
+        "median_ns": 1511.814,
+        "min_ns": 1508.928,
+        "max_ns": 1513.198,
+        "values_ns": [
+          1513.198,
+          1509.256,
+          1511.814,
+          1508.928,
+          1513.088
+        ],
+        "operations_per_window": 500000
+      },
+      "relative_change": -0.03648672074561654,
+      "relative_range_limit": 0.005910530099473389,
+      "faster_pairs": 5,
+      "exceeds_variation": true
+    },
+    {
+      "scene": "cname-config",
+      "dns2": {
+        "median_ns": 54242.5,
+        "min_ns": 54159.2,
+        "max_ns": 54298.7,
+        "values_ns": [
+          54233.3,
+          54298.7,
+          54250.7,
+          54159.2,
+          54242.5
+        ],
+        "operations_per_window": 10000
+      },
+      "dns3": {
+        "median_ns": 55559.9,
+        "min_ns": 55488.6,
+        "max_ns": 55621.7,
+        "values_ns": [
+          55581.5,
+          55559.9,
+          55488.6,
+          55545.5,
+          55621.7
+        ],
+        "operations_per_window": 10000
+      },
+      "relative_change": 0.024287228649122028,
+      "relative_range_limit": 0.0025717841176199473,
+      "faster_pairs": 0,
+      "exceeds_variation": true
+    }
+  ],
+  "raw_sha256": {
+    "timing-dns3.json": "8bf0f9647b5dd002aba2d00f827d53b4c4df5265c55e6ae1ae47d610d9a757a8",
+    "timing-dns3-cname-config.json": "8aabf6418bec06a51a94819d04adfbe9b1d4037b8dcdb40df70eac3a0a1e973b"
+  }
+}

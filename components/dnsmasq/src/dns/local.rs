@@ -320,12 +320,10 @@ impl<'a> LocalAnswerer<'a> {
                     .any(|record| dotted_key(&record.alias) == key)
             };
         if has_cname {
-            let length = dotted_length
-                .or_else(|| wire_to_dotted_into(&question.name, &mut dotted_buffer));
             let (local_owned, terminal) = add_cname_chain(
                 self.config,
                 self.hosts,
-                length.map(|length| &dotted_buffer[..length]),
+                &question.name,
                 question.rrtype,
                 leases,
                 cache.as_deref_mut(),
@@ -1005,7 +1003,7 @@ pub(super) fn arpa_address(name: &[u8]) -> Option<IpAddr> {
 fn add_cname_chain(
     config: &DnsConfig,
     hosts: &mut Hosts,
-    alias: Option<&[u8]>,
+    alias: &Name,
     qtype: u16,
     leases: LeaseView<'_>,
     cache: Option<&mut Cache>,
@@ -1014,7 +1012,7 @@ fn add_cname_chain(
     notices: &mut QueryEvents,
 ) -> (bool, Option<Vec<u8>>) {
     let ttl = leases.local_ttl;
-    let Some(mut current) = alias else {
+    let Some(mut current) = wire_to_dotted(alias) else {
         return (false, None);
     };
     let mut visited = Vec::<Vec<u8>>::new();
@@ -1050,7 +1048,7 @@ fn add_cname_chain(
         if qtype == TYPE_CNAME {
             return (true, None);
         }
-        current = &record.target;
+        current = record.target.clone();
     }
 
     let (terminal_rows, _terminal_owned, reverse_synthesized) = add_local_records_for_name(
@@ -1069,7 +1067,7 @@ fn add_cname_chain(
     }
     // The alias itself owns the answer even when its terminal target has no
     // matching RR (CNAME-only response).
-    (true, (!reverse_synthesized).then(|| current.to_vec()))
+    (true, (!reverse_synthesized).then_some(current))
 }
 
 /// Collect all local records for one owner. The returned rows are ownerless;
