@@ -53,7 +53,8 @@ stop_helpers() {
     for f in "$DIR"/*.pid; do
         [ -f "$f" ] || continue
         pid=$(cat "$f")
-        [ "$pid" = "$$" ] || kill "$pid" 2> /dev/null
+        # setsid made each helper a process-group leader; take its sleep too.
+        [ "$pid" = "$$" ] || kill -- "-$pid" 2> /dev/null || kill "$pid" 2> /dev/null
         rm -f "$f"
     done
 }
@@ -120,7 +121,7 @@ _watch)
     ;;
 confirm)
     mounted || fail 'no active trial'
-    pid=$(cat "$DIR/deadline.pid" 2> /dev/null) && kill "$pid" 2> /dev/null
+    pid=$(cat "$DIR/deadline.pid" 2> /dev/null) && kill -- "-$pid" 2> /dev/null
     rm -f "$DIR/deadline.pid"
     log 'confirmed; health watch continues until reboot or rollback'
     ;;
