@@ -1,10 +1,10 @@
-# 九组件集成固件的发布与维护
+# 集成固件的发布与维护
 
-2026-09-29。发布流水线生成一个 AX3000T sysupgrade 镜像，九个 Rust 实现直接安装到 OpenWrt 的标准路径，由一个 `owrt-control-plane` APK 管理。原来的六套开关包与三个独立核心二进制是构建中间产物，正式镜像不包含绑定挂载、boot-enable 标记或试验采集器。四个中文翻译包从匹配 LuCI 修订重建，目录内容与现役系统逐字节核对。固件刷写仍需单独明确授权与恢复核验。
+2026-10-14。当前 `v0.2.0` 配方将 dnsmasq-rs 加入原九组件，生成一个小米 AX3000T sysupgrade 镜像。十个 Rust 程序直接安装到 OpenWrt 标准路径，由统一 **`owrt-control-plane 0.2.0-r1`** APK 管理；dnsmasq 的已验收 init 与 ACL 随程序成套安装。正式镜像不包含绑定挂载、boot-enable 标记、试验采集器或临时部署守卫。刷写仍需明确授权、当次恢复核验和断网确认；构建成功不代表真机验收完成。
 
-当前适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定九个标准路径、C 原件哈希及原软件包所有者。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
+适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定标准路径、C 原件哈希、原软件包所有者及 dnsmasq 的构建输入。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
 
-首份正式集成镜像 `owrt-control-plane 0.1.0-r2` 已完成构建、离线验收、保留配置真机部署和用户物理断电复测。固定版本为 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)。[镜像验收](reviews/NATIVE_IMAGE_20260929.md)固定产物身份与离线证据；[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)记录实际运行和清理结果。临时保护已移除，正式镜像本身也不包含试验服务。
+历史版本保持原身份与验收范围：首份九组件镜像 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0) 使用 `0.1.0-r2`，完成保留配置刷写和物理断电复测，见[镜像验收](reviews/NATIVE_IMAGE_20260929.md)与[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。[v0.1.1](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.1.1) 使用 `0.1.0-r3`，是现役回滚基线；其[快速部署记录](reviews/DEPLOYMENT_V0_1_1_20261009_RESULT.md)明确未执行断电测试。两者均仍使用原版 C dnsmasq，不能把本次十组件资格倒填给历史版本。
 
 ## 安装布局
 
@@ -14,63 +14,89 @@
 | rpcd / logd | `/sbin/rpcd`、`/sbin/logd` |
 | uci / reload-config / fw4 | `/sbin/uci`、`/sbin/reload_config`、`/sbin/fw4` |
 | httpd | `/usr/sbin/uhttpd` |
+| dnsmasq | `/usr/sbin/dnsmasq` |
 
-沿用原 `log`、`rpcd`、`network`、`uhttpd` 启动服务。httpd 使用原启动脚本生成首次启动证书、读取 `/etc/config/uhttpd`；原 log 启动脚本也保留 logread 的文件与远程日志配置。内核、驱动、无线 handler、dnsmasq、odhcpd、DHCP 客户端、dropbear、BusyBox、LuCI、apk 和 sysupgrade 执行面保留。
+沿用 `log`、`rpcd`、`network`、`uhttpd` 服务。httpd 使用原启动脚本生成首次证书、读取 `/etc/config/uhttpd`；原 log 脚本保留 logread 的文件与远程日志配置。dnsmasq 使用已验收包中的 `/etc/init.d/dnsmasq` 和 `/usr/share/acl.d/dnsmasq_acl.json`，这两个文件也是升级与恢复身份的一部分，不能只替换 ELF。内核、驱动、无线 handler、odhcpd、DHCP 客户端、dropbear、BusyBox、LuCI、apk 和 sysupgrade 执行面保留。
 
-APK 的 `replaces` 与 `replaces-priority` 明确指定九个文件归 `owrt-control-plane` 所有；原八个软件包继续提供其余文件。依赖固定为验收过的原包版本，避免原包更新与恢复原件不匹配。旧 `owrt-*` 开关包与此包冲突，不会混入最终镜像。
+APK 的 `replaces` 与 `replaces-priority` 指定十个程序及两个 dnsmasq 集成文件归 `owrt-control-plane` 所有；原九个软件包继续提供其余文件。依赖固定为验收过的原包版本，避免原包更新与恢复副本不匹配。原六套开关包、三个独立核心程序和 dnsmasq SDK APK 是构建中间产物，旧 `owrt-*` 开关包不会混入最终镜像。四个中文包从匹配 LuCI 修订重建。
 
-`/usr/share/owrt-control-plane/release.json` 保存统一版本、源码提交、九组件身份及恢复位置。配方中的 `version` 是统一 APK 版本，后续发布在这里递增。二进制内容以 SHA256 标识。
+`/usr/share/owrt-control-plane/release.json` 使用 `schema: 2`、`layout: native-ten`，保存统一版本、源码提交、十组件身份、两个 `integration_files` 及恢复清单哈希。配方 `version` 是最终统一 APK 版本；dnsmasq SDK 中间包的 release 编号与它分别记录。
+
+v0.2.0 保持另外九个组件各自源码与 v0.1.1 一致，但共享 `components/ubus` 有已记录的 dnsmasq 所需接口与边界修复，见[最终 SDK 栈及 UBus 复验](dnsmasq/audits/full-20261014/final-sdk-stack-ubus-review.md)。这不等于九个新 ELF 必然与 v0.1.1 逐字节相同；最终 CI 产物须逐项比较，差异及原因写入本次发布/部署记录。
 
 ## 正式构建
 
-正式发布使用 [release-image](../.github/workflows/release-image.yml) GitHub Actions，canonical builder 仍为固定 Rust 工具链的 x86_64 Linux runner，见[决策 0018](decisions/0018-canonical-build-host-ci.md)。
+正式发布使用 [release-image](../.github/workflows/release-image.yml) GitHub Actions；canonical builder 是固定 Rust 工具链的 x86_64 Linux runner，见[决策 0018](decisions/0018-canonical-build-host-ci.md)。
 
 | 阶段 | 工具与结果 |
 |---|---|
-| SDK 与六个包 | `tools/ci_build_image.sh` 校验官方下载，按现有 SDK 配方构建六个 Rust 程序及中间镜像 |
+| SDK 与六个包 | `tools/ci_build_image.sh` 校验官方下载，按既有 SDK 配方构建六个 Rust 程序及中间镜像 |
 | 三个核心程序 | `tools/ci_build_core.sh` 构建 procd/ubusd/netifd，固定源码路径及工具链，核验 ABI 与归档身份 |
-| 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定原始官方镜像与 LuCI 源码归档的 SHA256，离线安装统一 APK 与四个中文包，使用匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
-| 内容审计 | 九个标准路径与 ELF 哈希、APK 所有权、C 救援副本、原启动脚本和配置、全部原包版本与文件内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
+| dnsmasq | `tools/ci_build_dnsmasq.py` 核验已验收 main 产品的源码和 SDK 配方 digest，通过原 SDK recipe 新编译；记录实际 ELF、init、ACL 及参考 ELF 比较 |
+| 原位整合 | `tools/ci_integrate_image.sh`、`tools/native_image.py` 固定官方镜像与 LuCI 源码归档 SHA256，离线安装统一 APK 与四个中文包，以匹配 ImageBuilder 的 squashfs/sysupgrade-tar/fwtool 工具重新装配 |
+| 内容审计 | 十个程序、init/ACL、APK 所有权、十二份 stock 恢复文件、配置及其余原包内容/权限/所有者均检查；内核、CONTROL 与固件元数据逐字节比较 |
 
-沿用原 SDK 配方，保证整合工作不悄悄更换已验收的运行实现。中间镜像只提供六个 Rust ELF。最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 安装过程从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、原件身份漂移、文件所有权或执行面变化都会使流程失败。
+最终根文件系统来自固定 SHA256 的官方镜像，避免普通 ImageBuilder 从滚动软件源连带更新无线脚本、LuCI 或库。缺失工具、构建输入身份漂移、所有权或未批准执行面变化都会使流程失败。dnsmasq 参考 SDK ELF 为已验收的 `50e591a9…eb57c`；正式 CI 必须新编译并记录完整哈希，不能偷换为参考二进制。若新 ELF 身份不同，先复核原因并完成针对该实际产物的验收，不能仅凭源码相同转移旧 ELF 资格。
 
-可在 Actions 页面选择工作分支运行，或执行：
+可先在 Actions 页面选择已审阅分支，或执行：
 
 ```sh
 gh workflow run release-image.yml --ref <reviewed-ref> -f openwrt_version=25.12.5
 ```
 
-Linux 构建环境下的 `make ci-image VERSION=25.12.5` 运行相同三个阶段。`tools/release.sh apk|image` / `make apk|image` 保留为旧六组件配方的构建机研究入口，**不是九组件正式发布入口**。
+普通 `workflow_dispatch` 只生成 Actions artifact。Linux 的 `make ci-image VERSION=25.12.5` 运行相同完整构建链；`tools/release.sh apk|image` / `make apk|image` 是旧六组件配方的研究入口，不是当前集成发布入口。
 
 最终产物在 `work/native/out/`：
 
-- 一个 `*-sysupgrade.bin`、一个 `owrt-control-plane-*.apk` 和四个匹配版本的中文 APK；用户安装的是整个固件，APK 是镜像装配输入，不支持用它在线替换 PID1/总线。
-- `manifest.json`、`binary-sha256.txt`、`SHA256SUMS` 固定镜像、软件包、九个实际程序与发布身份。
-- `build-inputs.json` 保留六包及核心构建的来源，构建日志支持复核。
+- 一个 `*-sysupgrade.bin`、一个 `owrt-control-plane-*.apk` 和四个匹配中文 APK。用户安装整个固件；统一 APK 是离线装配输入，不支持在线替换 PID1/总线。
+- `manifest.json`（`schema_version: 3`、`deployment_layout: native-ten`）、`binary-sha256.txt`、`SHA256SUMS`，固定镜像、包、十个程序及配套文件的身份。
+- `build-inputs.json`、`dnsmasq-build-manifest.json` 和构建日志，记录正式输入、工具链、SDK 实际产物与验收参考比较。
 
-失败流水线另存诊断日志和已生成的候选镜像。未通过的候选不作为发布完成证据。推送 `v*` 标签才创建 GitHub Release；普通 workflow_dispatch 只生成 Actions artifact。
+失败流水线另存诊断日志和已生成的候选镜像；未通过的候选不作为发布完成证据。
 
-已验收的生产回溯节点采用设备专用标签，例如 `ax3000t-rust9-v0.1.0`：annotated tag 直接指向实际构建提交，从保存的正式产物晋升到 Release，不重新构建。`tools/native_release_prepare.py` 核验固件与真机报告的身份，生成可刷写镜像、组件 SHA256、发布 manifest、验收摘要、恢复说明与装配包归档。先上传草稿并下载复核全部资产，再发布为 Latest。标签的构建提交和后续验收/文档提交分别记录，后续研究使用新版本，不移动已有发布标签。
+## v0.2.0 发布、部署与转正
 
-后续稳定节点使用 `ax3000t-rust9-vMAJOR.MINOR.PATCH`。发布工具从标签读取版本，从正式 manifest 读取 OpenWrt 与统一包版本、镜像大小、装配包数量，从匹配的验收记录读取文件和配置数量；不沿用 v0.1.0 的固定数字。新源码或镜像必须有匹配身份的验收记录，不能借用旧报告。`make check-harnesses` 包含后续版本和身份拒绝的发布工具回归。
+本次使用通用 **`v0.2.0`** 标签，采用 v0.1.1 已用过的“正式 CI 产物先完成核验，再发布同一字节”路径：
 
-通用 `v*` 标签触发的自动构建只发布为 prerelease，并显式设置 `--latest=false`。构建成功不代表真机验收完成，也不应取代已验收的 Latest 回溯节点；正式节点继续走上面的产物晋升流程。
+1. 提交审阅后的代码与公开文档，确认 main 不包含用户未提交的 `docs/prompts/`、私有备份或镜像，推送 main。以该精确提交执行 `workflow_dispatch`，完成正式 CI 构建和离线验收。
+2. 下载并逐项核验该 run 的原始资产，固定构建提交、run ID、manifest 与 SHA256。失败先修复并在新提交重新构建，不能提前占用不可移动的正式标签。
+3. 记录 `release-image` 原启用状态，确认没有 active run，再仅为推送标签的短窗口暂时停用该 workflow。创建 annotated `v0.2.0`，直接指向已通过的实际 CI 构建提交，推送标签；无论后续动作成功或失败，都在 `finally` 清理中恢复原 workflow 状态并核验。这样避免标签推送触发第二次构建，不能借此更换构建输入或资产。
+4. 创建 `v0.2.0` GitHub Release，保持 **prerelease、`latest=false`**，上传已通过的同一批 CI 字节；可按约定改显示文件名，但须重核内容哈希及校验和。下载公开附件再核验，然后使用其中同一个镜像部署。不得替换为本机构建，也不得因后续文档提交移动标签。
+
+临时关闭只影响发布触发入口，不改变产物身份；记录关闭前后的状态与时间，恢复后再次确认没有误触发的构建。直接推送其他 `v*` 标签的默认 Actions 行为仍是自动构建并创建 **prerelease、非 Latest** 候选，不代表真机资格。本次说明列明新增 dnsmasq-rs、真实性能差异、已知边界以及真机验收尚未完成。
+
+按以下顺序完成本次部署，任何尚未完成的项目不能写成通过：
+
+1. 保存当次完整配置备份到电脑 `private/`，核验可读取、内容与现场一致。保存并核验 v0.1.1 原镜像及其哈希，准备独立恢复路径与适配 `native-ten` 的临时自动回退。
+2. 用[固定日常采集协议](dnsmasq/audits/deployment-v0.2.0-20261014/daily-protocol.md)记录现役 C **600 秒、每 5 秒一次**资源数据及低频健康。它只表示此时日常占用，不代表性能。
+3. 告知预计断网时长，等用户确认后才进入断网操作。把发布的同一个镜像上传 `/tmp`，核对哈希并通过 `sysupgrade -T` 等当次预检；使用保留配置的刷写方式，不加 `-n`。
+4. 核验十组件实际身份、init/ACL、配置保留、Wi-Fi、客户端 DHCP、IPv4/IPv6、DNS UDP/TCP、LuCI、WAN。按方案验证正常重启，并由用户执行物理断电重启后重复验收；需要人工步骤时等待真实回复。
+5. 在稳定运行的 Rust 服务上用同一工具、同样 **600 秒**采集，报告服务年龄、CPU/RSS/FD/线程等日常数据。原始备份/日志/数据不进 Git，公开记录保留脱敏结果及证据哈希。
+6. 失败时按已验证方案恢复 v0.1.1，记录原因，不转正。全部验收通过并完成部署报告后，清理本次临时保护并核验最终状态，再晋升**同一个** GitHub Release：`prerelease=false`、`latest=true`。不重新构建、不换镜像、不移动标签。
+
+晋升命令（仅在以上证据齐全后执行）：
+
+```sh
+gh release edit v0.2.0 --prerelease=false --latest
+```
+
+更新同一 Release 的说明，加入实际构建提交、资产哈希、部署/正常重启/断电结果和日常占用对照。后续观察自然续租、新设备入网、长期资源趋势，以及性能报告中两处原因未明尾延迟；短期验收不等于消除这些边界。
+
+历史设备专用标签如 `ax3000t-rust9-v0.1.0` 保持不变。`tools/native_release_prepare.py` 的既有产物晋升流程仍是历史九组件节点的可追溯依据；不可直接假定其旧 schema 或固定恢复集合适用于本次十组件。v0.2.0 以当前 Actions 的 `native-ten` 正式资产和匹配的新验收记录为准。
 
 ## 保留配置与首次迁移
 
-sysupgrade 的默认保留配置流程备份选定文件、安装新系统，再由原 preinit 实现恢复。它不保留整个 overlay。个人网络、Wi-Fi、密码、证书与定时任务通过配置备份迁移，不进入公共镜像。额外保留项仍由 `/etc/sysupgrade.conf` 和 `/lib/upgrade/keep.d/*` 决定。
+sysupgrade 默认保留选定配置，安装新系统后由原 preinit 恢复；它不保留整个 overlay。网络、Wi-Fi、密码、证书、DHCP 静态分配与定时任务通过配置备份迁移，不进入公共镜像。额外保留项由 `/etc/sysupgrade.conf` 和 `/lib/upgrade/keep.d/*` 决定，刷前实际清单必须核验。
 
-旧的分层部署禁用了原 `log`、`rpcd`、`uhttpd` 服务，sysupgrade 会把这些状态写成 `/etc/uci-defaults/10_disable_services`。集成镜像的一次性 `05-owrt-native` 在它之前运行：首次采用集成布局时移除这三个禁用命令并启用服务，它们现在直接运行 Rust。其他服务的禁用状态继续保留。
+旧分层部署曾禁用原 `log`、`rpcd`、`uhttpd`。首次采用集成布局时，`05-owrt-native` 在 sysupgrade 生成的 `10_disable_services` 之前移除这三个禁用命令并启用服务；其他服务状态保留。
 
-迁移完成后写入 `/etc/owrt-control-plane-layout`，由包内 keep.d 规则保留。后续集成固件之间升级时，不再覆盖用户的服务启停选择。该机制仅在首次配置阶段执行，没有后台采集或试验回退进程。
-
-恢复出厂会丢弃 overlay 与个人配置，回到镜像内置的 Rust 默认栈。
+`/etc/owrt-control-plane-layout` 的历史值 **`native-nine-v1` 有意保留**，由包内 keep.d 规则迁移。它表示“已经完成首次布局迁移”，不是当前组件数量；当前布局由 release manifest 的 `native-ten` 描述。改 marker 会误触发首次迁移，覆盖从 v0.1.1 升级用户的服务启停选择，故不随组件数量改名。正式固件没有后台试验守卫；本次临时保护只在私有部署备份中加入，验收后清理。恢复出厂丢弃 overlay 与个人配置，回到镜像内置 Rust 栈。
 
 ## 恢复路径
 
-九份原版程序保存在 `/usr/libexec/owrt-stock/` 下，保留原相对路径，身份来自精确 stock 镜像。**集成镜像的 `/rom/sbin/procd` 等已经是 Rust，不能用作 C 原件。**
+v0.2.0 的 `/usr/libexec/owrt-stock/` 保留 **十二份**精确 stock 文件：十个 C 程序，加 C dnsmasq 原 init 与 ACL，保持相对路径。**`/rom` 中对应路径已是集成 Rust 版本，不能当 C 原件。**
 
-SSH 可用时，或进入 failsafe 并完成 `mount_root` 后，运行：
+SSH 可用，或进入 failsafe 并 `mount_root` 后，可运行：
 
 ```sh
 owrt-recover-c
@@ -78,22 +104,20 @@ owrt-recover-c
 reboot
 ```
 
-恢复工具先校验全部 C 原件，拒绝仍被绑定挂载的目标，准备并核验全部临时副本，再改名到九个标准路径。它不主动重启，不依赖 ubus/netifd，也不修改用户配置。多次运行结果一致。临时文件全部准备完成前不会更换任何目标；九次改名不构成跨文件的原子事务，中断后可在 failsafe 重跑。
+工具先校验全部恢复文件、拒绝被绑定挂载的目标，准备并核验完整临时集合，再替换十二个路径；dnsmasq 必须与原 init/ACL 一同恢复。它不主动重启，不依赖 ubus/netifd，不修改用户配置。多次运行结果一致；十二次 rename 不是跨文件原子事务，中断可在 failsafe 重跑。
 
-原版内核、早期 init、preinit/failsafe 与救援材料继续保留。恢复出厂或重新刷入集成镜像会重新使用 Rust；永久退回官方版本仍使用验证过的原版固件和独立配置备份。
+这条路径恢复精确官方 C 栈，**不等同于恢复 v0.1.1 九组件固件**。本次用户指定的版本回滚须使用已核验 v0.1.1 镜像与当次配置备份；临时自动回退及其失败备用路径在当次部署记录中单列。原版内核、早期 init、preinit/failsafe 和救援材料保留；Wi-Fi 管理获授权，网线不是普通刷写的前提，实际 failsafe/TFTP 见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
 
 ## 验收边界
 
-`tools/native_image_check.py` 在 aarch64 Linux 的独立 mount/network/PID namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误恢复身份拒绝、完整 C 恢复及 APK 重装检查。`tools/native_apk_fixtures.py` 从固定原始镜像的文件清单重建八个原包载荷，用于 `--no-scripts` 文件归属重装测试；这些测试包不是原始签名 APK。重装检查显式安装本地载荷，要求恢复事先删除的文件，并拒绝 APK 返回成功但跳过载荷的情况。
+`tools/native_image_check.py` 在 aarch64 Linux 独立 namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误身份拒绝、完整 C 恢复及 APK 重装。原九组件历史通过记录不能自动升级为十二恢复项通过；本次须保存 `native-ten` 实际执行结果。`tools/native_apk_fixtures.py` 从精确原镜像文件清单重建原包载荷，供 `--no-scripts` 所有权重装；它们不是原始签名 APK。测试须确认已删除文件恢复，拒绝 APK 成功却跳过载荷。
 
-`tools/native_boot_check.sh` 使用镜像内的 PID1、总线和标准启动脚本，验证模拟 LAN/WAN、RPCD、日志、HTTP/HTTPS、首次证书生成、UCI、reload_config、fw4 与无额外命令挂载。物理无线、闪存写入和断电行为仍由真机验收负责，隔离测试不能替代这些项目。
+`tools/native_boot_check.sh` 使用镜像内 PID1、总线及启动脚本验证模拟 LAN/WAN、RPCD、日志、HTTP/HTTPS、首次证书、UCI、reload_config、fw4。dnsmasq 还须验证实际最终 ELF 与 init/ACL 的 DNS/DHCP、helper/ubus、恢复与权限链路。物理无线、闪存写入、正常重启及断电行为由真机验收负责，隔离测试不能替代。
 
-刷机前需重新核验离线备份、正式镜像身份、适用于新布局的自动回退及客户端健康。现有分层部署的 `/rom` 恢复假设和 `/root/r84` 工具不适用于此镜像。Wi-Fi 管理仍获授权；网线不是普通部署的前提，实际 failsafe/TFTP 操作见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
-
-首次原生部署使用的临时保护见[冻结计划](reviews/NATIVE_DEPLOYMENT_20260929_PLAN.md)，已在用户物理复测通过后按要求清理。该计划保留为历史执行依据，当前常规恢复使用镜像内的 `owrt-recover-c`。
+刷前须重新核验离线备份、正式镜像身份、适配当前布局的自动回退和客户端健康。旧分层 `/rom` 假设及 `/root/r84` 不适用于集成镜像。首轮原生部署[冻结计划](reviews/NATIVE_DEPLOYMENT_20260929_PLAN.md)仅是历史依据，不能借用其旧 token、哈希或九文件集合。
 
 ## 后续 OpenWrt 版本
 
-先引入精确新镜像及对应源码，在新 rootfs 上运行九组件差分回归，再新增版本的软件包列表与 native 配方。C 身份、原包版本、启动脚本、内核及恢复语义变化必须逐项复核。仅修改版本号下载新版镜像不足以完成适配。
+先引入精确新镜像及对应源码，在新 rootfs 上执行当前全部组件差分回归，再新增软件包列表与 native 配方。C 身份、原包版本、脚本、内核及恢复语义变化须逐项复核；只改下载版本号不足以完成适配。
 
-跨宿主 TLS 二进制差异的历史调查见 [R35](reviews/R35_RING_INVESTIGATION.md)。统一构建来源解决发布身份问题。新的固定根文件系统装配不再生成随机本地签名密钥；软件包只用于离线装配。二进制可复现性与整镜像可复现性仍分别核验。
+跨宿主 TLS 差异的历史调查见 [R35](reviews/R35_RING_INVESTIGATION.md)。统一构建来源解决发布身份问题；包用于离线装配，不生成随机本地签名密钥。二进制与整镜像可复现性分别核验。
