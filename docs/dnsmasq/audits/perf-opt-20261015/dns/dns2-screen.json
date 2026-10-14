@@ -1,0 +1,71 @@
+{
+  "label": "DNS-2 plus DNS-1/DNS-1b",
+  "status": "screen-only",
+  "counts": [
+    {
+      "scene": "hit",
+      "operations": 8000,
+      "allocations": 32000,
+      "reallocations": 0,
+      "requested_bytes": 1960000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "scene": "hit-upper",
+      "operations": 8000,
+      "allocations": 48000,
+      "reallocations": 0,
+      "requested_bytes": 2328000,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "scene": "hit-leases",
+      "operations": 8000,
+      "allocations": 45600,
+      "reallocations": 0,
+      "requested_bytes": 2245600,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "scene": "miss",
+      "operations": 8000,
+      "allocations": 16000,
+      "reallocations": 0,
+      "requested_bytes": 424000,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "miss-leases",
+      "operations": 8000,
+      "allocations": 29600,
+      "reallocations": 0,
+      "requested_bytes": 709600,
+      "live_bytes_delta": 0,
+      "checksum": 0
+    },
+    {
+      "scene": "host",
+      "operations": 8000,
+      "allocations": 64000,
+      "reallocations": 0,
+      "requested_bytes": 3996800,
+      "live_bytes_delta": 0,
+      "checksum": 468800
+    },
+    {
+      "scene": "rrset",
+      "operations": 8000,
+      "allocations": 40000,
+      "reallocations": 18400,
+      "requested_bytes": 6772800,
+      "live_bytes_delta": 0,
+      "checksum": 1566400
+    }
+  ],
+  "raw_sha256": "d16fceece2e29315b28a668e10d1714bd627d1808340c09bb328e613083ca9d1",
+  "local_source_sha256": "8e9193720260393559ea584aa9203cb9339f9cd4d5b0449f3e85239cbdc5d76a"
+}
