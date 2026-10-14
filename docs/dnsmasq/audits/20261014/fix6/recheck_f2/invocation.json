@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "sudo",
+    "-n",
+    "sh",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh",
+    "python3",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+    "--image",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--main",
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+    "--before",
+    "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+    "--fix",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/release/dnsmasq-rs",
+    "--profiles",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/cname-profiles.json",
+    "--upstream-cnames",
+    "--out",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/recheck-f2-20261014"
+  ],
+  "start_unix": 1791962769.325367,
+  "end_unix": 1791962774.8110652,
+  "exit": 0,
+  "stdout": "{\"label\": \"raw-cname-duplicate-pointer-debug0-udp-255\", \"main_equals_c\": true, \"fix_equals_c\": true, \"main_equals_fix\": true, \"before_equals_c\": false, \"before_equals_fix\": false}\n{\"label\": \"raw-cname-duplicate-pointer-debug0-tcp-255\", \"main_equals_c\": true, \"fix_equals_c\": true, \"main_equals_fix\": true, \"before_equals_c\": false, \"before_equals_fix\": false}\n{\"label\": \"raw-cname-duplicate-pointer-debug1-udp-255\", \"main_equals_c\": true, \"fix_equals_c\": true, \"main_equals_fix\": true, \"before_equals_c\": false, \"before_equals_fix\": false}\n{\"label\": \"raw-cname-duplicate-pointer-debug1-tcp-255\", \"main_equals_c\": true, \"fix_equals_c\": true, \"main_equals_fix\": true, \"before_equals_c\": false, \"before_equals_fix\": false}\n{\"completed\": true, \"cases\": 4}\n",
+  "stderr": "",
+  "result_sha256": "6fdd20d9df8abac742457fa4f2c333b470e8fb5ff707b916cbed69b8205654dd"
+}

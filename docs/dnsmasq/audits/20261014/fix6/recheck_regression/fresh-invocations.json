@@ -1,0 +1,78 @@
+[
+  {
+    "name": "extended-controls",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+      "--image",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--main",
+      "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "--before",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "--fix",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/release/dnsmasq-rs",
+      "--profiles",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/controls-profiles.json",
+      "--out",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/recheck-regression/extended-controls"
+    ]
+  },
+  {
+    "name": "chain-dynamic",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+      "--image",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--main",
+      "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "--before",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "--fix",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/release/dnsmasq-rs",
+      "--profiles",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/chain-profiles.json",
+      "--out",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/recheck-regression/chain-dynamic"
+    ]
+  },
+  {
+    "name": "chain-anchor",
+    "argv": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py",
+      "--source",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+      "--image",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--main",
+      "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+      "--before",
+      "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+      "--fix",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/release/dnsmasq-rs",
+      "--profiles",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/chain-profiles.json",
+      "--out",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/recheck-regression/chain-anchor",
+      "--host-anchor"
+    ]
+  }
+]

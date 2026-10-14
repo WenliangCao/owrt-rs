@@ -1,0 +1,15 @@
+{
+  "utc": "2026-10-14T06:53:50.982532+00:00",
+  "private_evidence": "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/negative-01",
+  "scope": "Only this negative run prefix; other Oracle tasks are not inspected as failures or touched",
+  "scanned_processes": 212,
+  "matching_processes": [],
+  "matching_host_mounts": [],
+  "release_sha256": "a52bfb0b7725fc8d8179645b13133fbd12e2c73e1419d5e9c135115887eadd66",
+  "command": [
+    "ssh",
+    "oracle",
+    "sudo -n python3 -"
+  ],
+  "exit": 0
+}

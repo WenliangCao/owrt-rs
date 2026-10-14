@@ -1,0 +1,13 @@
+{
+  "archive_path": "/tmp/dnsmasq-fix6-3335a978.tar",
+  "archive_sha256": "eaace938945643739b912aea121cab69cf018ac41ea03384566d2a052a7d0ca0",
+  "archive_bytes": 110735360,
+  "archive_argv": [
+    "git",
+    "archive",
+    "3335a978c38b60faa348058ee22ee9a1a848f961"
+  ],
+  "input_enumeration": "build_package.inputs(root), matched exactly to complete frozen Git input map",
+  "oracle_root": "/home/ubuntu/dnsmasq-audit-fix6-20261014",
+  "initial_preflight": "System python3 lacks tomllib; package import failed before archive/build. Repeated with Python 3.14.8."
+}

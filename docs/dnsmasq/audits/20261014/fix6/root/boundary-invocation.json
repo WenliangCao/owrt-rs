@@ -1,0 +1,32 @@
+{
+  "argv": [
+    "sudo",
+    "-n",
+    "sh",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh",
+    "python3",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+    "--image",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--main",
+    "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+    "--before",
+    "/home/ubuntu/dnsmasq-audit-fix5-20261014/private/release/dnsmasq-rs",
+    "--fix",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-release-recheck/dnsmasq-rs",
+    "--profiles",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/profiles.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/dns"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 15.632701396942139,
+  "files": {
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/profiles.json": "bbc0894aa47c14247875ef4bf679788c64731138b0a6da0562b449c257f48d49",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/driver.log": "0b91e6473edfe600effe53720da341b2d21ccea22a8338583de13b7048dab4e6",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/dns/result.json": "cd369ec1c265ca9fa15ea55893001347602244fb5219ae5ea8346044dc4fff93",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck.py": "ed5abdb6b5a569c99b45bbb4e550d1280ea77db89a25f0ed8c9a5b1d317e1dca"
+  }
+}

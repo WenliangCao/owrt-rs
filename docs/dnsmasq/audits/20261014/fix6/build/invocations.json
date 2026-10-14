@@ -1,0 +1,46 @@
+{
+  "verified_files": {
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/oracle_build.sh": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261011/independent/build_protections_probe.py": "b1a7b64022fc4777985ad3c81b4b2d9e4bc1f23776a84be3ccb2eda7c039fe30",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/dnsmasq-fix6-3335a978.tar": "eaace938945643739b912aea121cab69cf018ac41ea03384566d2a052a7d0ca0",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/verify_and_test.py": "ab129b94c433d1d9dd1576efeb30d9e8c78af7f322e5f9e3230a34e59bf67ae1"
+  },
+  "argv": {
+    "release_build": [
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/oracle_build.sh",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/release",
+      "release"
+    ],
+    "verify_and_test": [
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/verify_and_test.py",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/local-input-identity.json",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/retained-input-identity.json"
+    ],
+    "relro": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/docs/dnsmasq/audits/20261011/independent/build_protections_probe.py",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/release/dnsmasq-rs",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/build-relro",
+      "--image-root",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--require-relro"
+    ]
+  },
+  "local_postcheck": {
+    "head": "3335a978c38b60faa348058ee22ee9a1a848f961",
+    "main": "be531cee49e366bb5044443d473944dbea45b87e",
+    "input_count": 178,
+    "git_worktree_mismatches": []
+  }
+}

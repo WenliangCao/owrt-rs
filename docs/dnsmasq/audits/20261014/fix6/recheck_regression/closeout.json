@@ -1,0 +1,94 @@
+{
+  "utc": "2026-10-14T07:32:34.807769+00:00",
+  "scope": "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/recheck-regression",
+  "matching_processes": [],
+  "matching_host_mounts": [],
+  "scanned_processes": 204,
+  "terminal_old_difference_raw_equality": [
+    {
+      "label": "target-local-debug0-tcp-6",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-12",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-15",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-16",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-28",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-33",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-255",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug0-tcp-257",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-6",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-12",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-15",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-16",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-28",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-33",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-255",
+      "equal": true
+    },
+    {
+      "label": "target-local-debug1-tcp-257",
+      "equal": true
+    },
+    {
+      "label": "target-literal-debug0-tcp-255",
+      "equal": true
+    },
+    {
+      "label": "target-literal-debug1-tcp-255",
+      "equal": true
+    }
+  ],
+  "release_sha256": "a52bfb0b7725fc8d8179645b13133fbd12e2c73e1419d5e9c135115887eadd66",
+  "command": [
+    "ssh",
+    "oracle",
+    "sudo -n python3 -"
+  ],
+  "exit": 0,
+  "checker_stdin_sha256": "19466c7c85263ca256f3a0f82fab7fb1cd16b7bcdb3740d004b1e7c54106e6a2",
+  "local_report_sha256": {
+    "regression-recheck.json": "6bc5eae306dfc277f627577c78406eed3a8a8f3b1baba9aae9699776e8af34d3",
+    "fresh-invocations.json": "b6209babebba49dff2df06a59380a2d4ca2f48234a7b8f96e0c40d92e100429a",
+    "retained-recheck.json": "991933a605a98449cfc44bd6a9d451040ad10386a2adb24d58885cf632bab7f0"
+  }
+}

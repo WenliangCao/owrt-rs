@@ -1,0 +1,15 @@
+{
+  "source": "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+  "kind": "release",
+  "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+  "opt_level": "3",
+  "features": "",
+  "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix6-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+  "artifacts": [
+    {
+      "path": "dnsmasq-rs",
+      "bytes": 2056672,
+      "sha256": "a52bfb0b7725fc8d8179645b13133fbd12e2c73e1419d5e9c135115887eadd66"
+    }
+  ]
+}

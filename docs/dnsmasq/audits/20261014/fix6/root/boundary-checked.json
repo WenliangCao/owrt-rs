@@ -1,0 +1,88 @@
+{
+  "raw_result_sha256": "cd369ec1c265ca9fa15ea55893001347602244fb5219ae5ea8346044dc4fff93",
+  "rows": [
+    {
+      "label": "txt-tail-193-debug0-udp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-193-debug0-tcp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-193-debug1-udp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-193-debug1-tcp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-201-debug0-udp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-201-debug0-tcp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-201-debug1-udp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-201-debug1-tcp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-220-debug0-udp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-220-debug0-tcp-255",
+      "head_eof_expected_and_observed": true,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-220-debug1-udp-255",
+      "head_eof_expected_and_observed": false,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    },
+    {
+      "label": "txt-tail-220-debug1-tcp-255",
+      "head_eof_expected_and_observed": true,
+      "other_roles_full_semantics_equal_c": true,
+      "all_warm_health_lifecycle_and_upstream_checks": true
+    }
+  ],
+  "cases": 12,
+  "daemon_runs": 48,
+  "fresh_tcp_blocker_reproductions": 2,
+  "calibration": {
+    "hide_eof": "rejected",
+    "break_valid_control": "rejected",
+    "alter_header": "rejected",
+    "alter_health": "rejected"
+  },
+  "checker_sha256": "552401b96f1d46985f237e68fc701f986f65f871cef8fd9f5e13e89e3cbdc24b",
+  "wire_decoder_sha256": "3d0836f4b3cb6b9d16c6387e7779e67f4fff9e97ee070e837b9db24b48f5d74b"
+}

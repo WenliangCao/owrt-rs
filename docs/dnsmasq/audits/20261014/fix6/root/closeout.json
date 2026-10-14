@@ -1,0 +1,35 @@
+{
+  "checked_at_unix": 1791963772.4154701,
+  "argv": [
+    "ssh",
+    "oracle",
+    "sudo -n python3 -"
+  ],
+  "oracle": {
+    "verified_files": {
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/static-boundary01/result.json": "e4cbe8226f0cedfc4e2c87152222e8e41dd992a08168241179ba689092f4744d",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/build-boundary-independent/result.json": "3e9c2ea854a7d858402eb32f09bf3143d65844510b7436c9699ce1ebd428a82a",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/build-boundary-direct-target/result.json": "fa72328ea9f68f80180ba8a8f959817cf90d72ef5a3bf83a64f0dc1ccde9b923",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/static-txt-boundary01/result.json": "21b7a10d8271c7ce069ea986ebaeba0ab6fc754516856ae4387164f4ce725c42",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/build-boundary-txt-independent/result.json": "efd53431f95334cbec357660b2ed5c412a1bd54f4abaf1e918181786f34873a3",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/build-boundary-txt-direct-target/result.json": "57c5b058f07704fdcf9d73e617c33e4d56a49cd4422204d055b584f09a70bc76",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/fix6-direct-target-control.py": "211a1328bf3a623d105fa7dbebf19022c6bd7aaa25921db86475971f81fe9f85",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/fix6-boundary-independent-profiles.json": "0df22a8d390d0a0153f401043a9c7ad6b5c82673dea85e2550ce080b9f9490bb",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/fix6-txt-independent-profiles.json": "a67d9e46340de3b727fbe596521ee6384ec0b4bfdd06566666966e8a404a2d03",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/build-relro/result.json": "9660a038ec1461e1230a7152c3e91c82da39750ded7f65b4deaf929ce16753c6",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/profiles.json": "bbc0894aa47c14247875ef4bf679788c64731138b0a6da0562b449c257f48d49",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/driver.log": "0b91e6473edfe600effe53720da341b2d21ccea22a8338583de13b7048dab4e6",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck/dns/result.json": "cd369ec1c265ca9fa15ea55893001347602244fb5219ae5ea8346044dc4fff93",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-boundary-recheck.py": "ed5abdb6b5a569c99b45bbb4e550d1280ea77db89a25f0ed8c9a5b1d317e1dca",
+      "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-release-recheck/dnsmasq-rs": "a52bfb0b7725fc8d8179645b13133fbd12e2c73e1419d5e9c135115887eadd66"
+    },
+    "task_processes": [],
+    "task_mounts": [],
+    "scope": "Only this audit root, located via proc root/exe/cwd and host mountinfo; other Oracle tasks untouched."
+  },
+  "product_inputs_and_retained_artifacts_unchanged": true,
+  "prompt_files_unchanged": true,
+  "package_test_inputs_match": true,
+  "retained_boundary_result_sha_mappings_match": true,
+  "checker_sha256": "00bef49301b28d740396e65a21dadb5c223860cedc43fc19fef25e46c0261019"
+}

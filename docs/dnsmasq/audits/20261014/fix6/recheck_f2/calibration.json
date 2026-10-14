@@ -1,0 +1,35 @@
+{
+  "decoder_sha256": "c280384b59ff829d5602cb63382777185c0a7b8d46cb1a9a84ed3f1a07bd39cc",
+  "checks": [
+    {
+      "case": "original",
+      "exit": 0,
+      "accepted": true
+    },
+    {
+      "case": "known-F2-before-response-as-fix",
+      "exit": 1,
+      "accepted": false
+    },
+    {
+      "case": "fix-CNAME-TTL-one-bit-change",
+      "exit": 1,
+      "accepted": false
+    },
+    {
+      "case": "fix-header-id-one-bit-change",
+      "exit": 1,
+      "accepted": false
+    },
+    {
+      "case": "fix-first-CNAME-owner-pointer-one-bit-change",
+      "exit": 1,
+      "accepted": false
+    },
+    {
+      "case": "fix-health-TTL-one-bit-change",
+      "exit": 1,
+      "accepted": false
+    }
+  ]
+}

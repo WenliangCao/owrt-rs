@@ -1,0 +1,32 @@
+{
+  "source": "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+  "kind": "release",
+  "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+  "opt_level": "3",
+  "features": "",
+  "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-audit-fix6-20261014/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+  "artifacts": [
+    {
+      "path": "dnsmasq-rs",
+      "bytes": 2056672,
+      "sha256": "a52bfb0b7725fc8d8179645b13133fbd12e2c73e1419d5e9c135115887eadd66"
+    }
+  ],
+  "log_sha256": {
+    "build.json": "43bc2979870402a2ec45c847533df206c2dd0579291d61894be07637cffdbef1",
+    "build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build.log": "767c0f125c99232ea894769cf0c18ff6f4ae427d71ce3c8132c8e473defc09a1",
+    "clean.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "clean.log": "b0c835f545a9e5b644118746b7a2df835f38ac95bfcc24291337b94468aacc1f"
+  },
+  "same_as_retained_release": true,
+  "private_output": "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-release-recheck",
+  "argv": [
+    "sh",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source/tools/dnsmasq/oracle_build.sh",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/source",
+    "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-release-recheck",
+    "release"
+  ],
+  "exit": 0
+}
