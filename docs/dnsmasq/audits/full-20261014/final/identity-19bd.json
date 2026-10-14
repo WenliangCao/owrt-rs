@@ -1,0 +1,90 @@
+{
+  "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "missing": [],
+  "mismatches": [],
+  "elf_path": "/dev/shm/full-integrated-fix-20261014/private/release-final/dnsmasq-rs",
+  "elf_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+  "scope": [
+    "components/dnsmasq",
+    "components/ubus",
+    "packaging/openwrt/owrt-dnsmasq",
+    "tools/dnsmasq"
+  ],
+  "source_files_verified": 647,
+  "frozen_tag": "audit/dnsmasq-full-19bd6162-20261014",
+  "unit_tests": [
+    {
+      "kind": "musl library",
+      "passed": 789,
+      "failed": 0,
+      "ignored": 20,
+      "log_path": "/dev/shm/full-integrated-fix-20261014/private/unit-lib-final-19bd.log",
+      "log_sha256": "ddab0a4d3b82978f535103275a715e5014b5ceeb4dcfabadf08df5e53ec245a8"
+    },
+    {
+      "kind": "musl binary",
+      "passed": 78,
+      "failed": 0,
+      "ignored": 3,
+      "log_path": "/dev/shm/full-integrated-fix-20261014/private/unit-bin-final-19bd.log",
+      "log_sha256": "65f221511acff38eca4c852626507a8663aa8b61b4da8743c9251225d84cf09b"
+    },
+    {
+      "kind": "native allocator",
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "log_path": "/dev/shm/full-integrated-fix-20261014/private/allocator-final-19bd-retry.log",
+      "log_sha256": "69d808ba33cb47a548930994e04ecd520658fb3e5d670f39c0b69986be153c57"
+    }
+  ],
+  "release_build": {
+    "source": "/dev/shm/full-integrated-fix-20261014/private/source-final",
+    "kind": "release",
+    "cargo_target_dir": "/dev/shm/full-integrated-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-integrated-fix-20261014/private/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2089440,
+        "sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b"
+      }
+    ]
+  },
+  "test_build": {
+    "source": "/dev/shm/full-integrated-fix-20261014/private/source-final",
+    "kind": "tests",
+    "cargo_target_dir": "/dev/shm/full-integrated-fix-20261014/target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/dev/shm/full-integrated-fix-20261014/private/source-final=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no",
+    "artifacts": [
+      {
+        "path": "bin-dnsmasq-rs",
+        "bytes": 53059496,
+        "sha256": "a7b0dc6721244b41ee27a551c6a471da36fbbec3f85a80511a6e08fe783cafda"
+      },
+      {
+        "path": "lib-dnsmasq_rs",
+        "bytes": 71810856,
+        "sha256": "32d53a9eb0070ae0526fd247f92849843542b200b732fe3cbe63cdf32211ccb8"
+      }
+    ]
+  },
+  "local_backups": [
+    {
+      "path": "/Users/USER/Developer/owrt-dnsmasq-full-integrated/private/final-candidate-19bd/artifacts.tar.gz",
+      "sha256": "a185591510423385bc856dcd5c6707d98e240b8f63af25a2653c7afd5c0de7f7",
+      "bytes": 3815013
+    },
+    {
+      "path": "/Users/USER/Developer/owrt-dnsmasq-full-integrated/private/final-candidate-19bd/tests.tar.gz",
+      "sha256": "ce6219536ab5f3aa46db5b2c01f99a3a7d03bad64dd4f62d5ee4ace0c087ebab",
+      "bytes": 27581896
+    }
+  ],
+  "status": "not accepted: no-held inotify 2000-to-6000 partial publication under VmSize+1024KiB",
+  "allocator_first_attempt": "Target directory permission error before compilation; original log retained; fresh target directory prepared and retry passed."
+}
