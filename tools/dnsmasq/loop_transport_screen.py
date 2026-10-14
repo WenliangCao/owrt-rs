@@ -59,6 +59,10 @@ def main():
                 argv = [str(out / 'allocation'), direction, str(length), str(split), '1000']
                 result = subprocess.run(argv, capture_output=True, text=True, check=True)
                 report['runs'].append(json.loads(result.stdout))
+    for length, capacity in ((32, 128), (60, 128), (1232, 2048), (65535, 65535)):
+        argv = [str(out / 'allocation'), 'retained', str(length), str(capacity), '1']
+        result = subprocess.run(argv, capture_output=True, text=True, check=True)
+        report['runs'].append(json.loads(result.stdout))
     (out / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report))
 

@@ -635,5 +635,77 @@
         "cycles": -1.3766773582600256
       }
     }
-  ]
+  ],
+  "retained_frame_resource": {
+    "baseline": {
+      "source_sha256": "02f937171b806f043ff09f7afc46ab3d006fcb570e18be012006d905c140c40f",
+      "harness_sha256": "04967e3e9222200e3f6820c04b0a9b5f19391efa26c8518623530fea9431af3d",
+      "driver_sha256": "f5b70609001e2c2341a0cdafc7e817f2febc5ea3eb4627fab5e9e44a008e63f6",
+      "runs": [
+        {
+          "mode": "retained",
+          "payload_bytes": 32,
+          "input_capacity": 128,
+          "retained_heap_bytes": 34,
+          "frame_inline_bytes": 24
+        },
+        {
+          "mode": "retained",
+          "payload_bytes": 60,
+          "input_capacity": 128,
+          "retained_heap_bytes": 62,
+          "frame_inline_bytes": 24
+        },
+        {
+          "mode": "retained",
+          "payload_bytes": 1232,
+          "input_capacity": 2048,
+          "retained_heap_bytes": 1234,
+          "frame_inline_bytes": 24
+        },
+        {
+          "mode": "retained",
+          "payload_bytes": 65535,
+          "input_capacity": 65535,
+          "retained_heap_bytes": 65537,
+          "frame_inline_bytes": 24
+        }
+      ]
+    },
+    "candidate": {
+      "source_sha256": "2926443cf97b6f8163133d641ac660700ab7d85e3c76a63dfa6f0475e0b93867",
+      "harness_sha256": "04967e3e9222200e3f6820c04b0a9b5f19391efa26c8518623530fea9431af3d",
+      "driver_sha256": "76a2b4bca56cfe90094fa8aa38cd922bd6b008f1fad396894eb6d98dcf32ac52",
+      "runs": [
+        {
+          "mode": "retained",
+          "payload_bytes": 32,
+          "input_capacity": 128,
+          "retained_heap_bytes": 128,
+          "frame_inline_bytes": 32
+        },
+        {
+          "mode": "retained",
+          "payload_bytes": 60,
+          "input_capacity": 128,
+          "retained_heap_bytes": 128,
+          "frame_inline_bytes": 32
+        },
+        {
+          "mode": "retained",
+          "payload_bytes": 1232,
+          "input_capacity": 2048,
+          "retained_heap_bytes": 2048,
+          "frame_inline_bytes": 32
+        },
+        {
+          "mode": "retained",
+          "payload_bytes": 65535,
+          "input_capacity": 65535,
+          "retained_heap_bytes": 65535,
+          "frame_inline_bytes": 32
+        }
+      ]
+    }
+  }
 }
