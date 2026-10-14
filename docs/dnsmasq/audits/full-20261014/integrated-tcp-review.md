@@ -7,8 +7,8 @@
 冻结源码与构建来源由总审计另行校验。没有修改产品、访问路由器、合并或推送。
 
 **结论：已知 TCP hosts 复制和 warmed 多地址 rotation 的内存反例在此 ELF 上闭合；
-正常快照与 unique-address rolling 用例通过。既有 repeated-address 顺序差异单独保留，
-不把资源修复通过写成完整行为一致。** [机器可读结果](integrated-tcp-review.json)
+正常快照与 unique-address rolling 用例通过。独立减化重放另外确认：原 main 与最终候选都存在
+repeated-address 的真实答案顺序兼容缺陷。因此完整行为一致仍不能验收。** [机器可读结果](integrated-tcp-review.json)
 记录每项输入身份、driver/result hash、内存事件和连接结果。
 
 ## 独立最小重放
@@ -54,18 +54,40 @@ TCP 分享页、首次修改只复制该页；已有 records/index generation �
 这与新旧资源对照和快照结果相符。**不是绝对 O(1) 连接成本**：接受时复制的页 handle
 表仍随最高 entry ID/64 增长，单页内地址向量的大小也随各名字地址数量增长。
 
-## repeated-address 边界的独立核对
+## 已确认：repeated-address 的既有顺序兼容缺陷
 
-没有把修复方报告中的 `188/6,020` 默认为噪声或新的 pass。本轮下载旧原始证据后逐字节检查：
+先下载旧原始证据逐字节核对：188/6,020 个差异全部是两个 A 地址位置互换，
+地址集合、TTL、flags 和其余 wire 相同；新 TCP 136、父 UDP 26、旧 TCP 26。
+修复前后 Rust 6,020 条输出完全相同，两个 C 运行仅差 3 条。
 
-- 188 个差异全部是两个 A 地址的顺序互换；地址集合、TTL、flags 和其余 wire 完全相同。
-- 分布为新 TCP 136、父 UDP 26、旧 TCP 26；不是只有新连接一个视图。
-- 修复前后 Rust 的 6,020 条输出完全相同；两个 C 运行之间差 3 条。
+接着独立编写并运行一个去掉 rolling 和内存压力的小诊断，仍保持原 30,000 个名字、
+60,000 行 repeated-address 输入。保持 seed TCP，父 UDP warmup 后分别对
+`host000312.test` 和 `host000313.test` 各作 UDP 4 次、TCP 4 次；运行精确 C、
+原 main 和最终候选三个 daemon，共 **48 条目标 wire**。原 main 对应
+`e9d89b17d72a58b723cce88038ceaa1be58d7f8c`，ELF SHA-256
+`e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0`。
 
-它没有表现为缺地址、错误地址、查询失败或内存失控；对于优先使用第一条 A 的客户端，
-答案顺序仍是可观察行为。以上证据支持“不是此 page 修复新引入”，**不等于证明现有实现
-与 C 的 repeated-address 轮转兼容**。跨 C 重启的 raw 次序不能独自判定根因或严重性；
-减化且相对于各自初始顺序的重放由另一审计线继续处理。此处保留该边界，资源结论不代替它。
+| 名字与观察 | 精确 C | 原 main | 最终候选 |
+| --- | --- | --- | --- |
+| `host000312`，UDP4/TCP4 | 两个地址交替 | 两个地址交替 | 两个地址交替 |
+| `host000313`，UDP4/TCP4 | 始终 `.3.64, .2.64` | `.3.64, .2.64` / `.2.64, .3.64` 交替 | 同原 main，交替 |
+
+本轮独立发给 C 的 SIGUSR1 dump 显示：`host000313` 的 `192.0.3.64` 为 `4FRI`，
+`192.0.2.64` 为 `4F I`；邻名 `host000312` 两条都是 `4FRI`。匹配 C 源码
+`cache.c:1216-1228` 只在相等 `(F_REVERSE | F_IMMORTAL)` 组内轮转，解释了 mixed
+组两个地址顺序固定的运行现象。Rust `hosts.rs:328,625-641` 用全局 reverse map
+赋 `reverse` 标志并按该标志分组；该输入的载入分组与观测到的 C 不一致。
+本轮不把 C bulk-load 内部更深的标志来源推断写成已证实根因。
+
+这不是仅比较不同 C 启动的初始 raw 排列：在同一 daemon 内、相对它自身起始顺序，
+C 固定而两版 Rust 交替。故它是**当前产品的既有兼容缺陷**，不是本次 page 修复引入的回归，
+也不是“C raw order 不稳定”可以排除的噪声。
+
+实际影响限于本证据支持的范围：A 答案顺序、客户端优先取第一条地址时的节点选择不同。
+所有目标观察的地址集合、TTL、flags 和其它 wire 均一致，三个 daemon 始终存活；
+没有观察到地址丢失、错误地址或服务不可用。资源修复可以单独验收，完整 hosts 顺序兼容仍失败。
+独立诊断原始结果为 `rotation-repeated-order/private/result.json`，C dump 在该目录
+`c/service.log`；本页不采用另一审计线的通过计数或把其诊断冒充独立结果。
 
 ## 证据与清理
 
@@ -74,7 +96,7 @@ driver、两个 ELF 副本和总日志在 `rotation-input/`。电脑备份在
 `private/full-audit-20261014/resume/rotation/`，含原始 wire/result、stderr、driver、
 ELF、执行脚本与 SHA-256 inventory；生成的 staging rootfs 未打包。
 首次调用因 helper 要求路径含 `private` 而在启动 daemon 前退出，已保留 setup 日志，
-修正输出路径后才开始以上六个实际重放。
+修正输出路径后才开始以上六个资格重放；之后另运行了三端 repeated-address 诊断。
 
 五个 cgroup 用例的两端均记录 `cgroup_removed=true`；最终检查自有进程与宿主挂载均为空。
 Oracle 内核为 `6.17.0-1020-oracle`，不是路由器内核；32/64 MiB 是人工预算，不是当前设备

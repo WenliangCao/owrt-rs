@@ -3,7 +3,7 @@
   "reviewed_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
   "source_tag": "audit/dnsmasq-full-19bd6162-20261014",
   "scope": "Independent exact-image Oracle replays of frozen integrated ELF. No product changes, router access, merge or push. Root review separately verifies frozen-source provenance.",
-  "verdict": "Known TCP host/rotation memory counterexamples closed for the frozen candidate; normal snapshot and unique-address rolling checks pass. Prior repeated-address response-order boundary remains outside this resource closure.",
+  "verdict": "Known TCP host/rotation memory counterexamples closed for the frozen candidate; normal snapshots and unique-address rolling pass. A real pre-existing repeated-address response-order incompatibility remains in both original main and final candidate, independently reproduced relative to each daemon own initial order.",
   "identity": {
     "candidate_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
     "candidate_bytes": 2089440,
@@ -340,8 +340,8 @@
     "Snapshot handle table copies still scale with max entry ID / 64; this is not absolute constant per-connection memory.",
     "A page copy includes address-order vectors, so two-address allocation bounds do not generalize to unbounded address lists.",
     "Raw large-table C order across restarts is not a stable invariant. Unique rolling qualification compares both raw wire and order relative to each daemon first warmup answer.",
-    "Prior repeated-address 188/6020 differences are response-order-only. Old and fixed Rust outputs are identical; cause and current integrated severity require the separate reduced reproduction.",
-    "The cgroup budget is synthetic and Oracle kernel differs from router kernel. No physical-router or arbitrary reload-generation resource qualification."
+    "The cgroup budget is synthetic and Oracle kernel differs from router kernel. No physical-router or arbitrary reload-generation resource qualification.",
+    "The independent reduced diagnostic retains 60,000 hosts records but removes rolling clients, memory pressure and cross-process initial-order assumptions; it proves current compatibility failure for the selected mixed-group name, not a universal classification of all repeated addresses."
   ],
   "closeout": {
     "remaining_owned_processes": [],
@@ -353,8 +353,326 @@
     "oracle_root": "/dev/shm/full-audit-resume-20261014/rotation-*",
     "local_root": "private/full-audit-20261014/resume/rotation",
     "backup_archive_sha256": "834aa58a394ede563df025f9bb4e395aa571388984548f5a27875ab93e19931e",
-    "raw_inventory_sha256": "6b8b002f9ca08af63f981d255f13b01c11029f4f9ef10727465436632e24c246",
+    "raw_inventory_sha256": "cce840372d458325d24c627e0029eaab1e7d6e27e3ef0f5e627fb5ece0058063",
     "prior_repeated_raw_sha256": "06fa1491b67d4d3cc4eb074ebfb3ac1d52c8787ad9dc933dc0a33b1eb1c2e600",
-    "prior_old_repeated_raw_sha256": "2391105d55fd6168a59725807a1cc9c9e6dda87d9e7f4496ee10b89c14e65083"
+    "prior_old_repeated_raw_sha256": "2391105d55fd6168a59725807a1cc9c9e6dda87d9e7f4496ee10b89c14e65083",
+    "repeated_backup_archive_sha256": "84f8696e3746ec260691890ffa0b1dcb31e6758435f091ad9d9a8b4fa420ced1"
+  },
+  "repeated_address_diagnostic": {
+    "driver_sha256": "2827c06df72ba311b3054de3b4294290f320973c34ce503fd654d5c9e2861976",
+    "result_sha256": "deb4cd12986a4594d2f689d98f9533146c1bedd9554fa43d532e83c6682df7ff",
+    "matching_cache_c_sha256": "51379b75a3dcc80b629a3d92a5710b43b2a6c04fd13f4d7f56d01f5e7836255c",
+    "oracle_path": "/dev/shm/full-audit-resume-20261014/rotation-repeated-order/private/result.json",
+    "runs": [
+      {
+        "side": "c",
+        "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "alive": true,
+        "observations": 16,
+        "groups": [
+          {
+            "name": "host000312.test",
+            "transport": "udp",
+            "orders": [
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ],
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000312.test",
+            "transport": "tcp",
+            "orders": [
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ],
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000313.test",
+            "transport": "udp",
+            "orders": [
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ]
+            ],
+            "distinct_orders": 1
+          },
+          {
+            "name": "host000313.test",
+            "transport": "tcp",
+            "orders": [
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ]
+            ],
+            "distinct_orders": 1
+          }
+        ],
+        "dump_rows": [
+          "Oct 14 13:51:16 dnsmasq[12]: host000312.test                192.0.3.63                               4FRI   H                            /m2/hosts                               ",
+          "Oct 14 13:51:16 dnsmasq[12]: host000312.test                192.0.2.63                               4FRI   H                            /m2/hosts                               ",
+          "Oct 14 13:51:16 dnsmasq[12]: host000313.test                192.0.3.64                               4FRI   H                            /m2/hosts                               ",
+          "Oct 14 13:51:16 dnsmasq[12]: host000313.test                192.0.2.64                               4F I   H                            /m2/hosts                               "
+        ]
+      },
+      {
+        "side": "main",
+        "elf_sha256": "e0ec75310a545d4f31822bb299f10674a6f12d639cc4cbd528e0e737b25c6bd0",
+        "alive": true,
+        "observations": 16,
+        "groups": [
+          {
+            "name": "host000312.test",
+            "transport": "udp",
+            "orders": [
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ],
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000312.test",
+            "transport": "tcp",
+            "orders": [
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ],
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000313.test",
+            "transport": "udp",
+            "orders": [
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000313.test",
+            "transport": "tcp",
+            "orders": [
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ]
+            ],
+            "distinct_orders": 2
+          }
+        ],
+        "dump_rows": []
+      },
+      {
+        "side": "final",
+        "elf_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "alive": true,
+        "observations": 16,
+        "groups": [
+          {
+            "name": "host000312.test",
+            "transport": "udp",
+            "orders": [
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ],
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000312.test",
+            "transport": "tcp",
+            "orders": [
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ],
+              [
+                "192.0.3.63",
+                "192.0.2.63"
+              ],
+              [
+                "192.0.2.63",
+                "192.0.3.63"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000313.test",
+            "transport": "udp",
+            "orders": [
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ]
+            ],
+            "distinct_orders": 2
+          },
+          {
+            "name": "host000313.test",
+            "transport": "tcp",
+            "orders": [
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ],
+              [
+                "192.0.3.64",
+                "192.0.2.64"
+              ],
+              [
+                "192.0.2.64",
+                "192.0.3.64"
+              ]
+            ],
+            "distinct_orders": 2
+          }
+        ],
+        "dump_rows": []
+      }
+    ],
+    "finding": "For host000313.test exact C retains mixed F_REVERSE group and fixed A order; original main and final Rust alternate that same two-address set. Neighbor host000312.test rotates on all three. No lost address, changed TTL/flags, service failure or page-fix regression observed."
   }
 }
