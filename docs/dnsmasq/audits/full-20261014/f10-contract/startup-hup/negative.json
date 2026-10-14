@@ -1,0 +1,44 @@
+{
+  "status": "pre-fix-negative-reproduced",
+  "scope": "Oracle network/mount/PID-isolated Rust owner test, not production ELF or physical router",
+  "test": "hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed",
+  "source_base": "435f candidate snapshot plus unchanged startup gate and independent test/module access",
+  "test_elf_sha256": "9c6584bb80d9f3391a38362288dec27b142b5be0b1b5b2b3af41122f2e531d41",
+  "result": {
+    "exit": 101,
+    "files_initializing": false,
+    "dhcp_packet_work_allowed": true,
+    "helper_due": true,
+    "dns_socket_in_wait_set": true,
+    "dhcp_socket_in_wait_set": true,
+    "first_hosts_publication_incomplete": true,
+    "actual_reload_data_called": true,
+    "direct_flag_flip": false,
+    "queued_dns_completed_after_releasing_fifo": true
+  },
+  "oracle_evidence": "/dev/shm/full-f10-product-20261014/private/tests-startup-negative",
+  "input_identity": {
+    "argv": [
+      "sh",
+      "/home/ubuntu/full-audit-20261014/private/source/tools/dnsmasq/run_isolated.sh",
+      "/dev/shm/full-f10-product-20261014/private/tests-startup-negative/bin-dnsmasq-rs",
+      "hosts_initial_hup_tests::hup_during_first_hosts_fifo_keeps_dns_dhcp_and_helper_admission_closed",
+      "--exact",
+      "--nocapture",
+      "--test-threads=1"
+    ],
+    "elf_sha256": "9c6584bb80d9f3391a38362288dec27b142b5be0b1b5b2b3af41122f2e531d41",
+    "isolation_sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "source_files": {
+      "main_hosts_initial_hup_tests.rs": "d5a8b904f813f8200ff75b2c6f90d6998f5fe4619dbc6e874bdf917517ac3458",
+      "main_hostsdir_init_tests.rs": "c69f836aa696c52795a78f0d223dae5d4fa2446889f636dcab31f6706b8eeaa2"
+    },
+    "main_sha256": "da16ae69da05a33e30c8c94b8b3f80f0af3984fd97daee2d8c4fe5c2d847e19b"
+  },
+  "local_raw_files": {
+    "private/f10-startup-negative-20261014/build.json": "7344cf39a4dd3615a0a4702af5d676ba707e239df357d7d1fd5a92f9fce56679",
+    "private/f10-startup-negative-20261014/run-command.json": "0f9c7a6a71813f242f2bc7c1efbb2b5053dbaedd1157191474e08bfb6215e54f",
+    "private/f10-startup-negative-20261014/run-exit.json": "1fb34d83eac8422cecd825bc5ab7adc2ad80b291bdc6a1c5560dea5f9f19e449",
+    "private/f10-startup-negative-20261014/run.log": "f63679ee0c208836a243a1ebca7a0b1c23a92c4ac552679485050038b48af6cd"
+  }
+}

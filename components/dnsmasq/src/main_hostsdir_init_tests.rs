@@ -13,7 +13,7 @@ fn query() -> Vec<u8> {
     packet.finish()
 }
 
-fn config() -> DnsConfig {
+pub(super) fn config() -> DnsConfig {
     let mut config = DnsConfig::default();
     config.no_resolv = true;
     config.no_hosts = true;
@@ -21,7 +21,7 @@ fn config() -> DnsConfig {
     config
 }
 
-fn owner(config: DnsConfig) -> SinglePoll {
+pub(super) fn owner(config: DnsConfig) -> SinglePoll {
     let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
         DaemonOptions::default()).unwrap();
     let mut owner = test_owner(config.clone(), Some(daemon));
@@ -30,7 +30,7 @@ fn owner(config: DnsConfig) -> SinglePoll {
     owner
 }
 
-fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
+pub(super) fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
     let udp = Arc::new(DnsSocket::bind("127.0.0.1:0".parse().unwrap()).unwrap());
     let peer = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
     peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
@@ -39,7 +39,7 @@ fn queued_dns(owner: &mut SinglePoll) -> (Arc<DnsSocket>, std::net::UdpSocket) {
     (udp, peer)
 }
 
-fn answer_queued(owner: &mut SinglePoll, peer: &std::net::UdpSocket) {
+pub(super) fn answer_queued(owner: &mut SinglePoll, peer: &std::net::UdpSocket) {
     assert!(!owner.files_initializing());
     owner.wait_for_files().unwrap();
     owner.step().unwrap();
@@ -146,7 +146,7 @@ fn polling_resolver_keeps_initial_hostsdir_dhcp_and_helper_work_behind_publicati
     assert!(owner.hosts_bulk && !owner.hosts_full_reload);
     assert!(owner.files_initializing(), "the initial hostsdir is still unpublished");
     owner.hosts_full_reload = true;
-    assert!(!owner.files_initializing(), "a runtime full reload is not initial admission");
+    assert!(owner.files_initializing(), "HUP cannot bypass the first hosts publication");
     owner.hosts_full_reload = false;
     owner.step_hosts_files(); // Open the scanned source, retaining its bulk state.
     assert!(owner.hosts_requests.is_empty() && owner.hosts_read.is_some());
@@ -346,10 +346,12 @@ fn hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names() {
     struct CountedPublisher {
         publisher: LeasePublisher,
         calls: Rc<std::cell::Cell<usize>>,
+        contains_old_name: Rc<std::cell::Cell<bool>>,
     }
     impl DnsPublisher for CountedPublisher {
         fn replace(&mut self, records: &[DnsLeaseRecord<'_>]) -> io::Result<()> {
             self.calls.set(self.calls.get() + 1);
+            self.contains_old_name.set(records.iter().any(|record| record.name == b"a.test"));
             self.publisher.replace(records)
         }
     }
@@ -379,12 +381,14 @@ fn hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names() {
         let parent = Rc::clone(&owner.service);
         provider.set_reverse_host_lookup(move |address| {
             let parent = parent.borrow();
-            Ok(parent.provider_hosts().reverse(IpAddr::V4(address)).map(|host| host.name.clone()))
+            Ok(parent.provider_hosts().provider_reverse(IpAddr::V4(address)).map(|host| host.name.clone()))
         });
         let calls = Rc::new(std::cell::Cell::new(0));
+        let contains_old_name = Rc::new(std::cell::Cell::new(false));
         provider.set_dns_publisher(Box::new(CountedPublisher {
             publisher: LeasePublisher { parent: Rc::clone(&owner.service), policy: LeasePolicy::default() },
             calls: Rc::clone(&calls),
+            contains_old_name: Rc::clone(&contains_old_name),
         }));
         if slow_options {
             provider.start_file_owner().unwrap();
@@ -440,7 +444,9 @@ fn hup_defers_lease_publication_until_provider_resolves_the_new_hosts_names() {
         assert!(parent.pending_hosts.is_none());
         assert_eq!(parent.local.leases.lookup(b"a.test", now_seconds()).count(), 0);
         let order: Vec<_> = parent.local.hosts.addresses(b"a.test").map(|host| host.address).collect();
-        assert_eq!(order, ["192.0.3.186".parse::<IpAddr>().unwrap(), "192.0.3.185".parse().unwrap()],
+        let mut expected = ["192.0.3.186".parse::<IpAddr>().unwrap(), "192.0.3.185".parse().unwrap()];
+        if contains_old_name.get() { expected.reverse(); }
+        assert_eq!(order, expected,
             "rebuilding the stale a.test lease early adds an extra hosts rotation");
         assert_eq!(parent.local.hosts.reverse_all("192.0.2.1".parse().unwrap()).count(), 1);
         assert_eq!(held.addresses(b"a.test").count(), 0);

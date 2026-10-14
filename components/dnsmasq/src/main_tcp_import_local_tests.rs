@@ -17,6 +17,7 @@ fn parent() -> Rc<RefCell<ParentDns>> {
         local: LocalDnsService::new(config, Hosts::new(), 0, 1232),
         daemon: Some(daemon),
         pending_hosts: None,
+        hosts_initializing: false,
     }))
 }
 
