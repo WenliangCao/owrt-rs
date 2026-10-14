@@ -67,6 +67,9 @@ pub struct ReadStats {
     pub inserted: usize,
     pub bad_addresses: usize,
     pub bad_names: usize,
+    /// The caller must discard an incomplete replacement before logging or
+    /// publishing it, so the failed load releases its memory first.
+    pub allocation_failed: bool,
 }
 
 /// One reload generation. Address and name indexes remain live after bulk
@@ -136,8 +139,16 @@ impl Hosts {
         source: u32,
         configured: bool,
     ) -> bool {
-        self.try_insert(name, address, ttl, source, configured)
-            .unwrap_or(false)
+        let mut allocation_failed = false;
+        self.try_insert(
+            name,
+            address,
+            ttl,
+            source,
+            configured,
+            &mut allocation_failed,
+        )
+        .unwrap_or(false)
     }
 
     fn try_insert(
@@ -147,6 +158,7 @@ impl Hosts {
         ttl: u32,
         source: u32,
         configured: bool,
+        allocation_failed: &mut bool,
     ) -> Result<bool, TryReserveError> {
         let mut key = try_copy(&name)?;
         key.make_ascii_lowercase();
@@ -176,15 +188,21 @@ impl Hosts {
         }
         let reverse = !self.reverse.contains_key(&address);
         // C make_non_terminals is best-effort too; the real record survives an
-        // ancestor allocation failure.
+        // ancestor allocation failure. A replacement reader still needs the
+        // failure signal so it can release this incomplete generation.
         self.non_terminals.remove(&key);
         for (index, &byte) in key.iter().enumerate() {
             let suffix = &key[index + 1..];
             if byte == b'.' && !self.non_terminals.contains(suffix) {
-                if let Ok(ancestor) = try_copy(suffix) {
-                    if self.non_terminals.try_reserve(1).is_ok() {
-                        self.non_terminals.insert(ancestor);
+                match try_copy(suffix) {
+                    Ok(ancestor) => {
+                        if self.non_terminals.try_reserve(1).is_ok() {
+                            self.non_terminals.insert(ancestor);
+                        } else {
+                            *allocation_failed = true;
+                        }
                     }
+                    Err(_) => *allocation_failed = true,
                 }
             }
         }
@@ -371,6 +389,8 @@ impl Hosts {
 
     /// Diagnostics are emitted as tokens complete, never accumulated with the
     /// hosts generation. The boolean distinguishes bad addresses from names.
+    /// Allocation failure stops after the current bounded input chunk; unlike
+    /// EOF or a read error, it marks the replacement as incomplete.
     pub fn read_from_with_diagnostics(
         &mut self,
         mut input: impl Read,
@@ -382,28 +402,44 @@ impl Hosts {
     ) -> ReadStats {
         let mut parser = HostsParser::default();
         let mut inserted = 0;
+        let mut allocation_failed = false;
         let mut buffer = [0; 8192];
         let mut consume = |parser: &mut HostsParser, bytes: &[u8]| {
             parser.feed(
                 bytes,
                 expand,
                 &mut domain,
-                |name, address| {
-                    inserted +=
-                        usize::from(self.insert_with_origin(name, address, ttl, source, false));
+                |name, address| match self.try_insert(
+                    name,
+                    address,
+                    ttl,
+                    source,
+                    false,
+                    &mut allocation_failed,
+                ) {
+                    Ok(added) => inserted += usize::from(added),
+                    Err(_) => allocation_failed = true,
                 },
                 &mut invalid,
             );
+            allocation_failed || parser.allocation_failed
         };
+        let mut failed = false;
         while let Ok(length) = input.read(&mut buffer) {
             if length == 0 {
                 break;
             }
-            consume(&mut parser, &buffer[..length]);
+            if consume(&mut parser, &buffer[..length]) {
+                failed = true;
+                break;
+            }
         }
-        consume(&mut parser, b"\n");
+        if !failed {
+            failed = consume(&mut parser, b"\n");
+        }
         let mut stats = parser.stats;
         stats.inserted = inserted;
+        stats.allocation_failed = failed;
         stats
     }
 }
@@ -504,6 +540,7 @@ impl HostsParser {
                                             emit(expanded, address);
                                         } else {
                                             self.allocation_failed = true;
+                                            self.stats.allocation_failed = true;
                                         }
                                     }
                                 }
@@ -512,6 +549,7 @@ impl HostsParser {
                                     emit(name, address);
                                 } else {
                                     self.allocation_failed = true;
+                                    self.stats.allocation_failed = true;
                                 }
                             } else {
                                 self.stats.bad_names += 1;

@@ -1,5 +1,5 @@
-//! Every allocation on the hosts read/copy path is allowed to fail once. This
-//! is a separate test binary so the allocator cannot affect other unit tests.
+//! Inject single and sustained allocation failures on the hosts read/copy path.
+//! This separate test binary cannot affect other unit tests' allocations.
 use dnsmasq_rs::hosts::Hosts;
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
@@ -66,6 +66,101 @@ fn with_failure<T>(after: usize, action: impl FnOnce() -> T) -> (T, bool) {
     (result, failed)
 }
 
+fn with_persistent_failure<T>(after: usize, action: impl FnOnce() -> T) -> (T, bool) {
+    FAIL_REPEAT.with(|count| count.set(usize::MAX));
+    FAIL_AFTER.with(|remaining| remaining.set(Some(after)));
+    let result = action();
+    FAIL_AFTER.with(|remaining| remaining.set(None));
+    let failed = FAIL_REPEAT.with(|count| count.replace(1) != usize::MAX);
+    (result, failed)
+}
+
+#[test]
+fn persistent_hosts_failure_stops_reading_and_allows_a_later_generation() {
+    struct CountedRead<'a> {
+        remaining: &'a [u8],
+        reads_after_failure: usize,
+    }
+    impl std::io::Read for CountedRead<'_> {
+        fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
+            if FAIL_REPEAT.with(|count| count.get() != usize::MAX) {
+                self.reads_after_failure += 1;
+            }
+            let length = self.remaining.len().min(output.len()).min(64);
+            output[..length].copy_from_slice(&self.remaining[..length]);
+            self.remaining = &self.remaining[length..];
+            Ok(length)
+        }
+    }
+    let mut input = Vec::new();
+    for index in 0..512 {
+        use std::io::Write;
+        writeln!(input, "192.0.2.2 name{index}.branch{index}.test").unwrap();
+    }
+    for failure in 0..200 {
+        let mut hosts = Hosts::new();
+        hosts.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 10, 1);
+        let mut reader = CountedRead {
+            remaining: &input,
+            reads_after_failure: 0,
+        };
+        let (stats, failed) = with_persistent_failure(failure, || {
+            hosts.read_from(&mut reader, 2, 20, false, |_| None)
+        });
+        assert!(failed, "allocation {failure} must be exercised");
+        assert!(
+            stats.allocation_failed,
+            "allocation {failure} must be reported"
+        );
+        assert_eq!(reader.reads_after_failure, 0);
+        assert!(
+            !reader.remaining.is_empty(),
+            "do not consume the rest of the file"
+        );
+        assert_eq!(stats.bad_addresses, 0);
+        assert_eq!(stats.bad_names, 0);
+        assert_eq!(hosts.addresses(b"ready.test").count(), 1);
+        for host in hosts.entries() {
+            assert!(hosts.addresses(&host.name).any(|found| found == host));
+            if host.reverse {
+                assert_eq!(hosts.reverse(host.address), Some(host));
+            }
+        }
+        hosts.remove_uid(2);
+        let recovered = hosts.read(&input, 2, 20, false, |_| None);
+        assert!(!recovered.allocation_failed);
+        assert_eq!(recovered.inserted, 512);
+        assert_eq!(hosts.len(), 513);
+    }
+}
+
+#[test]
+fn duplicate_and_read_error_are_not_allocation_failures() {
+    struct FailsAfterPrefix<'a>(Option<&'a [u8]>);
+    impl std::io::Read for FailsAfterPrefix<'_> {
+        fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
+            let Some(prefix) = self.0.take() else {
+                return Err(std::io::ErrorKind::Other.into());
+            };
+            output[..prefix.len()].copy_from_slice(prefix);
+            Ok(prefix.len())
+        }
+    }
+    let input = b"192.0.2.1 same.test\n192.0.2.1 same.test";
+    for read_error in [false, true] {
+        let mut hosts = Hosts::new();
+        let stats = if read_error {
+            hosts.read_from(FailsAfterPrefix(Some(input)), 2, 20, false, |_| None)
+        } else {
+            hosts.read(input, 2, 20, false, |_| None)
+        };
+        assert!(!stats.allocation_failed);
+        assert_eq!(stats.accepted, 2);
+        assert_eq!(stats.inserted, 1);
+        assert_eq!(hosts.len(), 1);
+    }
+}
+
 #[test]
 fn failed_hosts_allocations_keep_indexes_valid_and_allow_later_reload() {
     let input = b"192.0.2.1 One.Sub.Test alias.test\n192.0.2.2 One.Sub.Test\n192.0.2.1 One.Sub.Test\n2001:db8::1 v6.test\n";
@@ -73,7 +168,8 @@ fn failed_hosts_allocations_keep_indexes_valid_and_allow_later_reload() {
     for failure in 0..200 {
         let mut hosts = Hosts::new();
         hosts.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 10, 1);
-        let (_, failed) = with_failure(failure, || hosts.read(input, 2, 20, false, |_| None));
+        let (stats, failed) = with_failure(failure, || hosts.read(input, 2, 20, false, |_| None));
+        assert_eq!(stats.allocation_failed, failed);
         if !failed {
             break;
         }

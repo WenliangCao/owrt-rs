@@ -3198,6 +3198,17 @@ impl SinglePoll {
             });
             // cache.c:1644: cache_reload borrows the shared packet scratch.
             daemon.invalidate_udp_resend();
+            let Ok(hosts) = hosts else {
+                // The reader has already dropped its incomplete generation.
+                // Restore from the published view before admitting more work;
+                // never format a completion notice while a failed load owns
+                // all available memory.
+                if let Ok(previous) = daemon.try_clone_hosts_source() {
+                    local.hosts = previous;
+                    self.hosts_view_valid = true;
+                }
+                return Ok(());
+            };
             let snapshot = match hosts.try_clone() {
                 Ok(snapshot) => snapshot,
                 Err(_) => {
@@ -6790,14 +6801,14 @@ impl HostsReadNotice {
 
 #[cfg(any(test, not(target_os = "linux")))]
 fn read_hosts(config: &DnsConfig, local_ttl: u32) -> Hosts {
-    read_hosts_with_notices(config, local_ttl, |_| {})
+    read_hosts_with_notices(config, local_ttl, |_| {}).unwrap_or_default()
 }
 
 fn read_hosts_with_notices(
     config: &DnsConfig,
     local_ttl: u32,
     mut report: impl FnMut(HostsReadNotice),
-) -> Hosts {
+) -> Result<Hosts, ()> {
     fn report_error(
         report: &mut impl FnMut(HostsReadNotice),
         action: &[u8],
@@ -6824,12 +6835,12 @@ fn read_hosts_with_notices(
         source: u32,
         ttl: u32,
         report: &mut impl FnMut(HostsReadNotice),
-    ) {
+    ) -> Result<(), ()> {
         let file = match std::fs::File::open(path) {
             Ok(file) => file,
             Err(error) => {
                 report_error(report, b"failed to load names from ", path, error);
-                return;
+                return Ok(());
             }
         };
         if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
@@ -6857,9 +6868,15 @@ fn read_hosts_with_notices(
                 report(HostsReadNotice::Error(message));
             },
         );
+        if stats.allocation_failed {
+            // Returning releases the entire unpublished replacement before
+            // any completion logging or later file/directory allocation.
+            return Err(());
+        }
         if let Ok(path) = dnsmasq_rs::hosts::try_copy(path.as_os_str().as_encoded_bytes()) {
             report(HostsReadNotice::Complete { path, names: stats.accepted });
         }
+        Ok(())
     }
     let mut hosts = dnsmasq_rs::dns::local::configured_hosts(config, local_ttl);
     // `no-hosts` suppresses only the built-in /etc/hosts source. Explicit
@@ -6872,7 +6889,7 @@ fn read_hosts_with_notices(
             0,
             local_ttl,
             &mut report,
-        );
+        )?;
     }
     // expand_filelist appends directory members after explicit files. Its
     // alphasort order matters when multiple names compete for PTR ownership.
@@ -6887,7 +6904,7 @@ fn read_hosts_with_notices(
                 (index + 1) as u32,
                 local_ttl,
                 &mut report,
-            );
+            )?;
             continue;
         }
         let entries = match std::fs::read_dir(path) {
@@ -6923,9 +6940,9 @@ fn read_hosts_with_notices(
             (config.addn_hosts.len() + index + 1) as u32,
             local_ttl,
             &mut report,
-        );
+        )?;
     }
-    hosts
+    Ok(hosts)
 }
 
 #[cfg(any(test, not(target_os = "linux")))]
@@ -8562,7 +8579,7 @@ mod tests {
         config.no_hosts = true;
         config.addn_hosts.push(Some(path.clone()));
         let mut notices = Vec::new();
-        let hosts = read_hosts_with_notices(&config, 37, |notice| notices.push(notice));
+        let hosts = read_hosts_with_notices(&config, 37, |notice| notices.push(notice)).unwrap();
         let message = format!("bad name at {} line 2", path.display()).into_bytes();
         assert_eq!(notices, [
             HostsReadNotice::Error(message.clone()),
