@@ -127,13 +127,61 @@ struct HostsRecords {
     non_terminals: HashSet<Vec<u8>>,
 }
 
+// Stable entry IDs partition query order into bounded copy-on-write pages.
+// A TCP snapshot copies the page handles; its first mutation copies at most
+// this many names' orders, irrespective of how many names the parent queried.
+// There is no chain of historical deltas to retain after clients disconnect.
+const ROTATION_PAGE_ENTRIES: usize = 64;
+type RotationPage = HashMap<usize, Vec<usize>>;
+
+#[derive(Clone, Default)]
+struct RotationPages {
+    pages: Vec<Snapshot<RotationPage>>,
+    populated: bool,
+}
+
+impl RotationPages {
+    fn is_empty(&self) -> bool {
+        !self.populated
+    }
+
+    fn get(&self, key: &usize) -> Option<&Vec<usize>> {
+        self.pages.get(key / ROTATION_PAGE_ENTRIES)?.get(key)
+    }
+
+    fn snapshot(&mut self) -> Self {
+        Self {
+            pages: self.pages.iter_mut().map(Snapshot::snapshot).collect(),
+            populated: self.populated,
+        }
+    }
+
+    fn page_mut(&mut self, key: usize) -> Result<&mut RotationPage, TryReserveError> {
+        let page_id = key / ROTATION_PAGE_ENTRIES;
+        if page_id >= self.pages.len() {
+            self.pages.try_reserve(page_id + 1 - self.pages.len())?;
+            self.pages.resize_with(page_id + 1, Snapshot::default);
+        }
+        let page = &mut self.pages[page_id];
+        if page.get_mut().is_none() {
+            let mut copy = HashMap::new();
+            copy.try_reserve(page.len())?;
+            for (&id, indices) in page.iter() {
+                copy.insert(id, try_copy(indices)?);
+            }
+            *page = Snapshot::Owned(copy);
+        }
+        Ok(page.get_mut().unwrap())
+    }
+}
+
 /// One reload generation. TCP children share its records and indexes, retaining
 /// their accepted generation after HUP. Only queried multi-address names need
-/// private ordering; querying a single-address name never copies the table.
+/// private ordering pages; querying a single-address name never copies a page.
 #[derive(Clone, Default)]
 pub struct Hosts {
     records: Snapshot<HostsRecords>,
-    rotations: Snapshot<HashMap<usize, Vec<usize>>>,
+    rotations: RotationPages,
     no_round_robin: bool,
 }
 
@@ -353,7 +401,7 @@ impl Hosts {
         }
         Ok(Self {
             records: Snapshot::Owned(copy),
-            rotations: Snapshot::default(),
+            rotations: RotationPages::default(),
             no_round_robin: self.no_round_robin,
         })
     }
@@ -418,22 +466,10 @@ impl Hosts {
     }
 
     fn rotate_shared(&mut self, key: usize, initial: &[usize], ipv6: Option<bool>) {
-        // Copy only query order, never the full records/index generation. A
-        // failed reservation preserves the last valid order and answer.
-        if self.rotations.get_mut().is_none() {
-            let mut copy = HashMap::new();
-            if copy.try_reserve(self.rotations.len()).is_err() {
-                return;
-            }
-            for (&id, indices) in self.rotations.iter() {
-                let Ok(indices) = try_copy(indices) else {
-                    return;
-                };
-                copy.insert(id, indices);
-            }
-            self.rotations = Snapshot::Owned(copy);
-        }
-        let rotations = self.rotations.get_mut().unwrap();
+        // A failed page reservation preserves the last valid order and answer.
+        let Ok(rotations) = self.rotations.page_mut(key) else {
+            return;
+        };
         if !rotations.contains_key(&key) {
             let Ok(indices) = try_copy(initial) else {
                 return;
@@ -448,6 +484,7 @@ impl Hosts {
             &self.records.entries,
             ipv6,
         );
+        self.rotations.populated = true;
     }
 
     /// Returns the current order, then rotates the first matching flags group
@@ -490,7 +527,7 @@ impl Hosts {
                         return selected
                             .into_iter()
                             .map(|id| &self.records.entries[id])
-                            .collect()
+                            .collect();
                     }
                 };
                 self.rotate_shared(rotation_key, &initial, ipv6);
@@ -733,6 +770,104 @@ pub fn visit_hosts(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn paired_hosts(count: usize) -> Hosts {
+        let mut hosts = Hosts::new();
+        for i in 0..count {
+            for address in ["192.0.2.1", "192.0.2.2"] {
+                hosts.insert(
+                    format!("name{i}.test").into_bytes(),
+                    address.parse().unwrap(),
+                    37,
+                    2,
+                );
+            }
+        }
+        hosts
+    }
+
+    #[test]
+    fn warm_parent_order_copies_only_one_page_per_child_query() {
+        let mut parent = paired_hosts(2048);
+        let seed = parent.tcp_snapshot();
+        for i in 0..2048 {
+            parent.lookup(format!("name{i}.test").as_bytes(), Some(false), false);
+        }
+        let mut children: Vec<_> = (0..20).map(|_| parent.tcp_snapshot()).collect();
+        for (i, child) in children.iter_mut().enumerate() {
+            let name = format!("name{}.test", i * 97);
+            let expected: Vec<_> = parent.addresses(name.as_bytes()).cloned().collect();
+            let actual: Vec<_> = child
+                .lookup(name.as_bytes(), Some(false), false)
+                .into_iter()
+                .cloned()
+                .collect();
+            assert_eq!(actual, expected);
+            assert_eq!(child.rotations.pages.len(), parent.rotations.pages.len());
+            let private: Vec<_> = child
+                .rotations
+                .pages
+                .iter()
+                .filter_map(|page| {
+                    if let Snapshot::Owned(page) = page {
+                        Some(page)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            assert_eq!(private.len(), 1);
+            assert!(private[0].len() <= ROTATION_PAGE_ENTRIES);
+            assert!(std::ptr::eq(child.entries(), parent.entries()));
+        }
+        drop((children, seed));
+        for page in &parent.rotations.pages {
+            let Snapshot::Shared(page) = page else {
+                panic!("published page");
+            };
+            assert_eq!(Arc::strong_count(page), 1);
+        }
+    }
+
+    #[test]
+    fn rolling_tcp_accepts_and_parent_queries_keep_order_without_history() {
+        let mut parent = paired_hosts(128);
+        let mut reference = parent.try_clone().unwrap();
+        let mut old = parent.tcp_snapshot();
+        let mut old_reference = reference.try_clone().unwrap();
+        let addresses = |hosts: &mut Hosts, name: &[u8]| {
+            hosts
+                .lookup(name, Some(false), false)
+                .into_iter()
+                .map(|h| h.address)
+                .collect::<Vec<_>>()
+        };
+        for i in 0..2048 {
+            let name = format!("name{}.test", i % 128);
+            assert_eq!(
+                addresses(&mut parent, name.as_bytes()),
+                addresses(&mut reference, name.as_bytes())
+            );
+            // Accept before dropping the previous connection: delta chains
+            // can otherwise hide unbounded history behind the latest owner.
+            let new = parent.tcp_snapshot();
+            let new_reference = reference.try_clone().unwrap();
+            assert_eq!(
+                addresses(&mut old, name.as_bytes()),
+                addresses(&mut old_reference, name.as_bytes())
+            );
+            old = new;
+            old_reference = new_reference;
+            assert!(parent.rotations.pages.len() <= 256usize.div_ceil(ROTATION_PAGE_ENTRIES));
+        }
+        drop(old);
+        for page in &parent.rotations.pages {
+            let Snapshot::Shared(page) = page else {
+                panic!("published page");
+            };
+            assert_eq!(Arc::strong_count(page), 1);
+        }
+    }
 
     #[test]
     fn tcp_snapshot_shares_records_but_keeps_each_familys_rotation_private() {
