@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "prerelease_published_public_download_verification_pending_hardware_pending",
+  "status": "prerelease_flashed_normal_reboot_checked_power_cycle_and_daily_usage_pending",
   "build": {
     "source_commit": "ded73bae75f44269c93366593481d866a2e68e35",
     "canonical_run": 38636115402,
@@ -339,13 +339,24 @@
   },
   "hardware": {
     "release_created": true,
-    "flashed": false,
-    "initial_acceptance": "pending",
-    "normal_reboot": "pending",
+    "flashed": true,
+    "initial_acceptance": "identity_config_and_health_passed_except_existing_mac_udp_timeout",
+    "normal_reboot": "completed_identity_config_health_passed_except_existing_mac_udp_timeout",
     "physical_power_cycle": "pending",
     "rust_600s": "pending",
     "cleanup": "pending",
-    "latest": false
+    "latest": false,
+    "flash_at_utc": "2026-10-14T21:15:50.267902+00:00",
+    "flash_attempts": 1,
+    "flash_ssh_exit_code": 246,
+    "flash_ubus_disconnect_observed": true,
+    "flash_retried": false,
+    "new_boot_verified": true,
+    "exact_flash_outage_seconds": null,
+    "launchd_observer_failed_to_report_return": true,
+    "direct_ssh_and_identity_check_passed": true,
+    "preserved_configuration_files": 45,
+    "configuration_differences": 0
   },
   "evidence_sha256": {
     "config-before.tar.gz": "b0a1012161b8e70498f4fc002b981b48573358a2014bb25145dcf4535888cc9b",
@@ -368,8 +379,22 @@
     "offline-native-archive/results/package-reinstall-check/result.json": "a56e15a3641473fa8aeac031d901e5f629132ba0d2cb2d2bceb856a1955ef61b",
     "offline-native-boot/result.json": "ab9fef97fe67992969d8215f54890c39d73a3e0faedd1f0528432fc3009f2c52",
     "redundant-tag-run.json": "e41b011b2c453ddb2b3931467aaa2656e08e0361332da554f151a8d06414536d",
-    "manual-deploy/stage-ready.json": "27b6220e4f8ed1fee067495c7a5a5966fd65e2c36e03de8f3e6612cd62397871",
-    "manual-deploy/published-image-precheck.txt": "4e82f6f8ba97bd548437a64ed92148a11ffe6f6bf25bfe37f953af3cc9300441"
+    "manual-deploy/stage-ready.json": "78dcd38c716b7a93e00db7ed11a99329fb443a0502e1a121785f56f4d9d93e5c",
+    "manual-deploy/published-image-precheck.txt": "4e82f6f8ba97bd548437a64ed92148a11ffe6f6bf25bfe37f953af3cc9300441",
+    "public-assets-verified.json": "4e5da9d78f97ddb6296d97d74ef3de0f88a8448855207d7a1ca718853b799128",
+    "manual-deploy/disruption-confirmation.json": "350fcf441a2c5c0920b0e0c65b8f4fb1575cd54cc8aec33e382a5f498428eeef",
+    "manual-deploy/flash-start.json": "08323adfad8bac2179bd4d48abcedf1c3f3d79c6b6bb70d4d8219e0491a9134d",
+    "manual-deploy/flash-ssh-return.json": "4efdaf3535f49a9ab88ae5b4e20ef455038a5f665b8533d6ffb64e8dd8ed183f",
+    "manual-deploy/identities-initial.json": "d87f861da92fe16c0bc82c6dea78ceeb4e76bb2d6ac69949320ed638019a9b0d",
+    "manual-deploy/config-initial-check.json": "3bce6ca4d4478aba973ec82b74f36146364d3df1fb2992b25decfb6a2ca7c5d7",
+    "manual-deploy/health-initial.json": "5023653021bcb96ba94e11b48bc9bf8f9173c8dfd09500dc84c6f075ecfbb685",
+    "manual-deploy/client-initial.json": "0467ea31b2299cc72614a118bf25264b85cd6dd0cd675cce6de7b61511179425",
+    "manual-deploy/initial-observation-note.json": "c6f729d3e5f60902d6fdc77a4a43a624af3aa67ae993c6189ff2d003d99ac97b",
+    "manual-deploy/normal-reboot-result.json": "a4e7cd929b3fdd797117c06b7b3647124206489f17edbd158213bce488616ffd",
+    "manual-deploy/identities-normal.json": "32e99ccd0dcd58707684edce3ddd10948ce8a736d13a3a10a6162f0a91b75705",
+    "manual-deploy/health-normal.json": "12da9f829bc9db0bd4021c1e142b3885d11f4c927bc31141bb6d69e88709524f",
+    "manual-deploy/client-normal.json": "10c0bfd7813d93e24dcb450660845c2eec7e60a63547fbb99e9c7f02227b4665",
+    "manual-deploy/udp-normal-conntrack.txt": "ff888f2892219d4fd67383665be2c067da91bf6c0beb84b3632dd92ab9e5884e"
   },
   "release_blocker": {
     "original_host_tests_run": 38626687422,
@@ -458,7 +483,7 @@
     "build_logs": "retained in Actions artifact",
     "prerelease": true,
     "latest": false,
-    "public_download_verification": "pending",
+    "public_download_verification": "passed",
     "published_at": "2026-10-14T21:12:07Z",
     "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/v0.2.0",
     "latest_release": "v0.1.1",
@@ -470,7 +495,9 @@
       "apk_internal_version_changed": false,
       "canonical_ci_metadata_modified": false,
       "outer_checksums_use": "public_asset_names"
-    }
+    },
+    "public_download_verified_at_utc": "2026-10-14T21:14:53.405414+00:00",
+    "public_checksum_entries_passed": 12
   },
   "preflash_health": {
     "running_release": "v0.1.1",
@@ -495,6 +522,48 @@
     "boot_identity_unchanged": true,
     "flashed": false,
     "rebooted": false,
-    "user_disruption_confirmation": "pending"
+    "user_disruption_confirmation": "received_2026-10-14T21:15:42Z_for_one_preserving_flash_and_one_normal_reboot"
+  },
+  "initial_physical_acceptance": {
+    "source_commit": "ded73bae75f44269c93366593481d866a2e68e35",
+    "ten_installed_and_rom_identities": true,
+    "applicable_running_daemon_identities": true,
+    "dnsmasq_init_acl": true,
+    "stock_recovery_files": true,
+    "dnsmasq_ujail_executable_and_parent_identity": true,
+    "configuration_files_preserved": 45,
+    "configuration_differences": 0,
+    "client_dhcp": true,
+    "both_radios_and_bridges": true,
+    "router_dns_ipv4_ipv6": true,
+    "luci_http_https": true,
+    "router_internet_https": true,
+    "client_wifi_bound_ipv4_ipv6_https": true,
+    "client_dns_tcp": true,
+    "client_mac_dns_udp": "timeout_same_as_C_preflash_baseline"
+  },
+  "normal_reboot_acceptance": {
+    "started_at_utc": "2026-10-14T21:19:10.325788+00:00",
+    "ssh_return_observed_at_utc": "2026-10-14T21:19:59.190305+00:00",
+    "command_to_observed_return_seconds": 48.864524126052856,
+    "new_boot_verified": true,
+    "identity_checks_passed": true,
+    "health_checks_passed": true,
+    "client_dns_tcp": true,
+    "client_wifi_bound_ipv4_ipv6_https": true,
+    "client_mac_dns_udp": "timeout_same_as_C_preflash_baseline",
+    "physical_power_cycle_substituted": false
+  },
+  "udp_client_observation": {
+    "after_normal_reboot": true,
+    "explicit_source_port_correlated": true,
+    "conntrack_original_packets": 1,
+    "conntrack_original_bytes": 68,
+    "conntrack_reply_packets": 1,
+    "conntrack_reply_bytes": 84,
+    "conntrack_unreplied": false,
+    "client_delivery_proven": false,
+    "timeout_root_cause_proven": false,
+    "same_client_timeout_observed_before_flash_on_C": true
   }
 }
