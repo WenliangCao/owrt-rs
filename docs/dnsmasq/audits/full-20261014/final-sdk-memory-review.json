@@ -1,0 +1,293 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+  "candidate_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+  "candidate_bytes": 2124571,
+  "conclusion": "Both paired 64 MiB process-tree memory gates passed on the final SDK ELF. The warmed repeated-address schedule had 20 equal complete wire observations; HUP retained the old generation on 20 existing clients and exposed the new generation on 10 newly opened clients. This is bounded memory/snapshot acceptance, not the full F10 contract or deployment approval.",
+  "inputs": {
+    "source_commit": "b587282081b72ea0f96cf909e0f70b0bc8de9372",
+    "original_elf": "/dev/shm/full-merge-sdk-b5872820-20261014/source/private/sdk-source-build/payload/usr/sbin/dnsmasq",
+    "test_elf": "/dev/shm/full-merge-final-memory-20261014/input/dnsmasq",
+    "elf_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "elf_bytes": 2124571,
+    "files": {
+      "full_tcp_hosts_cgroup.py": "b993daefe6f3cd945809f76985b0827a8766ab1337b3963200a5e92a51b83475",
+      "full_tcp_hosts_cgroup.original.py": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2",
+      "hosts_rotation_memory.py": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "dnsmasq": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c"
+    },
+    "hup_copy_change": "Only import the existing process-tree stats function and sample PSS at ready, old20 held, and after HUP/new10. Original input, budget, operations and assertions unchanged."
+  },
+  "corrected_hup_driver_sha256": "db3e329eaeb1daea3f71d479e36c2bde95cd8833869338a295cfa18570cfff05",
+  "cases": {
+    "warm": {
+      "raw_result_sha256": "537dec295696b436fb5c9164052a97293fe71f06406c855ce75971fb0c6c284b",
+      "driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "runs": {
+        "c": {
+          "budget_bytes": 67108864,
+          "swap_bytes": 0,
+          "successful_initial_connections": 20,
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "normal_cleanup_exit": 0,
+          "memory_peak_bytes": 17186816,
+          "memory_current_bytes_after": 11808768,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "cleanup_cgroup_procs_empty": true,
+          "warmup_queries": 30000,
+          "warmup_seconds": 1.1874295989982784,
+          "process_tree_pss_kib": {
+            "startup": 6872,
+            "seed_held": 7074,
+            "parent_udp_warmed": 11950,
+            "new_tcp_1": 12117,
+            "new_tcp_10": 13321,
+            "new_tcp_19": 14478,
+            "new_tcp_20": 9616
+          },
+          "pss_sampled_peak_kib": 14478
+        },
+        "rust": {
+          "budget_bytes": 67108864,
+          "swap_bytes": 0,
+          "successful_initial_connections": 20,
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "normal_cleanup_exit": 0,
+          "memory_peak_bytes": 26759168,
+          "memory_current_bytes_after": 26058752,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "cleanup_cgroup_procs_empty": true,
+          "warmup_queries": 30000,
+          "warmup_seconds": 1.2187787760049105,
+          "process_tree_pss_kib": {
+            "startup": 25560,
+            "seed_held": 25660,
+            "parent_udp_warmed": 26272,
+            "new_tcp_1": 26384,
+            "new_tcp_10": 26860,
+            "new_tcp_19": 27332,
+            "new_tcp_20": 26688
+          },
+          "pss_sampled_peak_kib": 27332
+        }
+      },
+      "scope": "30000 names / 60000 repeated-address A records; hold seed, warm all 30000 parent UDP lookups, then admit 20 clients (retire seed before twentieth); no rolling loop.",
+      "healthy": true,
+      "complete_wire_observations": 20,
+      "orders_matched": true,
+      "raw_order_differences": []
+    },
+    "hup": {
+      "raw_result_sha256": "7d8897caaee0ce7800f3e9a0e28f14d98741aa68adad607f18512f806228f232",
+      "driver_sha256": "db3e329eaeb1daea3f71d479e36c2bde95cd8833869338a295cfa18570cfff05",
+      "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "rust_sha256": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+      "runs": {
+        "c": {
+          "budget_bytes": 67108864,
+          "swap_bytes": 0,
+          "successful_initial_connections": 20,
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "normal_cleanup_exit": 0,
+          "memory_peak_bytes": 15982592,
+          "memory_current_bytes_after": 15982592,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "cleanup_cgroup_procs_empty": true,
+          "old_answers": [
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201"
+          ],
+          "new_answers": [
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202"
+          ],
+          "old_address": "192.0.2.1",
+          "new_address": "192.0.2.2",
+          "old_clients_queried_after_hup": 20,
+          "new_clients_queried_after_hup": 10,
+          "old_clients_retained_at_end": 10,
+          "process_tree_pss_kib": {
+            "ready_pss": 5884,
+            "old20_pss": 8404,
+            "after_hup_pss": 13392
+          }
+        },
+        "rust": {
+          "budget_bytes": 67108864,
+          "swap_bytes": 0,
+          "successful_initial_connections": 20,
+          "udp_after": true,
+          "exit_before_cleanup": null,
+          "normal_cleanup_exit": 0,
+          "memory_peak_bytes": 49471488,
+          "memory_current_bytes_after": 38547456,
+          "memory_events": {
+            "low": 0,
+            "high": 0,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          },
+          "cgroup_removed": true,
+          "cleanup_cgroup_procs_empty": true,
+          "old_answers": [
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201",
+            "c0000201"
+          ],
+          "new_answers": [
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202",
+            "c0000202"
+          ],
+          "old_address": "192.0.2.1",
+          "new_address": "192.0.2.2",
+          "old_clients_queried_after_hup": 20,
+          "new_clients_queried_after_hup": 10,
+          "old_clients_retained_at_end": 10,
+          "process_tree_pss_kib": {
+            "ready_pss": 25028,
+            "old20_pss": 26024,
+            "after_hup_pss": 38756
+          }
+        }
+      },
+      "scope": "50000 names / single A records; hold 20 TCP clients, change all hosts and HUP, query all 20 old clients, retire 10 and open 10 new clients."
+    }
+  },
+  "closeout": {
+    "owned_processes_remaining": [],
+    "host_visible_mounts_remaining": [],
+    "payload_sha256_after": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "test_copy_sha256_after": "50e591a9d9dc1e6578888b14690b5b38415a9db886a492a2960a0c75b3eeb57c",
+    "corrected_hup_driver_sha256": "db3e329eaeb1daea3f71d479e36c2bde95cd8833869338a295cfa18570cfff05",
+    "retained_failed_hup_driver_sha256": "b993daefe6f3cd945809f76985b0827a8766ab1337b3963200a5e92a51b83475",
+    "warm_driver_sha256": "66f29e7cf865072124b6773d56f3f63cf064cd629ab7e673f769aa924be4a758"
+  },
+  "first_hup_attempt": {
+    "counted_as_pass": false,
+    "reason": "A missing quote in the added private PSS sampling field caused NameError after the C old20 stage; the original driver and product were unchanged. Corrected sampling-only copy reran both sides in a fresh directory.",
+    "failed_command_sha256": "755c44b9372fe34cf7fb2f800d5e4f7c18461f4972eb7c1afab153087d435dee",
+    "failed_driver_sha256": "b993daefe6f3cd945809f76985b0827a8766ab1337b3963200a5e92a51b83475",
+    "original_driver_sha256": "677eeb44625e8bbc20d4ae6d7e534192e23a8dc5ea7d0270c92c3915e60a8dc2",
+    "failed_stdout_stderr_retained": true
+  },
+  "raw_evidence": {
+    "oracle_directory": "/dev/shm/full-merge-final-memory-20261014",
+    "oracle_archive": "/dev/shm/full-merge-f5-20261014/final-sdk-memory-evidence.tar.gz",
+    "local_archive": "private/final-sdk-memory/final-sdk-memory-evidence.tar.gz",
+    "archive_sha256": "1aa405cc10cec57549c4e7471971339862b2db5643274ff223d4a454f7887d3f",
+    "scope": "Complete task directory, including input ELF, original/failed/corrected drivers, results, logs and generated overlay data. No original output overwritten.",
+    "local_regular_archive_members_verified": 65,
+    "special_archive_members": [
+      {
+        "name": "./hup-retry/private/rust/stage/rootfs-overlay/work/work/#1608b",
+        "type": "3"
+      },
+      {
+        "name": "./hup-retry/private/c/stage/rootfs-overlay/work/work/#1607a",
+        "type": "3"
+      },
+      {
+        "name": "./hup/private/c/stage/rootfs-overlay/work/work/#16069",
+        "type": "3"
+      },
+      {
+        "name": "./warm/private/rust/stage/rootfs-overlay/work/work/#16058",
+        "type": "3"
+      },
+      {
+        "name": "./warm/private/c/stage/rootfs-overlay/work/work/#16047",
+        "type": "3"
+      }
+    ]
+  },
+  "limits": [
+    "Oracle kernel/userspace isolation and artificial 64 MiB no-swap cgroup per complete process tree; not actual router free RAM.",
+    "No rolling 2000 repeat, global OOM, physical router or long-term leak test.",
+    "HUP old/new checks are the original tool address-suffix assertions; warm checks compare complete recorded wire for the 20 selected new clients. Neither is a full protocol/fuzz qualification.",
+    "PSS is sampled complete process-tree memory in KiB; cgroup memory.peak is kernel peak in bytes and includes a different accounting scope.",
+    "Only resource/snapshot gates reported here; other F10 schedules and overall merge decision remain with root."
+  ]
+}
