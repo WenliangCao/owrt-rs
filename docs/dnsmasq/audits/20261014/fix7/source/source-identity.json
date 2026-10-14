@@ -1,0 +1,33 @@
+{
+  "head": "02659da6f35fb60ccc916a28b8abf761bf51913c",
+  "base": "137c2882381109daf3e011f77401cd79524a0221",
+  "diff_stat": " components/dnsmasq/src/dns/cache_engine.rs       | 25 +++++++++++++-----------\n components/dnsmasq/src/dns/daemon_cache_tests.rs | 25 ++++++++++++++++++++++++\n docs/dnsmasq/AUDIT_FIX4_20261014.md              |  6 ++++++\n 3 files changed, 45 insertions(+), 11 deletions(-)\n",
+  "files": {
+    "components/dnsmasq/src/dns/cache_engine.rs": {
+      "head_sha256": "981e10b5be4cffc7ede0a0816a8d1d0c2208af3a67624fffe7bf7c09492e88d1",
+      "base_sha256": "80f697411fe3d2e3caf19b74781c4c2d3be63a3e738f92bbeea17cd09e43f3dd",
+      "worktree_equals_head": true
+    },
+    "components/dnsmasq/src/dns/wire.rs": {
+      "head_sha256": "e5f923be00b56d1993203ed12afc37b383eb10732c18c0079e6c4a3cd4968321",
+      "base_sha256": "e5f923be00b56d1993203ed12afc37b383eb10732c18c0079e6c4a3cd4968321",
+      "worktree_equals_head": true
+    },
+    "components/dnsmasq/src/dns/local.rs": {
+      "head_sha256": "6c0072cb7aba8decb31f178403173384ca0fe73473199895981fe17cc1844e3a",
+      "base_sha256": "6c0072cb7aba8decb31f178403173384ca0fe73473199895981fe17cc1844e3a",
+      "worktree_equals_head": true
+    },
+    "components/dnsmasq/src/dns/daemon_cache_tests.rs": {
+      "head_sha256": "bb1456c2a4893acbfad1a61467a96725e294558a97c0a520bfc015daa7331951",
+      "base_sha256": "5d5b8736c1db59ab445890069badfed088509f1acc4696f0aee840db6083aa86",
+      "worktree_equals_head": true
+    }
+  },
+  "c_reference": {
+    "recipe_revision": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "verified_file_count": 148,
+    "rfc1035_sha256": "231f0b4989039ff4963f3916df22871dd13025dde65769465b2b3052ad807222",
+    "identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9"
+  }
+}

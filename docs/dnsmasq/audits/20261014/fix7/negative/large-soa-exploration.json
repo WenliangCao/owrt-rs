@@ -1,0 +1,3125 @@
+{
+  "script_sha256": "a563511e67ab75359e5679d262442391bf4aa09101eb5e7f0701989eeb0946ba",
+  "fix_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "config_evidence_sha256": "25abc2319972d14c0795a2746e9d55cb444e45f16c207025c86d9f22314b5904",
+  "runs": [
+    {
+      "name": "tail185-debug0-tcp",
+      "case": {
+        "large": false,
+        "debug": false,
+        "host": "alias.leases.test",
+        "transport": "tcp",
+        "rd": true,
+        "do": false
+      },
+      "tail": 185,
+      "config_sha256": "a202cf4e5890b0d52f27bf06da8bf7c9aa294abf671d8b7a01824664284da1b5",
+      "sides": {
+        "c": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16478,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16376
+            ],
+            "additional_owners": [
+              "fff8"
+            ]
+          },
+          "result_sha256": "879c5bf4420677e72dcd4b05f437593976b5e7942308047ec9a349570c70aed3",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/m2/dns.conf",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        },
+        "rust": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16478,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16376
+            ],
+            "additional_owners": [
+              "fff8"
+            ]
+          },
+          "result_sha256": "d147ef7ea59c016734c27ab42d521c2fcbb71252cfa3c823809c8660d40390c9",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/m2/dns.conf",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        }
+      },
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "tail185-debug1-tcp",
+      "case": {
+        "large": false,
+        "debug": true,
+        "host": "alias.leases.test",
+        "transport": "tcp",
+        "rd": true,
+        "do": false
+      },
+      "tail": 185,
+      "config_sha256": "a202cf4e5890b0d52f27bf06da8bf7c9aa294abf671d8b7a01824664284da1b5",
+      "sides": {
+        "c": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16478,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16376
+            ],
+            "additional_owners": [
+              "fff8"
+            ]
+          },
+          "result_sha256": "5d7a30e6c82d28601245d6d1b608f7c2389534b711832d9bf4bb1d0f666a085a",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/m2/dns.conf",
+            "-d",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        },
+        "rust": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16478,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16376
+            ],
+            "additional_owners": [
+              "fff8"
+            ]
+          },
+          "result_sha256": "322d18edffde958c69c715f82af29164dd6f68317ee26c63d2d6a097241e37a9",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/m2/dns.conf",
+            "-d",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        }
+      },
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "tail193-debug0-tcp",
+      "case": {
+        "large": false,
+        "debug": false,
+        "host": "alias.leases.test",
+        "transport": "tcp",
+        "rd": true,
+        "do": false
+      },
+      "tail": 193,
+      "config_sha256": "ece8e05e7b77d4284ec3531b4b69b1935aaa65c64477b5a0015e4e39217547f0",
+      "sides": {
+        "c": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "decode_error": "AssertionError()"
+          },
+          "result_sha256": "ce703643030d41cc89db8052b1ab70f2bab16a478ec0e34de8e593ea5af1dccd",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/m2/dns.conf",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        },
+        "rust": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16497,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16384
+            ],
+            "additional_owners": [
+              "066c6561736573047465737400"
+            ]
+          },
+          "result_sha256": "b0e93a187a61c9517201d572a5021232293c9bf87b27bc015a75d7c1aabe8942",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/m2/dns.conf",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        }
+      },
+      "comparison_error": "AssertionError()"
+    },
+    {
+      "name": "tail193-debug1-tcp",
+      "case": {
+        "large": false,
+        "debug": true,
+        "host": "alias.leases.test",
+        "transport": "tcp",
+        "rd": true,
+        "do": false
+      },
+      "tail": 193,
+      "config_sha256": "ece8e05e7b77d4284ec3531b4b69b1935aaa65c64477b5a0015e4e39217547f0",
+      "sides": {
+        "c": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "decode_error": "AssertionError()"
+          },
+          "result_sha256": "10010eecc58b7fb7a607b5439d35e3d1797c8a2d389d3c683720ad4d3a42741b",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/m2/dns.conf",
+            "-d",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        },
+        "rust": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16497,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16384
+            ],
+            "additional_owners": [
+              "066c6561736573047465737400"
+            ]
+          },
+          "result_sha256": "1621679401605a3f0a0c683b97885b4cce73b2ee848139c5f0e9062cec6c9243",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/m2/dns.conf",
+            "-d",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        }
+      },
+      "comparison_error": "AssertionError()"
+    },
+    {
+      "name": "tail212-debug0-tcp",
+      "case": {
+        "large": false,
+        "debug": false,
+        "host": "alias.leases.test",
+        "transport": "tcp",
+        "rd": true,
+        "do": false
+      },
+      "tail": 212,
+      "config_sha256": "7824f7b199002a07f2067cf848df129e841c0409bedaccbcad7dc3d316383f8d",
+      "sides": {
+        "c": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "decode_error": "AssertionError()"
+          },
+          "result_sha256": "07dc8ce9f795e6434e9085a62fd663976ca166b8066e9dba05f5a8aec66f055d",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/m2/dns.conf",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        },
+        "rust": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16516,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16403
+            ],
+            "additional_owners": [
+              "066c6561736573047465737400"
+            ]
+          },
+          "result_sha256": "6f813d51f3d01087f14e2d6c941b4c551f119583286bbfdb6c89fa5f36e902c7",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/m2/dns.conf",
+            "-k",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        }
+      },
+      "comparison_error": "AssertionError()"
+    },
+    {
+      "name": "tail212-debug1-tcp",
+      "case": {
+        "large": false,
+        "debug": true,
+        "host": "alias.leases.test",
+        "transport": "tcp",
+        "rd": true,
+        "do": false
+      },
+      "tail": 212,
+      "config_sha256": "7824f7b199002a07f2067cf848df129e841c0409bedaccbcad7dc3d316383f8d",
+      "sides": {
+        "c": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "decode_error": "AssertionError()"
+          },
+          "result_sha256": "fb9d2d48e198b75d9f8081edfdc610915f86053d539b78288c1b2e24d52e9b42",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq",
+            "-C",
+            "/m2/dns.conf",
+            "-d",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        },
+        "rust": {
+          "status": "passed",
+          "error": null,
+          "final": {
+            "length": 16516,
+            "header": [
+              24579,
+              34176,
+              1,
+              64,
+              1,
+              1
+            ],
+            "types": [
+              {
+                "section": "answer",
+                "type": 5,
+                "ttl": 3600
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 16,
+                "ttl": 17
+              },
+              {
+                "section": "answer",
+                "type": 1,
+                "ttl": 5
+              },
+              {
+                "section": "answer",
+                "type": 15,
+                "ttl": 17
+              },
+              {
+                "section": "authority",
+                "type": 6,
+                "ttl": 3600
+              },
+              {
+                "section": "additional",
+                "type": 1,
+                "ttl": 17
+              }
+            ],
+            "mx_targets": [
+              16403
+            ],
+            "additional_owners": [
+              "066c6561736573047465737400"
+            ]
+          },
+          "result_sha256": "c7f84b19945c7787fa07f54e964151c6aa96d843be4de877e748f130fdca851f",
+          "command": [
+            "chroot",
+            "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/large-soa/rootfs",
+            "/usr/sbin/dnsmasq-rs",
+            "-C",
+            "/m2/dns.conf",
+            "-d",
+            "--user=root",
+            "--group=root",
+            "--pid-file=",
+            "--log-facility=-"
+          ]
+        }
+      },
+      "comparison_error": "AssertionError()"
+    }
+  ],
+  "status": "failed"
+}

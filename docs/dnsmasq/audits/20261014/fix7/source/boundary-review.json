@@ -1,0 +1,24 @@
+{
+  "inputs": {
+    "docs/dnsmasq/audits/20261014/fix7/root/boundary-checked.json": "03d94975a579ec0e0069080ba0fdcf6a81d95b607c939b2084658c42ade8b26e",
+    "docs/dnsmasq/audits/20261014/fix7/root/boundary-invocation.json": "3d7a2f80efd3d34c27b748838444e5b88db4fa62d41bd344093d047a096f8c3d",
+    "docs/dnsmasq/audits/20261014/fix7/root/check_boundary.py": "073e63bb73291e037b2c5c4880a42d626c13b03eccd3e8ff89f77d3ed1d4736e",
+    "docs/dnsmasq/audits/20261014/fix6/build/new-boundary-check.py": "3d0836f4b3cb6b9d16c6387e7779e67f4fff9e97ee070e837b9db24b48f5d74b",
+    "docs/dnsmasq/audits/20261014/fix7/source/review_boundary.py": "34d1bb747442f45d3dd8e965ebb6d45a59003710bb47732acb7d4f10e3fc070e"
+  },
+  "fresh_daemon_runs_in_this_review": 0,
+  "reviewed_cases": 48,
+  "reviewed_daemon_runs": 192,
+  "before_eof_negative_controls": 6,
+  "current_c_full_field_equal_cases": 48,
+  "independently_reconstructed_original_fixture_sha256": "c243542d77c1c7e906b4222950cbbb6a6cb6bfa775202380d555a34adfe9a947",
+  "matrix_unique_complete": true,
+  "checker_decoder_identity_matches": true,
+  "calibration": {
+    "head_eof": "rejected",
+    "hide_before_eof": "rejected",
+    "ttl": "rejected",
+    "additional_owner": "rejected",
+    "health": "rejected"
+  }
+}

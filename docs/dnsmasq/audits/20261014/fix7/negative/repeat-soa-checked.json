@@ -1,0 +1,474 @@
+{
+  "argv": [
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/repeat_soa.py",
+    "--source",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/source",
+    "--image",
+    "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "--fix",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+    "--fix-sha256",
+    "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+    "--config-evidence",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/negative/summary.json",
+    "--out",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa"
+  ],
+  "started": 1791967550.6863325,
+  "script_sha256": "4a1f7882875347a56e5057b315b30018d7efaea257b25a737617f726e47f8179",
+  "fix_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "case": {
+    "large": true,
+    "debug": false,
+    "host": "client1.leases.test",
+    "transport": "tcp",
+    "rd": true,
+    "do": false
+  },
+  "flow_sha256": "31641ce8e1a55ea0c46df9280207bfb33a8a1cd6645d22a98f01f0601f1b64a7",
+  "base_driver_sha256": "a35318a14a15641631785b96e9e7fa4d494d0d6e04091520e85ba584fc5f2450",
+  "runs": [
+    {
+      "name": "repeat00",
+      "result_sha256": [
+        "f956ee5e4668065b2107df4852c9f7e7018fd574a241234582489ad23949cdfe",
+        "55888aa7233fe0bab1eb7e2e64cded54bb2a3b3c1e1e7d37957b62fab25a7bf2"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat01",
+      "result_sha256": [
+        "da1aa090fac6103341860c941b7c9561b300b5c9ef45a5e865c03931e98e5e84",
+        "83135c5b244b8f9e4561c658079211d92b7d760907aa43684fe0a8cc6eb71cf4"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat02",
+      "result_sha256": [
+        "584f7183847808c4beb345d4b46cb0a63f3173b6fb6fcafad0d4011aceac570e",
+        "f163b065af01998778da8f5c77b809c824476ec37acf9c4d82a7bc133f62ee31"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat03",
+      "result_sha256": [
+        "a6c483f0d9c26c192ae19671ad0dddfede9f5340626fd6f03f792e93c6b033de",
+        "6c53e9569499d2e3a7a01b6531443b490fd41030cf6b230ce7bf1ca7187bd06f"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat04",
+      "result_sha256": [
+        "d23643525f2263dfa78355b404b6a4a303233334749510a1bdcd79e2c16e45c1",
+        "b7d40f9e0c51baadd457483101e2bbe8d3bfef269eaf6b7e5eca8e649dda0739"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat05",
+      "result_sha256": [
+        "03e229102b7b98f1b17d31ed6c8bee33a7a72b057e4a72a0c6d66ad5591ed37a",
+        "8c07a1ebc5f70569106cbb27f9b3c89a9f90579781993f1ce0f9bbd7379d415b"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat06",
+      "result_sha256": [
+        "26c7d899d161ef664593ae5f7020d8d30dcd0a2b50d4d5c1552cd8a7f55f76c3",
+        "a2881fae607fea203f802b3370aa85a694181484c8e235ee80a5f9cb7916e3a0"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat07",
+      "result_sha256": [
+        "2fb7e60aa4647cecf2be64ca56a2b26d2bbe6fb6c7810a3cfebc36d9a0b85544",
+        "52f79fdfb6f3827c56addac45e3c765f1560d544d43e2702117cc2cc2e0a7ccf"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat08",
+      "result_sha256": [
+        "77a34cca2997fb7243457bf9c5b97d34834657bb4982659822f5a8542bfff1c4",
+        "53efb9dc8721793fa782ee66acee4b591647f2110854737589d54c824fbba818"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 2,
+        "bounded_soa": 2,
+        "ttl_bounds": [
+          {
+            "label": "ack-visible-a",
+            "c_ttl": 3600,
+            "rust_ttl": 3599,
+            "sides": [
+              {
+                "side": "c",
+                "elapsed": 0.003989313030615449,
+                "allowed_lower": 3599,
+                "allowed_upper": 3600
+              },
+              {
+                "side": "rust",
+                "elapsed": 0.0035851900465786457,
+                "allowed_lower": 3599,
+                "allowed_upper": 3600
+              }
+            ]
+          },
+          {
+            "label": "boundary",
+            "c_ttl": 3600,
+            "rust_ttl": 3599,
+            "sides": [
+              {
+                "side": "c",
+                "elapsed": 0.00442955712787807,
+                "allowed_lower": 3599,
+                "allowed_upper": 3600
+              },
+              {
+                "side": "rust",
+                "elapsed": 0.0038192321080714464,
+                "allowed_lower": 3599,
+                "allowed_upper": 3600
+              }
+            ]
+          }
+        ],
+        "dhcp_replies": 2
+      }
+    },
+    {
+      "name": "repeat09",
+      "result_sha256": [
+        "fbee3fc0ad2f292d49561311a1a46e3e2dcc05fc774b5ebbb65ad8da64485bc3",
+        "9b86700f135e6aa046be4b5c7ff63bbe8da777fd02058875a86ccdb6a62afffc"
+      ],
+      "daemon_argv": [
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ],
+        [
+          "chroot",
+          "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/repeat-soa/rootfs",
+          "/usr/sbin/dnsmasq-rs",
+          "-C",
+          "/m2/dns.conf",
+          "-k",
+          "--user=root",
+          "--group=root",
+          "--pid-file=",
+          "--log-facility=-"
+        ]
+      ],
+      "comparison": {
+        "responses": 4,
+        "exact": 4,
+        "bounded_soa": 0,
+        "ttl_bounds": [],
+        "dhcp_replies": 2
+      }
+    }
+  ],
+  "status": "passed",
+  "finished": 1791967551.133021
+}

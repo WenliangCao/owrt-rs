@@ -1,0 +1,80 @@
+{
+  "verified_files": {
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/oracle_build.sh": "3a9040ce8b618101e785e7cf88f3e8d855aed9f0a989ae942a8d4e85358e6a7b",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/run_isolated.sh": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/m2_rootfs.py": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/docs/dnsmasq/audits/20261011/independent/build_protections_probe.py": "b1a7b64022fc4777985ad3c81b4b2d9e4bc1f23776a84be3ccb2eda7c039fe30",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/verify_and_test.py": "7fe05968f2712a058b2ea071fa5dbe4e68a0af758419db6bad2c6c5345160bf2",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/local-input-identity.json": "61f0ab277b748a636938627f7fe5be87b6e6772bec37a7a4ed3d2770d39f46f8",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/retained-input-identity.json": "3080682ad4f123a5dbc16d1a91951174851c0c744c2f2011e4eb1253e69795af",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/dnsmasq-fix7-02659da6.tar": "937be4b5aa3d3f0d35ab141002ae4968b6abfecaf8d61409cc94171161f73f4d",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/result.json": "7728d4fd9f165352f54e3ea806ba0b89298be9c4399af9329f0782505acbda50",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-2.maps": "f447cf4a252fcce3b3210a4c3c7a5fb17c14c13860b96427ef2cb93e8f21c9e3",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-2.log": "142a7b910a3f1105d367ce246792571c4c530b5ec6e11ed64fdfb48093fa49ab",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-0.log": "f08a9b2c804414474a09ab1e6852ed9350f56d8b50c29b58a3cc27d4e486c982",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-1.maps": "3b6565812d9ab7e69ae26f732a60b792bfa6e0389d88004383fe7719776b7a9c",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-1.smaps": "3ca2639270f92335a87fdd0376a17ef2cd1a7573e400af1c591ff554df0b48c7",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-2.smaps": "5b9969b91e5465b73069b64220c3f51a2aca90e9a204808abae750d65af3971a",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-2.log": "8ca0b130b7f4f1bc475e93262a4a1da2f3d34f73255b0203a340151c5eb7c784",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-0.maps": "5e5896d7c73d3621eb29589a704437a27176d0a50669ddf92cb4b1a43008aebe",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-2.maps": "502b8ba9f2daf8ece4aec90a5d77ebbfef17f6bdbe0ef25e888e6e5fdb140bf7",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-2.smaps": "2a6c7def3dc56e159a5e519075637f6203ab1784d02ea4a5b27bf2a76698b466",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-0.log": "96519277fd60e53ef85b2286e3915d60588e3a03d032d6b03a80959c2eee7eee",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-1.log": "ad3d9069a8dc5f1e233f745b9e9190b245c5f2a5e218c8e5ffa0c3b7144cf0f0",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust.readelf": "fab6ec1264a388496ff450e9ee7f292e5e669638da12e2668e250a0c65839b8a",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c.readelf": "e030de93b39015b5ab6a9e460cb32ced9aaba45455e45796e57229a2c5d9d018",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-0.maps": "c904c4f947ac9bcf989bdeb2083098f2e86fea2a1b827d233f27554e200c627d",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-1.smaps": "f51cf7dad330a8751953c001d885a90fcc827e099059677dbb582266093f4422",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-0.smaps": "68ad9bb90838c905418be9f671de50a628316d42a66244480ed845c20341d617",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-1.log": "bc1c33c77db25da0dc959615fb31fd574658f07bf16fa581fdbce7b21a466871",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/c-1.maps": "8960ccbab604ddb3ebc1c2bd0c3d3f069a75dcda414f62b1806dcdbe36faff1e",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro/rust-0.smaps": "d4d93d86a45a5bd2bd349f4df5643024238ed6e12d04fb08b542ab92c4ff1f6e",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/tests/build.json": "081c492ab2c0ad8d6ddce42ea9454d3a334b8b12b983be82038bd5b3c970aa4a",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/tests/build.log": "0a8a6daa65f631acba92f10592e4d410c378e863708c467fe430cad220b47601",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/tests/build.stdout": "52bd16db1a1a2243dfc01cefae97d9b0ecf6ebf1e0cb7c38f8dd384922c1b4f9",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/tests/clean.log": "71cbef5564a855109eed229f93d35924f54d1b62fe6b8e1eccbe21497b1a2e92",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/tests/clean.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release-driver.stdout": "b8d73451348edebab0408fc8777948b1cdb094493173a2344855e77313e8b0f2",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release-driver.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/verify-driver.stdout": "b6458a2c6d7a489b9022cf746599c42b3f5cf675580b5d67253390b8f4634ef1",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/verify-driver.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/relro-driver.stdout": "7728d4fd9f165352f54e3ea806ba0b89298be9c4399af9329f0782505acbda50",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/relro-driver.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "argv": {
+    "release_build": [
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/oracle_build.sh",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/source",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release",
+      "release"
+    ],
+    "verify_and_test": [
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/verify_and_test.py",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/local-input-identity.json",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/retained-input-identity.json"
+    ],
+    "relro": [
+      "sudo",
+      "-n",
+      "sh",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/run_isolated.sh",
+      "python3",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/docs/dnsmasq/audits/20261011/independent/build_protections_probe.py",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/source",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+      "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/build-relro",
+      "--image-root",
+      "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+      "--require-relro"
+    ]
+  },
+  "local_postcheck": {
+    "head": "02659da6f35fb60ccc916a28b8abf761bf51913c",
+    "main": "be531cee49e366bb5044443d473944dbea45b87e",
+    "input_count": 178,
+    "git_worktree_mismatches": []
+  }
+}

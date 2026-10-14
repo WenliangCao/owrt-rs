@@ -1,0 +1,13 @@
+{
+  "archive_path": "/tmp/dnsmasq-fix7-02659da6.tar",
+  "archive_sha256": "937be4b5aa3d3f0d35ab141002ae4968b6abfecaf8d61409cc94171161f73f4d",
+  "archive_bytes": 114135040,
+  "archive_argv": [
+    "git",
+    "archive",
+    "02659da6f35fb60ccc916a28b8abf761bf51913c"
+  ],
+  "input_enumeration": "build_package.inputs(root), exactly matched frozen Git blobs",
+  "oracle_root": "/home/ubuntu/dnsmasq-audit-fix7-20261014",
+  "python_version": "3.14.8 (main, Sep 30 2026, 17:55:09) [Clang 21.0.0 (clang-2100.3.34.2)]"
+}

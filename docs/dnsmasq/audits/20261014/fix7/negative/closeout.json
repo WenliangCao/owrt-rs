@@ -1,0 +1,22 @@
+{
+  "utc": "2026-10-14T08:47:09.117673+00:00",
+  "argv": [
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/collect_receipts.py",
+    "--root",
+    "/home/ubuntu/dnsmasq-audit-fix7-20261014"
+  ],
+  "script_sha256": "8aa22e577b5cf58d5232eddd4a42bf354685c6b2cb6aa41d2d84af840eeb4eed",
+  "private_evidence": "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative",
+  "scanned_processes": 205,
+  "matching_processes": [],
+  "matching_host_mounts": [],
+  "release_sha256": "e475163a4cd95d4146767d8a6f9d1c26097d80ef7b9bc88b4349b2da5ec233e9",
+  "verified_receipts": {
+    "initial-attempt.json": "a2fa6c6b1464ac9ed1e70510c2d6fb16a29219f2757376cac6d1dd6f88b0710c",
+    "retry100/checked.json": "37a9c51afe86d8b2cc5eb7e95144274f2555f0405f3c8da46be7edd9cf2b5337",
+    "large-soa/checked.json": "7cb9b1ec2d9ec93565ca75856357995cca6a287ab3c713392b7c857cc98c5d5e",
+    "large-soa-valid/checked.json": "4b1fa66e9da57d65e1f0e676057ee014c57252cb57f4fe5c2d73e03a843cfa9d",
+    "repeat-soa/checked.json": "3b4645d7ccff45c50b9d7a306880e7530a4a7a3f894790e5cb006c6395dc7ce1",
+    "calibration.json": "c93d393429ec2a823c56fa3a96443f41c8e1c45f99a66d07c21411ee6885b37f"
+  }
+}

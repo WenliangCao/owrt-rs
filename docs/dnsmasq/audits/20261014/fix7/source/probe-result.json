@@ -1,0 +1,23 @@
+{
+  "head": "02659da6f35fb60ccc916a28b8abf761bf51913c",
+  "compiler": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "command_template": [
+    "rustc",
+    "--edition=2024",
+    "<temporary>/probe.rs",
+    "-o",
+    "<temporary>/probe"
+  ],
+  "exit": 0,
+  "result": {
+    "passed_cases": 9,
+    "wire_source_unmodified": true
+  },
+  "inputs": {
+    "components/dnsmasq/src/dns/wire.rs": "e5f923be00b56d1993203ed12afc37b383eb10732c18c0079e6c4a3cd4968321",
+    "components/dnsmasq/src/dns/cache_engine.rs": "981e10b5be4cffc7ede0a0816a8d1d0c2208af3a67624fffe7bf7c09492e88d1",
+    "docs/dnsmasq/audits/20261014/fix7/source/wire_probe.rs": "2dccb5be30d10110dc8a9c5106df3ab47785fd9736d6fb48fd791cec3add2f84",
+    "docs/dnsmasq/audits/20261014/fix7/source/run_probe.py": "65cce13386f5d3e2bc0662880d1d65f5875043a6a4a0f45f487c3d1f60aa9368"
+  },
+  "generated_probe_sha256": "3f30ddbc84cfa4fb1898c8bc57a48f4f642fc3fe5db8b86c25761ac6e5c8f1a4"
+}

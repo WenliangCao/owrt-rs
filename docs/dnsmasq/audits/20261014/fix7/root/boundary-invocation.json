@@ -1,0 +1,71 @@
+{
+  "runner_sha256": "d9c76ebd9ebb9628460b046dcb63951202dbff8bd355aa2b835caa84a3f6887f",
+  "runs": [
+    {
+      "name": "alias",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/source",
+        "--image",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--main",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "--before",
+        "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-release-recheck/dnsmasq-rs",
+        "--fix",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--profiles",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/alias-profiles.json",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/alias"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 46.850330114364624,
+      "files": {
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/docs/dnsmasq/audits/20261014/fix5/dns/terminal_extended.py": "7ec3edce5f58b098dcadcd05d099fc6fe2ba2eb81358105e5a75e0d5e4017280",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/alias-profiles.json": "8892da02ef2cb85b7c630a8f8fcda1baa513385dfd7675d030f8a0034d18b9cf",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/alias.log": "71492d1c4711c3960e0856e419b7d48cb12c3cee720a804e08786d322af02e3c",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/alias/result.json": "28834348b3abc8a08c66ef130607975e2fe0714f6a0db5788670d54fcca0cc4b"
+      }
+    },
+    {
+      "name": "direct",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/source/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct-target.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/source",
+        "--image",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "--main",
+        "/home/ubuntu/dnsmasq-audit-fix3-20261013/private/release-main/dnsmasq-rs",
+        "--before",
+        "/home/ubuntu/dnsmasq-audit-fix6-20261014/private/root-release-recheck/dnsmasq-rs",
+        "--fix",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/release/dnsmasq-rs",
+        "--profiles",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct-profiles.json",
+        "--out",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct"
+      ],
+      "exit": 0,
+      "elapsed_seconds": 15.64085841178894,
+      "files": {
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct-target.py": "211a1328bf3a623d105fa7dbebf19022c6bd7aaa25921db86475971f81fe9f85",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct-profiles.json": "c36ad0824d61b014cecc34c293b53eceb87f0b76abd3d1506a19434e88130fca",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct.log": "45a9660d9e8a01be49b863125713c64743737e1b112d605c0c7a783df2bb1420",
+        "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/boundary/direct/result.json": "5cb4743c6581d41b6939dd1ca1cf6a506d9b88c973fbbed5b85092a9811be813"
+      }
+    }
+  ]
+}

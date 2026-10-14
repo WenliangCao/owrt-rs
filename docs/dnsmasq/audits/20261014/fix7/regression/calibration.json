@@ -1,0 +1,39 @@
+{
+  "script_sha256": "510cc25c686df5eb4cd69015b119bb6e9f8355974810710f28a385a56fa0ed0f",
+  "decoder_sha256": "6dabd2178168c8e667b24ae6fcd06c31b500b061057441afe0112850726cd75d",
+  "input_sha256": "4e7620117d7255978aebaa8cf1530379649df9fce5b6ed4ca15787b98b13dffd",
+  "controls": {
+    "header-flags": {
+      "detected": true,
+      "parse_error": null
+    },
+    "question-type": {
+      "detected": true,
+      "parse_error": null
+    },
+    "rr-type": {
+      "detected": true,
+      "parse_error": null
+    },
+    "rr-class": {
+      "detected": true,
+      "parse_error": null
+    },
+    "rr-ttl": {
+      "detected": true,
+      "parse_error": null
+    },
+    "rdata-label": {
+      "detected": true,
+      "parse_error": null
+    },
+    "name-cycle": {
+      "detected": true,
+      "parse_error": "name bounds/cycle at 152"
+    },
+    "transport-eof": {
+      "detected": true
+    }
+  },
+  "ttl_tolerance_seconds": 0
+}

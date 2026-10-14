@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "script_sha256": "97ff2140542638f2abfcab4385c588a3b0232a431ee74a9b16138c7a0c986aff",
+  "checker_sha256": "6221bcd22bc590a1d3dc316bce7c96d26fb69f75c20be87132942005e6826ff3",
+  "observed_path": "/home/ubuntu/dnsmasq-audit-fix7-20261014/private/negative/retry100/negative/rcode3-soa1-debug0-q1-udp/c/result.json",
+  "observed_sha256": "6c09eed0c93bd230f41373b228dae81a7812f79ec83a5a021503cb12358e7342",
+  "self_pair": {
+    "responses": 21,
+    "exact": 21,
+    "bounded_soa": 0,
+    "ttl_bounds": [],
+    "dhcp_replies": 2
+  },
+  "event": "ack-visible-a",
+  "corruptions": [
+    {
+      "mutation": "rcode",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "question",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "owner-pointer",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "answer-ttl",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "soa-ttl",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "soa-rdata",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "section-count",
+      "rejected": true,
+      "error_type": "AssertionError"
+    },
+    {
+      "mutation": "upstream",
+      "rejected": true,
+      "error_type": "AssertionError"
+    }
+  ]
+}
