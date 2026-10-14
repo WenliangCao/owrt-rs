@@ -1741,6 +1741,18 @@ impl<R: Random> DnsDaemon<R> {
         self.cache.as_ref()
     }
 
+    /// Retire only the memory-owned cache at the executable's final successful
+    /// shutdown boundary. The process must exit after this call: the kernel
+    /// reclaims these pages without a second allocator walk/unmap pass.
+    ///
+    /// Cache owns records, indices and reference-counted byte storage only;
+    /// sockets, lease persistence, log writers and helper children are outside
+    /// it and must still run their normal shutdown and Drop paths. Library
+    /// users which continue running must use ordinary Drop instead.
+    pub fn retire_cache_for_process_exit(&mut self) {
+        std::mem::forget(self.cache.take());
+    }
+
     pub fn tcp_cache_view(&self) -> Option<Cache> {
         self.cache.as_ref().map(Cache::snapshot)
     }

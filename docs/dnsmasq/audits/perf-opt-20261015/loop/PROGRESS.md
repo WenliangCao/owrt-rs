@@ -6,7 +6,8 @@ Freeze acknowledged:
 `d358c3a0`; never accesses the router. Oracle root is
 `/home/ubuntu/dnsmasq-perf-20261015/loop`. Raw artifacts stay in `private`.
 
-Current screened direction: TCP vectored answers + direct complete-frame input.
+Current screened directions: A TCP framing/UDP borrowed input/upstream scratch;
+B only final-process pure-memory cache retirement.
 No candidate is qualified yet; full correctness and timing are pending.
 
 ## Interface and compatibility audit
@@ -39,7 +40,7 @@ No candidate is qualified yet; full correctness and timing are pending.
 | L02 | Send TCP header + existing packet via vectored I/O | screened in: one framing allocation and payload copy removed; 32/1232/65535-byte instructions −37.3%/−45.2%/−49.6% in isolated framing loop |
 | L03 | Complete TCP input need not round-trip through retained fragment buffer | screened in provisionally: complete 32/1232/65535-byte instructions −20.6%/−25.3%/−48.6%; small fragmented input +2.1–3.7% (10–18 instructions/frame), retain as explicit control |
 | L04 | Reuse upstream poll interest vectors | screened in: actual pending upstream poll 2 → 0 allocations/poll, 16 → 0 newly allocated bytes with one socket, after warmup |
-| L05 | Startup/config stop-start overhead | 20/20 exact-image C + deployed Rust startup/normal-stop traces; pure cache retirement under independent review |
+| L05 | Startup/config stop-start overhead | screened in: independent terminal-boundary review passed; actual daemon teardown 106 → 7 deallocations, removing 93,248 bytes of allocator cleanup; FD count restored 4 → 4 on both sides |
 | L06 | recvmmsg removes terminal WouldBlock syscall without reducing the 16-packet fairness budget | reject unchecked batching: failure boundary changes; SO_ERROR-screen loses syscall saving and adds single-packet instructions |
 
 L01 uses `Cow<[u8]>`; pending interface admission still owns its original copy,
@@ -109,7 +110,24 @@ walks and frees its full heap. A blanket early exit is rejected: DHCP's
 semantics. B only considers retiring the memory-only DNS Cache at the final
 successful `run_inner` return; all IO objects still drop normally. Its only
 caller is `run`, whose only caller is `main`; reloads, command-only actions and
-errors do not pass that terminal site. No product counter/timing result yet.
+errors do not pass that terminal site. Independent correctness review confirmed
+these facts before the counter screen. An actual DnsDaemon with the explicit
+1000-entry empty cache performs 106 deallocations/96,033 freed bytes normally,
+versus 7/2,785 after terminal retirement; both restore FD count from 4 to 4.
+The remaining 93,248 heap bytes are reclaimed by process exit, not retained by
+a continuing daemon. The default upstream constructor has no cache; the first
+diagnostic harness omitted `enable_cache`, was caught before execution, and
+was rebuilt with the explicit 1000-entry configuration. Invalid builds remain
+private and contribute no numbers. Local daemon tests: 61 passed, 3 existing
+ignored. Data: `terminal-cache-screen.json`. Full shutdown/C and timing gates
+are still required on the complete candidate.
+
+All three lifecycle working directories under Oracle `/tmp` were archived and
+copied locally with matching SHA256
+`622a654ab4fc6f0eb472255f570e76062dfc84fb4bd6011add78343e854d6ae4`.
+After verifying no lifecycle process remained, only those three owned `/tmp`
+directories were removed. Source/build/probe evidence remains in the private
+Oracle loop directory; no Docker or other service was touched.
 
 The standalone recvmmsg screen uses the same IP_PKTINFO, 28-byte packet and
 65,535-byte scratch. It reduces single-packet receive syscalls 2 → 1; total
