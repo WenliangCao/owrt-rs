@@ -3184,11 +3184,12 @@ impl SinglePoll {
             .map_err(|_| io::Error::other("DNS state already borrowed"))?;
         let ParentDns { local, daemon, .. } = &mut *parent;
         if let Some(daemon) = daemon {
-            // Release an exclusive local copy before loading. A TCP snapshot
-            // already retains shared records, so keep that owner for an
-            // allocation-free restore instead of trying to make a third copy.
+            // Keep the last valid local generation until publication. A failed
+            // load must restore it without another allocation, including when
+            // no TCP client currently shares it. This deliberately retains one
+            // old local table while reading its replacement.
             let previous = std::mem::take(&mut local.hosts);
-            let previous = if previous.has_shared_records() {
+            let previous = if self.hosts_view_valid {
                 Some(previous)
             } else {
                 drop(previous);

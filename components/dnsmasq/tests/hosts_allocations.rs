@@ -325,15 +325,15 @@ fn consecutive_publication_and_restore_failures_leave_last_daemon_snapshot_intac
 }
 
 #[test]
-fn retained_shared_hosts_restore_without_allocating_after_failed_publication() {
-    for incremental in [false, true] {
+fn retained_hosts_restore_without_allocating_after_failed_publication() {
+    for (incremental, shared) in [(false, false), (false, true), (true, true)] {
         let mut local = Hosts::new();
         local.insert(b"ready.test".to_vec(), "192.0.2.41".parse().unwrap(), 37, 1);
         local.read(b"192.0.2.42 old.test\n192.0.2.43 old.test\n", 2, 37, false, |_| None);
         local.set_source_name(2, b"/old-hosts".to_vec());
         assert!(!local.has_shared_records());
-        let held = local.tcp_snapshot();
-        assert!(local.has_shared_records());
+        let held = shared.then(|| local.tcp_snapshot());
+        assert_eq!(local.has_shared_records(), shared);
         // The parent has private query order as well as shared records.
         local.lookup(b"old.test", Some(false), false);
         let expected = local.try_clone().unwrap();
@@ -366,7 +366,9 @@ fn retained_shared_hosts_restore_without_allocating_after_failed_publication() {
         assert_eq!(local.addresses(b"new.test").count(), 0);
         let later = local.tcp_snapshot();
         assert_eq!(later.entries().as_ptr(), original_records);
-        assert_eq!(held.addresses(b"old.test").count(), 2);
+        if let Some(held) = &held {
+            assert_eq!(held.addresses(b"old.test").count(), 2);
+        }
         drop((held, later));
         assert!(!local.has_shared_records(), "a sole Arc owner is exclusive");
         // A later successful update publishes new data without altering the
