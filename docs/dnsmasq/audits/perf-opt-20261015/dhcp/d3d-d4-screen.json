@@ -1,0 +1,130 @@
+{
+  "scope": "Oracle AArch64 native production-API plain microbenchmark; no allocator instrumentation; not daemon/device performance",
+  "source_baseline": "ac5954a2",
+  "source_candidate": "7136b261",
+  "selected_commits": [
+    "5c2c985b",
+    "745212bb"
+  ],
+  "compiler": "rustc 1.98.1",
+  "affinity_cpu": 3,
+  "timing_reserved_exclusively": true,
+  "probe_flags": [
+    "-O",
+    "-C panic=abort",
+    "-C lto",
+    "--edition=2021",
+    "--cfg uninstrumented"
+  ],
+  "raw_sha256": "18fc3d2168c63104a76f4d0c8d108333bc7041c2862d8d034ad4b95ea44c26bf",
+  "probe_sha256": {
+    "baseline": "5105d06103f09e8168c107e136a7e9851a53598c57125d1a8051a22212c29afb",
+    "candidate": "bad47401c0dc3f5ff2f9f968d0dc519643a1db4d36e830ed54d58b7a4a605ec0"
+  },
+  "summary": [
+    {
+      "case": [
+        "hosts",
+        "8",
+        "100000"
+      ],
+      "records": 8,
+      "median_seconds": {
+        "baseline": 0.7213158,
+        "candidate": 0.689579136
+      },
+      "ranges": {
+        "baseline": [
+          0.706640158,
+          0.724149984
+        ],
+        "candidate": [
+          0.685731984,
+          0.697080718
+        ]
+      },
+      "relative_delta": -0.04399829311932435,
+      "maximum_relative_range": 0.024274840506751622,
+      "candidate_faster_pairs": 5,
+      "discernible": true
+    },
+    {
+      "case": [
+        "hosts",
+        "1000",
+        "2500"
+      ],
+      "records": 1000,
+      "median_seconds": {
+        "baseline": 2.656740297,
+        "candidate": 2.404281238
+      },
+      "ranges": {
+        "baseline": [
+          2.651644013,
+          2.682188989
+        ],
+        "candidate": [
+          2.370294474,
+          2.417084182
+        ]
+      },
+      "relative_delta": -0.09502587034384868,
+      "maximum_relative_range": 0.019460996184839808,
+      "candidate_faster_pairs": 5,
+      "discernible": true
+    },
+    {
+      "case": [
+        "hosts-remove",
+        "1000",
+        "3000"
+      ],
+      "records": 1000,
+      "median_seconds": {
+        "baseline": 0.835327627,
+        "candidate": 0.838839136
+      },
+      "ranges": {
+        "baseline": [
+          0.831307913,
+          0.846401919
+        ],
+        "candidate": [
+          0.83798621,
+          0.84652716
+        ]
+      },
+      "relative_delta": 0.004203750584200527,
+      "maximum_relative_range": 0.01806956397959527,
+      "candidate_faster_pairs": 2,
+      "discernible": false
+    },
+    {
+      "case": [
+        "publication-paired",
+        "150",
+        "8000"
+      ],
+      "records": 150,
+      "median_seconds": {
+        "baseline": 1.31547026,
+        "candidate": 1.231742043
+      },
+      "ranges": {
+        "baseline": [
+          1.314539892,
+          1.318483085
+        ],
+        "candidate": [
+          1.229456424,
+          1.237526572
+        ]
+      },
+      "relative_delta": -0.06364888629257193,
+      "maximum_relative_range": 0.006551816629027604,
+      "candidate_faster_pairs": 5,
+      "discernible": true
+    }
+  ]
+}

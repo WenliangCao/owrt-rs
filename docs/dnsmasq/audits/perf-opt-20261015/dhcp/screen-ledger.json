@@ -1,0 +1,682 @@
+{
+  "scope": "Native AArch64 mechanism screens. plain-* omits allocator instrumentation. No daemon/device acceptance claim.",
+  "results": [
+    {
+      "screen": "d2d3-screen",
+      "raw_summary_sha256": "cd1abb91c32548e673e3c0dc1ebb4873fa0f8d54a319103e2c5d9cc6754ad6aa",
+      "probe_sha256": {
+        "baseline": "e070aff26721b4ef004bb699b4652eb874bf75a87abb76eaba5c81d68843cbfe",
+        "candidate": "90b3221dabb8e409cc4fcf3b25cfee2010037fd46936c95e4b6203c1fcd93041"
+      },
+      "cases": [
+        {
+          "case": [
+            "lookup",
+            "150",
+            "10000"
+          ],
+          "instruction_relative_delta": -0.22146731445583512,
+          "baseline": {
+            "instructions_per_iteration": 88924.2408,
+            "cycles_per_iteration": 33493.9179,
+            "allocations_per_iteration": 150.0,
+            "allocated_bytes_per_iteration": 3000.0,
+            "counter_variation": "0.02%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 69230.428,
+            "cycles_per_iteration": 23177.2253,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.02%"
+          }
+        },
+        {
+          "case": [
+            "hosts",
+            "1000",
+            "1000"
+          ],
+          "instruction_relative_delta": -0.23345222750235906,
+          "baseline": {
+            "instructions_per_iteration": 7573284.774,
+            "cycles_per_iteration": 3139850.919,
+            "allocations_per_iteration": 3084.0,
+            "allocated_bytes_per_iteration": 477827.0,
+            "counter_variation": "0.29%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 5805284.574,
+            "cycles_per_iteration": 2442646.777,
+            "allocations_per_iteration": 1074.0,
+            "allocated_bytes_per_iteration": 225239.0,
+            "counter_variation": "0.11%"
+          }
+        },
+        {
+          "case": [
+            "hosts",
+            "8",
+            "10000"
+          ],
+          "instruction_relative_delta": -0.20188434685168244,
+          "baseline": {
+            "instructions_per_iteration": 58239.1824,
+            "cycles_per_iteration": 22445.53,
+            "allocations_per_iteration": 43.0,
+            "allocated_bytes_per_iteration": 9155.0,
+            "counter_variation": "0.27%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 46481.6031,
+            "cycles_per_iteration": 17740.0419,
+            "allocations_per_iteration": 24.0,
+            "allocated_bytes_per_iteration": 7343.0,
+            "counter_variation": "0.24%"
+          }
+        },
+        {
+          "case": [
+            "hosts-exists",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": 0.8324150375046666,
+          "baseline": {
+            "instructions_per_iteration": 595117.408,
+            "cycles_per_iteration": 245900.929,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 20000.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 1090502.0875,
+            "cycles_per_iteration": 463479.8045,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "1.72%"
+          }
+        },
+        {
+          "case": [
+            "hosts-miss",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": 0.37392141483746055,
+          "baseline": {
+            "instructions_per_iteration": 811033.431,
+            "cycles_per_iteration": 293492.7115,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 27000.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 1114296.199,
+            "cycles_per_iteration": 515625.467,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.15%"
+          }
+        },
+        {
+          "case": [
+            "hosts-ancestor",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.061104991840010614,
+          "baseline": {
+            "instructions_per_iteration": 763944.9265,
+            "cycles_per_iteration": 274316.291,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 11000.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 717264.078,
+            "cycles_per_iteration": 303617.047,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "3.34%"
+          }
+        }
+      ]
+    },
+    {
+      "screen": "d3b-screen",
+      "raw_summary_sha256": "62531df645003682f534e3da957ee29fd1a9982a5411f143d7ea450fca54b78a",
+      "probe_sha256": {
+        "baseline": "9b833228cce1361ff99c41a706dc5b98dd0001ac4528ee487ac6251b11728dda",
+        "candidate": "001876c9c064282d849b8aa5f69a02482730d0899ffe78ab4f8f7c263853a582"
+      },
+      "cases": [
+        {
+          "case": [
+            "hosts",
+            "1000",
+            "1000"
+          ],
+          "instruction_relative_delta": -0.09562067035889976,
+          "baseline": {
+            "instructions_per_iteration": 7572273.571,
+            "cycles_per_iteration": 3132398.714,
+            "allocations_per_iteration": 3084.0,
+            "allocated_bytes_per_iteration": 477827.0,
+            "counter_variation": "0.21%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 6848207.696,
+            "cycles_per_iteration": 2813897.074,
+            "allocations_per_iteration": 2084.0,
+            "allocated_bytes_per_iteration": 380355.0,
+            "counter_variation": "0.17%"
+          }
+        },
+        {
+          "case": [
+            "hosts",
+            "8",
+            "10000"
+          ],
+          "instruction_relative_delta": -0.05967859118777952,
+          "baseline": {
+            "instructions_per_iteration": 57988.6963,
+            "cycles_per_iteration": 22325.065,
+            "allocations_per_iteration": 43.0,
+            "allocated_bytes_per_iteration": 9155.0,
+            "counter_variation": "0.06%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 54528.0126,
+            "cycles_per_iteration": 21237.8606,
+            "allocations_per_iteration": 35.0,
+            "allocated_bytes_per_iteration": 8451.0,
+            "counter_variation": "0.26%"
+          }
+        },
+        {
+          "case": [
+            "hosts-exists",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.18905363390051189,
+          "baseline": {
+            "instructions_per_iteration": 597399.2045,
+            "cycles_per_iteration": 245501.7805,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 20000.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 484458.714,
+            "cycles_per_iteration": 166501.6055,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          }
+        },
+        {
+          "case": [
+            "hosts-miss",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.06882171561087391,
+          "baseline": {
+            "instructions_per_iteration": 813329.107,
+            "cycles_per_iteration": 296160.3885,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 27000.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 757354.4025,
+            "cycles_per_iteration": 244675.8135,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          }
+        },
+        {
+          "case": [
+            "hosts-ancestor",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.21710960068697782,
+          "baseline": {
+            "instructions_per_iteration": 768812.5305,
+            "cycles_per_iteration": 279024.1875,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 11000.0,
+            "counter_variation": "0.34%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 601895.949,
+            "cycles_per_iteration": 199177.092,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.43%"
+          }
+        },
+        {
+          "case": [
+            "hosts-empty",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.7686064775134399,
+          "baseline": {
+            "instructions_per_iteration": 364255.7475,
+            "cycles_per_iteration": 134242.269,
+            "allocations_per_iteration": 1000.0,
+            "allocated_bytes_per_iteration": 20000.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 84286.4205,
+            "cycles_per_iteration": 30443.0055,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          }
+        },
+        {
+          "case": [
+            "hosts-remove",
+            "1000",
+            "500"
+          ],
+          "instruction_relative_delta": 0.07432200446299153,
+          "baseline": {
+            "instructions_per_iteration": 2556775.606,
+            "cycles_per_iteration": 920576.072,
+            "allocations_per_iteration": 3551.0,
+            "allocated_bytes_per_iteration": 325723.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 2746800.294,
+            "cycles_per_iteration": 1084909.432,
+            "allocations_per_iteration": 2551.0,
+            "allocated_bytes_per_iteration": 280955.0,
+            "counter_variation": "0.28%"
+          }
+        }
+      ]
+    },
+    {
+      "screen": "d4-screen",
+      "raw_summary_sha256": "595844ba6940fa730fa7ff1594272c65ba4c11ccab2a980b4a3f90601f8613db",
+      "probe_sha256": {
+        "baseline": "e070aff26721b4ef004bb699b4652eb874bf75a87abb76eaba5c81d68843cbfe",
+        "candidate": "cc2b69d9c6570d4508c50e82f0209effc140aa75b48896484c22dddba94611a5"
+      },
+      "cases": [
+        {
+          "case": [
+            "publication",
+            "150",
+            "10000"
+          ],
+          "instruction_relative_delta": -0.11243628096672209,
+          "baseline": {
+            "instructions_per_iteration": 881628.3316,
+            "cycles_per_iteration": 337749.2715,
+            "allocations_per_iteration": 1079.0,
+            "allocated_bytes_per_iteration": 84950.0,
+            "counter_variation": "0.02%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 782501.3208,
+            "cycles_per_iteration": 291883.3565,
+            "allocations_per_iteration": 631.0,
+            "allocated_bytes_per_iteration": 79715.0,
+            "counter_variation": "0.04%"
+          }
+        },
+        {
+          "case": [
+            "publication",
+            "150",
+            "10000",
+            "short"
+          ],
+          "instruction_relative_delta": -0.07116850694818122,
+          "baseline": {
+            "instructions_per_iteration": 621296.3022,
+            "cycles_per_iteration": 228025.5187,
+            "allocations_per_iteration": 778.0,
+            "allocated_bytes_per_iteration": 75328.0,
+            "counter_variation": "0.02%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 577079.572,
+            "cycles_per_iteration": 208407.3353,
+            "allocations_per_iteration": 628.0,
+            "allocated_bytes_per_iteration": 74128.0,
+            "counter_variation": "0.06%"
+          }
+        },
+        {
+          "case": [
+            "publication-paired",
+            "150",
+            "5000"
+          ],
+          "instruction_relative_delta": -0.09223943052361994,
+          "baseline": {
+            "instructions_per_iteration": 1438397.2586,
+            "cycles_per_iteration": 538769.2698,
+            "allocations_per_iteration": 1832.0,
+            "allocated_bytes_per_iteration": 151934.0,
+            "counter_variation": "0.06%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 1305720.3146,
+            "cycles_per_iteration": 482581.125,
+            "allocations_per_iteration": 1234.0,
+            "allocated_bytes_per_iteration": 145499.0,
+            "counter_variation": "0.02%"
+          }
+        }
+      ]
+    },
+    {
+      "screen": "d5-screen",
+      "raw_summary_sha256": "e4dbdaf61073ecf009cda651bf206009df418e53e1135bc4844579533ecf2d7e",
+      "probe_sha256": {
+        "baseline": "bedf6f884df80b18d93d3c07ebaf191f919c4e9d4b4cb4b20a49bdeb3331bc0a",
+        "candidate": "001876c9c064282d849b8aa5f69a02482730d0899ffe78ab4f8f7c263853a582"
+      },
+      "cases": [
+        {
+          "case": [
+            "serialize",
+            "150",
+            "10000"
+          ],
+          "instruction_relative_delta": 0.26636835483142973,
+          "baseline": {
+            "instructions_per_iteration": 238283.3608,
+            "cycles_per_iteration": 71280.2194,
+            "allocations_per_iteration": 2.0,
+            "allocated_bytes_per_iteration": 2400.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 301754.5076,
+            "cycles_per_iteration": 102690.0293,
+            "allocations_per_iteration": 1.0,
+            "allocated_bytes_per_iteration": 1200.0,
+            "counter_variation": "0.00%"
+          }
+        },
+        {
+          "case": [
+            "serialize",
+            "6",
+            "100000"
+          ],
+          "instruction_relative_delta": 0.21920446145571693,
+          "baseline": {
+            "instructions_per_iteration": 10131.6348,
+            "cycles_per_iteration": 2995.00359,
+            "allocations_per_iteration": 2.0,
+            "allocated_bytes_per_iteration": 96.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 12352.53435,
+            "cycles_per_iteration": 4157.01615,
+            "allocations_per_iteration": 1.0,
+            "allocated_bytes_per_iteration": 48.0,
+            "counter_variation": "0.00%"
+          }
+        }
+      ]
+    },
+    {
+      "screen": "plain-d3b-screen",
+      "raw_summary_sha256": "cfb44185187c0db61c6b49991396def925af5b604c1e30b0e206b64e88ee490e",
+      "probe_sha256": {
+        "baseline": "5105d06103f09e8168c107e136a7e9851a53598c57125d1a8051a22212c29afb",
+        "candidate": "47e7a1d4c02f8e01e2ee6b49227e904aba3e7156043b6b42e15d201145cff282"
+      },
+      "cases": [
+        {
+          "case": [
+            "hosts",
+            "1000",
+            "1000"
+          ],
+          "instruction_relative_delta": -0.08212901367253134,
+          "baseline": {
+            "instructions_per_iteration": 7451286.295,
+            "cycles_per_iteration": 3070994.29,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.16%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 6839319.501,
+            "cycles_per_iteration": 2786085.13,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.51%"
+          }
+        },
+        {
+          "case": [
+            "hosts",
+            "8",
+            "10000"
+          ],
+          "instruction_relative_delta": -0.05499393093673344,
+          "baseline": {
+            "instructions_per_iteration": 56746.7309,
+            "cycles_per_iteration": 21554.1663,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.12%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 53626.0051,
+            "cycles_per_iteration": 20440.7739,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.20%"
+          }
+        },
+        {
+          "case": [
+            "hosts-exists",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.15790491517195648,
+          "baseline": {
+            "instructions_per_iteration": 575327.0435,
+            "cycles_per_iteration": 216017.395,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 484480.0755,
+            "cycles_per_iteration": 167631.287,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          }
+        },
+        {
+          "case": [
+            "hosts-miss",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.042680187922311874,
+          "baseline": {
+            "instructions_per_iteration": 791140.331,
+            "cycles_per_iteration": 272605.1145,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 757374.313,
+            "cycles_per_iteration": 244091.3255,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.02%"
+          }
+        },
+        {
+          "case": [
+            "hosts-empty",
+            "1000",
+            "2000"
+          ],
+          "instruction_relative_delta": -0.7536916260295989,
+          "baseline": {
+            "instructions_per_iteration": 342199.5795,
+            "cycles_per_iteration": 108041.3365,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 84286.622,
+            "cycles_per_iteration": 30476.857,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.02%"
+          }
+        },
+        {
+          "case": [
+            "hosts-remove",
+            "1000",
+            "500"
+          ],
+          "instruction_relative_delta": 0.09153347842349646,
+          "baseline": {
+            "instructions_per_iteration": 2473970.616,
+            "cycles_per_iteration": 874130.076,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 2700421.752,
+            "cycles_per_iteration": 1043024.784,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.24%"
+          }
+        },
+        {
+          "case": [
+            "publication-paired",
+            "150",
+            "5000"
+          ],
+          "instruction_relative_delta": -0.05686617584886111,
+          "baseline": {
+            "instructions_per_iteration": 1368895.0002,
+            "cycles_per_iteration": 489835.343,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.03%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 1291051.1764,
+            "cycles_per_iteration": 471712.4208,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.05%"
+          }
+        },
+        {
+          "case": [
+            "lookup",
+            "150",
+            "10000"
+          ],
+          "instruction_relative_delta": -0.19500007474948933,
+          "baseline": {
+            "instructions_per_iteration": 85545.7349,
+            "cycles_per_iteration": 29072.9521,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.01%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 68864.3102,
+            "cycles_per_iteration": 23244.541,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.03%"
+          }
+        }
+      ]
+    },
+    {
+      "screen": "plain-d5-screen",
+      "raw_summary_sha256": "ed029805a4f57ea4442762184e833bb8c034aca9f2742f4c445a3f2bc5c650d8",
+      "probe_sha256": {
+        "baseline": "6f1da51b1d0225e7c81ebca48cbed216f870d161f61c2e9de0cb2c4966e20b38",
+        "candidate": "47e7a1d4c02f8e01e2ee6b49227e904aba3e7156043b6b42e15d201145cff282"
+      },
+      "cases": [
+        {
+          "case": [
+            "serialize",
+            "150",
+            "10000"
+          ],
+          "instruction_relative_delta": 0.26811909820657953,
+          "baseline": {
+            "instructions_per_iteration": 237937.5577,
+            "cycles_per_iteration": 70132.9401,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 301733.1611,
+            "cycles_per_iteration": 99064.2098,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.00%"
+          }
+        },
+        {
+          "case": [
+            "serialize",
+            "6",
+            "100000"
+          ],
+          "instruction_relative_delta": 0.2238967694549332,
+          "baseline": {
+            "instructions_per_iteration": 10075.62635,
+            "cycles_per_iteration": 2950.97652,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.00%"
+          },
+          "candidate": {
+            "instructions_per_iteration": 12331.52654,
+            "cycles_per_iteration": 4030.70121,
+            "allocations_per_iteration": 0.0,
+            "allocated_bytes_per_iteration": 0.0,
+            "counter_variation": "0.00%"
+          }
+        }
+      ]
+    }
+  ]
+}
