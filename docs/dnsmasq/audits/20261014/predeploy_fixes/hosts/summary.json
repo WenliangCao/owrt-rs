@@ -1,0 +1,1059 @@
+{
+  "source": {
+    "source": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02",
+    "commit": "807db8a15e43452414acc048874bf04a4c639bd9",
+    "files": {
+      "components/dnsmasq/src/hosts.rs": "2791d7c41c0bc5f33de8a5a24b9a1b6a0f90727a4a336b8235c3449a4d37de87",
+      "components/dnsmasq/src/dns/hostsdir_runtime.rs": "4cdaf913c093bc32775989d748cd29e002eb55ae9962d8d15a3db2bcd2183fed",
+      "components/dnsmasq/src/main.rs": "bedd9695150b7a7cacd37cd4ae795a47db7dd86686cf85542f30632f2c46496e",
+      "components/dnsmasq/src/main_hostsdir_init_tests.rs": "609afbbbf4246d28284e923f3a8f64c3a1f80987bc08968e83a8f50702f00379",
+      "components/dnsmasq/tests/hosts_allocations.rs": "5c4b1e72622b43bb70cba1183215c4556b9371b000f8c3b034cdb514eb5525c3",
+      "tools/dnsmasq/predeploy_hosts_pressure.py": "c92cc4615378eab1f47d0478702516369bdbe6d3e490757f7b7d9d3b6f116361",
+      "tools/dnsmasq/predeploy_hosts_generation.py": "8a8a40a753f57a4476360f9dc1aa9128a4149b7300761255caf78e02f0009e4a",
+      "tools/dnsmasq/audit_integration_resources.py": "df8ba4b90e7d2879701acd082de0953b86bc47e56113fdf4695eb2890c511361"
+    }
+  },
+  "rust": {
+    "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+    "sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+    "bytes": 2071323
+  },
+  "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "commands": [
+    {
+      "name": "memory",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_integration_resources.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "--source-commit",
+        "807db8a15e43452414acc048874bf04a4c639bd9",
+        "--kinds",
+        "memory",
+        "--output",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-02"
+      ]
+    },
+    {
+      "name": "memory-control",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_integration_resources.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--rust-sha256",
+        "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "--source-commit",
+        "807db8a15e43452414acc048874bf04a4c639bd9",
+        "--kinds",
+        "memory",
+        "--memory-headroom-mib",
+        "0",
+        "--output",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-control-02"
+      ]
+    },
+    {
+      "name": "pressure",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/predeploy_hosts_pressure.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--source-commit",
+        "807db8a15e43452414acc048874bf04a4c639bd9",
+        "--output",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-pressure-02"
+      ]
+    },
+    {
+      "name": "boundaries",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_fix_20261011_hosts.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-boundaries-02"
+      ]
+    },
+    {
+      "name": "boundaries-retry",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "env",
+        "PYTHONPATH=/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/final-fixtures-02/docs/dnsmasq/audits/20261011/independent",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_fix_20261011_hosts.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-boundaries-02"
+      ]
+    },
+    {
+      "name": "memory-boundary",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_20261011_hosts_memory.py",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-boundary-02"
+      ]
+    },
+    {
+      "name": "startup",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_fix_20261011_hosts_startup.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-startup-02"
+      ]
+    },
+    {
+      "name": "startup-dhcp",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/audit_fix_20261011_hosts_startup_dhcp.py",
+        "--source",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02",
+        "--image-root",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "--rust",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "--out",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-startup-dhcp-02"
+      ]
+    },
+    {
+      "name": "generation",
+      "argv": [
+        "sudo",
+        "-n",
+        "sh",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/run_isolated.sh",
+        "python3",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/tools/dnsmasq/predeploy_hosts_generation.py",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02",
+        "/home/ubuntu/dnsmasq-predeploy-b-20261014/private/identity-final/rootfs-check",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/private/sdk-acquire-02/payload/usr/sbin/dnsmasq",
+        "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-generation-02",
+        "/home/ubuntu/dnsmasq-rewrite-20260929/c-native-01"
+      ]
+    }
+  ],
+  "original_b1": {
+    "passed": true,
+    "cases": [
+      {
+        "side": "c",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1108
+        },
+        "limit_bytes": 2412544,
+        "after_reload_exit": null,
+        "pressure": {
+          "VmPeak": 2332,
+          "VmSize": 2332,
+          "VmRSS": 2040
+        },
+        "probe_attempts": 4,
+        "ready_under_pressure": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "ready.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.41"
+            }
+          ]
+        },
+        "last_host": {
+          "received": true,
+          "rcode": 5,
+          "records": []
+        },
+        "recovered": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "recovered.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.44"
+            }
+          ]
+        },
+        "exit": 0,
+        "enomem_count": 20455,
+        "sigabrt": false,
+        "syscalls": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-02/memory-c/syscalls.log",
+          "sha256": "2beb587acf450ab1cdf66355c05007360be846ff3279bf231c030301034c80aa",
+          "bytes": 2397932
+        }
+      },
+      {
+        "side": "rust",
+        "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "initial": {
+          "VmPeak": 2328,
+          "VmSize": 2328,
+          "VmRSS": 2048
+        },
+        "limit_bytes": 3432448,
+        "after_reload_exit": null,
+        "pressure": {
+          "VmPeak": 3312,
+          "VmSize": 2348,
+          "VmRSS": 2072
+        },
+        "probe_attempts": 1,
+        "ready_under_pressure": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "ready.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.41"
+            }
+          ]
+        },
+        "last_host": {
+          "received": true,
+          "rcode": 5,
+          "records": []
+        },
+        "recovered": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "recovered.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.44"
+            }
+          ]
+        },
+        "exit": 0,
+        "enomem_count": 26418,
+        "sigabrt": false,
+        "syscalls": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-02/memory-rust/syscalls.log",
+          "sha256": "13138bb5411a162633ad7f0e4715d5903744a1ba8c84388a7c0166cec11435ee",
+          "bytes": 3125729
+        }
+      }
+    ],
+    "evidence": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-02/result.json",
+      "sha256": "b547a17bcb47ae1d965b5cf088e3cac9126352fdfc25a8196d93bb373b5138b8",
+      "bytes": 6127
+    }
+  },
+  "unlimited_control": {
+    "passed": true,
+    "cases": [
+      {
+        "side": "c",
+        "binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "initial": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1128
+        },
+        "limit_bytes": null,
+        "after_reload_exit": null,
+        "pressure": {
+          "VmPeak": 4264,
+          "VmSize": 4264,
+          "VmRSS": 4044
+        },
+        "probe_attempts": 1,
+        "ready_under_pressure": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "ready.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.41"
+            }
+          ]
+        },
+        "last_host": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "h029999.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.250"
+            }
+          ]
+        },
+        "recovered": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "recovered.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.44"
+            }
+          ]
+        },
+        "exit": 0,
+        "enomem_count": 0,
+        "sigabrt": false,
+        "syscalls": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-control-02/memory-c/syscalls.log",
+          "sha256": "87a0299887145478f9b786e41f2cfe41291dd81c18b3c30ea5eecaf8d799af88",
+          "bytes": 8790
+        }
+      },
+      {
+        "side": "rust",
+        "binary_sha256": "0d5a476923c5da514662068950f2057b1d7500d9b9bfd0a1ad5a757ff12dc728",
+        "initial": {
+          "VmPeak": 2328,
+          "VmSize": 2328,
+          "VmRSS": 2028
+        },
+        "limit_bytes": null,
+        "after_reload_exit": null,
+        "pressure": {
+          "VmPeak": 16384,
+          "VmSize": 16384,
+          "VmRSS": 15912
+        },
+        "probe_attempts": 1,
+        "ready_under_pressure": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "ready.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.41"
+            }
+          ]
+        },
+        "last_host": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "h029999.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.250"
+            }
+          ]
+        },
+        "recovered": {
+          "received": true,
+          "rcode": 0,
+          "records": [
+            {
+              "section": "answer",
+              "name": "recovered.test",
+              "type": 1,
+              "class": 1,
+              "ttl": 0,
+              "data": "192.0.2.44"
+            }
+          ]
+        },
+        "exit": 0,
+        "enomem_count": 0,
+        "sigabrt": false,
+        "syscalls": {
+          "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-control-02/memory-rust/syscalls.log",
+          "sha256": "974862061a5632aabbaf5cce139eedf66ef5f8b1bbb0bd5ef1e84a700f8ab596",
+          "bytes": 39819
+        }
+      }
+    ],
+    "evidence": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-control-02/result.json",
+      "sha256": "d1728237d43e5eef9978c858ea51326d4e2e15885742e15eb12c728721dc9f84",
+      "bytes": 6285
+    }
+  },
+  "extended_pressure": {
+    "passed": true,
+    "evidence": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-pressure-02/result.json",
+      "sha256": "699acd3fecc1042de41a38d8dca6d863519726b4e13fb1229a95790a02d31bb8",
+      "bytes": 82758
+    },
+    "cases": [
+      {
+        "side": "c",
+        "source": "file",
+        "expand": false,
+        "initial_memory": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1036
+        },
+        "limit_bytes": 2412544,
+        "pressure_tcp_healthy": false,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 40936,
+        "syscalls_sha256": "e6371e0e9774c201e3898254aad4c44cd38c9bb5cf20dd862a6e877c22b31ec1",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2304,
+              "VmSize": 2300,
+              "VmRSS": 1968
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2304,
+              "VmSize": 2300,
+              "VmRSS": 1968
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "rust",
+        "source": "file",
+        "expand": false,
+        "initial_memory": {
+          "VmPeak": 2436,
+          "VmSize": 2420,
+          "VmRSS": 2168
+        },
+        "limit_bytes": 3526656,
+        "pressure_tcp_healthy": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 52836,
+        "syscalls_sha256": "d52448caa00dc9bb0c63531dbf28a805ea24542f16e357c6bea0525f40e262a8",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3388,
+              "VmSize": 2440,
+              "VmRSS": 2196
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3388,
+              "VmSize": 2440,
+              "VmRSS": 2196
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "c",
+        "source": "file",
+        "expand": true,
+        "initial_memory": {
+          "VmPeak": 1332,
+          "VmSize": 1332,
+          "VmRSS": 1124
+        },
+        "limit_bytes": 2412544,
+        "pressure_tcp_healthy": false,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 99336,
+        "syscalls_sha256": "49f6e88f16243f2d915426b2779b4c2d14e0991d6c802376073981c72a13bf60",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2356,
+              "VmSize": 2328,
+              "VmRSS": 2112
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2356,
+              "VmSize": 2328,
+              "VmRSS": 2112
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "rust",
+        "source": "file",
+        "expand": true,
+        "initial_memory": {
+          "VmPeak": 2436,
+          "VmSize": 2420,
+          "VmRSS": 2128
+        },
+        "limit_bytes": 3526656,
+        "pressure_tcp_healthy": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 112836,
+        "syscalls_sha256": "2b7c613baa0de38b2798fee7540fe2e33b24c134a1dce1b8501a7f9753375184",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3388,
+              "VmSize": 2440,
+              "VmRSS": 2156
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3388,
+              "VmSize": 2440,
+              "VmRSS": 2156
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "c",
+        "source": "directory",
+        "expand": false,
+        "initial_memory": {
+          "VmPeak": 1336,
+          "VmSize": 1332,
+          "VmRSS": 1132
+        },
+        "limit_bytes": 2412544,
+        "pressure_tcp_healthy": false,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 39336,
+        "syscalls_sha256": "16217567099d4e82f99ceab384bad3bb3eec85294dd4b06dd829682433c1475e",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2344,
+              "VmSize": 2340,
+              "VmRSS": 2124
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2344,
+              "VmSize": 2340,
+              "VmRSS": 2124
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "rust",
+        "source": "directory",
+        "expand": false,
+        "initial_memory": {
+          "VmPeak": 2432,
+          "VmSize": 2432,
+          "VmRSS": 2092
+        },
+        "limit_bytes": 3538944,
+        "pressure_tcp_healthy": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 228,
+        "syscalls_sha256": "60feb722183ec2e75b39316e24473906c3113dc88d44732c5f0f04803190225d",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3448,
+              "VmSize": 2436,
+              "VmRSS": 1932
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3448,
+              "VmSize": 2436,
+              "VmRSS": 1996
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "c",
+        "source": "directory",
+        "expand": true,
+        "initial_memory": {
+          "VmPeak": 1336,
+          "VmSize": 1332,
+          "VmRSS": 1044
+        },
+        "limit_bytes": 2412544,
+        "pressure_tcp_healthy": false,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 99336,
+        "syscalls_sha256": "ee2d53f1f30700c8425eb7168af76c2ed1b8dff542e6134e5b478aff7d7772b7",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2312,
+              "VmSize": 2308,
+              "VmRSS": 2008
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": false
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": false
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 2312,
+              "VmSize": 2308,
+              "VmRSS": 2008
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      },
+      {
+        "side": "rust",
+        "source": "directory",
+        "expand": true,
+        "initial_memory": {
+          "VmPeak": 2432,
+          "VmSize": 2416,
+          "VmRSS": 2160
+        },
+        "limit_bytes": 3522560,
+        "pressure_tcp_healthy": true,
+        "exit_before_stop": null,
+        "exit": 0,
+        "enomem_count": 106,
+        "syscalls_sha256": "5ee3167cf7c3f829ac8234379894af7ef9b418e69deafdab93a050c1ca28dc73",
+        "rounds": [
+          {
+            "generation": "h",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3432,
+              "VmSize": 2436,
+              "VmRSS": 2180
+            }
+          },
+          {
+            "generation": "j",
+            "alive": true,
+            "ready": {
+              "udp": true,
+              "tcp": true
+            },
+            "lease_dns": {
+              "udp": true,
+              "tcp": true
+            },
+            "dhcp_ack": true,
+            "memory": {
+              "VmPeak": 3432,
+              "VmSize": 2436,
+              "VmRSS": 2180
+            }
+          }
+        ],
+        "recovered": {
+          "udp": true,
+          "tcp": true
+        },
+        "recovered_dhcp_ack": true
+      }
+    ]
+  },
+  "regressions": {
+    "boundaries": {
+      "passed": true,
+      "paired_cases": 8,
+      "evidence": {
+        "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-boundaries-02/result.json",
+        "sha256": "1366d5c7c7a613c302a6aae8580c09e4b459775b2ebdb014803f5755349aaa5d",
+        "bytes": 157116
+      }
+    },
+    "memory-boundary": {
+      "passed": true,
+      "paired_cases": 3,
+      "evidence": {
+        "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-memory-boundary-02/result.json",
+        "sha256": "c23a7dc3d7f249bdd48d45d8c6b0df79bd0a7d90bc534699771e28de9e15152d",
+        "bytes": 6070
+      }
+    },
+    "startup": {
+      "passed": true,
+      "paired_cases": 3,
+      "evidence": {
+        "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-startup-02/result.json",
+        "sha256": "fbf8ab7618e6a6a1a0e6785068146fb6d6a2d4d644b14bf22d4e602c47ffc190",
+        "bytes": 38974
+      }
+    },
+    "startup-dhcp": {
+      "passed": true,
+      "paired_cases": 1,
+      "evidence": {
+        "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-startup-dhcp-02/result.json",
+        "sha256": "426215ea46fa3ce51cfd68d1db2a0efa144cae61f5b3b4af29eecc994216b56b",
+        "bytes": 11516
+      }
+    },
+    "generation": {
+      "passed": true,
+      "evidence": {
+        "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-generation-02/summary.json",
+        "sha256": "24a7de342e07f9a1ea3ab2df17bb85d1c26d5724d3f02976d59bf8f5c602d596",
+        "bytes": 6923
+      },
+      "queries_per_side": 204,
+      "no_round_robin_modes": [
+        true,
+        false
+      ],
+      "inventory_sha256": "e9e24fc0e69c6a08b60c8142dcc76adfe79008645fba2cb7c2be8f7e3000a24e",
+      "rotation_sha256": "f8dc5f1267773439b0068e85c4a80027a165f5d86d8831baaa88fe27d74cfce3",
+      "scope": "Image ELF answers; matching native C objects supply only inventory/rotation fixtures."
+    }
+  },
+  "allocation_tests": {
+    "passed": 5,
+    "failed": 0,
+    "log": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/allocation-final-02.log",
+      "sha256": "7267ed9044b0ea63d2f085ec2d51fca9d2432ab49e884dde2ba9ac0c3fa214b6",
+      "bytes": 18525
+    },
+    "binary": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/allocation-final-02-test",
+      "sha256": "d826acbc9fa5be037e66c2812489058eef9f2fb8634fce7684b689754b49bb97",
+      "bytes": 31584616
+    },
+    "scope": "Separate AArch64 musl debug test executable from frozen source-02, not the shipped ELF.",
+    "command": [
+      "/home/ubuntu/.cargo/bin/cargo",
+      "+1.98.1",
+      "test",
+      "--frozen",
+      "--target",
+      "aarch64-unknown-linux-musl",
+      "--manifest-path",
+      "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/root/source-02/components/dnsmasq/Cargo.toml",
+      "--test",
+      "hosts_allocations",
+      "--",
+      "--test-threads=1"
+    ],
+    "environment": {
+      "CARGO_TARGET_DIR": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/allocation-target",
+      "STAGING_DIR": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl",
+      "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER": "/home/ubuntu/sdk/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc"
+    }
+  },
+  "harness_preparation": {
+    "note": "The first boundaries invocation stopped before daemon startup because source-02 omits documentation fixtures. Retried using the unchanged fixture from commit 807db8a1 via PYTHONPATH.",
+    "initial_error": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/private/final-boundaries-02.stderr",
+      "sha256": "dc7ec9db1f66a2388befd720f8640e528d32a313fa6d8f38f853aaba0c566933",
+      "bytes": 272
+    },
+    "fixture": {
+      "path": "/home/ubuntu/dnsmasq-predeploy-fixes-20261014/hosts/final-fixtures-02/docs/dnsmasq/audits/20261011/independent/dns_hosts_probe.py",
+      "sha256": "afc8f8e083285ffab47d14c206f0c4344d41f1cc1171d5052cd02bc52321c8cd",
+      "bytes": 5153
+    }
+  },
+  "limits": [
+    "C skips individual failed records; Rust can retain a previously published source/snapshot when staging or publication fails. Partial hosts contents under pressure are not asserted identical.",
+    "C TCP children can fail under RLIMIT_AS while the parent still answers UDP/DHCP. Both implementations recover TCP after removing the limit; pressure TCP outcomes are retained separately.",
+    "The allocator test covers parser/name expansion, records/diagnostics staging, indexes/removal and snapshot copies, including two consecutive copy failures. It is not a global daemon allocation-failure proof.",
+    "A separate owner state-sequence unit test verifies restoring an invalid view before changing another hosts source; the complete binary test suite is reported by the parent validation.",
+    "No global OOM-killer, arbitrary sustained allocator failure, physical router or target-kernel claim."
+  ],
+  "passed": true
+}
