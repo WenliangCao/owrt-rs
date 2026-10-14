@@ -303,3 +303,37 @@ fn hup_hosts_fifo_keeps_the_previous_generation_until_complete_publication() {
         std::fs::remove_dir_all(root).unwrap();
     }
 }
+
+#[test]
+fn failed_bulk_preparation_does_not_consume_an_existing_incremental_event() {
+    use dnsmasq_rs::dns::hostsdir::HostChange;
+    let path = std::env::temp_dir().join(format!("hostsdir-failed-bulk-queued-{}", std::process::id()));
+    std::fs::write(&path, b"192.0.2.42 ready.test\n").unwrap();
+    let config = config();
+    let daemon = DnsDaemon::new(config.clone(), read_hosts(&config, 37), &[],
+        DaemonOptions::default()).unwrap();
+    let mut owner = test_owner(config.clone(), Some(daemon));
+    owner.dns_files = Some(DnsFiles::new(&config, true, false).unwrap());
+    owner.hosts_requests.push_back(HostChange {
+        source: HostSource { path: path.clone(), uid: 10 }, deleted: false,
+    });
+    // In particular, failure to reserve the deferred queue must leave the
+    // existing incremental request available to its original owner path.
+    owner.hosts_reload_failed = true;
+    owner.scan_hosts_dirs(true);
+    assert!(!owner.hosts_bulk);
+    assert!(owner.hosts_staged.is_none());
+    assert_eq!(owner.hosts_requests.len(), 1);
+    assert_eq!(owner.hosts_requests.front().unwrap().source.path, path);
+    for _ in 0..3 { owner.step_hosts_files(); }
+    assert!(!owner.hosts_work_pending());
+    let parent = owner.service.borrow();
+    let daemon_view = parent.daemon.as_ref().unwrap().try_clone_hosts_source().unwrap();
+    for hosts in [&parent.local.hosts, &daemon_view] {
+        assert_eq!(hosts.addresses(b"ready.test").next().unwrap().address,
+            "192.0.2.42".parse::<IpAddr>().unwrap());
+    }
+    drop(parent);
+    drop(owner);
+    std::fs::remove_file(path).unwrap();
+}
