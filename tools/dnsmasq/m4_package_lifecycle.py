@@ -320,8 +320,9 @@ class Scenario:
             return None
         return self.wait(live, f"{stage}: jailed dnsmasq {expected_sha} and DNS answer")
 
-    def activate_after_transaction(self, label):
-        if self.report.get('automatic_activation_required'):
+    def activate_after_transaction(self, label, *, legacy_setup=False):
+        require(not legacy_setup or label == 'stock-to-m5-baseline', 'unexpected legacy setup restart')
+        if self.report.get('automatic_activation_required') and not legacy_setup:
             self.report.setdefault('activation_steps', []).append({
                 'transaction': label, 'command': None, 'automatic_activation_required': True})
             return
@@ -331,8 +332,10 @@ class Scenario:
         # explicitly recorded operator step; never attribute it to postinst.
         command = ["/etc/init.d/dnsmasq", "restart"]
         self.run(command, f"{label}-explicit-restart")
-        self.report.setdefault("activation_steps", []).append({
-            "transaction": label, "command": command, "automatic_restart_claimed": False})
+        step = {"transaction": label, "command": command, "automatic_restart_claimed": False}
+        if legacy_setup:
+            step['legacy_reference_setup'] = True
+        self.report.setdefault("activation_steps", []).append(step)
 
     def stopped(self):
         listing = self.bus("service", "list", {"name": "dnsmasq"})
@@ -467,7 +470,12 @@ def previous_upgrade_chain(case, args, baseline, candidate_files, previous_files
     ]
     for label, apk, elf_sha, version, files in steps:
         case.apk(["add", apk], label)  # No force-reinstall can masquerade as upgrade.
-        case.activate_after_transaction(label)
+        # Neither of these two historical packages contains the activation fix.
+        # Establish a genuinely running M5 baseline before testing the candidate.
+        if label == 'stock-to-m5-baseline' and report.get('automatic_activation_required'):
+            case.activate_after_transaction(label, legacy_setup=True)
+        else:
+            case.activate_after_transaction(label)
         case.capture(label, elf_sha, version, baseline, files, configs)
         result["stages"].append(label)
     case.remove("candidate-remove-for-m5-rollback", configs)

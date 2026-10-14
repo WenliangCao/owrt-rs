@@ -35,6 +35,17 @@ class PackageBuildTests(unittest.TestCase):
             case.activate_after_transaction('candidate-upgrade')
         self.assertIsNone(report['activation_steps'][0]['command'])
 
+    def test_legacy_setup_restart_cannot_be_used_for_candidate_transactions(self):
+        report = {'automatic_activation_required': True}
+        case = lifecycle.Scenario(None, None, report)
+        with patch.object(case, 'run') as run:
+            case.activate_after_transaction('stock-to-m5-baseline', legacy_setup=True)
+            run.assert_called_once_with(['/etc/init.d/dnsmasq', 'restart'],
+                                        'stock-to-m5-baseline-explicit-restart')
+            self.assertTrue(report['activation_steps'][0]['legacy_reference_setup'])
+            with self.assertRaisesRegex(RuntimeError, 'unexpected legacy setup'):
+                case.activate_after_transaction('m5-to-candidate-upgrade', legacy_setup=True)
+
     def test_dns_object_acl_allows_only_the_exact_publish_addition(self):
         stock = b'{"user":"dnsmasq","publish": [ "dnsmasq" ],"access":{"hotplug.dhcp":{"methods":["call"]}}}'
         candidate = stock.replace(b'[ "dnsmasq" ]', b'[ "dnsmasq", "dnsmasq.dns" ]')
