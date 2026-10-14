@@ -1,0 +1,1286 @@
+{
+  "baseline-c/hostsdir-transitions/daemon.log": {
+    "sha256": "a4f119ee8629f0c29e197b6675a37d90547891c16ca7dfa3e582ba13505a44b2",
+    "bytes": 46617
+  },
+  "baseline-c/hostsdir-transitions/process-identity.json": {
+    "sha256": "b71206fc0b179d6318283266f245cff623fbe339eb39db48d5cba7a538b6fd38",
+    "bytes": 3533
+  },
+  "baseline-c/hostsdir-transitions/result.json": {
+    "sha256": "9d6a45c53e6831a0d61612839953dd93d5a0d01a275838601dea16f1bbeda9ce",
+    "bytes": 225756
+  },
+  "baseline-c/hostsdir-transitions/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/ipv6-three-duplicate/daemon.log": {
+    "sha256": "e8ebc6ec7246580e6520d10dcac18b95e051c717978df113b8b2dfd2ce1c67f4",
+    "bytes": 23382
+  },
+  "baseline-c/ipv6-three-duplicate/process-identity.json": {
+    "sha256": "9fa0f29154470706459a8ec19821355be9f4621ff1e15ea95764c31213c20142",
+    "bytes": 3532
+  },
+  "baseline-c/ipv6-three-duplicate/result.json": {
+    "sha256": "ffd4b96dc57136d378d5b3b326bf870679191efca6c078f9c3013237219c9697",
+    "bytes": 119550
+  },
+  "baseline-c/ipv6-three-duplicate/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/leases-dhcp/daemon.log": {
+    "sha256": "696f02e73d0afa5813bcb69fc21791e35daba3ddbce15572978d4c0ecfe4e765",
+    "bytes": 9834
+  },
+  "baseline-c/leases-dhcp/process-identity.json": {
+    "sha256": "f3296e7b7b8df114ee562754b36e8d64a596b1393d32ef50f9bef7efb37078b9",
+    "bytes": 3708
+  },
+  "baseline-c/leases-dhcp/result.json": {
+    "sha256": "7d287c67c5232809efc4c60338627bed8fbe5ca86b7f142010ce08105d712aee",
+    "bytes": 51995
+  },
+  "baseline-c/leases-dhcp/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/mixed-sources/daemon.log": {
+    "sha256": "20739879cb872a252aec4876d2d424188ce871b761a502fa43a35107f4f59fd9",
+    "bytes": 6478
+  },
+  "baseline-c/mixed-sources/process-identity.json": {
+    "sha256": "f7353a2f8e6d7deb3b8c6ad59ce41577ed261edb7b0ba162de2a5dbb580f3ce3",
+    "bytes": 3625
+  },
+  "baseline-c/mixed-sources/result.json": {
+    "sha256": "a76e2d2f1dddda12feb6dcd465bf9fd0c310d31a7de678ab02dc57a21c655a15",
+    "bytes": 31261
+  },
+  "baseline-c/mixed-sources/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/no-round-robin/daemon.log": {
+    "sha256": "8a7be3ca623565f84a6de8feaaaf634a098f83b2ac3e8464057f5e3da882217b",
+    "bytes": 22368
+  },
+  "baseline-c/no-round-robin/process-identity.json": {
+    "sha256": "095aa101d3b51098d8a1ce72e21d8d63b6a9a338f1572729f94257b3ceea1bac",
+    "bytes": 3537
+  },
+  "baseline-c/no-round-robin/result.json": {
+    "sha256": "d9ddb9af95e017579e3dd90a0424745e09463b51d2afb7fbce17119df5706da7",
+    "bytes": 119550
+  },
+  "baseline-c/no-round-robin/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/result.json": {
+    "sha256": "3bf87af008c084a2b06868acc93fa58ab6deced078ec185d61af77c8c441f6d9",
+    "bytes": 852676
+  },
+  "baseline-c/six-addn/daemon.log": {
+    "sha256": "4fa8a2f38deb3e1e0237f9683183436b9e424220a40f96c452d865e9cdb6a11c",
+    "bytes": 6087
+  },
+  "baseline-c/six-addn/process-identity.json": {
+    "sha256": "9635be9472a38a055686d6479d235347a2aae28df7c82a89221ed81d039163df",
+    "bytes": 3508
+  },
+  "baseline-c/six-addn/result.json": {
+    "sha256": "619a959120fb8662cb2ca0e9366196c5ce2b004454bcad549da9767983618a6a",
+    "bytes": 31133
+  },
+  "baseline-c/six-addn/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/six-default/daemon.log": {
+    "sha256": "1a9fb8f439f3a92c3f22241b5eba45d727b5d429bab18ebf67fcbbc4e86255c6",
+    "bytes": 5695
+  },
+  "baseline-c/six-default/process-identity.json": {
+    "sha256": "d73fac020fe3e52c896c585351837893157e9f0c0a62712951fbd1266a0beda1",
+    "bytes": 3468
+  },
+  "baseline-c/six-default/result.json": {
+    "sha256": "b144ce6639034f6536b5b10a0dc1b05779d69de534ee08c66dfc97bca9054e17",
+    "bytes": 31074
+  },
+  "baseline-c/six-default/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/six-host-record/daemon.log": {
+    "sha256": "2fafdd78def856249185bd7fbaa8274792a3c8151210e8d1c1102b41b4dc0789",
+    "bytes": 5491
+  },
+  "baseline-c/six-host-record/process-identity.json": {
+    "sha256": "a709088a50301e4dd9aa038987e8e2b2fe2be941c0b9ac5b0fdad244fab31503",
+    "bytes": 3675
+  },
+  "baseline-c/six-host-record/result.json": {
+    "sha256": "8826da6ae16016c9748fbe88757b897821a7256fdec31c19ea55cbdb9bc86a66",
+    "bytes": 31197
+  },
+  "baseline-c/six-host-record/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/six-hostsdir-initial/daemon.log": {
+    "sha256": "0058640239dee4195186412d569d23003404bb45ea9d6e65e59165f043fdf213",
+    "bytes": 7159
+  },
+  "baseline-c/six-hostsdir-initial/process-identity.json": {
+    "sha256": "ad1503e30db7d0122036e08134b0bf1d0a8b8dfb0f4eb7cdfc37896919408c21",
+    "bytes": 3533
+  },
+  "baseline-c/six-hostsdir-initial/result.json": {
+    "sha256": "718bf2d41ef598a0156dff870e65444a208e2bee376357e6dbd8c8e7f9dc467f",
+    "bytes": 31191
+  },
+  "baseline-c/six-hostsdir-initial/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/split-addn-bulk/daemon.log": {
+    "sha256": "78eb2b1ef0c852994cab6ee986b9ad681e973bc5d3ff1983582c8e9c294e622a",
+    "bytes": 5843
+  },
+  "baseline-c/split-addn-bulk/process-identity.json": {
+    "sha256": "4e857750bf6e8b0b394f2e07db04fc28dfc130bb3738696cea944dbf0c832971",
+    "bytes": 3610
+  },
+  "baseline-c/split-addn-bulk/result.json": {
+    "sha256": "235307b6ddcebe3e789df7445a77f45d8be9fb3a8c72e8e2e61298443e4b520d",
+    "bytes": 29081
+  },
+  "baseline-c/split-addn-bulk/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/stage/rootfs-identity.json": {
+    "sha256": "2efe917c6ccfb288365eee4fcb7645453212f24e9516995d9848d838bbf549f5",
+    "bytes": 46001
+  },
+  "baseline-c/stage/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/hostsdir-transitions/daemon.log": {
+    "sha256": "a4f119ee8629f0c29e197b6675a37d90547891c16ca7dfa3e582ba13505a44b2",
+    "bytes": 46617
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/tail": {
+    "sha256": "ecf07e855c2513a9735fa7098856a7f802899c60e84f6ad47184e3b513d74c66",
+    "bytes": 62
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/daemon.log": {
+    "sha256": "e8ebc6ec7246580e6520d10dcac18b95e051c717978df113b8b2dfd2ce1c67f4",
+    "bytes": 23382
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/leases-dhcp/daemon.log": {
+    "sha256": "696f02e73d0afa5813bcb69fc21791e35daba3ddbce15572978d4c0ecfe4e765",
+    "bytes": 9834
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/leases-dhcp/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/leases-dhcp/leases": {
+    "sha256": "2ded9c589c935170d4a3e7cfb595c81614e881fbb17f8506336fdbad62057ac5",
+    "bytes": 90
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/mixed-sources/addn": {
+    "sha256": "c201f0a99915335e158c203ab2d8511804f0a1cbf4d4ed892bb6913937b72f8f",
+    "bytes": 38
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/mixed-sources/daemon.log": {
+    "sha256": "20739879cb872a252aec4876d2d424188ce871b761a502fa43a35107f4f59fd9",
+    "bytes": 6478
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/mixed-sources/hostsdir/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/no-round-robin/daemon.log": {
+    "sha256": "8a7be3ca623565f84a6de8feaaaf634a098f83b2ac3e8464057f5e3da882217b",
+    "bytes": 22368
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/no-round-robin/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/six-addn/daemon.log": {
+    "sha256": "4fa8a2f38deb3e1e0237f9683183436b9e424220a40f96c452d865e9cdb6a11c",
+    "bytes": 6087
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/six-addn/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/six-default/daemon.log": {
+    "sha256": "1a9fb8f439f3a92c3f22241b5eba45d727b5d429bab18ebf67fcbbc4e86255c6",
+    "bytes": 5695
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/six-host-record/daemon.log": {
+    "sha256": "2fafdd78def856249185bd7fbaa8274792a3c8151210e8d1c1102b41b4dc0789",
+    "bytes": 5491
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/daemon.log": {
+    "sha256": "0058640239dee4195186412d569d23003404bb45ea9d6e65e59165f043fdf213",
+    "bytes": 7159
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/hostsdir/first": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/split-addn-bulk/daemon.log": {
+    "sha256": "78eb2b1ef0c852994cab6ee986b9ad681e973bc5d3ff1983582c8e9c294e622a",
+    "bytes": 5843
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/split-addn-bulk/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/split-addn-bulk/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/udp-truncation/daemon.log": {
+    "sha256": "02fd1c6777f6c3825f6c5c8e9ad6e9bd15853ecf224fd6885d79924a08cafd20",
+    "bytes": 20071
+  },
+  "baseline-c/stage/rootfs-overlay/upper/m2/udp-truncation/hosts": {
+    "sha256": "76f03f9321cd5629d200f054e54d50b03025e90d20557d6f32e6479c23b56459",
+    "bytes": 999
+  },
+  "baseline-c/stage/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "bytes": 2089440
+  },
+  "baseline-c/stage/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "baseline-c/stage/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "baseline-c/stage/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "baseline-c/stage/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "baseline-c/stage/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "baseline-c/udp-truncation/daemon.log": {
+    "sha256": "02fd1c6777f6c3825f6c5c8e9ad6e9bd15853ecf224fd6885d79924a08cafd20",
+    "bytes": 20071
+  },
+  "baseline-c/udp-truncation/process-identity.json": {
+    "sha256": "17ad18c222c4ebebc833766a0a894b1921c5b6061895f3560a4484a2563dab46",
+    "bytes": 3570
+  },
+  "baseline-c/udp-truncation/result.json": {
+    "sha256": "b4eb4263d74f5a477316439f94281c776d1c2f47340d4f4a1a437531b9a81f69",
+    "bytes": 40654
+  },
+  "baseline-c/udp-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-c.command.json": {
+    "sha256": "28a1e19667eac631125780288b50f6f618e7732baefd45dfabd9f5760512cfe1",
+    "bytes": 662
+  },
+  "baseline-c.log": {
+    "sha256": "82468cdc4d1accc6548a64df580279edd9d3e6f637ccab4ad5734fffd170ab8a",
+    "bytes": 282
+  },
+  "baseline-c.receipt.json": {
+    "sha256": "b5d1f0ffdf73169629ed85bfe3e2b1c9c794408f405008d8f7ee90a26026ccc9",
+    "bytes": 107
+  },
+  "baseline-identity.json": {
+    "sha256": "d1947796a0b981a6cc2d279d8136a9b416013e8ee220ad92c7907159fc41abbb",
+    "bytes": 806
+  },
+  "baseline-receipts.json": {
+    "sha256": "0fb654072656db613d90bd97b510a291ec2eeeab4ca4f6fea6c410b7d55106b1",
+    "bytes": 247
+  },
+  "baseline-rust/hostsdir-transitions/daemon.log": {
+    "sha256": "dcb2fdc7c3e66c9582529a70f98ecb76bccbed7e68872e57a20140f9588ce427",
+    "bytes": 46617
+  },
+  "baseline-rust/hostsdir-transitions/process-identity.json": {
+    "sha256": "f17274566a524f18ee824322eaea15424ddd798bf81c1d674a9cf4871df2dcbe",
+    "bytes": 1779
+  },
+  "baseline-rust/hostsdir-transitions/result.json": {
+    "sha256": "1f979fbbed0228f2c4016f13881081880d87cb17aaa6c0a99c5d4594bcaa4ef1",
+    "bytes": 225762
+  },
+  "baseline-rust/hostsdir-transitions/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/ipv6-three-duplicate/daemon.log": {
+    "sha256": "cd06b4d325151f9ba298c797d7d1100b83456d9790c7ff394cb71890643c0f57",
+    "bytes": 22742
+  },
+  "baseline-rust/ipv6-three-duplicate/process-identity.json": {
+    "sha256": "fe0f266fddfbe03b5063588606e0f73afb2c5334f0a65b0b8d4d6108ab101f0f",
+    "bytes": 1778
+  },
+  "baseline-rust/ipv6-three-duplicate/result.json": {
+    "sha256": "73848e0be75d49f71d0ed955b1f48d60ca5c75a2b401cf817ad02104bb9c2cd3",
+    "bytes": 117460
+  },
+  "baseline-rust/ipv6-three-duplicate/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/leases-dhcp/daemon.log": {
+    "sha256": "fe0a1c39bd8db574b3fc451c0d53b663b52a6ef9c063a1c13acac43f384bd29f",
+    "bytes": 8982
+  },
+  "baseline-rust/leases-dhcp/process-identity.json": {
+    "sha256": "3cb8c29ace185050b774c997b250227b4b0ca180017d919fd9f5c53fd393c6cb",
+    "bytes": 1954
+  },
+  "baseline-rust/leases-dhcp/result.json": {
+    "sha256": "d4323d2b23db9750d0c97734dd95d3e87dbfbe978f346cff158c1127c2c8fdf2",
+    "bytes": 48857
+  },
+  "baseline-rust/leases-dhcp/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/mixed-sources/daemon.log": {
+    "sha256": "f8ae01273037f448fb2c618e05ac184d6133374b796a2155cc7f740f4abfb8ef",
+    "bytes": 5830
+  },
+  "baseline-rust/mixed-sources/process-identity.json": {
+    "sha256": "3846009a6e690006ad12a76f7b2c4d89be9abedda850e474842d5d08ce10db6f",
+    "bytes": 1821
+  },
+  "baseline-rust/mixed-sources/result.json": {
+    "sha256": "3ae1695417de514b05284555c38ea5f6daf6ee768e4f427f98c114ec652462b5",
+    "bytes": 29171
+  },
+  "baseline-rust/mixed-sources/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/no-round-robin/daemon.log": {
+    "sha256": "87dd9e84819ec633784a6edeb7c4979727d8c87dbbf1fb49c37dd17ba6d00ff8",
+    "bytes": 21776
+  },
+  "baseline-rust/no-round-robin/process-identity.json": {
+    "sha256": "4a6dcac3ba7b750e2ebd175dd943fffbd0ecf8cce981f7a51e4adb8d2a68660f",
+    "bytes": 1783
+  },
+  "baseline-rust/no-round-robin/result.json": {
+    "sha256": "cdb1642825bfaf7ab6e6ea1a990cbd60420e34946f86987fec208a49da38a1fc",
+    "bytes": 117460
+  },
+  "baseline-rust/no-round-robin/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/result.json": {
+    "sha256": "2adc9f36c973ca365710e84a019c0aea3adf98202581eb78cc9c652825463a25",
+    "bytes": 970608
+  },
+  "baseline-rust/six-addn/daemon.log": {
+    "sha256": "604b515968b948be494841769e4fa764c0cf96ea49b6f2c0b358234d9bdf5ddb",
+    "bytes": 5543
+  },
+  "baseline-rust/six-addn/process-identity.json": {
+    "sha256": "d90a688e47a1281b574767d9924ba62c19c62345bda96e4fe23e97cd3040edd0",
+    "bytes": 1754
+  },
+  "baseline-rust/six-addn/result.json": {
+    "sha256": "1c9340f6e2c83c7c49f345d65e0d1ac7118ceaa1c2cf91abff02fd24df0956b8",
+    "bytes": 29043
+  },
+  "baseline-rust/six-addn/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/six-default/daemon.log": {
+    "sha256": "ccdc54559f85eac4ac539f48a5e6d90551f912badf707015501a71a37eb91cb6",
+    "bytes": 5215
+  },
+  "baseline-rust/six-default/process-identity.json": {
+    "sha256": "5640b7c6d375469124fe312183bd72bc0736a433ed55d337b75d833735ef4245",
+    "bytes": 1714
+  },
+  "baseline-rust/six-default/result.json": {
+    "sha256": "cfe48456cecc0c6464f083c40005a93bf1d9032567edfdd9a03864d469c1c39e",
+    "bytes": 28984
+  },
+  "baseline-rust/six-default/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/six-host-record/daemon.log": {
+    "sha256": "21633e68751360a68e1517412b8e6bbb41c9a80271d7f3fd07e2518fd24c0d6f",
+    "bytes": 5043
+  },
+  "baseline-rust/six-host-record/process-identity.json": {
+    "sha256": "20377a5b88ce3604537a29e143e52958eaf20c048111080588b6112ac3516720",
+    "bytes": 1971
+  },
+  "baseline-rust/six-host-record/result.json": {
+    "sha256": "973633169ef5fd554f01ae0dc8f12bc9b278ceae9e386d2b4647cb76c6eb83e4",
+    "bytes": 29107
+  },
+  "baseline-rust/six-host-record/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/six-hostsdir-initial/daemon.log": {
+    "sha256": "8683697bc6cccddee23b6f74f90fcb484582877ebb84097bbbf17ce0d1f1243f",
+    "bytes": 6447
+  },
+  "baseline-rust/six-hostsdir-initial/process-identity.json": {
+    "sha256": "b684101a56b2493c423abdc804b039bab3e7a929a83d9aad2d84be7ffe5e809e",
+    "bytes": 1779
+  },
+  "baseline-rust/six-hostsdir-initial/result.json": {
+    "sha256": "9878cf518abb2b2910b2b85b60fc06ec5c3e20561ee8ddd87b838a1393e1c968",
+    "bytes": 29101
+  },
+  "baseline-rust/six-hostsdir-initial/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/split-addn-bulk/daemon.log": {
+    "sha256": "31928b38d81e4ccf87c21828aa5b97054c10d1ea588898b73e6e130135394947",
+    "bytes": 5843
+  },
+  "baseline-rust/split-addn-bulk/process-identity.json": {
+    "sha256": "f32b884ab606ce82dd442c453904e0340adb39c85a68a62e5b746f5272cc7771",
+    "bytes": 1806
+  },
+  "baseline-rust/split-addn-bulk/result.json": {
+    "sha256": "3b1057dfe9594735d761c7ad7f1a2fa382ed044341adfc0ea1c3eddd549e2adb",
+    "bytes": 29087
+  },
+  "baseline-rust/split-addn-bulk/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/stage/rootfs-identity.json": {
+    "sha256": "8a851c8c4ae0f673215b695ca7c1d6682fde015da1f630797e2e1d407057a7e7",
+    "bytes": 46013
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/hostsdir-transitions/daemon.log": {
+    "sha256": "dcb2fdc7c3e66c9582529a70f98ecb76bccbed7e68872e57a20140f9588ce427",
+    "bytes": 46617
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/tail": {
+    "sha256": "ecf07e855c2513a9735fa7098856a7f802899c60e84f6ad47184e3b513d74c66",
+    "bytes": 62
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/daemon.log": {
+    "sha256": "cd06b4d325151f9ba298c797d7d1100b83456d9790c7ff394cb71890643c0f57",
+    "bytes": 22742
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/leases-dhcp/daemon.log": {
+    "sha256": "fe0a1c39bd8db574b3fc451c0d53b663b52a6ef9c063a1c13acac43f384bd29f",
+    "bytes": 8982
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/leases-dhcp/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/leases-dhcp/leases": {
+    "sha256": "551c90e781484d6c2c17b5111f8e36a6c74591ac94dbb302a7704166d1d05f96",
+    "bytes": 90
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/mixed-sources/addn": {
+    "sha256": "c201f0a99915335e158c203ab2d8511804f0a1cbf4d4ed892bb6913937b72f8f",
+    "bytes": 38
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/mixed-sources/daemon.log": {
+    "sha256": "f8ae01273037f448fb2c618e05ac184d6133374b796a2155cc7f740f4abfb8ef",
+    "bytes": 5830
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/mixed-sources/hostsdir/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/no-round-robin/daemon.log": {
+    "sha256": "87dd9e84819ec633784a6edeb7c4979727d8c87dbbf1fb49c37dd17ba6d00ff8",
+    "bytes": 21776
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/no-round-robin/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/six-addn/daemon.log": {
+    "sha256": "604b515968b948be494841769e4fa764c0cf96ea49b6f2c0b358234d9bdf5ddb",
+    "bytes": 5543
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/six-addn/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/six-default/daemon.log": {
+    "sha256": "ccdc54559f85eac4ac539f48a5e6d90551f912badf707015501a71a37eb91cb6",
+    "bytes": 5215
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/six-host-record/daemon.log": {
+    "sha256": "21633e68751360a68e1517412b8e6bbb41c9a80271d7f3fd07e2518fd24c0d6f",
+    "bytes": 5043
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/daemon.log": {
+    "sha256": "8683697bc6cccddee23b6f74f90fcb484582877ebb84097bbbf17ce0d1f1243f",
+    "bytes": 6447
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/hostsdir/first": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/split-addn-bulk/daemon.log": {
+    "sha256": "31928b38d81e4ccf87c21828aa5b97054c10d1ea588898b73e6e130135394947",
+    "bytes": 5843
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/split-addn-bulk/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/split-addn-bulk/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/udp-truncation/daemon.log": {
+    "sha256": "e9625ecb8af727f1d9c95f5795e13a5b0bc0b8ed5b9168573947089d82da3565",
+    "bytes": 20071
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/m2/udp-truncation/hosts": {
+    "sha256": "76f03f9321cd5629d200f054e54d50b03025e90d20557d6f32e6479c23b56459",
+    "bytes": 999
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "bytes": 2089440
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "baseline-rust/stage/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "baseline-rust/udp-truncation/daemon.log": {
+    "sha256": "e9625ecb8af727f1d9c95f5795e13a5b0bc0b8ed5b9168573947089d82da3565",
+    "bytes": 20071
+  },
+  "baseline-rust/udp-truncation/process-identity.json": {
+    "sha256": "4428d347321c7e4054ff6c302aee26340f65f589ed97b22c109ab6b6ef6f1d72",
+    "bytes": 1766
+  },
+  "baseline-rust/udp-truncation/result.json": {
+    "sha256": "9a56788220e34d31092606fdb5b63b920145188b7b12ae57dd618823535570dc",
+    "bytes": 40660
+  },
+  "baseline-rust/udp-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "baseline-rust.command.json": {
+    "sha256": "f41a12ce2f147ce8b4c3f16fad8dd39d2b80c4a2d61efe77a0a1264d97aae7b2",
+    "bytes": 757
+  },
+  "baseline-rust.log": {
+    "sha256": "82468cdc4d1accc6548a64df580279edd9d3e6f637ccab4ad5734fffd170ab8a",
+    "bytes": 282
+  },
+  "baseline-rust.receipt.json": {
+    "sha256": "d5106c0b4eccd07a6e43d2b5c15331b42bfa391860c216d8b111cf9e60df9db7",
+    "bytes": 111
+  },
+  "baseline-summary.json": {
+    "sha256": "08f48d8ac6d8c69492f5a455d7c4f7d143e22ad33f276fe8faf831b822f618f3",
+    "bytes": 7183
+  },
+  "c_repeat_extra-differences.json": {
+    "sha256": "e3118abd6793fd9949428e049b25f18ce70c38de48c81684161a31b1dcc676a8",
+    "bytes": 7447
+  },
+  "c_repeat_original-differences.json": {
+    "sha256": "d0cdbf40076521dcbf524a5e9d6a8dbf9fc880c1ccce7f5ef6986aae0ee8f877",
+    "bytes": 56833
+  },
+  "derive_baseline.py": {
+    "sha256": "7c86647329d6f3380c54057f92755ddff95e43e14e1e9431d2fc416150ac4f3a",
+    "bytes": 4181
+  },
+  "extra-repeat-c/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "70a4a2d95d2789ef48c4e67e0a619f2a82b7645009b439ec836c833adab75f79",
+    "bytes": 7520
+  },
+  "extra-repeat-c/ipv6-repeated-ptr/process-identity.json": {
+    "sha256": "2f623b2cfba3ca67b6ddd0f786d8fe29d9962a678ba08dbb5c17c73f8b14eb96",
+    "bytes": 3590
+  },
+  "extra-repeat-c/ipv6-repeated-ptr/result.json": {
+    "sha256": "d6beeb4418928828e895d49cf9f76ba7bc9a7243a7484cc35caa48ba23b85dc1",
+    "bytes": 38233
+  },
+  "extra-repeat-c/ipv6-repeated-ptr/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "extra-repeat-c/ptr-truncation/daemon.log": {
+    "sha256": "cb366fe96aefab1af95e6792afb180225f661f18f013f87add20127c60eec69c",
+    "bytes": 4670
+  },
+  "extra-repeat-c/ptr-truncation/process-identity.json": {
+    "sha256": "950383dbd022adbf958ed7881ab15e0c74a9a83ae26f136b6a734f2903a6c8a9",
+    "bytes": 3584
+  },
+  "extra-repeat-c/ptr-truncation/result.json": {
+    "sha256": "4201b43f86f10a43397e634d933704f4b072a088ee6216386460a832a6b5d7de",
+    "bytes": 12718
+  },
+  "extra-repeat-c/ptr-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "extra-repeat-c/result.json": {
+    "sha256": "af29c9438a3bc6b3d42b94a9a6cad8165f1a8f238bbb92dd64f1e3391825cf12",
+    "bytes": 56891
+  },
+  "extra-repeat-c/stage/rootfs-identity.json": {
+    "sha256": "5e48fc585f328d6e24b8d295ed31cb825eab215d9275ab2ef112b0eaf32f3e01",
+    "bytes": 46017
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "70a4a2d95d2789ef48c4e67e0a619f2a82b7645009b439ec836c833adab75f79",
+    "bytes": 7520
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/hosts": {
+    "sha256": "62e03ca98e1421189cc3aea96e60aa52f78aabfdb85dbec1c4c5b1eb65efd164",
+    "bytes": 124
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/m2/ptr-truncation/daemon.log": {
+    "sha256": "cb366fe96aefab1af95e6792afb180225f661f18f013f87add20127c60eec69c",
+    "bytes": 4670
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/m2/ptr-truncation/hosts": {
+    "sha256": "5345ca6c98b0791f9867e1e244bd8f7c103d87b671a8972ca1bb5c0d3413b10a",
+    "bytes": 846
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "bytes": 2089440
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "extra-repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "extra-repeat-c.command.json": {
+    "sha256": "9f3b639fc4a246b1e1941b237ccf2bba044a6ed167608addd17bc0d0f54af2c6",
+    "bytes": 742
+  },
+  "extra-repeat-c.log": {
+    "sha256": "12b475b2feb5ff177744676e06cabbd1c59798969cc6606c9c9d3b4fac102754",
+    "bytes": 53
+  },
+  "extra-repeat-c.receipt.json": {
+    "sha256": "7e3687be5c2530405784b58eecc6dd34d9f20c0d6c9689a8b2184c250140021d",
+    "bytes": 122
+  },
+  "extra-rust/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "348f26a59ac1d0eda1a99898b1e93135dc02c95284f2a004c4f9813efd7ad8db",
+    "bytes": 6880
+  },
+  "extra-rust/ipv6-repeated-ptr/process-identity.json": {
+    "sha256": "5df7dd4b8b9e5ca0d0a3dc24d5af42d67e273de76c126dee87bf959525cb55ef",
+    "bytes": 1757
+  },
+  "extra-rust/ipv6-repeated-ptr/result.json": {
+    "sha256": "140b0233cd725cf87d75927292b7e7c7ed2ec75c19c67d2e234418440870abdc",
+    "bytes": 35704
+  },
+  "extra-rust/ipv6-repeated-ptr/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "extra-rust/ptr-truncation/daemon.log": {
+    "sha256": "e1372622d11de7a6e7545a7b30c622f3b47d23ff35e36f28803416cca7894fba",
+    "bytes": 2960
+  },
+  "extra-rust/ptr-truncation/process-identity.json": {
+    "sha256": "7f5f7cef8ff944c99ef8bb0f96161824239fb5e352565166e5bb2006bbc5df16",
+    "bytes": 1751
+  },
+  "extra-rust/ptr-truncation/result.json": {
+    "sha256": "780660708e663657962a29c64034604c7338c63b0cfa3cef323e91fbc5e3c018",
+    "bytes": 11506
+  },
+  "extra-rust/ptr-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "extra-rust/result.json": {
+    "sha256": "8a0f99991bf884a66730c4490d7d44d0debc1a66594d2d8d5555eae9ebaa02be",
+    "bytes": 80088
+  },
+  "extra-rust/stage/rootfs-identity.json": {
+    "sha256": "00801803c9cfbad92ecd9375d291b729ea4a707fdc9eb3e37bcf22c8325a08c8",
+    "bytes": 46001
+  },
+  "extra-rust/stage/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "extra-rust/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "348f26a59ac1d0eda1a99898b1e93135dc02c95284f2a004c4f9813efd7ad8db",
+    "bytes": 6880
+  },
+  "extra-rust/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/hosts": {
+    "sha256": "62e03ca98e1421189cc3aea96e60aa52f78aabfdb85dbec1c4c5b1eb65efd164",
+    "bytes": 124
+  },
+  "extra-rust/stage/rootfs-overlay/upper/m2/ptr-truncation/daemon.log": {
+    "sha256": "e1372622d11de7a6e7545a7b30c622f3b47d23ff35e36f28803416cca7894fba",
+    "bytes": 2960
+  },
+  "extra-rust/stage/rootfs-overlay/upper/m2/ptr-truncation/hosts": {
+    "sha256": "5345ca6c98b0791f9867e1e244bd8f7c103d87b671a8972ca1bb5c0d3413b10a",
+    "bytes": 846
+  },
+  "extra-rust/stage/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "bytes": 2089440
+  },
+  "extra-rust/stage/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "extra-rust/stage/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "extra-rust/stage/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "extra-rust/stage/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "extra-rust/stage/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "extra-rust.command.json": {
+    "sha256": "0a1cfe3fb682a4cfdce6858c8ae0b365f1d479d9329ae29ebb2de7848bb73114",
+    "bytes": 828
+  },
+  "extra-rust.log": {
+    "sha256": "12b475b2feb5ff177744676e06cabbd1c59798969cc6606c9c9d3b4fac102754",
+    "bytes": 53
+  },
+  "extra-rust.receipt.json": {
+    "sha256": "7c0e40f54cc7724afc9bdca805e9211c46901b7b2ea8e934e114119f52b6e723",
+    "bytes": 118
+  },
+  "followup-identity.json": {
+    "sha256": "a1d83cfe00e6f91af52e7fcc940afdb9336ec9f750db297f16cf2dfca2c10e1f",
+    "bytes": 806
+  },
+  "followup-receipts.json": {
+    "sha256": "1289a6151fd695f9317df0b0291231e63265ba54d7a123152335f492acdfc8b1",
+    "bytes": 397
+  },
+  "negative_340ed-differences.json": {
+    "sha256": "9775f6c39e4b2bae3d7ae952399563944e46226f931aad872a0d847bb70593d0",
+    "bytes": 168739
+  },
+  "repeat-c/hostsdir-transitions/daemon.log": {
+    "sha256": "25963877fa3eb7aeffca98c419aec6bca1d103296c8ad6cc4c3b378e375f59ef",
+    "bytes": 46617
+  },
+  "repeat-c/hostsdir-transitions/process-identity.json": {
+    "sha256": "5e2c51d3769cdb49f0d162ab582333dda1086ad49854f5e8019893d5d28bd32e",
+    "bytes": 3501
+  },
+  "repeat-c/hostsdir-transitions/result.json": {
+    "sha256": "c63504a407fabe496c257a826ac158e11af3741d1b38a56f12650465b54d0b3f",
+    "bytes": 225754
+  },
+  "repeat-c/hostsdir-transitions/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "271fd1b3bf4208ffc4c325bd241c3b5e39b2aedddc40162d8294ac6c37934d85",
+    "bytes": 7520
+  },
+  "repeat-c/ipv6-repeated-ptr/process-identity.json": {
+    "sha256": "51f28179451040b254d984c46aad727f329b68444cb5eb608e92a8a93ba5c286",
+    "bytes": 3494
+  },
+  "repeat-c/ipv6-repeated-ptr/result.json": {
+    "sha256": "dbad7954c7d79100330f970b80ba99b960c501e42c9d5998a33651b543c09d03",
+    "bytes": 38227
+  },
+  "repeat-c/ipv6-repeated-ptr/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/ipv6-three-duplicate/daemon.log": {
+    "sha256": "fdfbf5f77de8debcaeb756ff2775f709fedf54aa3aa32feb84263c4b5c99c745",
+    "bytes": 23382
+  },
+  "repeat-c/ipv6-three-duplicate/process-identity.json": {
+    "sha256": "af468b61cf7f62d15710776744e2cdf29e9612fe0ef78f3526fd13fc8003f635",
+    "bytes": 3500
+  },
+  "repeat-c/ipv6-three-duplicate/result.json": {
+    "sha256": "45c1a21001ee32df32e11d4e204d564afd66c8bb6bf87c94830a5872d0901908",
+    "bytes": 119548
+  },
+  "repeat-c/ipv6-three-duplicate/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/leases-dhcp/daemon.log": {
+    "sha256": "eda749599a2727353049c6e65afc379cb370c6cb608ac53b4015f865cf44d1b8",
+    "bytes": 9834
+  },
+  "repeat-c/leases-dhcp/process-identity.json": {
+    "sha256": "6865128d6ed07236d900d46d9e8c78998b6fdba979e2408fa2269f2c6f13ecc7",
+    "bytes": 3676
+  },
+  "repeat-c/leases-dhcp/result.json": {
+    "sha256": "aed8dd8af5eb1556d102f9a018e1db4ea9878fd9df5b09764773093c5a102791",
+    "bytes": 51993
+  },
+  "repeat-c/leases-dhcp/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/mixed-sources/daemon.log": {
+    "sha256": "cebb7f304317ff553e41552c033ee8cf08135b15e2f9ccba0fbd5037de5f3dc8",
+    "bytes": 6478
+  },
+  "repeat-c/mixed-sources/process-identity.json": {
+    "sha256": "3b1599f69d4ad96284d0e33d18664e7de306660598770e732f4dde67f23c45d2",
+    "bytes": 3593
+  },
+  "repeat-c/mixed-sources/result.json": {
+    "sha256": "fdb2f564bc88e25245984466b7f4d7be3c6e045858f28cbc800fe9bb500d40d7",
+    "bytes": 31259
+  },
+  "repeat-c/mixed-sources/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/no-round-robin/daemon.log": {
+    "sha256": "8b3b221fb4a7dfa18b04950f28b18db2eeb8ce835574728500dd7df2f3477a18",
+    "bytes": 22368
+  },
+  "repeat-c/no-round-robin/process-identity.json": {
+    "sha256": "0857a87bcdd4fd045ae34d1c0b627fe63b1b06cc45178c7a5113cfc7db14be83",
+    "bytes": 3505
+  },
+  "repeat-c/no-round-robin/result.json": {
+    "sha256": "b23948caf92adc451b5d13c97449069b505cc522c4600453ad2309a79c8f4b31",
+    "bytes": 119548
+  },
+  "repeat-c/no-round-robin/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/ptr-truncation/daemon.log": {
+    "sha256": "4f990201ef7c83c5bcbd4ccfaf746d15cdd95ee807ca282c2d3650a432d4bba4",
+    "bytes": 4670
+  },
+  "repeat-c/ptr-truncation/process-identity.json": {
+    "sha256": "5fe501e269fe6a756867d3ea10757e2fbe08b9ae10e8da9e0c6a569431ee1a0b",
+    "bytes": 3488
+  },
+  "repeat-c/ptr-truncation/result.json": {
+    "sha256": "9477c4cf60d94b136cf4e370b0588fa9b68e51b432957ee216651242c1dd64e6",
+    "bytes": 12712
+  },
+  "repeat-c/ptr-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/result.json": {
+    "sha256": "4021e120f447aa54e7fad49146837c01fd8752f7e9184b67e42f31ba79bcae94",
+    "bytes": 909279
+  },
+  "repeat-c/six-addn/daemon.log": {
+    "sha256": "32cca91fd1399c1fcca263ebd6c5dd9480993564ba7bc04b0247e1efc86223ed",
+    "bytes": 6087
+  },
+  "repeat-c/six-addn/process-identity.json": {
+    "sha256": "04e3829e0736fd5fab8a869d2f058fb61a1025e846a209f0a8c5631d8cd654d4",
+    "bytes": 3476
+  },
+  "repeat-c/six-addn/result.json": {
+    "sha256": "c4eb93b52c97bbdc436150fc126c1019ba4e1fb7c2b914283116a111444c8b8a",
+    "bytes": 31131
+  },
+  "repeat-c/six-addn/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/six-default/daemon.log": {
+    "sha256": "3d527e906d5716b899da0c4fb03a42e9b0d94f96987e369bf206c808eca94766",
+    "bytes": 5695
+  },
+  "repeat-c/six-default/process-identity.json": {
+    "sha256": "814f4dee07a5fd380b25e040f0425eb2b61b70f7e572d535a1d25f5439db75d3",
+    "bytes": 3436
+  },
+  "repeat-c/six-default/result.json": {
+    "sha256": "bdc03954e4b7e61f6fbdcef636fd705656abe801f4cc42bfe4be0929cee18a67",
+    "bytes": 31072
+  },
+  "repeat-c/six-default/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/six-host-record/daemon.log": {
+    "sha256": "ff78743020cf6458869e091b5152c3de2fbd866d1cd727b1efae991926aa0c42",
+    "bytes": 5491
+  },
+  "repeat-c/six-host-record/process-identity.json": {
+    "sha256": "b6485f329e345093b1ff9d8f1cbeaf671a106604bbb13f9e5dbcb7bacfa8d642",
+    "bytes": 3643
+  },
+  "repeat-c/six-host-record/result.json": {
+    "sha256": "e405fc7b933d7f0400d0e90701590617371e4a2eec269ae8cf4f58da999e1788",
+    "bytes": 31195
+  },
+  "repeat-c/six-host-record/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/six-hostsdir-initial/daemon.log": {
+    "sha256": "722db740509a9f38f7ae2cdddfb9e8761df3ce0226e298faaae955060d9d82fb",
+    "bytes": 7159
+  },
+  "repeat-c/six-hostsdir-initial/process-identity.json": {
+    "sha256": "851e6f29250322f8d572c8da69f084e264f8f5bf4c2ca20d371b89edb0b5c6a5",
+    "bytes": 3501
+  },
+  "repeat-c/six-hostsdir-initial/result.json": {
+    "sha256": "1d02f07ebd9d164b02bcbff7bda1abd5e4b3026986cb998f4bbb5257c6753368",
+    "bytes": 31189
+  },
+  "repeat-c/six-hostsdir-initial/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/split-addn-bulk/daemon.log": {
+    "sha256": "1ece7af5741b27935a2679cb359df08b93beb9b25b8029a1791297e4fe4069ac",
+    "bytes": 5843
+  },
+  "repeat-c/split-addn-bulk/process-identity.json": {
+    "sha256": "026861a32476154e4d3230a9669ea8a1896e57ef47ba6b6a64323ccecf183aa3",
+    "bytes": 3578
+  },
+  "repeat-c/split-addn-bulk/result.json": {
+    "sha256": "86ebd7d70bc6641156f7eb3edc7f4dd0b26e275506dd9b8b57bd0708c9ad03ec",
+    "bytes": 29079
+  },
+  "repeat-c/split-addn-bulk/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/stage/rootfs-identity.json": {
+    "sha256": "98fcd23c3d9bacd775e250da3eb537a8e8fbb69c2127aba7f7d856080a002692",
+    "bytes": 45993
+  },
+  "repeat-c/stage/rootfs-overlay/upper/etc/hosts": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/hostsdir-transitions/daemon.log": {
+    "sha256": "25963877fa3eb7aeffca98c419aec6bca1d103296c8ad6cc4c3b378e375f59ef",
+    "bytes": 46617
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/hostsdir-transitions/hostsdir/tail": {
+    "sha256": "ecf07e855c2513a9735fa7098856a7f802899c60e84f6ad47184e3b513d74c66",
+    "bytes": 62
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/daemon.log": {
+    "sha256": "271fd1b3bf4208ffc4c325bd241c3b5e39b2aedddc40162d8294ac6c37934d85",
+    "bytes": 7520
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/ipv6-repeated-ptr/hosts": {
+    "sha256": "62e03ca98e1421189cc3aea96e60aa52f78aabfdb85dbec1c4c5b1eb65efd164",
+    "bytes": 124
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/daemon.log": {
+    "sha256": "fdfbf5f77de8debcaeb756ff2775f709fedf54aa3aa32feb84263c4b5c99c745",
+    "bytes": 23382
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/ipv6-three-duplicate/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/leases-dhcp/daemon.log": {
+    "sha256": "eda749599a2727353049c6e65afc379cb370c6cb608ac53b4015f865cf44d1b8",
+    "bytes": 9834
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/leases-dhcp/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/leases-dhcp/leases": {
+    "sha256": "47249e275172974132e181d857b45e64fd61f5272f371a2dba30d10a6997a893",
+    "bytes": 90
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/mixed-sources/addn": {
+    "sha256": "c201f0a99915335e158c203ab2d8511804f0a1cbf4d4ed892bb6913937b72f8f",
+    "bytes": 38
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/mixed-sources/daemon.log": {
+    "sha256": "cebb7f304317ff553e41552c033ee8cf08135b15e2f9ccba0fbd5037de5f3dc8",
+    "bytes": 6478
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/mixed-sources/hostsdir/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/no-round-robin/daemon.log": {
+    "sha256": "8b3b221fb4a7dfa18b04950f28b18db2eeb8ce835574728500dd7df2f3477a18",
+    "bytes": 22368
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/no-round-robin/hosts": {
+    "sha256": "bd8471d4a94dae4e0d569ffe70134c676681478b1b15bbf3a50365ce29c681ef",
+    "bytes": 369
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/ptr-truncation/daemon.log": {
+    "sha256": "4f990201ef7c83c5bcbd4ccfaf746d15cdd95ee807ca282c2d3650a432d4bba4",
+    "bytes": 4670
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/ptr-truncation/hosts": {
+    "sha256": "5345ca6c98b0791f9867e1e244bd8f7c103d87b671a8972ca1bb5c0d3413b10a",
+    "bytes": 846
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/six-addn/daemon.log": {
+    "sha256": "32cca91fd1399c1fcca263ebd6c5dd9480993564ba7bc04b0247e1efc86223ed",
+    "bytes": 6087
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/six-addn/hosts": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/six-default/daemon.log": {
+    "sha256": "3d527e906d5716b899da0c4fb03a42e9b0d94f96987e369bf206c808eca94766",
+    "bytes": 5695
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/six-host-record/daemon.log": {
+    "sha256": "ff78743020cf6458869e091b5152c3de2fbd866d1cd727b1efae991926aa0c42",
+    "bytes": 5491
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/daemon.log": {
+    "sha256": "722db740509a9f38f7ae2cdddfb9e8761df3ce0226e298faaae955060d9d82fb",
+    "bytes": 7159
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/six-hostsdir-initial/hostsdir/first": {
+    "sha256": "6601edabfe74502710720d990897b6c1559d76d39b9214b71dc431f40da10791",
+    "bytes": 108
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/split-addn-bulk/daemon.log": {
+    "sha256": "1ece7af5741b27935a2679cb359df08b93beb9b25b8029a1791297e4fe4069ac",
+    "bytes": 5843
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/split-addn-bulk/first": {
+    "sha256": "629ad865442fded69a521486f8f1c9171c213af673136f188701fa3516616ee6",
+    "bytes": 74
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/split-addn-bulk/tail": {
+    "sha256": "4fa6ed1784315020bfaa11ea6a0f205091915b973fc3051e37b662ff65551b98",
+    "bytes": 34
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/udp-truncation/daemon.log": {
+    "sha256": "04d440ab61847209b3963dfa63c97312e93ca1baf54a67de363315175517c9bf",
+    "bytes": 20071
+  },
+  "repeat-c/stage/rootfs-overlay/upper/m2/udp-truncation/hosts": {
+    "sha256": "76f03f9321cd5629d200f054e54d50b03025e90d20557d6f32e6479c23b56459",
+    "bytes": 999
+  },
+  "repeat-c/stage/rootfs-overlay/upper/usr/sbin/dnsmasq-rs": {
+    "sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+    "bytes": 2089440
+  },
+  "repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/dnsmasq_acl.json": {
+    "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+    "bytes": 217
+  },
+  "repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/logd.json": {
+    "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+    "bytes": 43
+  },
+  "repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/luci-base.json": {
+    "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+    "bytes": 91
+  },
+  "repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/ntpd.json": {
+    "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+    "bytes": 84
+  },
+  "repeat-c/stage/rootfs-overlay/upper/usr/share/acl.d/wpad_acl.json": {
+    "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+    "bytes": 449
+  },
+  "repeat-c/udp-truncation/daemon.log": {
+    "sha256": "04d440ab61847209b3963dfa63c97312e93ca1baf54a67de363315175517c9bf",
+    "bytes": 20071
+  },
+  "repeat-c/udp-truncation/process-identity.json": {
+    "sha256": "f71f6cd6be89070ecb44e151f4d042a42ffb6ffd7ff70011ff47ece58f9aab8d",
+    "bytes": 3538
+  },
+  "repeat-c/udp-truncation/result.json": {
+    "sha256": "db7b9e1fffea3d11cf849c5b92765db195a7f8fd602ca71d4edced5c4a4a6a84",
+    "bytes": 40652
+  },
+  "repeat-c/udp-truncation/stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "repeat-c.command.json": {
+    "sha256": "0ea884261baf13c6c0f17c3c2082bd8cce23e4b5d77f55b2ee09e3791efc3eab",
+    "bytes": 669
+  },
+  "repeat-c.log": {
+    "sha256": "216c11d0bc7c1d79384f6c686116f9e12fc3844b228745c641243adb4e113689",
+    "bytes": 335
+  },
+  "repeat-c.receipt.json": {
+    "sha256": "31414dc074e06fe8bfff8c9306a529c75e74369ecbe31a86d92018af88606ef3",
+    "bytes": 115
+  },
+  "run_baseline.py": {
+    "sha256": "c7cefbcdd45ba745af998d5133653ab0fbe97b3bba855f31613709ff308c30c5",
+    "bytes": 1809
+  },
+  "run_followup.py": {
+    "sha256": "fe0057cfd1f4dc76346c6383d05206c7924d5df246a402e0ded8d711c0491e39",
+    "bytes": 1887
+  },
+  "tools/audit_20261011_dhcp.py": {
+    "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+    "bytes": 10332
+  },
+  "tools/dns_service_probe.py": {
+    "sha256": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+    "bytes": 11417
+  },
+  "tools/f10_contract_probe.py": {
+    "sha256": "94120174538a7f8ed6df42001f16540a91ec7f4daba7fab9763e952853a630b7",
+    "bytes": 16710
+  },
+  "tools/m2_rootfs.py": {
+    "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+    "bytes": 15493
+  },
+  "tools/run_isolated.sh": {
+    "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "bytes": 399
+  },
+  "tools-v2/audit_20261011_dhcp.py": {
+    "sha256": "87535edada9d1a88c4928ab50a57f8bc25f83a0feaa9f235f56da51634a21116",
+    "bytes": 10332
+  },
+  "tools-v2/dns_service_probe.py": {
+    "sha256": "dc22d5af0607a4c68ca7b1489edbb372edd89e60506ac69579c14a88dadd49c2",
+    "bytes": 11417
+  },
+  "tools-v2/f10_contract_probe.py": {
+    "sha256": "e42e2f3fd3e82e322ce9d3048ff2fd24a63897eb722b23b2f63948bf7baa477a",
+    "bytes": 18195
+  },
+  "tools-v2/m2_rootfs.py": {
+    "sha256": "da42928c627cf128cb960bb5e7dc298fd12b702b90185650386bfb3c0c3689e3",
+    "bytes": 15493
+  },
+  "tools-v2/run_isolated.sh": {
+    "sha256": "d89bd1a16e51f87eaf852b8abde479be7b6ee8a654ca3329c2789a462dde2311",
+    "bytes": 399
+  }
+}
