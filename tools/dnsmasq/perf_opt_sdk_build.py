@@ -91,11 +91,11 @@ def main():
                             cache=audit.safe_path(a.cargo_target.resolve())
                             assert 'private' in cache.parts and not cache.is_relative_to(build)
                             cache.mkdir(parents=True,exist_ok=True)
-                            target=build/'dnsmasq/target'
-                            if target.exists():
-                                assert target.is_symlink() and target.resolve()==cache
+                            cargo_output=build/'dnsmasq/target'
+                            if cargo_output.exists():
+                                assert cargo_output.is_symlink() and cargo_output.resolve()==cache
                             else:
-                                target.symlink_to(cache,target_is_directory=True)
+                                cargo_output.symlink_to(cache,target_is_directory=True)
                             audit.run([str(cargo),'clean','--manifest-path',str(build/'dnsmasq/Cargo.toml'),
                                        '-p','dnsmasq-rs','--release','--target','aarch64-unknown-linux-musl'],out/'invalidate-product.log',env=env)
                             # SDK stamps do not know that Cargo's product was
