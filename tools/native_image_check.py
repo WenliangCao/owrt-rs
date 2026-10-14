@@ -38,7 +38,7 @@ class Check:
         self.out = out
         out.mkdir(parents=True, exist_ok=False)
         self.manifest = json.loads((source / "usr/share/owrt-control-plane/release.json").read_text())
-        assert self.manifest["deployment_layout"] == "native-ten"
+        assert self.manifest["layout"] == "native-ten"
         assert len(self.manifest["components"]) == 10
         assert {c["path"] for c in self.manifest["integration_files"].values()} == {
             "/etc/init.d/dnsmasq", "/usr/share/acl.d/dnsmasq_acl.json"}
