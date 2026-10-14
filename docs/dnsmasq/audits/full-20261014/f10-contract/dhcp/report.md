@@ -136,6 +136,39 @@ These four runs did not reproduce a different static PTR owner set in that path.
 They are a bounded control, not evidence of a new incremental regression or an
 exhaustive proof over all name-hash states.
 
+## Candidate 4ff6 and deterministic incremental counterexample
+
+Source `4ff6a8a27f6a835b5e8cb90a256211fa96383eb5`, ELF
+`/dev/shm/full-f10-product-20261014/private/release-4ff6/dnsmasq-rs`, SHA-256
+`a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4`.
+The original three HUP scenarios again produced the expected PTR owner sets.
+Single-lease A order was `.186,.185`; cross-alias was `.185,.186`, one of the
+qualified exact-C states described above.
+
+A smaller incremental input then removed the seed dependence of the previous
+control. Start with an empty hostsdir and a DHCP lease with short name `lease`,
+domain `test`, address `192.0.2.1`. After verifying its DNS answer, close-write this
+single hosts line without HUP:
+
+```text
+192.0.2.1 lease.test alias.test
+```
+
+| Retained lease | Exact C UDP/TCP PTR owners | 4ff6 Rust UDP/TCP PTR owners |
+| --- | --- | --- |
+| infinite | alias.test, lease.test | lease.test only |
+| finite, now +3600 seconds | lease.test only | lease.test only |
+
+All four processes remained alive and exited normally. The infinite case is a
+real missing PTR record; a name-hash ordering qualifier cannot make the owner sets
+equal. In the infinite case, the retained DHCP record precedes the same-name hosts
+record in the same flags group. The second name's incremental reverse lookup thus
+first encounters DHCP, so C grants it another F_REVERSE owner. A finite lease has
+different immortal flags, placing the first hosts record before DHCP and
+suppressing the alias's reverse flag. The existing static-only incremental check
+does not retain that distinction. The [derived candidate results](candidate-4ff6-summary.json)
+bind this counterexample and the finite positive control; 4ff6 does not close it.
+
 ## Evidence and reproduction
 
 The [derived results](derived.json) bind each result to its SHA-256 and retain the
@@ -166,3 +199,4 @@ daemon logs, process identities and diagnostic drivers, excluding staged rootfs:
 | candidate-435f-evidence.tar.gz | 73b7577e4e66c3e247615452225832d600e57bc2bc28e8b46d85629bbb1f222a |
 | cross-alias-c-repeats-evidence.tar.gz | e36fe97ff5c4ecbe519ccdfbe472e40cc92a7d7de1a7b7f2083aa34a67a59d20 |
 | inotify-lease-control-evidence.tar.gz | a4185edd62acaf5b137b89ac674f5815d36e06131f0822075ba9c1ca395708af |
+| candidate-4ff6-evidence.tar.gz | 41ce0d97a1995a0d13c6e2e4225bce025a9a63d7d447c5ec925ee5f4a38970b6 |

@@ -1,0 +1,200 @@
+{
+  "candidate_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+  "source_commit": "4ff6a8a27f6a835b5e8cb90a256211fa96383eb5",
+  "findings": [
+    "Three retained-lease HUP scenarios match C observations/qualified alias states.",
+    "Deterministic incremental infinite same-name DHCP case misses alias.test PTR; finite control matches."
+  ],
+  "groups": [
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/candidate-4ff6",
+      "result_sha256": "f29a13bdfe2e6f7e09a32b4a8a3a1ff6cb2e207ba49740c41a331f1bb9448721",
+      "runs": [
+        {
+          "case": "infinite",
+          "rust_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+          "reference_sha256": null,
+          "source_commit": "4ff6a8a2",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "y.test",
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "y.test",
+            "x.test"
+          ]
+        },
+        {
+          "case": "finite",
+          "rust_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+          "reference_sha256": null,
+          "source_commit": "4ff6a8a2",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.3.186",
+            "192.0.3.185"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        },
+        {
+          "case": "cross-alias",
+          "rust_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+          "reference_sha256": null,
+          "source_commit": "4ff6a8a2",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1",
+            "192.0.2.9"
+          ],
+          "after_a": [
+            "192.0.3.185",
+            "192.0.3.186"
+          ],
+          "after_y": [
+            "192.0.2.1",
+            "192.0.2.2"
+          ],
+          "after_ptr": [
+            "x.test"
+          ],
+          "after_tcp_ptr": [
+            "x.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/inotify-same-name-c",
+      "result_sha256": "1a4c43f509789c336f61be1307330dc1da472e63b5d04ca33350ae990f60b63d",
+      "runs": [
+        {
+          "case": "infinite",
+          "rust_sha256": null,
+          "reference_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "source_commit": "exact-image",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.2.1"
+          ],
+          "after_y": [
+            "192.0.2.1"
+          ],
+          "after_ptr": [
+            "alias.test",
+            "lease.test"
+          ],
+          "after_tcp_ptr": [
+            "alias.test",
+            "lease.test"
+          ]
+        },
+        {
+          "case": "finite",
+          "rust_sha256": null,
+          "reference_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+          "source_commit": "exact-image",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.2.1"
+          ],
+          "after_y": [
+            "192.0.2.1"
+          ],
+          "after_ptr": [
+            "lease.test"
+          ],
+          "after_tcp_ptr": [
+            "lease.test"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/dev/shm/full-f10-dhcp-20261014/private/inotify-same-name-rust4ff6",
+      "result_sha256": "7ee6d072099d9f94950084689ba77fa16b3e9f00422bf59f2340df2f8265ca09",
+      "runs": [
+        {
+          "case": "infinite",
+          "rust_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+          "reference_sha256": null,
+          "source_commit": "4ff6a8a27f6a835b5e8cb90a256211fa96383eb5",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.2.1"
+          ],
+          "after_y": [
+            "192.0.2.1"
+          ],
+          "after_ptr": [
+            "lease.test"
+          ],
+          "after_tcp_ptr": [
+            "lease.test"
+          ]
+        },
+        {
+          "case": "finite",
+          "rust_sha256": "a2e4fa11516a39c8018b7fb40bd94ec91ff5df5e15366b160309dbf0d2a07df4",
+          "reference_sha256": null,
+          "source_commit": "4ff6a8a27f6a835b5e8cb90a256211fa96383eb5",
+          "alive": true,
+          "exit": 0,
+          "initial_a": [
+            "192.0.2.1"
+          ],
+          "after_a": [
+            "192.0.2.1"
+          ],
+          "after_y": [
+            "192.0.2.1"
+          ],
+          "after_ptr": [
+            "lease.test"
+          ],
+          "after_tcp_ptr": [
+            "lease.test"
+          ]
+        }
+      ]
+    }
+  ]
+}
