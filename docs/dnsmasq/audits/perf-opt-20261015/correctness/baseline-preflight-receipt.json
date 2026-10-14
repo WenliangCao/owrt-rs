@@ -1,0 +1,163 @@
+{
+  "source_commit": "51b039597af13f9c9cf07c9f80e388e25cd8ae5d",
+  "deployed_elf_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+  "ordinary_and_namespace_units": {
+    "allocations.log": {
+      "status": "ok",
+      "passed": 16,
+      "failed": 0,
+      "ignored": 0,
+      "log_sha256": "5b9a73afacbf77848e5aac175f4bf83d6b77d0e96e27b80d833dbdccb89dec9c"
+    },
+    "bin-ignored-live.log": {
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0,
+      "log_sha256": "dd28f8988db40571c8c45adbc317a9d1899d380baf28265bae36f93f9d9e83b8"
+    },
+    "bin.log": {
+      "status": "ok",
+      "passed": 81,
+      "failed": 0,
+      "ignored": 3,
+      "log_sha256": "b32e453b60b38ae0cbdb3ea5ca4dc66af9b8d228ca4c236f1a3233f1cb4faf4f"
+    },
+    "lib-ignored-live.log": {
+      "status": "ok",
+      "passed": 16,
+      "failed": 0,
+      "ignored": 0,
+      "log_sha256": "aa0189a25f4f5718f15c298b077fec40e603307d0d49f676c05efea68bc3c048"
+    },
+    "lib.log": {
+      "status": "ok",
+      "passed": 808,
+      "failed": 0,
+      "ignored": 20,
+      "log_sha256": "34ec91b10158d0af4af62a155adeb181f222ca5cf4f7239feb18b1292f1691f1"
+    }
+  },
+  "unit_pass_total": 924,
+  "four_corpus_drivers_pending": true,
+  "f10": {
+    "cases": 13,
+    "observations": 704,
+    "passed": true,
+    "failures": [],
+    "result_sha256": "77497dacf04bc652626f13b5215ebb9f16a24997bd9d66de8d5f08547fb2e8fa",
+    "qualifiers": {
+      "qualified-observed-ptr-order": 19,
+      "qualified-source-bound-ptr-order": 8
+    }
+  },
+  "protocol": {
+    "paired_cases": 368,
+    "exact_client_matches": 366,
+    "profiles": {
+      "local": {
+        "paired_cases": 116,
+        "upstream_requests_each_side": 0
+      },
+      "forward": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "filter": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      },
+      "rebind": {
+        "paired_cases": 84,
+        "upstream_requests_each_side": 86
+      }
+    },
+    "differences": [
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "udp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      },
+      {
+        "profile": "local",
+        "case": "forward-pointer",
+        "protocol": "tcp",
+        "classification": "C compression cycle; Rust valid expanded answer"
+      }
+    ],
+    "daemon_lifecycles": 8,
+    "input_sha256": "6876c2a7c40199f71716e2d97d8ac64e00d9fb4d6a8e03a102a69a2bbe351320",
+    "expected_rust_sha256": "8472be5a0c21972a9d4ca7570809d4f3156835611ae73f49c04a62d4289aade7",
+    "checker_sha256": "f92f1d3bbf3cde2a3ed8b1b65b2ca832fcf111d87dc23b004bd9cae137624020",
+    "negative_controls": [
+      {
+        "control": "missing-case",
+        "rejected": true
+      },
+      {
+        "control": "changed-wire",
+        "rejected": true
+      },
+      {
+        "control": "failed-health",
+        "rejected": true
+      },
+      {
+        "control": "forged-comparison",
+        "rejected": true
+      },
+      {
+        "control": "wrong-rust-identity",
+        "rejected": true
+      }
+    ]
+  },
+  "families_preflight": {
+    "m5_option_matrix": {
+      "result_sha256": "715c4ea5cbf809d4301f086a137c190fea2cc36ba56770d6147bbf87c897335a",
+      "scenarios": 40,
+      "failures": []
+    },
+    "m5_option_matrix_next": {
+      "result_sha256": "3f8f0b0aad0ab30627702523b76abd1d6f7bb522b29ac9a50944cd2bb76d1a3f",
+      "scenarios": 40,
+      "failures": []
+    },
+    "m5_option_matrix_third": {
+      "result_sha256": "3ac780687070dd7d980f41d869672a3f3829cdb1c5a8500128d1b40a47f681ac",
+      "scenarios": 56,
+      "failures": []
+    }
+  },
+  "full_44_family_gate_run_on_finalist_instead": true,
+  "fresh_native_host_release_for_environment_only": {
+    "source": "/home/ubuntu/dnsmasq-perf-20261015/correctness/source",
+    "kind": "release",
+    "cargo_target_dir": "/home/ubuntu/dnsmasq-cargo-target",
+    "opt_level": "3",
+    "features": "",
+    "rustflags": "--remap-path-prefix=/home/ubuntu/dnsmasq-perf-20261015/correctness/source=/build -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Cforce-unwind-tables=no -Crelocation-model=pie -Ctarget-feature=+crt-static -Clink-arg=-Wl,-Map=/home/ubuntu/dnsmasq-perf-20261015/correctness/private/baseline-release/link.map",
+    "artifacts": [
+      {
+        "path": "dnsmasq-rs",
+        "bytes": 2126304,
+        "sha256": "37fd44395fe1c09d28812782a017b498c862e66df7430bcaea3505cb7f980173"
+      }
+    ],
+    "link_map": {
+      "path": "link.map",
+      "sha256": "d0a0c059e5000758e029b158dbab7568f38a36f9d558d217bd771f981f12a0f9"
+    }
+  },
+  "reference_identity_sha256": "62cec0e9dda0265cb9c4f6af27f7d23067aed967afab3c74e37370149a8326e9",
+  "reference_patched_file_count": 148,
+  "native_helper_elf_sha256": "11e5683091fb70a3f126adae2880aff96695d705e4441885b55d66e9235e038b",
+  "router_accessed": false,
+  "baseline_tcp_first_attempt": {
+    "status": "harness-failure",
+    "reason": "exact deployed ELF copy lacked executable mode; copy2 retained it; Rust exec exited 126 before readiness",
+    "retest": "full three groups in fresh attempt2 outputs after copy chmod755, same ELF SHA",
+    "old_results_preserved": true
+  }
+}
