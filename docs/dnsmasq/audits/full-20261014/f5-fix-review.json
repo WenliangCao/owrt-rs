@@ -1,0 +1,1145 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "scope": "F5 repair acceptance by the repair author on exact-image Oracle overlays with the same Rust9 support binaries. No router, push or main changes. Root performs independent final merged-artifact acceptance.",
+  "identity": {
+    "build_source_commit": "b0c386e2ce820587ca16a164673b33d130b1a570",
+    "build_source_files_checked": 647,
+    "missing": [],
+    "mismatches": [],
+    "build_source_expected_sha256": "7154dd34ae12d05062d663964aecb1da79db7fcf8a87bd2295a8322c489fac49",
+    "handoff_source": "5761bfc60f108fe9a5e7a3b7220e5cb783e3596a",
+    "core_component_trees_equal": true,
+    "elf_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+    "elf_bytes": 2089440,
+    "package_init_sha256": "335e3e9b2fdbddffc1eb04fb4b76920d90816e597189afaa329b1ef4ce5eb392",
+    "package_acl_sha256": "8bedbcdd3018c17f272f0d3ecf9573aa6f05253806cb8812ebf92e9b87ac6020",
+    "tool_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+    "contract_tool_sha256": "858adf692f28317479d7b0b425f86114df2b0479bf0cc1608c25111cb9cc50ab",
+    "publish_probe_sha256": "cfd169bd17fe73b93301cd2f70163e7e3fbf0bb8963caec3d215297200629f57",
+    "publish_probe_source_sha256": "ac8c3ec3875445eb2ff9274e7c6453dc9fb322df402007a0ce46367db836f052"
+  },
+  "root_cause_correction": "The former attribution to missing dnsmasq.dns ACL was incomplete: the stock ubus jail shortcut binds the old socket inode, preventing reconnection even with the corrected ACL. A read-only socket-parent mount, exact ACL grant and runtime retry policy are all required.",
+  "changes": [
+    "Publish only exact dnsmasq and dnsmasq.dns for the dnsmasq user; preserve hotplug method permissions.",
+    "Replace the init ubus jail shortcut with a read-only /var/run/ubus mount; preserve log jail, identity, capabilities and remaining mounts.",
+    "Keep configured ubus name after runtime failures; retry on an explicit one-second poll deadline; bound logs per disconnection.",
+    "Runtime HELLO and both registration requests share 100 ms, with STOP cancellation; initial startup registration remains fatal on error."
+  ],
+  "new_fixed_cases": {
+    "restart": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "47196ea68c3858d9b72859fcc601fcd823ef7469a3713bfb722aa71c40a22330",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "replacement_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        }
+      },
+      "recovery_seconds": 0.8129721391014755,
+      "recovered_client1": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "recovered_client2": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "ack_events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n",
+      "absent_cpu_ticks": 0,
+      "recovered_metrics_fields": [
+        "dns_cache_inserted",
+        "dns_cache_live_freed",
+        "dns_queries_forwarded",
+        "dns_auth_answered",
+        "dns_local_answered",
+        "dns_stale_answered",
+        "dns_unanswered",
+        "dnssec_max_crypto_use",
+        "dnssec_max_sig_fail",
+        "dnssec_max_work",
+        "bootp",
+        "pxe",
+        "dhcp_ack",
+        "dhcp_decline",
+        "dhcp_discover",
+        "dhcp_inform",
+        "dhcp_nak",
+        "dhcp_offer",
+        "dhcp_release",
+        "dhcp_request",
+        "noanswer",
+        "leases_allocated_4",
+        "leases_pruned_4",
+        "leases_allocated_6",
+        "leases_pruned_6",
+        "tcp_connections",
+        "dhcp_leasequery",
+        "dhcp_lease_unassigned",
+        "dhcp_lease_actve",
+        "dhcp_lease_unknown"
+      ],
+      "dhcp_ack_counter_delta": 2
+    },
+    "acl-recovery": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "54b24f5673b7ca2066696d89d0741c726341062d5f93e94816665d1df0d6668b",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "replacement_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        }
+      },
+      "recovery_seconds": 0.4139309918973595,
+      "recovered_client1": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "recovered_client2": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "ack_events": "{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n{ \"dhcp.ack\": {\"mac\":\"02:00:00:00:00:27\",\"ip\":\"192.168.1.101\",\"interface\":\"br-lan\"} }\n",
+      "no_partial_main_object": true,
+      "client_while_denied": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "absent_cpu_ticks": 0,
+      "recovered_metrics_fields": [
+        "dns_cache_inserted",
+        "dns_cache_live_freed",
+        "dns_queries_forwarded",
+        "dns_auth_answered",
+        "dns_local_answered",
+        "dns_stale_answered",
+        "dns_unanswered",
+        "dnssec_max_crypto_use",
+        "dnssec_max_sig_fail",
+        "dnssec_max_work",
+        "bootp",
+        "pxe",
+        "dhcp_ack",
+        "dhcp_decline",
+        "dhcp_discover",
+        "dhcp_inform",
+        "dhcp_nak",
+        "dhcp_offer",
+        "dhcp_release",
+        "dhcp_request",
+        "noanswer",
+        "leases_allocated_4",
+        "leases_pruned_4",
+        "leases_allocated_6",
+        "leases_pruned_6",
+        "tcp_connections",
+        "dhcp_leasequery",
+        "dhcp_lease_unassigned",
+        "dhcp_lease_actve",
+        "dhcp_lease_unknown"
+      ],
+      "dhcp_ack_counter_delta": 2
+    },
+    "startup": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "210305ebb5bb2b52f128b97c5a783d282c0b9f0d8344977ac7546c86e197bca0",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "publish_acl_controls": {
+        "dnsmasq": {
+          "exit": 0,
+          "status": 0
+        },
+        "dnsmasq.dns": {
+          "exit": 0,
+          "status": 0
+        },
+        "dnsmasq.extra": {
+          "exit": 1,
+          "status": 2
+        },
+        "dnsmasq.dns.extra": {
+          "exit": 1,
+          "status": 2
+        },
+        "dnsmasqevil": {
+          "exit": 1,
+          "status": 2
+        },
+        "service": {
+          "exit": 1,
+          "status": 2
+        },
+        "nobody/dnsmasq": {
+          "exit": 1,
+          "status": 2
+        }
+      },
+      "startup_second_registration_failure": {
+        "exit": 5,
+        "stderr": "\ndnsmasq-rs: UBus error: Invalid argument\n",
+        "objects": [
+          "dnsmasq.dns"
+        ]
+      },
+      "startup_unauthorized": {
+        "exit": 5,
+        "stderr": "\ndnsmasq-rs: UBus error: Invalid argument\n"
+      }
+    },
+    "stop-absent": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "b5b1fa550d3b3a92b7f08ce9d2c3e1408200147958938b2ca7ab9dfdffa9bb42",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "shutdown_seconds": 0.0021522969473153353,
+      "absent_cpu_ticks": 0
+    },
+    "stall-hello": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "cefffc99c06591c9042205ecffeda974e11b73d1edc5b6627cb2e54f340ae7b0",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "shutdown_seconds": 0.0022506178356707096,
+      "term_stage_required_requests": 0,
+      "term_stage_observed_requests": [
+        0
+      ],
+      "absent_cpu_ticks": 0,
+      "stalled_dns_queries": 600,
+      "stalled_dns_query_errors": 0,
+      "stalled_udp_queries": 300,
+      "stalled_tcp_queries": 300,
+      "max_dns_seconds": 0.1009287559427321,
+      "max_target_connection_seconds": 0.10059043299406767,
+      "target_request_counts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "stalled_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      }
+    },
+    "stall-registration": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "d17bf80a1fe88b13de08bceefc55d01df4ab1b4dbbdd1db870aa8aebc202c401",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "shutdown_seconds": 0.0022894591093063354,
+      "term_stage_required_requests": 1,
+      "term_stage_observed_requests": [
+        1
+      ],
+      "absent_cpu_ticks": 0,
+      "stalled_dns_queries": 598,
+      "stalled_dns_query_errors": 0,
+      "stalled_udp_queries": 299,
+      "stalled_tcp_queries": 299,
+      "max_dns_seconds": 0.09820065391249955,
+      "max_target_connection_seconds": 0.10076611512340605,
+      "target_request_counts": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "stalled_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      }
+    },
+    "stall-second": {
+      "passed": true,
+      "side": "rust",
+      "expected": "recover",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "4778c1b809e57554cfff840fa07aab4deadd115b934ac965a4ad2b5b5e034ae3",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "shutdown_seconds": 0.0022138189524412155,
+      "term_stage_required_requests": 2,
+      "term_stage_observed_requests": [
+        2
+      ],
+      "absent_cpu_ticks": 0,
+      "stalled_dns_queries": 598,
+      "stalled_dns_query_errors": 0,
+      "stalled_udp_queries": 299,
+      "stalled_tcp_queries": 299,
+      "max_dns_seconds": 0.10113003896549344,
+      "max_target_connection_seconds": 0.10079487599432468,
+      "target_request_counts": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "stalled_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      }
+    }
+  },
+  "controls": {
+    "old-acl-recovery": {
+      "passed": true,
+      "side": "rust",
+      "expected": "disabled",
+      "candidate_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "running_dnsmasq_sha256": "edb5b4f91bac4486dd006400adc0c65380e0ec6fc36d36115d5ebc9475d3276d",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "a61b1cdeb6917c47a6e9c44aad31ef7b3d914fbd7e91baec2a55e94027041280",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "replacement_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        }
+      },
+      "no_partial_main_object": true,
+      "client_while_denied": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "after_restart_objects": [],
+      "after_client_objects": [],
+      "client_after_restart": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "absent_cpu_ticks": 0
+    },
+    "c-fixed-policy": {
+      "passed": true,
+      "side": "c",
+      "expected": "disabled",
+      "candidate_sha256": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "running_dnsmasq_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "installed_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d",
+        "logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "uci": "c6eba883cf60701e5ffa4364fdb8460421f8d7672f2e4f7424971cee2f4d7a6b",
+        "reload-config": "bffaa36a7dd56e858c837059397b7885a152063577aaa6ecbf0075b7bf1b9516",
+        "fw4": "dc080ca3a6d9f0f25f61990c63dcee9548a4bb5fde55768ccf3f83b519e7b745",
+        "httpd": "e8a9ba73c0171c59a92d952c4b0fed20ed7492e03a3884a592186acf5bf0ea7d"
+      },
+      "running_support_sha256": {
+        "ubusd": "2a25be58ffe31a5c1caa14f5da7f791db25d9d94086e4816a6401f72f696fbcc",
+        "/sbin/logd": "a38f39bc8662ec150759cd4cec87c2f666bbb58b03771f3ad10b0a7d9ad2e624",
+        "/sbin/procd": "9db9917e1fad24a7a4717ddfbcd3ba824f5d3d697b9f873fb40172812be87957",
+        "/sbin/netifd": "2e9fbeb0cd0c2cf35ab74fe9e0b81db18a605ad5b8bd174b10ba179d441ed3b5",
+        "/sbin/rpcd": "107a3b252140c7a8e284563cf199e956c124383c98a80e15e5d55438fafd374d"
+      },
+      "raw_result_sha256": "190befbf821dfd457a9a09e45695504b4757ebfe1c2388b65dd2f269f891c247",
+      "raw_driver_sha256": "30a08ad44c71d10505bc457e9aaf41ae45ccb9ab112a22fa9977a422e0d67ce0",
+      "jail_credentials": {
+        "Uid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "Gid": [
+          "453",
+          "453",
+          "453",
+          "453"
+        ],
+        "CapEff": [
+          "0000000000003400"
+        ],
+        "CapPrm": [
+          "0000000000003400"
+        ],
+        "NoNewPrivs": [
+          "0"
+        ],
+        "Seccomp": [
+          "0"
+        ]
+      },
+      "jail_bus_directory_write_errno": 30,
+      "initial_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 18
+        }
+      },
+      "initial_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "replacement_socket": {
+        "fixture": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        },
+        "jail": {
+          "directory_inode": 3,
+          "socket_inode": 34
+        }
+      },
+      "after_restart_objects": [],
+      "after_client_objects": [
+        "dnsmasq"
+      ],
+      "client_after_restart": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "absent_cpu_ticks": 0
+    }
+  },
+  "units": {
+    "linux_musl_lib_passed": 789,
+    "linux_musl_lib_ignored": 20,
+    "linux_musl_bin_passed": 78,
+    "linux_musl_bin_ignored": 3,
+    "bin_log_sha256": "32ff1d6bcb08ba2c8625b911bed1b1d27e0586a8a8f2344dd4c40915d8ed0390",
+    "lib_log_sha256": "4503aba62da866de0fcee4cd4b6a4283daa549c8b6cde1bce018925af050ac1a",
+    "note": "The first Linux bin run encountered an existing shared /tmp FIFO and had 77 pass/1 fixture failure; fresh private tmpfs execution passed 78. Original failure retained."
+  },
+  "legacy_recovery_contract": {
+    "passed_checks": 67,
+    "failed_checks": 0,
+    "observations": 13,
+    "reference": {
+      "kind": "image-aarch64-musl",
+      "elf_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "runner_sha256": "50bd40155f201d14a94c382da66f6c7f0eae7b24894bdb23514ad25261b729ce",
+      "dependencies": {
+        "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "identity_sha256": "9b2a1688376486f6b871becf5e6c5caaee3da3110b53e85fc8a95ee3bc5cf8fa"
+    },
+    "identities": {
+      "c": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "native_client_build_c": "bba5a0a8b1db6a82fcf9c59b4f4734dd77b5a986146ea3f1d5fd625b3f4e2431",
+      "rust": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+      "ubusd": "b9328e5e3646b0f3cd996139369e0887f294a55e363ecb200f6d5137fca8f027",
+      "client": "93da7d4c392736c6ce5226e91733e0431bf88cd6d960db935a900c9a68c98bfb",
+      "tool": "858adf692f28317479d7b0b425f86114df2b0479bf0cc1608c25111cb9cc50ab"
+    },
+    "raw_result_sha256": "c62ce7203f5546af8ac26a771de89fc5ae77aa2a0d4d7b9f9bfad7b89b7dafe4",
+    "intentional_difference": "Only the two removed-runtime-collision states are guarded: C remains disabled, Rust must restore both exact signatures, full real metrics, DNS and exact logs. Other observations retain strict comparison. The full all-suite count becomes 346; only recovery was freshly executed here."
+  },
+  "jail_reference": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/sources/components/procd/jail/jail.c",
+    "sha256": "6a12f291e115966ded3ede81fd3abf9442e5a86dce0798335b573efd17c7be65",
+    "ubus_shortcut_lines": [
+      2705,
+      2707
+    ],
+    "readonly_bind_lines": [
+      2685,
+      2690
+    ]
+  },
+  "closeout": {
+    "owned_processes_remaining": [],
+    "host_visible_mounts_remaining": [],
+    "candidate_sha256_after": "35e65ff5f3d848471feecd8e0bf12a5a5d386ec517cc389566fd186230c9c706",
+    "init_sha256_after": "335e3e9b2fdbddffc1eb04fb4b76920d90816e597189afaa329b1ef4ce5eb392",
+    "acl_sha256_after": "8bedbcdd3018c17f272f0d3ecf9573aa6f05253806cb8812ebf92e9b87ac6020"
+  },
+  "stage_cleanup": {
+    "removed_rebuildable_directories": 48,
+    "cleanup_receipt_sha256": "19280ec30e99d886fc3e931a6ffae014c441271c0c8bf12e2a2137bc925bbcb5",
+    "preserved_stage_configuration_sha256": "3a5bf96fca1af400d7c0112ba68babc17d0360586a39a52870a8d23a1af93fd1",
+    "all_archived_stage_file_hashes_locally_verified": true
+  },
+  "raw_evidence": {
+    "oracle_base": "/dev/shm/full-merge-f5-20261014",
+    "oracle_archive": "/dev/shm/full-merge-f5-20261014/evidence-final.tar.gz",
+    "local_archive": "private/f5-ubus/evidence-final.tar.gz",
+    "archive_sha256": "f4f060ff9b60eecd7659b83c769c3ebfa988a688a02ad6a4a2cb13743a411068",
+    "local_archive_hash_matches_oracle": true,
+    "separate_cleanup_receipt": "private/f5-ubus/evidence/receipts/stage-cleanup.json"
+  },
+  "limits": [
+    "Default object names only. Custom enable-ubus names require an explicit matching administrator ACL; no wildcard permission was added.",
+    "Read-only /var/run/ubus assumes the directory persists across normal ubusd restart; replacement of the parent directory is outside this case.",
+    "A stalled bus still delays one owner turn by up to about 100 ms per retry; this is a bounded fault budget, not a claim of asynchronous or zero-latency recovery.",
+    "The Rust9 files and five used support daemons are verified; this is not a new full 23-check stack run or package transaction.",
+    "No on-router deployment, new firmware/APK, global OOM or arbitrary repeated-fault guarantee.",
+    "Code/ELF identity is explicit: built Rust source b0c386e2 equals handoff component trees; cde1db23 adds init only and later commits add tools/reports."
+  ]
+}
