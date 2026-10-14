@@ -13,6 +13,10 @@ sha256sum -c "$manifest" >/dev/null
 # Refuse a layered installation: replacing a mounted executable would not
 # change the next boot in the intended way.
 while read -r hash source; do
+    case "$source" in
+        "$base"/*) ;;
+        *) echo "recovery source is outside stock directory: $source" >&2; exit 1 ;;
+    esac
     target=${source#"$base"}
     case "$target" in
         /sbin/procd|/sbin/ubusd|/sbin/netifd|/sbin/rpcd|/sbin/logd|/sbin/uci|/sbin/fw4|/sbin/reload_config|/usr/sbin/uhttpd|/usr/sbin/dnsmasq|/etc/init.d/dnsmasq|/usr/share/acl.d/dnsmasq_acl.json) ;;

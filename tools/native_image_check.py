@@ -140,6 +140,17 @@ if /etc/init.d/cron enabled; then exit 1; fi
             self.identities(root)
             original.write_bytes(good)
         self.passed("corrupt_program_init_or_ACL_rejected_before_any_replacement")
+        sums = root / "usr/share/owrt-control-plane/stock.sha256"
+        valid_sums = sums.read_text()
+        # A correct hash of an active target must never be accepted as a
+        # recovery original outside the pinned stock directory.
+        rows = valid_sums.splitlines()
+        rows[0] = sha(root / "sbin/procd") + "  /sbin/procd"
+        sums.write_text("\n".join(rows) + "\n")
+        self.shell("recovery-outside-stock", root, "/usr/sbin/owrt-recover-c\n", success=False)
+        self.identities(root)
+        sums.write_text(valid_sums)
+        self.passed("non_stock_recovery_source_rejected_before_any_replacement")
         self.shell("recovery-mounted", root, '''
 mount -o bind /sbin/uci /sbin/uci
 /usr/sbin/owrt-recover-c
