@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "date": "2026-10-14",
+  "source_commit": "19bd6162e1b33c92a1e5ea26e864497800c7cfed",
+  "scope": "Two independent final-ELF trial recovery replays under exact-image C support services and unchanged init/procd/ujail in disposable Oracle mount/network/PID namespaces. Separate from the Rust9 stack acceptance. No router access.",
+  "conclusion": "Both rollback-killed and deadline passed with the frozen final candidate; this does not provide whole-product, full-matrix or physical deployment approval.",
+  "identities": {
+    "/dev/shm/full-integrated-fix-20261014/private/release-final/dnsmasq-rs": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+    "/dev/shm/full-trial-fix-20261014/dnsmasq-trial": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+    "/dev/shm/full-trial-fix-20261014/test_trial_oracle.py": "f3ce62bceb4d80bbb8061de7fb2e9c9c3dd14d2a401ad5ad7bd8838c6cc560cd"
+  },
+  "input_manifest_sha256": "643fcf5ec628511654f9768f74fdedc1b3bf270c682b83340d5d78be30e1dff7",
+  "driver_sha256": "94f9e5447901399e538b7f7c271152f81b910a8002a3e5018a5cbd3c23754766",
+  "matrix": {
+    "rollback-killed": {
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_seconds": 14.796205535065383,
+      "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+      "candidate_running_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "recovered_running_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial_stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "recovered_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "support_running_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "/sbin/logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+        "/sbin/procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+        "/sbin/netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90"
+      },
+      "rootfs_identity_sha256": "25aa2a7b958644e825910ce02cf7b60014f7eb2dc40882755906def84a5f76ca",
+      "raw_result_sha256": "ff78b52e90bebcf82c83672a03acaeea047090159befc563ddf95b86f9253e8e",
+      "image": {
+        "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "image_sha256": null,
+        "image_provenance_sha256": null,
+        "kernel": "6.17.0-1020-oracle",
+        "machine": "aarch64"
+      },
+      "fault": {
+        "pid": 508,
+        "phase": "requested",
+        "mounted": true,
+        "helper_files": [
+          "deadline.pid",
+          "watch.pid"
+        ],
+        "signal": "SIGKILL"
+      },
+      "rollback_exit": -9,
+      "helpers_cleared": true
+    },
+    "deadline": {
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_seconds": 28.58741762000136,
+      "trial_sha256": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+      "candidate_running_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "recovered_running_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+      "initial_stock_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "candidate_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "recovered_client": {
+        "dhcp_offer": true,
+        "dhcp_ack": true,
+        "address": "192.168.1.101",
+        "server": "192.168.1.1",
+        "dns_option": "192.168.1.1",
+        "router_option": "192.168.1.1",
+        "dns": {
+          "udp": true,
+          "tcp": true
+        }
+      },
+      "support_running_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "/sbin/logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+        "/sbin/procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+        "/sbin/netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90"
+      },
+      "rootfs_identity_sha256": "f846a499e0aef791f4164f8f21cd1c7e24fef1d6d957d19b40207a8feb68385d",
+      "raw_result_sha256": "f4ebaac8714c676bbad8444a1c9c08d71bf9b204dd2aed85aaa3349ff55ffc1d",
+      "image": {
+        "c_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+        "rust_sha256": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+        "image_sha256": null,
+        "image_provenance_sha256": null,
+        "kernel": "6.17.0-1020-oracle",
+        "machine": "aarch64"
+      },
+      "trial_deadline_seconds": 20
+    }
+  },
+  "closeout": {
+    "owned_processes_remaining": [],
+    "host_visible_mounts_remaining": [],
+    "inputs_after": {
+      "/dev/shm/full-integrated-fix-20261014/private/release-final/dnsmasq-rs": "fbeabf4f5ffabfa5d6b5f4eec0c52540984fdabe882943ef165d5b990a9f7b4b",
+      "/dev/shm/full-trial-fix-20261014/dnsmasq-trial": "dfa94d52cb132a181d78b8a0471b49868d9d3dd8bf9f79b00839edbd649f8b74",
+      "/dev/shm/full-trial-fix-20261014/test_trial_oracle.py": "f3ce62bceb4d80bbb8061de7fb2e9c9c3dd14d2a401ad5ad7bd8838c6cc560cd"
+    },
+    "inputs_unchanged": true
+  },
+  "raw_evidence": {
+    "oracle_directory": "/dev/shm/full-audit-resume-20261014/stack-trial",
+    "oracle_archive": "/dev/shm/full-audit-resume-20261014/stack-trial-evidence.tar.gz",
+    "local_directory": "private/full-audit-20261014/resume/stack/trial",
+    "local_archive": "private/full-audit-20261014/resume/stack/trial/final-evidence.tar.gz",
+    "archive_sha256": "00221dc9451db30ef401d727d80b1415bf41de37bee62be952888aafc13abd7b",
+    "archive_excludes": "Disposable rootfs and rootfs-overlay; original overlay evidence retained in Oracle task directory."
+  }
+}
