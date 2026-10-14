@@ -1,0 +1,1442 @@
+{
+  "scope": "Actual captured configuration, exact image C ELF and frozen Rust release; isolated oracle network/mount/PID namespaces",
+  "comparison": "Ignore elapsed time only; keep DNS IDs, flags, questions, ordered records, TTLs, error category/text and daemon liveness",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "config_identity_equal": true,
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+  "executed_tool_sha256": {
+    "c": "7d0c04c22378070c4aab32ebd0be47d9f6895fab8ffe6e0efe59cb25809e379d",
+    "rust": "7d0c04c22378070c4aab32ebd0be47d9f6895fab8ffe6e0efe59cb25809e379d"
+  },
+  "source_result_sha256": {
+    "c": "1124ed591136286de456fe64061768e55f04c252e70ae145a10423d7f4442004",
+    "rust": "4ef5df1ac05cf6341765dafab25afd519c0a46662eb6d65c8b99d791222059d7"
+  },
+  "cases": [
+    {
+      "label": "basic-v4-udp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "5f2c97c5e1ef75ddf209554cd83ea6ca104b7510d8db71b0f048d96c0ca5a303",
+      "rust_semantics_sha256": "5f2c97c5e1ef75ddf209554cd83ea6ca104b7510d8db71b0f048d96c0ca5a303"
+    },
+    {
+      "label": "basic-v4-udp-1-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "5f2c97c5e1ef75ddf209554cd83ea6ca104b7510d8db71b0f048d96c0ca5a303",
+      "rust_semantics_sha256": "5f2c97c5e1ef75ddf209554cd83ea6ca104b7510d8db71b0f048d96c0ca5a303"
+    },
+    {
+      "label": "basic-v4-udp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "62812d2da391f09911b2b888987d2394050e4c54c2ec8c07579ce5d7b305a45f",
+      "rust_semantics_sha256": "62812d2da391f09911b2b888987d2394050e4c54c2ec8c07579ce5d7b305a45f"
+    },
+    {
+      "label": "basic-v4-udp-28-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "62812d2da391f09911b2b888987d2394050e4c54c2ec8c07579ce5d7b305a45f",
+      "rust_semantics_sha256": "62812d2da391f09911b2b888987d2394050e4c54c2ec8c07579ce5d7b305a45f"
+    },
+    {
+      "label": "basic-v4-tcp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "fdd67f67ed07700f675b29e60cd7f3017f32ecc7216a3bc8e1fb63996031e732",
+      "rust_semantics_sha256": "fdd67f67ed07700f675b29e60cd7f3017f32ecc7216a3bc8e1fb63996031e732"
+    },
+    {
+      "label": "basic-v4-tcp-1-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "fdd67f67ed07700f675b29e60cd7f3017f32ecc7216a3bc8e1fb63996031e732",
+      "rust_semantics_sha256": "fdd67f67ed07700f675b29e60cd7f3017f32ecc7216a3bc8e1fb63996031e732"
+    },
+    {
+      "label": "basic-v4-tcp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "b862f58e2e68dd13338a16964331fe01af1c5f9638d4eb8b14e71f69766bc371",
+      "rust_semantics_sha256": "b862f58e2e68dd13338a16964331fe01af1c5f9638d4eb8b14e71f69766bc371"
+    },
+    {
+      "label": "basic-v4-tcp-28-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "b862f58e2e68dd13338a16964331fe01af1c5f9638d4eb8b14e71f69766bc371",
+      "rust_semantics_sha256": "b862f58e2e68dd13338a16964331fe01af1c5f9638d4eb8b14e71f69766bc371"
+    },
+    {
+      "label": "basic-v6-udp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "40fb77d17a40331b950ed6c95e3a3b912db3b7a1d02cc4190ff4e9e1043e6373",
+      "rust_semantics_sha256": "40fb77d17a40331b950ed6c95e3a3b912db3b7a1d02cc4190ff4e9e1043e6373"
+    },
+    {
+      "label": "basic-v6-udp-1-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "966f065e137a5c7f9e03ee943512f0f0973a7697bf8952edc7a26e8d227c84e1",
+      "rust_semantics_sha256": "966f065e137a5c7f9e03ee943512f0f0973a7697bf8952edc7a26e8d227c84e1"
+    },
+    {
+      "label": "basic-v6-udp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "aff8f6bd83985626d09648653a3f84a7d0f0d23031fac83e7ac59a9dc6eac723",
+      "rust_semantics_sha256": "aff8f6bd83985626d09648653a3f84a7d0f0d23031fac83e7ac59a9dc6eac723"
+    },
+    {
+      "label": "basic-v6-udp-28-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "aff8f6bd83985626d09648653a3f84a7d0f0d23031fac83e7ac59a9dc6eac723",
+      "rust_semantics_sha256": "aff8f6bd83985626d09648653a3f84a7d0f0d23031fac83e7ac59a9dc6eac723"
+    },
+    {
+      "label": "basic-v6-tcp-1",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "a9e3e8ccee76baa2f06d83398a0a9dea7460e656d468b525ce27df24011be6a4",
+      "rust_semantics_sha256": "a9e3e8ccee76baa2f06d83398a0a9dea7460e656d468b525ce27df24011be6a4"
+    },
+    {
+      "label": "basic-v6-tcp-1-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "a9e3e8ccee76baa2f06d83398a0a9dea7460e656d468b525ce27df24011be6a4",
+      "rust_semantics_sha256": "a9e3e8ccee76baa2f06d83398a0a9dea7460e656d468b525ce27df24011be6a4"
+    },
+    {
+      "label": "basic-v6-tcp-28",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "196fda5d90bb4536088caea23629166a04b9e05c75ad32115be5215d5ae87469",
+      "rust_semantics_sha256": "196fda5d90bb4536088caea23629166a04b9e05c75ad32115be5215d5ae87469"
+    },
+    {
+      "label": "basic-v6-tcp-28-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "196fda5d90bb4536088caea23629166a04b9e05c75ad32115be5215d5ae87469",
+      "rust_semantics_sha256": "196fda5d90bb4536088caea23629166a04b9e05c75ad32115be5215d5ae87469"
+    },
+    {
+      "label": "txt",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "07cb24a42af7fce1100ace82a499f879a4bc60426594d77679bbb00b041c420c",
+      "rust_semantics_sha256": "07cb24a42af7fce1100ace82a499f879a4bc60426594d77679bbb00b041c420c"
+    },
+    {
+      "label": "txt-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "07cb24a42af7fce1100ace82a499f879a4bc60426594d77679bbb00b041c420c",
+      "rust_semantics_sha256": "07cb24a42af7fce1100ace82a499f879a4bc60426594d77679bbb00b041c420c"
+    },
+    {
+      "label": "https",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "10cc72314edaef46bab6cb6a0b43238dfc599828a7ac957b640524b7e34e305a",
+      "rust_semantics_sha256": "10cc72314edaef46bab6cb6a0b43238dfc599828a7ac957b640524b7e34e305a"
+    },
+    {
+      "label": "https-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "10cc72314edaef46bab6cb6a0b43238dfc599828a7ac957b640524b7e34e305a",
+      "rust_semantics_sha256": "10cc72314edaef46bab6cb6a0b43238dfc599828a7ac957b640524b7e34e305a"
+    },
+    {
+      "label": "cname",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "bb14d2da40cb016e97047a1d384724e035ee2961729267300b89e1957c025ea8",
+      "rust_semantics_sha256": "bb14d2da40cb016e97047a1d384724e035ee2961729267300b89e1957c025ea8"
+    },
+    {
+      "label": "cname-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "bb14d2da40cb016e97047a1d384724e035ee2961729267300b89e1957c025ea8",
+      "rust_semantics_sha256": "bb14d2da40cb016e97047a1d384724e035ee2961729267300b89e1957c025ea8"
+    },
+    {
+      "label": "nx",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "d81b99303c49172b33902aba23f2df9ad9ea06929f7048bcb0ea474f6b8d2275",
+      "rust_semantics_sha256": "d81b99303c49172b33902aba23f2df9ad9ea06929f7048bcb0ea474f6b8d2275"
+    },
+    {
+      "label": "nx-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "d81b99303c49172b33902aba23f2df9ad9ea06929f7048bcb0ea474f6b8d2275",
+      "rust_semantics_sha256": "d81b99303c49172b33902aba23f2df9ad9ea06929f7048bcb0ea474f6b8d2275"
+    },
+    {
+      "label": "nodata",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "4d678924e0874cf384451ff1654e256ad8f6acd5b49b3d3406bcccaed61e3d95",
+      "rust_semantics_sha256": "4d678924e0874cf384451ff1654e256ad8f6acd5b49b3d3406bcccaed61e3d95"
+    },
+    {
+      "label": "nodata-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "4d678924e0874cf384451ff1654e256ad8f6acd5b49b3d3406bcccaed61e3d95",
+      "rust_semantics_sha256": "4d678924e0874cf384451ff1654e256ad8f6acd5b49b3d3406bcccaed61e3d95"
+    },
+    {
+      "label": "rebind",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "f4597a40119cdf80f88ba7018dd09be471d6b22005dba4458787e257f685e2c0",
+      "rust_semantics_sha256": "f4597a40119cdf80f88ba7018dd09be471d6b22005dba4458787e257f685e2c0"
+    },
+    {
+      "label": "rebind-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "f4597a40119cdf80f88ba7018dd09be471d6b22005dba4458787e257f685e2c0",
+      "rust_semantics_sha256": "f4597a40119cdf80f88ba7018dd09be471d6b22005dba4458787e257f685e2c0"
+    },
+    {
+      "label": "localhost-rebind",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "dbe2f0939cf6de73296cb279fad9cebd005aced9d080372ad537301e4f2acdfa",
+      "rust_semantics_sha256": "dbe2f0939cf6de73296cb279fad9cebd005aced9d080372ad537301e4f2acdfa"
+    },
+    {
+      "label": "localhost-rebind-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "dbe2f0939cf6de73296cb279fad9cebd005aced9d080372ad537301e4f2acdfa",
+      "rust_semantics_sha256": "dbe2f0939cf6de73296cb279fad9cebd005aced9d080372ad537301e4f2acdfa"
+    },
+    {
+      "label": "large",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "27bf674e148583f44475adec0d6c2474f80f33fae8ae950c11b1e93548dede2c",
+      "rust_semantics_sha256": "27bf674e148583f44475adec0d6c2474f80f33fae8ae950c11b1e93548dede2c"
+    },
+    {
+      "label": "large-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "27bf674e148583f44475adec0d6c2474f80f33fae8ae950c11b1e93548dede2c",
+      "rust_semantics_sha256": "27bf674e148583f44475adec0d6c2474f80f33fae8ae950c11b1e93548dede2c"
+    },
+    {
+      "label": "large-noedns",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "6d223d11af60768105092da43d2a1363e55fe3c38a0c92f1beaa9136f62cb6a9",
+      "rust_semantics_sha256": "6d223d11af60768105092da43d2a1363e55fe3c38a0c92f1beaa9136f62cb6a9"
+    },
+    {
+      "label": "large-noedns-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "6d223d11af60768105092da43d2a1363e55fe3c38a0c92f1beaa9136f62cb6a9",
+      "rust_semantics_sha256": "6d223d11af60768105092da43d2a1363e55fe3c38a0c92f1beaa9136f62cb6a9"
+    },
+    {
+      "label": "ad",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "ddcd464a0cb1f8a75527a5a28499b5288a18fa7ad0b489999d60c24573f01843",
+      "rust_semantics_sha256": "ddcd464a0cb1f8a75527a5a28499b5288a18fa7ad0b489999d60c24573f01843"
+    },
+    {
+      "label": "ad-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "ddcd464a0cb1f8a75527a5a28499b5288a18fa7ad0b489999d60c24573f01843",
+      "rust_semantics_sha256": "ddcd464a0cb1f8a75527a5a28499b5288a18fa7ad0b489999d60c24573f01843"
+    },
+    {
+      "label": "cd",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "36c1faab8e6dda38f7f4cdc7300d9be211f2573073643c04b18bea5c6c718472",
+      "rust_semantics_sha256": "36c1faab8e6dda38f7f4cdc7300d9be211f2573073643c04b18bea5c6c718472"
+    },
+    {
+      "label": "cd-cached",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "36c1faab8e6dda38f7f4cdc7300d9be211f2573073643c04b18bea5c6c718472",
+      "rust_semantics_sha256": "36c1faab8e6dda38f7f4cdc7300d9be211f2573073643c04b18bea5c6c718472"
+    },
+    {
+      "label": "cname-aaaa",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "bac3401a2aaa3365025c0ddef54724eb03981475830c198cb0c297eeefce0205",
+      "rust_semantics_sha256": "bac3401a2aaa3365025c0ddef54724eb03981475830c198cb0c297eeefce0205"
+    },
+    {
+      "label": "nx-cross-type",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "02dd64bf2c7c28505487e0e4d570eafdad6c27422d0530cd135ffa53a6437a20",
+      "rust_semantics_sha256": "02dd64bf2c7c28505487e0e4d570eafdad6c27422d0530cd135ffa53a6437a20"
+    },
+    {
+      "label": "rebind6",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "8ee332ac955713a1b54c213802290aaf0a5ef82116c9e8f2663caf7b018b1e26",
+      "rust_semantics_sha256": "8ee332ac955713a1b54c213802290aaf0a5ef82116c9e8f2663caf7b018b1e26"
+    },
+    {
+      "label": "localhost-rebind6",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "82ccaf742b07bd5631eac1bb0990be502f5ce5723b99ddbae1fabdb2a38fd93d",
+      "rust_semantics_sha256": "82ccaf742b07bd5631eac1bb0990be502f5ce5723b99ddbae1fabdb2a38fd93d"
+    },
+    {
+      "label": "truncated",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c8c9d88b006c2a0d7e95ec23e34c5bce8b66f98294f377d37afa541ac21669fc",
+      "rust_semantics_sha256": "c8c9d88b006c2a0d7e95ec23e34c5bce8b66f98294f377d37afa541ac21669fc"
+    },
+    {
+      "label": "truncated-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c3157e84304e5ff5307a80097bcba074c450a2d62f5d9d9d4ff72faef744e127",
+      "rust_semantics_sha256": "c3157e84304e5ff5307a80097bcba074c450a2d62f5d9d9d4ff72faef744e127"
+    },
+    {
+      "label": "expiry",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "2fa4d08ef690afb5a2086e704f78f29d642b7ff63f5e084957beaee2aa6ced0b",
+      "rust_semantics_sha256": "2fa4d08ef690afb5a2086e704f78f29d642b7ff63f5e084957beaee2aa6ced0b"
+    },
+    {
+      "label": "expiry-after",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "2fa4d08ef690afb5a2086e704f78f29d642b7ff63f5e084957beaee2aa6ced0b",
+      "rust_semantics_sha256": "2fa4d08ef690afb5a2086e704f78f29d642b7ff63f5e084957beaee2aa6ced0b"
+    },
+    {
+      "label": "only-upstream-v4",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "5fed6dee66e8f43df58a7a6ef66c0800a70344a85b79789be08638ace5b8b259",
+      "rust_semantics_sha256": "5fed6dee66e8f43df58a7a6ef66c0800a70344a85b79789be08638ace5b8b259"
+    },
+    {
+      "label": "only-upstream-v6",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "51ca8f7538ac7395bee3e57ecb1c7363af318765abfa4e5f0cab4f789420433d",
+      "rust_semantics_sha256": "51ca8f7538ac7395bee3e57ecb1c7363af318765abfa4e5f0cab4f789420433d"
+    },
+    {
+      "label": "warm-drop",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "cf73be3b9a7e901f56bf3e32b515b7031f43757393647f6c1a2a9eeac2ce1418",
+      "rust_semantics_sha256": "cf73be3b9a7e901f56bf3e32b515b7031f43757393647f6c1a2a9eeac2ce1418"
+    },
+    {
+      "label": "failover-drop",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "2e6c0cb9edf9eee8bea3b7992c2020f1d7d3adccad23772e2510f7f748f04022",
+      "rust_semantics_sha256": "2e6c0cb9edf9eee8bea3b7992c2020f1d7d3adccad23772e2510f7f748f04022"
+    },
+    {
+      "label": "warm-servfail",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "01fd76b0134f96129603db023dd68233ed6682da321326beba5c449c020197d7",
+      "rust_semantics_sha256": "01fd76b0134f96129603db023dd68233ed6682da321326beba5c449c020197d7"
+    },
+    {
+      "label": "failover-servfail",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=2": 1
+      },
+      "rust_status": {
+        "rcode=2": 1
+      },
+      "c_semantics_sha256": "6988b1faf1c257a2355ab8994fed8a34adaa430a33aeeddaec85c7cf80b7cca3",
+      "rust_semantics_sha256": "6988b1faf1c257a2355ab8994fed8a34adaa430a33aeeddaec85c7cf80b7cca3"
+    },
+    {
+      "label": "warm-refused",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "5167ae2f47c66d1445ebed4ea668bbf7a2ebdb8decfe0c5fd767a2935f092bad",
+      "rust_semantics_sha256": "5167ae2f47c66d1445ebed4ea668bbf7a2ebdb8decfe0c5fd767a2935f092bad"
+    },
+    {
+      "label": "failover-refused",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "88879599664bbe9f4bdd999e855b30dde846f5d27797d3f54c423cc1420c43fd",
+      "rust_semantics_sha256": "88879599664bbe9f4bdd999e855b30dde846f5d27797d3f54c423cc1420c43fd"
+    },
+    {
+      "label": "all-servfail",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=2": 1
+      },
+      "rust_status": {
+        "rcode=2": 1
+      },
+      "c_semantics_sha256": "f04c17fe9f01b152ce202fe28fea5af5c2dce31bcc6c607a3ce330d89b751e9d",
+      "rust_semantics_sha256": "f04c17fe9f01b152ce202fe28fea5af5c2dce31bcc6c607a3ce330d89b751e9d"
+    },
+    {
+      "label": "recover-servfail",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "a637e486797176bf336275781c99b995a90ced48d7f9dac8a648ebdc1e98e06c",
+      "rust_semantics_sha256": "a637e486797176bf336275781c99b995a90ced48d7f9dac8a648ebdc1e98e06c"
+    },
+    {
+      "label": "all-refused",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=5": 1
+      },
+      "rust_status": {
+        "rcode=5": 1
+      },
+      "c_semantics_sha256": "15daa60c853f373a8e18c57478be72edb4bffa79a4163f5d7b71d482cd5eacd2",
+      "rust_semantics_sha256": "15daa60c853f373a8e18c57478be72edb4bffa79a4163f5d7b71d482cd5eacd2"
+    },
+    {
+      "label": "recover-refused",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "e1bc0ce4bcac2d35fdfc6fea262ffad6e54f2d64c8b0bfdf15dd97efebdc5707",
+      "rust_semantics_sha256": "e1bc0ce4bcac2d35fdfc6fea262ffad6e54f2d64c8b0bfdf15dd97efebdc5707"
+    },
+    {
+      "label": "all-drop",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "TimeoutError: timed out": 1
+      },
+      "rust_status": {
+        "TimeoutError: timed out": 1
+      },
+      "c_semantics_sha256": "014a96e980d1535696504c4e1e75ddb2166eb8460951b44bce9d753c44af6277",
+      "rust_semantics_sha256": "014a96e980d1535696504c4e1e75ddb2166eb8460951b44bce9d753c44af6277"
+    },
+    {
+      "label": "recover-drop",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "f88a3420c73eb97560fbdf9972d93016704b30f669c6cc872b4cfa66ebc7b4a8",
+      "rust_semantics_sha256": "f88a3420c73eb97560fbdf9972d93016704b30f669c6cc872b4cfa66ebc7b4a8"
+    },
+    {
+      "label": "parallel-unique",
+      "clients_each": 64,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 64
+      },
+      "rust_status": {
+        "rcode=0": 64
+      },
+      "c_semantics_sha256": "5c29e5429d28d479fea271201c239ae34153e20054781fe332590d059ff73967",
+      "rust_semantics_sha256": "5c29e5429d28d479fea271201c239ae34153e20054781fe332590d059ff73967"
+    },
+    {
+      "label": "parallel-duplicate",
+      "clients_each": 48,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 48
+      },
+      "rust_status": {
+        "rcode=0": 48
+      },
+      "c_semantics_sha256": "338c6fbd2d73f7f3c548802b6ae7e62873f35e9b9c13025963a1f609c636ac19",
+      "rust_semantics_sha256": "338c6fbd2d73f7f3c548802b6ae7e62873f35e9b9c13025963a1f609c636ac19"
+    },
+    {
+      "label": "parallel-tcp",
+      "clients_each": 24,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 24
+      },
+      "rust_status": {
+        "rcode=0": 24
+      },
+      "c_semantics_sha256": "48c7396627b532920c666703a660a0194e5824f2f01f9f1109c2c1897b4a55af",
+      "rust_semantics_sha256": "48c7396627b532920c666703a660a0194e5824f2f01f9f1109c2c1897b4a55af"
+    },
+    {
+      "label": "pipeline",
+      "clients_each": 12,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 12
+      },
+      "rust_status": {
+        "rcode=0": 12
+      },
+      "c_semantics_sha256": "fd6e496e2e7d48f9a77cc9c5c916ae9ec66ae76100706a9f29953ee9c1d08ede",
+      "rust_semantics_sha256": "fd6e496e2e7d48f9a77cc9c5c916ae9ec66ae76100706a9f29953ee9c1d08ede"
+    },
+    {
+      "label": "idle-tcp-udp-health",
+      "clients_each": 16,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 16
+      },
+      "rust_status": {
+        "rcode=0": 16
+      },
+      "c_semantics_sha256": "a86f49edaf410fbbd871241efae41a63f377c5158cea71dc0e9888e19c30a563",
+      "rust_semantics_sha256": "a86f49edaf410fbbd871241efae41a63f377c5158cea71dc0e9888e19c30a563"
+    },
+    {
+      "label": "health",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c0d1a8aa0824e3fca88da79bc8df0d1a3d7cb4eae3acc5b8d846174c17b41a19",
+      "rust_semantics_sha256": "c0d1a8aa0824e3fca88da79bc8df0d1a3d7cb4eae3acc5b8d846174c17b41a19"
+    },
+    {
+      "label": "saturation",
+      "clients_each": 176,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "TimeoutError: timed out": 149,
+        "rcode=5": 27
+      },
+      "rust_status": {
+        "TimeoutError: timed out": 149,
+        "rcode=5": 27
+      },
+      "c_semantics_sha256": "20cfc176554f80047accbf64e2a84acd497f3d6cfa08ce52df47165b649fdc98",
+      "rust_semantics_sha256": "20cfc176554f80047accbf64e2a84acd497f3d6cfa08ce52df47165b649fdc98"
+    },
+    {
+      "label": "saturation-cached-health",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c0d1a8aa0824e3fca88da79bc8df0d1a3d7cb4eae3acc5b8d846174c17b41a19",
+      "rust_semantics_sha256": "c0d1a8aa0824e3fca88da79bc8df0d1a3d7cb4eae3acc5b8d846174c17b41a19"
+    },
+    {
+      "label": "saturation-new-before-expiry",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=5": 1
+      },
+      "rust_status": {
+        "rcode=5": 1
+      },
+      "c_semantics_sha256": "177db06e36a3c43259388926403f0d23467c2b9c5dcbded25bce3221a0548c2b",
+      "rust_semantics_sha256": "177db06e36a3c43259388926403f0d23467c2b9c5dcbded25bce3221a0548c2b"
+    },
+    {
+      "label": "saturation-new-after-expiry",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "7959bdf860a573c1f4393d3293cbfa35918e8d4ad52e77be2a36327fa0721cf4",
+      "rust_semantics_sha256": "7959bdf860a573c1f4393d3293cbfa35918e8d4ad52e77be2a36327fa0721cf4"
+    },
+    {
+      "label": "saturation-parallel-after-expiry",
+      "clients_each": 48,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 48
+      },
+      "rust_status": {
+        "rcode=0": 48
+      },
+      "c_semantics_sha256": "0fc3590e024a1350d8466547ebfe4a108a24f6b87ad39531784bef832bfe6c55",
+      "rust_semantics_sha256": "0fc3590e024a1350d8466547ebfe4a108a24f6b87ad39531784bef832bfe6c55"
+    }
+  ],
+  "upstream": {
+    "c": {
+      "requests": 420,
+      "by_stage": {
+        "ad": 2,
+        "all-drop": 5,
+        "all-refused": 5,
+        "all-servfail": 5,
+        "basic-v4-tcp-1": 1,
+        "basic-v4-tcp-28": 1,
+        "basic-v4-udp-1": 4,
+        "basic-v4-udp-28": 1,
+        "basic-v6-tcp-1": 1,
+        "basic-v6-tcp-28": 1,
+        "basic-v6-udp-1": 1,
+        "basic-v6-udp-28": 1,
+        "cd": 2,
+        "cname": 1,
+        "cname-aaaa": 1,
+        "expiry": 2,
+        "failover-drop": 5,
+        "failover-refused": 5,
+        "failover-servfail": 5,
+        "health": 1,
+        "https": 2,
+        "idle-tcp-udp-health": 16,
+        "large": 2,
+        "large-noedns": 2,
+        "localhost-rebind": 1,
+        "localhost-rebind6": 1,
+        "nodata": 1,
+        "nx": 1,
+        "only-upstream-v4": 1,
+        "only-upstream-v6": 5,
+        "parallel-duplicate": 1,
+        "parallel-tcp": 24,
+        "parallel-unique": 67,
+        "pipeline": 12,
+        "rebind": 2,
+        "rebind6": 1,
+        "recover-drop": 1,
+        "recover-refused": 4,
+        "recover-servfail": 1,
+        "saturation": 158,
+        "saturation-recovery": 52,
+        "truncation": 2,
+        "txt": 2,
+        "warm-drop": 5,
+        "warm-refused": 1,
+        "warm-servfail": 5
+      }
+    },
+    "rust": {
+      "requests": 420,
+      "by_stage": {
+        "ad": 2,
+        "all-drop": 5,
+        "all-refused": 5,
+        "all-servfail": 5,
+        "basic-v4-tcp-1": 1,
+        "basic-v4-tcp-28": 1,
+        "basic-v4-udp-1": 4,
+        "basic-v4-udp-28": 1,
+        "basic-v6-tcp-1": 1,
+        "basic-v6-tcp-28": 1,
+        "basic-v6-udp-1": 1,
+        "basic-v6-udp-28": 1,
+        "cd": 2,
+        "cname": 1,
+        "cname-aaaa": 1,
+        "expiry": 2,
+        "failover-drop": 5,
+        "failover-refused": 5,
+        "failover-servfail": 5,
+        "health": 1,
+        "https": 2,
+        "idle-tcp-udp-health": 16,
+        "large": 2,
+        "large-noedns": 2,
+        "localhost-rebind": 1,
+        "localhost-rebind6": 1,
+        "nodata": 1,
+        "nx": 1,
+        "only-upstream-v4": 1,
+        "only-upstream-v6": 5,
+        "parallel-duplicate": 1,
+        "parallel-tcp": 24,
+        "parallel-unique": 67,
+        "pipeline": 12,
+        "rebind": 2,
+        "rebind6": 1,
+        "recover-drop": 1,
+        "recover-refused": 4,
+        "recover-servfail": 1,
+        "saturation": 158,
+        "saturation-recovery": 52,
+        "truncation": 2,
+        "txt": 2,
+        "warm-drop": 5,
+        "warm-refused": 1,
+        "warm-servfail": 5
+      }
+    },
+    "endpoint_query_counts_equal": false,
+    "c_only_counts": [
+      [
+        "all-refused",
+        "all-refused.audit.example",
+        1,
+        3,
+        false,
+        "refused",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-46.audit.example",
+        28,
+        1,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-46.audit.example",
+        28,
+        2,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-46.audit.example",
+        28,
+        3,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-58.audit.example",
+        28,
+        1,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "recover-servfail",
+        "recover-servfail.audit.example",
+        1,
+        3,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-123.audit.example",
+        1,
+        1,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-123.audit.example",
+        1,
+        2,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-123.audit.example",
+        1,
+        3,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-18.audit.example",
+        28,
+        1,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-18.audit.example",
+        28,
+        2,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-18.audit.example",
+        28,
+        3,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation-recovery",
+        "after-saturation-27.audit.example",
+        1,
+        1,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "saturation-recovery",
+        "after-saturation-27.audit.example",
+        1,
+        2,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "saturation-recovery",
+        "after-saturation-27.audit.example",
+        1,
+        3,
+        false,
+        "answer",
+        1
+      ]
+    ],
+    "rust_only_counts": [
+      [
+        "all-refused",
+        "all-refused.audit.example",
+        1,
+        0,
+        false,
+        "refused",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-49.audit.example",
+        1,
+        1,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-49.audit.example",
+        1,
+        2,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-49.audit.example",
+        1,
+        3,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "parallel-unique",
+        "unique-58.audit.example",
+        28,
+        0,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "recover-servfail",
+        "recover-servfail.audit.example",
+        1,
+        0,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-122.audit.example",
+        28,
+        1,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-122.audit.example",
+        28,
+        2,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-122.audit.example",
+        28,
+        3,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-19.audit.example",
+        1,
+        1,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-19.audit.example",
+        1,
+        2,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation",
+        "saturation-19.audit.example",
+        1,
+        3,
+        false,
+        "drop",
+        1
+      ],
+      [
+        "saturation-recovery",
+        "after-saturation-25.audit.example",
+        1,
+        1,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "saturation-recovery",
+        "after-saturation-25.audit.example",
+        1,
+        2,
+        false,
+        "answer",
+        1
+      ],
+      [
+        "saturation-recovery",
+        "after-saturation-25.audit.example",
+        1,
+        3,
+        false,
+        "answer",
+        1
+      ]
+    ]
+  },
+  "harness_errors": {
+    "c": [],
+    "rust": []
+  },
+  "process_exits": {
+    "c": [
+      0,
+      0
+    ],
+    "rust": [
+      0,
+      0
+    ]
+  },
+  "ubus_checks": {
+    "c": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ],
+    "rust": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ]
+  },
+  "totals": {
+    "scenarios": 71,
+    "exchanges_each": 452,
+    "client_semantic_mismatches": 0
+  }
+}

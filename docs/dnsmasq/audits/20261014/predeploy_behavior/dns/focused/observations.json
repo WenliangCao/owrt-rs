@@ -1,0 +1,2046 @@
+{
+  "scope": "Synthetic CNAME names and controlled public terminal addresses only; no captured resolver or client identities",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+  "scenarios": [
+    {
+      "label": "direct-terminal-before-udp",
+      "c": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "rust": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "upstream": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "label": "direct-terminal-before-tcp",
+      "c": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "rust": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "upstream": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "label": "local-chain",
+      "c": [
+        {
+          "host": "local-chain.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20736,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        },
+        {
+          "host": "local-chain.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20737,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        },
+        {
+          "host": "local-chain.audit.example",
+          "type": 16,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20738,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                16,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        },
+        {
+          "host": "local-chain.audit.example",
+          "type": 255,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20739,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                255,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20736,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        },
+        {
+          "host": "local-chain.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20737,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain.audit.example",
+          "type": 16,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20738,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 16,
+                "class": 1,
+                "ttl": 120,
+                "data": "0568656c6c6f"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain.audit.example",
+          "type": 255,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20739,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.audit.example",
+                255,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.01
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.audit.example",
+            "type": 16,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.audit.example",
+            "type": 255,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "local-chain-invalid",
+      "c": [
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20736,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain-invalid.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.invalid"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.invalid",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20737,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        },
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 16,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20738,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                16,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        },
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 255,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20739,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                255,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20736,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain-invalid.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.invalid"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.invalid",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20737,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain-invalid.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.invalid"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.invalid",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 16,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20738,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                16,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain-invalid.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.invalid"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.invalid",
+                "type": 16,
+                "class": 1,
+                "ttl": 120,
+                "data": "0568656c6c6f"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain-invalid.audit.example",
+          "type": 255,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20739,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain-invalid.audit.example",
+                255,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain-invalid.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-terminal.invalid"
+              },
+              {
+                "section": "answer",
+                "name": "audit-terminal.invalid",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain-invalid.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain-invalid.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain-invalid.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain-invalid.audit.example",
+            "type": 16,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain-invalid.audit.example",
+            "type": 255,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "local-chain-outage",
+      "c": [
+        {
+          "host": "local-chain.outage.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20736,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.outage.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.outage.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-outage-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-outage-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        },
+        {
+          "host": "local-chain.outage.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20737,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.outage.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain.outage.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 20736,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.outage.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.outage.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-outage-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-outage-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        },
+        {
+          "host": "local-chain.outage.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "error": "TimeoutError: timed out",
+          "elapsed": 2.002
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain.outage.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain.outage.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.outage.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "drop"
+          }
+        ]
+      }
+    },
+    {
+      "label": "udp-local-chain-warm",
+      "c": [
+        {
+          "host": "local-chain.udp.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.udp.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.udp.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-udp-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-udp-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain.udp.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.udp.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.udp.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-udp-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-udp-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 3,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 2,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 2,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 3,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "new-tcp-after-udp-warm",
+      "c": [
+        {
+          "host": "local-chain.udp.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.udp.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain.udp.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.udp.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.udp.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-udp-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-udp-terminal.lan",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 3,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 2,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 2,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 3,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "udp-local-chain-aaaa",
+      "c": [
+        {
+          "host": "local-chain.udp.audit.example",
+          "type": 28,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.udp.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.udp.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-udp-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-udp-terminal.lan",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain.udp.audit.example",
+          "type": 28,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.udp.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.udp.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-udp-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-udp-terminal.lan",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 3,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 2,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 2,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 1,
+            "upstream": 3,
+            "tcp": false,
+            "action": "answer"
+          },
+          {
+            "host": "local-chain.udp.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "direct-terminal-udp",
+      "c": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "rust": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "upstream": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "label": "direct-terminal-tcp",
+      "c": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "rust": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                28,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "upstream": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "label": "direct-terminal-a-udp",
+      "c": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 119,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "rust": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.0
+        }
+      ],
+      "upstream": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "label": "direct-terminal-a-tcp",
+      "c": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "audit-terminal.lan",
+                "type": 1,
+                "class": 1,
+                "ttl": 119,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "rust": [
+        {
+          "host": "audit-terminal.lan",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33155,
+            "questions": [
+              [
+                "audit-terminal.lan",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.001
+        }
+      ],
+      "upstream": {
+        "c": [],
+        "rust": []
+      }
+    },
+    {
+      "label": "fresh-alias-tcp-aaaa",
+      "c": [
+        {
+          "host": "local-chain.fresh.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.fresh.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.fresh.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-fresh-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-fresh-terminal.lan",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        }
+      ],
+      "rust": [
+        {
+          "host": "local-chain.fresh.audit.example",
+          "type": 28,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "local-chain.fresh.audit.example",
+                28,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "local-chain.fresh.audit.example",
+                "type": 5,
+                "class": 1,
+                "ttl": 120,
+                "data": "audit-fresh-terminal.lan"
+              },
+              {
+                "section": "answer",
+                "name": "audit-fresh-terminal.lan",
+                "type": 28,
+                "class": 1,
+                "ttl": 120,
+                "data": "2001:4860:4860::8844"
+              }
+            ]
+          },
+          "elapsed": 0.012
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "local-chain.fresh.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "local-chain.fresh.audit.example",
+            "type": 28,
+            "upstream": 0,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tcp-warm-tcp-close",
+      "c": [
+        {
+          "host": "tcp-warm-tcp-close.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-warm-tcp-close.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-warm-tcp-close.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "rust": [
+        {
+          "host": "tcp-warm-tcp-close.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-warm-tcp-close.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-warm-tcp-close.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "tcp-warm-tcp-close.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "tcp-warm-tcp-close.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tcp-failover-tcp-close",
+      "c": [
+        {
+          "host": "tcp-failover-tcp-close.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-failover-tcp-close.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-failover-tcp-close.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.033
+        }
+      ],
+      "rust": [
+        {
+          "host": "tcp-failover-tcp-close.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-failover-tcp-close.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-failover-tcp-close.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.032
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "tcp-failover-tcp-close.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "tcp-close"
+          },
+          {
+            "host": "tcp-failover-tcp-close.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": true,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "tcp-failover-tcp-close.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "tcp-close"
+          },
+          {
+            "host": "tcp-failover-tcp-close.audit.example",
+            "type": 1,
+            "upstream": 1,
+            "tcp": true,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tcp-warm-servfail",
+      "c": [
+        {
+          "host": "tcp-warm-servfail.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-warm-servfail.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-warm-servfail.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "rust": [
+        {
+          "host": "tcp-warm-servfail.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-warm-servfail.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-warm-servfail.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "tcp-warm-servfail.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "tcp-warm-servfail.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tcp-failover-servfail",
+      "c": [
+        {
+          "host": "tcp-failover-servfail.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33154,
+            "questions": [
+              [
+                "tcp-failover-servfail.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.003
+        }
+      ],
+      "rust": [
+        {
+          "host": "tcp-failover-servfail.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33154,
+            "questions": [
+              [
+                "tcp-failover-servfail.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.002
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "tcp-failover-servfail.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "servfail"
+          }
+        ],
+        "rust": [
+          {
+            "host": "tcp-failover-servfail.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "servfail"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tcp-warm-refused",
+      "c": [
+        {
+          "host": "tcp-warm-refused.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-warm-refused.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-warm-refused.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "rust": [
+        {
+          "host": "tcp-warm-refused.audit.example",
+          "type": 1,
+          "tcp": false,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33152,
+            "questions": [
+              [
+                "tcp-warm-refused.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": [
+              {
+                "section": "answer",
+                "name": "tcp-warm-refused.audit.example",
+                "type": 1,
+                "class": 1,
+                "ttl": 120,
+                "data": "8.8.4.4"
+              }
+            ]
+          },
+          "elapsed": 0.011
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "tcp-warm-refused.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ],
+        "rust": [
+          {
+            "host": "tcp-warm-refused.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": false,
+            "action": "answer"
+          }
+        ]
+      }
+    },
+    {
+      "label": "tcp-failover-refused",
+      "c": [
+        {
+          "host": "tcp-failover-refused.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33157,
+            "questions": [
+              [
+                "tcp-failover-refused.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.003
+        }
+      ],
+      "rust": [
+        {
+          "host": "tcp-failover-refused.audit.example",
+          "type": 1,
+          "tcp": true,
+          "ipv6": false,
+          "response": {
+            "id": 16640,
+            "flags": 33157,
+            "questions": [
+              [
+                "tcp-failover-refused.audit.example",
+                1,
+                1
+              ]
+            ],
+            "records": []
+          },
+          "elapsed": 0.002
+        }
+      ],
+      "upstream": {
+        "c": [
+          {
+            "host": "tcp-failover-refused.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "refused"
+          }
+        ],
+        "rust": [
+          {
+            "host": "tcp-failover-refused.audit.example",
+            "type": 1,
+            "upstream": 0,
+            "tcp": true,
+            "action": "refused"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+  "cases": {
+    "c": [
+      {
+        "label": "public-cname-warm",
+        "clients": [
+          {
+            "host": "cname.public.audit.example",
+            "type": 1,
+            "tcp": true,
+            "ipv6": false,
+            "response": {
+              "id": 16640,
+              "flags": 33152,
+              "questions": [
+                [
+                  "cname.public.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "cname.public.audit.example",
+                  "type": 5,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "target.audit.example"
+                },
+                {
+                  "section": "answer",
+                  "name": "target.audit.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "8.8.4.4"
+                }
+              ]
+            },
+            "elapsed": 0.013
+          }
+        ],
+        "daemon_alive": true
+      },
+      {
+        "label": "public-terminal-a-udp",
+        "clients": [
+          {
+            "host": "target.audit.example",
+            "type": 1,
+            "tcp": false,
+            "ipv6": false,
+            "response": {
+              "id": 16640,
+              "flags": 33152,
+              "questions": [
+                [
+                  "target.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "target.audit.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "8.8.4.4"
+                }
+              ]
+            },
+            "elapsed": 0.0
+          }
+        ],
+        "daemon_alive": true
+      },
+      {
+        "label": "public-terminal-a-tcp",
+        "clients": [
+          {
+            "host": "target.audit.example",
+            "type": 1,
+            "tcp": true,
+            "ipv6": false,
+            "response": {
+              "id": 16640,
+              "flags": 33152,
+              "questions": [
+                [
+                  "target.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "target.audit.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "8.8.4.4"
+                }
+              ]
+            },
+            "elapsed": 0.001
+          }
+        ],
+        "daemon_alive": true
+      }
+    ],
+    "rust": [
+      {
+        "label": "public-cname-warm",
+        "clients": [
+          {
+            "host": "cname.public.audit.example",
+            "type": 1,
+            "tcp": true,
+            "ipv6": false,
+            "response": {
+              "id": 16640,
+              "flags": 33152,
+              "questions": [
+                [
+                  "cname.public.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "cname.public.audit.example",
+                  "type": 5,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "target.audit.example"
+                },
+                {
+                  "section": "answer",
+                  "name": "target.audit.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "8.8.4.4"
+                }
+              ]
+            },
+            "elapsed": 0.012
+          }
+        ],
+        "daemon_alive": true
+      },
+      {
+        "label": "public-terminal-a-udp",
+        "clients": [
+          {
+            "host": "target.audit.example",
+            "type": 1,
+            "tcp": false,
+            "ipv6": false,
+            "response": {
+              "id": 16640,
+              "flags": 33152,
+              "questions": [
+                [
+                  "target.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "target.audit.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "8.8.4.4"
+                }
+              ]
+            },
+            "elapsed": 0.0
+          }
+        ],
+        "daemon_alive": true
+      },
+      {
+        "label": "public-terminal-a-tcp",
+        "clients": [
+          {
+            "host": "target.audit.example",
+            "type": 1,
+            "tcp": true,
+            "ipv6": false,
+            "response": {
+              "id": 16640,
+              "flags": 33152,
+              "questions": [
+                [
+                  "target.audit.example",
+                  1,
+                  1
+                ]
+              ],
+              "records": [
+                {
+                  "section": "answer",
+                  "name": "target.audit.example",
+                  "type": 1,
+                  "class": 1,
+                  "ttl": 120,
+                  "data": "8.8.4.4"
+                }
+              ]
+            },
+            "elapsed": 0.001
+          }
+        ],
+        "daemon_alive": true
+      }
+    ]
+  },
+  "upstream": {
+    "c": [
+      {
+        "stage": "public-cname-warm",
+        "host": "cname.public.audit.example",
+        "type": 1,
+        "upstream": 0,
+        "tcp": true,
+        "action": "answer"
+      }
+    ],
+    "rust": [
+      {
+        "stage": "public-cname-warm",
+        "host": "cname.public.audit.example",
+        "type": 1,
+        "upstream": 0,
+        "tcp": true,
+        "action": "answer"
+      }
+    ]
+  }
+}

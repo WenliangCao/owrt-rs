@@ -1,0 +1,452 @@
+{
+  "scope": "Actual captured configuration, exact image C ELF and frozen Rust release; isolated oracle network/mount/PID namespaces",
+  "comparison": "Ignore elapsed time only; keep DNS IDs, flags, questions, ordered records, TTLs, error category/text and daemon liveness",
+  "config_sha256": "273642923b52722c6b423c22d1586972e7475d78142c2f14185a940230ad9afe",
+  "config_identity_equal": true,
+  "c_binary_sha256": "097a9e21a2ca479cf5add1725e672d48179e7973eea836d030eafbea588cab87",
+  "rust_binary_sha256": "5931b2d114ae5c3e911775e8fd529dcf83ef8718e2c11b50916ce1164dab0966",
+  "executed_tool_sha256": {
+    "c": "f917621e2bb7b6cbeabead001cb66d6648f0ec054777924f04281f1015ef1657",
+    "rust": "f917621e2bb7b6cbeabead001cb66d6648f0ec054777924f04281f1015ef1657"
+  },
+  "source_result_sha256": {
+    "c": "fba3ef0bfcaddca45bcbe38b193c39bcb8754541faf299aab617b14af33d24c7",
+    "rust": "1739eaa6a902ef7f8eff34d169e14860028b1abdafa245f21b6e8fed786507c1"
+  },
+  "cases": [
+    {
+      "label": "direct-terminal-before-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "0a3b6bf49e67f8377002261980dcd499bb40bb175e9641a058a06db597ee0059",
+      "rust_semantics_sha256": "0a3b6bf49e67f8377002261980dcd499bb40bb175e9641a058a06db597ee0059"
+    },
+    {
+      "label": "direct-terminal-before-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=3": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "c018b0d8f2a9d552b0785d5b755402b1d7c82edbb99c0ffa8a46d08b51fa9005",
+      "rust_semantics_sha256": "c018b0d8f2a9d552b0785d5b755402b1d7c82edbb99c0ffa8a46d08b51fa9005"
+    },
+    {
+      "label": "local-chain",
+      "clients_each": 4,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 4
+      },
+      "rust_status": {
+        "rcode=0": 4
+      },
+      "c_semantics_sha256": "6f28869391964bae839dc2bbfaf8d98a523674466313e6f9c34a491661d8ca83",
+      "rust_semantics_sha256": "2a38b6955153bfea0086a9b38f79c875c4f2b974ca58704a0fd5dded116a324d"
+    },
+    {
+      "label": "local-chain-invalid",
+      "clients_each": 4,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 4
+      },
+      "rust_status": {
+        "rcode=0": 4
+      },
+      "c_semantics_sha256": "a9cc7a92805e730b8b3d45cfe55a383c32a7bd1de07da19cb421e310ace3505b",
+      "rust_semantics_sha256": "6d12416c01e557a7c8d5beda01d1e9931f8a485bae1b61a8fa1ebeb1f5392399"
+    },
+    {
+      "label": "local-chain-outage",
+      "clients_each": 2,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 2
+      },
+      "rust_status": {
+        "TimeoutError: timed out": 1,
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c3a864e4998d8d9e7076a4a0c7bcbb9cd09354e991daaec88080d591450b5ac2",
+      "rust_semantics_sha256": "40cd30dc97041bd6fa317f6a71e0b30434b5e18700988be7655fb63669dfe59c"
+    },
+    {
+      "label": "udp-local-chain-warm",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "c0c729a2565e60bfb38469ecaf045748fb9882d9d529071ed96290f100265e3d",
+      "rust_semantics_sha256": "c0c729a2565e60bfb38469ecaf045748fb9882d9d529071ed96290f100265e3d"
+    },
+    {
+      "label": "new-tcp-after-udp-warm",
+      "clients_each": 1,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "2a01ae32e153ea499d45f4df637d6e4b4ee78a6a505a5bd1fc7b249a0bdff61c",
+      "rust_semantics_sha256": "b935d2f4834c2f5b09d88124a3499fed98cec2fb7ae9d5889bdb872dc9747a25"
+    },
+    {
+      "label": "udp-local-chain-aaaa",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "fff6ccefa76fcb407ea2bbe34d718dd2357ff5e02cf63a220f79a86ae3cb027b",
+      "rust_semantics_sha256": "fff6ccefa76fcb407ea2bbe34d718dd2357ff5e02cf63a220f79a86ae3cb027b"
+    },
+    {
+      "label": "direct-terminal-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "834d68962de6a7572d2dbbd222fedbae9ccc1a91cc446cf03f260a54df5a06e3",
+      "rust_semantics_sha256": "0a3b6bf49e67f8377002261980dcd499bb40bb175e9641a058a06db597ee0059"
+    },
+    {
+      "label": "direct-terminal-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "aeb4c5e0e8005d813be7a0ac09614673d86334a24371926f684b5de995c5b58a",
+      "rust_semantics_sha256": "c018b0d8f2a9d552b0785d5b755402b1d7c82edbb99c0ffa8a46d08b51fa9005"
+    },
+    {
+      "label": "direct-terminal-a-udp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "bb4c6ed511a44e8b5c606873b935e69b0bd52db081b116fb8d6cc30d583074a0",
+      "rust_semantics_sha256": "00cc934bc0c3ed555e462249c20a01b293a244eaa9fe4b349cd29cc4b5d6635d"
+    },
+    {
+      "label": "direct-terminal-a-tcp",
+      "clients_each": 1,
+      "exact_client_semantics_equal": false,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=3": 1
+      },
+      "c_semantics_sha256": "73cf70c9b7465bb08ab66c038e16969a7e40b2bddbddf8e4f0d65291b28863a6",
+      "rust_semantics_sha256": "d045376f86f50d19e66a3abe3e0ee52bfb5db3326de6f23bcbe333769df8b1a3"
+    },
+    {
+      "label": "fresh-alias-tcp-aaaa",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "0e95fe57c75a66455be775eb48c78e1d87f0e5268c5ae76e0403d2e3c31a16a7",
+      "rust_semantics_sha256": "0e95fe57c75a66455be775eb48c78e1d87f0e5268c5ae76e0403d2e3c31a16a7"
+    },
+    {
+      "label": "tcp-warm-tcp-close",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "9a3e7a86baa683b107777b44797248d436a944735906af2189563c5280613c4c",
+      "rust_semantics_sha256": "9a3e7a86baa683b107777b44797248d436a944735906af2189563c5280613c4c"
+    },
+    {
+      "label": "tcp-failover-tcp-close",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "06fab44b70c013bf5738a97d533878428741ed873ea4523005ae4d1cdad34976",
+      "rust_semantics_sha256": "06fab44b70c013bf5738a97d533878428741ed873ea4523005ae4d1cdad34976"
+    },
+    {
+      "label": "tcp-warm-servfail",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "0cd531c404596e4c3a4f7e18769ce5ea19aa17a9a67bd7575c601f667f1460b3",
+      "rust_semantics_sha256": "0cd531c404596e4c3a4f7e18769ce5ea19aa17a9a67bd7575c601f667f1460b3"
+    },
+    {
+      "label": "tcp-failover-servfail",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=2": 1
+      },
+      "rust_status": {
+        "rcode=2": 1
+      },
+      "c_semantics_sha256": "c5a7f4c6d0ec3a6ae4a1b5bbbb3335cba283a8893c7b5fccd68d8756232c0ec3",
+      "rust_semantics_sha256": "c5a7f4c6d0ec3a6ae4a1b5bbbb3335cba283a8893c7b5fccd68d8756232c0ec3"
+    },
+    {
+      "label": "tcp-warm-refused",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=0": 1
+      },
+      "rust_status": {
+        "rcode=0": 1
+      },
+      "c_semantics_sha256": "9c71eb773d54e7fc550aecfb88cfb070018f68815396772af5dd07e50b67adb6",
+      "rust_semantics_sha256": "9c71eb773d54e7fc550aecfb88cfb070018f68815396772af5dd07e50b67adb6"
+    },
+    {
+      "label": "tcp-failover-refused",
+      "clients_each": 1,
+      "exact_client_semantics_equal": true,
+      "daemon_alive_both": true,
+      "c_status": {
+        "rcode=5": 1
+      },
+      "rust_status": {
+        "rcode=5": 1
+      },
+      "c_semantics_sha256": "6b1fe88d48165365fa7c005c1fa5d7c669882f557a933795a65d54d6587c2a6c",
+      "rust_semantics_sha256": "6b1fe88d48165365fa7c005c1fa5d7c669882f557a933795a65d54d6587c2a6c"
+    }
+  ],
+  "upstream": {
+    "c": {
+      "requests": 16,
+      "by_stage": {
+        "local-chain": 1,
+        "local-chain-invalid": 1,
+        "local-chain-outage": 1,
+        "tcp-failover-refused": 1,
+        "tcp-failover-servfail": 1,
+        "tcp-failover-tcp-close": 2,
+        "tcp-warm-refused": 1,
+        "tcp-warm-servfail": 1,
+        "tcp-warm-tcp-close": 1,
+        "udp-local-chain-controls": 6
+      }
+    },
+    "rust": {
+      "requests": 23,
+      "by_stage": {
+        "local-chain": 4,
+        "local-chain-invalid": 4,
+        "local-chain-outage": 2,
+        "tcp-failover-refused": 1,
+        "tcp-failover-servfail": 1,
+        "tcp-failover-tcp-close": 2,
+        "tcp-warm-refused": 1,
+        "tcp-warm-servfail": 1,
+        "tcp-warm-tcp-close": 1,
+        "udp-local-chain-controls": 6
+      }
+    },
+    "endpoint_query_counts_equal": false,
+    "c_only_counts": [
+      [
+        "udp-local-chain-controls",
+        "local-chain.udp.audit.example",
+        28,
+        0,
+        false,
+        "answer",
+        1
+      ]
+    ],
+    "rust_only_counts": [
+      [
+        "local-chain",
+        "local-chain.audit.example",
+        16,
+        0,
+        true,
+        "answer",
+        1
+      ],
+      [
+        "local-chain",
+        "local-chain.audit.example",
+        28,
+        0,
+        true,
+        "answer",
+        1
+      ],
+      [
+        "local-chain",
+        "local-chain.audit.example",
+        255,
+        0,
+        true,
+        "answer",
+        1
+      ],
+      [
+        "local-chain-invalid",
+        "local-chain-invalid.audit.example",
+        16,
+        0,
+        true,
+        "answer",
+        1
+      ],
+      [
+        "local-chain-invalid",
+        "local-chain-invalid.audit.example",
+        28,
+        0,
+        true,
+        "answer",
+        1
+      ],
+      [
+        "local-chain-invalid",
+        "local-chain-invalid.audit.example",
+        255,
+        0,
+        true,
+        "answer",
+        1
+      ],
+      [
+        "local-chain-outage",
+        "local-chain.outage.audit.example",
+        28,
+        0,
+        true,
+        "drop",
+        1
+      ],
+      [
+        "udp-local-chain-controls",
+        "local-chain.udp.audit.example",
+        28,
+        0,
+        true,
+        "answer",
+        1
+      ]
+    ]
+  },
+  "harness_errors": {
+    "c": [],
+    "rust": []
+  },
+  "process_exits": {
+    "c": [
+      0,
+      0
+    ],
+    "rust": [
+      0,
+      0
+    ]
+  },
+  "ubus_checks": {
+    "c": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ],
+    "rust": [
+      {
+        "case": "process-resources-released",
+        "actual": false,
+        "expected": false,
+        "pass": true
+      },
+      {
+        "case": "upstream-errors",
+        "actual": [],
+        "expected": [],
+        "pass": true
+      }
+    ]
+  },
+  "totals": {
+    "scenarios": 19,
+    "exchanges_each": 26,
+    "client_semantic_mismatches": 8
+  }
+}
