@@ -53,6 +53,7 @@ use dnsmasq_rs::tftp_runtime::RealFileOpener;
 use dnsmasq_rs::ubus_service::{ConnectError, DnsResult, UbusService};
 #[cfg(all(target_os = "linux", target_pointer_width = "64"))]
 use dnsmasq_rs::ubus_service::{DhcpEventFields, DhcpEventKind, DhcpLogging};
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::ffi::OsString;
 #[cfg(feature = "m6b-diagnostics")]
@@ -4813,7 +4814,7 @@ impl SinglePoll {
                 pending.token,
                 pending.udp,
                 pending.client,
-                pending.query,
+                pending.query.into(),
                 pending.mac,
                 pending.query_context,
             );
@@ -4824,7 +4825,7 @@ impl SinglePoll {
                     pending.incoming.interface, pending.loopback)
             });
             if admitted {
-                self.process_admitted_udp(pending.token, pending.udp, pending.incoming, pending.query);
+                self.process_admitted_udp(pending.token, pending.udp, pending.incoming, pending.query.into());
             }
         }
         if let Some(pending) = self.pending_interface_tcp.take() {
@@ -4975,12 +4976,18 @@ impl SinglePoll {
                 return true;
             }
         }
-        let query = self.udp_buffer[..incoming.len].to_vec();
-        self.process_admitted_udp(token, udp, incoming, query)
+        // The receive scratch is not used again until this synchronous owner
+        // turn returns. Only a deferred interface/MAC lookup retains a copy.
+        let buffer = std::mem::take(&mut self.udp_buffer);
+        let result = self.process_admitted_udp(
+            token, udp, incoming, Cow::Borrowed(&buffer[..incoming.len]),
+        );
+        self.udp_buffer = buffer;
+        result
     }
 
     fn process_admitted_udp(&mut self, token: SocketToken, udp: Arc<DnsSocket>,
-                            incoming: listeners::Incoming, query: Vec<u8>) -> bool {
+                            incoming: listeners::Incoming, query: Cow<'_, [u8]>) -> bool {
         let query_context = match self.service.try_borrow_mut() {
             Ok(mut parent) => parent.query_ids.next(false, Some(incoming.peer)),
             Err(_) => return true,
@@ -5059,7 +5066,7 @@ impl SinglePoll {
                     query_context,
                     listener: token,
                     client,
-                    query,
+                    query: query.into_owned(),
                     deadline: Instant::now() + Duration::from_secs(3),
                 });
             }
@@ -5120,7 +5127,7 @@ impl SinglePoll {
                     pending.listener,
                     udp,
                     pending.client,
-                    pending.query,
+                    pending.query.into(),
                     mac,
                     pending.query_context,
                 );
@@ -5135,7 +5142,7 @@ impl SinglePoll {
         token: SocketToken,
         udp: Arc<DnsSocket>,
         client: ClientRequest,
-        query: Vec<u8>,
+        query: Cow<'_, [u8]>,
         mac: Option<Vec<u8>>,
         query_context: dnsmasq_rs::query_logging::QueryContext,
     ) {
@@ -5163,7 +5170,7 @@ impl SinglePoll {
         }
         daemon.set_query_context(query_context);
         let packet = &query[..];
-        let mut decorated = self.config.edns.active().then(|| query.clone());
+        let mut decorated = self.config.edns.active().then(|| query.to_vec());
         let mut metadata = None;
         let answer = match dnsmasq_rs::dns::udp_query::inspect(packet, local.edns_packet_max) {
             dnsmasq_rs::dns::udp_query::Admission::Drop => return,
@@ -5233,7 +5240,7 @@ impl SinglePoll {
                             token,
                             udp,
                             client,
-                            query,
+                            query: query.into_owned(),
                             mac,
                         });
                     } else {
